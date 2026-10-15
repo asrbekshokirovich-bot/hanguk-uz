@@ -70,6 +70,7 @@ create table public.leads (
   sla_start_at timestamptz,
   sla_alerted_at timestamptz,
   quiz_submitted_at timestamptz,
+  replied_chat_at timestamptz,
   constraint leads_age_range check (age is null or (age between 10 and 99))
 );
 alter table public.leads enable row level security;
@@ -80,8 +81,8 @@ create trigger update_leads_updated_at before update on public.leads
   for each row execute function public.update_updated_at_column();
 
 create or replace function public.fn_leads_qualified_guard() returns trigger language plpgsql as
--- as in production since 20261012080000 (#400): a phone, or a chat that arrived as a new lead
-$$ begin new.qualified := coalesce(trim(new.phone), '') <> '' or new.new_lead_at is not null; return new; end $$;
+-- as in production since 20261015120000 (#431): a phone, new_lead_at, or a chat Hanguk started that was answered
+$$ begin new.qualified := coalesce(trim(new.phone), '') <> '' or new.new_lead_at is not null or new.replied_chat_at is not null; return new; end $$;
 create trigger trg_leads_qualified_guard before insert or update of phone on public.leads
   for each row execute function public.fn_leads_qualified_guard();
 
@@ -187,3 +188,7 @@ create trigger trg_mark_lead_contacted_on_reply after insert on public.messages
   for each row execute function public.fn_mark_lead_contacted_on_reply();
 create or replace function public.fn_lead_alerts_open(p_now timestamptz, p_start timestamptz) returns boolean language sql stable as
 $$ select true $$;
+
+-- live since 20261015120000 (#431)
+create or replace function public.fn_instagram_flow_texts() returns text[] language sql immutable as
+$$ select array['Rahmat! Ma''lumotlaringiz qabul qilindi. Tez orada operatorlarimiz siz bilan bog''lanadi.']::text[] $$;

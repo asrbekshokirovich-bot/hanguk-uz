@@ -94,6 +94,8 @@ as $$
   select trim(coalesce(p_content, '')) like '[template]%'
       or coalesce(p_metadata->'attachments'->0->>'type', '') = 'template'
       or trim(coalesce(p_content, '')) = any (public.fn_after_hours_reply_texts())
+      or regexp_replace(trim(coalesce(p_content, '')), '\s+', ' ', 'g') = any (public.fn_instagram_flow_texts())
+      or coalesce(p_metadata->>'auto_reply', '') not in ('', 'false')
 $$;
 
 create or replace function public.fn_queue_after_hours_reply()
@@ -208,14 +210,16 @@ create trigger trg_mark_lead_contacted_on_reply
   after insert on public.messages
   for each row execute function public.fn_mark_lead_contacted_on_reply();
 
--- the qualified guard, as in 20261012080000_new_lead_on_first_message.sql
+-- the qualified guard, as in 20261015120000_lead_intake_rules.sql (#431)
 create or replace function public.fn_leads_qualified_guard()
 returns trigger
 language plpgsql
 set search_path to 'public'
 as $function$
 begin
-  new.qualified := coalesce(trim(new.phone), '') <> '' or new.new_lead_at is not null;
+  new.qualified := coalesce(trim(new.phone), '') <> ''
+                or new.new_lead_at is not null
+                or new.replied_chat_at is not null;
   return new;
 end;
 $function$;

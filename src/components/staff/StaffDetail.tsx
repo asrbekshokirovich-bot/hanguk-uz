@@ -44,7 +44,7 @@ import { IntercomButton } from '@/components/intercom/IntercomButton';
 import { useIntercom } from '@/components/intercom/IntercomProvider';
 
 type DbRole = Database['public']['Enums']['app_role'];
-// 'lead_senior' (lead module v2, migration 20261015000000) is not in the
+// 'lead_senior' (lead module v2, migration 20261015230000) is not in the
 // generated enum yet, so it is added here rather than editing the generated file.
 type AppRole = DbRole | 'lead_senior';
 

@@ -24,7 +24,7 @@ import {
 import { Database } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
 
-// 'lead_senior' (lead module v2, migration 20261015000000) is not in the
+// 'lead_senior' (lead module v2, migration 20261015230000) is not in the
 // generated enum yet, so it is added here rather than editing the generated file.
 type AppRole = Database['public']['Enums']['app_role'] | 'lead_senior';
 

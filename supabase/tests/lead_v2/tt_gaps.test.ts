@@ -97,3 +97,65 @@ describe('office TV (spec 8.3, §14)', () => {
     expect(ids).not.toContain(cb.id);
   });
 });
+
+describe('a chat Hanguk started (owner, 2026-10-15; #431)', () => {
+  const staffMsg = (sender: string, minutesAgo: number, meta = '{}') =>
+    h.q(
+      `insert into messages (source, sender_id, direction, content, created_at, replied_by, metadata)
+       values ('instagram', $1, 'outgoing', 'Salom! Hanguk Consulting. Koreyada o''qish bo''yicha yozyapmiz.', now() - make_interval(mins => $2), $3, $4::jsonb)`,
+      [sender, minutesAgo, op, meta],
+    );
+  const clientMsg = (sender: string) =>
+    h.q(`insert into messages (source, sender_id, direction, content) values ('instagram', $1, 'incoming', 'Qiziq, batafsil?')`, [sender]);
+
+  it('the answer is today\'s work (BUGUN) with no countdown, lead first then the message', async () => {
+    await staffMsg('ig-out-1', 60);
+    const l = await addLead(h, { source: 'instagram', source_id: 'ig-out-1' });
+    await clientMsg('ig-out-1');
+    const a = await getLead(h, l.id);
+    expect(a.replied_chat_at).not.toBeNull();
+    expect(a.timer_kind).toBeNull();
+    expect(a.due_at).toBeNull();
+    expect(a.answered_at).not.toBeNull();
+    expect(a.stage).toBe('contacted');
+    expect(a.qualified).toBe(true);
+    const rows = await h.as<any>(op, `select bucket from lead_desk() where id = $1`, [l.id]);
+    expect(rows[0].bucket).toBe('bugun');
+  });
+
+  it('the same when the message is stored before the lead', async () => {
+    await staffMsg('ig-out-2', 60);
+    await clientMsg('ig-out-2');
+    const l = await addLead(h, { source: 'instagram', source_id: 'ig-out-2' });
+    const a = await getLead(h, l.id);
+    expect(a.replied_chat_at).not.toBeNull();
+    expect(a.due_at).toBeNull();
+  });
+
+  it('an automatic first message (bot, template, instant reply) does not make it "ours"', async () => {
+    await staffMsg('ig-out-3', 60, '{"auto_reply":"bot"}');
+    const l = await addLead(h, { source: 'instagram', source_id: 'ig-out-3' });
+    const a = await getLead(h, l.id);
+    expect(a.replied_chat_at).toBeNull();
+    expect(a.timer_kind).toBe('first');
+  });
+
+  it('later messages follow the ordinary "client is waiting" rule', async () => {
+    await staffMsg('ig-out-4', 60);
+    const l = await addLead(h, { source: 'instagram', source_id: 'ig-out-4' });
+    await h.q(`update leads set replied_chat_at = now() - interval '2 hours' where id = $1`, [l.id]);
+    await clientMsg('ig-out-4');
+    expect((await getLead(h, l.id)).timer_kind).toBe('reply');
+  });
+
+  it("recognises #431's Instagram flow texts and instant-reply marks as automatic", async () => {
+    const [{ a }] = await h.q<{ a: boolean }>(
+      `select fn_is_automatic_outgoing('Rahmat!  Ma''lumotlaringiz qabul qilindi.
+Tez orada operatorlarimiz siz bilan bog''lanadi.', '{}'::jsonb) as a`);
+    expect(a).toBe(true);
+    const [{ b }] = await h.q<{ b: boolean }>(`select fn_is_automatic_outgoing('Salom', '{"auto_reply":"instant"}'::jsonb) as b`);
+    expect(b).toBe(true);
+    const [{ c }] = await h.q<{ c: boolean }>(`select fn_is_automatic_outgoing('Salom', '{"auto_reply":"false"}'::jsonb) as c`);
+    expect(c).toBe(false);
+  });
+});

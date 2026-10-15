@@ -16,8 +16,8 @@
 --       document_handler  leads that became students
 --
 -- It does NOT change behaviour by itself: no trigger or job is installed here.
--- The state machine is 20261015002000_lead_v2_engine.sql; the old leads are
--- re-labelled by 20261015004000_lead_v2_migrate_old_leads.sql.
+-- The state machine is 20261015232000_lead_v2_engine.sql; the old leads are
+-- re-labelled by 20261015234000_lead_v2_migrate_old_leads.sql.
 --
 -- Spec deviations, on purpose:
 --   * `stage` is text + CHECK rather than a Postgres enum: values can be

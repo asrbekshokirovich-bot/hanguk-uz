@@ -14,11 +14,11 @@ catalog afterwards.
 
 | # | File | What it does | Risk |
 |---|------|--------------|------|
-| 1 | `20261015000000_lead_v2_role_lead_senior.sql` | adds the `lead_senior` role | none |
-| 2 | `20261015001000_lead_v2_schema.sql` | columns, tables, settings seed, **new RLS on `leads`** | operators stop seeing other operators' leads |
-| 3 | `20261015002000_lead_v2_engine.sql` | triggers, RPCs, scan; **drops the old alert trigger**, retires `fn_lead_sla_scan`, redefines 4 after-hours functions | old "Yangi lid" alert stops; compare the 4 functions with live first |
-| 4 | `20261015003000_lead_v2_jobs.sql` | SQL jobs + cron schedules (needs vault secret `uni_db_service_role_jwt`) | starts jobs that message the team |
-| 5 | `20261015004000_lead_v2_migrate_old_leads.sql` | marks existing leads `crm_generation='old'`, maps stages / lost reasons, fills queues (all waiting) | data change, idempotent |
+| 1 | `20261015230000_lead_v2_role_lead_senior.sql` | adds the `lead_senior` role | none |
+| 2 | `20261015231000_lead_v2_schema.sql` | columns, tables, settings seed, **new RLS on `leads`** | operators stop seeing other operators' leads |
+| 3 | `20261015232000_lead_v2_engine.sql` | triggers, RPCs, scan; **drops the old alert trigger**, retires `fn_lead_sla_scan`, redefines 4 after-hours functions | old "Yangi lid" alert stops; compare the 4 functions with live first |
+| 4 | `20261015233000_lead_v2_jobs.sql` | SQL jobs + cron schedules (needs vault secret `uni_db_service_role_jwt`) | starts jobs that message the team |
+| 5 | `20261015234000_lead_v2_migrate_old_leads.sql` | marks existing leads `crm_generation='old'`, maps stages / lost reasons, fills queues (all waiting) | data change, idempotent |
 
 Do 1–3 together with deploying the new edge functions and the new frontend, **not** separately: once 3 is applied the
 old CRM pages no longer alert, and until the new desk ships nobody sees the 10-minute timer.

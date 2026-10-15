@@ -79,7 +79,7 @@ describe('old leads -> Baza (spec §16)', () => {
     // ...and running the migration twice changes nothing
     await h.db.exec(
       (await import('node:fs')).readFileSync(
-        new URL('../../migrations/20261015004000_lead_v2_migrate_old_leads.sql', import.meta.url),
+        new URL('../../migrations/20261015234000_lead_v2_migrate_old_leads.sql', import.meta.url),
         'utf8',
       ),
     );

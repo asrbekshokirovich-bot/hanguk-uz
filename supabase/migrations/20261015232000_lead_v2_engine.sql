@@ -47,6 +47,7 @@ as $function$
 begin
   new.qualified := coalesce(trim(new.phone), '') <> ''
     or new.new_lead_at is not null
+    or new.replied_chat_at is not null
     or (new.crm_generation = 'new' and new.merged_into_id is null);
   return new;
 end;
@@ -353,6 +354,8 @@ begin
   -- A student writing is the manager's business, not a sales timer (spec §5).
   if l.stage = 'student' or l.matched_student_id is not null then return; end if;
   if l.due_at is not null and l.timer_kind in ('first', 'reply') then return; end if;
+  -- the answer to a chat Hanguk started (owner, 2026-10-15): no countdown for it
+  if l.replied_chat_at is not null and p_at <= l.replied_chat_at + interval '1 minute' then return; end if;
 
   if l.answered_at is null then
     -- Never handled in the new system (a brand-new lead, or an old card that
@@ -808,12 +811,38 @@ $$;
 -- 4. Triggers on leads
 ----------------------------------------------------------------------
 
+-- The owner's rule of 2026-10-15 (as 20261015120000_lead_intake_rules, #431):
+-- a chat that Hanguk STARTED (a real staff message, not an automatic one, more
+-- than a minute before) and the person answers is not a new lead: no 10-minute
+-- countdown. On the v2 desk it is today's work (BUGUN: next action today), it
+-- counts as answered (we wrote first), and replied_chat_at marks it. Later
+-- messages follow the ordinary "client is waiting" rule.
+create or replace function public.fn_lead_staff_started_at(p_source text, p_sender text)
+returns timestamptz
+language sql
+stable
+set search_path = public, pg_catalog
+as $$
+  select s.at
+    from (select min(m.created_at) as at, (array_agg(m.replied_by order by m.created_at))[1] as by
+            from public.messages m
+           where m.source = p_source and m.sender_id = p_sender and m.direction = 'outgoing'
+             and m.created_at < now() - interval '1 minute'
+             and not public.fn_is_automatic_outgoing(m.content, m.metadata)) s,
+         (select min(m.created_at) as at
+            from public.messages m
+           where m.source = p_source and m.sender_id = p_sender and m.direction = 'incoming') i
+   where s.at is not null and (i.at is null or s.at < i.at)
+$$;
+
 create or replace function public.fn_leads_v2_before_insert()
 returns trigger
 language plpgsql
 security definer
 set search_path = public, pg_catalog
 as $$
+declare
+  v_staff_at timestamptz;
 begin
   -- rows written by older code paths carry a status, not a stage
   if new.status = 'converted' or new.converted_to_student_id is not null then
@@ -836,7 +865,18 @@ begin
     if new.source = 'manual' and new.owner_id is null and new.created_by is not null then
       new.owner_id := new.created_by;
     end if;
-    if new.stage = 'new' and new.due_at is null and coalesce(new.source, '') <> 'learning_center' then
+    if new.source in ('instagram', 'telegram') and coalesce(trim(new.source_id), '') <> '' then
+      v_staff_at := public.fn_lead_staff_started_at(new.source, new.source_id);
+    end if;
+    if v_staff_at is not null then
+      new.replied_chat_at := coalesce(new.replied_chat_at, now());
+      new.answered_at := coalesce(new.answered_at, v_staff_at);
+      new.answer_kind := coalesce(new.answer_kind, 'chat');
+      new.stage := case when new.stage = 'new' then 'contacted' else new.stage end;
+      new.next_action_at := coalesce(new.next_action_at, now());
+      new.next_action_kind := coalesce(new.next_action_kind, 'task');
+      new.next_action_note := coalesce(new.next_action_note, 'Javob berdi — suhbatni biz boshlaganmiz');
+    elsif new.stage = 'new' and new.due_at is null and coalesce(new.source, '') <> 'learning_center' then
       new.timer_kind := 'first';
       new.timer_start_at := public.fn_lead_shift_into_hours(new.first_contact_at);
       new.due_at := public.fn_lead_due_at(new.first_contact_at);
@@ -1240,8 +1280,10 @@ as $$
   select trim(coalesce(p_content, '')) like '[template]%'
       or coalesce(p_metadata->'attachments'->0->>'type', '') = 'template'
       or coalesce(p_metadata->>'bot', '') in ('true', 't', '1')
-      or coalesce(p_metadata->>'auto_reply', '') <> ''
+      or coalesce(p_metadata->>'auto_reply', '') not in ('', 'false')
       or trim(coalesce(p_content, '')) = any (public.fn_after_hours_reply_texts())
+      -- the closing texts of the old Instagram question flows (20261015120000, #431)
+      or regexp_replace(trim(coalesce(p_content, '')), '\s+', ' ', 'g') = any (public.fn_instagram_flow_texts())
 $$;
 
 -- The reply for a chat that arrived at p_at (Uzbek), or null inside working hours.
