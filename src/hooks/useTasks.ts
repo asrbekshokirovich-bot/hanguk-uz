@@ -42,6 +42,20 @@ export interface TaskComment {
   };
 }
 
+async function fetchNames(userIds: (string | null)[]) {
+  const ids = [...new Set(userIds.filter(Boolean) as string[])];
+  const names = new Map<string, { full_name: string | null }>();
+  if (ids.length === 0) return names;
+  const { data } = await supabase
+    .from('profiles')
+    .select('user_id, full_name')
+    .in('user_id', ids);
+  for (const profile of data ?? []) {
+    names.set(profile.user_id, { full_name: profile.full_name });
+  }
+  return names;
+}
+
 export function useTasks() {
   const { user } = useAuth();
   const { activeIntakeId } = useActiveIntake();
@@ -57,38 +71,17 @@ export function useTasks() {
     ).order('created_at', { ascending: false });
 
     if (!error && data) {
-      // Fetch profiles for assignees and creators
-      const tasksWithProfiles = await Promise.all(
-        data.map(async (task) => {
-          let assignee = null;
-          let creator = null;
-
-          if (task.assigned_to) {
-            const { data: assigneeData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', task.assigned_to)
-              .maybeSingle();
-            assignee = assigneeData;
-          }
-
-          if (task.created_by) {
-            const { data: creatorData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', task.created_by)
-              .maybeSingle();
-            creator = creatorData;
-          }
-
-          return {
-            ...task,
-            assignee,
-            creator,
-          };
-        })
+      // One batched lookup for every assignee/creator instead of two queries per task
+      const names = await fetchNames(
+        data.flatMap((task) => [task.assigned_to, task.created_by]),
       );
-      setTasks(tasksWithProfiles as Task[]);
+      setTasks(
+        data.map((task) => ({
+          ...task,
+          assignee: task.assigned_to ? names.get(task.assigned_to) ?? null : null,
+          creator: task.created_by ? names.get(task.created_by) ?? null : null,
+        })) as Task[],
+      );
     }
     setLoading(false);
   };
@@ -145,6 +138,9 @@ export function useTasks() {
       updateData.completed_at = null;
     }
 
+    // Show the change immediately; the refetch below reconciles (or reverts on error)
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...updateData } : t)));
+
     const { error, data } = await supabase
       .from('tasks')
       .update(updateData)
@@ -163,8 +159,8 @@ export function useTasks() {
         due_date: data.due_date || undefined,
         assigned_to: data.assigned_to ? { id: data.assigned_to, name: '' } : undefined,
       });
-      await fetchTasks();
     }
+    await fetchTasks();
     return { error };
   };
 
@@ -242,20 +238,11 @@ export function useTasks() {
       .order('created_at', { ascending: true });
 
     if (!error && data) {
-      const commentsWithUsers = await Promise.all(
-        data.map(async (comment) => {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', comment.user_id)
-            .maybeSingle();
-
-          return {
-            ...comment,
-            user: userData,
-          };
-        })
-      );
+      const names = await fetchNames(data.map((comment) => comment.user_id));
+      const commentsWithUsers = data.map((comment) => ({
+        ...comment,
+        user: names.get(comment.user_id) ?? null,
+      }));
       return { data: commentsWithUsers as TaskComment[], error: null };
     }
     return { data: [], error };
