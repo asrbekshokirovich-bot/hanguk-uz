@@ -6,10 +6,12 @@ import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/auth_repository.dart' show signedInProvider;
+import '../../../catalog/data/catalog_filters.dart';
 import '../../../catalog/data/catalog_repository.dart';
 import '../../data/chances.dart';
 import '../../data/slots.dart';
 import '../discover_routes.dart';
+import '../filter_board_screen.dart' show boardResults;
 import 'fd_bottom_nav.dart';
 
 /// The home's tabs, by where they sit in the bottom nav (the round button
@@ -94,7 +96,12 @@ class AppNavOrb extends ConsumerWidget {
     final book = ref.watch(chanceBookProvider);
     final all = ref.watch(catalogProvider).value ?? const [];
     final picked = {for (final id in ref.watch(slotsProvider)) ?id};
-    final best = bestChance(book, all.where((u) => picked.contains(u.institutionId)));
+    // The picks' best chance; with none picked yet, the best of what the
+    // filters leave.
+    final pool = picked.isEmpty
+        ? boardResults(ref, all, ref.watch(catalogFilterProvider))
+        : all.where((u) => picked.contains(u.institutionId));
+    final best = bestChance(book, pool);
     return FdNavOrb(
       value: best == null ? '?%' : '$best%',
       label: l.fdNavAssess,

@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../design_system/seoul_night/seoul_night_tokens.dart' show SeoulColors;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
+import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton;
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
+import '../../map/data/map_repository.dart';
+import '../../map/presentation/widgets/university_map_view.dart';
 import '../data/chances.dart';
 import '../data/list_mode.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
 import 'filter_board_screen.dart';
-import 'map_screen.dart';
 import 'widgets/chance_badge.dart';
 import 'widgets/fd_parts.dart';
 
@@ -34,10 +37,8 @@ class UniversitiesScreen extends ConsumerWidget {
     final picked = ref.watch(slotsProvider).whereType<String>().length;
 
     var list = boardResults(ref, all, f);
-    if (book.answered) {
-      // Best chance first; the sort is stable, so ties keep the catalogue's order.
-      list = [...list]..sort((a, b) => (book.admission(b) ?? 0).compareTo(book.admission(a) ?? 0));
-    }
+    // Best chance first; the sort is stable, so ties keep the catalogue's order.
+    list = [...list]..sort((a, b) => (book.admission(b) ?? 0).compareTo(book.admission(a) ?? 0));
 
     return SafeArea(
       bottom: false,
@@ -71,7 +72,7 @@ class UniversitiesScreen extends ConsumerWidget {
           ),
           Expanded(
             child: mode == UniMode.map
-                ? const KoreaMapScreen(embedded: true)
+                ? const _RealMap()
                 : list.isEmpty
                 ? Center(
                     child: Padding(
@@ -195,6 +196,45 @@ class _Key extends StatelessWidget {
         const Spacer(),
         Text('♥ $picked/$kSlotCount', style: fdText(11, FontWeight.w700, FdColors.lime)),
       ],
+    );
+  }
+}
+
+/// The "Xarita" mode: the app's own map of every university, pins and all.
+class _RealMap extends ConsumerWidget {
+  const _RealMap();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final unis = ref.watch(universitiesProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 8),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: SeoulColors.mapWater,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+        ),
+        child: unis.when(
+          loading: () => const Center(child: CircularProgressIndicator(color: FdColors.lime)),
+          error: (_, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.uniDbLoadFailed, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.onPage)),
+                  const SizedBox(height: 14),
+                  HardButton(label: l.commonRetry, onPressed: () => ref.invalidate(universitiesProvider)),
+                ],
+              ),
+            ),
+          ),
+          data: (list) => UniversityMapView(universities: list),
+        ),
+      ),
     );
   }
 }
