@@ -4398,4 +4398,34 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get ucResultAccepted => 'Admitted 🎓';
+
+  @override
+  String get ucResultRejected => 'Not admitted';
+
+  @override
+  String get ucCongratsTitle => 'Congratulations!';
+
+  @override
+  String ucCongratsBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You were admitted to $count universities',
+      one: 'You were admitted to 1 university',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ucFinalRecommended =>
+      'Your consultant recommends this as your final university';
+
+  @override
+  String get ucFinalGo => 'I\'ll go to this university';
+
+  @override
+  String get ucFinalChosen => '✓ You chose this university';
 }

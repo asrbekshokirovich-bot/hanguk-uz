@@ -22,5 +22,10 @@ describe('stage notification text', () => {
       'A, B and C — confirmed. Your application is being prepared.',
     );
     expect(stageMessage('offline_sent', ['A'], 'vi').title).toBe('Đã gửi hồ sơ giấy 📮');
+    expect(stageMessage('admission_accepted', ['Kyungpook National University'], 'uz')).toEqual({
+      title: 'Tabriklaymiz! 🎓',
+      body: 'Siz qabul qilindingiz: Kyungpook National University.',
+    });
+    expect(stageMessage('final_university', ['A'], 'uz').body).toBe('Konsultantingiz tavsiyasi: A. Ilovada tasdiqlang.');
   });
 });

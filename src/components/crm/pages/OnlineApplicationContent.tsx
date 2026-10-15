@@ -13,6 +13,7 @@ import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { useStudentSurveyAnswers } from '@/hooks/useStudentSurveyAnswers';
 import { getInitials, useChosenUniversityGroups, type StudentLite } from '@/hooks/useChosenUniversityGroups';
 import { submissionKey, useUniversitySubmissions } from '@/hooks/useUniversitySubmissions';
+import AdmissionResultsMap from './AdmissionResultsMap';
 
 interface OnlineApplicationContentProps {
   /** The CRM's loaded students; anyone chosen for a university but not in it is fetched. */
@@ -29,9 +30,10 @@ interface OnlineApplicationContentProps {
 export default function OnlineApplicationContent({ students, loading }: OnlineApplicationContentProps) {
   const [search, setSearch] = useState('');
   const [openStudentId, setOpenStudentId] = useState<string | null>(null);
+  const [view, setView] = useState<'universities' | 'results'>('universities');
   const groups = useChosenUniversityGroups(students, search);
   const submissions = useUniversitySubmissions();
-  const { universities, studentById } = groups;
+  const { universities, studentById, confirmedByStudent, universityName } = groups;
 
   if (loading || groups.loading || submissions.loading) {
     return (
@@ -60,17 +62,52 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
 
   return (
     <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Universitet yoki talaba"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="inline-flex rounded-lg border border-border bg-card p-0.5" role="tablist">
+          {(
+            [
+              ['universities', "Universitetlar bo'yicha"],
+              ['results', 'Natijalar'],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={view === key}
+              onClick={() => setView(key)}
+              className={cn(
+                'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors',
+                view === key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {view === 'universities' && (
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Universitet yoki talaba"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
       </div>
 
-      {universities.length === 0 ? (
+      {view === 'results' ? (
+        <AdmissionResultsMap
+          choicesByStudent={confirmedByStudent}
+          studentById={studentById}
+          universityName={universityName}
+          submissions={submissions.byKey}
+          saving={submissions.save.isPending}
+          onSave={(studentId, institutionId, patch) => submissions.save.mutateAsync({ studentId, institutionId, patch })}
+        />
+      ) : universities.length === 0 ? (
         <EmptyState
           icon={FileText}
           title="Hali universitet tanlanmagan"

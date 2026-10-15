@@ -11,6 +11,8 @@ void main() {
   test('a university stage opens the university choices, other stages the journey', () {
     expect(notificationRoute({'type': 'stage', 'kind': 'university_offered'}), kUniversityChoicesPath);
     expect(notificationRoute({'type': 'stage', 'kind': 'university_confirmed'}), kUniversityChoicesPath);
+    expect(notificationRoute({'type': 'stage', 'kind': 'admission_accepted'}), kUniversityChoicesPath);
+    expect(notificationRoute({'type': 'stage', 'kind': 'final_university'}), kUniversityChoicesPath);
     expect(notificationRoute({'type': 'stage', 'kind': 'documents_ready'}), '/');
     expect(notificationRoute({'type': 'stage', 'kind': 'offline_sent'}), '/');
   });

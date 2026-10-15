@@ -1433,5 +1433,12 @@
   "ucChangeSend": "Gửi cho tư vấn viên",
   "ucSendError": "Không gửi được. Vui lòng thử lại.",
   "ucEmpty": "Tư vấn viên chưa đề xuất trường nào.",
-  "ucBannerPending": "{count} trường đang chờ bạn trả lời"
+  "ucBannerPending": "{count} trường đang chờ bạn trả lời",
+  "ucResultAccepted": "Đã trúng tuyển 🎓",
+  "ucResultRejected": "Không trúng tuyển",
+  "ucCongratsTitle": "Chúc mừng!",
+  "ucCongratsBody": "Bạn đã trúng tuyển {count} trường",
+  "ucFinalRecommended": "Tư vấn viên đề xuất đây là trường cuối cùng của bạn",
+  "ucFinalGo": "Tôi sẽ học trường này",
+  "ucFinalChosen": "✓ Bạn đã chọn trường này"
 }

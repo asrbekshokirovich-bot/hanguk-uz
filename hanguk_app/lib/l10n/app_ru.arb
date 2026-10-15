@@ -1433,5 +1433,12 @@
   "ucChangeSend": "Отправить консультанту",
   "ucSendError": "Не удалось отправить. Попробуйте ещё раз.",
   "ucEmpty": "Консультант пока не предложил университеты.",
-  "ucBannerPending": "{count} университета ждут вашего ответа"
+  "ucBannerPending": "{count} университета ждут вашего ответа",
+  "ucResultAccepted": "Вы приняты 🎓",
+  "ucResultRejected": "Не приняты",
+  "ucCongratsTitle": "Поздравляем!",
+  "ucCongratsBody": "{count, plural, one{Вы приняты в {count} университет} few{Вы приняты в {count} университета} other{Вы приняты в {count} университетов}}",
+  "ucFinalRecommended": "Консультант рекомендует этот университет как итоговый",
+  "ucFinalGo": "Поеду в этот университет",
+  "ucFinalChosen": "✓ Вы выбрали этот университет"
 }

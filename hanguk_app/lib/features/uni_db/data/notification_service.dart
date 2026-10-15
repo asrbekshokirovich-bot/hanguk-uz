@@ -148,7 +148,8 @@ String? notificationRoute(Map<String, dynamic> data) {
   }
   if (type == 'stage') {
     final kind = data['kind'];
-    return kind == 'university_offered' || kind == 'university_confirmed' ? kUniversityChoicesPath : '/';
+    const universityKinds = {'university_offered', 'university_confirmed', 'admission_accepted', 'final_university'};
+    return universityKinds.contains(kind) ? kUniversityChoicesPath : '/';
   }
   return null;
 }

@@ -69,12 +69,17 @@ class UniversityChoicesScreen extends ConsumerWidget {
                   data: (choices) {
                     if (choices.isEmpty) return _Message(text: l.ucEmpty);
                     final waiting = choices.where((c) => c.canAnswer).length;
+                    final admitted = choices.where((c) => c.outcome == AdmissionOutcome.accepted).length;
                     return RefreshIndicator(
                       color: FdColors.navy,
                       onRefresh: () => ref.refresh(myUniversityChoicesProvider.future),
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                         children: [
+                          if (admitted > 0) ...[
+                            _CongratsBanner(count: admitted),
+                            const SizedBox(height: 12),
+                          ],
                           if (waiting > 0) ...[
                             _NeedsAnswerBanner(count: waiting),
                             const SizedBox(height: 12),
@@ -147,6 +152,30 @@ class _NeedsAnswerBanner extends StatelessWidget {
   }
 }
 
+class _CongratsBanner extends StatelessWidget {
+  const _CongratsBanner({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      decoration: BoxDecoration(color: FdColors.good, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          const Lucide(LucideIcons.graduationCap, size: 30, color: Colors.white),
+          const SizedBox(height: 6),
+          Text(l.ucCongratsTitle, style: fdText(17, FontWeight.w800, Colors.white)),
+          const SizedBox(height: 2),
+          Text(l.ucCongratsBody(count), textAlign: TextAlign.center, style: fdText(12, FontWeight.w500, Colors.white)),
+        ],
+      ),
+    );
+  }
+}
+
 /// One offered university: rank, status, name, city, the score / tuition /
 /// deadline chips, and — while it waits for an answer — the two buttons.
 class UniversityChoiceCard extends ConsumerStatefulWidget {
@@ -175,6 +204,20 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
     }
   }
 
+  Future<void> _confirmFinal() async {
+    final l = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _sending = true);
+    try {
+      await confirmFinalUniversity(widget.choice.institutionId);
+      ref.invalidate(myUniversityChoicesProvider);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l.ucSendError)));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   Future<void> _askForChange() async {
     final result = await showModalBottomSheet<({ChangeReason reason, String note})>(
       context: context,
@@ -191,15 +234,23 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
     final l = AppLocalizations.of(context)!;
     final c = widget.choice;
     final locale = Localizations.localeOf(context).toString();
-    final status = c.isPartnerSlot && c.status != UniversityChoiceStatus.confirmed
-        ? (label: l.ucStatusPartner, fill: FdColors.tint, fg: FdColors.navy)
-        : _statusStyle(c.status, l);
+    final status = switch (c.outcome) {
+      AdmissionOutcome.accepted => (label: l.ucResultAccepted, fill: const Color(0xFFE5F6EC), fg: FdColors.good),
+      AdmissionOutcome.rejected => (label: l.ucResultRejected, fill: const Color(0xFFFDECEA), fg: FdColors.bad),
+      null when c.isPartnerSlot && c.status != UniversityChoiceStatus.confirmed =>
+        (label: l.ucStatusPartner, fill: FdColors.tint, fg: FdColors.navy),
+      null => _statusStyle(c.status, l),
+    };
     final contract = c.contractMin == null ? null : formatMoney(c.contractMin!, c.currency, locale);
 
     return HardShadowBox(
       radius: 16,
-      offset: c.canAnswer ? 4 : 0,
-      border: c.status == UniversityChoiceStatus.confirmed ? FdColors.good : FdColors.ink,
+      offset: c.canAnswer || c.needsFinalConfirm ? 4 : 0,
+      border: c.outcome == AdmissionOutcome.rejected
+          ? FdColors.bad
+          : c.status == UniversityChoiceStatus.confirmed
+          ? FdColors.good
+          : FdColors.ink,
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +312,28 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
               ],
             ),
           ],
-          if (c.status == UniversityChoiceStatus.confirmed) ...[
+          if (c.needsFinalConfirm) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: FdColors.tint,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: FdColors.navy, width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l.ucFinalRecommended, style: fdText(12, FontWeight.w800, FdColors.ink)),
+                  const SizedBox(height: 10),
+                  HardButton(label: l.ucFinalGo, loading: _sending, onPressed: _sending ? null : _confirmFinal),
+                ],
+              ),
+            ),
+          ] else if (c.isFinal) ...[
+            const SizedBox(height: 8),
+            Text(l.ucFinalChosen, style: fdText(12, FontWeight.w700, FdColors.good)),
+          ] else if (c.outcome == null && c.status == UniversityChoiceStatus.confirmed) ...[
             const SizedBox(height: 8),
             Text(l.ucConfirmedNote, style: fdText(12, FontWeight.w600, FdColors.good)),
           ],

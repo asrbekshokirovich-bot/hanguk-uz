@@ -19,7 +19,7 @@ class UniversityChoicesEntry extends ConsumerWidget {
     final choices = ref.watch(myUniversityChoicesProvider).value ?? const [];
     if (choices.isEmpty) return const SizedBox.shrink();
     final l = AppLocalizations.of(context)!;
-    final waiting = choices.where((c) => c.canAnswer).length;
+    final waiting = choices.where((c) => c.canAnswer || c.needsFinalConfirm).length;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),

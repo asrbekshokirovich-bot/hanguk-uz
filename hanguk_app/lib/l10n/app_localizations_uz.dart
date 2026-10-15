@@ -4401,4 +4401,28 @@ class AppLocalizationsUz extends AppLocalizations {
   String ucBannerPending(int count) {
     return '$count ta universitet javobingizni kutmoqda';
   }
+
+  @override
+  String get ucResultAccepted => 'Qabul qilindingiz 🎓';
+
+  @override
+  String get ucResultRejected => 'Qabul qilinmadi';
+
+  @override
+  String get ucCongratsTitle => 'Tabriklaymiz!';
+
+  @override
+  String ucCongratsBody(int count) {
+    return '$count ta universitetga qabul qilindingiz';
+  }
+
+  @override
+  String get ucFinalRecommended =>
+      'Konsultant tavsiyasi: yakuniy universitet shu';
+
+  @override
+  String get ucFinalGo => 'Shu universitetga boraman';
+
+  @override
+  String get ucFinalChosen => '✓ Siz shu universitetni tanladingiz';
 }

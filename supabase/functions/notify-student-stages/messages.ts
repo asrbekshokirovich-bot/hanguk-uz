@@ -6,7 +6,9 @@ export type StageKind =
   | "university_offered"
   | "university_confirmed"
   | "online_submitted"
-  | "offline_sent";
+  | "offline_sent"
+  | "admission_accepted"
+  | "final_university";
 
 export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
 
@@ -75,6 +77,20 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Paper documents posted 📮", body: `Your documents have been posted to ${list(n, "en")}.` }),
     ko: (n) => ({ title: "서류 발송 완료 📮", body: `서류를 우편으로 발송했습니다: ${list(n, "ko")}.` }),
     vi: (n) => ({ title: "Đã gửi hồ sơ giấy 📮", body: `Hồ sơ của bạn đã được gửi bưu điện tới ${list(n, "vi")}.` }),
+  },
+  admission_accepted: {
+    uz: (n) => ({ title: "Tabriklaymiz! 🎓", body: `Siz qabul qilindingiz: ${list(n, "uz")}.` }),
+    ru: (n) => ({ title: "Поздравляем! 🎓", body: `Вы приняты: ${list(n, "ru")}.` }),
+    en: (n) => ({ title: "Congratulations! 🎓", body: `You have been admitted to ${list(n, "en")}.` }),
+    ko: (n) => ({ title: "축하합니다! 🎓", body: `합격했습니다: ${list(n, "ko")}.` }),
+    vi: (n) => ({ title: "Chúc mừng! 🎓", body: `Bạn đã trúng tuyển: ${list(n, "vi")}.` }),
+  },
+  final_university: {
+    uz: (n) => ({ title: "Yakuniy universitet", body: `Konsultantingiz tavsiyasi: ${list(n, "uz")}. Ilovada tasdiqlang.` }),
+    ru: (n) => ({ title: "Итоговый университет", body: `Рекомендация консультанта: ${list(n, "ru")}. Подтвердите в приложении.` }),
+    en: (n) => ({ title: "Your final university", body: `Your consultant recommends ${list(n, "en")}. Confirm it in the app.` }),
+    ko: (n) => ({ title: "최종 대학", body: `상담사 추천: ${list(n, "ko")}. 앱에서 확인해 주세요.` }),
+    vi: (n) => ({ title: "Trường cuối cùng", body: `Tư vấn viên đề xuất ${list(n, "vi")}. Hãy xác nhận trong ứng dụng.` }),
   },
 };
 
