@@ -11,6 +11,9 @@
 //   mediateka_feed   hours since last voip_webhook_captures row → fails past 24h
 //   telegram_userbot minutes since the MTProto userbot's heartbeat → fails past 5
 //                    (only when TELEGRAM_SEND_VIA_USERBOT=1)
+//   telegram_ingest  Telegram messages still in telegram_ingest_failures after
+//                    30 minutes → must be 0
+//   instagram_sync   minutes since instagram-maintenance last synced → fails past 60
 //
 // mediateka_feed used to stay ok while the feed had been silent for 94 days: it
 // only alarmed if the feed had been alive within the previous 7 days, so a
@@ -49,6 +52,11 @@ const MEDIATEKA_SILENT_HOURS = 24;
  * which refuses to queue replies behind a userbot this quiet.
  */
 const USERBOT_STALE_MINUTES = 5;
+
+/** A Telegram message still not in the CRM after this long is a fault. */
+const INGEST_STUCK_MINUTES = 30;
+/** The Instagram sync runs every 15 minutes; an hour without one is a fault. */
+const IG_SYNC_STALE_MINUTES = 60;
 
 type State = "ok" | "fail";
 interface CheckResult { check: string; state: State; detail: string; }
@@ -134,6 +142,42 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     out.push({ check: "telegram_userbot", state, detail });
   }
 
+  // 6. Telegram messages telegram-ingest turned away and still has not taken
+  //    after half an hour of retries (telegram_ingest_failures).
+  {
+    const { count, error } = await supabase
+      .from("telegram_ingest_failures")
+      .select("id", { count: "exact", head: true })
+      .is("resolved_at", null)
+      .lte("created_at", new Date(Date.now() - INGEST_STUCK_MINUTES * 60_000).toISOString());
+    if (error) out.push({ check: "telegram_ingest", state: "fail", detail: `so'rov xatosi: ${error.message}` });
+    else out.push({
+      check: "telegram_ingest",
+      state: (count ?? 0) === 0 ? "ok" : "fail",
+      detail: `${count ?? 0} ta xabar CRM'ga yetib bormadi (${INGEST_STUCK_MINUTES} daqiqadan beri)`,
+    });
+  }
+
+  // 7. Instagram upkeep (instagram-maintenance, every 15 minutes): the last
+  //    sync must have worked within the hour.
+  {
+    const { data: row, error } = await supabase
+      .from("instagram_sync_state")
+      .select("last_success_at, last_error")
+      .eq("id", "main")
+      .maybeSingle();
+    const data = row as { last_success_at: string | null; last_error: string | null } | null;
+    const last = data?.last_success_at ? new Date(data.last_success_at as string) : null;
+    const minutes = last ? Math.round((Date.now() - last.getTime()) / 60_000) : null;
+    const state: State = !error && minutes !== null && minutes <= IG_SYNC_STALE_MINUTES ? "ok" : "fail";
+    const detail = error
+      ? `so'rov xatosi: ${error.message}`
+      : minutes === null
+      ? `hali bir marta ham ishlamagan${data?.last_error ? `: ${data.last_error}` : ""}`
+      : `oxirgi sinxronlash ${minutes} daqiqa oldin` + (data?.last_error ? ` — xato: ${data.last_error}` : "");
+    out.push({ check: "instagram_sync", state, detail });
+  }
+
   return out;
 }
 
@@ -143,6 +187,8 @@ const LABEL: Record<string, string> = {
   call_jobs: "Qo'ng'iroq tahlili (process-call-recording)",
   mediateka_feed: "Mediateka webhook oqimi",
   telegram_userbot: "Telegram userbot (akkaunt sessiyasi)",
+  telegram_ingest: "Telegram xabarlari (telegram-ingest)",
+  instagram_sync: "Instagram zaxira sinxronlash",
 };
 
 /**
@@ -157,6 +203,10 @@ const HINT: Record<string, string> = {
   telegram_userbot:
     "Railway'dagi userbot to'xtagan yoki sessiyasi tugagan. Logini tekshiring; " +
     "sessiya bekor qilingan bo'lsa LOGIN_MODE=1 bilan qayta kiring.",
+  telegram_ingest:
+    "telegram_ingest_failures jadvalidagi xatoni ko'ring; telegram-poll har daqiqada qayta urinadi.",
+  instagram_sync:
+    "instagram_sync_state.last_error ni ko'ring: token yoki Instagram API ruxsati muammosi bo'lishi mumkin.",
 };
 
 function compose(r: CheckResult): string {

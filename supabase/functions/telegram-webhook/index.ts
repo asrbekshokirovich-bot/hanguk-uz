@@ -88,6 +88,9 @@ async function resolveByUsername(
   return { studentId: null, leadId: null, displayName: null, confidence: null };
 }
 
+/** Sender name on the messages the bot itself sends. */
+const BOT_SENDER = "Hanguk bot";
+
 async function storeMessage(supabase: Any, m: {
   chatId: string; messageId?: number | string | null; senderName: string;
   content: string; direction: "incoming" | "outgoing"; type?: string;
@@ -103,7 +106,13 @@ async function storeMessage(supabase: Any, m: {
     direction: m.direction,
     status: m.direction === "incoming" ? "unread" : "read",
     student_id: m.studentId ?? null, // BEFORE INSERT trigger fills this if null
-    metadata: { telegram_chat_id: m.chatId, ...(m.extraMeta ?? {}) },
+    metadata: {
+      telegram_chat_id: m.chatId,
+      // The bot's own messages are not an answer from Hanguk: without this the
+      // welcome took every /start lead out of "Yangi lid" within a second.
+      ...(m.senderName === BOT_SENDER ? { auto_reply: "bot" } : {}),
+      ...(m.extraMeta ?? {}),
+    },
   });
   if (error) {
     // Duplicate key means Telegram re-delivered an update we already stored —
@@ -113,6 +122,30 @@ async function storeMessage(supabase: Any, m: {
       `storeMessage failed for chat ${m.chatId} (${m.direction}, ${m.type ?? "text"}): ${error.message}`,
     );
   }
+}
+
+/** Put an edit on the stored message. False when that message is not stored. */
+async function applyEdit(supabase: Any, chatId: string, messageId: unknown, text: string | null): Promise<boolean> {
+  if (messageId == null) return false;
+  const { data: row } = await supabase.from("messages")
+    .select("id, content, metadata")
+    .eq("source", "telegram").eq("sender_id", chatId).eq("external_id", String(messageId))
+    .maybeSingle();
+  if (!row) return false;
+  const after = text?.trim() || null;
+  if (!after || after === row.content) return true;
+  const meta = (row.metadata ?? {}) as Record<string, unknown>;
+  const { error } = await supabase.from("messages").update({
+    content: after,
+    metadata: {
+      ...meta,
+      edited: true,
+      edited_at: new Date().toISOString(),
+      original_content: meta.original_content ?? row.content,
+    },
+  }).eq("id", row.id);
+  if (error) throw new Error(`edit update for chat ${chatId}: ${error.message}`);
+  return true;
 }
 
 async function bumpThread(supabase: Any, chatId: string, name: string, direction: "incoming" | "outgoing"): Promise<void> {
@@ -444,6 +477,13 @@ serve(async (req) => {
       const chatId = String(bm.chat?.id ?? "");
       if (!chatId) return ok();
 
+      // An edit replaces the stored text (it used to be dropped as a
+      // duplicate) and keeps the first version as metadata.original_content.
+      const isEdit = !!update.edited_business_message;
+      if (isEdit && await applyEdit(supabase, chatId, bm.message_id, bm.text || bm.caption || null)) {
+        return ok();
+      }
+
       const clientUsername = bm.chat?.username ?? null;
       const clientName = [bm.chat?.first_name, bm.chat?.last_name].filter(Boolean).join(" ")
         || clientUsername || bm.chat?.title || "Telegram user";
@@ -460,13 +500,18 @@ serve(async (req) => {
       // "Yangi lid", or without one, hidden as unqualified until
       // fn_capture_phone_from_message reads a number off a later message.
       // Messages the owner sends from their phone never create anything.
-      // Someone who already has a conversation in the CRM is not new, however
-      // long they went unlinked — only their first message ever creates a lead.
-      const { data: earlier } = !outgoing && !identity.studentId && !identity.leadId
+      // Someone who has written to us before is not new, however long they
+      // went unlinked — only their first message ever creates a lead. In a chat
+      // the owner started, that first answer creates it too, and
+      // fn_leads_mark_new_lead sends it to "Bugungi lidlar", not "Yangi lid".
+      // An edit is never somebody new writing: an edit of a message we never
+      // stored is kept, but makes no lead.
+      const { data: earlier } = !outgoing && !isEdit && !identity.studentId && !identity.leadId
         ? await supabase.from("messages").select("id")
-          .eq("source", "telegram").eq("sender_id", chatId).limit(1).maybeSingle()
+          .eq("source", "telegram").eq("sender_id", chatId).eq("direction", "incoming")
+          .limit(1).maybeSingle()
         : { data: null };
-      if (!outgoing && !identity.studentId && !identity.leadId && !earlier) {
+      if (!outgoing && !isEdit && !identity.studentId && !identity.leadId && !earlier) {
         identity = await ensureIdentity(supabase, "telegram", chatId, {
           displayName: clientName,
           phone: extractPhoneFromText(bm.text || bm.caption),
@@ -524,7 +569,7 @@ serve(async (req) => {
 Iltimos, telefon raqamingizni ulashing — menejerimiz siz bilan tez orada bog'lanadi.`,
           { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
         await bumpThread(supabase, chatId, cq.from?.first_name ?? "Telegram user", "outgoing");
-        if (sent) await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot", content: `Daraja: ${degree}. Telefon raqami so'raldi.`, direction: "outgoing" });
+        if (sent) await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: BOT_SENDER, content: `Daraja: ${degree}. Telefon raqami so'raldi.`, direction: "outgoing" });
       }
       return ok();
     }
@@ -569,7 +614,7 @@ Siz Hanguk Consulting bilan Telegram orqali bog'landingiz. Savollaringizni shu y
           if (sent) {
             await bumpThread(supabase, chatId, fromName, "outgoing");
             await storeMessage(supabase, {
-              chatId, messageId: sent.message_id, senderName: "Hanguk bot",
+              chatId, messageId: sent.message_id, senderName: BOT_SENDER,
               content: "Shaxsiy havola orqali ulandi.", direction: "outgoing",
             });
           }
@@ -580,7 +625,7 @@ Siz Hanguk Consulting bilan Telegram orqali bog'landingiz. Savollaringizni shu y
             if (planSent) {
               await bumpThread(supabase, chatId, fromName, "outgoing");
               await storeMessage(supabase, {
-                chatId, messageId: planSent.message_id, senderName: "Hanguk bot",
+                chatId, messageId: planSent.message_id, senderName: BOT_SENDER,
                 content: plan.slice(0, 3500), direction: "outgoing",
               });
             }
@@ -604,7 +649,7 @@ Koreyada o'qish va til kurslari bo'yicha yordam beramiz. Sizni qaysi yo'nalish q
         { inline_keyboard: DEGREES.map(([label, d]) => [{ text: label, callback_data: d }]) });
       if (sent) {
         await bumpThread(supabase, chatId, fromName, "outgoing");
-        await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot", content: "Xush kelibsiz! Yo'nalishni tanlang.", direction: "outgoing" });
+        await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: BOT_SENDER, content: "Xush kelibsiz! Yo'nalishni tanlang.", direction: "outgoing" });
       }
       return ok();
     }
@@ -641,7 +686,7 @@ Koreyada o'qish va til kurslari bo'yicha yordam beramiz. Sizni qaysi yo'nalish q
 Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodimlarimiz javob berishadi.`, { remove_keyboard: true });
       if (sent) {
         await bumpThread(supabase, chatId, contactName, "outgoing");
-        await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot", content: "Rahmat! Ma'lumotlaringiz qabul qilindi.", direction: "outgoing", studentId: identity.studentId });
+        await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: BOT_SENDER, content: "Rahmat! Ma'lumotlaringiz qabul qilindi.", direction: "outgoing", studentId: identity.studentId });
       }
       return ok();
     }
@@ -693,7 +738,7 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
           { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
         if (sent) {
           await bumpThread(supabase, chatId, fromName, "outgoing");
-          await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot",
+          await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: BOT_SENDER,
             content: "Telefon raqam so'raldi (avtomatik identifikatsiya).", direction: "outgoing" });
         }
       }

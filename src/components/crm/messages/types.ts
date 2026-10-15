@@ -97,6 +97,11 @@ export interface MessageVM {
   media: MessageMedia | null;
   /** True while the server has not yet confirmed delivery. */
   pending?: boolean;
+  /** Changed after it was sent; `originalText` is the first version. */
+  edited?: boolean;
+  originalText?: string | null;
+  /** Taken back by the person on Instagram; the text stays for the record. */
+  deleted?: boolean;
 }
 
 /** A `/slash` reply the operator can insert into the draft. */

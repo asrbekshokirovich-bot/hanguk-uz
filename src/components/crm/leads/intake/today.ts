@@ -7,8 +7,9 @@ import { isNewLead } from './sla';
  * sits here for the rest of its day, and moves to "Lidlar" at 00:00.
  *
  * A lead arrives when it becomes a lead: for an Instagram/Telegram chat that is
- * its first message (`new_lead_at`), for any other lead the moment it was
- * created.
+ * its first message (`new_lead_at`), or the person's first answer in a chat
+ * Hanguk started (`replied_chat_at` — such a lead skips "Yangi lid" and has no
+ * countdown), for any other lead the moment it was created.
  *
  * A lead that arrives on a day off or after working hours has its 10-minute
  * countdown start on the next working day at 10:00 (`sla_start_at`). It also
@@ -31,7 +32,7 @@ export const tashkentDay = (date: Date): string => TASHKENT_DAY.format(date);
  */
 export const arrivedToday = (lead: Lead, now: Date): boolean => {
   const today = tashkentDay(now);
-  if (tashkentDay(new Date(lead.new_lead_at ?? lead.created_at)) === today) return true;
+  if (tashkentDay(new Date(lead.new_lead_at ?? lead.replied_chat_at ?? lead.created_at)) === today) return true;
   return !!lead.sla_start_at && tashkentDay(new Date(lead.sla_start_at)) === today;
 };
 
