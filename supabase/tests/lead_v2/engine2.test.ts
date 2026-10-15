@@ -21,7 +21,8 @@ describe('manual stage moves (spec §8)', () => {
   it('Qiziqdi needs the 5 fields, Taklif needs a product, Shartnoma stamps the date', async () => {
     const l = await addLead(h, { source: 'manual', phone: '+998909000001' });
     await expect(h.as(op, `select lead_set_stage($1, 'interested')`, [l.id])).rejects.toThrow(/missing_fields:goal/);
-    await h.as(op, `select lead_save_fields($1, $2::jsonb)`, [l.id, JSON.stringify(CARD)]);
+    // TOPIK 1: no §11 rule picks a product, so Taklif waits for the operator's choice
+    await h.as(op, `select lead_save_fields($1, $2::jsonb)`, [l.id, JSON.stringify({ ...CARD, cert_level: 'TOPIK 1' })]);
     await h.as(op, `select lead_set_stage($1, 'interested')`, [l.id]);
     expect((await getLead(h, l.id)).stage).toBe('interested');
     await expect(h.as(op, `select lead_set_stage($1, 'offer')`, [l.id])).rejects.toThrow(/missing_fields:product_fit/);

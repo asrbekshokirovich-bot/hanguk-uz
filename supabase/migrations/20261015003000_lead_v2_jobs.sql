@@ -276,7 +276,9 @@ begin
 end;
 $$;
 
--- What the office TV shows (spec §14): new leads nobody answered for 10 minutes.
+-- What the office TV shows (spec §14, decision 8.3): NEW leads nobody answered
+-- for 10 minutes (timer 'first'). Late call-backs, ladder steps and replies stay
+-- on the desk and in Telegram, not on the TV.
 create or replace function public.fn_lead_tv_warnings()
 returns table (lead_id uuid, label text, source text, minutes_late integer, timer_kind text)
 language sql
@@ -293,7 +295,8 @@ as $$
          greatest(0, floor(extract(epoch from (now() - l.due_at)) / 60))::integer,
          l.timer_kind
     from public.leads l
-   where l.due_at is not null and l.due_at <= now() and l.timer_start_at <= now()
+   where l.timer_kind = 'first'
+     and l.due_at is not null and l.due_at <= now() and l.timer_start_at <= now()
      and l.merged_into_id is null and l.matched_student_id is null and l.stage <> 'student'
      and coalesce((public.fn_lead_setting('tv_warning') #>> '{}')::boolean, true)
    order by l.due_at

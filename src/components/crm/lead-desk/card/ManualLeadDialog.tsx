@@ -17,16 +17,20 @@ interface ManualLeadDialogProps {
   onCreated?: (leadId: string) => void;
 }
 
-type Origin = 'office' | 'referral';
+type Origin = 'office' | 'referral' | 'call' | 'missed';
 
-/** "+ Lid" (spec §5 "Qo'lda"): a lead typed in by hand — an office visit or a referral. */
+/**
+ * "+ Lid" (spec §5): a lead typed in by hand — an office visit, a referral, or a
+ * phone call (phase 1 telephony is manual: «Qo'ng'iroq keldi» for a call the
+ * operator took, «O'tkazib yuborilgan» for a missed one that needs a call back).
+ */
 export default function ManualLeadDialog({ open, onOpenChange, onCreated }: ManualLeadDialogProps) {
   return (
     <DialogFrame
       open={open}
       onOpenChange={onOpenChange}
       title="+ Lid"
-      description="Qo'lda yangi lid qo'shish: ofisga kelgan yoki tavsiya bilan"
+      description="Qo'lda yangi lid: ofisga kelgan, tavsiya, kelgan yoki o'tkazib yuborilgan qo'ng'iroq"
       widthClass="max-w-lg"
     >
       {open && <ManualBody close={() => onOpenChange(false)} onCreated={onCreated} />}
@@ -49,7 +53,8 @@ function ManualBody({ close, onCreated }: { close: () => void; onCreated?: (lead
   const [error, setError] = useState<string | null>(null);
 
   const problems: string[] = [];
-  if (name.trim() === '') problems.push('Ism');
+  // a missed call is often just a number
+  if (name.trim() === '' && origin !== 'missed') problems.push('Ism');
   if (!isDialable(phone)) problems.push('Telefon (kamida 9 raqam)');
   if (origin === 'referral' && !refType) problems.push('Kim tavsiya qildi (turi)');
   if (origin === 'referral' && refName.trim() === '') problems.push('Tavsiya qilgan odam ismi');
@@ -91,8 +96,8 @@ function ManualBody({ close, onCreated }: { close: () => void; onCreated?: (lead
       <DialogBody>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <FieldLabel htmlFor="manual-name" missing={name.trim() === ''}>
-              Ism
+            <FieldLabel htmlFor="manual-name" missing={name.trim() === '' && origin !== 'missed'}>
+              {origin === 'missed' ? 'Ism (ixtiyoriy)' : 'Ism'}
             </FieldLabel>
             <input
               id="manual-name"
@@ -126,11 +131,24 @@ function ManualBody({ close, onCreated }: { close: () => void; onCreated?: (lead
             options={[
               { value: 'office', label: 'Ofis' },
               { value: 'referral', label: 'Tavsiya' },
+              { value: 'call', label: "Qo'ng'iroq keldi" },
+              { value: 'missed', label: "O'tkazib yuborilgan" },
             ]}
             value={origin}
             onChange={(v) => v && setOrigin(v)}
           />
         </div>
+
+        {origin === 'call' && (
+          <p className="text-[12px] text-muted-foreground">
+            Lid sizniki bo'ladi. Qo'ng'iroq natijasini kartadagi «Qo'ng'iroq natijasi» orqali yozing.
+          </p>
+        )}
+        {origin === 'missed' && (
+          <p className="text-[12px] text-muted-foreground">
+            Lid umumiy navbatga tushadi va 10 daqiqalik taymer boshlanadi — kim bo'sh bo'lsa qayta qo'ng'iroq qiladi.
+          </p>
+        )}
 
         {origin === 'referral' && (
           <ReferralPicker

@@ -205,15 +205,17 @@ describe('call result popup (spec §7)', () => {
 
   it('never lowers a stage, and "offer" needs a product', async () => {
     const l = await addLead(h, { source: 'manual', phone: '+998901110004' });
+    // TOPIK 1 + a price objection: no §11 rule picks a product, so the operator must
+    const card = { ...FULL_CARD, cert_level: 'TOPIK 1' };
     await expect(
       h.as(op, `select lead_record_call($1, 'talked', $2::jsonb)`, [
         l.id,
-        JSON.stringify({ fields: FULL_CARD, stage: 'offer', next_action_kind: 'followup' }),
+        JSON.stringify({ fields: card, stage: 'offer', next_action_kind: 'followup' }),
       ]),
     ).rejects.toThrow(/missing_fields:product_fit/);
     await h.as(op, `select lead_record_call($1, 'talked', $2::jsonb)`, [
       l.id,
-      JSON.stringify({ fields: { ...FULL_CARD, product_fit: 'standart' }, stage: 'offer', next_action_kind: 'followup' }),
+      JSON.stringify({ fields: { ...card, product_fit: 'standart' }, stage: 'offer', next_action_kind: 'followup' }),
     ]);
     expect((await getLead(h, l.id)).stage).toBe('offer');
     await h.as(op, `select lead_record_call($1, 'talked', $2::jsonb)`, [

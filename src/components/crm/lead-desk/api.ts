@@ -115,7 +115,7 @@ export const dismissMerge = (suggestionId: string) => rpc<void>('lead_merge_dism
 export const createManualLead = (args: {
   name: string;
   phone: string;
-  origin: 'office' | 'referral';
+  origin: 'office' | 'referral' | 'call' | 'missed';
   referralType?: string | null;
   referralName?: string | null;
   fields?: Record<string, unknown>;

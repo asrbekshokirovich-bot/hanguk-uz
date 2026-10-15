@@ -120,6 +120,32 @@ as $$
 $$;
 
 -- Priority score 0..100 (spec §12). Orders BUGUN and KEYIN only.
+-- "Mos mahsulot (qoida bilan)" (spec 5.4, §11): the product that fits the
+-- client, by the same rule the card's offer list uses (cardLogic
+-- recommendedOfferKeys) — the first that applies in the card's order:
+--   TOPIK 3+ / IELTS 5.5+            -> standart (premium is shown next to it)
+--   no certificate / school pupil / Hanbox goal -> hanbox
+--   visa or documents/finance worry  -> no_risk
+--   Kasbiy goal or TOPIK 2           -> kasbiy
+--   GKS goal                         -> gks
+-- Filled only while product_fit is empty; the operator can change it.
+create or replace function public.fn_lead_product_fit_rule(p public.leads)
+returns text
+language sql
+stable
+set search_path = public, pg_catalog
+as $$
+  select case
+    when coalesce(p.cert_level, '') ~* '^(TOPIK [3-6]|IELTS (5\.5|6\.0|6\.5|7))' then 'standart'
+    when trim(coalesce(p.cert_level, '')) = 'Yo''q' or coalesce(p.study_year, '') ~* 'sinf'
+         or trim(coalesce(p.education_level, '')) ~* '^hanbox$' then 'hanbox'
+    when lower(trim(coalesce(p.objection, ''))) in ('docs_finance', 'hujjat / moliya')
+         or coalesce(p.objection, '') ~* '(viza|visa|виза)' then 'no_risk'
+    when trim(coalesce(p.education_level, '')) ~* '^kasbiy' or trim(coalesce(p.cert_level, '')) ~* '^TOPIK 2$' then 'kasbiy'
+    when trim(coalesce(p.education_level, '')) ~* '^gks$' then 'gks'
+  end
+$$;
+
 create or replace function public.fn_lead_priority(p public.leads)
 returns integer
 language plpgsql
@@ -816,6 +842,9 @@ begin
       new.due_at := public.fn_lead_due_at(new.first_contact_at);
       new.first_due_at := new.due_at;
     end if;
+    if new.product_fit is null then
+      new.product_fit := public.fn_lead_product_fit_rule(new);
+    end if;
     new.priority_score := public.fn_lead_priority(new);
   end if;
   return new;
@@ -882,6 +911,9 @@ begin
   end if;
 
   if new.crm_generation = 'new' then
+    if new.product_fit is null then
+      new.product_fit := public.fn_lead_product_fit_rule(new);
+    end if;
     new.priority_score := public.fn_lead_priority(new);
   end if;
   return new;
@@ -1954,7 +1986,11 @@ begin
   if auth.uid() is null or not public.fn_lead_is_staff() then
     raise exception 'not_allowed' using errcode = '42501';
   end if;
-  if coalesce(trim(p_name), '') = '' then
+  if p_origin not in ('office', 'referral', 'call', 'missed') then
+    raise exception 'bad_origin' using errcode = '22023';
+  end if;
+  -- a missed call has a number, often no name yet
+  if coalesce(trim(p_name), '') = '' and p_origin <> 'missed' then
     raise exception 'name_required' using errcode = '23514';
   end if;
   if public.fn_lead_phone_key(p_phone) is null then
@@ -1964,10 +2000,19 @@ begin
     raise exception 'referral_required' using errcode = '23514';
   end if;
 
-  insert into public.leads (full_name, phone, source, status, created_by, contact_channel, how_heard,
+  -- Phone calls, phase 1 (spec §5, 3.3): the operator logs them by hand.
+  --   'call'   «Qo'ng'iroq keldi» — the operator is on the line: the lead is theirs,
+  --            and the result popup records the talk (that answers the timer).
+  --   'missed' «O'tkazib yuborilgan» — nobody picked up: a pool lead with the
+  --            10-minute timer, so somebody calls back.
+  -- A known number merges into its card (fn_lead_try_merge after insert).
+  insert into public.leads (full_name, phone, source, status, created_by, owner_id, contact_channel, how_heard,
                             referral_type, referral_name)
-  values (trim(p_name), trim(p_phone), 'manual', 'new', auth.uid(),
-          case when p_origin = 'referral' then 'Telefon' else 'Ofisga keldi' end,
+  values (coalesce(nullif(trim(p_name), ''), 'Qo''ng''iroq: ' || trim(p_phone)), trim(p_phone),
+          case when p_origin in ('call', 'missed') then 'call' else 'manual' end,
+          'new', auth.uid(),
+          case when p_origin = 'call' then auth.uid() end,
+          case p_origin when 'office' then 'Ofisga keldi' else 'Telefon' end,
           case when p_origin = 'referral' then 'Do''sti / tanishi tavsiyasi' else null end,
           case when p_origin = 'referral' then p_referral_type end,
           case when p_origin = 'referral' then nullif(trim(p_referral_name), '') end)

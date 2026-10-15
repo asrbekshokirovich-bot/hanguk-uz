@@ -246,4 +246,28 @@ describe('ManualLeadDialog (+ Lid)', () => {
     expect(onCreated).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Ism')).toHaveValue(' Aziz Karimov ');
   });
+
+  it("logs a phone call the operator took: «Qo'ng'iroq keldi»", async () => {
+    const { onCreated } = setup();
+    await screen.findByRole('button', { name: "Lid qo'shish" });
+    fillBasics();
+    tap('Manba', "Qo'ng'iroq keldi");
+    fireEvent.click(screen.getByRole('button', { name: "Lid qo'shish" }));
+    await waitFor(() =>
+      expect(api.createManualLead).toHaveBeenCalledWith(expect.objectContaining({ origin: 'call', phone: '+998 90 123 45 67' })),
+    );
+    expect(onCreated).toHaveBeenCalledWith('new-lead-id');
+  });
+
+  it("logs a missed call with just the number: «O'tkazib yuborilgan»", async () => {
+    setup();
+    const add = await screen.findByRole('button', { name: "Lid qo'shish" });
+    tap('Manba', "O'tkazib yuborilgan");
+    fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '+998 91 555 66 77' } });
+    expect(add).toBeEnabled(); // no name needed
+    fireEvent.click(add);
+    await waitFor(() =>
+      expect(api.createManualLead).toHaveBeenCalledWith(expect.objectContaining({ origin: 'missed', name: '', phone: '+998 91 555 66 77' })),
+    );
+  });
 });

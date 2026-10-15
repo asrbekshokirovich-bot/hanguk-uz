@@ -521,9 +521,9 @@ serve(async (req) => {
         const degree = data.slice(4);
         await upsertLead(supabase, chatId, { education_level: degree });
         const sent = await tgSend(chatId,
-          `Ajoyib — <b>${degree}</b> tanlandi! 📱
+          `Ajoyib — <b>${degree}</b> tanlandi! Menejerimiz savolingizga shu yerda javob beradi.
 
-Iltimos, telefon raqamingizni ulashing — menejerimiz siz bilan tez orada bog'lanadi.`,
+Qulay bo'lsa, raqamingizni ham qoldiring — qo'ng'iroq qilib batafsil tushuntiramiz. 📱`,
           { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
         await bumpThread(supabase, chatId, cq.from?.first_name ?? "Telegram user", "outgoing");
         if (sent) await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot", content: `Daraja: ${degree}. Telefon raqami so'raldi.`, direction: "outgoing" });
@@ -686,10 +686,11 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
     // already exists for this chatId, the person was seen before (via /start or
     // an earlier message) — don't greet again.
     //
-    // Spec §6.1/§10: the bot never opens with "send your number". It greets and
-    // asks ONE question (the degree buttons answer it and lead into the
-    // existing onboarding), and only then, as a second, secondary message,
-    // offers the contact button.
+    // Spec §6.1/§10: the bot never opens with "send your number", and the phone
+    // comes after the client's question is answered. It greets and asks ONE
+    // question (the degree buttons); the contact button is offered only once a
+    // direction is chosen (callback "deg:" above), and the operator answers the
+    // client's own question in the chat.
     if (!identity.studentId && !identity.leadId) {
       const { data: existingLead } = await supabase.from("leads")
         .select("id").eq("source", "telegram").eq("source_id", chatId).maybeSingle();
@@ -702,14 +703,6 @@ Savolingiz bo'lsa, shu yerda — Telegram orqali — bemalol yozing. 💬 Xodiml
           await bumpThread(supabase, chatId, fromName, "outgoing");
           await storeMessage(supabase, { chatId, messageId: sent.message_id, senderName: "Hanguk bot",
             content: "Salom + yo'nalish savoli (avtomatik).", direction: "outgoing" });
-        }
-        const ask = await tgSend(chatId,
-          `Qulay bo'lsa, raqamingizni qoldiring — 10 daqiqada qo'ng'iroq qilamiz.`,
-          { keyboard: [[{ text: "📱 Telefon raqamni ulashish", request_contact: true }]], resize_keyboard: true, one_time_keyboard: true });
-        if (ask) {
-          await bumpThread(supabase, chatId, fromName, "outgoing");
-          await storeMessage(supabase, { chatId, messageId: ask.message_id, senderName: "Hanguk bot",
-            content: "Telefon raqam so'raldi (avtomatik, savoldan keyin).", direction: "outgoing" });
         }
       }
     }
