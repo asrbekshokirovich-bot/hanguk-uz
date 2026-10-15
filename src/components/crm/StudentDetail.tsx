@@ -54,6 +54,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Tables } from '@/integrations/supabase/types';
+import { institutionName } from '@/lib/institution';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -88,7 +89,7 @@ import { planAllowsInstallment } from '@/hooks/useStudentPlan';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
+    university?: Tables<'institutions'>;
   })[];
   documents?: Tables<'documents'>[];
 };
@@ -835,11 +836,8 @@ export function StudentDetail({
     setTimeout(() => slotFileInputRef.current?.click(), 50);
   };
 
-  const getUniversityName = (university?: Tables<'universities'>) => {
-    if (!university) return 'Unknown';
-    const nameKey = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (university[nameKey] as string) || university.name_uz || 'Unknown';
-  };
+  const getUniversityName = (university?: Tables<'institutions'>) =>
+    institutionName(university, currentLang) || 'Unknown';
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
@@ -1407,7 +1405,7 @@ export function StudentDetail({
                         <Card key={sug.institution_id} className="relative overflow-hidden group">
                           <CardHeader className="pb-3">
                             <CardTitle className="text-base flex items-start justify-between">
-                              <span className="pr-8">{uni.name_en || uni.name_uz || 'Unknown University'}</span>
+                              <span className="pr-8">{institutionName(uni, currentLang) || 'Unknown University'}</span>
                               {uni.is_partner && (
                                 <Badge variant="secondary" className="text-xs shrink-0 whitespace-nowrap ml-2">Partner</Badge>
                               )}
@@ -1511,9 +1509,9 @@ export function StudentDetail({
                               {new Date(app.created_at).toLocaleDateString()}
                             </p>
                           </div>
-                          {app.university?.website && (
+                          {app.university?.primary_admissions_url_ko && (
                             <a
-                              href={app.university.website}
+                              href={app.university.primary_admissions_url_ko}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary"

@@ -21,7 +21,7 @@ import { PAYMENT_PLANS } from '@/hooks/useStudentPlan';
 interface StudentFinanceListProps {
   students: (Tables<'profiles'> & {
     applications?: (Tables<'applications'> & {
-      university?: Tables<'universities'>;
+      university?: Tables<'institutions'>;
     })[];
   })[];
   payments: Payment[];

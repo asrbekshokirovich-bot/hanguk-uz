@@ -7,9 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Lightbulb, Loader2, MapPin, Check } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { getStudentActiveIntakeId } from '@/lib/studentIntake';
+import { institutionName } from '@/lib/institution';
 
 type Suggestion = Tables<'student_suggestions'> & {
-  university?: Tables<'universities'>;
+  university?: Tables<'institutions'>;
 };
 
 interface SuggestedUniversitiesProps {
@@ -20,15 +21,11 @@ interface SuggestedUniversitiesProps {
 
 export function SuggestedUniversities({ suggestions, onRefresh, onShowOnMap }: SuggestedUniversitiesProps) {
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language as 'uz' | 'ko' | 'ru' | 'en';
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState<string | null>(null);
 
-  const getUniversityName = (university?: Tables<'universities'>) => {
-    if (!university) return 'Unknown';
-    const nameKey = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (university[nameKey] as string) || university.name_uz || 'Unknown';
-  };
+  const getUniversityName = (university?: Tables<'institutions'>) =>
+    institutionName(university, i18n.language) || 'Unknown';
 
   const handleApply = async (suggestion: Suggestion) => {
     setSubmitting(suggestion.id);

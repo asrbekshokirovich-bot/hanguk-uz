@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ApplicationTracker } from "../ApplicationTracker";
 
 // Mock i18next
+let language = "en";
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => fallback ?? key,
-    i18n: { language: "en" },
+    i18n: { language },
   }),
 }));
 
@@ -38,13 +39,8 @@ const mockApplications = [
     status_history: null,
     university: {
       id: "uni-1",
-      name_uz: "Seoul University",
       name_en: "Seoul National University",
-      name_ru: "Сеульский университет",
       name_ko: "서울대학교",
-      city_uz: "Seoul",
-      city_en: "Seoul",
-      city_ru: "Сеул",
       city_ko: "서울",
       logo_url: null,
       is_partner: true,
@@ -54,10 +50,27 @@ const mockApplications = [
 ];
 
 describe("ApplicationTracker", () => {
+  beforeEach(() => {
+    language = "en";
+  });
+
   it("renders university cards with name and city", () => {
     render(<ApplicationTracker applications={mockApplications as any} />);
     expect(screen.getByText("Seoul National University")).toBeInTheDocument();
-    expect(screen.getByText("Seoul")).toBeInTheDocument();
+    expect(screen.getByText("서울")).toBeInTheDocument();
+  });
+
+  it("shows the real name, not 'Unknown University', in the default uz interface", () => {
+    language = "uz";
+    render(<ApplicationTracker applications={mockApplications as any} />);
+    expect(screen.getByText("Seoul National University")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown University")).not.toBeInTheDocument();
+  });
+
+  it("shows the Korean name in the ko interface", () => {
+    language = "ko";
+    render(<ApplicationTracker applications={mockApplications as any} />);
+    expect(screen.getByText("서울대학교")).toBeInTheDocument();
   });
 
   it("shows ProcessTracker in each card", () => {

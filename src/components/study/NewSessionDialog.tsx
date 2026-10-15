@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { BookOpen, FileText, GraduationCap, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
+import { institutionName } from '@/lib/institution';
 
 interface NewSessionDialogProps {
   open: boolean;
@@ -31,10 +32,10 @@ export function NewSessionDialog({
   onCreateSession,
   isCreating,
 }: NewSessionDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [documentType, setDocumentType] = useState<'study_plan' | 'personal_statement'>('study_plan');
   const [selectedUniversity, setSelectedUniversity] = useState<string>('none');
-  const [universities, setUniversities] = useState<Tables<'universities'>[]>([]);
+  const [universities, setUniversities] = useState<Tables<'institutions'>[]>([]);
   const [isLoadingUniversities, setIsLoadingUniversities] = useState(true);
 
   useEffect(() => {
@@ -122,7 +123,7 @@ export function NewSessionDialog({
                 <SelectItem value="none">{t('study.noSpecificUniversity', 'No specific university')}</SelectItem>
                 {universities.map(uni => (
                   <SelectItem key={uni.id} value={uni.id}>
-                    {uni.name_en || uni.name_ko}
+                    {institutionName(uni, i18n.language)}
                   </SelectItem>
                 ))}
               </SelectContent>

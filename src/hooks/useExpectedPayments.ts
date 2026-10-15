@@ -27,7 +27,7 @@ export interface ExpectedPayment {
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
+    university?: Tables<'institutions'>;
   })[];
   /** Set by useCRMData from the active season's student_intakes row. */
   freeReapplication?: boolean;

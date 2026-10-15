@@ -83,7 +83,7 @@ const AccessDenied = () => (
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
+    university?: Tables<'institutions'>;
   })[];
   documents?: Tables<'documents'>[];
 };

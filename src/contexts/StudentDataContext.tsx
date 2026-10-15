@@ -4,13 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
 
 type Application = Tables<'applications'> & {
-  university?: Tables<'universities'>;
+  university?: Tables<'institutions'>;
 };
 
 interface StudentDataContextType {
   applications: Application[];
   documents: Tables<'documents'>[];
-  universities: Tables<'universities'>[];
+  universities: Tables<'institutions'>[];
   suggestions: Tables<'student_suggestions'>[];
   loading: boolean;
   refetchApplications: () => Promise<void>;
@@ -24,7 +24,7 @@ export function StudentDataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [documents, setDocuments] = useState<Tables<'documents'>[]>([]);
-  const [universities, setUniversities] = useState<Tables<'universities'>[]>([]);
+  const [universities, setUniversities] = useState<Tables<'institutions'>[]>([]);
   const [suggestions, setSuggestions] = useState<Tables<'student_suggestions'>[]>([]);
   const [loading, setLoading] = useState(true);
 

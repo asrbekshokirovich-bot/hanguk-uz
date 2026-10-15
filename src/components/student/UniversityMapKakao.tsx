@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Tables } from '@/integrations/supabase/types';
+import { institutionCity, institutionName } from '@/lib/institution';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,8 +34,8 @@ const COUNTRY_ZOOM = 13;
 const CAMPUS_ZOOM = 5;
 
 interface UniversityMapKakaoProps {
-  universities: Tables<'universities'>[];
-  onUniversitySelect?: (university: Tables<'universities'>) => void;
+  universities: Tables<'institutions'>[];
+  onUniversitySelect?: (university: Tables<'institutions'>) => void;
   focusUniversityId?: string | null;
 }
 
@@ -49,11 +50,11 @@ type MapUniversity = {
   is_partner: boolean;
   ranking: number | null;
   website: string | null;
-  raw?: Tables<'universities'>;
+  raw?: Tables<'institutions'>;
 };
 
 // ─── University Detail Panel ────────────────────────
-function UniversityDetailPanel({ university, campusInfo }: { university?: Tables<'universities'>; campusInfo: string }) {
+function UniversityDetailPanel({ university, campusInfo }: { university?: Tables<'institutions'>; campusInfo: string }) {
   const { t } = useTranslation();
   // Problem 15: Pass null instead of '' to avoid wasted query
   const { data: programs, isLoading, isPlaceholderData } = useUniversityPrograms(university?.id ?? null);
@@ -72,17 +73,6 @@ function UniversityDetailPanel({ university, campusInfo }: { university?: Tables
         </div>
       )}
 
-      {university?.ranking && (
-        <span className="inline-flex items-center rounded-full border border-transparent bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-semibold">
-          {t('universities.ranking')}: #{university.ranking}
-        </span>
-      )}
-      {university?.tuition_min && university?.tuition_max && (
-        <p className="text-sm">
-          <span className="text-muted-foreground">{t('universities.tuition')}: </span>
-          ₩{university.tuition_min.toLocaleString()} - ₩{university.tuition_max.toLocaleString()}
-        </p>
-      )}
       {/* Problem 17: Skeleton instead of loading flash */}
       {university && isLoading && !isPlaceholderData ? (
         <div className="space-y-1.5">
@@ -109,11 +99,6 @@ function UniversityDetailPanel({ university, campusInfo }: { university?: Tables
               {langReqs.ieltsRange && <span>IELTS {langReqs.ieltsRange.min === langReqs.ieltsRange.max ? langReqs.ieltsRange.min : `${langReqs.ieltsRange.min}-${langReqs.ieltsRange.max}`}</span>}
             </div>
           )}
-        </div>
-      ) : university?.programs && university.programs.length > 0 ? (
-        <div className="flex flex-wrap gap-1">
-          {university.programs.slice(0, 3).map((p, i) => <Badge key={i} variant="outline" className="text-xs">{p}</Badge>)}
-          {university.programs.length > 3 && <Badge variant="outline" className="text-xs">+{university.programs.length - 3}</Badge>}
         </div>
       ) : null}
     </div>
@@ -145,7 +130,7 @@ export function UniversityMapKakao({ universities, onUniversitySelect, focusUniv
   // Problem 16: Debounced search query for marker rendering
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [gpsActive, setGpsActive] = useState(false);
-  const [comparisonList, setComparisonList] = useState<Tables<'universities'>[]>([]);
+  const [comparisonList, setComparisonList] = useState<Tables<'institutions'>[]>([]);
   const [showComparisonChat, setShowComparisonChat] = useState(false);
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const [campusExploreActive, setCampusExploreActive] = useState(false);
@@ -167,39 +152,9 @@ export function UniversityMapKakao({ universities, onUniversitySelect, focusUniv
   // Problem 4: Derive dbLoadError directly instead of setState in useMemo
   const dbLoadError = universities.length === 0;
 
-  // Problem 9: Remove non-existent ru columns from language maps
-  const getName = useCallback((u: Tables<'universities'>) => {
-    const langMap: Record<string, keyof Tables<'universities'>> = {
-      uz: 'name_uz', ko: 'name_ko', en: 'name_en', ru: 'name_ru',
-    };
-    const key = langMap[currentLang];
-    return (key && u[key] as string) || (u.name_en as string) || (u.name_ko as string) || (u.name_uz as string) || '';
-  }, [currentLang]);
-
-  const getCity = useCallback((u: Tables<'universities'>) => {
-    const langMap: Record<string, keyof Tables<'universities'>> = {
-      uz: 'city_uz', ko: 'city_ko', en: 'city_en', ru: 'city_ru',
-    };
-    const key = langMap[currentLang];
-    return (key && u[key] as string) || (u.city_en as string) || (u.city_ko as string) || (u.city_uz as string) || '';
-  }, [currentLang]);
-
-  // Problem 10: Use description fields; hide campus_info when only tuition data
-  const getCampusInfo = useCallback((u: Tables<'universities'>) => {
-    const langMap: Record<string, keyof Tables<'universities'>> = {
-      uz: 'description_uz', ko: 'description_ko', en: 'description_en', ru: 'description_ru',
-    };
-    const key = langMap[currentLang];
-    const desc = key ? (u[key] as string | null) : null;
-    if (desc) return desc;
-    // Try English fallback
-    const descEn = u.description_en as string | null;
-    if (descEn) return descEn;
-    const descKo = u.description_ko as string | null;
-    if (descKo) return descKo;
-    // No real description — return empty string (don't show tuition as "campus info")
-    return '';
-  }, [currentLang]);
+  // institutions has no description, ranking or website columns: the campus
+  // note stays empty, there is no ranking, and the link is the admissions page.
+  const getName = useCallback((u: Tables<'institutions'>) => institutionName(u, currentLang), [currentLang]);
 
   const mapItems: MapUniversity[] = useMemo(() => {
     if (universities.length === 0) return [];
@@ -208,16 +163,16 @@ export function UniversityMapKakao({ universities, onUniversitySelect, focusUniv
       .map(u => ({
         id: u.id,
         name: getName(u),
-        city: getCity(u),
+        city: institutionCity(u),
         lat: Number(u.latitude),
         lng: Number(u.longitude),
-        campus_info: getCampusInfo(u),
+        campus_info: '',
         is_partner: !!u.is_partner,
-        ranking: u.ranking,
-        website: u.website,
+        ranking: null,
+        website: u.primary_admissions_url_ko,
         raw: u,
       }));
-  }, [universities, getName, getCity, getCampusInfo]);
+  }, [universities, getName]);
 
   // Sidebar filtering uses instant searchQuery for responsiveness
   const filteredItems = useMemo(() => {
