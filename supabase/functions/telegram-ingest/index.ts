@@ -70,6 +70,10 @@ interface IngestEvent {
     forwarded_from?: string | null;
     edited?: boolean;
   };
+
+  /** Set by telegram-poll for what Telegram reports as new since its last
+   *  position — catching up after an outage, never a history backfill. */
+  live?: boolean;
 }
 
 // messages.message_type is CHECK-constrained to text | image | file | voice,
@@ -254,18 +258,25 @@ Deno.serve(async (req) => {
   let skipped = 0;
   let reconciled = 0;
   let healed = 0;
+  let edited = 0;
   const errors: string[] = [];
+  // Which events did not make it, so telegram-poll can queue them for another
+  // try instead of moving past them (they used to be lost for good).
+  const failed: { index: number; error: string }[] = [];
 
-  for (const ev of events) {
+  for (const [index, ev] of events.entries()) {
     try {
       const r = await ingestOne(supabase, ev);
       if (r.status === "stored") stored++;
       else if (r.status === "reconciled") reconciled++;
       else if (r.status === "healed") healed++;
+      else if (r.status === "edited") edited++;
       else skipped++;
       if (r.linked) linked++;
     } catch (e) {
-      errors.push(e instanceof Error ? e.message : String(e));
+      const error = e instanceof Error ? e.message : String(e);
+      errors.push(error);
+      failed.push({ index, error: error.slice(0, 500) });
     }
   }
 
@@ -276,15 +287,17 @@ Deno.serve(async (req) => {
     skipped,
     reconciled,
     healed,
+    edited,
     linked,
     errors: errors.slice(0, 10),
+    failed,
   });
 });
 
 async function ingestOne(
   supabase: any,
   ev: IngestEvent,
-): Promise<{ status: "stored" | "duplicate" | "reconciled" | "healed"; linked: boolean }> {
+): Promise<{ status: "stored" | "duplicate" | "reconciled" | "healed" | "edited"; linked: boolean }> {
   // `identifier` is the THREAD key: the other person in a 1:1, the chat in a group.
   const identifier = String(ev.peer.id);
   const chatType = ev.chat?.type ?? "private";
@@ -323,12 +336,37 @@ async function ingestOne(
   // De-dupe: the userbot may re-send on reconnect / during backfill.
   const { data: existing } = await supabase
     .from("messages")
-    .select("id, message_type, metadata")
+    .select("id, message_type, metadata, content")
     .eq("source", "telegram")
     .eq("external_id", externalId)
     .maybeSingle();
 
   if (existing) {
+    // An edit of a message we have: the new text replaces the old one, which
+    // is kept as metadata.original_content (the first version, however many
+    // edits follow), and the CRM marks the message "tahrirlangan".
+    if (ev.message.edited) {
+      const already = ((existing as any).metadata ?? {}) as Record<string, any>;
+      const before = (existing as any).content ?? null;
+      const after = ev.message.text?.trim() || null;
+      if (after && after !== before) {
+        const { error: editErr } = await supabase
+          .from("messages")
+          .update({
+            content: after,
+            metadata: {
+              ...already,
+              edited: true,
+              edited_at: new Date().toISOString(),
+              original_content: already.original_content ?? before,
+            },
+          })
+          .eq("id", (existing as any).id);
+        if (editErr) throw new Error(`edit update: ${editErr.message}`);
+        return { status: "edited", linked };
+      }
+    }
+
     // Heal history rather than blindly skipping. Messages mirrored before media
     // storage worked kept their text but lost the file. If this event carries
     // the bytes and the stored row has none, attach them — so re-running the
@@ -376,16 +414,22 @@ async function ingestOne(
   //     number they type into a message does. So the lead is created without
   //     it; the profile phone is still used above to recognise a known
   //     student, and stays on the message metadata.
-  //   * someone who already has a conversation in the CRM is not new, however
-  //     long they went unlinked. Only the first message ever from this chat
-  //     creates a lead.
-  const isLive = Date.now() - sentAt.getTime() < LIVE_WINDOW_MS;
-  if (!linked && direction === "incoming" && chatType === "private" && isLive) {
+  //   * someone who has written to us before is not new, however long they
+  //     went unlinked. Only their first message ever creates a lead.
+  //
+  // A chat staff started is the exception (owner, 2026-10-15): the person's
+  // first answer creates the lead too, and fn_leads_mark_new_lead sends it to
+  // "Bugungi lidlar" instead of "Yangi lid". Before, it made no lead at all.
+  // telegram-poll vouches for what it fetched after an outage, however old:
+  // somebody wrote while nobody was listening, and still needs an answer.
+  const isLive = ev.live === true || Date.now() - sentAt.getTime() < LIVE_WINDOW_MS;
+  if (!linked && direction === "incoming" && chatType === "private" && isLive && !ev.message.edited) {
     const { data: earlier } = await supabase
       .from("messages")
       .select("id")
       .eq("source", "telegram")
       .eq("sender_id", identifier)
+      .eq("direction", "incoming")
       .limit(1)
       .maybeSingle();
     if (!earlier) {

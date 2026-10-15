@@ -138,6 +138,8 @@ async function run(): Promise<void> {
     const me = (await client.getMe()) as Api.User;
     const selfId = String(me.id);
     await heartbeat(supabase, me);
+    // Messages telegram-ingest turned away in earlier runs get another try.
+    await retryFailures(supabase).catch((e) => console.error("telegram-poll: retry queue:", errText(e)));
 
     const startedAt = Date.now();
     let nextDifference = 0;
@@ -208,14 +210,21 @@ async function pullDifference(
       return state;
     }
     if (diff.className === "updates.DifferenceTooLong") {
-      // Too far behind to page through. Nothing better exists than resuming
-      // from now; say so, because the messages in the gap are not coming.
-      console.error("telegram-poll: difference too long — resuming from the current position");
+      // Too far behind to page through. Before resuming from now, read the
+      // recent chats one by one for whatever was written since the saved
+      // position — the gap used to be lost for good.
+      console.error("telegram-poll: difference too long — recovering the gap from the dialogs");
+      await recoverGap(client, supabase, selfId, state.date!);
       return await restart(client, supabase);
     }
 
     await rememberPeers(supabase, diff.users ?? []);
-    const withMedia = await ingestMessages(selfId, diff.newMessages ?? [], diff.users ?? []);
+    const withMedia = await ingestMessages(supabase, selfId, diff.newMessages ?? [], diff.users ?? []);
+    // Edits come with the other updates; the CRM keeps the new text and the old.
+    const edits = (diff.otherUpdates ?? [])
+      .filter((u: any) => u?.className === "UpdateEditMessage")
+      .map((u: any) => u.message);
+    if (edits.length) await ingestMessages(supabase, selfId, edits, diff.users ?? [], { edited: true });
 
     // Saved as soon as the text is stored, before any attachment is fetched.
     // Downloads are the expensive part of a run: when one ran the function
@@ -226,7 +235,7 @@ async function pullDifference(
     state = { pts: next.pts, qts: next.qts, date: next.date, seq: next.seq };
     await save(supabase, state);
 
-    await mirrorMedia(client, withMedia);
+    await mirrorMedia(client, supabase, withMedia);
     if (diff.className === "updates.Difference") return state;
   }
   return state;
@@ -258,9 +267,11 @@ async function save(supabase: Supabase, s: PollState): Promise<void> {
  * second pass is a plain re-delivery.
  */
 async function ingestMessages(
+  supabase: Supabase,
   selfId: string,
   messages: any[],
   users: any[],
+  opts: { edited?: boolean } = {},
 ): Promise<{ message: any; event: any }[]> {
   const byId = new Map<string, any>(users.map((u: any) => [String(u.id), u]));
   const kept: { message: any; event: any }[] = [];
@@ -273,23 +284,52 @@ async function ingestMessages(
     const peer = byId.get(peerId);
     if (!peer || peer.className !== "User" || peer.bot) continue;
     if (!m.message && !mediaType(m)) continue;
-    kept.push({ message: m, event: toEvent(peer, m) });
+    kept.push({ message: m, event: toEvent(peer, m, !!opts.edited) });
   }
   if (!kept.length) return [];
 
-  await postEvents(kept.map((k) => k.event));
-  return kept.filter((k) => k.event.message.media_type);
+  await postEvents(supabase, kept.map((k) => k.event));
+  // An edit re-sends the text only; its file was mirrored with the message.
+  return opts.edited ? [] : kept.filter((k) => k.event.message.media_type);
 }
 
-async function mirrorMedia(client: TelegramClient, kept: { message: any; event: any }[]) {
+async function mirrorMedia(client: TelegramClient, supabase: Supabase, kept: { message: any; event: any }[]) {
   for (const k of kept) {
     const withMedia = await attachMedia(client, k.message, k.event);
-    if (withMedia) await postEvents([withMedia]).catch((e) => console.error("media post:", errText(e)));
+    if (withMedia) await postEvents(supabase, [withMedia]).catch((e) => console.error("media post:", errText(e)));
   }
 }
 
-function toEvent(peer: any, message: any) {
+/**
+ * After DifferenceTooLong: the chats written in since `sinceUnix` (the saved
+ * position), and their messages from then on, through the usual ingest.
+ * telegram-ingest skips what it already has, so reading too much is harmless.
+ */
+async function recoverGap(client: TelegramClient, supabase: Supabase, selfId: string, sinceUnix: number) {
+  try {
+    const dialogs = await client.getDialogs({ limit: 100 });
+    for (const d of dialogs as any[]) {
+      const peer = d?.entity;
+      if (!peer || peer.className !== "User" || peer.bot || String(peer.id) === selfId) continue;
+      if (Number(d?.message?.date ?? 0) < sinceUnix) continue;
+      const history = await client.getMessages(peer, { limit: 100 });
+      const missed = (history as any[]).filter((m) => Number(m?.date ?? 0) >= sinceUnix).reverse();
+      if (!missed.length) continue;
+      await rememberPeers(supabase, [peer]);
+      const withMedia = await ingestMessages(supabase, selfId, missed, [peer]);
+      await mirrorMedia(client, supabase, withMedia);
+    }
+  } catch (e) {
+    console.error("telegram-poll: gap recovery:", errText(e));
+  }
+}
+
+function toEvent(peer: any, message: any, edited = false) {
   return {
+    // Everything this function reads is new since its saved position, so it
+    // may make a lead however late it arrives (telegram-ingest's 24h rule is
+    // for history backfills, which this is not).
+    live: true,
     account: { label: LABEL, staff_user_id: null },
     peer: {
       id: String(peer.id),
@@ -305,20 +345,97 @@ function toEvent(peer: any, message: any) {
       date: message.date ?? null,
       out: !!message.out,
       media_type: mediaType(message),
+      ...(edited ? { edited: true } : {}),
     } as Record<string, unknown>,
   };
 }
 
-/** Delivered, or thrown — the caller must not save its position past a
- *  message telegram-ingest did not take. */
-async function postEvents(events: any[]): Promise<void> {
+/** Delivered, queued for another try, or thrown — the caller must not save
+ *  its position past a message telegram-ingest did not take.
+ *
+ *  telegram-ingest answers 200 for a batch even when single messages in it
+ *  failed, and lists those in `failed`. They used to be dropped there, with
+ *  the position saved past them; now they wait in telegram_ingest_failures. */
+async function postEvents(supabase: Supabase, events: any[]): Promise<void> {
   if (!events.length) return;
+  const failed = await sendToIngest(events);
+  // A file that would not attach is not queued: its message is already stored
+  // (text first, see ingestMessages) and the bytes are too big to keep here.
+  const retry = failed.filter((f) => !events[f.index].message?.media_base64);
+  for (const f of failed) {
+    if (events[f.index].message?.media_base64) console.error("telegram-poll: attachment not stored:", f.error);
+  }
+  if (retry.length) await queueFailures(supabase, retry.map((f) => ({ event: events[f.index], error: f.error })));
+}
+
+async function sendToIngest(events: any[]): Promise<{ index: number; error: string }[]> {
   const res = await fetch(INGEST_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-ingest-secret": INGEST_SECRET },
     body: JSON.stringify(events.length === 1 ? events[0] : { events }),
   });
   if (!res.ok) throw new Error(`telegram-ingest ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const body = await res.json().catch(() => ({}));
+  return Array.isArray(body?.failed)
+    ? body.failed.filter((f: any) => Number.isInteger(f?.index) && events[f.index])
+    : [];
+}
+
+/** The same message (or edit) is one row however often it fails. */
+function eventKey(ev: any): string {
+  return `${ev?.peer?.id}:${ev?.message?.id}${ev?.message?.edited ? ":edit" : ""}`;
+}
+
+/** Tries before a message is left to infra-health-check's alert. */
+const MAX_INGEST_ATTEMPTS = 10;
+
+async function queueFailures(supabase: Supabase, items: { event: any; error: string }[]) {
+  const rows = items.map(({ event, error }) => ({
+    account_label: LABEL,
+    event_key: eventKey(event),
+    event,
+    error: String(error).slice(0, 500),
+    next_try_at: new Date(Date.now() + 60_000).toISOString(),
+    // The latest version of the event wins (a second edit), and a key that
+    // failed before and was resolved is open again.
+    resolved_at: null,
+  }));
+  const { error } = await supabase.from("telegram_ingest_failures")
+    .upsert(rows, { onConflict: "account_label,event_key" });
+  if (error) throw new Error(`queue failures: ${error.message}`);
+  console.error(`telegram-poll: ${rows.length} message(s) not taken by telegram-ingest — queued for another try`);
+}
+
+/** Send the queued messages again; each try waits a little longer. */
+async function retryFailures(supabase: Supabase) {
+  const { data: due, error } = await supabase.from("telegram_ingest_failures")
+    .select("id, event, attempts")
+    .eq("account_label", LABEL)
+    .is("resolved_at", null)
+    .lt("attempts", MAX_INGEST_ATTEMPTS)
+    .lte("next_try_at", new Date().toISOString())
+    .order("created_at")
+    .limit(20);
+  if (error) throw new Error(`retry queue: ${error.message}`);
+  for (const row of (due ?? []) as any[]) {
+    let failure: string | null = null;
+    try {
+      const failed = await sendToIngest([row.event]);
+      failure = failed[0]?.error ?? null;
+    } catch (e) {
+      failure = errText(e);
+    }
+    const attempts = Number(row.attempts ?? 1) + 1;
+    await supabase.from("telegram_ingest_failures").update(
+      failure
+        ? {
+          attempts,
+          error: failure.slice(0, 500),
+          next_try_at: new Date(Date.now() + attempts * 2 * 60_000).toISOString(),
+        }
+        : { attempts, error: null, resolved_at: new Date().toISOString() },
+    ).eq("id", row.id);
+  }
 }
 
 function mediaType(message: any): string | null {

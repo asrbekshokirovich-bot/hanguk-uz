@@ -128,6 +128,14 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
             {[outbound ? m.senderLabel : null, sending ? t('messages.thread.sending') : time]
               .filter(Boolean)
               .join(' · ')}
+            {m.edited && (
+              <span
+                title={m.originalText ? t('messages.thread.editedOriginal', { text: m.originalText }) : undefined}
+              >
+                · {t('messages.thread.edited')}
+              </span>
+            )}
+            {m.deleted && <span className="text-destructive">· {t('messages.thread.deleted')}</span>}
             {outbound && !failed && (
               sending ? (
                 <Clock className="h-3 w-3" aria-label={t('messages.thread.sending')} />

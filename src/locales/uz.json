@@ -1347,6 +1347,9 @@
       "hideTranslation": "Tarjimani yashirish",
       "translating": "Tarjima qilinmoqda…",
       "sending": "Yuborilmoqda…",
+      "edited": "tahrirlangan",
+      "editedOriginal": "Asl matn: {{text}}",
+      "deleted": "o‘chirilgan",
       "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi",
       "linkContact": "Talaba yoki lidga biriktirish",
       "relinkContact": "Biriktirishni o'zgartirish"

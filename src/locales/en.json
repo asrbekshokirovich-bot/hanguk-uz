@@ -1278,6 +1278,9 @@
       "hideTranslation": "Hide translation",
       "translating": "Translating…",
       "sending": "Sending…",
+      "edited": "edited",
+      "editedOriginal": "Original: {{text}}",
+      "deleted": "deleted",
       "internalNoteLabel": "Internal note · not sent to student",
       "linkContact": "Attach to a student or lead",
       "relinkContact": "Change who this is attached to"
