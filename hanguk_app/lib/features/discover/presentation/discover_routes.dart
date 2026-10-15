@@ -18,6 +18,9 @@ const String kAssessmentPath = '/assess';
 /// Screen 12, the report with the lead form.
 const String kAssessmentReportPath = '/assess/report';
 
+/// The lead form: name and phone, opened from the report.
+const String kAssessmentLeadPath = '/assess/lead';
+
 /// Screen 13, "Yuborildi".
 const String kAssessmentSentPath = '/assess/sent';
 

@@ -4433,4 +4433,201 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get ucFinalChosen => '✓ Вы выбрали этот университет';
+
+  @override
+  String get fdNavAssess => 'ОЦЕНКА';
+
+  @override
+  String get fdNavNeedsClientCode =>
+      'Сначала нужен клиентский код — консультант пришлёт его по SMS';
+
+  @override
+  String fdListTitle(int count) {
+    return 'Вам подходят $count';
+  }
+
+  @override
+  String get fdModeAdmission => 'Поступление %';
+
+  @override
+  String get fdModeVisa => 'Виза %';
+
+  @override
+  String get fdModeMap => 'Карта';
+
+  @override
+  String get fdBoardMatchLabel => 'ПОДХОДЯЩИЕ УНИВЕРСИТЕТЫ';
+
+  @override
+  String fdOfTotalShort(int total) {
+    return '/ $total';
+  }
+
+  @override
+  String get fdBoardVisaTitle => 'ВИЗА D-2';
+
+  @override
+  String get fdBoardVisaSub => 'шанс на визу · ';
+
+  @override
+  String get fdBoardVisaAsk => 'нажмите, чтобы оценить';
+
+  @override
+  String get fdGaugeLow => 'низкий';
+
+  @override
+  String get fdGaugeMid => 'средний';
+
+  @override
+  String get fdGaugeHigh => 'высокий';
+
+  @override
+  String get fdBoardStripTitle => 'Подходят сейчас';
+
+  @override
+  String get fdBoardStripHint => 'нажмите → подробнее';
+
+  @override
+  String get fdBoardStripEmpty => 'Ничего не подходит — смягчите фильтр';
+
+  @override
+  String get fdUniAdmissionLabel => 'ПОСТУПЛЕНИЕ';
+
+  @override
+  String get fdUniNoteHigh => 'Высокий шанс';
+
+  @override
+  String get fdUniNoteReal => 'Реально, нужно поработать';
+
+  @override
+  String get fdUniNoteDream => 'Мечта — риск';
+
+  @override
+  String get fdUniVisaNote => 'зависит от вас, а не от университета';
+
+  @override
+  String get fdUniAskAssess => 'Нажмите, чтобы оценить →';
+
+  @override
+  String get fdUniBoostTitle => 'ПОВЫСИТЬ ШАНС — нажмите, увидите результат';
+
+  @override
+  String get fdUniBoostStart => 'Начните оценку — шансы появятся здесь';
+
+  @override
+  String get fdUniBoostApplied => 'Шансы обновлены ↑';
+
+  @override
+  String fdUniAddPick(int count) {
+    return '♥ В мой выбор · $count/3';
+  }
+
+  @override
+  String fdUniInPick(int count) {
+    return '✓ В выборе · $count/3';
+  }
+
+  @override
+  String fdUniPickAdded(int count) {
+    return 'Добавлено · $count/3';
+  }
+
+  @override
+  String fdPickedHint(int count) {
+    return 'Чемпионов: $count — теперь самый важный вопрос.';
+  }
+
+  @override
+  String get fdPickedVisaTitle => 'ОБЩАЯ ВИЗА D-2';
+
+  @override
+  String fdPickedWithConsultant(int n) {
+    return '· с консультантом ~$n%';
+  }
+
+  @override
+  String get fdPickedCta => 'Смогу ли я поехать в Корею? →';
+
+  @override
+  String get fdPickedRemove => 'Убрать';
+
+  @override
+  String get fdReportEyebrow => 'СМОГУ ЛИ Я ПОЕХАТЬ В КОРЕЮ?';
+
+  @override
+  String get fdReportHeadYes => 'Да, это реально.';
+
+  @override
+  String get fdReportHeadMaybe => 'Возможно.';
+
+  @override
+  String get fdReportHeadNotYet => 'Пока нет.';
+
+  @override
+  String fdReportJobsLeft(int n) {
+    return 'Осталось дел: $n.';
+  }
+
+  @override
+  String get fdReportBestAdmission => 'ЛУЧШИЙ ШАНС ПОСТУПЛЕНИЯ';
+
+  @override
+  String get fdReportVisaCard => 'ВИЗА D-2';
+
+  @override
+  String fdReportWithConsultant(int n) {
+    return '→ $n% с консультантом';
+  }
+
+  @override
+  String fdReportJobsTitle(int n) {
+    return 'ДЕЛ: $n';
+  }
+
+  @override
+  String get fdReportCta => 'Получить бесплатный звонок →';
+
+  @override
+  String get fdLeadTitle => 'Консультант свяжется';
+
+  @override
+  String fdLeadSub(int n) {
+    return 'Отчёт и план из $n дел — бесплатно от консультанта. Позвонит в течение 10 минут.';
+  }
+
+  @override
+  String get fdLeadHintA => 'После отправки придёт SMS с 8-значным ';
+
+  @override
+  String get fdLeadHintB => 'клиентским кодом';
+
+  @override
+  String get fdLeadHintC => ' — с ним откроются разделы заявки и документов.';
+
+  @override
+  String get fdCodeTitle => 'У меня есть клиентский код';
+
+  @override
+  String get fdCodeSub => '8-значный код, который консультант отправил по SMS.';
+
+  @override
+  String get fdConsultantWrite => 'Написать';
+
+  @override
+  String fdDocsReadyChip(int ready, int total) {
+    return '$ready / $total готово';
+  }
+
+  @override
+  String get fdDocsUploadNext => 'Загрузить следующий документ';
+
+  @override
+  String get fdPrepareStudyKicker => 'STUDY PLAN';
+
+  @override
+  String get fdPrepareInterviewKicker => 'ПРАКТИКА ИНТЕРВЬЮ';
+
+  @override
+  String get fdPrepareLocked =>
+      'Эти разделы полностью откроются после ввода клиентского кода.';
 }

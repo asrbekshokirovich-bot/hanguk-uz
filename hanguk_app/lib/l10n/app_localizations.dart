@@ -7951,6 +7951,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'✓ You chose this university'**
   String get ucFinalChosen;
+
+  /// Label under the percentage on the round button of the bottom nav.
+  ///
+  /// In en, this message translates to:
+  /// **'ASSESS'**
+  String get fdNavAssess;
+
+  /// Shown when a guest taps Application or Documents.
+  ///
+  /// In en, this message translates to:
+  /// **'A client code is needed first — the consultant sends it by SMS'**
+  String get fdNavNeedsClientCode;
+
+  /// Title of the Universities list.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} match you'**
+  String fdListTitle(int count);
+
+  /// List mode: admission chance.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission %'**
+  String get fdModeAdmission;
+
+  /// List mode: visa chance.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa %'**
+  String get fdModeVisa;
+
+  /// List mode: map.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get fdModeMap;
+
+  /// Small caps label over the count on the home board.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCHING UNIVERSITIES'**
+  String get fdBoardMatchLabel;
+
+  /// "/ 95" after the count.
+  ///
+  /// In en, this message translates to:
+  /// **'/ {total}'**
+  String fdOfTotalShort(int total);
+
+  /// Title of the visa gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'D-2 VISA'**
+  String get fdBoardVisaTitle;
+
+  /// Text before the word under the visa gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'visa chance · '**
+  String get fdBoardVisaSub;
+
+  /// Under the visa gauge until the assessment is answered.
+  ///
+  /// In en, this message translates to:
+  /// **'tap to assess'**
+  String get fdBoardVisaAsk;
+
+  /// Gauge end label and word.
+  ///
+  /// In en, this message translates to:
+  /// **'low'**
+  String get fdGaugeLow;
+
+  /// Gauge word.
+  ///
+  /// In en, this message translates to:
+  /// **'medium'**
+  String get fdGaugeMid;
+
+  /// Gauge end label and word.
+  ///
+  /// In en, this message translates to:
+  /// **'high'**
+  String get fdGaugeHigh;
+
+  /// Title of the strip of matching universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching now'**
+  String get fdBoardStripTitle;
+
+  /// Hint beside the strip title.
+  ///
+  /// In en, this message translates to:
+  /// **'tap → details'**
+  String get fdBoardStripHint;
+
+  /// Strip empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'None match — loosen the filter'**
+  String get fdBoardStripEmpty;
+
+  /// Label of the admission chance card on a university page.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMISSION'**
+  String get fdUniAdmissionLabel;
+
+  /// Under an admission chance of 80% or more.
+  ///
+  /// In en, this message translates to:
+  /// **'High chance'**
+  String get fdUniNoteHigh;
+
+  /// Under an admission chance of 50-79%.
+  ///
+  /// In en, this message translates to:
+  /// **'Real, needs work'**
+  String get fdUniNoteReal;
+
+  /// Under an admission chance below 50%.
+  ///
+  /// In en, this message translates to:
+  /// **'A dream — a gamble'**
+  String get fdUniNoteDream;
+
+  /// Under the visa chance on a university page.
+  ///
+  /// In en, this message translates to:
+  /// **'depends on you, not on the university'**
+  String get fdUniVisaNote;
+
+  /// Under a "?%" chance on a university page.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to assess →'**
+  String get fdUniAskAssess;
+
+  /// Label over the rows that raise the chances.
+  ///
+  /// In en, this message translates to:
+  /// **'RAISE THE CHANCE — tap, see the result'**
+  String get fdUniBoostTitle;
+
+  /// Row shown while the assessment is unanswered.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the assessment — the chances appear here'**
+  String get fdUniBoostStart;
+
+  /// Snackbar after tapping a row that raises the chances.
+  ///
+  /// In en, this message translates to:
+  /// **'Chances updated ↑'**
+  String get fdUniBoostApplied;
+
+  /// Main button on a university page.
+  ///
+  /// In en, this message translates to:
+  /// **'♥ Add to my picks · {count}/3'**
+  String fdUniAddPick(int count);
+
+  /// Main button when the university is already picked.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ In my picks · {count}/3'**
+  String fdUniInPick(int count);
+
+  /// Snackbar after picking a university.
+  ///
+  /// In en, this message translates to:
+  /// **'Added · {count}/3'**
+  String fdUniPickAdded(int count);
+
+  /// Text under the title of the picked universities page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} champions — now the most important question.'**
+  String fdPickedHint(int count);
+
+  /// Label of the visa card on the picked page.
+  ///
+  /// In en, this message translates to:
+  /// **'OVERALL D-2 VISA'**
+  String get fdPickedVisaTitle;
+
+  /// Beside the visa figure: what a consultant is said to add.
+  ///
+  /// In en, this message translates to:
+  /// **'· with a consultant ~{n}%'**
+  String fdPickedWithConsultant(int n);
+
+  /// Main button of the picked page.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I go to Korea? →'**
+  String get fdPickedCta;
+
+  /// Accessibility label of the cross on a picked university.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get fdPickedRemove;
+
+  /// Small lime line above the report headline.
+  ///
+  /// In en, this message translates to:
+  /// **'CAN I GO TO KOREA?'**
+  String get fdReportEyebrow;
+
+  /// Report headline when the verdict is yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, for real.'**
+  String get fdReportHeadYes;
+
+  /// Report headline when the verdict is maybe.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe.'**
+  String get fdReportHeadMaybe;
+
+  /// Report headline when the verdict is not yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet.'**
+  String get fdReportHeadNotYet;
+
+  /// Second sentence of the report headline.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} tasks left.'**
+  String fdReportJobsLeft(int n);
+
+  /// Label of the report card with the best admission chance.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST ADMISSION'**
+  String get fdReportBestAdmission;
+
+  /// Label of the report card with the visa chance.
+  ///
+  /// In en, this message translates to:
+  /// **'D-2 VISA'**
+  String get fdReportVisaCard;
+
+  /// Under the visa figure: what a consultant is said to add.
+  ///
+  /// In en, this message translates to:
+  /// **'→ {n}% with a consultant'**
+  String fdReportWithConsultant(int n);
+
+  /// Title of the report card listing what to do.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} TASKS'**
+  String fdReportJobsTitle(int n);
+
+  /// Main button of the report.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a free call →'**
+  String get fdReportCta;
+
+  /// Title of the lead form.
+  ///
+  /// In en, this message translates to:
+  /// **'A consultant will call'**
+  String get fdLeadTitle;
+
+  /// Under the title of the lead form.
+  ///
+  /// In en, this message translates to:
+  /// **'The report and a {n}-task plan — free from a consultant. They call within 10 minutes.'**
+  String fdLeadSub(int n);
+
+  /// First part of the hint under the lead form fields.
+  ///
+  /// In en, this message translates to:
+  /// **'After sending, an SMS brings your 8-character '**
+  String get fdLeadHintA;
+
+  /// Bold part of the hint under the lead form fields.
+  ///
+  /// In en, this message translates to:
+  /// **'client code'**
+  String get fdLeadHintB;
+
+  /// Last part of the hint under the lead form fields.
+  ///
+  /// In en, this message translates to:
+  /// **' — it opens the application and documents sections.'**
+  String get fdLeadHintC;
+
+  /// Title of the client code sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'I have a client code'**
+  String get fdCodeTitle;
+
+  /// Line under the title of the client code sign-in screen.
+  ///
+  /// In en, this message translates to:
+  /// **'The 8-character code the consultant sent by SMS.'**
+  String get fdCodeSub;
+
+  /// Button on the consultant card: opens the Telegram chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get fdConsultantWrite;
+
+  /// Pill beside the documents title: accepted documents out of the required ones.
+  ///
+  /// In en, this message translates to:
+  /// **'{ready} / {total} ready'**
+  String fdDocsReadyChip(int ready, int total);
+
+  /// Bottom button of the documents screen: uploads the first document still needed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload the next document'**
+  String get fdDocsUploadNext;
+
+  /// Small line above the Study Plan card title.
+  ///
+  /// In en, this message translates to:
+  /// **'STUDY PLAN'**
+  String get fdPrepareStudyKicker;
+
+  /// Small line above the interview card title.
+  ///
+  /// In en, this message translates to:
+  /// **'INTERVIEW PRACTICE'**
+  String get fdPrepareInterviewKicker;
+
+  /// Dashed note shown to guests on the preparation screen.
+  ///
+  /// In en, this message translates to:
+  /// **'These sections open fully after the client code.'**
+  String get fdPrepareLocked;
 }
 
 class _AppLocalizationsDelegate

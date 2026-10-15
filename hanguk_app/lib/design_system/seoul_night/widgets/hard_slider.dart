@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'fd_kit.dart';
 
-/// The full design's slider: an 8px white track with an ink border, navy up
+/// The full design's slider: an 8px white track with an ink border, lime up
 /// to the thumb, and a 22px lime thumb with a 2px hard shadow. [marker] puts
 /// a thin ink tick on the track (the bank slider's "₩16 mln talab").
 class HardSlider extends StatelessWidget {
@@ -63,7 +63,7 @@ class HardSlider extends StatelessWidget {
                         child: FractionallySizedBox(
                           widthFactor: value.clamp(0.0, 1.0),
                           child: Container(
-                            decoration: BoxDecoration(color: FdColors.navy, borderRadius: BorderRadius.circular(3)),
+                            decoration: BoxDecoration(color: FdColors.lime, borderRadius: BorderRadius.circular(3)),
                           ),
                         ),
                       ),

@@ -49,8 +49,8 @@ class HardShadowBox extends StatelessWidget {
   }
 }
 
-/// The primary action of the full design: lime, ink label, ink border and a
-/// 4px hard shadow. Pressing moves it onto its shadow. Loading swaps the
+/// The primary action of the full design: lime, label in `#16203A`, ink
+/// border and a 4px hard shadow. Pressing moves it onto its shadow. Loading swaps the
 /// label for an ink spinner and blocks taps; [onPressed] null disables it.
 class HardButton extends StatefulWidget {
   const HardButton({
@@ -58,8 +58,9 @@ class HardButton extends StatefulWidget {
     required this.label,
     required this.onPressed,
     this.loading = false,
-    this.fill = SeoulColors.lime,
-    this.foreground = SeoulColors.ink,
+    this.fill = SeoulColors.limeFd,
+    this.foreground = const Color(0xFF16203A),
+    this.shadow = SeoulColors.ink,
     this.trailing,
     this.leading,
   });
@@ -69,6 +70,9 @@ class HardButton extends StatefulWidget {
   final bool loading;
   final Color fill;
   final Color foreground;
+
+  /// The hard shadow's colour: ink, or a deeper tone of the page it sits on.
+  final Color shadow;
 
   /// Drawn after the label, e.g. the forward arrow of "Continue →".
   final Widget? trailing;
@@ -111,9 +115,11 @@ class _HardButtonState extends State<HardButton> {
           ),
           child: HardShadowBox(
             fill: widget.fill,
-            radius: 16,
+            shadow: widget.shadow,
+            radius: 14,
             offset: press ? 0 : _offset,
-            padding: const EdgeInsets.symmetric(vertical: 17),
+            // 52px tall, as the prototype draws every primary button.
+            padding: const EdgeInsets.symmetric(vertical: 15),
             child: SizedBox(
               height: 22,
               child: Center(
@@ -140,10 +146,9 @@ class _HardButtonState extends State<HardButton> {
                               style: TextStyle(
                                 fontFamily: SeoulType.inter,
                                 fontFamilyFallback: SeoulType.fallback,
-                                fontSize: 17,
+                                fontSize: 15,
                                 height: 1.2,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
                                 color: widget.foreground,
                               ),
                             ),

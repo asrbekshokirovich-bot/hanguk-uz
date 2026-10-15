@@ -40,7 +40,11 @@ const Rect _jeju = Rect.fromLTWH(.23, .74, .14, .06);
 /// filter board's choices apply here too. A pin holds the cities around it
 /// (Suwon and Incheon are under Seul), so its card swipes through them all.
 class KoreaMapScreen extends ConsumerStatefulWidget {
-  const KoreaMapScreen({super.key});
+  const KoreaMapScreen({super.key, this.embedded = false});
+
+  /// Only the panel: the Universitetlar list draws the title and the switch
+  /// above it (the "Xarita" mode).
+  final bool embedded;
 
   @override
   ConsumerState<KoreaMapScreen> createState() => _KoreaMapScreenState();
@@ -102,7 +106,107 @@ class _KoreaMapScreenState extends ConsumerState<KoreaMapScreen> {
       ref.read(pendingMapDetailProvider.notifier).set(null);
     });
     final selected = pins.where((p) => p.label == _selected).firstOrNull ?? pins.firstOrNull;
-    final markStyle = fdText(26, FontWeight.w800, FdColors.ink, height: 1, letterSpacing: -0.78);
+    final markStyle = fdText(26, FontWeight.w800, FdColors.onPage, height: 1, letterSpacing: -0.78);
+
+    final panel = Padding(
+      padding: EdgeInsets.fromLTRB(18, widget.embedded ? 10 : 0, 18, 14),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: _water,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+          boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+        ),
+        child: LayoutBuilder(
+          builder: (context, box) {
+            _panel = box.biggest;
+            final w = box.maxWidth;
+            final h = box.maxHeight;
+            return Stack(
+              children: [
+                InteractiveViewer(
+                  transformationController: _view,
+                  minScale: 1,
+                  maxScale: 3,
+                  child: SizedBox(
+                    width: w,
+                    height: h,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Positioned.fill(child: CustomPaint(painter: _MapPainter())),
+                        Positioned(
+                          left: .08 * w,
+                          top: .08 * h,
+                          child: ExcludeSemantics(
+                            child: Text(
+                              l.fdMapLabel,
+                              style: fdText(10, FontWeight.w700, const Color(0xFF8FA3C4), letterSpacing: 1),
+                            ),
+                          ),
+                        ),
+                        for (final p in pins)
+                          Positioned(
+                            left: p.x / 100 * w,
+                            top: p.y / 100 * h,
+                            child: FractionalTranslation(
+                              translation: const Offset(-.5, -1),
+                              child: _Pin(pin: p, selected: p == selected, onTap: () => _select(p.label)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (pins.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        l.fdMapEmpty,
+                        textAlign: TextAlign.center,
+                        style: fdText(13, FontWeight.w700, FdColors.muted),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  right: 10,
+                  top: 10,
+                  child: Column(
+                    children: [
+                      _ZoomButton(glyph: LucideIcons.plus, label: l.fdMapZoomIn, onTap: () => _zoom(1.5)),
+                      const SizedBox(height: 6),
+                      _ZoomButton(glyph: LucideIcons.minus, label: l.fdMapZoomOut, onTap: () => _zoom(1 / 1.5)),
+                    ],
+                  ),
+                ),
+                if (selected != null)
+                  Positioned(
+                    left: 10,
+                    right: 10,
+                    bottom: 10,
+                    child: SizedBox(
+                      height: 78,
+                      child: PageView.builder(
+                        key: ValueKey(selected.label),
+                        controller: _pages,
+                        itemCount: selected.universities.length,
+                        itemBuilder: (context, i) => _MapCard(
+                          university: selected.universities[i],
+                          guideline: guidelineFor(selected.universities[i], f) ?? selected.universities[i].primary,
+                          counter: selected.count > 1 ? l.fdMapCardOf(i + 1, selected.count) : null,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+    if (widget.embedded) return panel;
 
     return SafeArea(
       bottom: false,
@@ -118,7 +222,7 @@ class _KoreaMapScreenState extends ConsumerState<KoreaMapScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(l.fdMapKicker(shown.length), style: fdText(12, FontWeight.w700, FdColors.muted)),
+                      Text(l.fdMapKicker(shown.length), style: fdText(12, FontWeight.w700, FdColors.pageMuted)),
                       const SizedBox(height: 2),
                       Wrap(
                         crossAxisAlignment: WrapCrossAlignment.end,
@@ -157,128 +261,24 @@ class _KoreaMapScreenState extends ConsumerState<KoreaMapScreen> {
               ],
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: FdColors.card,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: FdColors.ink, width: 1.5),
-                  boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
-                ),
-                child: LayoutBuilder(
-                  builder: (context, box) {
-                    _panel = box.biggest;
-                    final w = box.maxWidth;
-                    final h = box.maxHeight;
-                    return Stack(
-                      children: [
-                        InteractiveViewer(
-                          transformationController: _view,
-                          minScale: 1,
-                          maxScale: 3,
-                          child: SizedBox(
-                            width: w,
-                            height: h,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                const Positioned.fill(child: CustomPaint(painter: _MapPainter())),
-                                Positioned(
-                                  left: .08 * w,
-                                  top: .08 * h,
-                                  child: ExcludeSemantics(
-                                    child: Text(
-                                      l.fdMapLabel,
-                                      style: fdText(10, FontWeight.w700, const Color(0xFFB9C5D8), letterSpacing: 1),
-                                    ),
-                                  ),
-                                ),
-                                for (final p in pins)
-                                  Positioned(
-                                    left: p.x / 100 * w,
-                                    top: p.y / 100 * h,
-                                    child: FractionalTranslation(
-                                      translation: const Offset(-.5, -1),
-                                      child: _Pin(pin: p, selected: p == selected, onTap: () => _select(p.label)),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (pins.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Text(
-                                l.fdMapEmpty,
-                                textAlign: TextAlign.center,
-                                style: fdText(13, FontWeight.w700, FdColors.muted),
-                              ),
-                            ),
-                          ),
-                        Positioned(
-                          right: 10,
-                          top: 10,
-                          child: Column(
-                            children: [
-                              _ZoomButton(glyph: LucideIcons.plus, label: l.fdMapZoomIn, onTap: () => _zoom(1.5)),
-                              const SizedBox(height: 6),
-                              _ZoomButton(glyph: LucideIcons.minus, label: l.fdMapZoomOut, onTap: () => _zoom(1 / 1.5)),
-                            ],
-                          ),
-                        ),
-                        if (selected != null)
-                          Positioned(
-                            left: 10,
-                            right: 10,
-                            bottom: 10,
-                            child: SizedBox(
-                              height: 78,
-                              child: PageView.builder(
-                                key: ValueKey(selected.label),
-                                controller: _pages,
-                                itemCount: selected.universities.length,
-                                itemBuilder: (context, i) => _MapCard(
-                                  university: selected.universities[i],
-                                  guideline: guidelineFor(selected.universities[i], f) ?? selected.universities[i].primary,
-                                  counter: selected.count > 1 ? l.fdMapCardOf(i + 1, selected.count) : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
+          Expanded(child: panel),
         ],
       ),
     );
   }
 }
 
-/// The white panel's grid, the outline of Korea and Jeju's ellipse.
+/// The panel's water colour (`#DCE6F5`) and the land's (`#EAF0FA`).
+const Color _water = Color(0xFFDCE6F5);
+const Color _land = Color(0xFFEAF0FA);
+
+/// The outline of Korea and Jeju's ellipse on the water.
 class _MapPainter extends CustomPainter {
   const _MapPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    final grid = Paint()
-      ..color = FdColors.page
-      ..strokeWidth = 1;
-    for (var x = 0.0; x <= size.width; x += 28) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
-    }
-    for (var y = 0.0; y <= size.height; y += 28) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
-    }
-    final land = Paint()..color = FdColors.tint;
+    final land = Paint()..color = _land;
     final path = Path()..moveTo(_outline.first.dx * size.width, _outline.first.dy * size.height);
     for (final p in _outline.skip(1)) {
       path.lineTo(p.dx * size.width, p.dy * size.height);

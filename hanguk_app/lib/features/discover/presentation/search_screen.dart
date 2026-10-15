@@ -127,14 +127,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(13, FontWeight.w800, FdColors.ink))),
+                            Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(13, FontWeight.w800, FdColors.onPage))),
                             if (ai.loading) ...[
                               const SizedBox.square(
                                 dimension: 11,
-                                child: CircularProgressIndicator(strokeWidth: 1.6, color: FdColors.navy),
+                                child: CircularProgressIndicator(strokeWidth: 1.6, color: FdColors.lime),
                               ),
                               const SizedBox(width: 6),
-                              Text(l.catalogAiSearching, style: fdText(11, FontWeight.w700, FdColors.navy)),
+                              Text(l.catalogAiSearching, style: fdText(11, FontWeight.w700, FdColors.lime)),
                             ] else
                               Text(l.fdCountTa(rows.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
                           ],
@@ -155,7 +155,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(l.fdPopularCities, style: fdText(13, FontWeight.w800, FdColors.ink)),
+                            Text(l.fdPopularCities, style: fdText(13, FontWeight.w800, FdColors.onPage)),
                             const SizedBox(height: 6),
                             Row(
                               children: [
@@ -321,7 +321,7 @@ class SearchResultRow extends StatelessWidget {
     final meta = <InlineSpan>[
       if (u.city != null) TextSpan(text: u.city),
       if (price != null)
-        TextSpan(text: money(price, g.currency, locale: l.localeName), style: fdText(11, FontWeight.w800, FdColors.ink)),
+        TextSpan(text: money(price, g.currency, locale: l.localeName), style: fdText(11, FontWeight.w800, FdColors.onPage)),
       if (topik != null) TextSpan(text: 'TOPIK ${scoreText(topik)}+'),
     ];
     return Semantics(
@@ -367,7 +367,7 @@ class SearchResultRow extends StatelessWidget {
                       u.displayName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.2),
+                      style: fdText(14, FontWeight.w800, FdColors.onPage, height: 1.2),
                     ),
                     if (meta.isNotEmpty) ...[
                       const SizedBox(height: 2),

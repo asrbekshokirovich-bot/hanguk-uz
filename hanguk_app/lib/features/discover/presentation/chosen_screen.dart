@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
+import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../assessment/data/assessment_controller.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
+import '../data/chances.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
+import 'widgets/app_nav.dart';
+import 'widgets/chance_badge.dart';
 import 'widgets/fd_parts.dart';
 
 /// Opens the assessment (screen 11) on [ids].
@@ -19,8 +22,14 @@ void openAssessmentFor(BuildContext context, WidgetRef ref, List<String> ids) {
   context.push(kAssessmentPath);
 }
 
-/// Design screen 08, "Ajoyib tanlov → eng muhim savol": the slotted
-/// universities, then the question the app answers next.
+/// What the prototype says a consultant adds to the visa chance, in points.
+/// The prototype's own figure, not measured: change it here if the agency's
+/// numbers say otherwise.
+const int kConsultantVisaBoost = 21;
+
+/// "Ajoyib tanlov!": the three picked universities with their chances, the
+/// overall D-2 visa chance, and the question the app answers next — "Koreaga
+/// keta olamanmi?". A cross takes a university out of the picks.
 class ChosenScreen extends ConsumerWidget {
   const ChosenScreen({super.key});
 
@@ -34,136 +43,104 @@ class ChosenScreen extends ConsumerWidget {
         if (id != null && byId[id] != null) byId[id]!,
     ];
     final ids = [for (final u in chosen) u.institutionId];
+    final book = ref.watch(chanceBookProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: FdPage(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              const GhostWord('최고', top: -10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+    return NavScaffold(
+      current: AppTab.universities,
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FdTitleBar(
+              title: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.end,
                 children: [
-                  const FdTitleBar(),
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            width: 56,
-                            height: 56,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: FdColors.lime,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: FdColors.ink, width: 1.5),
-                              boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
-                            ),
-                            child: const Lucide(LucideIcons.trophy, size: 26, color: FdColors.onLime),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.end,
-                          children: [
-                            LimeMark(l.fdChosenTitleMark, style: _title),
-                            Text(' ${l.fdChosenTitleTail}', style: _title),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          chosen.isEmpty
-                              ? l.fdChosenEmpty
-                              : chosen.length == kSlotCount
-                              ? l.fdChosenBodyThree
-                              : l.fdChosenBody(chosen.length),
-                          style: fdText(13, FontWeight.w400, FdColors.muted, height: 1.45),
-                        ),
-                        const SizedBox(height: 18),
-                        for (var i = 0; i < chosen.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 10),
-                          _ChosenRow(
-                            rank: i + 1,
-                            university: chosen[i],
-                            onTap: () => context.push(universityPath(chosen[i].institutionId)),
-                            onAdmission: () => openAssessmentFor(context, ref, ids),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  if (chosen.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(l.fdChosenNext, style: fdText(12, FontWeight.w700, FdColors.muted)),
-                              const SizedBox(width: 4),
-                              const Lucide(LucideIcons.arrowDown, size: 13, color: FdColors.muted),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          HardButton(label: l.fdChosenAdmission, onPressed: () => openAssessmentFor(context, ref, ids)),
-                          const SizedBox(height: 10),
-                          HardChoice(
-                            label: l.fdChosenVisa,
-                            selected: false,
-                            height: 48,
-                            radius: 16,
-                            fontSize: 14,
-                            onTap: () => openAssessmentFor(context, ref, ids),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Text('${l.fdChosenTitleMark} ', style: kFdTitleStyle),
+                  Text(l.fdChosenTitleTail, style: kFdTitleStyle),
                 ],
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+                children: [
+                  Text(
+                    chosen.isEmpty ? l.fdChosenEmpty : l.fdPickedHint(chosen.length),
+                    style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.4),
+                  ),
+                  const SizedBox(height: 8),
+                  for (var i = 0; i < chosen.length; i++) ...[
+                    const SizedBox(height: 8),
+                    _Row(
+                      rank: i + 1,
+                      university: chosen[i],
+                      percent: book.admission(chosen[i]),
+                      onTap: () => context.push(universityPath(chosen[i].institutionId)),
+                      onRemove: () => ref.read(slotsProvider.notifier).remove(chosen[i].institutionId),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  _VisaCard(visa: book.visa),
+                ],
+              ),
+            ),
+            if (chosen.isNotEmpty)
+              FdBottomBar(
+                aboveNav: true,
+                child: HardButton(
+                  label: l.fdPickedCta,
+                  onPressed: () {
+                    ref.read(assessmentProvider.notifier).useUniversities(ids);
+                    // The report needs the answers: ask for them first.
+                    context.push(book.answered ? kAssessmentReportPath : kAssessmentPath);
+                  },
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
-
-  static final TextStyle _title = fdText(34, FontWeight.w800, FdColors.ink, height: 1.1, letterSpacing: -1.02);
 }
 
-class _ChosenRow extends StatelessWidget {
-  const _ChosenRow({required this.rank, required this.university, required this.onTap, required this.onAdmission});
+class _Row extends StatelessWidget {
+  const _Row({
+    required this.rank,
+    required this.university,
+    required this.percent,
+    required this.onTap,
+    required this.onRemove,
+  });
 
   final int rank;
   final CatalogUniversity university;
+  final int? percent;
   final VoidCallback onTap;
-  final VoidCallback onAdmission;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final look = percent == null ? null : chanceLook(percent!);
     return Semantics(
       button: true,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: FdColors.card,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: FdColors.ink, width: 1.5),
             boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
           ),
           child: Row(
             children: [
               Container(
-                width: 26,
-                height: 26,
+                width: 28,
+                height: 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: FdColors.lime,
@@ -173,36 +150,106 @@ class _ChosenRow extends StatelessWidget {
                 child: Text('$rank', style: fdText(12, FontWeight.w800, FdColors.onLime)),
               ),
               const SizedBox(width: 10),
-              UniThumb(university: university, width: 56, height: 48),
-              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(university.displayName, style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.2)),
-                    const SizedBox(height: 2),
+                    Text(
+                      university.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.2),
+                    ),
                     uniMetaLine(l, university, university.primary, topik: false, maxLines: 1),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
+              Text(
+                percent == null ? '?%' : '$percent%',
+                style: fdText(16, FontWeight.w800, look?.accent ?? FdColors.muted),
+              ),
+              const SizedBox(width: 8),
               Semantics(
                 button: true,
+                label: l.fdPickedRemove,
+                excludeSemantics: true,
                 child: GestureDetector(
-                  onTap: onAdmission,
+                  onTap: onRemove,
                   behavior: HitTestBehavior.opaque,
-                  child: CustomPaint(
-                    painter: const DashedPillPainter(color: FdColors.navy),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      child: Text('?%', style: fdText(11, FontWeight.w800, FdColors.navy)),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: FdColors.ink, width: 1.5),
                     ),
+                    child: const Lucide(LucideIcons.x, size: 12, color: FdColors.ink),
                   ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// "UMUMIY VIZA D-2 56% · konsultant bilan ~77%" on a blue card with a lime
+/// shadow and a bar.
+class _VisaCard extends StatelessWidget {
+  const _VisaCard({required this.visa});
+
+  final int? visa;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final v = visa;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: FdColors.blue,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: FdColors.ink, width: 1.5),
+        boxShadow: const [BoxShadow(color: FdColors.lime, offset: Offset(4, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l.fdPickedVisaTitle, style: fdText(10, FontWeight.w800, FdColors.onNavyMuted)),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(v == null ? '?%' : '$v%', style: fdText(40, FontWeight.w800, FdColors.lime, height: 1, letterSpacing: -1.2)),
+              const SizedBox(width: 10),
+              if (v != null)
+                Flexible(
+                  child: Text(
+                    l.fdPickedWithConsultant((v + kConsultantVisaBoost).clamp(0, 96)),
+                    style: fdText(12, FontWeight.w700, Colors.white),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: Container(
+              height: 8,
+              color: const Color(0x40FFFFFF),
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: ((v ?? 0) / 100).clamp(0.0, 1.0),
+                child: const ColoredBox(color: FdColors.lime, child: SizedBox.expand()),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -4406,4 +4406,201 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get ucFinalChosen => '✓ Bạn đã chọn trường này';
+
+  @override
+  String get fdNavAssess => 'ĐÁNH GIÁ';
+
+  @override
+  String get fdNavNeedsClientCode =>
+      'Cần mã khách hàng trước — tư vấn viên sẽ gửi qua SMS';
+
+  @override
+  String fdListTitle(int count) {
+    return '$count trường phù hợp';
+  }
+
+  @override
+  String get fdModeAdmission => 'Đỗ %';
+
+  @override
+  String get fdModeVisa => 'Visa %';
+
+  @override
+  String get fdModeMap => 'Bản đồ';
+
+  @override
+  String get fdBoardMatchLabel => 'TRƯỜNG PHÙ HỢP';
+
+  @override
+  String fdOfTotalShort(int total) {
+    return '/ $total trường';
+  }
+
+  @override
+  String get fdBoardVisaTitle => 'VISA D-2';
+
+  @override
+  String get fdBoardVisaSub => 'khả năng visa · ';
+
+  @override
+  String get fdBoardVisaAsk => 'chạm để đánh giá';
+
+  @override
+  String get fdGaugeLow => 'thấp';
+
+  @override
+  String get fdGaugeMid => 'trung bình';
+
+  @override
+  String get fdGaugeHigh => 'cao';
+
+  @override
+  String get fdBoardStripTitle => 'Đang phù hợp';
+
+  @override
+  String get fdBoardStripHint => 'chạm → chi tiết';
+
+  @override
+  String get fdBoardStripEmpty => 'Không có trường nào — hãy nới bộ lọc';
+
+  @override
+  String get fdUniAdmissionLabel => 'ĐỖ';
+
+  @override
+  String get fdUniNoteHigh => 'Khả năng cao';
+
+  @override
+  String get fdUniNoteReal => 'Khả thi, cần cố gắng';
+
+  @override
+  String get fdUniNoteDream => 'Ước mơ — mạo hiểm';
+
+  @override
+  String get fdUniVisaNote => 'phụ thuộc vào bạn, không phải trường';
+
+  @override
+  String get fdUniAskAssess => 'Chạm để đánh giá →';
+
+  @override
+  String get fdUniBoostTitle => 'NÂNG TỶ LỆ — chạm để xem kết quả';
+
+  @override
+  String get fdUniBoostStart => 'Bắt đầu đánh giá — tỷ lệ sẽ hiện ở đây';
+
+  @override
+  String get fdUniBoostApplied => 'Đã cập nhật tỷ lệ ↑';
+
+  @override
+  String fdUniAddPick(int count) {
+    return '♥ Thêm vào lựa chọn · $count/3';
+  }
+
+  @override
+  String fdUniInPick(int count) {
+    return '✓ Trong lựa chọn · $count/3';
+  }
+
+  @override
+  String fdUniPickAdded(int count) {
+    return 'Đã thêm · $count/3';
+  }
+
+  @override
+  String fdPickedHint(int count) {
+    return '$count trường được chọn — giờ là câu hỏi quan trọng nhất.';
+  }
+
+  @override
+  String get fdPickedVisaTitle => 'VISA D-2 TỔNG THỂ';
+
+  @override
+  String fdPickedWithConsultant(int n) {
+    return '· cùng tư vấn viên ~$n%';
+  }
+
+  @override
+  String get fdPickedCta => 'Tôi có đi được Hàn Quốc không? →';
+
+  @override
+  String get fdPickedRemove => 'Bỏ chọn';
+
+  @override
+  String get fdReportEyebrow => 'TÔI CÓ ĐI ĐƯỢC HÀN QUỐC KHÔNG?';
+
+  @override
+  String get fdReportHeadYes => 'Có, hoàn toàn được.';
+
+  @override
+  String get fdReportHeadMaybe => 'Có thể.';
+
+  @override
+  String get fdReportHeadNotYet => 'Chưa được.';
+
+  @override
+  String fdReportJobsLeft(int n) {
+    return 'Còn $n việc.';
+  }
+
+  @override
+  String get fdReportBestAdmission => 'CƠ HỘI NHẬP HỌC CAO NHẤT';
+
+  @override
+  String get fdReportVisaCard => 'VISA D-2';
+
+  @override
+  String fdReportWithConsultant(int n) {
+    return '→ $n% cùng tư vấn viên';
+  }
+
+  @override
+  String fdReportJobsTitle(int n) {
+    return '$n VIỆC';
+  }
+
+  @override
+  String get fdReportCta => 'Nhận cuộc gọi miễn phí →';
+
+  @override
+  String get fdLeadTitle => 'Tư vấn viên sẽ liên hệ';
+
+  @override
+  String fdLeadSub(int n) {
+    return 'Báo cáo và kế hoạch $n việc — miễn phí từ tư vấn viên. Sẽ gọi trong 10 phút.';
+  }
+
+  @override
+  String get fdLeadHintA => 'Sau khi gửi, SMS sẽ có ';
+
+  @override
+  String get fdLeadHintB => 'mã khách hàng 8 ký tự';
+
+  @override
+  String get fdLeadHintC => ' — mở các mục hồ sơ và tài liệu.';
+
+  @override
+  String get fdCodeTitle => 'Tôi có mã khách hàng';
+
+  @override
+  String get fdCodeSub => 'Mã 8 ký tự tư vấn viên đã gửi qua SMS.';
+
+  @override
+  String get fdConsultantWrite => 'Nhắn tin';
+
+  @override
+  String fdDocsReadyChip(int ready, int total) {
+    return '$ready / $total sẵn sàng';
+  }
+
+  @override
+  String get fdDocsUploadNext => 'Tải lên tài liệu tiếp theo';
+
+  @override
+  String get fdPrepareStudyKicker => 'STUDY PLAN';
+
+  @override
+  String get fdPrepareInterviewKicker => 'LUYỆN PHỎNG VẤN';
+
+  @override
+  String get fdPrepareLocked =>
+      'Các mục này mở đầy đủ sau khi nhập mã khách hàng.';
 }

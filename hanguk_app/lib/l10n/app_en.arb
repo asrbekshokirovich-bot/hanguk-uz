@@ -5748,5 +5748,296 @@
   "ucFinalChosen": "✓ You chose this university",
   "@ucFinalChosen": {
     "description": "Note on the final university after the student confirmed it."
+  },
+  "fdNavAssess": "ASSESS",
+  "@fdNavAssess": {
+    "description": "Label under the percentage on the round button of the bottom nav."
+  },
+  "fdNavNeedsClientCode": "A client code is needed first — the consultant sends it by SMS",
+  "@fdNavNeedsClientCode": {
+    "description": "Shown when a guest taps Application or Documents."
+  },
+  "fdListTitle": "{count} match you",
+  "@fdListTitle": {
+    "description": "Title of the Universities list.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdModeAdmission": "Admission %",
+  "@fdModeAdmission": {
+    "description": "List mode: admission chance."
+  },
+  "fdModeVisa": "Visa %",
+  "@fdModeVisa": {
+    "description": "List mode: visa chance."
+  },
+  "fdModeMap": "Map",
+  "@fdModeMap": {
+    "description": "List mode: map."
+  },
+  "fdBoardMatchLabel": "MATCHING UNIVERSITIES",
+  "@fdBoardMatchLabel": {
+    "description": "Small caps label over the count on the home board."
+  },
+  "fdOfTotalShort": "/ {total}",
+  "@fdOfTotalShort": {
+    "description": "\"/ 95\" after the count.",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdBoardVisaTitle": "D-2 VISA",
+  "@fdBoardVisaTitle": {
+    "description": "Title of the visa gauge."
+  },
+  "fdBoardVisaSub": "visa chance · ",
+  "@fdBoardVisaSub": {
+    "description": "Text before the word under the visa gauge."
+  },
+  "fdBoardVisaAsk": "tap to assess",
+  "@fdBoardVisaAsk": {
+    "description": "Under the visa gauge until the assessment is answered."
+  },
+  "fdGaugeLow": "low",
+  "@fdGaugeLow": {
+    "description": "Gauge end label and word."
+  },
+  "fdGaugeMid": "medium",
+  "@fdGaugeMid": {
+    "description": "Gauge word."
+  },
+  "fdGaugeHigh": "high",
+  "@fdGaugeHigh": {
+    "description": "Gauge end label and word."
+  },
+  "fdBoardStripTitle": "Matching now",
+  "@fdBoardStripTitle": {
+    "description": "Title of the strip of matching universities."
+  },
+  "fdBoardStripHint": "tap → details",
+  "@fdBoardStripHint": {
+    "description": "Hint beside the strip title."
+  },
+  "fdBoardStripEmpty": "None match — loosen the filter",
+  "@fdBoardStripEmpty": {
+    "description": "Strip empty state."
+  },
+  "fdUniAdmissionLabel": "ADMISSION",
+  "@fdUniAdmissionLabel": {
+    "description": "Label of the admission chance card on a university page."
+  },
+  "fdUniNoteHigh": "High chance",
+  "@fdUniNoteHigh": {
+    "description": "Under an admission chance of 80% or more."
+  },
+  "fdUniNoteReal": "Real, needs work",
+  "@fdUniNoteReal": {
+    "description": "Under an admission chance of 50-79%."
+  },
+  "fdUniNoteDream": "A dream — a gamble",
+  "@fdUniNoteDream": {
+    "description": "Under an admission chance below 50%."
+  },
+  "fdUniVisaNote": "depends on you, not on the university",
+  "@fdUniVisaNote": {
+    "description": "Under the visa chance on a university page."
+  },
+  "fdUniAskAssess": "Tap to assess →",
+  "@fdUniAskAssess": {
+    "description": "Under a \"?%\" chance on a university page."
+  },
+  "fdUniBoostTitle": "RAISE THE CHANCE — tap, see the result",
+  "@fdUniBoostTitle": {
+    "description": "Label over the rows that raise the chances."
+  },
+  "fdUniBoostStart": "Start the assessment — the chances appear here",
+  "@fdUniBoostStart": {
+    "description": "Row shown while the assessment is unanswered."
+  },
+  "fdUniBoostApplied": "Chances updated ↑",
+  "@fdUniBoostApplied": {
+    "description": "Snackbar after tapping a row that raises the chances."
+  },
+  "fdUniAddPick": "♥ Add to my picks · {count}/3",
+  "@fdUniAddPick": {
+    "description": "Main button on a university page.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdUniInPick": "✓ In my picks · {count}/3",
+  "@fdUniInPick": {
+    "description": "Main button when the university is already picked.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdUniPickAdded": "Added · {count}/3",
+  "@fdUniPickAdded": {
+    "description": "Snackbar after picking a university.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPickedHint": "{count} champions — now the most important question.",
+  "@fdPickedHint": {
+    "description": "Text under the title of the picked universities page.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPickedVisaTitle": "OVERALL D-2 VISA",
+  "@fdPickedVisaTitle": {
+    "description": "Label of the visa card on the picked page."
+  },
+  "fdPickedWithConsultant": "· with a consultant ~{n}%",
+  "@fdPickedWithConsultant": {
+    "description": "Beside the visa figure: what a consultant is said to add.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdPickedCta": "Can I go to Korea? →",
+  "@fdPickedCta": {
+    "description": "Main button of the picked page."
+  },
+  "fdPickedRemove": "Remove",
+  "@fdPickedRemove": {
+    "description": "Accessibility label of the cross on a picked university."
+  },
+  "fdReportEyebrow": "CAN I GO TO KOREA?",
+  "@fdReportEyebrow": {
+    "description": "Small lime line above the report headline."
+  },
+  "fdReportHeadYes": "Yes, for real.",
+  "@fdReportHeadYes": {
+    "description": "Report headline when the verdict is yes."
+  },
+  "fdReportHeadMaybe": "Maybe.",
+  "@fdReportHeadMaybe": {
+    "description": "Report headline when the verdict is maybe."
+  },
+  "fdReportHeadNotYet": "Not yet.",
+  "@fdReportHeadNotYet": {
+    "description": "Report headline when the verdict is not yet."
+  },
+  "fdReportJobsLeft": "{n} tasks left.",
+  "@fdReportJobsLeft": {
+    "description": "Second sentence of the report headline.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdReportBestAdmission": "BEST ADMISSION",
+  "@fdReportBestAdmission": {
+    "description": "Label of the report card with the best admission chance."
+  },
+  "fdReportVisaCard": "D-2 VISA",
+  "@fdReportVisaCard": {
+    "description": "Label of the report card with the visa chance."
+  },
+  "fdReportWithConsultant": "→ {n}% with a consultant",
+  "@fdReportWithConsultant": {
+    "description": "Under the visa figure: what a consultant is said to add.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdReportJobsTitle": "{n} TASKS",
+  "@fdReportJobsTitle": {
+    "description": "Title of the report card listing what to do.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdReportCta": "Get a free call →",
+  "@fdReportCta": {
+    "description": "Main button of the report."
+  },
+  "fdLeadTitle": "A consultant will call",
+  "@fdLeadTitle": {
+    "description": "Title of the lead form."
+  },
+  "fdLeadSub": "The report and a {n}-task plan — free from a consultant. They call within 10 minutes.",
+  "@fdLeadSub": {
+    "description": "Under the title of the lead form.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fdLeadHintA": "After sending, an SMS brings your 8-character ",
+  "@fdLeadHintA": {
+    "description": "First part of the hint under the lead form fields."
+  },
+  "fdLeadHintB": "client code",
+  "@fdLeadHintB": {
+    "description": "Bold part of the hint under the lead form fields."
+  },
+  "fdLeadHintC": " — it opens the application and documents sections.",
+  "@fdLeadHintC": {
+    "description": "Last part of the hint under the lead form fields."
+  },
+  "fdCodeTitle": "I have a client code",
+  "@fdCodeTitle": {
+    "description": "Title of the client code sign-in screen."
+  },
+  "fdCodeSub": "The 8-character code the consultant sent by SMS.",
+  "@fdCodeSub": {
+    "description": "Line under the title of the client code sign-in screen."
+  },
+  "fdConsultantWrite": "Write",
+  "@fdConsultantWrite": {
+    "description": "Button on the consultant card: opens the Telegram chat."
+  },
+  "fdDocsReadyChip": "{ready} / {total} ready",
+  "@fdDocsReadyChip": {
+    "description": "Pill beside the documents title: accepted documents out of the required ones.",
+    "placeholders": {
+      "ready": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fdDocsUploadNext": "Upload the next document",
+  "@fdDocsUploadNext": {
+    "description": "Bottom button of the documents screen: uploads the first document still needed."
+  },
+  "fdPrepareStudyKicker": "STUDY PLAN",
+  "@fdPrepareStudyKicker": {
+    "description": "Small line above the Study Plan card title."
+  },
+  "fdPrepareInterviewKicker": "INTERVIEW PRACTICE",
+  "@fdPrepareInterviewKicker": {
+    "description": "Small line above the interview card title."
+  },
+  "fdPrepareLocked": "These sections open fully after the client code.",
+  "@fdPrepareLocked": {
+    "description": "Dashed note shown to guests on the preparation screen."
   }
 }

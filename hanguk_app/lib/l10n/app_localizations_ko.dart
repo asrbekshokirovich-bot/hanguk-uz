@@ -4248,4 +4248,199 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ucFinalChosen => '✓ 이 대학을 선택했습니다';
+
+  @override
+  String get fdNavAssess => '평가';
+
+  @override
+  String get fdNavNeedsClientCode => '먼저 고객 코드가 필요합니다 — 상담사가 SMS로 보내 드립니다';
+
+  @override
+  String fdListTitle(int count) {
+    return '나에게 맞는 $count곳';
+  }
+
+  @override
+  String get fdModeAdmission => '합격 %';
+
+  @override
+  String get fdModeVisa => '비자 %';
+
+  @override
+  String get fdModeMap => '지도';
+
+  @override
+  String get fdBoardMatchLabel => '맞는 대학';
+
+  @override
+  String fdOfTotalShort(int total) {
+    return '/ $total곳';
+  }
+
+  @override
+  String get fdBoardVisaTitle => 'D-2 비자';
+
+  @override
+  String get fdBoardVisaSub => '비자 가능성 · ';
+
+  @override
+  String get fdBoardVisaAsk => '평가하려면 누르세요';
+
+  @override
+  String get fdGaugeLow => '낮음';
+
+  @override
+  String get fdGaugeMid => '보통';
+
+  @override
+  String get fdGaugeHigh => '높음';
+
+  @override
+  String get fdBoardStripTitle => '지금 맞는 대학';
+
+  @override
+  String get fdBoardStripHint => '눌러서 자세히';
+
+  @override
+  String get fdBoardStripEmpty => '맞는 곳이 없습니다 — 필터를 완화하세요';
+
+  @override
+  String get fdUniAdmissionLabel => '합격';
+
+  @override
+  String get fdUniNoteHigh => '가능성 높음';
+
+  @override
+  String get fdUniNoteReal => '현실적, 준비 필요';
+
+  @override
+  String get fdUniNoteDream => '도전 — 모험';
+
+  @override
+  String get fdUniVisaNote => '대학이 아니라 본인에게 달려 있습니다';
+
+  @override
+  String get fdUniAskAssess => '평가하려면 누르세요 →';
+
+  @override
+  String get fdUniBoostTitle => '확률 높이기 — 눌러서 결과 보기';
+
+  @override
+  String get fdUniBoostStart => '평가를 시작하세요 — 확률이 여기에 표시됩니다';
+
+  @override
+  String get fdUniBoostApplied => '확률이 업데이트되었습니다 ↑';
+
+  @override
+  String fdUniAddPick(int count) {
+    return '♥ 내 선택에 추가 · $count/3';
+  }
+
+  @override
+  String fdUniInPick(int count) {
+    return '✓ 내 선택에 있음 · $count/3';
+  }
+
+  @override
+  String fdUniPickAdded(int count) {
+    return '추가됨 · $count/3';
+  }
+
+  @override
+  String fdPickedHint(int count) {
+    return '챔피언 $count곳 — 이제 가장 중요한 질문입니다.';
+  }
+
+  @override
+  String get fdPickedVisaTitle => '전체 D-2 비자';
+
+  @override
+  String fdPickedWithConsultant(int n) {
+    return '· 상담사와 함께 ~$n%';
+  }
+
+  @override
+  String get fdPickedCta => '한국에 갈 수 있을까요? →';
+
+  @override
+  String get fdPickedRemove => '제거';
+
+  @override
+  String get fdReportEyebrow => '한국에 갈 수 있을까요?';
+
+  @override
+  String get fdReportHeadYes => '네, 가능해요.';
+
+  @override
+  String get fdReportHeadMaybe => '어쩌면요.';
+
+  @override
+  String get fdReportHeadNotYet => '아직은 아니에요.';
+
+  @override
+  String fdReportJobsLeft(int n) {
+    return '할 일 $n개 남았어요.';
+  }
+
+  @override
+  String get fdReportBestAdmission => '최고 합격 확률';
+
+  @override
+  String get fdReportVisaCard => 'D-2 비자';
+
+  @override
+  String fdReportWithConsultant(int n) {
+    return '→ 상담사와 함께 $n%';
+  }
+
+  @override
+  String fdReportJobsTitle(int n) {
+    return '할 일 $n개';
+  }
+
+  @override
+  String get fdReportCta => '무료 전화 상담 받기 →';
+
+  @override
+  String get fdLeadTitle => '상담사가 연락드립니다';
+
+  @override
+  String fdLeadSub(int n) {
+    return '보고서와 할 일 $n개 계획 — 상담사가 무료로 드립니다. 10분 안에 전화드려요.';
+  }
+
+  @override
+  String get fdLeadHintA => '보내면 SMS로 8자리 ';
+
+  @override
+  String get fdLeadHintB => '고객 코드';
+
+  @override
+  String get fdLeadHintC => '가 도착해요 — 신청서와 서류 메뉴가 열립니다.';
+
+  @override
+  String get fdCodeTitle => '고객 코드가 있어요';
+
+  @override
+  String get fdCodeSub => '상담사가 SMS로 보낸 8자리 코드입니다.';
+
+  @override
+  String get fdConsultantWrite => '문의하기';
+
+  @override
+  String fdDocsReadyChip(int ready, int total) {
+    return '$ready / $total 완료';
+  }
+
+  @override
+  String get fdDocsUploadNext => '다음 서류 업로드';
+
+  @override
+  String get fdPrepareStudyKicker => '학업 계획서';
+
+  @override
+  String get fdPrepareInterviewKicker => '면접 연습';
+
+  @override
+  String get fdPrepareLocked => '이 메뉴는 고객 코드를 입력하면 모두 열립니다.';
 }

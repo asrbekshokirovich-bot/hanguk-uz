@@ -4425,4 +4425,203 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get ucFinalChosen => '✓ Siz shu universitetni tanladingiz';
+
+  @override
+  String get fdNavAssess => 'BAHOLASH';
+
+  @override
+  String get fdNavNeedsClientCode =>
+      'Avval mijoz kodi kerak — konsultant SMS yuboradi';
+
+  @override
+  String fdListTitle(int count) {
+    return 'Sizga mos $count ta';
+  }
+
+  @override
+  String get fdModeAdmission => 'Qabul %';
+
+  @override
+  String get fdModeVisa => 'Viza %';
+
+  @override
+  String get fdModeMap => 'Xarita';
+
+  @override
+  String get fdBoardMatchLabel => 'MOS UNIVERSITETLAR';
+
+  @override
+  String fdOfTotalShort(int total) {
+    return '/ $total ta';
+  }
+
+  @override
+  String get fdBoardVisaTitle => 'VIZA D-2';
+
+  @override
+  String get fdBoardVisaSub => 'viza olish imkoni · ';
+
+  @override
+  String get fdBoardVisaAsk => 'baholash uchun bosing';
+
+  @override
+  String get fdGaugeLow => 'past';
+
+  @override
+  String get fdGaugeMid => 'o\'rta';
+
+  @override
+  String get fdGaugeHigh => 'yuqori';
+
+  @override
+  String get fdBoardStripTitle => 'Hozir mos kelayotganlar';
+
+  @override
+  String get fdBoardStripHint => 'bosing → batafsil';
+
+  @override
+  String get fdBoardStripEmpty => 'Hech biri mos emas — filtrni yumshating';
+
+  @override
+  String get fdUniAdmissionLabel => 'QABUL';
+
+  @override
+  String get fdUniNoteHigh => 'Yuqori imkoniyat';
+
+  @override
+  String get fdUniNoteReal => 'Real, ishlash kerak';
+
+  @override
+  String get fdUniNoteDream => 'Orzu — tavakkal';
+
+  @override
+  String get fdUniVisaNote => 'sizga bog\'liq, universitetga emas';
+
+  @override
+  String get fdUniAskAssess => 'Baholash uchun bosing →';
+
+  @override
+  String get fdUniBoostTitle => 'FOIZNI KO\'TARISH — bosing, natijani ko\'ring';
+
+  @override
+  String get fdUniBoostStart =>
+      'Baholashni boshlang — foizlar shu yerda chiqadi';
+
+  @override
+  String get fdUniBoostApplied => 'Foizlar yangilandi ↑';
+
+  @override
+  String fdUniAddPick(int count) {
+    return '♥ Tanlovga qo\'shish · $count/3';
+  }
+
+  @override
+  String fdUniInPick(int count) {
+    return '✓ Tanlovda · $count/3';
+  }
+
+  @override
+  String fdUniPickAdded(int count) {
+    return 'Qo\'shildi · $count/3';
+  }
+
+  @override
+  String fdPickedHint(int count) {
+    return '$count ta chempion — endi eng muhim savol.';
+  }
+
+  @override
+  String get fdPickedVisaTitle => 'UMUMIY VIZA D-2';
+
+  @override
+  String fdPickedWithConsultant(int n) {
+    return '· konsultant bilan ~$n%';
+  }
+
+  @override
+  String get fdPickedCta => 'Koreaga keta olamanmi? →';
+
+  @override
+  String get fdPickedRemove => 'Olib tashlash';
+
+  @override
+  String get fdReportEyebrow => 'KOREAGA KETA OLAMANMI?';
+
+  @override
+  String get fdReportHeadYes => 'Ha, real.';
+
+  @override
+  String get fdReportHeadMaybe => 'Balki.';
+
+  @override
+  String get fdReportHeadNotYet => 'Hozircha yo\'q.';
+
+  @override
+  String fdReportJobsLeft(int n) {
+    return '$n ta ish qoldi.';
+  }
+
+  @override
+  String get fdReportBestAdmission => 'ENG YAXSHI QABUL';
+
+  @override
+  String get fdReportVisaCard => 'VIZA D-2';
+
+  @override
+  String fdReportWithConsultant(int n) {
+    return '→ $n% konsultant bilan';
+  }
+
+  @override
+  String fdReportJobsTitle(int n) {
+    return '$n TA ISH';
+  }
+
+  @override
+  String get fdReportCta => 'Bepul qo\'ng\'iroq olish →';
+
+  @override
+  String get fdLeadTitle => 'Konsultant bog\'lanadi';
+
+  @override
+  String fdLeadSub(int n) {
+    return 'Hisobot va $n ta ish rejasi — konsultantdan bepul. 10 daqiqada qo\'ng\'iroq qiladi.';
+  }
+
+  @override
+  String get fdLeadHintA => 'Yuborgach SMS da 8 belgili ';
+
+  @override
+  String get fdLeadHintB => 'mijoz kodi';
+
+  @override
+  String get fdLeadHintC =>
+      ' keladi — u bilan ariza va hujjatlar bo\'limlari ochiladi.';
+
+  @override
+  String get fdCodeTitle => 'Mijoz kodim bor';
+
+  @override
+  String get fdCodeSub => 'Konsultant SMS da yuborgan 8 belgili kod.';
+
+  @override
+  String get fdConsultantWrite => 'Yozish';
+
+  @override
+  String fdDocsReadyChip(int ready, int total) {
+    return '$ready / $total tayyor';
+  }
+
+  @override
+  String get fdDocsUploadNext => 'Keyingi hujjatni yuklash';
+
+  @override
+  String get fdPrepareStudyKicker => 'STUDY PLAN';
+
+  @override
+  String get fdPrepareInterviewKicker => 'SUHBAT MASHQI';
+
+  @override
+  String get fdPrepareLocked =>
+      'Bu bo\'limlar mijoz kodidan keyin to\'liq ochiladi.';
 }

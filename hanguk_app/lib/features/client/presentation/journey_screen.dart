@@ -57,7 +57,7 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
     return SafeArea(
       bottom: false,
       child: appsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: FdColors.navy)),
+        loading: () => const Center(child: CircularProgressIndicator(color: FdColors.lime)),
         error: (_, _) => Column(
           children: [
             ClientHeader(title: l.fdJourneyTitle, subtitle: name),
@@ -68,9 +68,9 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(l.appsLoadError, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.ink)),
+                      Text(l.appsLoadError, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.onPage)),
                       const SizedBox(height: 4),
-                      Text(l.checkConnectionRetry, textAlign: TextAlign.center, style: fdText(12, FontWeight.w400, FdColors.muted)),
+                      Text(l.checkConnectionRetry, textAlign: TextAlign.center, style: fdText(12, FontWeight.w400, FdColors.pageMuted)),
                       const SizedBox(height: 14),
                       HardChoice(
                         label: l.commonRetry,
@@ -121,12 +121,12 @@ class _Empty extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(l.fdJourneyEmpty, style: fdText(20, FontWeight.w800, FdColors.ink)),
+                  Text(l.fdJourneyEmpty, style: fdText(20, FontWeight.w800, FdColors.onPage)),
                   const SizedBox(height: 6),
                   Text(
                     l.fdJourneyEmptyBody,
                     textAlign: TextAlign.center,
-                    style: fdText(13, FontWeight.w400, FdColors.muted, height: 1.45),
+                    style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.45),
                   ),
                   const SizedBox(height: 18),
                   HardButton(label: l.fdJourneyBrowse, onPressed: onBrowse),
@@ -159,9 +159,9 @@ class _Body extends StatelessWidget {
     final step = completed ? total : ProcessTracker.stepFor(status);
     final universityName = app.university?.name.isNotEmpty ?? false ? shortUniversityName(app.university!.name) : null;
 
-    final note = completed
-        ? l.fdJourneyDone
-        : ProcessTracker.isPending(status)
+    // Under the current stage: what the status says if it is finer than the
+    // stage, otherwise what comes next (or that the answer is awaited).
+    final note = ProcessTracker.isPending(status)
         ? l.fdJourneyWaiting
         : step < total
         ? l.fdJourneyNext(labels[step])
@@ -173,6 +173,7 @@ class _Body extends StatelessWidget {
         ClientHeader(
           title: l.fdJourneyTitle,
           subtitle: [if (name != null && name!.isNotEmpty) name!, ?universityName].join(' · '),
+          badge: '$step / $total',
         ),
         Expanded(
           child: ListView(
@@ -202,35 +203,37 @@ class _Body extends StatelessWidget {
                     },
                   ),
                 ),
-              NavySummary(
-                kicker: l.fdJourneyCurrent,
-                headline: ProcessTracker.statusLabel(status, l),
-                value: '$step',
-                of: '/$total',
-                segments: [for (var i = 0; i < total; i++) i < step ? FdColors.lime : FdColors.deep],
-                note: note,
-              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
-                child: Column(
-                  children: [
-                    for (var i = 0; i < total; i++)
-                      _Step(
-                        number: i + 1,
-                        label: labels[i],
-                        state: i + 1 < step || completed
-                            ? _StepState.done
-                            : i + 1 == step
-                            ? _StepState.current
-                            : _StepState.ahead,
-                        last: i == total - 1,
-                        sub: i + 1 == step && !completed ? _sub(status, labels[i], l) : null,
-                      ),
-                  ],
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: FdColors.card,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: FdColors.ink, width: 1.5),
+                    boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < total; i++) ...[
+                        if (i > 0) const DashedDivider(),
+                        _Step(
+                          number: i + 1,
+                          label: labels[i],
+                          state: i + 1 < step || completed
+                              ? _StepState.done
+                              : i + 1 == step
+                              ? _StepState.current
+                              : _StepState.ahead,
+                          sub: i + 1 == step && !completed ? (_sub(status, labels[i], l) ?? note) : null,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
                 child: HardChoice(
                   label: l.fdJourneyRoom,
                   selected: false,
@@ -256,66 +259,50 @@ class _Body extends StatelessWidget {
 
 enum _StepState { done, current, ahead }
 
-/// One stage of the timeline: the circle (✓, the number on navy, or the
-/// number on white), the line down to the next, and the stage's name.
+/// One stage of the timeline (prototype 9): the circle — lime ✓, the number on
+/// blue with a hard shadow, or the number outlined on white — and the stage's
+/// name, faded while it is still ahead.
 class _Step extends StatelessWidget {
-  const _Step({required this.number, required this.label, required this.state, required this.last, this.sub});
+  const _Step({required this.number, required this.label, required this.state, this.sub});
 
   final int number;
   final String label;
   final _StepState state;
-  final bool last;
   final String? sub;
+
+  static const Color _faded = Color(0xFFB8C4DC);
 
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (state) {
       _StepState.done => (FdColors.lime, FdColors.onLime),
-      _StepState.current => (FdColors.navy, Colors.white),
-      _StepState.ahead => (FdColors.card, FdColors.muted),
+      _StepState.current => (FdColors.blue, Colors.white),
+      _StepState.ahead => (FdColors.card, _faded),
     };
-    return IntrinsicHeight(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Column(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: bg,
-                  border: Border.all(color: FdColors.ink, width: 1.5),
-                ),
-                child: Text(state == _StepState.done ? '✓' : '$number', style: fdText(13, FontWeight.w800, fg, height: 1)),
-              ),
-              Expanded(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 22),
-                  child: Opacity(
-                    opacity: last ? 0 : 1,
-                    child: const ColoredBox(color: FdColors.ink, child: SizedBox(width: 1.5)),
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: bg,
+              border: Border.all(color: FdColors.ink, width: 1.5),
+              boxShadow: state == _StepState.current ? const [BoxShadow(color: FdColors.ink, offset: Offset(2, 2))] : null,
+            ),
+            child: Text(state == _StepState.done ? '✓' : '$number', style: fdText(15, FontWeight.w800, fg, height: 1)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6, bottom: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: fdText(14, state == _StepState.current ? FontWeight.w800 : FontWeight.w600, state == _StepState.ahead ? FdColors.muted : FdColors.ink),
-                  ),
-                  if (sub != null) Text(sub!, style: fdText(11, FontWeight.w400, FdColors.muted)),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: fdText(17, FontWeight.w800, state == _StepState.ahead ? _faded : FdColors.ink, height: 1.2)),
+                if (sub != null) Text(sub!, style: fdText(13, FontWeight.w400, FdColors.muted)),
+              ],
             ),
           ),
         ],
