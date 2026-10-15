@@ -19,7 +19,7 @@ const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const STAFF_ROLES = ["owner", "admin", "call_operator"];
+const STAFF_ROLES = ["owner", "admin", "call_operator", "lead_senior"];
 const CHAT_MEDIA_BUCKET = "chat-media";
 const MEDIA_URL_TTL_SECONDS = 3600;
 

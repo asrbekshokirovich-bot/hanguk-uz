@@ -97,6 +97,17 @@ footer{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:c
 .hint{position:fixed;left:50%;bottom:3.4rem;-webkit-transform:translateX(-50%);transform:translateX(-50%);background:rgba(15,23,41,.94);border:1px solid #23314f;color:#c3cce0;font-size:1.15rem;font-weight:600;padding:.7rem 1.4rem;border-radius:2rem;z-index:4;white-space:nowrap}
 .hint b{color:#eef2fb}
 .hidden{display:none!important}
+
+/* red warning over the task board: new leads nobody answered for 10 minutes */
+.alert{position:fixed;top:0;left:0;right:0;z-index:4;padding:1rem 1.8rem 1.1rem;background:#d6232c;color:#fff;border-bottom:.3rem solid #ff9a9e;box-shadow:0 .8rem 2.4rem rgba(0,0,0,.6);-webkit-animation:alp 1.6s ease-in-out infinite;animation:alp 1.6s ease-in-out infinite}
+@-webkit-keyframes alp{0%,100%{background-color:#d6232c}50%{background-color:#9d151c}}
+@keyframes alp{0%,100%{background-color:#d6232c}50%{background-color:#9d151c}}
+.al-h{font-size:1.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem}
+.al-dot{display:inline-block;width:1.1rem;height:1.1rem;border-radius:50%;background:#fff;margin-right:.8rem;vertical-align:.05rem}
+.al-r{font-size:2.5rem;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-r b{font-weight:800}
+.al-r span{font-weight:600;opacity:.85}
+.al-m{font-size:1.6rem;font-weight:700;margin-top:.3rem;opacity:.9}
 </style>
 </head>
 <body>
@@ -120,12 +131,13 @@ footer{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:c
 </div>
 <div id="hint" class="hint hidden">To&#x2018;liq ekran uchun pultdagi <b>OK</b> tugmasini bosing</div>
 <div id="msg" class="hidden"></div>
+<div id="alert" class="alert hidden"></div>
 
 <script>
 (function () {
   'use strict';
 
-  var VERSION = '2026-10-01.2';
+  var VERSION = '2026-10-05.1';
   var API = 'https://zqpglkxbtpkvyraxquao.supabase.co/functions/v1/tv-board';
   var REFRESH_MS = 30000;              // normal poll
   var RETRY_MS = 10000;                // after a failed poll
@@ -134,6 +146,14 @@ footer{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:c
   var PAGE_MS = 20000;                 // column page rotation when staff > MAX_COLS
   var MAX_COLS = 7;
   var TZ_MS = 5 * 3600 * 1000;         // Asia/Tashkent, independent of the TV's own timezone
+
+  // Red warning for new leads nobody has answered for 10 minutes: a SECOND feed,
+  // polled on its own (tv-lead-alerts). The key is the one typed for the board,
+  // or a separate one given once as #lk=...
+  var LEAD_ENDPOINT = 'https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/tv-lead-alerts';
+  var LEAD_REFRESH_MS = 15000;         // warning poll
+  var LEAD_STALE_MS = 60000;           // keep the last list this long when the feed fails, then clear it
+  var MAX_ALERTS = 6;                  // rows shown; the rest as "+N"
 
   var DAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
   var MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
@@ -357,6 +377,78 @@ footer{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:c
     }
   }, 40);
 
+  // -- red warning: unanswered new leads -------------------------------
+  // Independent of the board above: nothing in here may break it, and a failure
+  // only means the warning keeps its last list for a minute and then goes away.
+  var LEAD_SOURCES = {
+    instagram: 'Instagram', telegram: 'Telegram', facebook: 'Facebook', meta_form: 'Meta forma',
+    app: 'Ilova', manual: 'Qo\u02bblda', phone: 'Telefon', call: 'Telefon',
+    learning_center: 'O\u02bbquv markaz', 'Public Registration': 'Sayt'
+  };
+  var leadWarn = [], leadOk = 0, leadTimer = null;
+
+  // #lk=... once (remembered), else the board's own key.
+  function leadKey() {
+    var m = /[#&?]lk=([A-Za-z0-9_-]+)/.exec(location.hash + '&' + location.search);
+    var k = m ? m[1] : null;
+    try {
+      if (k) localStorage.setItem('tv_lead_key', k);
+      else k = localStorage.getItem('tv_lead_key');
+    } catch (e) { /* storage may be disabled; the link still works */ }
+    return k || KEY;
+  }
+
+  function renderAlert() {
+    try {
+      var el = $('alert'), n = leadWarn.length, i, h = '';
+      if (!n) { if (el.className !== 'alert hidden') el.className = 'alert hidden'; return; }
+      var show = n > MAX_ALERTS ? MAX_ALERTS : n;
+      h += '<div class="al-h"><i class="al-dot"></i>Javobsiz lid' + (n > 1 ? 'lar \u00b7 ' + n : '') + '</div>';
+      for (i = 0; i < show; i++) {
+        var w = leadWarn[i] || {};
+        var mins = typeof w.minutes_waiting === 'number' ? w.minutes_waiting : (w.minutes_late | 0);
+        var src = w.source ? (LEAD_SOURCES[w.source] || String(w.source)) : '';
+        h += '<div class="al-r"><b>' + esc(w.label || 'Lid') + '</b> \u2014 ' + mins + ' daqiqa javobsiz' +
+          (src ? ' <span>(' + esc(src) + ')</span>' : '') + '</div>';
+      }
+      if (n > show) h += '<div class="al-m">+' + (n - show) + ' ta yana</div>';
+      el.innerHTML = h;
+      el.className = 'alert';
+    } catch (e) { /* the board must keep working */ }
+  }
+
+  // The feed failed: keep the last list for LEAD_STALE_MS, then clear it, so a
+  // dead connection never leaves a stale red banner on the wall.
+  function leadFail() {
+    if (leadWarn.length && Date.now() - leadOk > LEAD_STALE_MS) { leadWarn = []; renderAlert(); }
+  }
+
+  function leadSchedule(ms) { clearTimeout(leadTimer); leadTimer = setTimeout(loadLeads, ms); }
+
+  function loadLeads() {
+    try {
+      var k = leadKey();
+      if (!k) { leadFail(); leadSchedule(LEAD_REFRESH_MS); return; }
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', LEAD_ENDPOINT + '?k=' + encodeURIComponent(k) + '&t=' + Date.now(), true);
+      xhr.timeout = 10000;
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        try {
+          var d = null;
+          if (xhr.status === 200) { try { d = JSON.parse(xhr.responseText); } catch (e) { d = null; } }
+          if (d && d.ok && d.warnings && typeof d.warnings.length === 'number') {
+            leadWarn = d.warnings; leadOk = Date.now(); renderAlert();
+          } else {
+            leadFail();
+          }
+        } catch (e) { /* ignore */ }
+        leadSchedule(LEAD_REFRESH_MS);
+      };
+      xhr.send();
+    } catch (e) { leadFail(); leadSchedule(LEAD_REFRESH_MS); }
+  }
+
   // -- key prompt & messages ------------------------------------------
   function askKey(bad) {
     showMsg('<div><h1>Ekran kaliti</h1>' +
@@ -438,6 +530,7 @@ footer{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:c
   hint();
   wake();
   load();
+  loadLeads();
 })();
 </script>
 </body>

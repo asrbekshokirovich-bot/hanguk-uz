@@ -30,7 +30,7 @@ const corsHeaders = {
 };
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-const STAFF_ROLES = ["owner", "admin", "call_operator"];
+const STAFF_ROLES = ["owner", "admin", "call_operator", "lead_senior"];
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });

@@ -18,7 +18,9 @@ import { Database } from '@/integrations/supabase/types';
 import { z } from 'zod';
 import { User, Lock, UserPlus } from 'lucide-react';
 
-type AppRole = Database['public']['Enums']['app_role'];
+// 'lead_senior' (lead module v2, migration 20261015230000) is not in the
+// generated enum yet, so it is added here rather than editing the generated file.
+type AppRole = Database['public']['Enums']['app_role'] | 'lead_senior';
 
 interface CreateAccountDialogProps {
   open: boolean;
@@ -33,6 +35,7 @@ const ROLES: { value: AppRole; label: string; description: string }[] = [
   { value: 'owner', label: 'Owner', description: 'Full system access including finances' },
   { value: 'admin', label: 'Admin', description: 'Full management access' },
   { value: 'call_operator', label: 'Call Operator', description: 'Handle communications' },
+  { value: 'lead_senior', label: 'Senior operator', description: 'Sees every lead, pins and reassigns, reads the lead report' },
   { value: 'document_handler', label: 'Document Handler', description: 'Manage documents' },
 ];
 

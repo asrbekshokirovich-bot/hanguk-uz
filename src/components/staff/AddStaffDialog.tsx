@@ -24,7 +24,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 import { Tables } from '@/integrations/supabase/types';
 
-type AppRole = Database['public']['Enums']['app_role'];
+// 'lead_senior' (lead module v2, migration 20261015230000) is not in the
+// generated enum yet, so it is added here rather than editing the generated file.
+type AppRole = Database['public']['Enums']['app_role'] | 'lead_senior';
 
 interface AddStaffDialogProps {
   open: boolean;
@@ -35,6 +37,7 @@ interface AddStaffDialogProps {
 const ROLES: { value: AppRole; label: string; description: string }[] = [
   { value: 'admin', label: 'Admin', description: 'Full management access' },
   { value: 'call_operator', label: 'Call Operator', description: 'Handle communications' },
+  { value: 'lead_senior', label: 'Senior operator', description: 'Sees every lead, pins and reassigns, reads the lead report' },
   { value: 'document_handler', label: 'Document Handler', description: 'Manage documents' },
 ];
 
@@ -103,7 +106,8 @@ export function AddStaffDialog({ open, onOpenChange, onSuccess }: AddStaffDialog
     // Add all selected roles
     const roleInserts = selectedRoles.map((role) => ({
       user_id: selectedUserId,
-      role,
+      // the generated enum does not list 'lead_senior' yet, but the table accepts it
+      role: role as Database['public']['Enums']['app_role'],
     }));
 
     const { error } = await supabase.from('user_roles').insert(roleInserts);

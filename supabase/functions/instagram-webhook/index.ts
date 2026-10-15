@@ -425,9 +425,16 @@ async function handleComment(value: any, entry: any, account: any): Promise<void
 
   let identity = { studentId: null as string | null, leadId: null as string | null };
   if (!isFromMe && fromId) {
-    const r = await resolveIdentity(admin as any, "instagram", fromId, {
+    // Lead module v2 (spec §3.2, F2): somebody who comments is a lead, like
+    // somebody who writes a DM — ensureIdentity finds the person's card or
+    // creates it (keyed on the commenter's Instagram scoped id, the same key a
+    // DM from them uses, so a later DM lands on the same card), and the
+    // database starts the 10-minute timer on the insert. Our own comments never
+    // reach this branch.
+    const r = await ensureIdentity(admin as any, "instagram", fromId, {
       displayName: fromUsername ? `@${fromUsername}` : null,
       identifierLabel: fromUsername ? `@${fromUsername}` : null,
+      leadFields: { contact_channel: "instagram", ...(fromUsername ? { instagram_handle: String(fromUsername).toLowerCase() } : {}) },
     });
     identity = { studentId: r.studentId, leadId: r.leadId };
   }
@@ -452,6 +459,46 @@ async function handleComment(value: any, entry: any, account: any): Promise<void
     raw: value,
   }, { onConflict: "comment_id", ignoreDuplicates: true });
   if (error) throw new Error(`comment upsert: ${error.message}`);
+
+  if (!isFromMe) await recordSocialComment(value, fromId, fromUsername, ts, identity.leadId);
+}
+
+/**
+ * The comment for the comments panel (spec §3.2): a social_comments row, linked
+ * to the commenter's lead. Idempotent on (platform, comment_id): this inserts
+ * and treats "already there" (23505) as done.
+ */
+async function recordSocialComment(
+  value: any,
+  fromId: string | null,
+  fromUsername: string | null,
+  ts: string,
+  leadId: string | null,
+): Promise<void> {
+  const { error } = await admin.from("social_comments").insert({
+    platform: "instagram",
+    post_id: value?.media?.id ? String(value.media.id) : null,
+    post_label: value?.media?.media_product_type ? String(value.media.media_product_type).toLowerCase() : null,
+    comment_id: String(value.id),
+    author_username: fromUsername,
+    author_id: fromId,
+    text: value?.text ?? null,
+    created_at: ts,
+    lead_id: leadId,
+  });
+  if (error) {
+    if (error.code === "23505") return; // the same comment delivered twice
+    throw new Error(`social comment insert: ${error.message}`);
+  }
+
+  // A commenter who already had a card (an answered DM lead) wrote again: tell
+  // the engine, which starts the right timer unless one is already running. A
+  // brand-new lead already has its first-contact timer from the insert trigger.
+  // Old comments (a replayed delivery) never start one.
+  if (leadId && Date.now() - Date.parse(ts) < 30 * 60_000) {
+    const { error: reErr } = await admin.rpc("lead_reengage", { p_lead_id: leadId, p_at: ts });
+    if (reErr) console.error("lead_reengage failed:", reErr.message);
+  }
 }
 
 // ---------------------------------------------------------------------------

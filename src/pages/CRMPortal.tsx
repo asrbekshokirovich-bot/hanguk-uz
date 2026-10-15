@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
@@ -59,7 +60,14 @@ const AIAssistantContent = lazy(() => import('@/components/crm/pages/AIAssistant
 const ApplicationsPipeline = lazy(() => import('@/components/crm/pages/ApplicationsPipeline'));
 const DocumentsContent = lazy(() => import('@/components/crm/pages/DocumentsContent'));
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
-const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
+// Lead module v2 (docs/lead-module-v2.md): the desk and the four pages beside it.
+const LeadDeskContent = lazy(() => import('@/components/crm/pages/LeadDeskContent'));
+const AllLeadsContent = lazy(() => import('@/components/crm/pages/AllLeadsContent'));
+const LostLeadsContent = lazy(() => import('@/components/crm/pages/LostLeadsContent'));
+const LeadReportContent = lazy(() => import('@/components/crm/pages/LeadReportContent'));
+const LeadBazaContent = lazy(() => import('@/components/crm/pages/LeadBazaContent'));
+const LeadSettingsContent = lazy(() => import('@/components/crm/pages/LeadSettingsContent'));
+// The old profile page stays reachable for roles that cannot work the desk.
 const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfileContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
@@ -94,7 +102,18 @@ export default function CRMPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, canSeeFinance, canApproveDocuments, loading: roleLoading } = useUserRole();
+  const {
+    isStaff,
+    isOwner,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    isLeadSenior,
+    canWorkLeads,
+    canSeeFinance,
+    canApproveDocuments,
+    loading: roleLoading,
+  } = useUserRole();
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
@@ -113,7 +132,10 @@ export default function CRMPortal() {
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
 
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
-  const sidebarGroups = useSidebarGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
+  const sidebarGroups = useSidebarGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb, {
+    canWorkLeads,
+    isLeadSenior,
+  });
 
   // Determine current view from URL
   const currentPath = location.pathname;
@@ -146,9 +168,17 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
+    // Lead module v2. The old two list URLs only redirect to the desk.
+    if (currentPath.startsWith('/crm/desk')) return 'desk';
     if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
     if (currentPath.startsWith('/crm/today-leads')) return 'today-leads';
-    // The profile check must come first: '/crm/leads/<id>' also starts with
+    // The four named sub-pages must come before the profile check and the list:
+    // '/crm/leads/lost' also starts with '/crm/leads'.
+    if (currentPath.startsWith('/crm/leads/lost')) return 'leads-lost';
+    if (currentPath.startsWith('/crm/leads/report')) return 'leads-report';
+    if (currentPath.startsWith('/crm/leads/baza')) return 'leads-baza';
+    if (currentPath.startsWith('/crm/leads/settings')) return 'leads-settings';
+    // The profile check comes before the list: '/crm/leads/<id>' also starts with
     // '/crm/leads', and the list would otherwise swallow every detail URL.
     if (leadProfileId) return 'lead-profile';
     if (currentPath.startsWith('/crm/leads')) return 'leads';
@@ -296,6 +326,10 @@ export default function CRMPortal() {
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
+        // Operators and seniors have no dashboard: the desk is their home page.
+        if (canWorkLeads && !isAdmin && (currentPath === '/crm' || currentPath === '/crm/')) {
+          return <Navigate to="/crm/desk" replace />;
+        }
         return (
           <CRMDashboard
             isAdmin={isAdmin}
@@ -442,13 +476,32 @@ export default function CRMPortal() {
         return <SafeSuspense><MessagesContent /></SafeSuspense>;
       case 'calls':
         return <SafeSuspense><CallsContent /></SafeSuspense>;
+      // Lead module v2. The old pages' files stay in the repo; they are just no longer mounted.
+      case 'desk':
+        if (!canWorkLeads) return <AccessDenied />;
+        return <SafeSuspense><LeadDeskContent /></SafeSuspense>;
       case 'leads':
-        return <SafeSuspense><LeadsContent /></SafeSuspense>;
+        if (!canWorkLeads) return <AccessDenied />;
+        return <SafeSuspense><AllLeadsContent /></SafeSuspense>;
+      case 'leads-lost':
+        if (!canWorkLeads) return <AccessDenied />;
+        return <SafeSuspense><LostLeadsContent /></SafeSuspense>;
+      case 'leads-report':
+        if (!isLeadSenior) return <AccessDenied />;
+        return <SafeSuspense><LeadReportContent /></SafeSuspense>;
+      case 'leads-baza':
+        if (!canWorkLeads) return <AccessDenied />;
+        return <SafeSuspense><LeadBazaContent /></SafeSuspense>;
+      case 'leads-settings':
+        if (!isAdmin) return <AccessDenied />;
+        return <SafeSuspense><LeadSettingsContent /></SafeSuspense>;
+      // "Yangi lid" and "Bugungi lidlar" are now blocks of the desk.
       case 'new-leads':
-        return <SafeSuspense><LeadsContent key="new-leads" view="new" /></SafeSuspense>;
       case 'today-leads':
-        return <SafeSuspense><LeadsContent key="today-leads" view="today" /></SafeSuspense>;
+        return <Navigate to="/crm/desk" replace />;
       case 'lead-profile':
+        // A link to one lead opens it on the desk (?lead=<id>) for anyone who works leads.
+        if (canWorkLeads) return <Navigate to={`/crm/desk?lead=${leadProfileId}`} replace />;
         return (
           <SafeSuspense>
             <LeadProfileContent leadId={leadProfileId as string} />
@@ -501,6 +554,8 @@ export default function CRMPortal() {
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
             canReviewUniDb={canReviewUniDb}
+            canWorkLeads={canWorkLeads}
+            isLeadSenior={isLeadSenior}
             user={user}
             onSignOut={handleSignOut}
           />
@@ -530,7 +585,14 @@ export default function CRMPortal() {
               <CallsProvider>
                 <MessagesProvider>
                   <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
-                    <div key={activeView} className="mx-auto max-w-[1240px] animate-fade-up space-y-6">
+                    {/* The lead desk and its list pages are dense two-column screens: give them more room. */}
+                    <div
+                      key={activeView}
+                      className={cn(
+                        'mx-auto animate-fade-up space-y-6',
+                        activeView === 'desk' || activeView.startsWith('leads') ? 'max-w-[1680px]' : 'max-w-[1240px]',
+                      )}
+                    >
                       {renderContent()}
                     </div>
                   </main>

@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const allowedRoles = ['owner', 'admin', 'call_operator', 'document_handler'];
+    const allowedRoles = ['owner', 'admin', 'call_operator', 'lead_senior', 'document_handler'];
     const hasPermission = userRoles?.some(r => allowedRoles.includes(r.role));
 
     if (!hasPermission) {

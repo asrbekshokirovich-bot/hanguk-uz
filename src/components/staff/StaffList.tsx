@@ -19,11 +19,14 @@ import {
   FileCheck,
   GraduationCap,
   Crown,
+  UserCog,
 } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
 
-type AppRole = Database['public']['Enums']['app_role'];
+// 'lead_senior' (lead module v2, migration 20261015230000) is not in the
+// generated enum yet, so it is added here rather than editing the generated file.
+type AppRole = Database['public']['Enums']['app_role'] | 'lead_senior';
 
 interface StaffListProps {
   staff: StaffMember[];
@@ -36,6 +39,7 @@ const ROLE_CONFIG: Record<AppRole, { label: string; icon: React.ReactNode; color
   admin: { label: 'Admin', icon: <ShieldCheck className="h-3 w-3" />, color: 'bg-primary' },
   call_operator: { label: 'Call Operator', icon: <Headphones className="h-3 w-3" />, color: 'bg-info' },
   document_handler: { label: 'Doc Handler', icon: <FileCheck className="h-3 w-3" />, color: 'bg-success' },
+  lead_senior: { label: 'Senior operator', icon: <UserCog className="h-3 w-3" />, color: 'bg-primary/80' },
   university_staff: { label: 'Uni Staff', icon: <GraduationCap className="h-3 w-3" />, color: 'bg-info' },
   investor: { label: 'Investor', icon: <TrendingUp className="h-3 w-3" />, color: 'bg-secondary' },
 };
@@ -55,7 +59,7 @@ export function StaffList({ staff, selectedStaff, onSelectStaff }: StaffListProp
       member.full_name?.toLowerCase().includes(search.toLowerCase()) ||
       member.phone?.includes(search);
 
-    const matchesRole = roleFilter === 'all' || member.roles.includes(roleFilter);
+    const matchesRole = roleFilter === 'all' || (member.roles as string[]).includes(roleFilter);
 
     return matchesSearch && matchesRole;
   });
