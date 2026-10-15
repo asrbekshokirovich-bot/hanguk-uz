@@ -11,25 +11,25 @@ const SEOUL_LNG = 126.9780;
 const KOREA_SW = { lat: 33.0, lng: 124.5 };
 const KOREA_NE = { lat: 38.7, lng: 132.0 };
 
+// The columns selected from `institutions` below (it has no Uzbek name and no ranking).
 interface University {
   id: string;
   name_en: string | null;
   name_ko: string | null;
-  name_uz: string | null;
-  city_en: string | null;
+  name_ko_short: string | null;
   city_ko: string | null;
   latitude: number | null;
   longitude: number | null;
-  ranking: number | null;
+  tier: number | null;
   is_partner: boolean | null;
 }
 
 function uniName(u: University) {
-  return u.name_ko || u.name_en || u.name_uz || 'University';
+  return u.name_ko || u.name_en || 'University';
 }
 
 function uniDisplayName(u: University) {
-  return u.name_en || u.name_uz || u.name_ko || 'University';
+  return u.name_en || u.name_ko || 'University';
 }
 
 interface KakaoMapProps {
@@ -94,9 +94,9 @@ export function KakaoMap({ focusUniversityId }: KakaoMapProps) {
         zIndex: 1,
       });
 
-      const rankText = uni.ranking ? `#${uni.ranking}` : '';
+      const rankText = '';
       const partnerBadge = uni.is_partner ? '<span style="background:hsl(45,93%,47%);color:white;padding:1px 6px;border-radius:8px;font-size:10px;margin-left:4px;">Partner</span>' : '';
-      const city = uni.city_ko || uni.city_en || '';
+      const city = uni.city_ko || '';
       const infoContent = `<div style="padding:10px 14px;min-width:180px;">
         <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${uniDisplayName(uni)} ${partnerBadge}</div>
         ${uni.name_ko ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">${uni.name_ko}</div>` : ''}
@@ -142,9 +142,9 @@ export function KakaoMap({ focusUniversityId }: KakaoMapProps) {
         className: uni.is_partner ? 'leaflet-partner-label' : 'leaflet-uni-label',
       });
 
-      const rankText = uni.ranking ? `#${uni.ranking}` : '';
+      const rankText = '';
       const partnerBadge = uni.is_partner ? '<span style="background:hsl(45,93%,47%);color:white;padding:1px 6px;border-radius:8px;font-size:10px;">Partner</span>' : '';
-      const city = uni.city_en || '';
+      const city = uni.city_ko || '';
       marker.bindPopup(`<div style="min-width:160px;"><b>${uniDisplayName(uni)}</b> ${partnerBadge}<br/>${uni.name_ko ? `<span style="color:#666;">${uni.name_ko}</span><br/>` : ''}<span style="color:#888;">${[city, rankText].filter(Boolean).join(' · ')}</span></div>`);
     });
 

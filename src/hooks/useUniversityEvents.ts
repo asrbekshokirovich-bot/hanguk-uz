@@ -27,6 +27,7 @@ export interface UniversityEvent {
   event_type: EventType;
   event_date: string;
   end_date: string | null;
+  is_all_day?: boolean;
   location: string | null;
   attendees: string[] | null;
   posted_by: string;
