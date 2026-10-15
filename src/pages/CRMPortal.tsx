@@ -56,7 +56,7 @@ const CallsContent = lazy(() => import('@/components/crm/pages/CallsContent'));
 const StaffContent = lazy(() => import('@/components/crm/pages/StaffContent'));
 const ReportsContent = lazy(() => import('@/components/crm/pages/ReportsContent'));
 const AIAssistantContent = lazy(() => import('@/components/crm/pages/AIAssistantContent'));
-const ApplicationsContent = lazy(() => import('@/components/crm/pages/ApplicationsContent'));
+const ApplicationsPipeline = lazy(() => import('@/components/crm/pages/ApplicationsPipeline'));
 const DocumentsContent = lazy(() => import('@/components/crm/pages/DocumentsContent'));
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
@@ -98,7 +98,6 @@ export default function CRMPortal() {
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
-    applications,
     universities,
     loading: studentsLoading,
     updateApplicationStatus,
@@ -326,16 +325,10 @@ export default function CRMPortal() {
             <div style={{ display: selectedStudent ? 'none' : undefined }} className="space-y-4">
               <IntakeBanner onManage={() => navigate('/crm/intakes')} />
               <SafeSuspense>
-                <ApplicationsContent
-                  applications={applications}
+                <ApplicationsPipeline
                   students={students}
-                  universities={universities}
                   loading={loading}
-                  currentLang={currentLang}
-                  onOpenStudent={setSelectedStudent}
-                  onUpdateApplicationStatus={updateApplicationStatus}
-                  onCreateApplication={createApplication}
-                  onSetDocsReady={setDocsReady}
+                  onOpenStudent={(s) => setSelectedStudent(s as unknown as StudentProfile)}
                 />
               </SafeSuspense>
             </div>

@@ -1,8 +1,8 @@
 /**
  * Pipeline-stage mapping for the Messages section.
  *
- * The repo has two parallel stage vocabularies: the CRM's 5-column board
- * (`ApplicationsContent.STAGE_ORDER`) and the student-facing 7-step tracker
+ * The repo has two parallel stage vocabularies: the CRM's Arizalar board
+ * (`src/lib/applicationPipeline.ts`) and the student-facing 7-step tracker
  * (`ProcessTracker`). The context rail in this design shows four steps —
  * Consultation → Documents → Application → Visa & Flight — so this module
  * folds the raw `applications.status` strings onto that shorter ladder. It is
