@@ -14,6 +14,7 @@ import '../../features/entry/presentation/language_screen.dart';
 import '../../features/client/presentation/client_shell.dart';
 import '../../features/home/presentation/notifications_screen.dart';
 import '../../features/assessment/presentation/assessment_screen.dart';
+import '../../features/assessment/presentation/lead_screen.dart';
 import '../../features/assessment/presentation/report_screen.dart';
 import '../../features/assessment/presentation/sent_screen.dart';
 import '../../features/discover/presentation/discover_routes.dart';
@@ -22,7 +23,9 @@ import '../../features/discover/presentation/compare_screen.dart';
 import '../../features/discover/presentation/discover_shell.dart';
 import '../../features/discover/presentation/duel_screen.dart';
 import '../../features/discover/presentation/filter_board_screen.dart';
-import '../../features/discover/presentation/results_screen.dart';
+import '../../features/discover/presentation/universities_screen.dart';
+import '../../features/discover/presentation/widgets/app_nav.dart';
+import '../../features/discover/data/list_mode.dart';
 import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
 import '../../features/discover/presentation/university_screen.dart';
@@ -84,11 +87,18 @@ List<RouteBase> _accountRoutes() => [
 List<RouteBase> _guestRoutes() => [
   GoRoute(
     path: kDiscoverPath,
-    builder: (context, state) => DiscoverShell(tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? 0),
+    builder: (context, state) =>
+        DiscoverShell(tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? AppTab.home),
   ),
   GoRoute(path: kDiscoverSearchPath, builder: (context, state) => const SearchScreen()),
-  GoRoute(path: kDiscoverFilterPath, builder: (context, state) => const FilterBoardScreen()),
-  GoRoute(path: kDiscoverResultsPath, builder: (context, state) => const ResultsScreen()),
+  GoRoute(
+    path: kDiscoverFilterPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.home, child: FilterBoardScreen()),
+  ),
+  GoRoute(
+    path: kDiscoverResultsPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.universities, child: UniversitiesScreen()),
+  ),
   GoRoute(path: kDiscoverDuelPath, builder: (context, state) => const DuelScreen()),
   GoRoute(path: kDiscoverChosenPath, builder: (context, state) => const ChosenScreen()),
   GoRoute(
@@ -106,6 +116,7 @@ List<RouteBase> _guestRoutes() => [
     builder: (context, state) => AssessmentScreen(startId: state.extra is String ? state.extra as String : null),
   ),
   GoRoute(path: kAssessmentReportPath, builder: (context, state) => const ReportScreen()),
+  GoRoute(path: kAssessmentLeadPath, builder: (context, state) => const LeadScreen()),
   GoRoute(path: kAssessmentSentPath, builder: (context, state) => const SentScreen()),
 ];
 
@@ -222,7 +233,9 @@ class _MapDeepLinkEntry extends ConsumerWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(pendingMapDetailProvider.notifier).set(institutionId);
     });
-    return const ClientShell(tab: ClientShell.tabMap);
+    // The map is the Universitetlar list's third mode.
+    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(uniModeProvider.notifier).set(UniMode.map));
+    return const ClientShell(tab: ClientShell.tabUniversities);
   }
 }
 

@@ -13,11 +13,17 @@ import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_detail_screen.dart';
 import '../../catalog/presentation/catalog_format.dart';
+import '../../assessment/data/assessment_controller.dart';
+import '../../assessment/domain/assessment.dart';
 import '../data/application_windows.dart';
-import '../data/saved_universities.dart';
+import '../data/chances.dart';
+import '../data/qs_ranking.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
-import 'widgets/uni_stack_card.dart';
+import 'widgets/app_nav.dart';
+import 'widgets/chance_cards.dart';
+import 'widgets/fd_bottom_nav.dart';
+import 'widgets/fd_parts.dart';
 
 /// One programme of a faculty with the languages it is taught in.
 @visibleForTesting
@@ -75,10 +81,13 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      bottomNavigationBar: const AppNav(current: AppTab.universities),
+      floatingActionButton: const AppNavOrb(current: AppTab.universities),
+      floatingActionButtonLocation: kFdNavOrbLocation,
       body: FdPage(
         child: u == null
             ? catalog.isLoading
-                  ? const Center(child: CircularProgressIndicator(color: FdColors.navy))
+                  ? const Center(child: CircularProgressIndicator(color: FdColors.lime))
                   : SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -94,7 +103,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                               onTap: () => _back(context),
                             ),
                             const Spacer(),
-                            Center(child: Text(l.uniDbLoadFailed, style: fdText(14, FontWeight.w600, FdColors.ink))),
+                            Center(child: Text(l.uniDbLoadFailed, style: fdText(14, FontWeight.w600, FdColors.onPage))),
                             const SizedBox(height: 12),
                             Center(
                               child: SeoulOutlineButton(
@@ -128,15 +137,41 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     final detail = detailAsync.value;
     final groups = facultyGroups(detail?.faculties ?? const [], byFaculty: kListFacultiesByName.contains(g.id));
     final majorCount = groups.fold<int>(0, (s, x) => s + majorsOf(x).length);
-    final saved = ref.watch(savedUniversitiesProvider).contains(u.institutionId);
     final slots = ref.watch(slotsProvider);
+    final slot = slots.indexOf(u.institutionId);
+    final picked = slots.whereType<String>().length;
+    final book = ref.watch(chanceBookProvider);
+    final outcome = ref.watch(assessmentOutcomeProvider);
     final window = ref.watch(applicationWindowsProvider).value?[g.id];
     final deadline = window?.endDate ?? window?.startDate;
     final season = seasonLabel(l, g);
     final rounds = catalogFirstStage(detail?.rounds ?? const []);
     final both = u.hasDegree(CatalogDegree.bachelor) && u.hasDegree(CatalogDegree.master);
 
-    void toggleSaved() => ref.read(savedUniversitiesProvider.notifier).toggle(u.institutionId);
+    final admission = book.admission(u);
+    final boosts = _boosts(l, book, u, outcome);
+
+    void pick() {
+      final n = ref.read(slotsProvider.notifier);
+      final id = u.institutionId;
+      if (n.indexOf(id) >= 0) {
+        n.remove(id);
+        return;
+      }
+      final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+      if (!n.add(id)) {
+        messenger.showSnackBar(SnackBar(content: Text(l.fdSlotsFull)));
+        context.push(kDiscoverChosenPath);
+        return;
+      }
+      final count = ref.read(slotsProvider).whereType<String>().length;
+      if (count >= kSlotCount) {
+        context.push(kDiscoverChosenPath);
+      } else {
+        messenger.showSnackBar(SnackBar(content: Text(l.fdUniPickAdded(count))));
+        _back(context);
+      }
+    }
 
     final stats = <(LucideGlyph, String, String)>[
       if (g.tuitionMin != null || g.tuitionMax != null)
@@ -155,135 +190,222 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
       if (deadline != null) (LucideIcons.calendar, l.fdUniDeadline, formatDate(context, deadline)),
     ];
 
-    return Column(
-      children: [
-        Expanded(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              _Hero(
-                university: u,
-                guideline: g,
-                saved: saved,
-                onBack: () => _back(context),
-                onSave: toggleSaved,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (u.nameKo != null)
-                      Text(
-                        u.nameKo!,
-                        style: fdText(30, FontWeight.w800, FdColors.navy, height: 1.1, letterSpacing: -0.9),
-                      ),
-                    const SizedBox(height: 3),
-                    Text(u.displayName, style: fdText(17, FontWeight.w700, FdColors.ink)),
-                    const SizedBox(height: 11),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        if (u.city != null) _Chip(label: u.city!, glyph: LucideIcons.mapPin),
-                        if (season != null) _Chip(label: season, lime: true),
-                      ],
-                    ),
-                  ],
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 2, 18, 0),
+            child: Row(
+              children: [
+                HardIconButton(
+                  glyph: LucideIcons.chevronLeft,
+                  semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+                  onTap: () => _back(context),
                 ),
-              ),
-              if (both)
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    u.displayName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.36),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(top: 8),
+              children: [
+                _Hero(university: u, guideline: g),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-                  child: Row(
+                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
                     children: [
-                      for (final (id, label) in [
-                        (CatalogDegree.bachelor, l.catalogDegreeBachelor),
-                        (CatalogDegree.master, l.catalogDegreeMaster),
-                      ]) ...[
-                        if (id == CatalogDegree.master) const SizedBox(width: 8),
+                      if (u.city != null) _Chip(label: u.city!, glyph: LucideIcons.mapPin),
+                      if (season != null) _Chip(label: season, lime: true),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                         Expanded(
-                          child: HardChoice(
-                            label: label,
-                            selected: degree == id,
-                            onTap: () => setState(() {
-                              _degree = id;
-                              _open = 0;
-                              _expanded.clear();
-                            }),
+                          child: ChanceCard(
+                            label: l.fdUniAdmissionLabel,
+                            percent: admission,
+                            note: admission == null
+                                ? l.fdUniAskAssess
+                                : admission >= 80
+                                ? l.fdUniNoteHigh
+                                : admission >= 50
+                                ? l.fdUniNoteReal
+                                : l.fdUniNoteDream,
+                            onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ChanceCard(
+                            label: l.fdBoardVisaTitle,
+                            percent: book.visa,
+                            note: book.visa == null ? l.fdUniAskAssess : l.fdUniVisaNote,
+                            onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              if (stats.isNotEmpty)
+                if (both)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                    child: Row(
+                      children: [
+                        for (final (id, label) in [
+                          (CatalogDegree.bachelor, l.catalogDegreeBachelor),
+                          (CatalogDegree.master, l.catalogDegreeMaster),
+                        ]) ...[
+                          if (id == CatalogDegree.master) const SizedBox(width: 8),
+                          Expanded(
+                            child: HardChoice(
+                              label: label,
+                              selected: degree == id,
+                              onTap: () => setState(() {
+                                _degree = id;
+                                _open = 0;
+                                _expanded.clear();
+                              }),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                if (stats.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                    child: _StatGrid(stats: stats),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-                  child: _StatGrid(stats: stats),
-                ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Expanded(child: Text(l.catalogFaculties, style: fdText(15, FontWeight.w800, FdColors.ink))),
-                    if (groups.isNotEmpty)
-                      Text(
-                        l.fdUniFacultiesSummary(groups.length, majorCount),
-                        style: fdText(12, FontWeight.w400, FdColors.pageMuted),
-                      ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: _faculties(l, detailAsync, groups, g),
-              ),
-              if (_requirements(l, g, detail) case final rows when rows.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
-                  child: _InfoCard(title: l.catalogRequirements, rows: rows),
-                ),
-              if (rounds.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-                  child: _InfoCard(
-                    title: season == null ? l.catalogWindowLabel : l.catalogTimeline(season),
-                    rows: [
-                      for (final r in rounds)
-                        (catalogStepName(l, r), catalogRoundValue(context, l, r)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(l.fdUniBoostTitle, style: fdText(11, FontWeight.w800, FdColors.pageMuted)),
+                      const SizedBox(height: 6),
+                      if (boosts.isEmpty && !book.answered)
+                        BoostRow(
+                          label: l.fdUniBoostStart,
+                          gain: '→',
+                          onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
+                        ),
+                      for (final b in boosts) ...[
+                        BoostRow(
+                          label: b.label,
+                          gain: b.gain,
+                          onTap: () {
+                            b.apply();
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(SnackBar(content: Text(l.fdUniBoostApplied)));
+                          },
+                        ),
+                        const SizedBox(height: 6),
+                      ],
                     ],
                   ),
                 ),
-              const SizedBox(height: 20),
-            ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Expanded(child: Text(l.catalogFaculties, style: fdText(15, FontWeight.w800, FdColors.onPage))),
+                      if (groups.isNotEmpty)
+                        Text(
+                          l.fdUniFacultiesSummary(groups.length, majorCount),
+                          style: fdText(12, FontWeight.w400, FdColors.pageMuted),
+                        ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: _faculties(l, detailAsync, groups, g),
+                ),
+                if (_requirements(l, g, detail) case final rows when rows.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
+                    child: _InfoCard(title: l.catalogRequirements, rows: rows),
+                  ),
+                if (rounds.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                    child: _InfoCard(
+                      title: season == null ? l.catalogWindowLabel : l.catalogTimeline(season),
+                      rows: [for (final r in rounds) (catalogStepName(l, r), catalogRoundValue(context, l, r))],
+                    ),
+                  ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
-        ),
-        _BottomBar(
-          slot: slots.indexOf(u.institutionId),
-          onSlot: () {
-            final n = ref.read(slotsProvider.notifier);
-            if (n.indexOf(u.institutionId) >= 0) {
-              n.remove(u.institutionId);
-            } else if (!n.add(u.institutionId)) {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(content: Text(l.fdSlotsFull)));
-            }
-          },
-          onAssess: () => context.push(kAssessmentPath, extra: u.institutionId),
-        ),
-      ],
+          FdBottomBar(
+            aboveNav: true,
+            child: HardButton(
+              label: slot >= 0 ? l.fdUniInPick(picked) : l.fdUniAddPick(picked),
+              fill: slot >= 0 ? FdColors.card : FdColors.lime,
+              onPressed: pick,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  /// The rows that would raise the chances, from the answers on the board: one
+  /// more TOPIK level (this university's admission) and the bank the visa
+  /// needs. None until the board has been answered.
+  List<_Boost> _boosts(AppLocalizations l, ChanceBook book, CatalogUniversity u, AssessmentOutcome? outcome) {
+    if (!book.answered) return const [];
+    final notifier = ref.read(assessmentProvider.notifier);
+    final input = book.input;
+    final out = <_Boost>[];
+    final now = book.admission(u);
+    if (now != null && input.topik < 6) {
+      final next = input.topik + 1;
+      final gain = (book.admissionWithTopik(u, next) ?? now) - now;
+      if (gain > 0) {
+        out.add(_Boost(l.fdFixTopik(next), l.fdGainAdmission(gain), () => notifier.set(input.copyWith(topik: next))));
+      }
+    }
+    final bank = outcome?.fixes.where((f) => f.kind == FixKind.bank).firstOrNull;
+    if (bank != null) {
+      out.add(
+        _Boost(
+          l.fdFixBank(l.fdMln((bank.value / 1000000).round())),
+          l.fdGainVisa(bank.gain),
+          () => notifier.set(input.copyWith(bankKrw: bank.value)),
+        ),
+      );
+    }
+    return out;
   }
 
   Widget _faculties(AppLocalizations l, AsyncValue<CatalogGuidelineDetail> async, List<FacultyGroup> groups, CatalogGuideline g) {
     if (async.isLoading && groups.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: CircularProgressIndicator(color: FdColors.navy)),
+        child: Center(child: CircularProgressIndicator(color: FdColors.lime)),
       );
     }
     if (async.hasError && groups.isEmpty) {
@@ -355,20 +477,23 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
   }
 }
 
+/// One row that raises the chances and what tapping it does.
+class _Boost {
+  const _Boost(this.label, this.gain, this.apply);
+
+  final String label;
+  final String gain;
+  final VoidCallback apply;
+}
+
+/// The cover: the campus photo (the prototype's blue gradient when there is
+/// none) with the Korean name over a dark fade, "city · fee · QS rank" under
+/// it, and the state / private tag in the corner.
 class _Hero extends StatelessWidget {
-  const _Hero({
-    required this.university,
-    required this.guideline,
-    required this.saved,
-    required this.onBack,
-    required this.onSave,
-  });
+  const _Hero({required this.university, required this.guideline});
 
   final CatalogUniversity university;
   final CatalogGuideline guideline;
-  final bool saved;
-  final VoidCallback onBack;
-  final VoidCallback onSave;
 
   @override
   Widget build(BuildContext context) {
@@ -376,50 +501,67 @@ class _Hero extends StatelessWidget {
     final photo = campusPhotoAsset(university.institutionId);
     final type = typeLabel(l, guideline.institutionType);
     final private = catalogType(guideline.institutionType) == CatalogType.private;
-    final top = MediaQuery.paddingOf(context).top;
+    final price = priceOf(guideline);
+    final rank = worldRankOf(university.institutionId);
+    final sub = [
+      if (university.city != null) shortCity(university.city!),
+      if (price != null) money(price, guideline.currency, locale: l.localeName),
+      if (rank != null) '${rank.source == RankSource.qs ? 'QS' : 'THE'} ${rank.to != null ? '${rank.from}–${rank.to}' : rank.label}',
+    ].join(' · ');
 
     return Container(
-      height: 170 + top,
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: FdColors.ink, width: 1.5))),
+      height: 120,
+      margin: const EdgeInsets.symmetric(horizontal: 18),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: FdColors.ink, width: 1.5),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [FdColors.blue, FdColors.blueDeep, FdColors.blueNight],
+          stops: [0, 0.6, 1],
+        ),
+      ),
       child: Stack(
         fit: StackFit.expand,
         children: [
+          if (photo != null) Image.asset(photo, fit: BoxFit.cover, cacheWidth: 900),
           if (photo != null)
-            Image.asset(photo, fit: BoxFit.cover, cacheWidth: 900)
-          else
-            NameCover(name: university.nameKoShort ?? university.displayName),
-          Positioned(
-            left: 14,
-            top: top + 8,
-            child: HardIconButton(
-              glyph: LucideIcons.chevronLeft,
-              size: 40,
-              radius: 12,
-              iconSize: 18,
-              semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-              onTap: onBack,
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x00060D2B), Color(0xD9060D2B)],
+                  stops: [0.25, 1],
+                ),
+              ),
             ),
-          ),
-          Positioned(
-            right: 14,
-            top: top + 8,
-            child: HardIconButton(
-              glyph: LucideIcons.heart,
-              size: 40,
-              radius: 12,
-              iconSize: 18,
-              fill: saved ? FdColors.lime : FdColors.card,
-              iconColor: saved ? FdColors.onLime : FdColors.ink,
-              semanticLabel: saved ? l.fdSaved : l.fdSave,
-              onTap: onSave,
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (university.nameKo != null)
+                  Text(
+                    university.nameKo!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: fdText(26, FontWeight.w800, Colors.white, height: 1.15, letterSpacing: -0.52),
+                  ),
+                if (sub.isNotEmpty)
+                  Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: fdText(12, FontWeight.w700, Colors.white)),
+              ],
             ),
           ),
           if (type != null)
             Positioned(
-              left: 14,
-              bottom: 12,
+              left: 12,
+              top: 10,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
                   color: FdColors.card,
                   borderRadius: BorderRadius.circular(999),
@@ -431,10 +573,7 @@ class _Hero extends StatelessWidget {
                     Container(
                       width: 7,
                       height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: private ? FdColors.privateBlue : FdColors.good,
-                      ),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: private ? FdColors.privateBlue : FdColors.good),
                     ),
                     const SizedBox(width: 5),
                     Text(type, style: fdText(11, FontWeight.w800, FdColors.ink)),
@@ -757,65 +896,6 @@ class _InfoCard extends StatelessWidget {
                 ],
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// "✓ 1-slotda" (or "Slotga qo'shish"), the dashed "Qabul ?%", and the
-/// main "Koreaga keta olamanmi o'zi?".
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.slot, required this.onSlot, required this.onAssess});
-
-  /// The slot this university is in, or -1.
-  final int slot;
-  final VoidCallback onSlot;
-  final VoidCallback onAssess;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    return FdBottomBar(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Semantics(
-                  hint: slot >= 0 ? l.fdRemoveFromSlot : null,
-                  child: HardChoice(
-                    label: slot >= 0 ? l.fdInSlot(slot + 1) : '+ ${l.fdAddToSlot}',
-                    selected: slot >= 0,
-                    height: 44,
-                    fontWeight: FontWeight.w800,
-                    onTap: onSlot,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  child: GestureDetector(
-                    onTap: onAssess,
-                    behavior: HitTestBehavior.opaque,
-                    child: CustomPaint(
-                      painter: const DashedPillPainter(color: FdColors.navy, radius: 12),
-                      child: SizedBox(
-                        height: 44,
-                        child: Center(child: Text(l.fdAdmissionUnknown, style: fdText(13, FontWeight.w800, FdColors.navy))),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          HardButton(label: l.fdUniCta, onPressed: onAssess),
         ],
       ),
     );

@@ -20,6 +20,11 @@ class SeoulColors {
   /// Used sparingly — one primary action per screen (spec §4).
   static const Color lime = Color(0xFFD4E94C);
 
+  /// The full design's lime (prototype 5a): the primary button, a picked
+  /// choice, the highlighter. Brighter than [lime], which the legacy glass
+  /// screens keep.
+  static const Color limeFd = Color(0xFFCCFF00);
+
   /// Top stop of the lime button gradient.
   static const Color limeBright = Color(0xFFE2F26A);
 

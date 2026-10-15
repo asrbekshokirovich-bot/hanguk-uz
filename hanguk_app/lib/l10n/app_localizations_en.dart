@@ -4428,4 +4428,203 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ucFinalChosen => '✓ You chose this university';
+
+  @override
+  String get fdNavAssess => 'ASSESS';
+
+  @override
+  String get fdNavNeedsClientCode =>
+      'A client code is needed first — the consultant sends it by SMS';
+
+  @override
+  String fdListTitle(int count) {
+    return '$count match you';
+  }
+
+  @override
+  String get fdModeAdmission => 'Admission %';
+
+  @override
+  String get fdModeVisa => 'Visa %';
+
+  @override
+  String get fdModeMap => 'Map';
+
+  @override
+  String get fdBoardMatchLabel => 'MATCHING UNIVERSITIES';
+
+  @override
+  String fdOfTotalShort(int total) {
+    return '/ $total';
+  }
+
+  @override
+  String get fdBoardVisaTitle => 'D-2 VISA';
+
+  @override
+  String get fdBoardVisaSub => 'visa chance · ';
+
+  @override
+  String get fdBoardVisaAsk => 'tap to assess';
+
+  @override
+  String get fdGaugeLow => 'low';
+
+  @override
+  String get fdGaugeMid => 'medium';
+
+  @override
+  String get fdGaugeHigh => 'high';
+
+  @override
+  String get fdBoardStripTitle => 'Matching now';
+
+  @override
+  String get fdBoardStripHint => 'tap → details';
+
+  @override
+  String get fdBoardStripEmpty => 'None match — loosen the filter';
+
+  @override
+  String get fdUniAdmissionLabel => 'ADMISSION';
+
+  @override
+  String get fdUniNoteHigh => 'High chance';
+
+  @override
+  String get fdUniNoteReal => 'Real, needs work';
+
+  @override
+  String get fdUniNoteDream => 'A dream — a gamble';
+
+  @override
+  String get fdUniVisaNote => 'depends on you, not on the university';
+
+  @override
+  String get fdUniAskAssess => 'Tap to assess →';
+
+  @override
+  String get fdUniBoostTitle => 'RAISE THE CHANCE — tap, see the result';
+
+  @override
+  String get fdUniBoostStart =>
+      'Start the assessment — the chances appear here';
+
+  @override
+  String get fdUniBoostApplied => 'Chances updated ↑';
+
+  @override
+  String fdUniAddPick(int count) {
+    return '♥ Add to my picks · $count/3';
+  }
+
+  @override
+  String fdUniInPick(int count) {
+    return '✓ In my picks · $count/3';
+  }
+
+  @override
+  String fdUniPickAdded(int count) {
+    return 'Added · $count/3';
+  }
+
+  @override
+  String fdPickedHint(int count) {
+    return '$count champions — now the most important question.';
+  }
+
+  @override
+  String get fdPickedVisaTitle => 'OVERALL D-2 VISA';
+
+  @override
+  String fdPickedWithConsultant(int n) {
+    return '· with a consultant ~$n%';
+  }
+
+  @override
+  String get fdPickedCta => 'Can I go to Korea? →';
+
+  @override
+  String get fdPickedRemove => 'Remove';
+
+  @override
+  String get fdReportEyebrow => 'CAN I GO TO KOREA?';
+
+  @override
+  String get fdReportHeadYes => 'Yes, for real.';
+
+  @override
+  String get fdReportHeadMaybe => 'Maybe.';
+
+  @override
+  String get fdReportHeadNotYet => 'Not yet.';
+
+  @override
+  String fdReportJobsLeft(int n) {
+    return '$n tasks left.';
+  }
+
+  @override
+  String get fdReportBestAdmission => 'BEST ADMISSION';
+
+  @override
+  String get fdReportVisaCard => 'D-2 VISA';
+
+  @override
+  String fdReportWithConsultant(int n) {
+    return '→ $n% with a consultant';
+  }
+
+  @override
+  String fdReportJobsTitle(int n) {
+    return '$n TASKS';
+  }
+
+  @override
+  String get fdReportCta => 'Get a free call →';
+
+  @override
+  String get fdLeadTitle => 'A consultant will call';
+
+  @override
+  String fdLeadSub(int n) {
+    return 'The report and a $n-task plan — free from a consultant. They call within 10 minutes.';
+  }
+
+  @override
+  String get fdLeadHintA => 'After sending, an SMS brings your 8-character ';
+
+  @override
+  String get fdLeadHintB => 'client code';
+
+  @override
+  String get fdLeadHintC =>
+      ' — it opens the application and documents sections.';
+
+  @override
+  String get fdCodeTitle => 'I have a client code';
+
+  @override
+  String get fdCodeSub => 'The 8-character code the consultant sent by SMS.';
+
+  @override
+  String get fdConsultantWrite => 'Write';
+
+  @override
+  String fdDocsReadyChip(int ready, int total) {
+    return '$ready / $total ready';
+  }
+
+  @override
+  String get fdDocsUploadNext => 'Upload the next document';
+
+  @override
+  String get fdPrepareStudyKicker => 'STUDY PLAN';
+
+  @override
+  String get fdPrepareInterviewKicker => 'INTERVIEW PRACTICE';
+
+  @override
+  String get fdPrepareLocked =>
+      'These sections open fully after the client code.';
 }

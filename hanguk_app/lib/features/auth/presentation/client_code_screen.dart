@@ -126,13 +126,6 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
         child: SafeArea(
           child: Stack(
             children: [
-              Positioned(
-                right: -12,
-                top: -14,
-                child: ExcludeSemantics(
-                  child: Text('입장', style: fdText(104, FontWeight.w800, FdColors.ghost, height: 1, letterSpacing: -4)),
-                ),
-              ),
               LayoutBuilder(
                 builder: (context, box) => SingleChildScrollView(
                   child: ConstrainedBox(
@@ -143,47 +136,32 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.fromLTRB(18, 2, 18, 0),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: HardIconButton(
-                                glyph: LucideIcons.chevronLeft,
-                                semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                                onTap: _back,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(22, 40, 22, 0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Container(
-                                  width: 64,
-                                  height: 64,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: FdColors.navy,
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(color: FdColors.ink, width: 1.5),
-                                    boxShadow: const [BoxShadow(color: FdColors.lime, offset: Offset(4, 4))],
+                                HardIconButton(
+                                  glyph: LucideIcons.chevronLeft,
+                                  size: 38,
+                                  semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+                                  onTap: _back,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    l.fdCodeTitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.5),
                                   ),
-                                  child: Text('가', style: fdText(30, FontWeight.w800, FdColors.lime, height: 1)),
                                 ),
-                                const SizedBox(height: 14),
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.end,
-                                  children: [
-                                    Text('${l.fdCodeTitleLead} ', style: _title),
-                                    LimeMark(l.fdCodeTitleMark, style: _title),
-                                  ],
-                                ),
-                                const SizedBox(height: 14),
-                                Text(l.fdCodeBody, style: fdText(13, FontWeight.w400, FdColors.muted, height: 1.45)),
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+                            padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                            child: Text(l.fdCodeSub, style: fdText(15, FontWeight.w400, FdColors.pageMuted, height: 1.45)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
                             child: _Cells(
                               controller: _ctrl,
                               focus: _focus,
@@ -196,7 +174,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                           ),
                           if (message != null)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+                              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
                               child: Semantics(
                                 liveRegion: true,
                                 child: Container(
@@ -214,13 +192,17 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                               ),
                             ),
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
+                            padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Opacity(
-                                  opacity: ready || _loading ? 1 : 0.55,
-                                  child: HardButton(label: l.fdCodeSubmit, onPressed: _submit, loading: _loading),
+                                // White until all eight cells are filled, then lime.
+                                HardButton(
+                                  label: l.fdCodeSubmit,
+                                  onPressed: _submit,
+                                  loading: _loading,
+                                  fill: ready || _loading ? FdColors.lime : FdColors.card,
+                                  foreground: ready || _loading ? FdColors.onLime : FdColors.muted,
                                 ),
                                 const SizedBox(height: 12),
                                 _ScanButton(label: l.fdCodeScan, onTap: _loading ? null : _scan),
@@ -241,7 +223,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                             padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
                             child: Column(
                               children: [
-                                Text(l.fdCodeNoCode, style: fdText(12, FontWeight.w400, FdColors.muted)),
+                                Text(l.fdCodeNoCode, style: fdText(12, FontWeight.w400, FdColors.pageMuted)),
                                 const SizedBox(height: 6),
                                 Semantics(
                                   button: true,
@@ -252,7 +234,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                                       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                                       child: Text(
                                         ContactLinks.phoneDisplay,
-                                        style: fdText(15, FontWeight.w800, FdColors.navy),
+                                        style: fdText(15, FontWeight.w800, FdColors.lime),
                                       ),
                                     ),
                                   ),
@@ -273,7 +255,6 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     );
   }
 
-  static final TextStyle _title = fdText(28, FontWeight.w800, FdColors.ink, height: 1.1, letterSpacing: -0.84);
 }
 
 /// The white "QR kodni skanerlash" button under "Kirish".
@@ -465,7 +446,7 @@ class _Cell extends StatelessWidget {
           : null,
     );
     if (filled || current) return box;
-    return CustomPaint(foregroundPainter: const DashedPillPainter(color: FdColors.ink, radius: 10), child: box);
+    return CustomPaint(foregroundPainter: const DashedPillPainter(color: FdColors.navRule, radius: 10), child: box);
   }
 }
 

@@ -165,7 +165,7 @@ class SentScreen extends ConsumerWidget {
     );
   }
 
-  static final TextStyle _big = fdText(32, FontWeight.w800, FdColors.ink, height: 1.1, letterSpacing: -0.96);
+  static final TextStyle _big = fdText(32, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.96);
 }
 
 /// The agency's card: the logo, "Hanguk Consulting", and Telegram / call.

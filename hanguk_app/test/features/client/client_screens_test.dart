@@ -107,8 +107,7 @@ void main() {
     await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {})), apps: [app('a', 'online_application')]);
     expect(find.text('Ariza jarayoni'), findsOneWidget);
     expect(find.text('Dilnoza Karimova · Kongju'), findsOneWidget);
-    expect(find.text('Hozirgi bosqich'), findsOneWidget);
-    expect(find.textContaining('/9'), findsOneWidget);
+    expect(find.text('2 / 9'), findsOneWidget);
     expect(find.text('Universitet xonasi'), findsOneWidget);
   });
 
@@ -127,8 +126,8 @@ void main() {
       docs: [doc('photo', 'approved'), doc('diploma', 'uploaded')],
     );
     expect(find.text('Hujjatlarim'), findsOneWidget);
-    expect(find.text('Yana 3 ta kerak'), findsOneWidget);
-    expect(find.textContaining('/5', findRichText: true), findsOneWidget);
+    expect(find.text('1 / 5 tayyor'), findsOneWidget);
+    expect(find.text('Keyingi hujjatni yuklash'), findsOneWidget);
     expect(find.text('Yuklash'), findsNWidgets(3));
     expect(find.text('Qabul qilindi'), findsOneWidget);
     expect(find.text('Tekshirilmoqda'), findsOneWidget);
@@ -136,7 +135,7 @@ void main() {
 
   testWidgets('the client shell opens on Ariza and has five tabs', (t) async {
     await pump(t, const ClientShell(), apps: [app('a', 'interview')]);
-    for (final label in ['Universitetlar', '360° xarita', 'Tayyorgarlik', 'Ariza', 'Hujjatlar']) {
+    for (final label in ['Universitetlar', 'Tayyorgarlik', 'BAHOLASH', 'Ariza', 'Hujjatlar']) {
       expect(find.text(label), findsWidgets, reason: label);
     }
     expect(find.text('Ariza jarayoni'), findsOneWidget);

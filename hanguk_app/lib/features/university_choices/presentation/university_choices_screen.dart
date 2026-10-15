@@ -45,8 +45,8 @@ class UniversityChoicesScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(l.ucTitle, style: fdText(22, FontWeight.w800, FdColors.ink, height: 1.1)),
-                          Text(l.ucSubtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: fdText(11, FontWeight.w400, FdColors.muted)),
+                          Text(l.ucTitle, style: fdText(22, FontWeight.w800, FdColors.onPage, height: 1.1)),
+                          Text(l.ucSubtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: fdText(11, FontWeight.w400, FdColors.pageMuted)),
                         ],
                       ),
                     ),
@@ -55,7 +55,7 @@ class UniversityChoicesScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: async.when(
-                  loading: () => const Center(child: CircularProgressIndicator(color: FdColors.navy)),
+                  loading: () => const Center(child: CircularProgressIndicator(color: FdColors.lime)),
                   error: (_, _) => _Message(
                     text: l.appsLoadError,
                     action: HardChoice(
@@ -115,7 +115,7 @@ class _Message extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(text, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.ink)),
+          Text(text, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.onPage)),
           if (action != null) ...[const SizedBox(height: 14), action!],
         ],
       ),
@@ -418,10 +418,10 @@ class _ChangeRequestSheetState extends State<ChangeRequestSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l.ucRequestChange, style: fdText(18, FontWeight.w800, FdColors.ink)),
-            Text(widget.universityName, style: fdText(12, FontWeight.w400, FdColors.muted)),
+            Text(l.ucRequestChange, style: fdText(18, FontWeight.w800, FdColors.onPage)),
+            Text(widget.universityName, style: fdText(12, FontWeight.w400, FdColors.pageMuted)),
             const SizedBox(height: 14),
-            Text(l.ucChangeQuestion, style: fdText(13, FontWeight.w700, FdColors.ink)),
+            Text(l.ucChangeQuestion, style: fdText(13, FontWeight.w700, FdColors.onPage)),
             const SizedBox(height: 10),
             for (final entry in labels.entries) ...[
               HardChoice(
@@ -433,7 +433,7 @@ class _ChangeRequestSheetState extends State<ChangeRequestSheet> {
               const SizedBox(height: 8),
             ],
             const SizedBox(height: 4),
-            Text(l.ucChangeNote, style: fdText(12, FontWeight.w600, FdColors.muted)),
+            Text(l.ucChangeNote, style: fdText(12, FontWeight.w600, FdColors.pageMuted)),
             const SizedBox(height: 6),
             TextField(
               controller: _note,

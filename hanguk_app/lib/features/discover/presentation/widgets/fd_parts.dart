@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../auth/data/auth_repository.dart' show signedInProvider;
 import '../../../catalog/data/campus_photos.dart';
 import '../../../catalog/data/catalog_filters.dart';
 import '../../../catalog/domain/catalog_models.dart';
 import '../../../assessment/presentation/assessment_widgets.dart';
 import '../../../catalog/presentation/catalog_format.dart';
 import '../discover_routes.dart';
-import 'fd_bottom_nav.dart';
+import 'app_nav.dart';
 import 'uni_stack_card.dart';
 
 /// A university's campus photo in an ink-bordered tile (80×48 in the lists),
-/// or the navy cover with its Korean name when there is no photo.
+/// or the blue cover with the first four letters of its Korean name — the
+/// prototype's `ko2` — when there is no photo.
 class UniThumb extends StatelessWidget {
   const UniThumb({super.key, required this.university, this.width = 80, this.height = 48, this.radius = 10});
 
@@ -38,7 +37,37 @@ class UniThumb extends StatelessWidget {
       ),
       child: photo != null
           ? Image.asset(photo, fit: BoxFit.cover, cacheWidth: (width * 3).round())
-          : NameCover(name: university.nameKoShort ?? university.displayName),
+          : KoCover(name: university.nameKoShort ?? university.nameKo ?? university.displayName, fontSize: width >= 70 ? 12 : 9),
+    );
+  }
+}
+
+/// The prototype's cover for a university without a photo: the blue gradient
+/// (`#2447D6` → `#060D2B`) with the Korean name's first four letters.
+class KoCover extends StatelessWidget {
+  const KoCover({super.key, required this.name, this.fontSize = 9, this.alignment = Alignment.center});
+
+  final String name;
+  final double fontSize;
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [FdColors.blue, FdColors.blueNight]),
+      ),
+      child: Align(
+        alignment: alignment,
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Text(
+            name.characters.take(4).toString(),
+            maxLines: 1,
+            style: fdText(fontSize, FontWeight.w800, Colors.white, height: 1.1),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -110,7 +139,7 @@ class FdTitleBar extends StatelessWidget {
 }
 
 /// The title style of [FdTitleBar].
-final TextStyle kFdTitleStyle = fdText(18, FontWeight.w800, FdColors.ink, letterSpacing: -0.36);
+final TextStyle kFdTitleStyle = fdText(18, FontWeight.w800, FdColors.onPage, letterSpacing: -0.36);
 
 /// The big pale hangul behind a screen's title ("비교", "저장").
 class GhostWord extends StatelessWidget {
@@ -134,23 +163,11 @@ class GhostWord extends StatelessWidget {
 /// The bottom nav on a screen pushed over the home: Universitetlar stays lit;
 /// another tab goes back to the home (the guest's, or the signed-in
 /// student's) with that tab open.
-class GuestTabsBar extends ConsumerWidget {
+class GuestTabsBar extends StatelessWidget {
   const GuestTabsBar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context)!;
-    final signedIn = ref.watch(signedInProvider);
-    return FdBottomNav(
-      current: 0,
-      items: [
-        (label: l.fdNavUniversities, glyph: LucideIcons.graduationCap),
-        (label: l.fdNavMap, glyph: LucideIcons.map),
-        (label: l.fdNavPrepare, glyph: LucideIcons.target),
-      ],
-      onSelect: (i) => context.go(signedIn ? '/?tab=$i' : discoverTabPath(i)),
-    );
-  }
+  Widget build(BuildContext context) => const AppNav(current: AppTab.universities);
 }
 
 /// How a slot is drawn: holding a university, empty, or with one dragged

@@ -248,7 +248,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                         onTap: _leave,
                       ),
                       const SizedBox(width: 10),
-                      Text(l.fdPlanTitle, style: fdText(18, FontWeight.w800, FdColors.ink, letterSpacing: -0.36)),
+                      Text(l.fdPlanTitle, style: fdText(18, FontWeight.w800, FdColors.onPage, letterSpacing: -0.36)),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -256,7 +256,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                           maxLines: 1,
                           textAlign: TextAlign.right,
                           overflow: TextOverflow.ellipsis,
-                          style: fdText(11, FontWeight.w700, FdColors.muted),
+                          style: fdText(11, FontWeight.w700, FdColors.pageMuted),
                         ),
                       ),
                     ],

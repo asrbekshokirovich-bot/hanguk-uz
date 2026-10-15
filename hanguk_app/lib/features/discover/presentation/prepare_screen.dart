@@ -48,68 +48,61 @@ class PrepareScreen extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return SafeArea(
       bottom: false,
-      child: Stack(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
         children: [
-          // The ghost word behind the title ("preparation").
-          Positioned(
-            right: -12,
-            top: -14,
-            child: ExcludeSemantics(
-              child: Text(
-                '준비',
-                style: fdText(104, FontWeight.w800, FdColors.ghost, height: 1, letterSpacing: -4),
+          Text(
+            '${l.fdPrepareEyebrow} ${l.fdPrepareTitle}',
+            style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 14),
+          _ToolCard(
+            blue: true,
+            kicker: l.fdPrepareStudyKicker,
+            tag: l.fdPrepareStudyPlanSteps(0, 4),
+            title: l.fdPrepareStudyPlanTitle,
+            body: l.fdPrepareStudyPlanBody,
+            progress: 0,
+            onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen(), 'study_plan') : _signIn(context),
+          ),
+          const SizedBox(height: 14),
+          _ToolCard(
+            blue: false,
+            kicker: l.fdPrepareInterviewKicker,
+            tag: l.fdPrepareNew,
+            title: l.fdPrepareInterviewTitle,
+            body: l.fdPrepareInterviewBody,
+            onTap: () => signedIn ? _push(context, const InterviewScreen(), 'interview') : _signIn(context),
+          ),
+          const SizedBox(height: 14),
+          _AskRow(
+            title: l.fdPrepareAskTitle,
+            body: l.fdPrepareAskBody,
+            onTap: () => signedIn ? _openChat(context) : _signIn(context),
+          ),
+          if (!signedIn) ...[
+            const SizedBox(height: 14),
+            CustomPaint(
+              foregroundPainter: const DashedPillPainter(color: FdColors.blue, radius: 16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                decoration: BoxDecoration(color: FdColors.card, borderRadius: BorderRadius.circular(16)),
+                child: Text(l.fdPrepareLocked, style: fdText(14, FontWeight.w800, FdColors.blue, height: 1.45)),
               ),
             ),
-          ),
-          ListView(
-            padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
-            children: [
-              Text(l.fdPrepareEyebrow, style: fdText(12, FontWeight.w700, FdColors.pageMuted)),
-              const SizedBox(height: 2),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: LimeMark(
-                  l.fdPrepareTitle,
-                  style: fdText(26, FontWeight.w800, FdColors.ink, height: 1, letterSpacing: -0.78),
-                ),
-              ),
-              const SizedBox(height: 22),
-              _ToolCard(
-                dark: false,
-                glyph: LucideIcons.fileText,
-                tag: l.fdPrepareStudyPlanSteps(0, 4),
-                title: l.fdPrepareStudyPlanTitle,
-                body: l.fdPrepareStudyPlanBody,
-                progress: 0,
-                onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen(), 'study_plan') : _signIn(context),
-              ),
-              const SizedBox(height: 14),
-              _ToolCard(
-                dark: true,
-                glyph: LucideIcons.mic,
-                tag: l.fdPrepareNew,
-                title: l.fdPrepareInterviewTitle,
-                body: l.fdPrepareInterviewBody,
-                onTap: () => signedIn ? _push(context, const InterviewScreen(), 'interview') : _signIn(context),
-              ),
-              const SizedBox(height: 14),
-              _AskRow(
-                title: l.fdPrepareAskTitle,
-                body: l.fdPrepareAskBody,
-                onTap: () => signedIn ? _openChat(context) : _signIn(context),
-              ),
-            ],
-          ),
+          ],
         ],
       ),
     );
   }
 }
 
+/// A tool card (prototype 11): a kicker line, the title, a line under it.
+/// The first is blue with a lime shadow, the second white with an ink one.
 class _ToolCard extends StatelessWidget {
   const _ToolCard({
-    required this.dark,
-    required this.glyph,
+    required this.blue,
+    required this.kicker,
     required this.tag,
     required this.title,
     required this.body,
@@ -117,8 +110,8 @@ class _ToolCard extends StatelessWidget {
     this.progress,
   });
 
-  final bool dark;
-  final LucideGlyph glyph;
+  final bool blue;
+  final String kicker;
   final String tag;
   final String title;
   final String body;
@@ -129,54 +122,36 @@ class _ToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = dark ? Colors.white : FdColors.ink;
+    final fg = blue ? Colors.white : FdColors.ink;
+    final muted = blue ? FdColors.onNavyMuted : FdColors.muted;
     return Semantics(
       button: true,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
           decoration: BoxDecoration(
-            color: dark ? FdColors.navy : FdColors.card,
+            color: blue ? FdColors.blue : FdColors.card,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: FdColors.ink, width: 1.5),
-            boxShadow: [BoxShadow(color: dark ? FdColors.lime : FdColors.ink, offset: const Offset(4, 4))],
+            boxShadow: [BoxShadow(color: blue ? FdColors.lime : FdColors.ink, offset: const Offset(4, 4))],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: FdColors.lime,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: FdColors.ink, width: 1.5),
-                    ),
-                    child: Lucide(glyph, size: 22, color: FdColors.onLime),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: dark ? FdColors.lime : null,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: FdColors.ink, width: 1.5),
-                    ),
-                    child: Text(tag, style: fdText(11, FontWeight.w800, dark ? FdColors.onLime : FdColors.ink)),
-                  ),
+                  Expanded(child: Text(kicker, style: fdText(12, FontWeight.w800, blue ? FdColors.lime : FdColors.muted, letterSpacing: 0.3))),
+                  Text(tag, style: fdText(12, FontWeight.w800, blue ? FdColors.lime : FdColors.blue)),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(title, style: fdText(19, FontWeight.w800, fg, letterSpacing: -0.19)),
-              const SizedBox(height: 10),
-              Text(body, style: fdText(13, FontWeight.w400, dark ? FdColors.onNavyMuted : FdColors.muted, height: 1.45)),
+              const SizedBox(height: 4),
+              Text(title, style: fdText(22, FontWeight.w800, fg, height: 1.2, letterSpacing: -0.3)),
+              const SizedBox(height: 6),
+              Text(body, style: fdText(14, FontWeight.w400, muted, height: 1.4)),
               if (progress != null) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     for (var i = 0; i < 4; i++) ...[
@@ -186,7 +161,7 @@ class _ToolCard extends StatelessWidget {
                           height: 6,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(3),
-                            color: i < progress! ? FdColors.ink : const Color(0xFFD9DFE8),
+                            color: i < progress! ? FdColors.lime : const Color(0x4DFFFFFF),
                           ),
                         ),
                       ),
@@ -237,9 +212,9 @@ class _AskRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: fdText(13, FontWeight.w800, FdColors.ink)),
+                    Text(title, style: fdText(14, FontWeight.w800, FdColors.ink)),
                     const SizedBox(height: 2),
-                    Text(body, style: fdText(11, FontWeight.w400, FdColors.muted)),
+                    Text(body, style: fdText(12, FontWeight.w400, FdColors.muted)),
                   ],
                 ),
               ),

@@ -144,7 +144,7 @@ class _DuelScreenState extends ConsumerState<DuelScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
-                            const Expanded(child: ColoredBox(color: FdColors.ink, child: SizedBox(height: 1.5))),
+                            const Expanded(child: ColoredBox(color: FdColors.navRule, child: SizedBox(height: 1.5))),
                             const SizedBox(width: 10),
                             Container(
                               width: 50,
@@ -159,7 +159,7 @@ class _DuelScreenState extends ConsumerState<DuelScreen> {
                               child: Text(l.fdOr, style: fdText(13, FontWeight.w800, FdColors.onLime)),
                             ),
                             const SizedBox(width: 10),
-                            const Expanded(child: ColoredBox(color: FdColors.ink, child: SizedBox(height: 1.5))),
+                            const Expanded(child: ColoredBox(color: FdColors.navRule, child: SizedBox(height: 1.5))),
                           ],
                         ),
                       ),
@@ -178,7 +178,7 @@ class _DuelScreenState extends ConsumerState<DuelScreen> {
                           children: [
                             const _Pips(wins: kChampionWins),
                             const SizedBox(width: 6),
-                            Text(l.fdDuelLegend, style: fdText(11, FontWeight.w700, FdColors.muted)),
+                            Text(l.fdDuelLegend, style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
                           ],
                         ),
                       ),

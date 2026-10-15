@@ -91,7 +91,7 @@ class _AssessmentScreenState extends ConsumerState<AssessmentScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: outcome == null
-                    ? const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(color: FdColors.navy)))
+                    ? const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(color: FdColors.lime)))
                     : _Meters(outcome: outcome, input: input),
               ),
               Expanded(
@@ -215,7 +215,7 @@ class _AssessTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = fdText(18, FontWeight.w800, FdColors.ink, letterSpacing: -0.36);
+    final style = fdText(18, FontWeight.w800, FdColors.onPage, letterSpacing: -0.36);
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.end,
       children: [Text('$lead ', style: style), LimeMark(mark, style: style)],
@@ -238,7 +238,7 @@ class _Meters extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: FdColors.navy,
+        color: FdColors.blueDeep,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: FdColors.ink, width: 1.5),
         boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],

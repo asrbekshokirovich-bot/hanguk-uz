@@ -63,7 +63,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.fromLTRB(18, 4, 18, 12),
-                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: FdColors.ink, width: 1.5))),
+                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: FdColors.navRule, width: 1.5))),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -106,12 +106,12 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Expanded(child: Text(l.fdResultsMatching(list.length), style: fdText(15, FontWeight.w800, FdColors.ink))),
-                        Text(l.fdResultsBestFirst, style: fdText(11, FontWeight.w700, FdColors.muted)),
+                        Expanded(child: Text(l.fdResultsMatching(list.length), style: fdText(15, FontWeight.w800, FdColors.onPage))),
+                        Text(l.fdResultsBestFirst, style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
                       ],
                     ),
                   ),
-                  const ColoredBox(color: FdColors.ink, child: SizedBox(height: 1.5)),
+                  const ColoredBox(color: FdColors.navRule, child: SizedBox(height: 1.5)),
                   Expanded(
                     child: list.isEmpty
                         ? Center(
@@ -120,7 +120,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                               child: Text(
                                 l.catalogEmptyTitle,
                                 textAlign: TextAlign.center,
-                                style: fdText(14, FontWeight.w600, FdColors.muted),
+                                style: fdText(14, FontWeight.w600, FdColors.pageMuted),
                               ),
                             ),
                           )
@@ -309,7 +309,7 @@ class _DraggableRow extends StatelessWidget {
       opacity: faded ? 0.4 : 1,
       child: Container(
         padding: const EdgeInsets.fromLTRB(10, 12, 14, 12),
-        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: FdColors.ink, width: 1.5))),
+        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: FdColors.navRule, width: 1.5))),
         child: Row(
           children: [
             handle,
@@ -330,7 +330,7 @@ class _DraggableRow extends StatelessWidget {
                           children: [
                             Text(
                               university.displayName,
-                              style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.2),
+                              style: fdText(14, FontWeight.w800, FdColors.onPage, height: 1.2),
                             ),
                             const SizedBox(height: 2),
                             uniMetaLine(l, university, guideline),
