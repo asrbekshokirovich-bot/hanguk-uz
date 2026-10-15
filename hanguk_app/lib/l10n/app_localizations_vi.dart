@@ -4603,4 +4603,14 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get fdPrepareLocked =>
       'Các mục này mở đầy đủ sau khi nhập mã khách hàng.';
+
+  @override
+  String get fdBoardProfileTitle => 'Thông tin của bạn cho visa';
+
+  @override
+  String get fdBoardProfileHint =>
+      'Tỷ lệ visa D-2 ở trên và mọi phần trăm trong ứng dụng thay đổi theo các câu trả lời này.';
+
+  @override
+  String get fdListReportCta => 'Nhận báo cáo visa →';
 }

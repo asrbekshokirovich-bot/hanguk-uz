@@ -8293,6 +8293,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These sections open fully after the client code.'**
   String get fdPrepareLocked;
+
+  /// Heading of the visa questions on the home board.
+  ///
+  /// In en, this message translates to:
+  /// **'Your details for the visa'**
+  String get fdBoardProfileTitle;
+
+  /// Line under the visa questions heading.
+  ///
+  /// In en, this message translates to:
+  /// **'The D-2 visa chance above and every percent in the app follow these answers.'**
+  String get fdBoardProfileHint;
+
+  /// Pinned button under the university list: opens the visa report.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the visa report →'**
+  String get fdListReportCta;
 }
 
 class _AppLocalizationsDelegate

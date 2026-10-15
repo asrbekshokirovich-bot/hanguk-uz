@@ -1497,5 +1497,8 @@
   "fdDocsUploadNext": "Загрузить следующий документ",
   "fdPrepareStudyKicker": "STUDY PLAN",
   "fdPrepareInterviewKicker": "ПРАКТИКА ИНТЕРВЬЮ",
-  "fdPrepareLocked": "Эти разделы полностью откроются после ввода клиентского кода."
+  "fdPrepareLocked": "Эти разделы полностью откроются после ввода клиентского кода.",
+  "fdBoardProfileTitle": "Ваши данные для визы",
+  "fdBoardProfileHint": "Шанс на визу D-2 выше и все проценты в приложении меняются по этим ответам.",
+  "fdListReportCta": "Получить отчёт по визе →"
 }

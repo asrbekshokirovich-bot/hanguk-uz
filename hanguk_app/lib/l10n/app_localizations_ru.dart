@@ -4630,4 +4630,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get fdPrepareLocked =>
       'Эти разделы полностью откроются после ввода клиентского кода.';
+
+  @override
+  String get fdBoardProfileTitle => 'Ваши данные для визы';
+
+  @override
+  String get fdBoardProfileHint =>
+      'Шанс на визу D-2 выше и все проценты в приложении меняются по этим ответам.';
+
+  @override
+  String get fdListReportCta => 'Получить отчёт по визе →';
 }

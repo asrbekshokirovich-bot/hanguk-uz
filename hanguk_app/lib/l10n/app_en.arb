@@ -6039,5 +6039,17 @@
   "fdPrepareLocked": "These sections open fully after the client code.",
   "@fdPrepareLocked": {
     "description": "Dashed note shown to guests on the preparation screen."
+  },
+  "fdBoardProfileTitle": "Your details for the visa",
+  "@fdBoardProfileTitle": {
+    "description": "Heading of the visa questions on the home board."
+  },
+  "fdBoardProfileHint": "The D-2 visa chance above and every percent in the app follow these answers.",
+  "@fdBoardProfileHint": {
+    "description": "Line under the visa questions heading."
+  },
+  "fdListReportCta": "Get the visa report →",
+  "@fdListReportCta": {
+    "description": "Pinned button under the university list: opens the visa report."
   }
 }

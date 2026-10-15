@@ -6,6 +6,7 @@ import '../../../design_system/seoul_night/seoul_night_tokens.dart' show SeoulCo
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton;
 import '../../../l10n/app_localizations.dart';
+import '../../assessment/data/assessment_controller.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
@@ -38,7 +39,7 @@ class UniversitiesScreen extends ConsumerWidget {
 
     var list = boardResults(ref, all, f);
     // Best chance first; the sort is stable, so ties keep the catalogue's order.
-    list = [...list]..sort((a, b) => (book.admission(b) ?? 0).compareTo(book.admission(a) ?? 0));
+    list = [...list]..sort((a, b) => book.admission(b).compareTo(book.admission(a)));
 
     return SafeArea(
       bottom: false,
@@ -103,6 +104,22 @@ class UniversitiesScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
             child: _Key(picked: picked),
+          ),
+          // Pinned: the visa report is one tap away however far the list is
+          // scrolled. It weighs the three picks, or else the three best here.
+          FdBottomBar(
+            aboveNav: true,
+            child: HardButton(
+              label: l.fdListReportCta,
+              onPressed: list.isEmpty
+                  ? null
+                  : () {
+                      final picks = ref.read(slotsProvider).whereType<String>().toList();
+                      final ids = picks.isNotEmpty ? picks : [for (final u in list.take(3)) u.institutionId];
+                      ref.read(assessmentProvider.notifier).useUniversities(ids);
+                      context.push(kAssessmentReportPath);
+                    },
+            ),
           ),
         ],
       ),

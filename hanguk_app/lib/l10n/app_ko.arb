@@ -1497,5 +1497,8 @@
   "fdDocsUploadNext": "다음 서류 업로드",
   "fdPrepareStudyKicker": "학업 계획서",
   "fdPrepareInterviewKicker": "면접 연습",
-  "fdPrepareLocked": "이 메뉴는 고객 코드를 입력하면 모두 열립니다."
+  "fdPrepareLocked": "이 메뉴는 고객 코드를 입력하면 모두 열립니다.",
+  "fdBoardProfileTitle": "비자를 위한 내 정보",
+  "fdBoardProfileHint": "위의 D-2 비자 확률과 앱의 모든 확률이 이 답변에 따라 바뀝니다.",
+  "fdListReportCta": "비자 보고서 받기 →"
 }

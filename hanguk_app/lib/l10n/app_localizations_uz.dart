@@ -4624,4 +4624,14 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get fdPrepareLocked =>
       'Bu bo\'limlar mijoz kodidan keyin to\'liq ochiladi.';
+
+  @override
+  String get fdBoardProfileTitle => 'Viza uchun ma\'lumotlaringiz';
+
+  @override
+  String get fdBoardProfileHint =>
+      'Yuqoridagi viza foizi va ilovadagi barcha foizlar shu javoblarga qarab o\'zgaradi.';
+
+  @override
+  String get fdListReportCta => 'Viza hisobotini olish →';
 }
