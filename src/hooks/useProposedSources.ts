@@ -76,10 +76,9 @@ export function useProposedSources(enabled = true) {
       // belongs next to the data rather than restated in every client.
       const { data, error } = await supabase
         .from('v_proposed_links_dashboard')
+        // One string literal (not concatenated) so the typed client can parse it.
         .select(
-          'id, url_ko, source_type, proposed_by, proposed_at, candidate_title, ' +
-            'candidate_snippet, review_notes, status, was_closed, closed_by_person, ' +
-            'reviewed_at, dismiss_reason, dismiss_detail',
+          'id, url_ko, source_type, proposed_by, proposed_at, candidate_title, candidate_snippet, review_notes, status, was_closed, closed_by_person, reviewed_at, dismiss_reason, dismiss_detail',
         )
         .order('proposed_at', { ascending: false })
         .limit(500);

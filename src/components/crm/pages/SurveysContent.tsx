@@ -524,7 +524,7 @@ export default function SurveysContent() {
 
   const updateQuestion = (idx: number, field: keyof Question, value: unknown) => {
     const updated = [...questions];
-    (updated[idx] as Record<string, unknown>)[field] = value;
+    (updated[idx] as unknown as Record<string, unknown>)[field] = value;
 
     // Switching to a choice type with no options would render an empty block
     // with nothing to type into, so seed the first variant.

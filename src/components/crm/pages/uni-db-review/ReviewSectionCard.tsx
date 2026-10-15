@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Check, Flag, Loader2, Pencil, Split, X } from 'lucide-react';
 import { StructuredReviewEditor } from '../ReviewEditor';
-import { validateParsedOutput } from '../reviewLogic';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {

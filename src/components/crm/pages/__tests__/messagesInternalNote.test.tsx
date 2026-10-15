@@ -33,7 +33,7 @@ const conversation = {
 const inserted: Record<string, unknown>[] = [];
 const appendLocalMessage = vi.fn();
 const sendMessage = vi.fn();
-const translateTexts = vi.fn(async (texts: string[]) => texts.map((x) => `translated:${x}`));
+const translateTexts = vi.fn(async (texts: string[], _lang?: string) => texts.map((x) => `translated:${x}`));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {

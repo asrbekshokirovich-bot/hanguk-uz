@@ -287,7 +287,6 @@ export function useGuidelineImport() {
   return useMutation<ImportOutcome, Error, ImportArgs>({
     mutationFn: async ({ payload, institutionId }) => {
       const { data, error } = await supabase.rpc(
-        // @ts-expect-error - import_university_guideline not in generated types yet
         'import_university_guideline',
         { payload: { ...payload, institution_id: institutionId ?? null } },
       );
