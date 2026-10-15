@@ -1012,6 +1012,9 @@
       "hideTranslation": "번역 숨기기",
       "translating": "번역 중…",
       "sending": "보내는 중…",
+      "edited": "수정됨",
+      "editedOriginal": "원래 내용: {{text}}",
+      "deleted": "삭제됨",
       "internalNoteLabel": "내부 메모 · 학생에게 전송되지 않음",
       "linkContact": "학생 또는 리드에 연결",
       "relinkContact": "연결 대상 변경"

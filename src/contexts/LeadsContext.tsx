@@ -50,6 +50,8 @@ export interface Lead {
   /** When the 10-minute countdown starts: `new_lead_at` in working hours, the
    * next working 10:00 (Tashkent) for a chat that arrived off hours. */
   sla_start_at?: string | null;
+  /** When the person first wrote back in a chat Hanguk started: "Bugungi lidlar", never "Yangi lid". */
+  replied_chat_at?: string | null;
   assignee?: {
     full_name: string | null;
   };
@@ -161,8 +163,9 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     try {
       if (isInitialLoad) setLoading(true);
       const [{ data, error }, { data: studentProfiles }, { data: allProfiles }] = await Promise.all([
-        // Only qualified rows — see leads.qualified: a phone number, or a chat
-        // that arrived as a new lead (new_lead_at, from 2026-10-12). Without this
+        // Only qualified rows — see leads.qualified: a phone number, a chat
+        // that arrived as a new lead (new_lead_at, from 2026-10-12), or an
+        // answer in a chat Hanguk started (replied_chat_at). Without this
         // filter the 192 Instagram handles auto-created from older chats sit in
         // the pipeline as unworkable rows and distort every count on the page.
         applyIntake(supabase.from('leads').select('*').eq('qualified', true), activeIntakeId),

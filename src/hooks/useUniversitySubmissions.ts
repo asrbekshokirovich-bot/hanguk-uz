@@ -16,9 +16,20 @@ export interface UniversitySubmission {
   offline_sent_at: string | null;
   copies: number | null;
   note: string | null;
+  /** null while waiting for the university's answer. */
+  result: AdmissionResult | null;
+  result_at: string | null;
+  /** Staff picked this as the student's final university (one per student). */
+  final_at: string | null;
+  /** The student confirmed the final university in the app. */
+  student_confirmed_at: string | null;
 }
 
-export type SubmissionPatch = Partial<Pick<UniversitySubmission, 'online_submitted_at' | 'offline_sent_at' | 'copies' | 'note'>>;
+export type AdmissionResult = 'accepted' | 'rejected';
+
+export type SubmissionPatch = Partial<
+  Pick<UniversitySubmission, 'online_submitted_at' | 'offline_sent_at' | 'copies' | 'note' | 'result' | 'final_at'>
+>;
 
 interface Result {
   data: unknown;
@@ -27,6 +38,9 @@ interface Result {
 interface UntypedQuery extends PromiseLike<Result> {
   select: (columns?: string) => UntypedQuery;
   upsert: (values: unknown, options?: { onConflict?: string }) => UntypedQuery;
+  update: (values: unknown) => UntypedQuery;
+  eq: (column: string, value: unknown) => UntypedQuery;
+  neq: (column: string, value: unknown) => UntypedQuery;
 }
 const db = supabase as unknown as { from: (table: string) => UntypedQuery };
 
@@ -42,7 +56,9 @@ export function useUniversitySubmissions() {
     queryFn: async () => {
       const { data, error } = await db
         .from('student_university_submissions')
-        .select('id, student_id, institution_id, online_submitted_at, offline_sent_at, copies, note');
+        .select(
+          'id, student_id, institution_id, online_submitted_at, offline_sent_at, copies, note, result, result_at, final_at, student_confirmed_at',
+        );
       if (error) throw new Error(error.message);
       return (data ?? []) as UniversitySubmission[];
     },
@@ -66,6 +82,29 @@ export function useUniversitySubmissions() {
       };
       if ('online_submitted_at' in patch) row.online_submitted_by = patch.online_submitted_at ? uid : null;
       if ('offline_sent_at' in patch) row.offline_sent_by = patch.offline_sent_at ? uid : null;
+      if ('result' in patch) {
+        row.result_at = patch.result ? new Date().toISOString() : null;
+        row.result_by = patch.result ? uid : null;
+        // Only an accepted university can stay the final one.
+        if (patch.result !== 'accepted') {
+          row.final_at = null;
+          row.final_by = null;
+          row.student_confirmed_at = null;
+        }
+      }
+      if ('final_at' in patch) {
+        row.final_by = patch.final_at ? uid : null;
+        row.student_confirmed_at = null;
+        // One final university per student: clear the previous pick first.
+        if (patch.final_at) {
+          const { error: clearError } = await db
+            .from('student_university_submissions')
+            .update({ final_at: null, final_by: null, student_confirmed_at: null })
+            .eq('student_id', studentId)
+            .neq('institution_id', institutionId);
+          if (clearError) throw new Error(clearError.message);
+        }
+      }
       const { error } = await db
         .from('student_university_submissions')
         .upsert(row, { onConflict: 'student_id,institution_id' });

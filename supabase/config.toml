@@ -141,6 +141,13 @@ verify_jwt = false
 [functions.db-exec]
 verify_jwt = true
 
+# Stage notifications to students (documents collected, online / offline
+# application, university offered / confirmed), called every minute by pg_cron
+# with an sb_secret_ key in the `apikey` header — verify_jwt is off for the
+# same reason as channel-health-check, and the function checks the caller.
+[functions.notify-student-stages]
+verify_jwt = false
+
 # Health heartbeat for the messaging channels, called hourly by pg_cron.
 # verify_jwt is off so pg_cron can authenticate with an sb_secret_ key in the
 # `apikey` header (secret keys are not JWTs, so they cannot go in Authorization

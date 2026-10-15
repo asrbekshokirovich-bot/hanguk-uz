@@ -16,6 +16,16 @@ UniversityChoiceStatus parseChoiceStatus(String? raw) => switch (raw) {
 /// as text (CHANGE_REASON_LABELS in src/hooks/useUniversityChoices.ts).
 enum ChangeReason { city, price, major, other }
 
+/// The university's answer, set by staff on the CRM's results map; null while
+/// it is still awaited.
+enum AdmissionOutcome { accepted, rejected }
+
+AdmissionOutcome? parseAdmissionOutcome(String? raw) => switch (raw) {
+  'accepted' => AdmissionOutcome.accepted,
+  'rejected' => AdmissionOutcome.rejected,
+  _ => null,
+};
+
 /// Whether the student's IELTS / TOPIK meets the university's minimum; a
 /// university accepts either track.
 enum LanguageFit { ok, gap, unknown }
@@ -26,6 +36,7 @@ class UniversityChoice {
     required this.rank,
     required this.status,
     required this.name,
+    this.institutionId = '',
     this.nameKo,
     this.city,
     this.isPartner = false,
@@ -36,12 +47,16 @@ class UniversityChoice {
     this.onlineDeadline,
     this.studentIelts,
     this.studentTopik,
+    this.outcome,
+    this.isFinal = false,
+    this.finalConfirmed = false,
   });
 
   final String id;
   final int rank;
   final UniversityChoiceStatus status;
   final String name;
+  final String institutionId;
   final String? nameKo;
   final String? city;
   final bool isPartner;
@@ -52,6 +67,41 @@ class UniversityChoice {
   final DateTime? onlineDeadline;
   final double? studentIelts;
   final double? studentTopik;
+
+  /// The admission result, once staff record it.
+  final AdmissionOutcome? outcome;
+
+  /// Staff picked this as the student's final university …
+  final bool isFinal;
+
+  /// … and the student confirmed it ("Shu universitetga boraman").
+  final bool finalConfirmed;
+
+  bool get needsFinalConfirm => isFinal && !finalConfirmed;
+
+  /// The same choice with its admission result from `my_admission_results()`.
+  UniversityChoice withResult(Map<String, dynamic>? r) => r == null
+      ? this
+      : UniversityChoice(
+          id: id,
+          rank: rank,
+          status: status,
+          name: name,
+          institutionId: institutionId,
+          nameKo: nameKo,
+          city: city,
+          isPartner: isPartner,
+          ieltsMin: ieltsMin,
+          topikMin: topikMin,
+          contractMin: contractMin,
+          currency: currency,
+          onlineDeadline: onlineDeadline,
+          studentIelts: studentIelts,
+          studentTopik: studentTopik,
+          outcome: parseAdmissionOutcome(r['result'] as String?),
+          isFinal: r['is_final'] == true,
+          finalConfirmed: r['student_confirmed_at'] != null,
+        );
 
   /// Rank of the partner-university slot (PARTNER_RANK in the CRM).
   static const partnerRank = 3;
@@ -82,6 +132,7 @@ class UniversityChoice {
       rank: (j['rank'] as num).toInt(),
       status: parseChoiceStatus(j['status'] as String?),
       name: (en != null && en.isNotEmpty) ? en : (ko ?? ''),
+      institutionId: (j['institution_id'] as String?) ?? '',
       nameKo: ko,
       city: (j['city'] as String?)?.trim(),
       isPartner: j['is_partner'] == true,

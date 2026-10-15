@@ -16,11 +16,33 @@ final myUniversityChoicesProvider = FutureProvider<List<UniversityChoice>>((ref)
   final data = await Supabase.instance.client
       .rpc('my_university_choices')
       .timeout(const Duration(seconds: 20));
-  return [
+  final choices = [
     for (final row in (data as List? ?? const []))
       UniversityChoice.fromJson(Map<String, dynamic>.from(row as Map)),
   ];
+  // Admission results (my_admission_results(), migration
+  // 20261015120000_admission_results.sql). The choices still show if this
+  // call fails — the results just stay hidden until the next refresh.
+  final results = <String, Map<String, dynamic>>{};
+  try {
+    final rows = await Supabase.instance.client
+        .rpc('my_admission_results')
+        .timeout(const Duration(seconds: 20));
+    for (final row in (rows as List? ?? const [])) {
+      final r = Map<String, dynamic>.from(row as Map);
+      results[r['institution_id'] as String] = r;
+    }
+  } catch (_) {}
+  return [for (final c in choices) c.withResult(results[c.institutionId])];
 });
+
+/// "Shu universitetga boraman": the student confirms the final university the
+/// consultant picked.
+Future<void> confirmFinalUniversity(String institutionId) async {
+  await Supabase.instance.client
+      .rpc('confirm_final_university', params: {'p_institution_id': institutionId})
+      .timeout(const Duration(seconds: 20));
+}
 
 /// "Roziman" ([accept] true) or "O'zgartirish so'rayman" with a [reason] and
 /// an optional [note]. The server only lets the student answer their own,

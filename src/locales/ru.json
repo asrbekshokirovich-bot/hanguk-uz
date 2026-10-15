@@ -1085,6 +1085,9 @@
       "hideTranslation": "Скрыть перевод",
       "translating": "Переводим…",
       "sending": "Отправляется…",
+      "edited": "изменено",
+      "editedOriginal": "Исходный текст: {{text}}",
+      "deleted": "удалено",
       "internalNoteLabel": "Внутренняя заметка · не отправляется студенту",
       "linkContact": "Привязать к студенту или лиду",
       "relinkContact": "Изменить привязку"

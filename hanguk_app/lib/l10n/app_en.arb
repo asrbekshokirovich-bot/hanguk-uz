@@ -5715,5 +5715,38 @@
         "type": "int"
       }
     }
+  },
+  "ucResultAccepted": "Admitted 🎓",
+  "@ucResultAccepted": {
+    "description": "Status chip: the university admitted the student."
+  },
+  "ucResultRejected": "Not admitted",
+  "@ucResultRejected": {
+    "description": "Status chip: the university did not admit the student."
+  },
+  "ucCongratsTitle": "Congratulations!",
+  "@ucCongratsTitle": {
+    "description": "Banner title when at least one university admitted the student."
+  },
+  "ucCongratsBody": "{count, plural, =1{You were admitted to 1 university} other{You were admitted to {count} universities}}",
+  "@ucCongratsBody": {
+    "description": "Banner text: how many universities admitted the student.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ucFinalRecommended": "Your consultant recommends this as your final university",
+  "@ucFinalRecommended": {
+    "description": "Box on the final university the consultant picked, before the student confirms."
+  },
+  "ucFinalGo": "I'll go to this university",
+  "@ucFinalGo": {
+    "description": "Button: the student confirms the final university."
+  },
+  "ucFinalChosen": "✓ You chose this university",
+  "@ucFinalChosen": {
+    "description": "Note on the final university after the student confirmed it."
   }
 }

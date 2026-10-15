@@ -78,6 +78,9 @@ export function useThreadMessages(messages: Message[]) {
         pending: kind === 'out' && m.delivery_status === 'sending',
         translation: readCachedTranslation(m.metadata),
         translatable: !media && looksNonEnglish(m.content),
+        edited: !!m.metadata?.edited,
+        originalText: typeof m.metadata?.original_content === 'string' ? m.metadata.original_content : null,
+        deleted: !!m.metadata?.deleted,
       });
     }
 

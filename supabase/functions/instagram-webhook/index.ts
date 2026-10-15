@@ -148,6 +148,18 @@ Deno.serve(async (req) => {
 
   const raw = await req.text();
   const cfg = await getConfig();
+
+  // Upkeep, not Meta: the instagram-maintenance cron job, authenticated like
+  // instagram-token-refresh (header == instagram_app_config.verify_token).
+  const upkeepSecret = req.headers.get("x-maintenance-secret");
+  if (upkeepSecret !== null) {
+    const expectedSecret = Deno.env.get("IG_VERIFY_TOKEN") || cfg?.verify_token;
+    if (!expectedSecret || !sameSecret(upkeepSecret, expectedSecret)) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    const report = await runMaintenance(cfg);
+    return new Response(JSON.stringify(report), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
   // Fail closed. This used to skip verification entirely when no app secret was
   // configured, so an unauthenticated POST to a known URL was written straight
   // into `messages` and `instagram_comments` — and the only trace was a warning
@@ -191,6 +203,7 @@ function classify(body: any): string {
     if (m.message) return "message";
     if (m.reaction) return "reaction";
     if (m.read) return "seen";
+    if (m.message_edit) return "message_edit";
     return "messaging_other";
   }
   const field = entry?.changes?.[0]?.field;
@@ -220,9 +233,12 @@ async function processPayload(body: any, cfg: any): Promise<void> {
 }
 
 async function handleMessage(m: any, account: any, ver: string): Promise<void> {
+  // An edit or an unsend changes a message we have; both used to be ignored,
+  // so the CRM kept showing text the person had changed or taken back.
+  if (m?.message_edit?.mid) return await applyEdit(String(m.message_edit.mid), m.message_edit.text ?? null);
   const msg = m?.message;
   if (!msg || m.reaction || m.read) return; // reactions/read receipts: raw log only
-  if (msg.is_deleted) return;
+  if (msg.is_deleted) return await markDeleted(String(msg.mid ?? ""));
 
   const isEcho = msg.is_echo === true;
   const partnerRaw = isEcho ? m.recipient?.id : m.sender?.id;
@@ -238,18 +254,18 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
   let displayName: string | null = null;
   let username: string | null = null;
   const { data: thread } = await admin.from("message_threads").select("id, sender_name").eq("source", "instagram").eq("sender_id", partnerId).maybeSingle();
-  if (thread?.sender_name) displayName = thread.sender_name;
-  if (!displayName && account?.access_token) {
-    try {
-      const r = await fetch(`https://graph.instagram.com/${ver}/${partnerId}?fields=name,username&access_token=${encodeURIComponent(account.access_token)}`);
-      if (r.ok) {
-        const p = await r.json();
-        username = p?.username ?? null;
-        displayName = p?.name || (username ? `@${username}` : null);
-      }
-    } catch { /* best effort */ }
+  // A thread still named "IG xxxxxx" never got its profile: ask again.
+  const knownName = thread?.sender_name && !isPlaceholderName(partnerId, thread.sender_name) ? thread.sender_name : null;
+  if (knownName) displayName = knownName;
+  if (!displayName) {
+    const profile = await fetchProfile(partnerId, account, ver);
+    if (profile) {
+      username = profile.username;
+      displayName = profile.name;
+      if (thread?.sender_name) await renameEverywhere(partnerId, profile);
+    }
   }
-  displayName = displayName ?? `IG ${partnerId.slice(-6)}`;
+  displayName = displayName ?? placeholderName(partnerId);
 
   // Whose conversation is this? resolveIdentity alone answers "nobody" for
   // every Instagram account, because an IGSID matches no phone, no student and
@@ -289,7 +305,7 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
       identifierLabel: username ? `@${username}` : null,
       leadFields: { contact_channel: "instagram" },
     });
-  if (identity.displayName && !thread?.sender_name) displayName = identity.displayName;
+  if (identity.displayName && !knownName && !isPlaceholderName(partnerId, identity.displayName)) displayName = identity.displayName;
 
   const attachments: any[] = Array.isArray(msg.attachments) ? msg.attachments : [];
   const attachType = attachments[0]?.type ?? null;
@@ -302,6 +318,7 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
 
   const direction = isEcho ? "outgoing" : "incoming";
   const createdAt = m.timestamp ? new Date(Number(m.timestamp)).toISOString() : new Date().toISOString();
+  const autoReply = isEcho ? await isInstantReply(partnerId, createdAt) : false;
 
   const { error: threadErr } = await admin.rpc("upsert_message_thread", {
     p_source: "instagram", p_sender_id: partnerId, p_sender_name: displayName, p_sender_avatar: null,
@@ -322,6 +339,7 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
     student_id: identity.studentId, created_at: createdAt,
     metadata: {
       igsid: partnerId, mid, username, lead_id: identity.leadId, is_echo: isEcho,
+      ...(autoReply ? { auto_reply: "instant" } : {}),
       account_ig_id: account?.ig_user_id ?? null,
       reply_to: msg.reply_to ?? null,
       attachments: attachments.map((a, i) => ({
@@ -337,6 +355,66 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
     },
   });
   if (msgErr) throw new Error(`message insert: ${msgErr.message}`);
+}
+
+/** The new text on the stored message; the first version stays in metadata. */
+async function applyEdit(mid: string, text: string | null): Promise<void> {
+  const { data: row } = await admin.from("messages").select("id, content, metadata")
+    .eq("source", "instagram").eq("external_id", mid).maybeSingle();
+  const after = text?.trim() || null;
+  if (!row || !after || after === row.content) return;
+  const meta = (row.metadata ?? {}) as Record<string, unknown>;
+  const { error } = await admin.from("messages").update({
+    content: after,
+    metadata: {
+      ...meta,
+      edited: true,
+      edited_at: new Date().toISOString(),
+      original_content: meta.original_content ?? row.content,
+    },
+  }).eq("id", row.id);
+  if (error) throw new Error(`edit update: ${error.message}`);
+}
+
+/** Unsent by the person: kept for the record, shown as deleted. */
+async function markDeleted(mid: string): Promise<void> {
+  if (!mid) return;
+  const { data: row } = await admin.from("messages").select("id, metadata")
+    .eq("source", "instagram").eq("external_id", mid).maybeSingle();
+  if (!row) return;
+  const meta = (row.metadata ?? {}) as Record<string, unknown>;
+  if (meta.deleted) return;
+  const { error } = await admin.from("messages").update({
+    metadata: { ...meta, deleted: true, deleted_at: new Date().toISOString() },
+  }).eq("id", row.id);
+  if (error) throw new Error(`delete mark: ${error.message}`);
+}
+
+/** Faster than anyone types: an echo this soon after the person's message. */
+const INSTANT_REPLY_MS = 3000;
+
+/**
+ * An echo that left within 3 seconds of the person's message was sent by a
+ * machine — Meta's instant reply, a saved-reply or lead-form flow — not by
+ * staff in the Instagram app (those flows answered in about a second until
+ * 2026-09-15). Marked auto_reply, it does not count as an answer, so the lead
+ * stays in "Yangi lid" (fn_is_automatic_outgoing).
+ *
+ * Messages sent from the CRM never get here: instagram-send stores them
+ * first, and their echo is dropped as a duplicate above.
+ */
+async function isInstantReply(partnerId: string, sentAt: string): Promise<boolean> {
+  const { data: last } = await admin.from("messages")
+    .select("created_at")
+    .eq("source", "instagram")
+    .eq("sender_id", partnerId)
+    .eq("direction", "incoming")
+    .lte("created_at", sentAt)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!last?.created_at) return false;
+  return new Date(sentAt).getTime() - new Date(last.created_at).getTime() <= INSTANT_REPLY_MS;
 }
 
 async function handleComment(value: any, entry: any, account: any): Promise<void> {
@@ -421,4 +499,304 @@ async function recordSocialComment(
     const { error: reErr } = await admin.rpc("lead_reengage", { p_lead_id: leadId, p_at: ts });
     if (reErr) console.error("lead_reengage failed:", reErr.message);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Names
+// ---------------------------------------------------------------------------
+
+/** The name a person gets while their profile cannot be read. */
+function placeholderName(igsid: string): string {
+  return `IG ${igsid.slice(-6)}`;
+}
+
+function isPlaceholderName(igsid: string, name: string | null | undefined): boolean {
+  return !name || name === placeholderName(igsid);
+}
+
+/** Name and @username from the person's profile, or null when Meta won't say. */
+async function fetchProfile(
+  igsid: string,
+  account: any,
+  ver: string,
+): Promise<{ name: string; username: string | null } | null> {
+  if (!account?.access_token) return null;
+  try {
+    const r = await fetch(`https://graph.instagram.com/${ver}/${igsid}?fields=name,username&access_token=${encodeURIComponent(account.access_token)}`);
+    if (!r.ok) return null;
+    const p = await r.json();
+    const username = p?.username ?? null;
+    const name = p?.name || (username ? `@${username}` : null);
+    return name ? { name, username } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A profile that could not be read once used to keep "IG xxxxxx" for good: the
+ * thread kept the placeholder, every later message reused it and nobody asked
+ * again. Once the profile reads, the placeholder is replaced wherever it
+ * stands — never a name staff typed over it.
+ */
+async function renameEverywhere(igsid: string, profile: { name: string; username: string | null }): Promise<void> {
+  const old = placeholderName(igsid);
+  const label = profile.username ? `@${profile.username}` : null;
+  const updates = [
+    admin.from("message_threads").update({ sender_name: profile.name })
+      .eq("source", "instagram").eq("sender_id", igsid).eq("sender_name", old),
+    admin.from("messages").update({ sender_name: profile.name })
+      .eq("source", "instagram").eq("sender_id", igsid).eq("sender_name", old),
+    admin.from("leads").update({ full_name: profile.name })
+      .eq("source", "instagram").eq("source_id", igsid).eq("full_name", old),
+    admin.from("communication_identities").update({ display_name: profile.name })
+      .eq("channel", "instagram").eq("identifier", igsid).eq("display_name", old),
+  ];
+  if (label) {
+    updates.push(
+      admin.from("communication_identities").update({ identifier_label: label })
+        .eq("channel", "instagram").eq("identifier", igsid).is("identifier_label", null),
+    );
+  }
+  for (const { error } of await Promise.all(updates)) {
+    if (error) console.error("instagram rename:", error.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Upkeep (cron: instagram-maintenance, every 15 minutes)
+// ---------------------------------------------------------------------------
+
+function sameSecret(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/** A failed event is tried again this many times, then left for a person. */
+const MAX_EVENT_RETRIES = 5;
+/** Placeholder names asked again per run — one profile request each. */
+const RENAMES_PER_RUN = 15;
+const MAX_PROFILE_ATTEMPTS = 7;
+/** How far back a sync reads when it has never run, and at most after a gap. */
+const FIRST_SYNC_LOOKBACK_MS = 60 * 60 * 1000;
+const MAX_SYNC_LOOKBACK_MS = 48 * 60 * 60 * 1000;
+/** Each run re-reads a little of the previous one, so nothing falls between. */
+const SYNC_OVERLAP_MS = 10 * 60 * 1000;
+
+async function runMaintenance(cfg: any): Promise<Record<string, unknown>> {
+  const ver = cfg?.graph_version || "v25.0";
+  const report: Record<string, unknown> = {};
+  for (const [name, step] of [
+    ["retried", () => retryFailedEvents(cfg)],
+    ["synced", () => syncConversations(ver)],
+    ["renamed", () => refreshPlaceholderNames(ver)],
+  ] as const) {
+    try {
+      report[name] = await step();
+    } catch (e) {
+      report[name] = { error: e instanceof Error ? e.message : String(e) };
+      console.error(`instagram maintenance ${name}:`, report[name]);
+    }
+  }
+  return report;
+}
+
+/**
+ * Events whose processing failed were acknowledged to Meta (it would disable
+ * the subscription otherwise), so Meta never sends them again. Run them again
+ * here; handleMessage skips a message it already stored, so a retry is safe.
+ */
+async function retryFailedEvents(cfg: any): Promise<number> {
+  const { data: failed, error } = await admin.from("instagram_webhook_events")
+    .select("id, payload, retries")
+    .eq("processed", false)
+    .not("error", "is", null)
+    .lt("retries", MAX_EVENT_RETRIES)
+    .gte("created_at", new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at")
+    .limit(50);
+  if (error) throw new Error(`failed events: ${error.message}`);
+
+  let fixed = 0;
+  for (const row of failed ?? []) {
+    try {
+      await processPayload((row as any).payload, cfg);
+      await admin.from("instagram_webhook_events").update({ processed: true, error: null }).eq("id", (row as any).id);
+      fixed++;
+    } catch (e) {
+      await admin.from("instagram_webhook_events").update({
+        error: e instanceof Error ? e.message : String(e),
+        retries: Number((row as any).retries ?? 0) + 1,
+      }).eq("id", (row as any).id);
+    }
+  }
+  return fixed;
+}
+
+/**
+ * The webhook is the only way Instagram messages arrive; when Meta stops
+ * delivering (a subscription dropped, an outage) nothing else would notice the
+ * gap. Read the recent conversations from the API and store whatever the
+ * webhook missed, through the same handleMessage — so a missed first message
+ * still makes its lead.
+ */
+async function syncConversations(ver: string): Promise<number> {
+  const { data: state } = await admin.from("instagram_sync_state").select("last_success_at").eq("id", "main").maybeSingle();
+  const now = Date.now();
+  const lastOk = state?.last_success_at ? new Date(state.last_success_at).getTime() : now - FIRST_SYNC_LOOKBACK_MS;
+  const since = Math.max(lastOk - SYNC_OVERLAP_MS, now - MAX_SYNC_LOOKBACK_MS);
+
+  const { data: accounts } = await admin.from("instagram_accounts").select("*").eq("active", true);
+  let stored = 0;
+  try {
+    for (const account of accounts ?? []) {
+      stored += await syncAccount(account, ver, since);
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await admin.from("instagram_sync_state").upsert({
+      id: "main", last_run_at: new Date(now).toISOString(), last_error: msg.slice(0, 500),
+    });
+    throw e;
+  }
+  await admin.from("instagram_sync_state").upsert({
+    id: "main",
+    last_run_at: new Date(now).toISOString(),
+    last_success_at: new Date(now).toISOString(),
+    last_error: null,
+  });
+  return stored;
+}
+
+async function graphGet(url: string): Promise<any> {
+  const r = await fetch(url);
+  const body = await r.json().catch(() => null);
+  if (!r.ok) throw new Error(`graph ${r.status}: ${JSON.stringify(body?.error ?? body).slice(0, 300)}`);
+  return body;
+}
+
+async function syncAccount(account: any, ver: string, since: number): Promise<number> {
+  if (!account?.access_token) return 0;
+  const token = encodeURIComponent(account.access_token);
+  const me = String(account.ig_user_id ?? "");
+  let stored = 0;
+
+  // Newest first; stop paging at the first conversation older than `since`.
+  let url: string | null =
+    `https://graph.instagram.com/${ver}/me/conversations?platform=instagram&fields=id,updated_time&limit=25&access_token=${token}`;
+  const conversations: string[] = [];
+  for (let page = 0; url && page < 8; page++) {
+    const body = await graphGet(url);
+    let older = false;
+    for (const c of body?.data ?? []) {
+      if (new Date(c.updated_time).getTime() < since) { older = true; break; }
+      conversations.push(String(c.id));
+    }
+    url = older ? null : body?.paging?.next ?? null;
+  }
+
+  for (const id of conversations) {
+    const body = await graphGet(
+      `https://graph.instagram.com/${ver}/${id}?fields=messages.limit(25){id,created_time,from,to,message,attachments}&access_token=${token}`,
+    );
+    const messages = (body?.messages?.data ?? [])
+      .filter((m: any) => new Date(m.created_time).getTime() >= since)
+      .sort((a: any, b: any) => new Date(a.created_time).getTime() - new Date(b.created_time).getTime());
+
+    for (const m of messages) {
+      const fromId = String(m.from?.id ?? "");
+      const isEcho = (!!me && fromId === me) || (!!account.username && m.from?.username === account.username);
+      const partnerId = isEcho ? String(m.to?.data?.[0]?.id ?? "") : fromId;
+      if (!partnerId) continue;
+      const at = new Date(m.created_time).getTime();
+      const text = (m.message ?? "").trim();
+      if (await alreadyStored(partnerId, isEcho ? "outgoing" : "incoming", at, text)) continue;
+
+      await handleMessage({
+        sender: { id: isEcho ? me : partnerId },
+        recipient: { id: isEcho ? partnerId : me },
+        timestamp: at,
+        message: {
+          mid: String(m.id),
+          text: m.message ?? undefined,
+          is_echo: isEcho,
+          attachments: toWebhookAttachments(m.attachments?.data ?? []),
+        },
+      }, account, ver);
+      stored++;
+    }
+  }
+  return stored;
+}
+
+/**
+ * The webhook stored the message under its own id; the conversations API may
+ * report another. Same person, same direction, same text within 5 seconds is
+ * the same message.
+ */
+async function alreadyStored(partnerId: string, direction: string, at: number, text: string): Promise<boolean> {
+  let q = admin.from("messages").select("id")
+    .eq("source", "instagram")
+    .eq("sender_id", partnerId)
+    .eq("direction", direction)
+    .gte("created_at", new Date(at - 5000).toISOString())
+    .lte("created_at", new Date(at + 5000).toISOString());
+  if (text) q = q.eq("content", text);
+  const { data } = await q.limit(1).maybeSingle();
+  return !!data;
+}
+
+/** The conversations API's attachment shapes, as the webhook delivers them. */
+function toWebhookAttachments(list: any[]): any[] {
+  return list.map((a: any) => {
+    if (a?.image_data?.url) return { type: "image", payload: { url: a.image_data.url } };
+    if (a?.video_data?.url) return { type: "video", payload: { url: a.video_data.url } };
+    if (a?.audio_data?.url) return { type: "audio", payload: { url: a.audio_data.url } };
+    if (a?.file_url) return { type: "file", payload: { url: a.file_url } };
+    return { type: a?.type ?? "file", payload: { url: a?.url ?? null } };
+  });
+}
+
+/** Ask again for the profiles that are still "IG xxxxxx". */
+async function refreshPlaceholderNames(ver: string): Promise<number> {
+  const { data: threads, error } = await admin.from("message_threads")
+    .select("sender_id, sender_name")
+    .eq("source", "instagram")
+    .like("sender_name", "IG %")
+    .order("last_message_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error(`placeholder threads: ${error.message}`);
+
+  // A profile that would not read is asked again a day later, at most
+  // MAX_PROFILE_ATTEMPTS times (a deleted account never reads).
+  const ids = (threads ?? [])
+    .map((t: any) => String(t.sender_id))
+    .filter((id, i) => isPlaceholderName(id, (threads as any[])[i].sender_name));
+  if (!ids.length) return 0;
+  const { data: checks } = await admin.from("instagram_profile_checks")
+    .select("igsid, attempts, checked_at").in("igsid", ids);
+  const byId = new Map((checks ?? []).map((c: any) => [String(c.igsid), c]));
+  const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const due = ids.filter((id) => {
+    const c = byId.get(id);
+    return !c || (c.attempts < MAX_PROFILE_ATTEMPTS && new Date(c.checked_at).getTime() < dayAgo);
+  }).slice(0, RENAMES_PER_RUN);
+
+  const account = await getAccount(null);
+  let renamed = 0;
+  for (const igsid of due) {
+    const profile = await fetchProfile(igsid, account, ver);
+    await admin.from("instagram_profile_checks").upsert({
+      igsid,
+      attempts: Number(byId.get(igsid)?.attempts ?? 0) + 1,
+      checked_at: new Date().toISOString(),
+      found: !!profile,
+    });
+    if (!profile) continue;
+    await renameEverywhere(igsid, profile);
+    renamed++;
+  }
+  return renamed;
 }

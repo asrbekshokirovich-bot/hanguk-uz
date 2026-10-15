@@ -7909,6 +7909,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 university is waiting for your answer} other{{count} universities are waiting for your answer}}'**
   String ucBannerPending(int count);
+
+  /// Status chip: the university admitted the student.
+  ///
+  /// In en, this message translates to:
+  /// **'Admitted 🎓'**
+  String get ucResultAccepted;
+
+  /// Status chip: the university did not admit the student.
+  ///
+  /// In en, this message translates to:
+  /// **'Not admitted'**
+  String get ucResultRejected;
+
+  /// Banner title when at least one university admitted the student.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations!'**
+  String get ucCongratsTitle;
+
+  /// Banner text: how many universities admitted the student.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You were admitted to 1 university} other{You were admitted to {count} universities}}'**
+  String ucCongratsBody(int count);
+
+  /// Box on the final university the consultant picked, before the student confirms.
+  ///
+  /// In en, this message translates to:
+  /// **'Your consultant recommends this as your final university'**
+  String get ucFinalRecommended;
+
+  /// Button: the student confirms the final university.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll go to this university'**
+  String get ucFinalGo;
+
+  /// Note on the final university after the student confirmed it.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ You chose this university'**
+  String get ucFinalChosen;
 }
 
 class _AppLocalizationsDelegate

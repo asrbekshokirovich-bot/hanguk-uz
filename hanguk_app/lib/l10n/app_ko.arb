@@ -1433,5 +1433,12 @@
   "ucChangeSend": "상담사에게 보내기",
   "ucSendError": "보내지 못했습니다. 다시 시도해 주세요.",
   "ucEmpty": "아직 상담사가 추천한 대학이 없습니다.",
-  "ucBannerPending": "{count}개 대학이 답변을 기다리고 있습니다"
+  "ucBannerPending": "{count}개 대학이 답변을 기다리고 있습니다",
+  "ucResultAccepted": "합격 🎓",
+  "ucResultRejected": "불합격",
+  "ucCongratsTitle": "축하합니다!",
+  "ucCongratsBody": "{count}개 대학에 합격했습니다",
+  "ucFinalRecommended": "상담사가 최종 대학으로 추천합니다",
+  "ucFinalGo": "이 대학으로 가겠습니다",
+  "ucFinalChosen": "✓ 이 대학을 선택했습니다"
 }

@@ -4382,4 +4382,28 @@ class AppLocalizationsVi extends AppLocalizations {
   String ucBannerPending(int count) {
     return '$count trường đang chờ bạn trả lời';
   }
+
+  @override
+  String get ucResultAccepted => 'Đã trúng tuyển 🎓';
+
+  @override
+  String get ucResultRejected => 'Không trúng tuyển';
+
+  @override
+  String get ucCongratsTitle => 'Chúc mừng!';
+
+  @override
+  String ucCongratsBody(int count) {
+    return 'Bạn đã trúng tuyển $count trường';
+  }
+
+  @override
+  String get ucFinalRecommended =>
+      'Tư vấn viên đề xuất đây là trường cuối cùng của bạn';
+
+  @override
+  String get ucFinalGo => 'Tôi sẽ học trường này';
+
+  @override
+  String get ucFinalChosen => '✓ Bạn đã chọn trường này';
 }

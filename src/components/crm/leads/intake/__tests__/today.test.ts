@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Lead } from '@/contexts/LeadsContext';
 import { arrivedToday, isTodayLead, tashkentDay } from '../today';
+import { isNewLead } from '../sla';
 
 // 2026-09-30 15:00 in Tashkent (UTC+5).
 const now = new Date('2026-09-30T10:00:00Z');
@@ -57,6 +58,32 @@ describe('isTodayLead', () => {
     const yesterday = lead({ created_at: '2026-09-29T18:30:00Z', new_lead_at: '2026-09-29T18:30:00Z' });
     expect(isTodayLead(yesterday, new Date('2026-09-29T18:59:00Z'))).toBe(true);
     expect(isTodayLead(yesterday, new Date('2026-09-29T19:00:00Z'))).toBe(false);
+  });
+});
+
+describe('a chat Hanguk started', () => {
+  // Staff wrote first; the person answered today at 14:30 Tashkent.
+  const replied = lead({
+    phone: null,
+    status: 'new',
+    last_contacted_at: null,
+    new_lead_at: null,
+    created_at: '2026-09-30T09:30:00Z',
+    replied_chat_at: '2026-09-30T09:30:00Z',
+  });
+
+  it('skips "Yangi lid" and goes straight to "Bugungi lidlar"', () => {
+    expect(isNewLead(replied)).toBe(false);
+    expect(isTodayLead(replied, now)).toBe(true);
+  });
+
+  it('counts from the answer, not from when the lead row was made', () => {
+    const backfilled = lead({ ...replied, created_at: '2026-09-28T09:00:00Z' });
+    expect(isTodayLead(backfilled, now)).toBe(true);
+  });
+
+  it('moves to "Lidlar" at 00:00', () => {
+    expect(isTodayLead(replied, new Date('2026-09-30T19:00:00Z'))).toBe(false);
   });
 });
 

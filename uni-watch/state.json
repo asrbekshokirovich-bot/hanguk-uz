@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-14T15:12:16+00:00",
+ "last_run": "2026-10-15T07:29:54+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -334,6 +334,7 @@
   "https://enter.kku.ac.kr/": [],
   "https://enter.mokwon.ac.kr/": [],
   "https://enter.pcu.ac.kr/": [
+   "cafb3cc75ac2638b",
    "f86a5c3dab122ac4"
   ],
   "https://enter.woosuk.ac.kr/": [],

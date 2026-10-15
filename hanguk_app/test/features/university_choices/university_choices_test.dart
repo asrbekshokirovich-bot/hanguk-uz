@@ -18,6 +18,9 @@ UniversityChoice choice(
   bool partner = false,
   double? ieltsMin = 6,
   double? studentIelts = 6,
+  AdmissionOutcome? outcome,
+  bool isFinal = false,
+  bool finalConfirmed = false,
 }) => UniversityChoice(
   id: id,
   rank: rank,
@@ -29,6 +32,9 @@ UniversityChoice choice(
   contractMin: 2100000,
   currency: 'KRW',
   studentIelts: studentIelts,
+  outcome: outcome,
+  isFinal: isFinal,
+  finalConfirmed: finalConfirmed,
 );
 
 void main() {
@@ -129,6 +135,36 @@ void main() {
     expect(find.text("Nima uchun bu universitet sizga to'g'ri kelmaydi?"), findsOneWidget);
     expect(find.text('Kontrakt narxi qimmat'), findsOneWidget);
     expect(find.text('Konsultantga yuborish'), findsOneWidget);
+  });
+
+  testWidgets('results: congratulations, admitted / not admitted, and the final pick to confirm', (t) async {
+    await pump(t, const UniversityChoicesScreen(), [
+      choice('c1', 1, UniversityChoiceStatus.confirmed, outcome: AdmissionOutcome.accepted, isFinal: true),
+      choice('c2', 2, UniversityChoiceStatus.confirmed, name: 'Pusan National University', outcome: AdmissionOutcome.accepted),
+      choice('c3', 3, UniversityChoiceStatus.confirmed, name: 'Sejong University', outcome: AdmissionOutcome.rejected),
+    ]);
+    expect(find.text('Tabriklaymiz!'), findsOneWidget);
+    expect(find.text('2 ta universitetga qabul qilindingiz'), findsOneWidget);
+    expect(find.text('Qabul qilindingiz 🎓'), findsNWidgets(2));
+    expect(find.text('Qabul qilinmadi'), findsOneWidget);
+    expect(find.text('Shu universitetga boraman'), findsOneWidget);
+  });
+
+  testWidgets('a confirmed final university says so instead of asking again', (t) async {
+    await pump(t, const UniversityChoicesScreen(), [
+      choice('c1', 1, UniversityChoiceStatus.confirmed, outcome: AdmissionOutcome.accepted, isFinal: true, finalConfirmed: true),
+    ]);
+    expect(find.text('Shu universitetga boraman'), findsNothing);
+    expect(find.text('✓ Siz shu universitetni tanladingiz'), findsOneWidget);
+  });
+
+  test('withResult reads my_admission_results rows', () {
+    final base = UniversityChoice.fromJson({'id': 'c1', 'rank': 1, 'status': 'confirmed', 'name_en': 'KNU', 'institution_id': 'knu'});
+    expect(base.institutionId, 'knu');
+    final r = base.withResult({'result': 'accepted', 'is_final': true, 'student_confirmed_at': null});
+    expect(r.outcome, AdmissionOutcome.accepted);
+    expect(r.needsFinalConfirm, isTrue);
+    expect(base.withResult(null).outcome, isNull);
   });
 
   testWidgets('the journey entry stays hidden without offers', (t) async {

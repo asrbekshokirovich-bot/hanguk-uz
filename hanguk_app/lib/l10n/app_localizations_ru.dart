@@ -4402,4 +4402,35 @@ class AppLocalizationsRu extends AppLocalizations {
   String ucBannerPending(int count) {
     return '$count университета ждут вашего ответа';
   }
+
+  @override
+  String get ucResultAccepted => 'Вы приняты 🎓';
+
+  @override
+  String get ucResultRejected => 'Не приняты';
+
+  @override
+  String get ucCongratsTitle => 'Поздравляем!';
+
+  @override
+  String ucCongratsBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Вы приняты в $count университетов',
+      few: 'Вы приняты в $count университета',
+      one: 'Вы приняты в $count университет',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ucFinalRecommended =>
+      'Консультант рекомендует этот университет как итоговый';
+
+  @override
+  String get ucFinalGo => 'Поеду в этот университет';
+
+  @override
+  String get ucFinalChosen => '✓ Вы выбрали этот университет';
 }
