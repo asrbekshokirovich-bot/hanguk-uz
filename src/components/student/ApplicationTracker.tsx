@@ -7,10 +7,11 @@ import { cn } from '@/lib/utils';
 import { ProcessTracker } from './ProcessTracker';
 import { UniversityRoom } from './UniversityRoom';
 import { Tables } from '@/integrations/supabase/types';
+import { institutionCity, institutionName } from '@/lib/institution';
 import { GraduationCap, MessageSquare, Megaphone, CalendarDays, MapPin } from 'lucide-react';
 
 type Application = Tables<'applications'> & {
-  university?: Tables<'universities'>;
+  university?: Tables<'institutions'>;
 };
 
 interface ApplicationTrackerProps {
@@ -22,22 +23,14 @@ interface ApplicationTrackerProps {
 
 export function ApplicationTracker({ applications, loading, hideRoomEntry = false, onShowOnMap }: ApplicationTrackerProps) {
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language as 'uz' | 'ko' | 'ru' | 'en';
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
   const [initialTab, setInitialTab] = useState('status');
 
-  const getUniversityName = (university?: Tables<'universities'>) => {
-    if (!university) return 'Unknown University';
-    const nameKey = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (university[nameKey] as string) || university.name_uz || 'Unknown University';
-  };
+  const getUniversityName = (university?: Tables<'institutions'>) =>
+    institutionName(university, i18n.language) || 'Unknown University';
 
-  const getCityName = (university?: Tables<'universities'>) => {
-    if (!university) return '';
-    const cityKey = `city_${currentLang}` as keyof Tables<'universities'>;
-    return (university[cityKey] as string) || university.city_uz || '';
-  };
+  const getCityName = (university?: Tables<'institutions'>) => institutionCity(university);
 
   const handleOpenRoom = (application: Application, tab = 'status') => {
     setSelectedApplication(application);

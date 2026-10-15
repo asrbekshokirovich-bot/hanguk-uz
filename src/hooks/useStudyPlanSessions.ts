@@ -18,7 +18,6 @@ export interface StudyPlanSession {
     id: string;
     name_en: string | null;
     name_ko: string | null;
-    name_uz: string | null;
   } | null;
 }
 
@@ -76,11 +75,10 @@ export function useStudyPlanSessions() {
         .from('study_plan_sessions')
         .select(`
           *,
-          university:target_institution_id (
+          university:institutions!study_plan_sessions_target_institution_id_fkey (
             id,
             name_en,
-            name_ko,
-            name_uz
+            name_ko
           )
         `)
         .eq('student_id', user.id)
@@ -119,11 +117,10 @@ export function useStudyPlanSessions() {
         })
         .select(`
           *,
-          university:target_institution_id (
+          university:institutions!study_plan_sessions_target_institution_id_fkey (
             id,
             name_en,
-            name_ko,
-            name_uz
+            name_ko
           )
         `)
         .single();
@@ -162,11 +159,10 @@ export function useStudyPlanSessions() {
         .from('study_plan_sessions')
         .select(`
           *,
-          university:target_institution_id (
+          university:institutions!study_plan_sessions_target_institution_id_fkey (
             id,
             name_en,
-            name_ko,
-            name_uz
+            name_ko
           )
         `)
         .eq('id', sessionId)

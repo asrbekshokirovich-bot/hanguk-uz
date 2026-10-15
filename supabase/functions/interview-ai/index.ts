@@ -154,7 +154,7 @@ serve(async (req) => {
     // Get student's applications
     const { data: studentApplications } = await adminClient
       .from("applications")
-      .select("university_id, status")
+      .select("institution_id, status")
       .eq("student_id", user.id);
 
     // Get relevant questions for context
@@ -201,13 +201,13 @@ serve(async (req) => {
     
     let targetUniId = targetUniversityId;
     if (!targetUniId && studentApplications && studentApplications.length > 0) {
-      targetUniId = studentApplications[0].university_id;
+      targetUniId = studentApplications[0].institution_id;
     }
 
     if (targetUniId) {
       const { data: university } = await adminClient
-        .from("universities")
-        .select("*")
+        .from("institutions")
+        .select("name_en, name_ko, city_ko, primary_admissions_url_ko")
         .eq("id", targetUniId)
         .single();
       
@@ -215,17 +215,15 @@ serve(async (req) => {
         universityContext = `
 === TARGET UNIVERSITY INFORMATION ===
 University Name: ${university.name_ko || university.name_en} (${university.name_en || ''})
-Location: ${university.city_ko || university.city_en || 'Seoul'}, South Korea
-Ranking: ${university.ranking ? `#${university.ranking} in Korea` : 'Well-regarded institution'}
-Website: ${university.website || 'N/A'}
-Description: ${university.description_en || university.description_ko || 'A prestigious Korean university'}
+Location: ${university.city_ko || 'Seoul'}, South Korea
+Website: ${university.primary_admissions_url_ko || 'N/A'}
 `;
       }
 
       const { data: programs } = await adminClient
         .from("university_programs")
         .select("program_name, faculty_name, language_track, topik_requirement, ielts_requirement, program_level")
-        .eq("university_id", targetUniId)
+        .eq("institution_id", targetUniId)
         .eq("is_available_for_international", true)
         .limit(20);
       
@@ -238,9 +236,10 @@ ${programs.map(p => `- ${p.program_name} (${p.faculty_name || 'General'}) - ${p.
       }
 
       const { data: notes } = await adminClient
-        .from("university_notes")
+        .from("institution_notes")
         .select("content, note_type")
-        .eq("university_id", targetUniId)
+        .eq("institution_id", targetUniId)
+        .eq("is_active", true)
         .limit(5);
       
       if (notes && notes.length > 0) {
@@ -253,7 +252,7 @@ ${notes.map(n => `[${n.note_type}]: ${n.content}`).join('\n')}
       const { data: admissionPeriods } = await adminClient
         .from("university_admission_periods")
         .select("semester, year, application_start, application_end, language_track")
-        .eq("university_id", targetUniId)
+        .eq("institution_id", targetUniId)
         .gte("application_end", new Date().toISOString())
         .order("application_start", { ascending: true })
         .limit(3);

@@ -29,7 +29,7 @@ import { format } from 'date-fns';
 interface StudentFinanceCardProps {
   student: Tables<'profiles'> & {
     applications?: (Tables<'applications'> & {
-      university?: Tables<'universities'>;
+      university?: Tables<'institutions'>;
     })[];
   };
   payments: Payment[];

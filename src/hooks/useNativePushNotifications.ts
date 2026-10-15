@@ -24,17 +24,14 @@ export function useNativePushNotifications() {
 
       const platformType = platform.includes('ios') ? 'ios' : 'android';
 
-      // Upsert token to push_tokens table
-      await supabase
-        .from('push_tokens')
-        .upsert({
-          user_id: user.id,
-          token,
-          platform: platformType,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,platform'
-        });
+      // Tokens live in user_push_tokens, which only the register-push-token
+      // edge function writes (it upserts on platform+token and re-enables the
+      // row). The old direct upsert targeted a table that no longer exists and
+      // its error was never looked at, so no device was ever registered.
+      const { error } = await supabase.functions.invoke('register-push-token', {
+        body: { platform: platformType, token },
+      });
+      if (error) throw error;
 
       console.log('Push token registered successfully');
     } catch (error) {

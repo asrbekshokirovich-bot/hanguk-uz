@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   X, Sparkles, Loader2, Star, Send, 
-  GraduationCap, DollarSign, Trophy, Users, Building
+  GraduationCap, Building
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { institutionName } from '@/lib/institution';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,14 +33,8 @@ interface StudentContext {
 }
 
 interface UniversityComparisonChatProps {
-  universities: Tables<'universities'>[];
+  universities: Tables<'institutions'>[];
   onClose: () => void;
-}
-
-interface ComparisonData {
-  rankings: { name: string; value: number; max: number }[];
-  tuition: { name: string; min: number; max: number }[];
-  acceptance: { name: string; value: number }[];
 }
 
 export function UniversityComparisonChat({ universities, onClose }: UniversityComparisonChatProps) {
@@ -65,39 +59,10 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
     };
   }, []);
 
-  const getUniversityName = (university: Tables<'universities'>) => {
-    const langMap: Record<string, keyof Tables<'universities'>> = {
-      uz: 'name_uz', ko: 'name_ko', en: 'name_en', ru: 'name_ru',
-    };
-    const key = langMap[currentLang];
-    return (key && university[key] as string) || (university.name_en as string) || (university.name_ko as string) || (university.name_uz as string) || '';
-  };
-
-  // Build comparison data for charts
-  const comparisonData: ComparisonData = {
-    rankings: universities
-      .filter(u => u.ranking)
-      .map(u => ({ 
-        name: getUniversityName(u), 
-        value: u.ranking!, 
-        max: Math.max(...universities.map(uni => uni.ranking || 0)) 
-      })),
-    tuition: universities
-      .filter(u => u.tuition_min && u.tuition_max)
-      .map(u => ({ 
-        name: getUniversityName(u), 
-        min: u.tuition_min!, 
-        max: u.tuition_max! 
-      })),
-    acceptance: universities
-      .filter(u => u.acceptance_rate)
-      .map(u => ({ 
-        name: getUniversityName(u), 
-        value: u.acceptance_rate! 
-      })),
-  };
-
-  const maxTuition = Math.max(...comparisonData.tuition.map(t => t.max), 1);
+  // institutions has no ranking, tuition or acceptance-rate columns, so the
+  // comparison shows partner status only; the AI analysis covers the rest.
+  const getUniversityName = (university: Tables<'institutions'>) =>
+    institutionName(university, currentLang);
 
   // Fetch student context on mount — inlined to avoid dependency lint issues
   useEffect(() => {
@@ -121,7 +86,7 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
           staffNotes: [],
           staffComments: [],
           applications: applications?.map(a => ({
-            university_name: (a.university as any)?.name_uz || 'Unknown',
+            university_name: institutionName(a.university) || 'Unknown',
             status: a.status
           })) || []
         });
@@ -339,83 +304,6 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {/* Visual Comparison Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* Rankings Chart */}
-              {comparisonData.rankings.length > 0 && (
-                <Card>
-                  <CardHeader className="py-3 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Trophy className="h-4 w-4 text-warning" />
-                      {t('universities.ranking')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2 px-4 space-y-2">
-                    {comparisonData.rankings.map((item, idx) => (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span className="truncate max-w-[150px]">{item.name}</span>
-                          <span className="font-medium">#{item.value}</span>
-                        </div>
-                        <Progress 
-                          value={((item.max - item.value + 1) / item.max) * 100} 
-                          className="h-2" 
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tuition Chart */}
-              {comparisonData.tuition.length > 0 && (
-                <Card>
-                  <CardHeader className="py-3 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-success" />
-                      {t('universities.tuition')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2 px-4 space-y-2">
-                    {comparisonData.tuition.map((item, idx) => (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span className="truncate max-w-[120px]">{item.name}</span>
-                          <span className="font-medium">₩{item.min.toLocaleString()} - ₩{item.max.toLocaleString()}</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-success to-success rounded-full"
-                            style={{ width: `${(item.max / maxTuition) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Acceptance Rate Chart */}
-              {comparisonData.acceptance.length > 0 && (
-                <Card>
-                  <CardHeader className="py-3 px-4">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Users className="h-4 w-4 text-info" />
-                      {t('universities.acceptanceRate')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2 px-4 space-y-2">
-                    {comparisonData.acceptance.map((item, idx) => (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span className="truncate max-w-[150px]">{item.name}</span>
-                          <span className="font-medium">{item.value}%</span>
-                        </div>
-                        <Progress value={item.value} className="h-2" />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Partner Status */}
               <Card>
                 <CardHeader className="py-3 px-4">

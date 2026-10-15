@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type {
@@ -96,8 +97,8 @@ export function useDocumentTranslation() {
       .update({
         status: 'completed',
         output_docx_path: result.docxPath,
-        structured_translation: result.structured as unknown as Record<string, unknown>,
-        verified_names: (verifiedNames ?? result.structured.verifiedNames) as unknown as Record<string, unknown>,
+        structured_translation: result.structured as unknown as Json,
+        verified_names: (verifiedNames ?? result.structured.verifiedNames) as unknown as Json,
         translated_text: result.plainText,
         completed_at: new Date().toISOString(),
         error_message: null,

@@ -10,10 +10,11 @@ import { ProcessTracker } from './ProcessTracker';
 import { AnnouncementFeed } from './AnnouncementFeed';
 import { UniversityNotices } from './UniversityNotices';
 import { Tables } from '@/integrations/supabase/types';
+import { institutionName } from '@/lib/institution';
 import { Info, MessageSquare, Megaphone, CalendarDays, Users } from 'lucide-react';
 
 type Application = Tables<'applications'> & {
-  university?: Tables<'universities'>;
+  university?: Tables<'institutions'>;
 };
 
 interface UniversityRoomProps {
@@ -40,16 +41,8 @@ export function UniversityRoom({ open, onOpenChange, application, initialTab = '
 
   const discussionChannel = getChannelByType('discussion');
 
-  const getUniversityName = () => {
-    const uni = application.university;
-    if (!uni) return 'Unknown University';
-    switch (i18n.language) {
-      case 'en': return uni.name_en || uni.name_uz;
-      case 'ru': return uni.name_ru || uni.name_uz;
-      case 'ko': return uni.name_ko || uni.name_uz;
-      default: return uni.name_uz;
-    }
-  };
+  const getUniversityName = () =>
+    institutionName(application.university, i18n.language) || 'Unknown University';
 
   const getChannelName = (type: 'discussion' | 'announcement') => {
     const channel = getChannelByType(type);

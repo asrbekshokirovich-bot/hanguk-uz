@@ -54,6 +54,7 @@ const table = (props: Partial<React.ComponentProps<typeof LeadsTable>> = {}) => 
     onConvert={vi.fn()}
     onReject={vi.fn()}
     onRestore={vi.fn()}
+    onCallResult={vi.fn()}
     busy={false}
     now={NOW}
     {...props}

@@ -212,7 +212,8 @@ export default function MessagesContent() {
             source: selectedThread.source,
             sender_id: selectedThread.sender_id,
             student_id: selectedThread.student_id,
-            content: text,
+            // Notes are for colleagues: stored exactly as typed, never translated.
+            content: rawText,
             direction: 'outgoing',
             message_type: 'note',
             status: 'read',

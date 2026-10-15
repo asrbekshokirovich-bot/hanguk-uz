@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { X, Sparkles, Star } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { institutionName } from '@/lib/institution';
 
 interface UniversitySelectionBarProps {
-  selectedUniversities: Tables<'universities'>[];
+  selectedUniversities: Tables<'institutions'>[];
   onRemove: (id: string) => void;
   onCompare: () => void;
   maxSelections?: number;
@@ -20,13 +21,10 @@ export const UniversitySelectionBar = forwardRef<HTMLDivElement, UniversitySelec
   maxSelections = 4
 }, ref) {
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language as 'uz' | 'ko' | 'ru' | 'en';
   const isMobile = useIsMobile();
 
-  const getUniversityName = (university: Tables<'universities'>) => {
-    const nameKey = `name_${currentLang}` as keyof Tables<'universities'>;
-    return (university[nameKey] as string) || university.name_en || university.name_ko || university.name_uz;
-  };
+  const getUniversityName = (university: Tables<'institutions'>) =>
+    institutionName(university, i18n.language);
 
   if (selectedUniversities.length === 0) {
     return null;

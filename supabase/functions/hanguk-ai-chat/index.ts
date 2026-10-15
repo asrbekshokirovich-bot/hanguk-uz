@@ -85,7 +85,7 @@ function fmtDate(d: string | null | undefined): string {
 async function getStudentBundle(supabase: any, userId: string) {
   const [profile, apps, docs, pays, analyses, msgs, tasks] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-    supabase.from("applications").select("status, decision, notes, university:universities(name_en)").eq("student_id", userId).order("created_at", { ascending: false }),
+    supabase.from("applications").select("status, decision, notes, university:institutions(name_en, name_ko)").eq("student_id", userId).order("created_at", { ascending: false }),
     supabase.from("documents").select("name, status, notes").eq("student_id", userId).order("created_at", { ascending: false }),
     supabase.from("payments").select("payment_type, amount, paid_amount, status, due_date").eq("student_id", userId),
     supabase.from("call_analyses").select("summary_uz, summary_en, intent, sentiment, action_items, follow_up_needed, created_at").eq("student_id", userId).order("created_at", { ascending: false }).limit(8),
@@ -225,7 +225,7 @@ function formatBundle(b: any, opts: { staff: boolean }): string {
       : `Language proficiency: not set on profile — check DOCUMENT CONTENTS below for a TOPIK/IELTS certificate.`,
   );
   if (b.apps.length) {
-    lines.push("Applications: " + b.apps.map((a: any) => `${a.university?.name_en || "University"} (${a.status}${a.decision ? "/" + a.decision : ""})`).join("; "));
+    lines.push("Applications: " + b.apps.map((a: any) => `${a.university?.name_en || a.university?.name_ko || "University"} (${a.status}${a.decision ? "/" + a.decision : ""})`).join("; "));
   }
   if (opts.staff && b.pays.length) {
     const total = b.pays.reduce((s: number, x: any) => s + Number(x.amount || 0), 0);

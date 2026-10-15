@@ -244,7 +244,20 @@
     "staffTabHelper": "Login va parolga ega Hanguk xodimlari uchun.",
     "registerTabHelper": "Mehmon sifatida arizalarni kuzatish uchun hisob yarating.",
     "staffSignIn": "Xodim kirishi",
-    "createAccount": "Hisob yaratish"
+    "createAccount": "Hisob yaratish",
+    "contactTitle": "Maslahatchi bilan bog'lanish",
+    "contactHelper": "Ism va telefon raqamingizni qoldiring — maslahatchimiz siz bilan bog'lanadi.",
+    "phone": "Telefon raqam",
+    "emailOptional": "Elektron pochta (ixtiyoriy)",
+    "contactBtn": "Yuborish",
+    "contactSentTitle": "Murojaatingiz qabul qilindi",
+    "contactSentBody": "Maslahatchimiz ish vaqtida (09:00–22:00) tez orada siz bilan bog'lanadi.",
+    "contactInvalidPhone": "Telefon raqamni to'g'ri kiriting, masalan +998 90 123 45 67.",
+    "contactInvalidEmail": "Elektron pochta manzili noto'g'ri.",
+    "contactStudent": "Bu raqam talabamizga tegishli. Iltimos, menejeringizga yozing yoki kirish kodingiz bilan kiring.",
+    "contactBusy": "Hozir juda ko'p murojaat bor. Iltimos, birozdan keyin qayta urinib ko'ring.",
+    "contactFormUpdated": "Sahifa yangilandi. Iltimos, sahifani qayta yuklang.",
+    "contactError": "Yuborib bo'lmadi. Iltimos, qayta urinib ko'ring."
   },
   "navigation": {
     "home": "Bosh sahifa",

@@ -120,7 +120,7 @@ export default function Auth() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signInWithUsername, signInGuest, signUpGuest, signUpOwner, user } = useAuth();
+  const { signInWithUsername, requestConsultant, signUpOwner, user } = useAuth();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -139,14 +139,11 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [magicCode, setMagicCode] = useState('');
-  const [signUpEmail, setSignUpEmail] = useState('');
-  const [signUpPassword, setSignUpPassword] = useState('');
-  const [confirmSignUpPassword, setConfirmSignUpPassword] = useState('');
-  const [signUpFullName, setSignUpFullName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactSent, setContactSent] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
-  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
-  const [showConfirmSignUpPassword, setShowConfirmSignUpPassword] = useState(false);
-  const [isGuestLoginMode, setIsGuestLoginMode] = useState(false);
   const [activeTab, setActiveTab] = useState('student');
 
   // Check if owner account exists
@@ -203,10 +200,14 @@ export default function Auth() {
       return;
     }
 
-    // Also redirect guests if they visit /auth while logged in
-    const guestSession = localStorage.getItem('guest_session');
-    if (guestSession) {
-      navigate('/guest-portal');
+    // The old guest sign-up left a `guest_session` in localStorage and sent
+    // the browser to /guest-portal — a page that does not exist — on every
+    // visit to /auth, so that browser could not reach the login form any more.
+    // The guest accounts are gone; clear what is left of one.
+    try {
+      localStorage.removeItem('guest_session');
+    } catch {
+      /* storage blocked: nothing to clear */
     }
   }, [user, navigate, searchParams]);
 
@@ -217,9 +218,16 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation - Allow emails for guests, otherwise enforce username schema
-    const isEmail = username.includes('@');
-    if (!isEmail && !usernameSchema.safeParse(username).success) {
+    // Staff sign in with a username (an e-mail was the old guest login, now gone).
+    if (username.includes('@')) {
+      toast({
+        title: t('auth.loginError'),
+        description: "Staff login must use a username.",
+        variant: 'destructive'
+      });
+      return;
+    }
+    if (!usernameSchema.safeParse(username).success) {
       toast({
         title: t('auth.loginError'),
         description: 'Username must be 3-20 characters (letters, numbers, underscores)',
@@ -233,39 +241,6 @@ export default function Auth() {
     }
 
     setLoading(true);
-
-    if (isEmail) {
-      if (activeTab !== 'registrate') {
-        setLoading(false);
-        toast({
-          title: t('auth.loginError'),
-          description: "Staff login must use a username.",
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      const { data: guestData, error: guestError } = await signInGuest(username, password);
-
-      if (guestError) {
-        setLoading(false);
-        toast({
-          title: t('auth.loginError'),
-          description: guestError.message === 'EMAIL_NOT_FOUND' ? t('auth.emailNotFound') : t('auth.invalidCredentials'),
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      if (guestData) {
-        localStorage.setItem('guest_session', JSON.stringify(guestData));
-        setLoading(false);
-        toast({ title: t('auth.loginSuccess') });
-        navigate('/guest-portal');
-        return;
-      }
-    }
-
     const { error } = await signInWithUsername(username, password);
     setLoading(false);
 
@@ -366,59 +341,32 @@ export default function Auth() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleContactRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (signUpPassword !== confirmSignUpPassword) {
-      toast({
-        title: t('auth.loginError'),
-        description: t('auth.passwordMismatch'),
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    if (!signUpFullName.trim()) {
-      toast({
-        title: t('auth.loginError'),
-        description: 'Full name is required',
-        variant: 'destructive'
-      });
-      return;
-    }
-
     setLoading(true);
+    const { error } = await requestConsultant(contactName.trim(), contactPhone.trim(), contactEmail.trim());
+    setLoading(false);
 
-    try {
-      const { data: guestData, error: guestError } = await signUpGuest(signUpEmail, signUpPassword, signUpFullName);
-
-      if (guestError) {
-        throw guestError;
-      }
-
-      // Keep guest_session for immediate access
-      localStorage.setItem('guest_session', JSON.stringify(guestData));
-
-      toast({
-        title: t('auth.registeredSuccess'),
-        description: t('auth.dataSaved'),
-      });
-
-      // Clear fields and navigate
-      setSignUpEmail('');
-      setSignUpPassword('');
-      setConfirmSignUpPassword('');
-      setSignUpFullName('');
-      navigate('/guest-portal');
-    } catch (error: any) {
-      toast({
-        title: t('auth.loginError'),
-        description: error.message || 'Signup failed',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
+    if (!error) {
+      setContactSent(true);
+      setContactName('');
+      setContactPhone('');
+      setContactEmail('');
+      return;
     }
+
+    const messages: Record<string, string> = {
+      INVALID_PHONE: t('auth.contactInvalidPhone'),
+      INVALID_EMAIL: t('auth.contactInvalidEmail'),
+      STUDENT: t('auth.contactStudent'),
+      BUSY: t('auth.contactBusy'),
+      FORM_UPDATED: t('auth.contactFormUpdated'),
+    };
+    toast({
+      title: t('auth.loginError'),
+      description: messages[error.message] ?? t('auth.contactError'),
+      variant: 'destructive'
+    });
   };
 
   if (checkingSetup) {
@@ -565,76 +513,39 @@ export default function Auth() {
               </form>
             ) : activeTab === 'registrate' ? (
               <div>
-                <button type="button" onClick={() => setActiveTab('student')} className="mb-3 text-sm font-medium text-muted-foreground hover:text-foreground">← {t('common.back', { defaultValue: 'Back' })}</button>
-                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{t('auth.tabRegistrate')}</h1>
-                <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
-                  <p className="text-center text-sm text-muted-foreground">{t('auth.registerTabHelper')}</p>
-                </div>
-                {isGuestLoginMode ? (
-                  <form onSubmit={handleLogin} className="mt-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="guest-email">{t('auth.email')}</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="guest-email" type="email" value={username} onChange={(e) => setUsername(e.target.value.toLowerCase())} placeholder="example@gmail.com" className="pl-9" required />
-                      </div>
+                <button type="button" onClick={() => { setActiveTab('student'); setContactSent(false); }} className="mb-3 text-sm font-medium text-muted-foreground hover:text-foreground">← {t('common.back', { defaultValue: 'Back' })}</button>
+                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{t('auth.contactTitle')}</h1>
+                {contactSent ? (
+                  <div className="mt-4 rounded-lg border border-success/30 bg-success/10 p-4" role="status">
+                    <div className="flex items-center gap-2 font-semibold text-foreground">
+                      <Check className="h-5 w-5 text-success" />
+                      {t('auth.contactSentTitle')}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="guest-password">{t('auth.password')}</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="guest-password" type={showLoginPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
-                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowLoginPassword(!showLoginPassword)}>
-                          {showLoginPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                        </Button>
-                      </div>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {t('auth.loginSystem')}
-                    </Button>
-                  </form>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{t('auth.contactSentBody')}</p>
+                  </div>
                 ) : (
-                  <form onSubmit={handleSignUp} className="mt-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
-                      <Input id="signup-name" type="text" value={signUpFullName} onChange={(e) => setSignUpFullName(e.target.value.toUpperCase())} placeholder={t('auth.fullName')} className="uppercase" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">{t('auth.email')}</Label>
-                      <Input id="signup-email" type="email" value={signUpEmail} onChange={(e) => setSignUpEmail(e.target.value)} placeholder="example@gmail.com" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">{t('auth.password')}</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="signup-password" type={showSignUpPassword ? 'text' : 'password'} value={signUpPassword} onChange={(e) => setSignUpPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
-                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowSignUpPassword(!showSignUpPassword)}>
-                          {showSignUpPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                        </Button>
+                  <>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{t('auth.contactHelper')}</p>
+                    <form onSubmit={handleContactRequest} className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-name">{t('auth.fullName')}</Label>
+                        <Input id="contact-name" type="text" autoComplete="name" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder={t('auth.fullName')} maxLength={120} required />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-confirm">{t('auth.confirmPassword')}</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="signup-confirm" type={showConfirmSignUpPassword ? 'text' : 'password'} value={confirmSignUpPassword} onChange={(e) => setConfirmSignUpPassword(e.target.value)} placeholder="••••••" className="pl-9 pr-10" required />
-                        <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" onClick={() => setShowConfirmSignUpPassword(!showConfirmSignUpPassword)}>
-                          {showConfirmSignUpPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                        </Button>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-phone">{t('auth.phone')}</Label>
+                        <Input id="contact-phone" type="tel" inputMode="tel" autoComplete="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="+998 90 123 45 67" maxLength={25} required />
                       </div>
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {t('auth.registerBtn')}
-                    </Button>
-                  </form>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-email">{t('auth.emailOptional')}</Label>
+                        <Input id="contact-email" type="email" autoComplete="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="example@gmail.com" maxLength={200} />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t('auth.contactBtn')}
+                      </Button>
+                    </form>
+                  </>
                 )}
-                <div className="mt-4 text-center">
-                  <Button variant="link" size="sm" onClick={() => setIsGuestLoginMode(!isGuestLoginMode)} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                    {isGuestLoginMode ? t('auth.registerNewAccount') : t('auth.haveAccountMsg')}
-                  </Button>
-                </div>
               </div>
             ) : (
               <div>

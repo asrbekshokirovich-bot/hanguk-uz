@@ -101,17 +101,12 @@ serve(async (req) => {
       .select(`
         id,
         status,
-        university_id,
-        universities:university_id (
+        institution_id,
+        universities:institutions!applications_institution_id_fkey (
           id,
           name_ko,
           name_en,
-          city_en,
-          city_ko,
-          ranking,
-          description_en,
-          description_ko,
-          website
+          city_ko
         )
       `)
       .eq("student_id", user.id)
@@ -124,13 +119,13 @@ serve(async (req) => {
       for (const app of applications) {
         const uni = app.universities as any;
         if (uni) {
-          applicationsContext += `- ${uni.name_en || uni.name_ko} (${uni.city_en || uni.city_ko || 'South Korea'})\n`;
+          applicationsContext += `- ${uni.name_en || uni.name_ko} (${uni.city_ko || 'South Korea'})\n`;
           
           // Get programs for this university
           const { data: programs } = await adminClient
             .from("university_programs")
             .select("program_name, faculty_name, language_track, program_level")
-            .eq("university_id", uni.id)
+            .eq("institution_id", uni.id)
             .eq("is_available_for_international", true)
             .limit(5);
           
@@ -146,8 +141,8 @@ serve(async (req) => {
     let selectedUniversityName = "";
     if (targetUniversityId) {
       const { data: university } = await adminClient
-        .from("universities")
-        .select("*")
+        .from("institutions")
+        .select("id, name_en, name_ko, city_ko, primary_admissions_url_ko")
         .eq("id", targetUniversityId)
         .single();
       
@@ -155,17 +150,15 @@ serve(async (req) => {
         selectedUniversityName = university.name_en || university.name_ko || '';
         universityContext = `
 TARGET UNIVERSITY: ${university.name_ko || university.name_en}
-Location: ${university.city_en || university.city_ko || 'South Korea'}
-Ranking: ${university.ranking ? `#${university.ranking} in Korea` : 'Respected institution'}
-Description: ${university.description_en || university.description_ko || ''}
-Website: ${university.website || ''}
+Location: ${university.city_ko || 'South Korea'}
+Website: ${university.primary_admissions_url_ko || ''}
 `;
 
         // Get programs
         const { data: programs } = await adminClient
           .from("university_programs")
           .select("program_name, faculty_name, language_track, program_level, topik_requirement, ielts_requirement")
-          .eq("university_id", targetUniversityId)
+          .eq("institution_id", targetUniversityId)
           .eq("is_available_for_international", true)
           .limit(10);
         

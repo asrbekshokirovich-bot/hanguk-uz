@@ -97,6 +97,7 @@ export function useTasks() {
     title: string;
     description?: string;
     priority?: Task['priority'];
+    status?: Task['status'];
     due_date?: string;
     assigned_to?: string;
     student_id?: string;
@@ -110,6 +111,9 @@ export function useTasks() {
         title: task.title,
         description: task.description || null,
         priority: task.priority || 'normal',
+        // The kanban "+" passes its column; without one the DB default applies.
+        ...(task.status ? { status: task.status } : {}),
+        ...(task.status === 'completed' ? { completed_at: new Date().toISOString() } : {}),
         due_date: task.due_date || null,
         assigned_to: task.assigned_to || null,
         student_id: task.student_id || null,

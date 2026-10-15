@@ -301,7 +301,7 @@ function StudyPlanTrainerContent() {
 
   // Get university name for display
   const universityName = currentSession?.university
-    ? (currentSession.university.name_en || currentSession.university.name_ko || currentSession.university.name_uz)
+    ? (currentSession.university.name_en || currentSession.university.name_ko)
     : null;
 
   // Handlers

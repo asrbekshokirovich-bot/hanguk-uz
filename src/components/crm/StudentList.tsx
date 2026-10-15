@@ -52,13 +52,14 @@ import {
 import { Tables } from '@/integrations/supabase/types';
 import { normalizePlanName } from '@/hooks/useStudentPlan';
 import { cn } from '@/lib/utils';
+import { institutionName } from '@/lib/institution';
 import { AddStudentDialog } from './AddStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { TransferStudentDialog } from './TransferStudentDialog';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
+    university?: Tables<'institutions'>;
   })[];
   documents?: Tables<'documents'>[];
   /** Computed upstream by useCRMData (not columns on profiles). */
@@ -72,7 +73,7 @@ type Tone = 'lime' | 'info' | 'neutral' | 'successSoft' | 'warning' | 'destructi
 
 interface StudentListProps {
   students: StudentProfile[];
-  universities: Tables<'universities'>[];
+  universities: Tables<'institutions'>[];
   loading: boolean;
   onSelectStudent: (student: StudentProfile) => void;
   onRefresh: () => void;
@@ -189,13 +190,8 @@ export function StudentList({
   const [convertingLeadId, setConvertingLeadId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  const getUniversityName = (university?: Tables<'universities'>) => {
-    if (!university) return '';
-    // The rows come from `institutions`, which only has name_en and name_ko,
-    // so fall back to those when the interface language has no column.
-    const names = university as unknown as Record<string, string | null | undefined>;
-    return names[`name_${currentLang}`] || names.name_uz || names.name_en || names.name_ko || '';
-  };
+  const getUniversityName = (university?: Tables<'institutions'>) =>
+    institutionName(university, currentLang);
 
   // Every number a student has. Newer records keep the second one in
   // additional_phone, while older ones were typed as "90.../ 91..." into the

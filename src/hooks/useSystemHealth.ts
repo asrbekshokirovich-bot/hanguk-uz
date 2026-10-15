@@ -117,7 +117,7 @@ export function useSystemHealth(
         supabase.from('study_plan_sessions').select('id', { count: 'exact', head: true }),
         supabase.from('search_jobs').select('status', { count: 'exact', head: false }),
         supabase.from('user_roles').select('id', { count: 'exact', head: true }),
-        supabase.from('push_tokens').select('id', { count: 'exact', head: true }),
+        supabase.from('user_push_tokens').select('id', { count: 'exact', head: true }),
         supabase.from('student_achievements').select('id', { count: 'exact', head: true }),
         supabase.from('translation_jobs').select('id', { count: 'exact', head: true }),
         supabase.from('task_comments').select('id', { count: 'exact', head: true }),

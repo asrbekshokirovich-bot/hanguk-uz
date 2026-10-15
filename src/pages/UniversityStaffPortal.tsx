@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useUniversityStaffData } from '@/hooks/useUniversityStaffData';
+import { institutionName } from '@/lib/institution';
 import { useUniversityAnnouncements } from '@/hooks/useUniversityAnnouncements';
 import { useUniversityRoom } from '@/hooks/useUniversityRoom';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -36,8 +37,8 @@ export default function UniversityStaffPortal() {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
   const { hasRole, loading: roleLoading } = useUserRole();
-  const { assignment, university, applicants, roomId, loading } = useUniversityStaffData();
-  const { createAnnouncement } = useUniversityAnnouncements(roomId);
+  const { data: { assignment, university, applicants, roomId }, loading } = useUniversityStaffData();
+  const { create: createAnnouncement } = useUniversityAnnouncements(roomId);
   const { channels, getChannelByType } = useUniversityRoom(university?.id || null);
 
   const [activeTab, setActiveTab] = useState('applicants');
@@ -69,11 +70,12 @@ export default function UniversityStaffPortal() {
   const handlePostAnnouncement = async () => {
     if (!annTitle.trim() || !annContent.trim()) return;
     setSending(true);
+    // create() rejects while announcements are retired; report that as a failure.
     const success = await createAnnouncement({
       title: annTitle,
       content: annContent,
       priority: annPriority,
-    });
+    }).then(() => true, () => false);
     if (success) {
       toast.success(t('announcements.posted', 'E\'lon joylandi'));
       setAnnTitle('');
@@ -85,11 +87,7 @@ export default function UniversityStaffPortal() {
     setSending(false);
   };
 
-  const getUniversityName = () => {
-    if (!university) return '';
-    const nameKey = `name_${currentLang}` as keyof typeof university;
-    return (university[nameKey] as string) || university.name_uz || '';
-  };
+  const getUniversityName = () => institutionName(university, currentLang);
 
   if (authLoading || roleLoading || loading) {
     return (
