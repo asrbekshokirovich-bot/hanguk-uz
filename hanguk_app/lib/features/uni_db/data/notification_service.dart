@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../entry/data/entry_store.dart';
+import '../../university_choices/presentation/university_choices_screen.dart';
 import 'notification_store.dart';
 
 const _bgChannelId = 'hanguk_default';
@@ -135,16 +136,32 @@ void _handleForegroundMessage(RemoteMessage message) {
 /// Routes a tapped notification to whatever it is about. The CRM sends
 /// `{type: 'survey', survey_id: ...}`; anything else just opens the app, which
 /// is what already happened.
+/// Where a tapped push opens: a survey, the university choices screen for a
+/// university stage, or the Ariza journey for the other stages
+/// (supabase/functions/notify-student-stages).
+@visibleForTesting
+String? notificationRoute(Map<String, dynamic> data) {
+  final type = data['type'];
+  if (type == 'survey') {
+    final surveyId = data['survey_id'];
+    return surveyId is String && surveyId.isNotEmpty ? '/surveys/$surveyId' : null;
+  }
+  if (type == 'stage') {
+    final kind = data['kind'];
+    return kind == 'university_offered' || kind == 'university_confirmed' ? kUniversityChoicesPath : '/';
+  }
+  return null;
+}
+
 void _openFromData(Map<String, dynamic> data) {
   final container = _container;
   if (container == null) return;
 
-  final type = data['type'];
-  final surveyId = data['survey_id'];
-  if (type != 'survey' || surveyId is! String || surveyId.isEmpty) return;
+  final route = notificationRoute(data);
+  if (route == null) return;
 
   try {
-    container.read(appRouterProvider).go('/surveys/$surveyId');
+    container.read(appRouterProvider).go(route);
   } catch (e) {
     debugPrint('Notification navigation failed: $e');
   }
