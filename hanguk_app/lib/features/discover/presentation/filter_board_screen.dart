@@ -87,9 +87,7 @@ class FilterBoardScreen extends ConsumerWidget {
     final notifier = ref.read(catalogFilterProvider.notifier);
     final fieldLoading = f.field != null && ref.watch(fieldUniversitiesProvider(f.field!)).isLoading;
     var results = boardResults(ref, all, f);
-    if (book.answered) {
-      results = [...results]..sort((a, b) => (book.admission(b) ?? 0).compareTo(book.admission(a) ?? 0));
-    }
+    results = [...results]..sort((a, b) => (book.admission(b) ?? 0).compareTo(book.admission(a) ?? 0));
     final bounds = priceBounds(all);
 
     void set(CatalogFilter next) => notifier.set(next);

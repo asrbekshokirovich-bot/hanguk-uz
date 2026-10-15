@@ -241,9 +241,9 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                           child: ChanceCard(
                             label: l.fdUniAdmissionLabel,
                             percent: admission,
-                            note: admission == null
+                            note: !book.answered
                                 ? l.fdUniAskAssess
-                                : admission >= 80
+                                : admission! >= 80
                                 ? l.fdUniNoteHigh
                                 : admission >= 50
                                 ? l.fdUniNoteReal
@@ -256,7 +256,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                           child: ChanceCard(
                             label: l.fdBoardVisaTitle,
                             percent: book.visa,
-                            note: book.visa == null ? l.fdUniAskAssess : l.fdUniVisaNote,
+                            note: !book.answered ? l.fdUniAskAssess : l.fdUniVisaNote,
                             onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
                           ),
                         ),
