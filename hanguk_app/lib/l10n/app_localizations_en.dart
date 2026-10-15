@@ -4627,4 +4627,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fdPrepareLocked =>
       'These sections open fully after the client code.';
+
+  @override
+  String get fdBoardProfileTitle => 'Your details for the visa';
+
+  @override
+  String get fdBoardProfileHint =>
+      'The D-2 visa chance above and every percent in the app follow these answers.';
+
+  @override
+  String get fdListReportCta => 'Get the visa report →';
 }

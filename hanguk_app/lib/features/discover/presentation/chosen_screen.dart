@@ -92,8 +92,7 @@ class ChosenScreen extends ConsumerWidget {
                   label: l.fdPickedCta,
                   onPressed: () {
                     ref.read(assessmentProvider.notifier).useUniversities(ids);
-                    // The report needs the answers: ask for them first.
-                    context.push(book.answered ? kAssessmentReportPath : kAssessmentPath);
+                    context.push(kAssessmentReportPath);
                   },
                 ),
               ),

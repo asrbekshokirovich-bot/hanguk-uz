@@ -1497,5 +1497,8 @@
   "fdDocsUploadNext": "Keyingi hujjatni yuklash",
   "fdPrepareStudyKicker": "STUDY PLAN",
   "fdPrepareInterviewKicker": "SUHBAT MASHQI",
-  "fdPrepareLocked": "Bu bo'limlar mijoz kodidan keyin to'liq ochiladi."
+  "fdPrepareLocked": "Bu bo'limlar mijoz kodidan keyin to'liq ochiladi.",
+  "fdBoardProfileTitle": "Viza uchun ma'lumotlaringiz",
+  "fdBoardProfileHint": "Yuqoridagi viza foizi va ilovadagi barcha foizlar shu javoblarga qarab o'zgaradi.",
+  "fdListReportCta": "Viza hisobotini olish →"
 }

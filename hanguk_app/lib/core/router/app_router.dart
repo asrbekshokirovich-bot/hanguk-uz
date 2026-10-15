@@ -13,7 +13,6 @@ import '../../features/entry/data/entry_store.dart';
 import '../../features/entry/presentation/language_screen.dart';
 import '../../features/client/presentation/client_shell.dart';
 import '../../features/home/presentation/notifications_screen.dart';
-import '../../features/assessment/presentation/assessment_screen.dart';
 import '../../features/assessment/presentation/lead_screen.dart';
 import '../../features/assessment/presentation/report_screen.dart';
 import '../../features/assessment/presentation/sent_screen.dart';
@@ -111,10 +110,9 @@ List<RouteBase> _guestRoutes() => [
     path: '/university/:id',
     builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
   ),
-  GoRoute(
-    path: kAssessmentPath,
-    builder: (context, state) => AssessmentScreen(startId: state.extra is String ? state.extra as String : null),
-  ),
+  // The assessment's questions live on the home board now; a link to the old
+  // page opens the report.
+  GoRoute(path: kAssessmentPath, redirect: (context, state) => kAssessmentReportPath),
   GoRoute(path: kAssessmentReportPath, builder: (context, state) => const ReportScreen()),
   GoRoute(path: kAssessmentLeadPath, builder: (context, state) => const LeadScreen()),
   GoRoute(path: kAssessmentSentPath, builder: (context, state) => const SentScreen()),

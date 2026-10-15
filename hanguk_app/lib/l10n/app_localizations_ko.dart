@@ -4443,4 +4443,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdPrepareLocked => '이 메뉴는 고객 코드를 입력하면 모두 열립니다.';
+
+  @override
+  String get fdBoardProfileTitle => '비자를 위한 내 정보';
+
+  @override
+  String get fdBoardProfileHint => '위의 D-2 비자 확률과 앱의 모든 확률이 이 답변에 따라 바뀝니다.';
+
+  @override
+  String get fdListReportCta => '비자 보고서 받기 →';
 }

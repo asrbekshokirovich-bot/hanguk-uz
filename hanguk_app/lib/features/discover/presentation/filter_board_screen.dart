@@ -13,13 +13,20 @@ import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_format.dart';
 import '../../catalog/data/campus_photos.dart';
+import '../../assessment/data/assessment_controller.dart';
+import '../../assessment/domain/assessment.dart';
 import '../../assessment/presentation/assessment_widgets.dart' show shortUniversityName;
+import '../../onboarding/domain/quiz_answers.dart';
 import '../data/chances.dart';
 import '../data/field_filter.dart';
 import 'discover_routes.dart';
 import 'widgets/chance_badge.dart';
 import 'widgets/fd_parts.dart';
 import 'widgets/visa_gauge.dart';
+
+/// The certificate slider's ends (Uzbek school grades pass from 3).
+const double kGpaMin = 3.0;
+const double kGpaMax = 5.0;
 
 /// What the filter board's choices leave of [all], with the field search's
 /// answer for the chosen field folded in.
@@ -87,10 +94,16 @@ class FilterBoardScreen extends ConsumerWidget {
     final notifier = ref.read(catalogFilterProvider.notifier);
     final fieldLoading = f.field != null && ref.watch(fieldUniversitiesProvider(f.field!)).isLoading;
     var results = boardResults(ref, all, f);
-    results = [...results]..sort((a, b) => (book.admission(b) ?? 0).compareTo(book.admission(a) ?? 0));
+    results = [...results]..sort((a, b) => book.admission(b).compareTo(book.admission(a)));
     final bounds = priceBounds(all);
 
     void set(CatalogFilter next) => notifier.set(next);
+
+    // The visa profile: the assessment's answers, asked here with the filters.
+    final profile = ref.watch(assessmentProvider);
+    void setProfile(AssessmentInput next) => ref.read(assessmentProvider.notifier).set(next);
+    final requiredBank = ref.watch(assessmentOutcomeProvider)?.requiredBankKrw ?? 0;
+    final bankMax = requiredBank * 2 > 40000000 ? requiredBank * 2 : 40000000;
 
     final fee = f.maxPrice;
     final feeShare = fee == null ? 1.0 : ((fee - bounds.min) / (bounds.max - bounds.min)).clamp(0.0, 1.0);
@@ -150,7 +163,6 @@ class FilterBoardScreen extends ConsumerWidget {
               total: all.length,
               loading: fieldLoading,
               visa: book.visa,
-              onVisa: () => context.push(kAssessmentPath),
             ),
           ),
           Expanded(
@@ -264,15 +276,31 @@ class FilterBoardScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 FdSectionLabel(l.fdSectionDegree),
                 const SizedBox(height: 8),
-                _Grid(
-                  columns: 2,
+                // One degree for both: it narrows the list and is the route the
+                // chances and the visa are read for.
+                Row(
                   children: [
-                    for (final d in const [CatalogDegree.bachelor, CatalogDegree.master])
-                      HardChoice(
-                        label: d == CatalogDegree.bachelor ? l.catalogDegreeBachelor : l.catalogDegreeMaster,
-                        selected: f.degree == d,
-                        onTap: () => set(f.copyWith(degree: f.degree == d ? CatalogDegree.all : d)),
+                    for (final (i, (route, label)) in [
+                      (StudyRoute.bachelor, l.catalogDegreeBachelor),
+                      (StudyRoute.master, l.catalogDegreeMaster),
+                      (StudyRoute.languageCourse, l.fdLanguageCourse),
+                    ].indexed) ...[
+                      if (i > 0) const SizedBox(width: 6),
+                      Expanded(
+                        child: HardChoice(
+                          label: label,
+                          selected: profile.route == route,
+                          onTap: () {
+                            setProfile(profile.copyWith(route: route));
+                            set(f.copyWith(degree: switch (route) {
+                              StudyRoute.bachelor => CatalogDegree.bachelor,
+                              StudyRoute.master => CatalogDegree.master,
+                              _ => CatalogDegree.all,
+                            }));
+                          },
+                        ),
                       ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -344,6 +372,72 @@ class FilterBoardScreen extends ConsumerWidget {
                       HardChoice(label: label, selected: f.type == value, onTap: () => set(f.copyWith(type: () => value))),
                   ],
                 ),
+                const SizedBox(height: 22),
+                Text(l.fdBoardProfileTitle, style: fdText(15, FontWeight.w800, FdColors.onPage)),
+                const SizedBox(height: 2),
+                Text(l.fdBoardProfileHint, style: fdText(11, FontWeight.w400, FdColors.pageMuted, height: 1.4)),
+                const SizedBox(height: 12),
+                FdSectionLabel(l.fdAssessTopik),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    for (var t = 0; t <= 6; t++) ...[
+                      if (t > 0) const SizedBox(width: 4),
+                      Expanded(
+                        child: HardChoice(
+                          label: t == 0 ? '—' : '$t',
+                          radius: 10,
+                          fontWeight: FontWeight.w800,
+                          selected: profile.topik == t,
+                          onTap: () => setProfile(profile.copyWith(topik: t)),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                FdSectionLabel(l.fdAssessGpa, trailing: LimeTag(profile.gpa.toStringAsFixed(1))),
+                const SizedBox(height: 4),
+                HardSlider(
+                  value: (profile.gpa - kGpaMin) / (kGpaMax - kGpaMin),
+                  semanticLabel: l.fdAssessGpa,
+                  onChanged: (v) {
+                    final g = kGpaMin + (kGpaMax - kGpaMin) * v;
+                    setProfile(profile.copyWith(gpa: (g * 10).round() / 10));
+                  },
+                ),
+                const SizedBox(height: 12),
+                FdSectionLabel(l.fdAssessBank, trailing: LimeTag(l.fdMln((profile.bankKrw / 1000000).round()))),
+                const SizedBox(height: 4),
+                HardSlider(
+                  value: (profile.bankKrw / bankMax).clamp(0.0, 1.0),
+                  semanticLabel: l.fdAssessBank,
+                  marker: requiredBank == 0 ? null : (requiredBank / bankMax).clamp(0.0, 1.0),
+                  markerLabel: requiredBank == 0 ? null : l.fdAssessBankNeed(l.fdMln((requiredBank / 1000000).round())),
+                  onChanged: (v) => setProfile(profile.copyWith(bankKrw: (bankMax * v / 1000000).round() * 1000000)),
+                ),
+                const SizedBox(height: 12),
+                FdSectionLabel(l.fdAssessRefused),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: HardChoice(
+                        label: l.fdNo,
+                        selected: !profile.visaRefused,
+                        onTap: () => setProfile(profile.copyWith(visaRefused: false)),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: HardChoice(
+                        label: l.fdYes,
+                        selected: profile.visaRefused,
+                        onTap: () => setProfile(profile.copyWith(visaRefused: true)),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
               ],
             ),
@@ -384,21 +478,19 @@ class FilterBoardScreen extends ConsumerWidget {
 }
 
 /// The blue card: how many universities match (with its 20-tick meter) beside
-/// the D-2 visa gauge. The gauge half opens the assessment.
+/// the D-2 visa gauge; both follow the board live.
 class _CountCard extends StatelessWidget {
   const _CountCard({
     required this.count,
     required this.total,
     required this.loading,
     required this.visa,
-    required this.onVisa,
   });
 
   final int count;
   final int total;
   final bool loading;
   final int? visa;
-  final VoidCallback onVisa;
 
   @override
   Widget build(BuildContext context) {
@@ -479,7 +571,7 @@ class _CountCard extends StatelessWidget {
             Semantics(
               button: true,
               label: l.fdBoardVisaTitle,
-              child: GestureDetector(onTap: onVisa, behavior: HitTestBehavior.opaque, child: VisaGauge(percent: visa)),
+              child: VisaGauge(percent: visa),
             ),
           ],
         ),

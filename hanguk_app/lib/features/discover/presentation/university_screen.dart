@@ -241,14 +241,12 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                           child: ChanceCard(
                             label: l.fdUniAdmissionLabel,
                             percent: admission,
-                            note: !book.answered
-                                ? l.fdUniAskAssess
-                                : admission! >= 80
+                            note: admission >= 80
                                 ? l.fdUniNoteHigh
                                 : admission >= 50
                                 ? l.fdUniNoteReal
                                 : l.fdUniNoteDream,
-                            onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
+                            onTap: () => openAppTab(context, ref, AppTab.home),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -256,8 +254,8 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                           child: ChanceCard(
                             label: l.fdBoardVisaTitle,
                             percent: book.visa,
-                            note: !book.answered ? l.fdUniAskAssess : l.fdUniVisaNote,
-                            onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
+                            note: l.fdUniVisaNote,
+                            onTap: () => openAppTab(context, ref, AppTab.home),
                           ),
                         ),
                       ],
@@ -294,6 +292,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                     padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
                     child: _StatGrid(stats: stats),
                   ),
+                if (boosts.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
                   child: Column(
@@ -301,12 +300,6 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                     children: [
                       Text(l.fdUniBoostTitle, style: fdText(11, FontWeight.w800, FdColors.pageMuted)),
                       const SizedBox(height: 6),
-                      if (boosts.isEmpty && !book.answered)
-                        BoostRow(
-                          label: l.fdUniBoostStart,
-                          gain: '→',
-                          onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
-                        ),
                       for (final b in boosts) ...[
                         BoostRow(
                           label: b.label,
@@ -376,14 +369,13 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
   /// more TOPIK level (this university's admission) and the bank the visa
   /// needs. None until the board has been answered.
   List<_Boost> _boosts(AppLocalizations l, ChanceBook book, CatalogUniversity u, AssessmentOutcome? outcome) {
-    if (!book.answered) return const [];
     final notifier = ref.read(assessmentProvider.notifier);
     final input = book.input;
     final out = <_Boost>[];
     final now = book.admission(u);
-    if (now != null && input.topik < 6) {
+    if (input.topik < 6) {
       final next = input.topik + 1;
-      final gain = (book.admissionWithTopik(u, next) ?? now) - now;
+      final gain = book.admissionWithTopik(u, next) - now;
       if (gain > 0) {
         out.add(_Boost(l.fdFixTopik(next), l.fdGainAdmission(gain), () => notifier.set(input.copyWith(topik: next))));
       }
