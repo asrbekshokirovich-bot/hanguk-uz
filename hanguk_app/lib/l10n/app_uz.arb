@@ -1433,5 +1433,12 @@
   "ucChangeSend": "Konsultantga yuborish",
   "ucSendError": "Yuborib bo'lmadi. Qayta urinib ko'ring.",
   "ucEmpty": "Konsultantingiz hali universitet taklif qilmadi.",
-  "ucBannerPending": "{count} ta universitet javobingizni kutmoqda"
+  "ucBannerPending": "{count} ta universitet javobingizni kutmoqda",
+  "ucResultAccepted": "Qabul qilindingiz 🎓",
+  "ucResultRejected": "Qabul qilinmadi",
+  "ucCongratsTitle": "Tabriklaymiz!",
+  "ucCongratsBody": "{count} ta universitetga qabul qilindingiz",
+  "ucFinalRecommended": "Konsultant tavsiyasi: yakuniy universitet shu",
+  "ucFinalGo": "Shu universitetga boraman",
+  "ucFinalChosen": "✓ Siz shu universitetni tanladingiz"
 }

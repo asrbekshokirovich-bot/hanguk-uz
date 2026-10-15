@@ -4225,4 +4225,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String ucBannerPending(int count) {
     return '$count개 대학이 답변을 기다리고 있습니다';
   }
+
+  @override
+  String get ucResultAccepted => '합격 🎓';
+
+  @override
+  String get ucResultRejected => '불합격';
+
+  @override
+  String get ucCongratsTitle => '축하합니다!';
+
+  @override
+  String ucCongratsBody(int count) {
+    return '$count개 대학에 합격했습니다';
+  }
+
+  @override
+  String get ucFinalRecommended => '상담사가 최종 대학으로 추천합니다';
+
+  @override
+  String get ucFinalGo => '이 대학으로 가겠습니다';
+
+  @override
+  String get ucFinalChosen => '✓ 이 대학을 선택했습니다';
 }

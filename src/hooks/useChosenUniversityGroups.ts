@@ -5,7 +5,7 @@
  * several choices appears under each one, carrying their rank for it.
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUniversityCatalog } from '@/hooks/useUniversityCatalog';
@@ -66,6 +66,17 @@ export function useChosenUniversityGroups(students: StudentLite[], search: strin
 
   const entryById = useMemo(() => new Map(catalog.entries.map((e) => [e.institution.id, e])), [catalog.entries]);
 
+  const confirmedByStudent = useMemo(() => {
+    const m = new Map<string, UniversityChoice[]>();
+    for (const c of allChoices) m.set(c.student_id, [...(m.get(c.student_id) ?? []), c]);
+    return m;
+  }, [allChoices]);
+
+  const universityName = useCallback((institutionId: string) => {
+    const entry = entryById.get(institutionId);
+    return entry ? displayName(entry).primary : '—';
+  }, [entryById]);
+
   const universities = useMemo<UniversityGroup[]>(() => {
     const groups = new Map<string, UniversityChoice[]>();
     for (const c of allChoices) groups.set(c.institution_id, [...(groups.get(c.institution_id) ?? []), c]);
@@ -92,6 +103,8 @@ export function useChosenUniversityGroups(students: StudentLite[], search: strin
   return {
     universities,
     studentById,
+    confirmedByStudent,
+    universityName,
     loading: catalog.loading || choices.loading,
     error: choices.error,
   };
