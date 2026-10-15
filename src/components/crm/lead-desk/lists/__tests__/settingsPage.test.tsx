@@ -237,11 +237,11 @@ describe('the other sections', () => {
   it('work hours: the days and times are written as the SQL reads them', async () => {
     await openAs({ isAdmin: true, isLeadSenior: true, loading: false });
     const sec = await sectionOf('Ish vaqti');
-    fireEvent.click(button('Ya', sec)); // Sunday off
+    fireEvent.click(button('Ya', sec)); // Sunday (off by default since 2026-10-14) back on
     fireEvent.change(within(sec).getByLabelText('Tugash'), { target: { value: '21:30' } });
     fireEvent.click(button('Saqlash', sec));
     await waitFor(() => expect(api.saveSetting).toHaveBeenCalled());
-    expect(saved()).toEqual([['work_hours', { start: '09:00', end: '21:30', days: [1, 2, 3, 4, 5, 6] }, 'user-1']]);
+    expect(saved()).toEqual([['work_hours', { start: '09:00', end: '21:30', days: [1, 2, 3, 4, 5, 6, 7] }, 'user-1']]);
   });
 
   it('work hours: an end before the start is refused', async () => {

@@ -29,9 +29,11 @@ describe('rollback', () => {
       `select policyname from pg_policies where tablename = 'leads' order by 1`)).map((r) => r.policyname);
     expect(pol).toEqual(['Staff can create leads', 'Staff can delete leads', 'Staff can update leads', 'Staff can view all leads']);
 
-    // the old hours are back: Sunday and evenings are "off hours" again
+    // the hours live before v2 are back (09:00–18:00 Mon–Sat, 20261014172806): Sunday and evenings are off
     const [{ t }] = await h.q<{ t: string | null }>(`select fn_after_hours_reply_text('2026-10-04T10:00:00Z') as t`); // Sunday 15:00
-    expect(t).toMatch(/dushanba kuni soat 10:00/);
+    expect(t).toMatch(/dushanba kuni soat 09:00/);
+    const [{ e }] = await h.q<{ e: string | null }>(`select fn_after_hours_reply_text('2026-10-06T13:30:00Z') as e`); // Tue 18:30
+    expect(e).toMatch(/09:00–18:00/);
 
     // and a new lead no longer gets a v2 timer
     const l = await addLead(h, { source: 'instagram', source_id: 'ig-rb1' });

@@ -2,7 +2,7 @@
 --
 -- Spec §16 / decision 9.2. Every lead that lived in the old CRM becomes
 -- crm_generation = 'old' (the column default did that for existing rows when
--- 20261014221000 added the column) and moves to "Baza":
+-- 20261015001000 added the column) and moves to "Baza":
 --
 --   * stage from the old status:
 --       new / contacted / qualified  -> contacted  ("Aloqada")
@@ -24,7 +24,7 @@
 -- Safe to re-run: only rows that have not been migrated yet (stage_changed_at
 -- is NULL) are touched, and only the queue rows this run created are parked.
 -- It writes only to old-generation rows. An old lead that the engine
--- (20261014222000) already moved to 'lost' from its status, before this file
+-- (20261015002000) already moved to 'lost' from its status, before this file
 -- ran, has stage_changed_at but no reason: it is picked up too and keeps its
 -- stage_changed_at.
 --

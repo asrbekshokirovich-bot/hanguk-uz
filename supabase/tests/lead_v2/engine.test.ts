@@ -37,9 +37,13 @@ const FULL_CARD = {
 };
 
 describe('working-hours helpers (spec §1.3, §4, §9)', () => {
-  it('knows working hours: 09:00–22:00 every day, Sunday included', async () => {
+  it('knows working hours: 09:00–22:00 Monday–Saturday, Sunday off (owner, 2026-10-14)', async () => {
     expect(await t(h, `select fn_lead_in_hours('2026-10-06T10:00:00Z')`)).toBe(true); // Tue 15:00
-    expect(await t(h, `select fn_lead_in_hours('2026-10-04T10:00:00Z')`)).toBe(true); // Sunday 15:00
+    expect(await t(h, `select fn_lead_in_hours('2026-10-03T10:00:00Z')`)).toBe(true); // Saturday 15:00
+    expect(await t(h, `select fn_lead_in_hours('2026-10-04T10:00:00Z')`)).toBe(false); // Sunday 15:00: off
+    // Saturday 21:30 is still open; Saturday 22:30 -> Monday 09:00 (Sunday skipped)
+    expect(await t(h, `select fn_lead_in_hours('2026-10-03T16:30:00Z')`)).toBe(true);
+    expect(iso(await t(h, `select fn_lead_shift_into_hours('2026-10-03T17:30:00Z')`))).toBe(Z('2026-10-05T04:00:00Z'));
     expect(await t(h, `select fn_lead_in_hours('2026-10-06T17:00:00Z')`)).toBe(false); // 22:00 sharp: closed
     expect(await t(h, `select fn_lead_in_hours('2026-10-06T03:59:00Z')`)).toBe(false); // 08:59
   });
@@ -442,6 +446,17 @@ describe('chat answers (spec §1.4, §6.1)', () => {
     const ru = await t(h, `select fn_lead_auto_reply_text('2026-10-06T18:00:00Z', 'Здравствуйте')`);
     expect(uz).toMatch(/Ertaga 09:00–09:30/);
     expect(ru).toMatch(/Завтра с 09:00/);
+    expect(uz).not.toMatch(/\{when\}/);
+    // after midnight it is "today"; on Saturday evening and Sunday it is Monday
+    expect(await t(h, `select fn_lead_auto_reply_text('2026-10-06T22:30:00Z', 'Salom')`)).toMatch(/Bugun 09:00–09:30/); // Wed 03:30
+    expect(await t(h, `select fn_lead_auto_reply_text('2026-10-03T17:30:00Z', 'Salom')`)).toMatch(/Dushanba kuni 09:00–09:30/); // Sat 22:30
+    expect(await t(h, `select fn_lead_auto_reply_text('2026-10-04T10:00:00Z', 'Здравствуйте')`)).toMatch(/Завтра с 09:00/); // Sun 15:00: Monday is tomorrow
+    // every filled variant is recognised as the auto-reply, not an answer
+    const texts = await t(h, `select fn_after_hours_reply_texts()`);
+    for (const x of [uz, ru]) expect(texts).toContain(x);
+    expect(await t(h, `select fn_is_automatic_outgoing(fn_lead_auto_reply_text('2026-10-03T17:30:00Z', 'Salom'), '{}'::jsonb)`)).toBe(true);
+    // and the 09:00–18:00 reply that was live before v2 still counts as automatic (its echoes)
+    expect(await t(h, `select fn_is_automatic_outgoing('Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Hozirda ish vaqtimiz yakunlangan (ish vaqtimiz: 09:00–18:00). Operatorlarimiz ertaga soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!', '{}'::jsonb)`)).toBe(true);
     expect(await t(h, `select fn_lead_auto_reply_text('2026-10-06T10:00:00Z', 'Salom')`)).toBeNull(); // open
     expect(await t(h, `select fn_is_automatic_outgoing($1, '{}'::jsonb)`.replace('$1', `'${uz.replace(/'/g, "''")}'`))).toBe(true);
   });

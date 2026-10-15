@@ -3,12 +3,12 @@ import { fetchSettings } from './api';
 import type { LeadSettings } from './types';
 
 /**
- * What the database seeds (20261014221000_lead_v2_schema.sql). Used until the
+ * What the database seeds (20261015001000_lead_v2_schema.sql). Used until the
  * settings arrive and for any key an admin has not set, so the desk never
  * renders against `undefined`.
  */
 export const DEFAULT_SETTINGS: LeadSettings = {
-  work_hours: { start: '09:00', end: '22:00', days: [1, 2, 3, 4, 5, 6, 7] },
+  work_hours: { start: '09:00', end: '22:00', days: [1, 2, 3, 4, 5, 6] },
   timer_minutes: 10,
   escalation_repeat_minutes: 10,
   ladder: {

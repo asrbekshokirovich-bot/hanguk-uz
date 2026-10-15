@@ -14,11 +14,11 @@ catalog afterwards.
 
 | # | File | What it does | Risk |
 |---|------|--------------|------|
-| 1 | `20261014220000_lead_v2_role_lead_senior.sql` | adds the `lead_senior` role | none |
-| 2 | `20261014221000_lead_v2_schema.sql` | columns, tables, settings seed, **new RLS on `leads`** | operators stop seeing other operators' leads |
-| 3 | `20261014222000_lead_v2_engine.sql` | triggers, RPCs, scan; **drops the old alert trigger**, retires `fn_lead_sla_scan`, redefines 4 after-hours functions | old "Yangi lid" alert stops; compare the 4 functions with live first |
-| 4 | `20261014223000_lead_v2_jobs.sql` | SQL jobs + cron schedules (needs vault secret `uni_db_service_role_jwt`) | starts jobs that message the team |
-| 5 | `20261014224000_lead_v2_migrate_old_leads.sql` | marks existing leads `crm_generation='old'`, maps stages / lost reasons, fills queues (all waiting) | data change, idempotent |
+| 1 | `20261015000000_lead_v2_role_lead_senior.sql` | adds the `lead_senior` role | none |
+| 2 | `20261015001000_lead_v2_schema.sql` | columns, tables, settings seed, **new RLS on `leads`** | operators stop seeing other operators' leads |
+| 3 | `20261015002000_lead_v2_engine.sql` | triggers, RPCs, scan; **drops the old alert trigger**, retires `fn_lead_sla_scan`, redefines 4 after-hours functions | old "Yangi lid" alert stops; compare the 4 functions with live first |
+| 4 | `20261015003000_lead_v2_jobs.sql` | SQL jobs + cron schedules (needs vault secret `uni_db_service_role_jwt`) | starts jobs that message the team |
+| 5 | `20261015004000_lead_v2_migrate_old_leads.sql` | marks existing leads `crm_generation='old'`, maps stages / lost reasons, fills queues (all waiting) | data change, idempotent |
 
 Do 1–3 together with deploying the new edge functions and the new frontend, **not** separately: once 3 is applied the
 old CRM pages no longer alert, and until the new desk ships nobody sees the 10-minute timer.
@@ -49,7 +49,7 @@ One clock per lead. `due_at` is the breach time; the row shows in HOZIR when `ti
 | `ladder` | after a missed call (§9) | 10 min **before** it is due | the planned call time |
 | `callback` | the client named a time ("Band / keyin"), or the operator set one after a talk | 10 min before | that time |
 
-Working hours (§1.3): 09:00–22:00 **every day**, Tashkent. Outside them a new lead waits for 09:00 and gets `due_at = 09:10`
+Working hours: 09:00–22:00 **Monday–Saturday, Sunday off**, Tashkent (the owner, 2026-10-14; the spec's §1.3 had Sunday as a working day). The auto-reply names the next working morning ({when}: Bugun / Ertaga / Dushanba kuni). Outside them a new lead waits for 09:00 and gets `due_at = 09:10`
 (`fn_lead_due_at` carries any overflow past 22:00 into the next morning: 21:55 → 09:05). Hours, ladder steps and the window
 are in `lead_settings`; the helper functions read them.
 
@@ -172,7 +172,7 @@ Copy is Uzbek-only on purpose (desktop-only module, Uzbek spec); the i18n bundle
   Hanbox and NO RISK queues need a senior to press "Navbatni boshlash" (Hanbox = next group announced; NO RISK = condition on the card).
 - Telegram alerts link to the CRM card; one-tap approve/reject from Telegram (§11) is not built — the boss opens the card.
 - Open boss questions use these defaults until answered: Q59 senior = whoever is given `lead_senior`; Q60 auto-reply text as in
-  the spec, Sunday is a normal working day; Q61 SMS **not built** (DM drafts only); Q62 bot stays a source; Q64 control line on;
+  the spec, with {when} for the next working morning (Sunday is off since 2026-10-14); Q61 SMS **not built** (DM drafts only); Q62 bot stays a source; Q64 control line on;
   Q66 limit 15; Q67 the 38 old callback dates stay on the old cards (not on the desk).
 
 ## 8. Not built (needs something outside the code)

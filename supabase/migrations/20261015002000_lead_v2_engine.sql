@@ -19,7 +19,8 @@
 -- trg_mark_lead_contacted_on_reply are dropped and fn_lead_sla_scan is retired
 -- to a function that returns no rows (edge functions that still call it keep
 -- working). fn_after_hours_reply_texts / fn_after_hours_reply_text /
--- fn_queue_after_hours_reply are redefined for the new 09:00–22:00 hours.
+-- fn_queue_after_hours_reply are redefined for the new hours (09:00–22:00,
+-- Monday–Saturday, from lead_settings.work_hours).
 --
 -- Before applying: compare those four functions with the live database —
 -- supabase/README.md explains why the repo copy can lag behind production.
@@ -1134,21 +1135,60 @@ create trigger trg_leads_v2_on_message
 -- 6. Outside working hours: the automatic reply (spec §4)
 ----------------------------------------------------------------------
 
--- Every text that counts as "the automatic reply, not an answer": the three
--- legacy ones, and the ones from lead_settings.auto_reply.
+-- "Bugun" / "Ertaga" / "Dushanba kuni" (ru: "Сегодня" / "Завтра" / "В понедельник"):
+-- the next working morning as seen from p_at, for the {when} of the auto-reply.
+-- With Sunday off, a Saturday-evening message is answered on Monday.
+create or replace function public.fn_lead_reply_when(p_at timestamptz, p_lang text default 'uz')
+returns text
+language sql
+stable
+set search_path = public, pg_catalog
+as $$
+  select case
+    when n.d = l.d then case when p_lang = 'ru' then 'Сегодня' else 'Bugun' end
+    when n.d = l.d + 1 then case when p_lang = 'ru' then 'Завтра' else 'Ertaga' end
+    when p_lang = 'ru' then (array['В понедельник','Во вторник','В среду','В четверг','В пятницу','В субботу','В воскресенье'])[extract(isodow from n.d)::integer]
+    else (array['Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba','Yakshanba'])[extract(isodow from n.d)::integer] || ' kuni'
+  end
+  from (select (public.fn_lead_shift_into_hours(p_at) at time zone 'Asia/Tashkent')::date as d) n,
+       (select (p_at at time zone 'Asia/Tashkent')::date as d) l
+$$;
+
+-- The auto-reply of lead_settings.auto_reply in a language, {when} filled.
+create or replace function public.fn_lead_fill_auto_reply(p_at timestamptz, p_lang text)
+returns text
+language sql
+stable
+set search_path = public, pg_catalog
+as $$
+  select replace(public.fn_lead_setting('auto_reply')->>p_lang, '{when}', public.fn_lead_reply_when(p_at, p_lang))
+$$;
+
+-- Every text that counts as "the automatic reply, not an answer": the legacy
+-- ones (10:00–18:00, and 09:00–18:00 of the live 20261014172806 — their echoes
+-- may still arrive), and lead_settings.auto_reply with each possible {when}.
 create or replace function public.fn_after_hours_reply_texts()
 returns text[]
 language sql
 stable
 set search_path = public, pg_catalog
 as $$
-  select array_remove(array[
+  select array[
     'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish vaqtimiz 10:00 dan 18:00 gacha bo''lganligi sababli, operatorlarimiz bugun soat 10:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
     'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Hozirda ish vaqtimiz yakunlangan (ish vaqtimiz: 10:00–18:00). Operatorlarimiz ertaga soat 10:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
     'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish kunlarimiz dushanbadan shanbagacha, soat 10:00 dan 18:00 gacha. Operatorlarimiz dushanba kuni soat 10:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
-    public.fn_lead_setting('auto_reply')->>'uz',
-    public.fn_lead_setting('auto_reply')->>'ru'
-  ]::text[], null)
+    'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish vaqtimiz 09:00 dan 18:00 gacha bo''lganligi sababli, operatorlarimiz bugun soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
+    'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Hozirda ish vaqtimiz yakunlangan (ish vaqtimiz: 09:00–18:00). Operatorlarimiz ertaga soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
+    'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish kunlarimiz dushanbadan shanbagacha, soat 09:00 dan 18:00 gacha. Operatorlarimiz dushanba kuni soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!'
+  ]::text[]
+  || array(
+    select replace(public.fn_lead_setting('auto_reply')->>langs.lang, '{when}', w.w)
+      from (values ('uz'), ('ru')) as langs(lang)
+      cross join lateral unnest(case when langs.lang = 'ru'
+             then array['Сегодня','Завтра','В понедельник','Во вторник','В среду','В четверг','В пятницу','В субботу','В воскресенье']
+             else array['Bugun','Ertaga','Dushanba kuni','Seshanba kuni','Chorshanba kuni','Payshanba kuni','Juma kuni','Shanba kuni','Yakshanba kuni'] end) as w(w)
+     where public.fn_lead_setting('auto_reply')->>langs.lang is not null
+  )
 $$;
 
 -- Same body as 20260930120000_ignore_instagram_template_echo.sql; STABLE now,
@@ -1180,7 +1220,7 @@ stable
 set search_path = public, pg_catalog
 as $$
   select case when public.fn_lead_in_hours(p_at) then null
-              else public.fn_lead_setting('auto_reply')->>'uz' end
+              else public.fn_lead_fill_auto_reply(p_at, 'uz') end
 $$;
 
 -- In the language of the message (Cyrillic -> Russian).
@@ -1191,8 +1231,8 @@ stable
 set search_path = public, pg_catalog
 as $$
   select case when public.fn_lead_in_hours(p_at) then null
-              else coalesce(public.fn_lead_setting('auto_reply')->>public.fn_lead_guess_language(p_content),
-                            public.fn_lead_setting('auto_reply')->>'uz') end
+              else coalesce(public.fn_lead_fill_auto_reply(p_at, public.fn_lead_guess_language(p_content)),
+                            public.fn_lead_fill_auto_reply(p_at, 'uz')) end
 $$;
 
 -- As in 20260929170000_after_hours_reply_wait_for_quiet.sql; the only change is

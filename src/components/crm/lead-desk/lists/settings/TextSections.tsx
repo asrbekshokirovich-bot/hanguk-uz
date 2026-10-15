@@ -25,8 +25,9 @@ export function AutoReplySection({ settings }: Props) {
       title="Avtojavob matni"
       description={
         <>
-          Ish vaqtidan tashqarida (22:00–09:00) kelgan xabarga <strong>bir suhbatga bir marta</strong> yuboriladi. Avtojavob «javob berildi» hisoblanmaydi —
+          Ish vaqtidan tashqarida (22:00–09:00 va yakshanba) kelgan xabarga <strong>bir suhbatga bir marta</strong> yuboriladi. Avtojavob «javob berildi» hisoblanmaydi —
           lid 09:00 da HOZIR'ning tepasida turadi. Hech qachon «raqamingizni yozing» bilan boshlamang.
+          Matndagi <code>{'{when}'}</code> o'rniga keyingi ish kuni yoziladi: «Bugun», «Ertaga» yoki «Dushanba kuni» (ruscha: «Сегодня», «Завтра», «В понедельник»).
         </>
       }
       section={s}

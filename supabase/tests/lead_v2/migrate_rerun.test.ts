@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { addMessage, applyV2, createHarness, getLead, V2_FILES } from './harness';
 
 const migrateSql = readFileSync(
-  new URL('../../migrations/20261014224000_lead_v2_migrate_old_leads.sql', import.meta.url),
+  new URL('../../migrations/20261015004000_lead_v2_migrate_old_leads.sql', import.meta.url),
   'utf8',
 );
 

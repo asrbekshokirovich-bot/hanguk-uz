@@ -43,13 +43,17 @@ drop trigger if exists trg_a_leads_v2_before_update on public.leads;
 drop trigger if exists trg_leads_v2_after_update on public.leads;
 drop trigger if exists trg_leads_v2_on_message on public.messages;
 
--- 3. the old after-hours functions, as in 20260929120000 / 20260929170000 / 20260930120000
+-- 3. the old after-hours functions, as live before v2 (texts and hours as of 20261014172806,
+--    09:00–18:00; queue and echo check as in 20260929170000 / 20260930120000)
 create or replace function public.fn_after_hours_reply_texts()
 returns text[]
 language sql
 immutable
 as $$
   select array[
+    'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish vaqtimiz 09:00 dan 18:00 gacha bo''lganligi sababli, operatorlarimiz bugun soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
+    'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Hozirda ish vaqtimiz yakunlangan (ish vaqtimiz: 09:00–18:00). Operatorlarimiz ertaga soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
+    'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish kunlarimiz dushanbadan shanbagacha, soat 09:00 dan 18:00 gacha. Operatorlarimiz dushanba kuni soat 09:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
     'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish vaqtimiz 10:00 dan 18:00 gacha bo''lganligi sababli, operatorlarimiz bugun soat 10:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
     'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Hozirda ish vaqtimiz yakunlangan (ish vaqtimiz: 10:00–18:00). Operatorlarimiz ertaga soat 10:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!',
     'Assalomu alaykum, hurmatli mijoz! HANGUK''ga murojaat qilganingiz uchun rahmat. Ish kunlarimiz dushanbadan shanbagacha, soat 10:00 dan 18:00 gacha. Operatorlarimiz dushanba kuni soat 10:00 da siz bilan aloqaga chiqishadi. Sabr-toqatingiz uchun rahmat!'
@@ -71,7 +75,7 @@ begin
   if v_dow = 7 or (v_dow = 6 and v_time >= time '18:00') then
     return v_texts[3];
   end if;
-  if v_time < time '09:40' then
+  if v_time < time '09:00' then
     return v_texts[1];
   end if;
   if v_time >= time '18:00' then

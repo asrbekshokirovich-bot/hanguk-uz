@@ -16,8 +16,8 @@
 --       document_handler  leads that became students
 --
 -- It does NOT change behaviour by itself: no trigger or job is installed here.
--- The state machine is 20261014222000_lead_v2_engine.sql; the old leads are
--- re-labelled by 20261014224000_lead_v2_migrate_old_leads.sql.
+-- The state machine is 20261015002000_lead_v2_engine.sql; the old leads are
+-- re-labelled by 20261015004000_lead_v2_migrate_old_leads.sql.
 --
 -- Spec deviations, on purpose:
 --   * `stage` is text + CHECK rather than a Postgres enum: values can be
@@ -335,7 +335,9 @@ alter table public.lead_alert_recipients
 ----------------------------------------------------------------------
 
 insert into public.lead_settings (key, value) values
-  ('work_hours', '{"start":"09:00","end":"22:00","days":[1,2,3,4,5,6,7]}'),
+  -- 09:00–22:00 Monday–Saturday, Sunday off (the owner, 2026-10-14; the spec's
+  -- 1.3 had Sunday as a working day).
+  ('work_hours', '{"start":"09:00","end":"22:00","days":[1,2,3,4,5,6]}'),
   ('timer_minutes', '10'),
   ('escalation_repeat_minutes', '10'),
   ('ladder', '{"steps":[
@@ -345,8 +347,9 @@ insert into public.lead_settings (key, value) values
       {"kind":"days","value":2,"at":"10:00"}
     ],"window_days":7,"dm_after_attempt":2}'),
   ('auto_reply', jsonb_build_object(
-      'uz', 'Assalomu alaykum! Xabaringizni oldik. Ertaga 09:00–09:30 oralig''ida qo''ng''iroq qilamiz. Qulay vaqtni yozib qo''ysangiz, shu vaqtda bog''lanamiz.',
-      'ru', 'Здравствуйте! Мы получили ваше сообщение. Завтра с 09:00 до 09:30 мы вам позвоним. Напишите удобное время — свяжемся в это время.')),
+      -- {when} is filled with the next working morning: Bugun / Ertaga / Dushanba kuni ...
+      'uz', 'Assalomu alaykum! Xabaringizni oldik. Ish vaqtimiz: dushanba–shanba, 09:00–22:00. {when} 09:00–09:30 oralig''ida qo''ng''iroq qilamiz. Qulay vaqtni yozib qo''ysangiz, shu vaqtda bog''lanamiz.',
+      'ru', 'Здравствуйте! Мы получили ваше сообщение. Мы работаем с понедельника по субботу, 09:00–22:00. {when} с 09:00 до 09:30 мы вам позвоним. Напишите удобное время — свяжемся в это время.')),
   ('forbidden_words', '["kafolat","100%","bepul noutbuk","bitta narx","sertifikatsiz Koreya"]'),
   ('boss_alert_words', '["qaytar","pul","sud","shikoyat","direktor","rahbar","вернит","жалоб","директор"]'),
   ('queue_daily_limit', '15'),
