@@ -245,7 +245,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                                 ? l.fdUniAskAssess
                                 : admission! >= 80
                                 ? l.fdUniNoteHigh
-                                : admission! >= 50
+                                : admission >= 50
                                 ? l.fdUniNoteReal
                                 : l.fdUniNoteDream,
                             onTap: () => context.push(kAssessmentPath, extra: u.institutionId),
