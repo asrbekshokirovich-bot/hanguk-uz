@@ -1,7 +1,7 @@
 # Ochilmagan universitet saytlari
 
-Oxirgi tekshiruv: 2026-10-17T19:27:46+00:00
-Tekshirildi: 408 ta · Ochilmadi: 99 ta
+Oxirgi tekshiruv: 2026-10-17T22:21:34+00:00
+Tekshirildi: 408 ta · Ochilmadi: 97 ta
 
 Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`
 faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda
@@ -39,12 +39,10 @@ bu ro'yxatdan tushadi.
 | 대신대학교 (Daeshin University) | https://www.daeshin.ac.kr/html/02_admission/01_4.php | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 대전신학대학교 (Daejeon Theological University) | https://djtu.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 대한신학대학원대학교 (Daehan Theological Graduate University) | https://daehanshin.ac.kr | ConnectError: [Errno -2] Name or service not known |
-| 동강대학교 (Donggang University) | https://ipsi.dkc.ac.kr/ | ConnectTimeout:  |
+| 동강대학교 (Donggang University) | https://ipsi.dkc.ac.kr/ | ConnectError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010) |
 | 동부산대학교 (Dong-Busan College) | https://www.dpc.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 동주대학교 (Dongju College) | https://ipsi.dongju.ac.kr/ipsi | ConnectError: [Errno -2] Name or service not known |
 | 두원공과대학교 (Doowon Technical University) | https://entrance.doowon.ac.kr/main.do | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
-| 루터대학교 (Luther University) | https://admission.ltu.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1010 |
-| 목원대학교 (Mokwon University) | https://enter.mokwon.ac.kr/ | ConnectTimeout:  |
 | 목포대학교 (Mokpo National University) | https://ipsi.mokpo.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 벽성대학교 (Byeokseong College) | https://www.bs.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 부산여자대학교 (Busan Women's College) | https://www.bwc.ac.kr/ipsi/index.asp | ConnectError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010) |
@@ -68,7 +66,7 @@ bu ro'yxatdan tushadi.
 | 실천신학대학원대학교 (Graduate School of Practical Theology) | https://kictt.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 아시아라이프대학교 (Asia LIFE University) | https://asialife.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 영남신학대학교 (Youngnam Theological University) | https://www.yntu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
-| 영동대학교 (Youngdong University) | https://ipsi.youngdong.ac.kr/ | ConnectTimeout:  |
+| 영동대학교 (Youngdong University) | https://ipsi.youngdong.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is no |
 | 영산선학대학교 (Youngsan University of Son Studies) | https://www.yss.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 예명대학원대학교 (Yemyung Graduate University) | https://yemyung.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 예일신학대학원대학교 (Yaeil Theological Graduate University) | https://yaeil.ac.kr | ConnectError: [Errno -2] Name or service not known |
