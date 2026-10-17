@@ -1,7 +1,7 @@
 # Ochilmagan universitet saytlari
 
-Oxirgi tekshiruv: 2026-10-17T09:23:48+00:00
-Tekshirildi: 408 ta · Ochilmadi: 95 ta
+Oxirgi tekshiruv: 2026-10-17T13:46:31+00:00
+Tekshirildi: 408 ta · Ochilmadi: 96 ta
 
 Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`
 faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda
@@ -21,10 +21,11 @@ bu ro'yxatdan tushadi.
 | 경북보건대학교 (Gyeongbuk College of Health) | https://gbhc.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 경운대학교 (Kyungwoon University) | https://www.ikw.ac.kr/worldle/page/3879/2759.tc?protocol=http | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 경인여자대학교 (Kyungin Women's University) | https://www.kic.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
+| 계명문화대학교 (Keimyung College University) | https://www.kmcu.ac.kr/admission/index.php?pCode=MN5000020 | ConnectTimeout:  |
 | 계약신학대학원대학교 (Kyeyak Graduate School of Theology) | https://kyeyak.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 고구려대학교 (Koguryeo College) | https://koguryeo.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 고신대학교 (Kosin University) | https://global.kosin.ac.kr/ia/bbs/board.php?bo_table=contents&wr_id=6 | ConnectTimeout:  |
-| 광신대학교 (Kwangshin University) | https://kwangshin.ac.kr | ConnectTimeout:  |
+| 광신대학교 (Kwangshin University) | https://kwangshin.ac.kr | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 광양대학교 (Gwangyang University) | https://www.gwangyang-c.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 광양보건대학교 (Gwangyang Health Sciences University) | https://www.gyhu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 광주가톨릭대학교 (Gwangju Catholic University) | https://www.gjcatholic.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
@@ -77,7 +78,6 @@ bu ro'yxatdan tushadi.
 | 을지대학교 (Eulji University) | https://admission.eulji.ac.kr/ | RemoteProtocolError: illegal header line: bytearray(b'Referrer Policy: strict-orgin-when-cross-origin') |
 | 인제대학교 (Inje University) | https://admission.inje.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 적십자간호대학교 (Red Cross College of Nursing) | https://www.crc.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
-| 전남과학대학교 (Chunnam Techno University) | https://cntu.ac.kr | ConnectError: [Errno -5] No address associated with hostname |
 | 전남도립대학교 (Jeonnam Provincial College) | https://www.dorip.ac.kr/iphak/index.do | ConnectError: [Errno -2] Name or service not known |
 | 전주기전대학 (Jeonju Kijeon College) | https://www.kijeon.ac.kr/ | ConnectTimeout:  |
 | 정인대학교 (Jeongin College) | https://www.jeongin.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
@@ -91,8 +91,9 @@ bu ro'yxatdan tushadi.
 | 청강문화산업대학교 (Chungkang College of Cultural Industries) | https://www.chungkang.academy/ | ConnectError: [Errno -2] Name or service not known |
 | 청심신학대학원대학교 (Cheongshim Graduate School of Theology) | https://csgst.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 청암대학교 (Cheongam College) | https://www.scca.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
+| 충북보건과학대학교 (Chungbuk Health & Science University) | https://enter.chsu.ac.kr/ | ConnectTimeout:  |
 | 탐라대학교 (Tamna University) | https://www.tnu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
-| 포항대학교 (Pohang College) | https://ipsi.pohang.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
+| 포항대학교 (Pohang College) | https://ipsi.pohang.ac.kr/ | ConnectTimeout:  |
 | 한국과학기술원 (KAIST) | https://admission.kaist.ac.kr/intl-undergraduate/notice | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 한국교원대학교 (Korea National University of Education) | https://ent.knue.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 한국국제대학교 (International University of Korea) | https://www.iuk.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
