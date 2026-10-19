@@ -14,6 +14,14 @@ import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { GuidelinePayload } from '@/lib/universityGuidelineExcel';
+import {
+  EMPTY_EXTRAS,
+  groupFaculties,
+  summarizeGrants,
+  type CatalogExtras,
+  type FacultyName,
+  type ScholarshipRow,
+} from '@/components/crm/pages/university-catalog/sorting';
 
 interface PostgrestLikeResult {
   data: unknown;
@@ -25,6 +33,7 @@ interface UntypedQuery extends PromiseLike<PostgrestLikeResult> {
   select: (columns?: string) => UntypedQuery;
   eq: (column: string, value: unknown) => UntypedQuery;
   order: (column: string, options?: { ascending?: boolean }) => UntypedQuery;
+  range: (from: number, to: number) => UntypedQuery;
   maybeSingle: () => UntypedQuery;
 }
 
@@ -159,6 +168,65 @@ export function useUniversityCatalog() {
     refetch: async () => {
       await Promise.all([institutionsQuery.refetch(), guidelinesQuery.refetch()]);
     },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Saralash paneli uchun: fakultet nomlari va grantlar
+// ---------------------------------------------------------------------------
+
+/** PostgREST bir so'rovda ko'pi bilan 1000 qator beradi — fakultetlar sahifalab o'qiladi. */
+const FACULTY_PAGE = 1000;
+
+/**
+ * Operator / admin saralash paneli uchun qo'shimcha ma'lumot: barcha
+ * fakultetlarning nomi va narxi (yo'nalish qidiruvi, yo'nalish narxi bo'yicha
+ * saralash) va scholarships'dan grant xulosasi. Panel ko'rinmaydigan rolda
+ * (`enabled = false`) umuman yuklanmaydi.
+ */
+export function useCatalogExtras(enabled: boolean) {
+  const facultiesQuery = useQuery<FacultyName[], Error>({
+    queryKey: [...CATALOG_KEY, 'faculty-names'],
+    enabled,
+    queryFn: async () => {
+      const rows: FacultyName[] = [];
+      for (let from = 0; ; from += FACULTY_PAGE) {
+        const { data, error } = await db
+          .from('university_guideline_faculties')
+          .select('id, guideline_uuid, track, kollej_en, kollej_kr, fakultet_en, fakultet_kr, kontrakt_summa')
+          .order('id', { ascending: true })
+          .range(from, from + FACULTY_PAGE - 1);
+        if (error) throw new Error(error.message);
+        const page = (data ?? []) as FacultyName[];
+        rows.push(...page);
+        if (page.length < FACULTY_PAGE) break;
+      }
+      return rows;
+    },
+  });
+
+  const grantsQuery = useQuery<ScholarshipRow[], Error>({
+    queryKey: [...CATALOG_KEY, 'grants'],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await db.from('scholarships').select('institution_id, award_type, award_value');
+      if (error) throw new Error(error.message);
+      return (data ?? []) as ScholarshipRow[];
+    },
+  });
+
+  const extras = useMemo<CatalogExtras>(() => {
+    if (!facultiesQuery.data && !grantsQuery.data) return EMPTY_EXTRAS;
+    return {
+      faculties: groupFaculties(facultiesQuery.data ?? []),
+      grants: summarizeGrants(grantsQuery.data ?? []),
+    };
+  }, [facultiesQuery.data, grantsQuery.data]);
+
+  return {
+    extras,
+    loading: enabled && (facultiesQuery.isLoading || grantsQuery.isLoading),
+    error: facultiesQuery.error ?? grantsQuery.error ?? null,
   };
 }
 

@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, GraduationCap, MapPin, Star } from 'lucide-react';
+import { Award, Building2, Gift, GraduationCap, MapPin, Star } from 'lucide-react';
 import type { CatalogEntry } from '@/hooks/useUniversityCatalog';
 import {
   admissionLabel,
@@ -16,10 +16,18 @@ import {
   type LevelFilter,
 } from './format';
 
+/** Saralash panelidan (operator / admin): nufuz, grant va qidirilgan yo'nalishga mos fakultetlar. */
+export interface CardHighlights {
+  tier: string | null;
+  grant: string | null;
+  directions: { names: string[]; more: number } | null;
+}
+
 interface Props {
   entry: CatalogEntry;
   /** Katalogda tanlangan daraja — karta o'sha darajaning ma'lumotini ko'rsatadi. */
   level?: LevelFilter;
+  highlights?: CardHighlights;
   onOpen: (entry: CatalogEntry) => void;
 }
 
@@ -27,7 +35,7 @@ interface Props {
  * Katalogdagi bitta universitet. Xodim bir qarashda ko'rishi kerak bo'lgani:
  * nomi (ingliz + koreys), shahri, kontrakt narxi va TOPIK/IELTS talabi.
  */
-export function UniversityCard({ entry, level = 'hammasi', onOpen }: Props) {
+export function UniversityCard({ entry, level = 'hammasi', highlights, onOpen }: Props) {
   const { primary, secondary } = displayName(entry);
   const city = cityLabel(entry);
   const latest = focusGuideline(entry, level);
@@ -88,6 +96,31 @@ export function UniversityCard({ entry, level = 'hammasi', onOpen }: Props) {
             </span>
           )}
         </div>
+
+        {highlights && (highlights.tier || highlights.grant) && (
+          <div className="flex flex-wrap gap-1.5">
+            {highlights.tier && (
+              <Badge variant="neutral" className="gap-1 text-[11px]">
+                <Award className="h-3 w-3" aria-hidden="true" />
+                {highlights.tier}
+              </Badge>
+            )}
+            {highlights.grant && (
+              <Badge variant="warning" className="gap-1 text-[11px]">
+                <Gift className="h-3 w-3" aria-hidden="true" />
+                {highlights.grant}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {highlights?.directions && highlights.directions.names.length > 0 && (
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            <span className="font-medium text-foreground">Mos yo'nalish:</span>{' '}
+            {highlights.directions.names.join(', ')}
+            {highlights.directions.more > 0 && ` va yana ${highlights.directions.more} ta`}
+          </p>
+        )}
 
         {latest ? (
           <>
