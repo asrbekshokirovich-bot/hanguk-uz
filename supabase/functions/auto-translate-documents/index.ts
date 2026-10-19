@@ -25,8 +25,10 @@ import {
   uploadTranslationDocx,
 } from "../_shared/certified-translation.ts";
 import {
+  AUTO_FILE_SUFFIX,
   AUTO_SOURCES,
   existingTranslationAction,
+  namesFromSourceNote,
   newestFor,
   planTranslation,
   slotTag,
@@ -129,7 +131,8 @@ async function processJob(db: SupabaseClient, job: Job): Promise<string> {
     source: { path: source.file_path, bucket: "student-documents" },
     supporting: plan.supporting.map((s) => ({ path: s.path, bucket: s.bucket, role: s.role })),
     studentName: profile?.full_name ?? undefined,
-    documentNote: AUTO_SOURCES[sourceSlot].documentNote,
+    documentNote: [AUTO_SOURCES[sourceSlot].documentNote, namesFromSourceNote(plan.namesFromSource)]
+      .filter(Boolean).join("\n") || undefined,
   });
   const docxBytes = await renderDocx(structured);
   const outputPath = await uploadTranslationDocx(db, docxBytes, docType.code);
@@ -141,7 +144,7 @@ async function processJob(db: SupabaseClient, job: Job): Promise<string> {
   let filedPath: string | null = null;
 
   if (action !== "keep") {
-    filedPath = `${job.student_id}/${translationSlot}-${Date.now()}-auto.docx`;
+    filedPath = `${job.student_id}/${translationSlot}-${Date.now()}${AUTO_FILE_SUFFIX}`;
     const { error: upErr } = await db.storage.from("student-documents")
       .upload(filedPath, docxBytes, { contentType: DOCX_MIME, upsert: false });
     if (upErr) throw new Error(`student-documents upload: ${upErr.message}`);
@@ -159,6 +162,9 @@ async function processJob(db: SupabaseClient, job: Job): Promise<string> {
     const unclear = structured.unclearItems.length
       ? ` Aniq bo'lmagan joylar: ${structured.unclearItems.join("; ")}`
       : "";
+    const fromSource = plan.namesFromSource.length
+      ? ` ${plan.namesFromSource.map((r) => (r === "father_id" ? "Otasining" : "Onasining")).join(" va ")} ismi metrikadan olindi (pasport yuklanmagan).`
+      : "";
     const { error: insErr } = await db.from("documents").insert({
       student_id: job.student_id,
       name: `[${translationSlot}] ${docType.name_en ?? docType.name_uz} translation (AI).docx`,
@@ -167,7 +173,7 @@ async function processJob(db: SupabaseClient, job: Job): Promise<string> {
       file_size: docxBytes.byteLength,
       status: "uploaded",
       intake_id: source.intake_id,
-      notes: `AI avtomatik tarjima — tekshirib tasdiqlang.${unclear}`,
+      notes: `AI avtomatik tarjima — tekshirib tasdiqlang.${fromSource}${unclear}`,
     });
     if (insErr) {
       await db.storage.from("student-documents").remove([filedPath]);

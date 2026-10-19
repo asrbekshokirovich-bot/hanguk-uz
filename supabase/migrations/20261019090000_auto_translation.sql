@@ -6,6 +6,8 @@
 --   * diploma / attestat  needs the student's foreign passport
 --   * birth certificate   needs the student's foreign passport and the
 --                         father's and mother's passport (ID card or foreign)
+--                         — parents' passports made optional the same day,
+--                         see 20261019120000_auto_translation_parent_names.sql
 -- The worker (supabase/functions/auto-translate-documents, rules.ts) checks
 -- this; a job without them waits in 'waiting_documents' and this file's
 -- trigger re-queues it the moment one of those documents is uploaded.
