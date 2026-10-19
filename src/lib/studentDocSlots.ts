@@ -96,6 +96,7 @@ export const APPLICATION_PACK_SLOTS: StudentDocSlot[] = [
     name: { uz: 'Nikoh guvohnomasi nusxasi', en: 'Marriage certificate copy', ru: 'Копия свидетельства о браке' },
     note: { uz: "Agar mavjud bo'lsa", en: 'If applicable', ru: 'При наличии' },
     required: false,
+    translation: { uz: 'Nikoh guvohnomasi tarjimasi', en: 'Marriage certificate translation', ru: 'Перевод свидетельства о браке' },
   },
   // Only applicants with a deceased parent have one, so it never gates the pack.
   {
