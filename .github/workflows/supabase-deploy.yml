@@ -112,6 +112,9 @@ jobs:
           # here, so the repo copy is the current one.
           # Added on 2026-10-13: `ai-university-search` is new and deployed
           # from here, so the repo copy is the current one.
+          # Added on 2026-10-19: `translate-document` was compared against the
+          # live v73 and its code moved into _shared/certified-translation.ts
+          # unchanged; `auto-translate-documents` is new and uses the same core.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -132,6 +135,8 @@ jobs:
             hr-bot
             translate-app-texts
             ai-university-search
+            translate-document
+            auto-translate-documents
           "
 
           for fn in $FUNCTIONS; do

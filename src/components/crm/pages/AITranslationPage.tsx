@@ -31,6 +31,7 @@ interface JobRow {
   structured_translation: StructuredTranslation | null;
   verified_names: VerifiedNames | null;
   status: string;
+  auto_triggered: boolean;
   error_message: string | null;
   created_at: string;
   completed_at: string | null;
@@ -105,6 +106,15 @@ export default function AITranslationPage({ studentId: propStudentId, studentNam
   }, [effectiveStudentId]);
 
   useEffect(() => { fetchStudentDocs(); fetchJobs(); }, [fetchStudentDocs, fetchJobs]);
+
+  // Automatic translations run in the background (auto-translate-documents);
+  // while one is queued or running, keep the history current.
+  const autoInFlight = jobs.some((j) => j.auto_triggered && (j.status === 'queued' || j.status === 'processing'));
+  useEffect(() => {
+    if (!autoInFlight) return;
+    const t = setInterval(() => { fetchJobs(); fetchStudentDocs(); }, 15000);
+    return () => clearInterval(t);
+  }, [autoInFlight, fetchJobs, fetchStudentDocs]);
 
   // Auto-resolve documents when type changes
   useEffect(() => {
@@ -203,6 +213,9 @@ export default function AITranslationPage({ studentId: propStudentId, studentNam
   const statusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; label: string; icon: React.ReactNode }> = {
       pending: { variant: 'outline', label: 'Kutilmoqda', icon: <Clock className="h-3 w-3" /> },
+      queued: { variant: 'outline', label: 'Navbatda', icon: <Clock className="h-3 w-3" /> },
+      waiting_documents: { variant: 'outline', label: 'Hujjat kutilmoqda', icon: <AlertTriangle className="h-3 w-3" /> },
+      cancelled: { variant: 'outline', label: 'Bekor qilindi', icon: <X className="h-3 w-3" /> },
       processing: { variant: 'secondary', label: 'Jarayonda', icon: <Loader2 className="h-3 w-3 animate-spin" /> },
       completed: { variant: 'default', label: 'Tayyor', icon: <CheckCircle className="h-3 w-3" /> },
       failed: { variant: 'destructive', label: 'Xatolik', icon: <AlertCircle className="h-3 w-3" /> },
@@ -225,6 +238,11 @@ export default function AITranslationPage({ studentId: propStudentId, studentNam
         <div>
           <h1 className="text-xl font-semibold">AI Tarjima</h1>
           <p className="text-sm text-muted-foreground">O'zbekchadan inglizchaga sertifikatlangan tarjima</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Diplom/attestat va metrika yuklanishi bilan avtomatik tarjima qilinadi va Hujjatlarga tasdiqlash uchun qo'shiladi.
+            Ikkalasi uchun ham talabaning zagran pasporti kerak. Metrikada ota-onaning ismi ularning pasportidan,
+            pasporti bo'lmasa metrikaning o'zidan olinadi.
+          </p>
         </div>
       </div>
 
@@ -431,12 +449,20 @@ export default function AITranslationPage({ studentId: propStudentId, studentNam
                             {job.document_type?.name_uz ?? 'Noma\'lum hujjat'}
                           </span>
                           {statusBadge(job.status)}
+                          {job.auto_triggered && (
+                            <Badge variant="secondary" className="gap-1 text-xs"><Sparkles className="h-3 w-3" />Avtomatik</Badge>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {new Date(job.created_at).toLocaleString('uz-UZ')}
                         </p>
                         {job.error_message && (
-                          <p className="text-xs text-destructive mt-1">{job.error_message}</p>
+                          <p className={cn(
+                            'text-xs mt-1',
+                            job.status === 'failed' ? 'text-destructive'
+                              : job.status === 'waiting_documents' ? 'text-warning'
+                              : 'text-muted-foreground',
+                          )}>{job.error_message}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">

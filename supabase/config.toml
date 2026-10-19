@@ -47,6 +47,11 @@ verify_jwt = false
 [functions.translate-document]
 verify_jwt = false
 
+# Called by pg_cron with the sb_secret_ key (not a JWT); the function checks
+# the caller itself. Same as notify-student-stages.
+[functions.auto-translate-documents]
+verify_jwt = false
+
 # Staff-only: the CRM calls it with the operator's JWT and the function checks
 # the role itself. Pinned so the gateway keeps refusing anonymous callers.
 [functions.send-push-notification]
