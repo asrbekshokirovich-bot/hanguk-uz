@@ -4637,4 +4637,223 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdListReportCta => 'Get the visa report →';
+
+  @override
+  String ajSummary(int count, int done) {
+    return '$count universities · $done / 8 stages';
+  }
+
+  @override
+  String ajNearestInterview(int days) {
+    return 'Next: interview · $days days left';
+  }
+
+  @override
+  String ajNearestSubmission(int days) {
+    return 'Next: submission · $days days left';
+  }
+
+  @override
+  String get ajNearestInterviewToday => 'Next: interview · today';
+
+  @override
+  String get ajNearestSubmissionToday => 'Next: submission · today';
+
+  @override
+  String get ajPhaseDocuments => 'Documents';
+
+  @override
+  String get ajPhaseSubmission => 'Submission';
+
+  @override
+  String get ajPhaseInterview => 'Interview';
+
+  @override
+  String get ajPhaseAdmission => 'Admission';
+
+  @override
+  String get ajPhaseVisa => 'Visa';
+
+  @override
+  String ajChipInterview(String date) {
+    return 'Interview $date';
+  }
+
+  @override
+  String get ajChipActionNeeded => 'Needs you';
+
+  @override
+  String get ajChipWaiting => 'Waiting';
+
+  @override
+  String get ajChipAccepted => 'Admitted';
+
+  @override
+  String get ajChipRejected => 'Not admitted';
+
+  @override
+  String get ajChipDone => 'Done';
+
+  @override
+  String get ajStateDocuments => 'Documents being gathered';
+
+  @override
+  String get ajStatePreparing => 'Getting ready to submit';
+
+  @override
+  String get ajStateReviewing => 'Documents under review';
+
+  @override
+  String get ajStateInterview => 'Interview stage';
+
+  @override
+  String get ajStateResult => 'Waiting for the result';
+
+  @override
+  String get ajStateVisa => 'Visa stage';
+
+  @override
+  String get ajStateFlight => 'Getting ready to fly';
+
+  @override
+  String ajLineInterview(String date, String time) {
+    return 'Submitted · interview $date, $time';
+  }
+
+  @override
+  String ajLineStudyPlan(String date) {
+    return 'Your Study Plan signature is needed · by $date';
+  }
+
+  @override
+  String get ajLineStudyPlanNoDate => 'Your Study Plan signature is needed';
+
+  @override
+  String ajLineReviewing(String date) {
+    return 'The university is reviewing · answer ~$date';
+  }
+
+  @override
+  String get ajLineReviewingNoDate => 'The university is reviewing';
+
+  @override
+  String ajLineSubmitBy(String date) {
+    return 'Getting ready to submit · by $date';
+  }
+
+  @override
+  String get ajLineDocuments => 'Your documents are being prepared';
+
+  @override
+  String get ajLineInterviewDone => 'Interview done · waiting for the answer';
+
+  @override
+  String get ajLineAccepted => 'Your admission letter has arrived';
+
+  @override
+  String get ajLineVisaProcess => 'Visa documents are being prepared';
+
+  @override
+  String get ajLineVisaWaiting => 'Waiting for the visa decision';
+
+  @override
+  String get ajLineVisaReceived => 'Visa received · get ready to fly';
+
+  @override
+  String get ajLineRejected => 'Not admitted to this university';
+
+  @override
+  String get ajSign => 'Sign';
+
+  @override
+  String ajDetailKicker(int index, int total) {
+    return 'APPLICATION · $index / $total';
+  }
+
+  @override
+  String ajTicketIntake(int year, String semester) {
+    return 'HANGUK AIR · $year $semester';
+  }
+
+  @override
+  String get ajSpring => 'SPRING';
+
+  @override
+  String get ajAutumn => 'AUTUMN';
+
+  @override
+  String ajTicketVisa(String type) {
+    return '$type student';
+  }
+
+  @override
+  String get ajTashkent => 'Tashkent';
+
+  @override
+  String get ajTicketUniversity => 'UNIVERSITY';
+
+  @override
+  String get ajTicketStatus => 'STATUS';
+
+  @override
+  String get ajTicketCountdown => 'TO KOREA';
+
+  @override
+  String ajDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get ajStatusSignPending => 'Awaiting signature';
+
+  @override
+  String get ajStampsTitle => 'Stamps in your passport';
+
+  @override
+  String ajStampsCount(int done) {
+    return '$done / 8 stamped';
+  }
+
+  @override
+  String get ajStampContract => 'Contract';
+
+  @override
+  String get ajStampDocuments => 'Documents gathered';
+
+  @override
+  String get ajStampTranslation => 'Translation and apostille';
+
+  @override
+  String get ajStampSubmission => 'Submitted to the university';
+
+  @override
+  String get ajStampInterview => 'Interview';
+
+  @override
+  String get ajStampAdmission => 'Admission letter';
+
+  @override
+  String ajStampVisa(String type) {
+    return 'Visa $type';
+  }
+
+  @override
+  String get ajStampFlight => 'Flight and housing';
+
+  @override
+  String ajUntil(String date) {
+    return 'by $date';
+  }
+
+  @override
+  String get ajActionStudyPlan =>
+      'Your Study Plan signature is needed — then we submit';
+
+  @override
+  String ajOpenUniversity(String name) {
+    return 'Open $name';
+  }
+
+  @override
+  String get ajBack => 'Back';
 }

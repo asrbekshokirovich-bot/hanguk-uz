@@ -6051,5 +6051,345 @@
   "fdListReportCta": "Get the visa report →",
   "@fdListReportCta": {
     "description": "Pinned button under the university list: opens the visa report."
+  },
+  "ajSummary": "{count} universities · {done} / 8 stages",
+  "@ajSummary": {
+    "description": "Ariza list header (design 7b): universities and stamps of the furthest one.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "ajNearestInterview": "Next: interview · {days} days left",
+  "@ajNearestInterview": {
+    "description": "Lime pill under the summary: days until the nearest interview.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "ajNearestSubmission": "Next: submission · {days} days left",
+  "@ajNearestSubmission": {
+    "description": "Lime pill: days until the nearest submission deadline.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "ajNearestInterviewToday": "Next: interview · today",
+  "@ajNearestInterviewToday": {
+    "description": "Lime pill: the interview is today."
+  },
+  "ajNearestSubmissionToday": "Next: submission · today",
+  "@ajNearestSubmissionToday": {
+    "description": "Lime pill: the submission deadline is today."
+  },
+  "ajPhaseDocuments": "Documents",
+  "@ajPhaseDocuments": {
+    "description": "Label under the 1st part of the card's 5-part bar."
+  },
+  "ajPhaseSubmission": "Submission",
+  "@ajPhaseSubmission": {
+    "description": "Label under the 2nd part of the bar."
+  },
+  "ajPhaseInterview": "Interview",
+  "@ajPhaseInterview": {
+    "description": "Label under the 3rd part of the bar."
+  },
+  "ajPhaseAdmission": "Admission",
+  "@ajPhaseAdmission": {
+    "description": "Label under the 4th part of the bar."
+  },
+  "ajPhaseVisa": "Visa",
+  "@ajPhaseVisa": {
+    "description": "Label under the 5th part of the bar."
+  },
+  "ajChipInterview": "Interview {date}",
+  "@ajChipInterview": {
+    "description": "Card chip: the interview date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ajChipActionNeeded": "Needs you",
+  "@ajChipActionNeeded": {
+    "description": "Card chip: the student has something to do."
+  },
+  "ajChipWaiting": "Waiting",
+  "@ajChipWaiting": {
+    "description": "Card chip: nothing for the student to do now."
+  },
+  "ajChipAccepted": "Admitted",
+  "@ajChipAccepted": {
+    "description": "Card chip: admitted."
+  },
+  "ajChipRejected": "Not admitted",
+  "@ajChipRejected": {
+    "description": "Card chip and stamp: not admitted."
+  },
+  "ajChipDone": "Done",
+  "@ajChipDone": {
+    "description": "Card chip: the whole journey is done."
+  },
+  "ajStateDocuments": "Documents being gathered",
+  "@ajStateDocuments": {
+    "description": "Line under the university name: documents are being gathered."
+  },
+  "ajStatePreparing": "Getting ready to submit",
+  "@ajStatePreparing": {
+    "description": "Line under the name: getting ready to submit."
+  },
+  "ajStateReviewing": "Documents under review",
+  "@ajStateReviewing": {
+    "description": "Line under the name: the university is reviewing the documents."
+  },
+  "ajStateInterview": "Interview stage",
+  "@ajStateInterview": {
+    "description": "Line under the name: interview stage."
+  },
+  "ajStateResult": "Waiting for the result",
+  "@ajStateResult": {
+    "description": "Line under the name: waiting for the result."
+  },
+  "ajStateVisa": "Visa stage",
+  "@ajStateVisa": {
+    "description": "Line under the name: visa stage."
+  },
+  "ajStateFlight": "Getting ready to fly",
+  "@ajStateFlight": {
+    "description": "Line under the name: preparing to fly."
+  },
+  "ajLineInterview": "Submitted · interview {date}, {time}",
+  "@ajLineInterview": {
+    "description": "Card foot: submitted, with the interview date and time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "ajLineStudyPlan": "Your Study Plan signature is needed · by {date}",
+  "@ajLineStudyPlan": {
+    "description": "Card foot: the Study Plan is needed before the deadline.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ajLineStudyPlanNoDate": "Your Study Plan signature is needed",
+  "@ajLineStudyPlanNoDate": {
+    "description": "Card foot: the Study Plan is needed (no deadline known)."
+  },
+  "ajLineReviewing": "The university is reviewing · answer ~{date}",
+  "@ajLineReviewing": {
+    "description": "Card foot: the university is reviewing; answer expected around a date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ajLineReviewingNoDate": "The university is reviewing",
+  "@ajLineReviewingNoDate": {
+    "description": "Card foot: the university is reviewing."
+  },
+  "ajLineSubmitBy": "Getting ready to submit · by {date}",
+  "@ajLineSubmitBy": {
+    "description": "Card foot: ready, submission deadline.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ajLineDocuments": "Your documents are being prepared",
+  "@ajLineDocuments": {
+    "description": "Card foot: documents are being prepared."
+  },
+  "ajLineInterviewDone": "Interview done · waiting for the answer",
+  "@ajLineInterviewDone": {
+    "description": "Card foot: the interview took place, waiting for the answer."
+  },
+  "ajLineAccepted": "Your admission letter has arrived",
+  "@ajLineAccepted": {
+    "description": "Card foot: the admission letter came."
+  },
+  "ajLineVisaProcess": "Visa documents are being prepared",
+  "@ajLineVisaProcess": {
+    "description": "Card foot: visa documents are being prepared."
+  },
+  "ajLineVisaWaiting": "Waiting for the visa decision",
+  "@ajLineVisaWaiting": {
+    "description": "Card foot: waiting for the visa decision."
+  },
+  "ajLineVisaReceived": "Visa received · get ready to fly",
+  "@ajLineVisaReceived": {
+    "description": "Card foot: visa received."
+  },
+  "ajLineRejected": "Not admitted to this university",
+  "@ajLineRejected": {
+    "description": "Card foot: not admitted to this university."
+  },
+  "ajSign": "Sign",
+  "@ajSign": {
+    "description": "Button opening the Study Plan builder."
+  },
+  "ajDetailKicker": "APPLICATION · {index} / {total}",
+  "@ajDetailKicker": {
+    "description": "Detail page kicker (design 8a): which application of how many.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "ajTicketIntake": "HANGUK AIR · {year} {semester}",
+  "@ajTicketIntake": {
+    "description": "Boarding pass kicker: the intake.",
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "semester": {
+        "type": "String"
+      }
+    }
+  },
+  "ajSpring": "SPRING",
+  "@ajSpring": {
+    "description": "Spring intake, upper case on the boarding pass."
+  },
+  "ajAutumn": "AUTUMN",
+  "@ajAutumn": {
+    "description": "Autumn intake, upper case on the boarding pass."
+  },
+  "ajTicketVisa": "{type} student",
+  "@ajTicketVisa": {
+    "description": "Boarding pass pill: the student visa type.",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "ajTashkent": "Tashkent",
+  "@ajTashkent": {
+    "description": "City under the TAS airport code."
+  },
+  "ajTicketUniversity": "UNIVERSITY",
+  "@ajTicketUniversity": {
+    "description": "Boarding pass field label."
+  },
+  "ajTicketStatus": "STATUS",
+  "@ajTicketStatus": {
+    "description": "Boarding pass field label."
+  },
+  "ajTicketCountdown": "TO KOREA",
+  "@ajTicketCountdown": {
+    "description": "Boarding pass field label: days to Korea."
+  },
+  "ajDays": "{days} days",
+  "@ajDays": {
+    "description": "Days to the estimated departure.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "ajStatusSignPending": "Awaiting signature",
+  "@ajStatusSignPending": {
+    "description": "Boarding pass status: waiting for the Study Plan signature."
+  },
+  "ajStampsTitle": "Stamps in your passport",
+  "@ajStampsTitle": {
+    "description": "Section title above the eight stamps."
+  },
+  "ajStampsCount": "{done} / 8 stamped",
+  "@ajStampsCount": {
+    "description": "How many of the eight stamps are set.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "ajStampContract": "Contract",
+  "@ajStampContract": {
+    "description": "Stamp 1."
+  },
+  "ajStampDocuments": "Documents gathered",
+  "@ajStampDocuments": {
+    "description": "Stamp 2."
+  },
+  "ajStampTranslation": "Translation and apostille",
+  "@ajStampTranslation": {
+    "description": "Stamp 3."
+  },
+  "ajStampSubmission": "Submitted to the university",
+  "@ajStampSubmission": {
+    "description": "Stamp 4."
+  },
+  "ajStampInterview": "Interview",
+  "@ajStampInterview": {
+    "description": "Stamp 5."
+  },
+  "ajStampAdmission": "Admission letter",
+  "@ajStampAdmission": {
+    "description": "Stamp 6."
+  },
+  "ajStampVisa": "Visa {type}",
+  "@ajStampVisa": {
+    "description": "Stamp 7: the visa with its type.",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "ajStampFlight": "Flight and housing",
+  "@ajStampFlight": {
+    "description": "Stamp 8."
+  },
+  "ajUntil": "by {date}",
+  "@ajUntil": {
+    "description": "A stamp's deadline.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ajActionStudyPlan": "Your Study Plan signature is needed — then we submit",
+  "@ajActionStudyPlan": {
+    "description": "Lime bar on the detail page asking for the Study Plan."
+  },
+  "ajOpenUniversity": "Open {name}",
+  "@ajOpenUniversity": {
+    "description": "Accessibility label of a university card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ajBack": "Back",
+  "@ajBack": {
+    "description": "Accessibility label of the back button on the detail page."
   }
 }

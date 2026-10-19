@@ -4640,4 +4640,223 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdListReportCta => 'Получить отчёт по визе →';
+
+  @override
+  String ajSummary(int count, int done) {
+    return 'Университетов: $count · $done / 8 этапов';
+  }
+
+  @override
+  String ajNearestInterview(int days) {
+    return 'Ближайшее: собеседование · осталось $days дн.';
+  }
+
+  @override
+  String ajNearestSubmission(int days) {
+    return 'Ближайшее: подача · осталось $days дн.';
+  }
+
+  @override
+  String get ajNearestInterviewToday => 'Ближайшее: собеседование · сегодня';
+
+  @override
+  String get ajNearestSubmissionToday => 'Ближайшее: подача · сегодня';
+
+  @override
+  String get ajPhaseDocuments => 'Документы';
+
+  @override
+  String get ajPhaseSubmission => 'Подача';
+
+  @override
+  String get ajPhaseInterview => 'Собеседование';
+
+  @override
+  String get ajPhaseAdmission => 'Зачисление';
+
+  @override
+  String get ajPhaseVisa => 'Виза';
+
+  @override
+  String ajChipInterview(String date) {
+    return 'Собеседование $date';
+  }
+
+  @override
+  String get ajChipActionNeeded => 'Нужно от вас';
+
+  @override
+  String get ajChipWaiting => 'Ожидание';
+
+  @override
+  String get ajChipAccepted => 'Зачислен';
+
+  @override
+  String get ajChipRejected => 'Не прошёл';
+
+  @override
+  String get ajChipDone => 'Завершено';
+
+  @override
+  String get ajStateDocuments => 'Сбор документов';
+
+  @override
+  String get ajStatePreparing => 'Подготовка к подаче';
+
+  @override
+  String get ajStateReviewing => 'Документы на проверке';
+
+  @override
+  String get ajStateInterview => 'Этап собеседования';
+
+  @override
+  String get ajStateResult => 'Ожидание результата';
+
+  @override
+  String get ajStateVisa => 'Этап визы';
+
+  @override
+  String get ajStateFlight => 'Подготовка к вылету';
+
+  @override
+  String ajLineInterview(String date, String time) {
+    return 'Подано · собеседование $date, $time';
+  }
+
+  @override
+  String ajLineStudyPlan(String date) {
+    return 'Нужна ваша подпись Study Plan · до $date';
+  }
+
+  @override
+  String get ajLineStudyPlanNoDate => 'Нужна ваша подпись Study Plan';
+
+  @override
+  String ajLineReviewing(String date) {
+    return 'Университет проверяет · ответ ~$date';
+  }
+
+  @override
+  String get ajLineReviewingNoDate => 'Университет проверяет';
+
+  @override
+  String ajLineSubmitBy(String date) {
+    return 'Подготовка к подаче · до $date';
+  }
+
+  @override
+  String get ajLineDocuments => 'Ваши документы готовятся';
+
+  @override
+  String get ajLineInterviewDone => 'Собеседование пройдено · ждём ответ';
+
+  @override
+  String get ajLineAccepted => 'Пришло письмо о зачислении';
+
+  @override
+  String get ajLineVisaProcess => 'Готовятся документы на визу';
+
+  @override
+  String get ajLineVisaWaiting => 'Ожидание решения по визе';
+
+  @override
+  String get ajLineVisaReceived => 'Виза получена · готовьтесь к вылету';
+
+  @override
+  String get ajLineRejected => 'В этот университет не зачислен';
+
+  @override
+  String get ajSign => 'Подписать';
+
+  @override
+  String ajDetailKicker(int index, int total) {
+    return 'ЗАЯВКА · $index / $total';
+  }
+
+  @override
+  String ajTicketIntake(int year, String semester) {
+    return 'HANGUK AIR · $year $semester';
+  }
+
+  @override
+  String get ajSpring => 'ВЕСНА';
+
+  @override
+  String get ajAutumn => 'ОСЕНЬ';
+
+  @override
+  String ajTicketVisa(String type) {
+    return 'Студент $type';
+  }
+
+  @override
+  String get ajTashkent => 'Ташкент';
+
+  @override
+  String get ajTicketUniversity => 'УНИВЕРСИТЕТ';
+
+  @override
+  String get ajTicketStatus => 'СТАТУС';
+
+  @override
+  String get ajTicketCountdown => 'ДО КОРЕИ';
+
+  @override
+  String ajDays(int days) {
+    return '$days дн.';
+  }
+
+  @override
+  String get ajStatusSignPending => 'Ждёт подписи';
+
+  @override
+  String get ajStampsTitle => 'Штампы в вашем паспорте';
+
+  @override
+  String ajStampsCount(int done) {
+    return '$done / 8 поставлено';
+  }
+
+  @override
+  String get ajStampContract => 'Договор';
+
+  @override
+  String get ajStampDocuments => 'Сбор документов';
+
+  @override
+  String get ajStampTranslation => 'Перевод и апостиль';
+
+  @override
+  String get ajStampSubmission => 'Подача в университет';
+
+  @override
+  String get ajStampInterview => 'Собеседование';
+
+  @override
+  String get ajStampAdmission => 'Письмо о зачислении';
+
+  @override
+  String ajStampVisa(String type) {
+    return 'Виза $type';
+  }
+
+  @override
+  String get ajStampFlight => 'Перелёт и жильё';
+
+  @override
+  String ajUntil(String date) {
+    return 'до $date';
+  }
+
+  @override
+  String get ajActionStudyPlan =>
+      'Нужна ваша подпись Study Plan — после этого подаём';
+
+  @override
+  String ajOpenUniversity(String name) {
+    return 'Открыть $name';
+  }
+
+  @override
+  String get ajBack => 'Назад';
 }

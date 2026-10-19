@@ -18,12 +18,15 @@ vi.mock('@/hooks/useUniversityCatalog', () => ({
 
 const sub = (student_id: string, institution_id: string, extra: Record<string, unknown> = {}) => ({
   id: `${student_id}:${institution_id}`, student_id, institution_id, online_submitted_at: null, offline_sent_at: null,
-  copies: null, note: null, result: null, result_at: null, final_at: null, student_confirmed_at: null, ...extra,
+  copies: null, note: null, interview_at: null, result: null, result_at: null, final_at: null, student_confirmed_at: null,
+  visa_status: null, visa_status_at: null, ...extra,
 });
 const subs = [
   sub('online', 'knu', { online_submitted_at: '2026-10-10' }),
   sub('online', 'pnu', { online_submitted_at: '2026-10-11' }),
   sub('offline', 'knu', { online_submitted_at: '2026-10-10', offline_sent_at: '2026-10-12' }),
+  sub('interviewed', 'knu', { online_submitted_at: '2026-10-10', offline_sent_at: '2026-10-12', interview_at: '2026-10-24T09:00:00Z' }),
+  sub('visa', 'pnu', { online_submitted_at: '2026-10-10', result: 'accepted', final_at: '2026-11-20', visa_status: 'waiting' }),
   sub('admitted', 'knu', { online_submitted_at: '2026-10-10', result: 'accepted' }),
 ];
 vi.mock('@/hooks/useUniversitySubmissions', () => ({
@@ -48,6 +51,8 @@ describe('applications pipeline', () => {
     expect(pipelineStage({ ...base, docsReady: true })).toBe('docs_ready');
     expect(pipelineStage({ ...base, docsReady: true, onlineSubmitted: true })).toBe('online');
     expect(pipelineStage({ ...base, onlineSubmitted: true, offlineSent: true })).toBe('offline');
+    expect(pipelineStage({ ...base, onlineSubmitted: true, offlineSent: true, hasInterview: true })).toBe('interview');
+    expect(pipelineStage({ ...base, onlineSubmitted: true, hasInterview: true, hasResult: true })).toBe('result');
     expect(pipelineStage({ ...base, onlineSubmitted: true, hasResult: true })).toBe('result');
     expect(pipelineStage({ ...base, hasResult: true, visaReceived: true })).toBe('visa_received');
   });
@@ -59,6 +64,8 @@ describe('applications pipeline', () => {
       student('ready', { documents: approvedPack }),
       student('online'),
       student('offline'),
+      student('interviewed'),
+      student('visa'),
       student('admitted'),
     ];
     render(<ApplicationsPipeline students={students as never} loading={false} onOpenStudent={onOpen} />);
@@ -69,9 +76,13 @@ describe('applications pipeline', () => {
     expect(within(col('online')).getByText('Kyungpook +1')).toBeInTheDocument();
     expect(within(col('offline')).getByText('OFFLINE')).toBeInTheDocument();
     expect(within(col('result')).getByText('Kirdi: Kyungpook')).toBeInTheDocument();
-    // Columns no section feeds yet say so.
-    expect(within(col('interview')).getByText(/tez orada/)).toBeInTheDocument();
-    expect(within(col('visa_received')).getByText(/tez orada/)).toBeInTheDocument();
+    // Suhbat: the university and the interview time.
+    expect(within(col('interview')).getByText('INTERVIEWED')).toBeInTheDocument();
+    expect(within(col('interview')).getByText(/^Kyungpook · 24-okt, \d\d:00$/)).toBeInTheDocument();
+    // Viza: the visa status set on the final university.
+    expect(within(col('visa_waiting')).getByText('VISA')).toBeInTheDocument();
+    expect(within(col('visa_waiting')).getByText('Pusan')).toBeInTheDocument();
+    expect(screen.queryByText(/tez orada/)).not.toBeInTheDocument();
     // Nothing to move or edit — the card only opens the student.
     expect(screen.queryByRole('button', { name: /keyingi|advance|o'tkazish/i })).not.toBeInTheDocument();
     fireEvent.click(within(col('offline')).getByText('OFFLINE'));

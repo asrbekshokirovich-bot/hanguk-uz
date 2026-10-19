@@ -43,9 +43,6 @@ export const PIPELINE_LABELS: Record<PipelineStage, string> = {
   visa_received: 'Viza oldi',
 };
 
-/** Columns no section feeds yet — shown with a "coming" note. */
-export const PIPELINE_NOT_WIRED = new Set<PipelineStage>(['interview', 'visa_process', 'visa_waiting', 'visa_received']);
-
 export interface PipelineFacts {
   docsReady: boolean;
   onlineSubmitted: boolean;

@@ -12,7 +12,8 @@ const choice = (student_id: string, institution_id: string, rank: number): Unive
 });
 const sub = (student_id: string, institution_id: string, extra: Partial<UniversitySubmission> = {}): UniversitySubmission => ({
   id: `${student_id}:${institution_id}`, student_id, institution_id, online_submitted_at: '2026-10-12T00:00:00Z',
-  offline_sent_at: null, copies: null, note: null, result: null, result_at: null, final_at: null, student_confirmed_at: null, ...extra,
+  offline_sent_at: null, copies: null, note: null, interview_at: null, result: null, result_at: null, final_at: null,
+  student_confirmed_at: null, visa_status: null, visa_status_at: null, ...extra,
 });
 
 const NAMES: Record<string, string> = { knu: 'Kyungpook', pnu: 'Pusan', dh: 'Daegu Haany', sj: 'Sejong', ih: 'Inha' };
@@ -74,5 +75,23 @@ describe('AdmissionResultsMap', () => {
     expect(within(menu).queryByText('Daegu Haany')).not.toBeInTheDocument();
     fireEvent.click(within(menu).getByText('Pusan'));
     await waitFor(() => expect(onSave).toHaveBeenCalledWith('a', 'pnu', { final_at: expect.any(String) }));
+  });
+
+  it('marks the visa status under the final university, and can clear it', async () => {
+    const { onSave, row } = setup([
+      sub('c', 'knu', { result: 'accepted', final_at: '2026-11-01T00:00:00Z', visa_status: 'process' }),
+    ]);
+    const r = within(row('RAHIMOV UMID'));
+    fireEvent.click(r.getByText('Viza jarayonlari'));
+    fireEvent.click(r.getByText('Viza oldi'));
+    await waitFor(() => expect(onSave).toHaveBeenLastCalledWith('c', 'knu', { visa_status: 'received' }));
+    fireEvent.click(r.getByText('Viza jarayonlari'));
+    fireEvent.click(r.getByText('Belgilanmagan'));
+    await waitFor(() => expect(onSave).toHaveBeenLastCalledWith('c', 'knu', { visa_status: null }));
+  });
+
+  it('a final university without a visa status says so', () => {
+    const { row } = setup([sub('c', 'knu', { result: 'accepted', final_at: '2026-11-01T00:00:00Z' })]);
+    expect(within(row('RAHIMOV UMID')).getByText('Viza: belgilanmagan')).toBeInTheDocument();
   });
 });

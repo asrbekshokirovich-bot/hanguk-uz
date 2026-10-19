@@ -16,6 +16,8 @@ export interface UniversitySubmission {
   offline_sent_at: string | null;
   copies: number | null;
   note: string | null;
+  /** The university's interview (suhbat) date and time, set by staff. */
+  interview_at: string | null;
   /** null while waiting for the university's answer. */
   result: AdmissionResult | null;
   result_at: string | null;
@@ -23,12 +25,18 @@ export interface UniversitySubmission {
   final_at: string | null;
   /** The student confirmed the final university in the app. */
   student_confirmed_at: string | null;
+  /** Visa progress, kept on the final university's row only. */
+  visa_status: VisaStatus | null;
+  visa_status_at: string | null;
 }
 
 export type AdmissionResult = 'accepted' | 'rejected';
 
+/** Viza jarayonlari → Viza natijasini kutyapti → Viza oldi. */
+export type VisaStatus = 'process' | 'waiting' | 'received';
+
 export type SubmissionPatch = Partial<
-  Pick<UniversitySubmission, 'online_submitted_at' | 'offline_sent_at' | 'copies' | 'note' | 'result' | 'final_at'>
+  Pick<UniversitySubmission, 'online_submitted_at' | 'offline_sent_at' | 'copies' | 'note' | 'interview_at' | 'result' | 'final_at' | 'visa_status'>
 >;
 
 interface Result {
@@ -46,6 +54,8 @@ const db = supabase as unknown as { from: (table: string) => UntypedQuery };
 
 const KEY = ['university-submissions'] as const;
 
+const NO_VISA = { visa_status: null, visa_status_at: null, visa_status_by: null };
+
 export const submissionKey = (studentId: string, institutionId: string) => `${studentId}:${institutionId}`;
 
 export function useUniversitySubmissions() {
@@ -57,7 +67,7 @@ export function useUniversitySubmissions() {
       const { data, error } = await db
         .from('student_university_submissions')
         .select(
-          'id, student_id, institution_id, online_submitted_at, offline_sent_at, copies, note, result, result_at, final_at, student_confirmed_at',
+          'id, student_id, institution_id, online_submitted_at, offline_sent_at, copies, note, interview_at, result, result_at, final_at, student_confirmed_at, visa_status, visa_status_at',
         );
       if (error) throw new Error(error.message);
       return (data ?? []) as UniversitySubmission[];
@@ -82,24 +92,31 @@ export function useUniversitySubmissions() {
       };
       if ('online_submitted_at' in patch) row.online_submitted_by = patch.online_submitted_at ? uid : null;
       if ('offline_sent_at' in patch) row.offline_sent_by = patch.offline_sent_at ? uid : null;
+      if ('visa_status' in patch) {
+        row.visa_status_at = patch.visa_status ? new Date().toISOString() : null;
+        row.visa_status_by = patch.visa_status ? uid : null;
+      }
+      if ('interview_at' in patch) row.interview_by = patch.interview_at ? uid : null;
       if ('result' in patch) {
         row.result_at = patch.result ? new Date().toISOString() : null;
         row.result_by = patch.result ? uid : null;
-        // Only an accepted university can stay the final one.
+        // Only an accepted university can stay the final one (and keep a visa).
         if (patch.result !== 'accepted') {
           row.final_at = null;
           row.final_by = null;
           row.student_confirmed_at = null;
+          Object.assign(row, NO_VISA);
         }
       }
       if ('final_at' in patch) {
         row.final_by = patch.final_at ? uid : null;
         row.student_confirmed_at = null;
+        if (!patch.final_at) Object.assign(row, NO_VISA);
         // One final university per student: clear the previous pick first.
         if (patch.final_at) {
           const { error: clearError } = await db
             .from('student_university_submissions')
-            .update({ final_at: null, final_by: null, student_confirmed_at: null })
+            .update({ final_at: null, final_by: null, student_confirmed_at: null, ...NO_VISA })
             .eq('student_id', studentId)
             .neq('institution_id', institutionId);
           if (clearError) throw new Error(clearError.message);

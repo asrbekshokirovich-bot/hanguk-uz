@@ -48,7 +48,7 @@ vi.mock('@/hooks/useStudentSurveyAnswers', async (orig) => ({
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
 const save = vi.fn();
-let submissions: { student_id: string; institution_id: string; online_submitted_at: string | null }[] = [];
+let submissions: { student_id: string; institution_id: string; online_submitted_at: string | null; interview_at?: string | null }[] = [];
 vi.mock('@/hooks/useUniversitySubmissions', () => ({
   submissionKey: (s: string, i: string) => `${s}:${i}`,
   useUniversitySubmissions: () => ({
@@ -117,6 +117,40 @@ describe('Onlayn topshirildi', () => {
       { studentId: 'a', institutionId: 'pnu', patch: { online_submitted_at: null } },
       expect.anything(),
     );
+  });
+});
+
+describe('Suhbat vaqti', () => {
+  it('saves the interview date and time for one student at one university, and can clear it', () => {
+    submissions = [{ student_id: 'a', institution_id: 'pnu', online_submitted_at: null, interview_at: '2026-10-24T09:00:00Z' }];
+    setup();
+    // KNU: ALIYEV, KARIMOVA — no time yet; PNU: ALIYEV — set.
+    expect(screen.getAllByText("Suhbat vaqtini qo'shish")).toHaveLength(2);
+    expect(screen.getByText(/^Suhbat: 24-okt, \d\d:00$/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByText("Suhbat vaqtini qo'shish")[0]);
+    const input = screen.getByLabelText('Suhbat sanasi va vaqti');
+    fireEvent.change(input, { target: { value: '2026-10-28T15:30' } });
+    fireEvent.blur(input);
+    expect(save).toHaveBeenLastCalledWith(
+      { studentId: 'a', institutionId: 'knu', patch: { interview_at: new Date('2026-10-28T15:30').toISOString() } },
+      expect.anything(),
+    );
+
+    fireEvent.click(screen.getByLabelText("Suhbat vaqtini o'chirish"));
+    expect(save).toHaveBeenLastCalledWith(
+      { studentId: 'a', institutionId: 'pnu', patch: { interview_at: null } },
+      expect.anything(),
+    );
+  });
+
+  it('does not save when the field is left empty', () => {
+    submissions = [];
+    save.mockClear();
+    setup();
+    fireEvent.click(screen.getAllByText("Suhbat vaqtini qo'shish")[0]);
+    fireEvent.blur(screen.getByLabelText('Suhbat sanasi va vaqti'));
+    expect(save).not.toHaveBeenCalled();
   });
 });
 

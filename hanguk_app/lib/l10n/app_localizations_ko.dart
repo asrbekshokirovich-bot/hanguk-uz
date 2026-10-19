@@ -4452,4 +4452,222 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdListReportCta => '비자 보고서 받기 →';
+
+  @override
+  String ajSummary(int count, int done) {
+    return '대학 $count곳 · $done / 8 단계';
+  }
+
+  @override
+  String ajNearestInterview(int days) {
+    return '다음: 면접 · $days일 남음';
+  }
+
+  @override
+  String ajNearestSubmission(int days) {
+    return '다음: 지원 마감 · $days일 남음';
+  }
+
+  @override
+  String get ajNearestInterviewToday => '다음: 면접 · 오늘';
+
+  @override
+  String get ajNearestSubmissionToday => '다음: 지원 마감 · 오늘';
+
+  @override
+  String get ajPhaseDocuments => '서류';
+
+  @override
+  String get ajPhaseSubmission => '지원';
+
+  @override
+  String get ajPhaseInterview => '면접';
+
+  @override
+  String get ajPhaseAdmission => '합격';
+
+  @override
+  String get ajPhaseVisa => '비자';
+
+  @override
+  String ajChipInterview(String date) {
+    return '면접 $date';
+  }
+
+  @override
+  String get ajChipActionNeeded => '확인 필요';
+
+  @override
+  String get ajChipWaiting => '대기 중';
+
+  @override
+  String get ajChipAccepted => '합격';
+
+  @override
+  String get ajChipRejected => '불합격';
+
+  @override
+  String get ajChipDone => '완료';
+
+  @override
+  String get ajStateDocuments => '서류 준비 중';
+
+  @override
+  String get ajStatePreparing => '지원 준비 중';
+
+  @override
+  String get ajStateReviewing => '서류 심사 중';
+
+  @override
+  String get ajStateInterview => '면접 단계';
+
+  @override
+  String get ajStateResult => '결과 대기 중';
+
+  @override
+  String get ajStateVisa => '비자 단계';
+
+  @override
+  String get ajStateFlight => '출국 준비';
+
+  @override
+  String ajLineInterview(String date, String time) {
+    return '지원 완료 · 면접 $date $time';
+  }
+
+  @override
+  String ajLineStudyPlan(String date) {
+    return 'Study Plan 서명이 필요합니다 · $date까지';
+  }
+
+  @override
+  String get ajLineStudyPlanNoDate => 'Study Plan 서명이 필요합니다';
+
+  @override
+  String ajLineReviewing(String date) {
+    return '대학 심사 중 · 결과 ~$date';
+  }
+
+  @override
+  String get ajLineReviewingNoDate => '대학 심사 중';
+
+  @override
+  String ajLineSubmitBy(String date) {
+    return '지원 준비 중 · $date까지';
+  }
+
+  @override
+  String get ajLineDocuments => '서류를 준비하고 있습니다';
+
+  @override
+  String get ajLineInterviewDone => '면접 완료 · 결과 대기 중';
+
+  @override
+  String get ajLineAccepted => '합격 통지서가 도착했습니다';
+
+  @override
+  String get ajLineVisaProcess => '비자 서류 준비 중';
+
+  @override
+  String get ajLineVisaWaiting => '비자 결과 대기 중';
+
+  @override
+  String get ajLineVisaReceived => '비자 발급 완료 · 출국을 준비하세요';
+
+  @override
+  String get ajLineRejected => '이 대학에는 불합격했습니다';
+
+  @override
+  String get ajSign => '서명하기';
+
+  @override
+  String ajDetailKicker(int index, int total) {
+    return '지원 · $index / $total';
+  }
+
+  @override
+  String ajTicketIntake(int year, String semester) {
+    return 'HANGUK AIR · $year $semester';
+  }
+
+  @override
+  String get ajSpring => '봄학기';
+
+  @override
+  String get ajAutumn => '가을학기';
+
+  @override
+  String ajTicketVisa(String type) {
+    return '$type 유학생';
+  }
+
+  @override
+  String get ajTashkent => '타슈켄트';
+
+  @override
+  String get ajTicketUniversity => '대학';
+
+  @override
+  String get ajTicketStatus => '상태';
+
+  @override
+  String get ajTicketCountdown => '한국까지';
+
+  @override
+  String ajDays(int days) {
+    return '$days일';
+  }
+
+  @override
+  String get ajStatusSignPending => '서명 대기';
+
+  @override
+  String get ajStampsTitle => '여권 속 도장';
+
+  @override
+  String ajStampsCount(int done) {
+    return '$done / 8 완료';
+  }
+
+  @override
+  String get ajStampContract => '계약';
+
+  @override
+  String get ajStampDocuments => '서류 준비';
+
+  @override
+  String get ajStampTranslation => '번역 및 아포스티유';
+
+  @override
+  String get ajStampSubmission => '대학 지원';
+
+  @override
+  String get ajStampInterview => '면접';
+
+  @override
+  String get ajStampAdmission => '합격 통지서';
+
+  @override
+  String ajStampVisa(String type) {
+    return '비자 $type';
+  }
+
+  @override
+  String get ajStampFlight => '출국 및 숙소';
+
+  @override
+  String ajUntil(String date) {
+    return '$date까지';
+  }
+
+  @override
+  String get ajActionStudyPlan => 'Study Plan 서명이 필요합니다 — 그 후 지원합니다';
+
+  @override
+  String ajOpenUniversity(String name) {
+    return '$name 열기';
+  }
+
+  @override
+  String get ajBack => '뒤로';
 }

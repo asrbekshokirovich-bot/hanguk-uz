@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { AlertTriangle, Check, ChevronDown, GraduationCap, Hourglass, X } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, GraduationCap, Hourglass, Plane, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import {
   type AdmissionResult,
   type SubmissionPatch,
   type UniversitySubmission,
+  type VisaStatus,
 } from '@/hooks/useUniversitySubmissions';
 
 interface AdmissionResultsMapProps {
@@ -26,6 +27,20 @@ interface AdmissionResultsMapProps {
 }
 
 type RowState = 'final' | 'choose' | 'risk' | 'waiting';
+
+/** The Arizalar page's three visa columns, in order. */
+const VISA_LABEL: Record<VisaStatus, string> = {
+  process: 'Viza jarayonlari',
+  waiting: 'Viza natijasini kutyapti',
+  received: 'Viza oldi',
+};
+
+const VISA_STYLE: Record<VisaStatus | 'none', string> = {
+  none: 'bg-muted text-muted-foreground',
+  process: 'bg-info/10 text-info',
+  waiting: 'bg-warning/10 text-warning',
+  received: 'bg-success/10 text-success',
+};
 
 const RESULT_STYLE: Record<'accepted' | 'rejected' | 'waiting', string> = {
   accepted: 'bg-success/10 text-success',
@@ -50,6 +65,7 @@ export default function AdmissionResultsMap({
 }: AdmissionResultsMapProps) {
   const [openCell, setOpenCell] = useState<string | null>(null);
   const [choosingFor, setChoosingFor] = useState<string | null>(null);
+  const [visaFor, setVisaFor] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     return [...choicesByStudent.entries()]
@@ -93,6 +109,11 @@ export default function AdmissionResultsMap({
     setChoosingFor(null);
     if (institutionId) void save(studentId, institutionId, { final_at: new Date().toISOString() }, 'Yakuniy universitet belgilandi');
     else if (current) void save(studentId, current, { final_at: null }, 'Yakuniy tanlov bekor qilindi');
+  };
+
+  const setVisa = (studentId: string, institutionId: string, visa: VisaStatus | null) => {
+    setVisaFor(null);
+    void save(studentId, institutionId, { visa_status: visa }, visa ? `${VISA_LABEL[visa]} deb belgilandi` : "Viza holati o'chirildi");
   };
 
   if (rows.length === 0) {
@@ -215,6 +236,37 @@ export default function AdmissionResultsMap({
                           </button>
                         )}
                       </div>
+                      <div className="relative mt-1">
+                        <button
+                          type="button"
+                          disabled={saving}
+                          title="Viza holatini belgilash"
+                          onClick={() => setVisaFor(visaFor === row.studentId ? null : row.studentId)}
+                          className={cn(
+                            'flex max-w-full items-center gap-1 truncate rounded-md px-2 py-1 text-[11px] font-semibold hover:opacity-80',
+                            VISA_STYLE[row.finalSub?.visa_status ?? 'none'],
+                          )}
+                        >
+                          <Plane className="h-3 w-3 shrink-0" />
+                          <span className="truncate">
+                            {row.finalSub?.visa_status ? VISA_LABEL[row.finalSub.visa_status] : 'Viza: belgilanmagan'}
+                          </span>
+                        </button>
+                        {visaFor === row.studentId && (
+                          <div className="absolute right-0 top-full z-20 mt-1 flex w-52 flex-col rounded-lg border border-border bg-popover p-1 shadow-lg">
+                            {(Object.keys(VISA_LABEL) as VisaStatus[]).map((v) => (
+                              <MenuItem key={v} onClick={() => setVisa(row.studentId, row.final!.institution_id, v)}>
+                                <Plane className="h-3.5 w-3.5" /> {VISA_LABEL[v]}
+                              </MenuItem>
+                            ))}
+                            {row.finalSub?.visa_status && (
+                              <MenuItem onClick={() => setVisa(row.studentId, row.final!.institution_id, null)} className="text-muted-foreground">
+                                <X className="h-3.5 w-3.5" /> Belgilanmagan
+                              </MenuItem>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                   {row.state === 'choose' && (
@@ -253,7 +305,8 @@ export default function AdmissionResultsMap({
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground">
         Natijani belgilash uchun universitet ustiga bosing. Talaba kirgan universitetlardan birini yakuniy deb tanlang — talaba
-        ilovada tasdiqlaydi. Kirdi va yakuniy tanlov haqida talabaga bildirishnoma boradi.
+        ilovada tasdiqlaydi. Kirdi va yakuniy tanlov haqida talabaga bildirishnoma boradi. Yakuniy universitet ostida viza
+        holatini belgilang — u Arizalar sahifasida va talaba ilovasida ko'rinadi.
       </p>
     </Card>
   );

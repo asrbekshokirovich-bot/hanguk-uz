@@ -4613,4 +4613,223 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdListReportCta => 'Nhận báo cáo visa →';
+
+  @override
+  String ajSummary(int count, int done) {
+    return '$count trường · $done / 8 giai đoạn';
+  }
+
+  @override
+  String ajNearestInterview(int days) {
+    return 'Sắp tới: phỏng vấn · còn $days ngày';
+  }
+
+  @override
+  String ajNearestSubmission(int days) {
+    return 'Sắp tới: nộp hồ sơ · còn $days ngày';
+  }
+
+  @override
+  String get ajNearestInterviewToday => 'Sắp tới: phỏng vấn · hôm nay';
+
+  @override
+  String get ajNearestSubmissionToday => 'Sắp tới: nộp hồ sơ · hôm nay';
+
+  @override
+  String get ajPhaseDocuments => 'Hồ sơ';
+
+  @override
+  String get ajPhaseSubmission => 'Nộp';
+
+  @override
+  String get ajPhaseInterview => 'Phỏng vấn';
+
+  @override
+  String get ajPhaseAdmission => 'Trúng tuyển';
+
+  @override
+  String get ajPhaseVisa => 'Visa';
+
+  @override
+  String ajChipInterview(String date) {
+    return 'Phỏng vấn $date';
+  }
+
+  @override
+  String get ajChipActionNeeded => 'Cần bạn';
+
+  @override
+  String get ajChipWaiting => 'Đang chờ';
+
+  @override
+  String get ajChipAccepted => 'Trúng tuyển';
+
+  @override
+  String get ajChipRejected => 'Không đỗ';
+
+  @override
+  String get ajChipDone => 'Hoàn tất';
+
+  @override
+  String get ajStateDocuments => 'Đang thu thập hồ sơ';
+
+  @override
+  String get ajStatePreparing => 'Đang chuẩn bị nộp';
+
+  @override
+  String get ajStateReviewing => 'Đang xét hồ sơ';
+
+  @override
+  String get ajStateInterview => 'Giai đoạn phỏng vấn';
+
+  @override
+  String get ajStateResult => 'Đang chờ kết quả';
+
+  @override
+  String get ajStateVisa => 'Giai đoạn visa';
+
+  @override
+  String get ajStateFlight => 'Chuẩn bị bay';
+
+  @override
+  String ajLineInterview(String date, String time) {
+    return 'Đã nộp · phỏng vấn $date, $time';
+  }
+
+  @override
+  String ajLineStudyPlan(String date) {
+    return 'Cần chữ ký Study Plan của bạn · trước $date';
+  }
+
+  @override
+  String get ajLineStudyPlanNoDate => 'Cần chữ ký Study Plan của bạn';
+
+  @override
+  String ajLineReviewing(String date) {
+    return 'Trường đang xét · kết quả ~$date';
+  }
+
+  @override
+  String get ajLineReviewingNoDate => 'Trường đang xét';
+
+  @override
+  String ajLineSubmitBy(String date) {
+    return 'Đang chuẩn bị nộp · trước $date';
+  }
+
+  @override
+  String get ajLineDocuments => 'Hồ sơ của bạn đang được chuẩn bị';
+
+  @override
+  String get ajLineInterviewDone => 'Đã phỏng vấn · đang chờ kết quả';
+
+  @override
+  String get ajLineAccepted => 'Đã có thư nhập học';
+
+  @override
+  String get ajLineVisaProcess => 'Đang chuẩn bị hồ sơ visa';
+
+  @override
+  String get ajLineVisaWaiting => 'Đang chờ kết quả visa';
+
+  @override
+  String get ajLineVisaReceived => 'Đã có visa · chuẩn bị bay';
+
+  @override
+  String get ajLineRejected => 'Không trúng tuyển trường này';
+
+  @override
+  String get ajSign => 'Ký';
+
+  @override
+  String ajDetailKicker(int index, int total) {
+    return 'HỒ SƠ · $index / $total';
+  }
+
+  @override
+  String ajTicketIntake(int year, String semester) {
+    return 'HANGUK AIR · $year $semester';
+  }
+
+  @override
+  String get ajSpring => 'XUÂN';
+
+  @override
+  String get ajAutumn => 'THU';
+
+  @override
+  String ajTicketVisa(String type) {
+    return 'Du học sinh $type';
+  }
+
+  @override
+  String get ajTashkent => 'Tashkent';
+
+  @override
+  String get ajTicketUniversity => 'TRƯỜNG';
+
+  @override
+  String get ajTicketStatus => 'TRẠNG THÁI';
+
+  @override
+  String get ajTicketCountdown => 'ĐẾN HÀN';
+
+  @override
+  String ajDays(int days) {
+    return '$days ngày';
+  }
+
+  @override
+  String get ajStatusSignPending => 'Chờ ký';
+
+  @override
+  String get ajStampsTitle => 'Con dấu trong hộ chiếu';
+
+  @override
+  String ajStampsCount(int done) {
+    return '$done / 8 đã đóng';
+  }
+
+  @override
+  String get ajStampContract => 'Hợp đồng';
+
+  @override
+  String get ajStampDocuments => 'Thu thập hồ sơ';
+
+  @override
+  String get ajStampTranslation => 'Dịch và hợp pháp hóa';
+
+  @override
+  String get ajStampSubmission => 'Nộp hồ sơ vào trường';
+
+  @override
+  String get ajStampInterview => 'Phỏng vấn';
+
+  @override
+  String get ajStampAdmission => 'Thư nhập học';
+
+  @override
+  String ajStampVisa(String type) {
+    return 'Visa $type';
+  }
+
+  @override
+  String get ajStampFlight => 'Chuyến bay và chỗ ở';
+
+  @override
+  String ajUntil(String date) {
+    return 'trước $date';
+  }
+
+  @override
+  String get ajActionStudyPlan =>
+      'Cần chữ ký Study Plan của bạn — sau đó chúng tôi nộp';
+
+  @override
+  String ajOpenUniversity(String name) {
+    return 'Mở $name';
+  }
+
+  @override
+  String get ajBack => 'Quay lại';
 }
