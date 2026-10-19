@@ -16,6 +16,8 @@ export interface UniversitySubmission {
   offline_sent_at: string | null;
   copies: number | null;
   note: string | null;
+  /** The university's interview (suhbat) date and time, set by staff. */
+  interview_at: string | null;
   /** null while waiting for the university's answer. */
   result: AdmissionResult | null;
   result_at: string | null;
@@ -28,7 +30,7 @@ export interface UniversitySubmission {
 export type AdmissionResult = 'accepted' | 'rejected';
 
 export type SubmissionPatch = Partial<
-  Pick<UniversitySubmission, 'online_submitted_at' | 'offline_sent_at' | 'copies' | 'note' | 'result' | 'final_at'>
+  Pick<UniversitySubmission, 'online_submitted_at' | 'offline_sent_at' | 'copies' | 'note' | 'interview_at' | 'result' | 'final_at'>
 >;
 
 interface Result {
@@ -57,7 +59,7 @@ export function useUniversitySubmissions() {
       const { data, error } = await db
         .from('student_university_submissions')
         .select(
-          'id, student_id, institution_id, online_submitted_at, offline_sent_at, copies, note, result, result_at, final_at, student_confirmed_at',
+          'id, student_id, institution_id, online_submitted_at, offline_sent_at, copies, note, interview_at, result, result_at, final_at, student_confirmed_at',
         );
       if (error) throw new Error(error.message);
       return (data ?? []) as UniversitySubmission[];
@@ -82,6 +84,7 @@ export function useUniversitySubmissions() {
       };
       if ('online_submitted_at' in patch) row.online_submitted_by = patch.online_submitted_at ? uid : null;
       if ('offline_sent_at' in patch) row.offline_sent_by = patch.offline_sent_at ? uid : null;
+      if ('interview_at' in patch) row.interview_by = patch.interview_at ? uid : null;
       if ('result' in patch) {
         row.result_at = patch.result ? new Date().toISOString() : null;
         row.result_by = patch.result ? uid : null;

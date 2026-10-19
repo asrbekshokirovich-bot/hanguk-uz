@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CheckCircle2, Circle, FileText, Search, Users } from 'lucide-react';
+import { CalendarClock, CheckCircle2, Circle, FileText, Search, Users, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { useStudentSurveyAnswers } from '@/hooks/useStudentSurveyAnswers';
 import { getInitials, useChosenUniversityGroups, type StudentLite } from '@/hooks/useChosenUniversityGroups';
 import { submissionKey, useUniversitySubmissions } from '@/hooks/useUniversitySubmissions';
+import { formatInterview, toLocalInput } from '@/lib/interviewTime';
 import AdmissionResultsMap from './AdmissionResultsMap';
 
 interface OnlineApplicationContentProps {
@@ -55,6 +56,16 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
     submissions.save.mutate(
       { studentId, institutionId, patch: { online_submitted_at: done ? null : new Date().toISOString() } },
       { onError: (e) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi') },
+    );
+  };
+
+  const saveInterview = (studentId: string, institutionId: string, interviewAt: string | null) => {
+    submissions.save.mutate(
+      { studentId, institutionId, patch: { interview_at: interviewAt } },
+      {
+        onSuccess: () => toast.success(interviewAt ? 'Suhbat vaqti saqlandi' : "Suhbat vaqti o'chirildi"),
+        onError: (e) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi'),
+      },
     );
   };
 
@@ -132,7 +143,8 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
               {u.choices.map((c) => {
                 const s = studentById.get(c.student_id);
                 const tint = s ? paymentTint(s) : null;
-                const online = !!submissions.byKey.get(submissionKey(c.student_id, u.institutionId))?.online_submitted_at;
+                const sub = submissions.byKey.get(submissionKey(c.student_id, u.institutionId));
+                const online = !!sub?.online_submitted_at;
                 return (
                   <div
                     key={c.id}
@@ -175,6 +187,11 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
                       {online ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
                       Onlayn topshirildi
                     </button>
+                    <InterviewField
+                      value={sub?.interview_at ?? null}
+                      disabled={submissions.save.isPending}
+                      onSave={(at) => saveInterview(c.student_id, u.institutionId, at)}
+                    />
                   </div>
                 );
               })}
@@ -193,6 +210,83 @@ export default function OnlineApplicationContent({ students, loading }: OnlineAp
         </SheetContent>
       </Sheet>
     </div>
+  );
+}
+
+/**
+ * Suhbat (university interview) date and time for one student at one
+ * university. Saved when the field loses focus, so typing a date part by part
+ * does not save half-entered values.
+ */
+function InterviewField({
+  value,
+  disabled,
+  onSave,
+}: {
+  value: string | null;
+  disabled: boolean;
+  onSave: (interviewAt: string | null) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-1 self-start">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => {
+            setDraft(value ? toLocalInput(value) : '');
+            setEditing(true);
+          }}
+          className={cn(
+            'flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors',
+            value ? 'bg-info/15 text-info' : 'bg-muted text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <CalendarClock className="h-3.5 w-3.5" />
+          {value ? `Suhbat: ${formatInterview(value)}` : "Suhbat vaqtini qo'shish"}
+        </button>
+        {value && (
+          <button
+            type="button"
+            aria-label="Suhbat vaqtini o'chirish"
+            disabled={disabled}
+            onClick={() => onSave(null)}
+            className="rounded-md p-1 text-muted-foreground hover:text-destructive"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const commit = () => {
+    setEditing(false);
+    if (!draft) return;
+    const at = new Date(draft);
+    if (Number.isNaN(at.getTime())) return;
+    const iso = at.toISOString();
+    if (value && new Date(value).getTime() === at.getTime()) return;
+    onSave(iso);
+  };
+
+  return (
+    <Input
+      type="datetime-local"
+      aria-label="Suhbat sanasi va vaqti"
+      autoFocus
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') setEditing(false);
+      }}
+      className="h-8 self-start text-xs"
+    />
   );
 }
 

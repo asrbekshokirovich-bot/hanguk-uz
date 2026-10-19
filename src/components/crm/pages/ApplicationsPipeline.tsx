@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { buildApplicationPack } from '@/lib/studentDocSlots';
+import { formatInterview } from '@/lib/interviewTime';
 import {
   PIPELINE_LABELS,
   PIPELINE_NOT_WIRED,
@@ -88,6 +89,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
         docsReady: !!student.docsReady || (pack.requiredTotal > 0 && pack.requiredVerified === pack.requiredTotal),
         onlineSubmitted: subs.some((s) => s.online_submitted_at),
         offlineSent: subs.some((s) => s.offline_sent_at),
+        hasInterview: subs.some((s) => s.interview_at),
         hasResult: subs.some((s) => s.result),
       });
       let detail: string | null = null;
@@ -97,6 +99,11 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
       } else if (stage === 'online' || stage === 'offline') {
         const ids = subs.filter((s) => (stage === 'online' ? s.online_submitted_at : s.offline_sent_at)).map((s) => s.institution_id);
         detail = ids.length > 1 ? `${uniName(ids[0])} +${ids.length - 1}` : uniName(ids[0]);
+      } else if (stage === 'interview') {
+        const next = subs
+          .filter((s) => s.interview_at)
+          .sort((a, b) => a.interview_at!.localeCompare(b.interview_at!));
+        detail = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`).join(', ');
       } else if (stage === 'result') {
         const final = subs.find((s) => s.final_at);
         const admitted = subs.filter((s) => s.result === 'accepted');
