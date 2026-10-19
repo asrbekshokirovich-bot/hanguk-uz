@@ -8311,6 +8311,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get the visa report →'**
   String get fdListReportCta;
+
+  /// Ariza list header (design 7b): universities and stamps of the furthest one.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} universities · {done} / 8 stages'**
+  String ajSummary(int count, int done);
+
+  /// Lime pill under the summary: days until the nearest interview.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: interview · {days} days left'**
+  String ajNearestInterview(int days);
+
+  /// Lime pill: days until the nearest submission deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: submission · {days} days left'**
+  String ajNearestSubmission(int days);
+
+  /// Lime pill: the interview is today.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: interview · today'**
+  String get ajNearestInterviewToday;
+
+  /// Lime pill: the submission deadline is today.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: submission · today'**
+  String get ajNearestSubmissionToday;
+
+  /// Label under the 1st part of the card's 5-part bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get ajPhaseDocuments;
+
+  /// Label under the 2nd part of the bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Submission'**
+  String get ajPhaseSubmission;
+
+  /// Label under the 3rd part of the bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get ajPhaseInterview;
+
+  /// Label under the 4th part of the bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission'**
+  String get ajPhaseAdmission;
+
+  /// Label under the 5th part of the bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa'**
+  String get ajPhaseVisa;
+
+  /// Card chip: the interview date.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview {date}'**
+  String ajChipInterview(String date);
+
+  /// Card chip: the student has something to do.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs you'**
+  String get ajChipActionNeeded;
+
+  /// Card chip: nothing for the student to do now.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get ajChipWaiting;
+
+  /// Card chip: admitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Admitted'**
+  String get ajChipAccepted;
+
+  /// Card chip and stamp: not admitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not admitted'**
+  String get ajChipRejected;
+
+  /// Card chip: the whole journey is done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get ajChipDone;
+
+  /// Line under the university name: documents are being gathered.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents being gathered'**
+  String get ajStateDocuments;
+
+  /// Line under the name: getting ready to submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready to submit'**
+  String get ajStatePreparing;
+
+  /// Line under the name: the university is reviewing the documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents under review'**
+  String get ajStateReviewing;
+
+  /// Line under the name: interview stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview stage'**
+  String get ajStateInterview;
+
+  /// Line under the name: waiting for the result.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the result'**
+  String get ajStateResult;
+
+  /// Line under the name: visa stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa stage'**
+  String get ajStateVisa;
+
+  /// Line under the name: preparing to fly.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready to fly'**
+  String get ajStateFlight;
+
+  /// Card foot: submitted, with the interview date and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted · interview {date}, {time}'**
+  String ajLineInterview(String date, String time);
+
+  /// Card foot: the Study Plan is needed before the deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Study Plan signature is needed · by {date}'**
+  String ajLineStudyPlan(String date);
+
+  /// Card foot: the Study Plan is needed (no deadline known).
+  ///
+  /// In en, this message translates to:
+  /// **'Your Study Plan signature is needed'**
+  String get ajLineStudyPlanNoDate;
+
+  /// Card foot: the university is reviewing; answer expected around a date.
+  ///
+  /// In en, this message translates to:
+  /// **'The university is reviewing · answer ~{date}'**
+  String ajLineReviewing(String date);
+
+  /// Card foot: the university is reviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'The university is reviewing'**
+  String get ajLineReviewingNoDate;
+
+  /// Card foot: ready, submission deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting ready to submit · by {date}'**
+  String ajLineSubmitBy(String date);
+
+  /// Card foot: documents are being prepared.
+  ///
+  /// In en, this message translates to:
+  /// **'Your documents are being prepared'**
+  String get ajLineDocuments;
+
+  /// Card foot: the interview took place, waiting for the answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview done · waiting for the answer'**
+  String get ajLineInterviewDone;
+
+  /// Card foot: the admission letter came.
+  ///
+  /// In en, this message translates to:
+  /// **'Your admission letter has arrived'**
+  String get ajLineAccepted;
+
+  /// Card foot: visa documents are being prepared.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa documents are being prepared'**
+  String get ajLineVisaProcess;
+
+  /// Card foot: waiting for the visa decision.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the visa decision'**
+  String get ajLineVisaWaiting;
+
+  /// Card foot: visa received.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa received · get ready to fly'**
+  String get ajLineVisaReceived;
+
+  /// Card foot: not admitted to this university.
+  ///
+  /// In en, this message translates to:
+  /// **'Not admitted to this university'**
+  String get ajLineRejected;
+
+  /// Button opening the Study Plan builder.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign'**
+  String get ajSign;
+
+  /// Detail page kicker (design 8a): which application of how many.
+  ///
+  /// In en, this message translates to:
+  /// **'APPLICATION · {index} / {total}'**
+  String ajDetailKicker(int index, int total);
+
+  /// Boarding pass kicker: the intake.
+  ///
+  /// In en, this message translates to:
+  /// **'HANGUK AIR · {year} {semester}'**
+  String ajTicketIntake(int year, String semester);
+
+  /// Spring intake, upper case on the boarding pass.
+  ///
+  /// In en, this message translates to:
+  /// **'SPRING'**
+  String get ajSpring;
+
+  /// Autumn intake, upper case on the boarding pass.
+  ///
+  /// In en, this message translates to:
+  /// **'AUTUMN'**
+  String get ajAutumn;
+
+  /// Boarding pass pill: the student visa type.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} student'**
+  String ajTicketVisa(String type);
+
+  /// City under the TAS airport code.
+  ///
+  /// In en, this message translates to:
+  /// **'Tashkent'**
+  String get ajTashkent;
+
+  /// Boarding pass field label.
+  ///
+  /// In en, this message translates to:
+  /// **'UNIVERSITY'**
+  String get ajTicketUniversity;
+
+  /// Boarding pass field label.
+  ///
+  /// In en, this message translates to:
+  /// **'STATUS'**
+  String get ajTicketStatus;
+
+  /// Boarding pass field label: days to Korea.
+  ///
+  /// In en, this message translates to:
+  /// **'TO KOREA'**
+  String get ajTicketCountdown;
+
+  /// Days to the estimated departure.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String ajDays(int days);
+
+  /// Boarding pass status: waiting for the Study Plan signature.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting signature'**
+  String get ajStatusSignPending;
+
+  /// Section title above the eight stamps.
+  ///
+  /// In en, this message translates to:
+  /// **'Stamps in your passport'**
+  String get ajStampsTitle;
+
+  /// How many of the eight stamps are set.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} / 8 stamped'**
+  String ajStampsCount(int done);
+
+  /// Stamp 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get ajStampContract;
+
+  /// Stamp 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents gathered'**
+  String get ajStampDocuments;
+
+  /// Stamp 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation and apostille'**
+  String get ajStampTranslation;
+
+  /// Stamp 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted to the university'**
+  String get ajStampSubmission;
+
+  /// Stamp 5.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview'**
+  String get ajStampInterview;
+
+  /// Stamp 6.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission letter'**
+  String get ajStampAdmission;
+
+  /// Stamp 7: the visa with its type.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa {type}'**
+  String ajStampVisa(String type);
+
+  /// Stamp 8.
+  ///
+  /// In en, this message translates to:
+  /// **'Flight and housing'**
+  String get ajStampFlight;
+
+  /// A stamp's deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'by {date}'**
+  String ajUntil(String date);
+
+  /// Lime bar on the detail page asking for the Study Plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Study Plan signature is needed — then we submit'**
+  String get ajActionStudyPlan;
+
+  /// Accessibility label of a university card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {name}'**
+  String ajOpenUniversity(String name);
+
+  /// Accessibility label of the back button on the detail page.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get ajBack;
 }
 
 class _AppLocalizationsDelegate

@@ -4634,4 +4634,223 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fdListReportCta => 'Viza hisobotini olish →';
+
+  @override
+  String ajSummary(int count, int done) {
+    return '$count universitet · $done / 8 bosqich';
+  }
+
+  @override
+  String ajNearestInterview(int days) {
+    return 'Eng yaqin: suhbat · $days kun qoldi';
+  }
+
+  @override
+  String ajNearestSubmission(int days) {
+    return 'Eng yaqin: topshirish · $days kun qoldi';
+  }
+
+  @override
+  String get ajNearestInterviewToday => 'Eng yaqin: suhbat · bugun';
+
+  @override
+  String get ajNearestSubmissionToday => 'Eng yaqin: topshirish · bugun';
+
+  @override
+  String get ajPhaseDocuments => 'Hujjat';
+
+  @override
+  String get ajPhaseSubmission => 'Topshirish';
+
+  @override
+  String get ajPhaseInterview => 'Suhbat';
+
+  @override
+  String get ajPhaseAdmission => 'Qabul';
+
+  @override
+  String get ajPhaseVisa => 'Viza';
+
+  @override
+  String ajChipInterview(String date) {
+    return 'Suhbat $date';
+  }
+
+  @override
+  String get ajChipActionNeeded => 'Sizdan kerak';
+
+  @override
+  String get ajChipWaiting => 'Kutilmoqda';
+
+  @override
+  String get ajChipAccepted => 'Qabul qilindi';
+
+  @override
+  String get ajChipRejected => 'Kirmadi';
+
+  @override
+  String get ajChipDone => 'Yakunlandi';
+
+  @override
+  String get ajStateDocuments => 'Hujjatlar yig\'ilmoqda';
+
+  @override
+  String get ajStatePreparing => 'Topshirishga tayyorlanmoqda';
+
+  @override
+  String get ajStateReviewing => 'Hujjatlar tekshirilmoqda';
+
+  @override
+  String get ajStateInterview => 'Suhbat bosqichi';
+
+  @override
+  String get ajStateResult => 'Natija kutilmoqda';
+
+  @override
+  String get ajStateVisa => 'Viza bosqichi';
+
+  @override
+  String get ajStateFlight => 'Parvozga tayyorgarlik';
+
+  @override
+  String ajLineInterview(String date, String time) {
+    return 'Topshirildi · suhbat $date, $time';
+  }
+
+  @override
+  String ajLineStudyPlan(String date) {
+    return 'Study Plan imzongiz kerak · $date gacha';
+  }
+
+  @override
+  String get ajLineStudyPlanNoDate => 'Study Plan imzongiz kerak';
+
+  @override
+  String ajLineReviewing(String date) {
+    return 'Universitet tekshirmoqda · javob ~$date';
+  }
+
+  @override
+  String get ajLineReviewingNoDate => 'Universitet tekshirmoqda';
+
+  @override
+  String ajLineSubmitBy(String date) {
+    return 'Topshirishga tayyorlanmoqda · $date gacha';
+  }
+
+  @override
+  String get ajLineDocuments => 'Hujjatlaringiz tayyorlanmoqda';
+
+  @override
+  String get ajLineInterviewDone => 'Suhbat o\'tdi · javob kutilmoqda';
+
+  @override
+  String get ajLineAccepted => 'Qabul xati keldi';
+
+  @override
+  String get ajLineVisaProcess => 'Viza hujjatlari tayyorlanmoqda';
+
+  @override
+  String get ajLineVisaWaiting => 'Viza natijasi kutilmoqda';
+
+  @override
+  String get ajLineVisaReceived => 'Viza olindi · parvozga tayyorlaning';
+
+  @override
+  String get ajLineRejected => 'Bu universitetga qabul bo\'lmadi';
+
+  @override
+  String get ajSign => 'Imzolash';
+
+  @override
+  String ajDetailKicker(int index, int total) {
+    return 'ARIZA · $index / $total';
+  }
+
+  @override
+  String ajTicketIntake(int year, String semester) {
+    return 'HANGUK AIR · $year $semester';
+  }
+
+  @override
+  String get ajSpring => 'BAHOR';
+
+  @override
+  String get ajAutumn => 'KUZ';
+
+  @override
+  String ajTicketVisa(String type) {
+    return '$type talaba';
+  }
+
+  @override
+  String get ajTashkent => 'Toshkent';
+
+  @override
+  String get ajTicketUniversity => 'UNIVERSITET';
+
+  @override
+  String get ajTicketStatus => 'HOLAT';
+
+  @override
+  String get ajTicketCountdown => 'KOREAGACHA';
+
+  @override
+  String ajDays(int days) {
+    return '$days kun';
+  }
+
+  @override
+  String get ajStatusSignPending => 'Imzo kutilmoqda';
+
+  @override
+  String get ajStampsTitle => 'Pasportingizdagi muhrlar';
+
+  @override
+  String ajStampsCount(int done) {
+    return '$done / 8 bosildi';
+  }
+
+  @override
+  String get ajStampContract => 'Shartnoma';
+
+  @override
+  String get ajStampDocuments => 'Hujjatlar yig\'ish';
+
+  @override
+  String get ajStampTranslation => 'Tarjima va apostil';
+
+  @override
+  String get ajStampSubmission => 'Universitetga topshirish';
+
+  @override
+  String get ajStampInterview => 'Suhbat';
+
+  @override
+  String get ajStampAdmission => 'Qabul xati';
+
+  @override
+  String ajStampVisa(String type) {
+    return 'Viza $type';
+  }
+
+  @override
+  String get ajStampFlight => 'Parvoz va turar joy';
+
+  @override
+  String ajUntil(String date) {
+    return '$date gacha';
+  }
+
+  @override
+  String get ajActionStudyPlan =>
+      'Study Plan imzongiz kerak — shundan keyin topshiramiz';
+
+  @override
+  String ajOpenUniversity(String name) {
+    return '$name — batafsil';
+  }
+
+  @override
+  String get ajBack => 'Orqaga';
 }
