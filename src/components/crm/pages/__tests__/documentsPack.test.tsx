@@ -80,12 +80,12 @@ describe('DocumentsContent application pack', () => {
     setup({ canApprove: false });
     // Seven uploads awaiting review; five pack slots genuinely empty — the
     // father's ID card plus the four optional ones (marriage and death
-    // certificates, TOPIK, diploma apostille) — and the four translations
-    // (birth certificate, diploma, apostille, death certificate).
+    // certificates, TOPIK, diploma apostille) — and the five translations
+    // (birth certificate, diploma, apostille, marriage and death certificates).
     expect(screen.getAllByText('Qabul qilindi')).toHaveLength(7);
-    expect(screen.getAllByText("Yo'q")).toHaveLength(9);
+    expect(screen.getAllByText("Yo'q")).toHaveLength(10);
     expect(screen.getAllByText('Talaba yuklashi kerak')).toHaveLength(5);
-    expect(screen.getAllByText('Tarjima yuklanmagan')).toHaveLength(4);
+    expect(screen.getAllByText('Tarjima yuklanmagan')).toHaveLength(5);
     // The counter is over the 8 required slots only, so the optional three
     // never move it: one required slot empty still reads 0/8 verified.
     expect(screen.getAllByText('0/8').length).toBeGreaterThan(0);
@@ -124,8 +124,8 @@ describe('DocumentsContent application pack', () => {
 
   it('uploads into an empty slot as an approver', async () => {
     const { onDocumentsChanged } = setup();
-    // Nine empty rows: five pack slots and four translations.
-    expect(screen.getAllByText('Yuklash')).toHaveLength(9);
+    // Ten empty rows: five pack slots and five translations.
+    expect(screen.getAllByText('Yuklash')).toHaveLength(10);
     fireEvent.click(screen.getAllByText('Yuklash')[0]);
     const file = new File(['x'], 'FATHER.pdf', { type: 'application/pdf' });
     fireEvent.change(screen.getByTestId('approver-doc-file-input'), { target: { files: [file] } });
