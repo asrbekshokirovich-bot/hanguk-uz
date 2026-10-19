@@ -114,13 +114,13 @@ describe('buildApplicationPack', () => {
     expect(APPLICATION_PACK_SLOTS[5].name.uz).toBe('IELTS sertifikati nusxasi');
   });
 
-  it('pairs slots 5, 9, 10 and 12 with their own translation rows', () => {
+  it('pairs slots 5, 9, 10, 11 and 12 with their own translation rows', () => {
     const pack = buildApplicationPack([
       row('birth_certificate', 'BIRTH.pdf', 'approved'),
       row('birth_certificate_translation', 'BIRTH_KO.pdf'),
     ]);
     const withTranslation = pack.slots.filter((s) => s.translation).map((s) => s.slot.id);
-    expect(withTranslation).toEqual(['birth_certificate', 'diploma', 'diploma_apostille', 'death_certificate']);
+    expect(withTranslation).toEqual(['birth_certificate', 'diploma', 'diploma_apostille', 'marriage_certificate', 'death_certificate']);
 
     const birth = pack.slots.find((s) => s.slot.id === 'birth_certificate')!;
     expect(birth.state).toBe('verified');
