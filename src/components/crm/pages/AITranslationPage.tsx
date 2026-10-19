@@ -239,7 +239,7 @@ export default function AITranslationPage({ studentId: propStudentId, studentNam
           <h1 className="text-xl font-semibold">AI Tarjima</h1>
           <p className="text-sm text-muted-foreground">O'zbekchadan inglizchaga sertifikatlangan tarjima</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Diplom/attestat va metrika yuklanishi bilan avtomatik tarjima qilinadi va Hujjatlarga tasdiqlash uchun qo'shiladi.
+            Diplom/attestat va metrika avtomatik tarjima qilinadi (kuniga 5 tagacha, navbat bilan) va Hujjatlarga tasdiqlash uchun qo'shiladi.
             Ikkalasi uchun ham talabaning zagran pasporti kerak. Metrikada ota-onaning ismi ularning pasportidan,
             pasporti bo'lmasa metrikaning o'zidan olinadi.
           </p>
