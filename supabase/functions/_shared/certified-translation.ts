@@ -144,9 +144,13 @@ export interface TranslateArgs {
   documentNote?: string;
 }
 
-/** Thrown for errors whose message is safe to show staff, with an HTTP status. */
+/**
+ * Thrown for errors whose message is safe to show staff, with an HTTP status.
+ * `busy` marks the AI service being overloaded or rate-limited (429 / 5xx):
+ * worth retrying later, and not the document's fault.
+ */
 export class TranslationError extends Error {
-  constructor(message: string, public status = 500) {
+  constructor(message: string, public status = 500, public busy = false) {
     super(message);
   }
 }
@@ -483,9 +487,9 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
   if (!aiResponse.ok) {
     const errorText = await aiResponse.text();
     console.error("AI error:", aiResponse.status, errorText);
-    if (aiResponse.status === 429) throw new TranslationError("Tizim band. Keyinroq urinib ko'ring.", 429);
+    if (aiResponse.status === 429) throw new TranslationError("Tizim band. Keyinroq urinib ko'ring.", 429, true);
     if (aiResponse.status === 402) throw new TranslationError("AI xizmati uchun kredit tugagan.", 402);
-    throw new TranslationError(`AI xizmatida xatolik: ${aiResponse.status}`);
+    throw new TranslationError(`AI xizmatida xatolik: ${aiResponse.status}`, 500, aiResponse.status >= 500);
   }
 
   const aiData = await aiResponse.json();

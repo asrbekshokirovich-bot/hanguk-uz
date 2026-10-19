@@ -22,6 +22,7 @@ import {
   DOCX_MIME,
   renderDocx,
   translateDocument,
+  TranslationError,
   uploadTranslationDocx,
 } from "../_shared/certified-translation.ts";
 import {
@@ -47,8 +48,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
-/** A failed translation is retried this many times in all before it is 'failed'. */
-const MAX_ATTEMPTS = 3;
+/**
+ * A failed translation is retried this many times in all before it is 'failed'.
+ * Tries the AI service turned away as busy are not counted; every retry waits
+ * 5 minutes (claim_auto_translation_job).
+ */
+const MAX_ATTEMPTS = 5;
 /** Stop claiming new jobs after this long, so a run ends well inside the wall-clock limit. */
 const RUN_BUDGET_MS = 90_000;
 
@@ -212,6 +217,14 @@ async function run(): Promise<Record<string, number>> {
     } catch (e) {
       const msg = errText(e);
       console.error("auto-translate job failed:", job.id, msg);
+      if (e instanceof TranslationError && e.busy) {
+        // Gemini is overloaded ("high demand") or rate-limiting us: give the
+        // try back and stop this run; the next jobs would only be turned away
+        // too. The job waits 5 minutes before it is claimed again.
+        await setJob(db, job.id, { status: "queued", attempts: Math.max(job.attempts - 1, 0), error_message: msg });
+        counts.busy = (counts.busy ?? 0) + 1;
+        break;
+      }
       const final = job.attempts >= MAX_ATTEMPTS;
       await setJob(db, job.id, { status: final ? "failed" : "queued", error_message: msg });
       outcome = final ? "failed" : "retry";
