@@ -85,6 +85,15 @@ import { StudentContacts } from './StudentContacts';
 import { StudentConversations } from './StudentConversations';
 import { AppActivity } from '@/components/crm/appActivity/AppActivity';
 import { planAllowsInstallment } from '@/hooks/useStudentPlan';
+import { APPLICATION_PACK_SLOTS } from '@/lib/studentDocSlots';
+
+/**
+ * Slots whose translation the application pack asks for (birth certificate,
+ * diploma, apostille, death certificate — src/lib/studentDocSlots.ts), the
+ * same rows the Hujjatlar page shows. Other slots get a translation row only
+ * when one was already uploaded, so no existing file disappears.
+ */
+const SLOTS_WITH_TRANSLATION = new Set(APPLICATION_PACK_SLOTS.filter((s) => s.translation).map((s) => s.id));
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -1971,9 +1980,11 @@ export function StudentDetail({
                         <div className="divide-y divide-border/50">
                           {crmDocumentTypes.flatMap((docType, idx) => {
                             const translationDef = crmTranslationSlots[docType.id];
+                            const showTranslation = !!translationDef
+                              && (SLOTS_WITH_TRANSLATION.has(docType.id) || !!getDocumentForType(translationDef.id));
                             return [
                               renderDocRow(docType, idx, false),
-                              ...(translationDef ? [renderDocRow(translationDef, -1, true)] : []),
+                              ...(showTranslation ? [renderDocRow(translationDef, -1, true)] : []),
                             ];
                           })}
                         </div>
@@ -1989,9 +2000,10 @@ export function StudentDetail({
                         <div className="divide-y divide-border/50">
                           {crmConditionalDocTypes.flatMap((docType, idx) => {
                             const translationDef = crmConditionalTranslationSlots[docType.id];
+                            const showTranslation = !!translationDef && !!getDocumentForType(translationDef.id);
                             return [
                               renderDocRow(docType, idx, false),
-                              ...(translationDef ? [renderDocRow(translationDef, -1, true)] : []),
+                              ...(showTranslation ? [renderDocRow(translationDef, -1, true)] : []),
                             ];
                           })}
                         </div>
