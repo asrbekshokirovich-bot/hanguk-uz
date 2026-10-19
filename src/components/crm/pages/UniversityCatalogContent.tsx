@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
 import {
   useAddInstitution,
+  useCatalogExtras,
   useGuidelineImport,
   useUniversityCatalog,
   type CatalogEntry,
@@ -46,20 +47,32 @@ import {
   Plus,
   Search,
 } from 'lucide-react';
-import { UniversityCard } from './university-catalog/UniversityCard';
+import { UniversityCard, type CardHighlights } from './university-catalog/UniversityCard';
 import { GuidelineDetailSheet } from './university-catalog/GuidelineDetailSheet';
+import { SortPanel } from './university-catalog/SortPanel';
 import {
   DEGREE_LEVELS,
+  guidelinesForLevel,
   levelLabel,
   matchesFilter,
   matchesLevel,
-  matchesOperatorFilter,
   matchesSearch,
   operatorCities,
   type CatalogFilter,
   type DegreeLevel,
   type LevelFilter,
 } from './university-catalog/format';
+import {
+  directionNames,
+  EMPTY_PANEL,
+  grantLabel,
+  matchesPanel,
+  matchingFaculties,
+  sortEntries,
+  tierLabel,
+  type PanelFilter,
+  type SortKey,
+} from './university-catalog/sorting';
 
 const PAGE_SIZE = 48;
 
@@ -70,9 +83,6 @@ const FILTERS: { key: CatalogFilter; label: string }[] = [
   { key: 'ielts', label: 'IELTS' },
   { key: 'hamkor', label: 'Hamkor' },
 ];
-
-/** Shahar tanlanmagan holat (Radix Select bo'sh qiymatni qabul qilmaydi). */
-const ALL_CITIES = '__all__';
 
 const INSTITUTION_TYPES = [
   { value: 'private', label: 'Xususiy' },
@@ -114,16 +124,19 @@ export default function UniversityCatalogContent() {
   // Operator (admin ham, hujjatchi ham emas) faqat ma'lumotli universitetlarni
   // ko'radi va TOPIK, IELTS, shahar bo'yicha ajratadi (egasi, 2026-10-01).
   const operatorView = isCallOperator && !canEdit;
+  // Saralash paneli — call operator va admin (isCallOperator admin'ni ham
+  // qamrab oladi; egasi, 2026-10-19). Faqat hujjatchida ko'rinmaydi.
+  const showPanel = isCallOperator;
   const { entries, loading, error, refetch } = useUniversityCatalog();
+  const { extras, loading: extrasLoading } = useCatalogExtras(showPanel);
   const importGuideline = useGuidelineImport();
   const addInstitution = useAddInstitution();
 
   const [search, setSearch] = useState('');
   const [level, setLevel] = useState<LevelFilter>('hammasi');
   const [filter, setFilter] = useState<CatalogFilter>('hammasi');
-  const [opTopik, setOpTopik] = useState(false);
-  const [opIelts, setOpIelts] = useState(false);
-  const [opCity, setOpCity] = useState<string | null>(null);
+  const [panel, setPanel] = useState<PanelFilter>(EMPTY_PANEL);
+  const [sort, setSort] = useState<SortKey>('nom');
   const [visible, setVisible] = useState(PAGE_SIZE);
   // Tanlangan universitet id bo'yicha saqlanadi: Excel yuklangandan keyin
   // ro'yxat yangilanadi va panel o'sha zahoti yangi ma'lumotni ko'rsatadi.
@@ -141,20 +154,30 @@ export default function UniversityCatalogContent() {
 
   // Daraja va qolgan filtrlar birga. Daraja tugmalari yonidagi sonlar ham shu
   // bilan hisoblanadi — son o'sha tugma bosilgandagi natijaga teng bo'ladi.
+  // Operator faqat ma'lumotli universitetlarni ko'radi (egasi, 2026-10-01).
   const passesFilters = useCallback(
     (e: CatalogEntry, lvl: LevelFilter) =>
       matchesLevel(e, lvl) &&
-      (operatorView
-        ? matchesOperatorFilter(e, { topik: opTopik, ielts: opIelts, city: opCity }, lvl)
-        : matchesFilter(e, filter, lvl)) &&
+      (operatorView ? guidelinesForLevel(e, lvl).length > 0 : matchesFilter(e, filter, lvl)) &&
+      (!showPanel || matchesPanel(e, panel, lvl, extras)) &&
       matchesSearch(e, search),
-    [filter, search, operatorView, opTopik, opIelts, opCity],
+    [filter, search, operatorView, showPanel, panel, extras],
   );
 
-  const filtered = useMemo(
-    () => entries.filter((e) => passesFilters(e, level)),
-    [entries, level, passesFilters],
-  );
+  const filtered = useMemo(() => {
+    const list = entries.filter((e) => passesFilters(e, level));
+    return showPanel ? sortEntries(list, sort, level, extras, panel.direction) : list;
+  }, [entries, level, passesFilters, showPanel, sort, extras, panel.direction]);
+
+  const highlightsFor = (e: CatalogEntry): CardHighlights | undefined => {
+    if (!showPanel) return undefined;
+    const matched = panel.direction.trim() ? matchingFaculties(e, panel.direction, level, extras) : [];
+    return {
+      tier: tierLabel(e.institution.tier),
+      grant: grantLabel(extras.grants.get(e.institution.id)),
+      directions: matched.length ? directionNames(matched) : null,
+    };
+  };
 
   const levelCounts = useMemo(() => {
     const counts = {} as Record<LevelFilter, number>;
@@ -351,56 +374,24 @@ export default function UniversityCatalogContent() {
         })}
       </div>
 
-      {operatorView ? (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Button
-            variant={opTopik ? 'default' : 'outline'}
-            size="sm"
-            aria-pressed={opTopik}
-            onClick={() => {
-              setOpTopik((v) => !v);
-              resetPaging();
-            }}
-          >
-            TOPIK
-          </Button>
-          <Button
-            variant={opIelts ? 'default' : 'outline'}
-            size="sm"
-            aria-pressed={opIelts}
-            onClick={() => {
-              setOpIelts((v) => !v);
-              resetPaging();
-            }}
-          >
-            IELTS
-          </Button>
-          <div className="flex items-center gap-2 sm:ml-2">
-            <Label htmlFor="catalog-city" className="text-sm font-normal text-muted-foreground">
-              Shahar:
-            </Label>
-            <Select
-              value={opCity ?? ALL_CITIES}
-              onValueChange={(v) => {
-                setOpCity(v === ALL_CITIES ? null : v);
-                resetPaging();
-              }}
-            >
-              <SelectTrigger id="catalog-city" className="h-9 w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_CITIES}>Hammasi</SelectItem>
-                {cities.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      ) : (
+      {showPanel && (
+        <SortPanel
+          value={panel}
+          onChange={(next) => {
+            setPanel(next);
+            resetPaging();
+          }}
+          sort={sort}
+          onSortChange={(next) => {
+            setSort(next);
+            resetPaging();
+          }}
+          cities={cities}
+          extrasLoading={extrasLoading}
+        />
+      )}
+
+      {!operatorView && (
         <div className="flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (
             <Button
@@ -436,6 +427,7 @@ export default function UniversityCatalogContent() {
                 key={entry.institution.id}
                 entry={entry}
                 level={level}
+                highlights={highlightsFor(entry)}
                 onOpen={(e) => {
                   setSelectedId(e.institution.id);
                   setDetailOpen(true);
