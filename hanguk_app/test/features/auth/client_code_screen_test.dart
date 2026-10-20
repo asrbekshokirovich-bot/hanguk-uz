@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/features/auth/data/auth_repository.dart';
 import 'package:hanguk_app/features/auth/presentation/client_code_screen.dart';
+import 'package:hanguk_app/features/discover/presentation/widgets/app_nav.dart';
 import 'package:hanguk_app/design_system/theme/app_theme.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
@@ -58,6 +59,18 @@ void main() {
     }
   });
 
+  testWidgets("the home's nav is under the page; a locked tab stays here", (t) async {
+    await pump(t);
+    expect(find.byType(AppNav), findsOneWidget);
+    expect(find.byType(AppNavOrb), findsOneWidget);
+    final l = await AppLocalizations.delegate.load(const Locale('uz'));
+    await t.tap(find.text(l.fdNavApplication));
+    await t.pump(const Duration(milliseconds: 500));
+    // No second sign-in page over this one: the field takes the focus.
+    expect(find.byType(ClientCodeScreen), findsOneWidget);
+    expect(t.widget<TextField>(find.byType(TextField)).focusNode!.hasFocus, isTrue);
+  });
+
   testWidgets('typing fills the cells in capitals, eight at most', (t) async {
     await pump(t);
     expect(find.text('Kirish'), findsOneWidget);
@@ -82,7 +95,10 @@ void main() {
     await t.enterText(find.byType(TextField), 'AB12');
     await t.tap(find.text('Kirish'));
     await t.pump();
-    expect(find.text(AppLocalizations.of(t.element(find.byType(ClientCodeScreen)))!.loginErrorInvalidAccessCode), findsOneWidget);
+    expect(
+      find.text(AppLocalizations.of(t.element(find.byType(ClientCodeScreen)))!.loginErrorInvalidAccessCode),
+      findsOneWidget,
+    );
     expect(auth.codes, isEmpty);
   });
 
@@ -93,7 +109,10 @@ void main() {
     await t.pump();
     await t.pump();
     expect(auth.codes, ['HG7K1234']);
-    expect(find.text(AppLocalizations.of(t.element(find.byType(ClientCodeScreen)))!.authErrorCodeNotFound), findsOneWidget);
+    expect(
+      find.text(AppLocalizations.of(t.element(find.byType(ClientCodeScreen)))!.authErrorCodeNotFound),
+      findsOneWidget,
+    );
   });
 }
 

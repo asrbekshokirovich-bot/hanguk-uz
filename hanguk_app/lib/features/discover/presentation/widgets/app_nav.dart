@@ -37,9 +37,14 @@ const List<int> _navTabs = [AppTab.universities, AppTab.prepare, AppTab.applicat
 /// Opens [tab] of the home from a screen pushed over it (or from the home's
 /// own nav when [onLocal] is null): a client's tabs for a guest go to the
 /// client-code sign-in with a note, as the prototype's lock dots promise.
-void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>? onLocal}) {
+/// The sign-in's own nav passes [onLocked], as it is that page already.
+void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>? onLocal, VoidCallback? onLocked}) {
   final signedIn = ref.read(signedInProvider);
   if (AppTab.needsClient(tab) && !signedIn) {
+    if (onLocked != null) {
+      onLocked();
+      return;
+    }
     context.push('/login', extra: {'notice': AppLocalizations.of(context)!.fdNavNeedsClientCode});
     return;
   }
@@ -54,13 +59,16 @@ void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>
 /// [current] is the lit [AppTab]; pass [AppTab.home] to light only the round
 /// button, or -1 for none.
 class AppNav extends ConsumerWidget {
-  const AppNav({super.key, required this.current, this.onLocal});
+  const AppNav({super.key, required this.current, this.onLocal, this.onLocked});
 
   final int current;
 
   /// The home's own switch; null on a pushed screen, where a tab goes back
   /// to the home with that tab open.
   final ValueChanged<int>? onLocal;
+
+  /// See [openAppTab].
+  final VoidCallback? onLocked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -76,7 +84,7 @@ class AppNav extends ConsumerWidget {
       items: items,
       current: _navTabs.indexOf(current),
       hasCenter: true,
-      onSelect: (i) => openAppTab(context, ref, _navTabs[i], onLocal: onLocal),
+      onSelect: (i) => openAppTab(context, ref, _navTabs[i], onLocal: onLocal, onLocked: onLocked),
     );
   }
 }

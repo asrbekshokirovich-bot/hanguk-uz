@@ -11,6 +11,8 @@ import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../discover/presentation/discover_routes.dart';
+import '../../discover/presentation/widgets/app_nav.dart';
+import '../../discover/presentation/widgets/fd_bottom_nav.dart';
 import '../data/auth_repository.dart';
 import 'qr_scan_screen.dart';
 
@@ -121,9 +123,14 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     final sms = l.fdCodeSms(eight);
     final at = sms.indexOf(eight);
 
+    // The home's nav, as on every page; it steps aside for the keyboard.
+    final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
+      bottomNavigationBar: typing ? null : AppNav(current: -1, onLocked: _focus.requestFocus),
+      floatingActionButton: typing ? null : const AppNavOrb(current: -1),
+      floatingActionButtonLocation: kFdNavOrbLocation,
       body: FdPage(
         // The page's glow fills the screen, not just the content's height.
         child: SizedBox.expand(
