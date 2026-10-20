@@ -9,8 +9,10 @@ import {
   cityLabel,
   contractRange,
   displayName,
+  facultyNoun,
   focusGuideline,
   formatMoney,
+  guidelinesForLevel,
   institutionCode,
   languageBadges,
   matchesFilter,
@@ -19,6 +21,7 @@ import {
   matchesSearch,
   offeredLevels,
   operatorCities,
+  panelLevels,
   romanKey,
 } from '../university-catalog/format';
 
@@ -166,6 +169,10 @@ describe('cityLabel va displayName', () => {
 describe('admissionLabel', () => {
   it('yil, semestr va darajani birlashtiradi', () => {
     expect(admissionLabel(guideline())).toBe('2027 · bahor · bakalavr');
+  });
+
+  it('til kursi termini o‘qiladigan qilib yozadi', () => {
+    expect(admissionLabel(guideline({ semestr: 'yoz', daraja: 'til_kursi' }))).toBe('2027 · yoz · til kursi');
   });
 });
 
@@ -437,5 +444,70 @@ describe('daraja tanlanganda ma‘lumot filtrlari', () => {
     expect(focusGuideline(ikkalasi, 'magistratura')?.id).toBe('m');
     expect(focusGuideline(ikkalasi, 'hammasi')?.id).toBe('b');
     expect(focusGuideline(faqatBakalavr, 'kasbiy')).toBeNull();
+  });
+});
+
+describe('til kursi', () => {
+  const bak = guideline({ id: 'b', daraja: 'bakalavr', kontrakt_min: 4200000, kontrakt_davri: 'semestr' });
+  // Til kursining eng yangi termi — bakalavr qabulidan keyin yuklangan.
+  const til = guideline({
+    id: 't',
+    guideline_id: 'jbnu_2027_qish_til_kursi',
+    semestr: 'qish',
+    daraja: 'til_kursi',
+    kontrakt_min: 1700000,
+    kontrakt_max: 1700000,
+    kontrakt_davri: 'term',
+    english_track: null,
+    korean_track: null,
+    topik_min: null,
+    ielts_min: null,
+    fakultet_soni: 1,
+  });
+  const ikkalasi = uni({ institution_type: 'national' }, [til, bak]);
+  const faqatTilKursi = uni({ institution_type: 'private' }, [til]);
+  const excelsiz = uni({ institution_type: 'private' });
+
+  it('daraja ro‘yxatida til kursi bor-yo‘qligi Excel‘dan bilinadi', () => {
+    expect(offeredLevels(ikkalasi)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(offeredLevels(excelsiz)).toEqual(['bakalavr', 'magistratura']);
+    expect(matchesLevel(ikkalasi, 'til_kursi')).toBe(true);
+    expect(matchesLevel(excelsiz, 'til_kursi')).toBe(false);
+  });
+
+  it('kollejda ham til kursi Excel‘i yuklansa ko‘rinadi', () => {
+    const kollej = uni({ institution_type: 'junior_college' }, [til]);
+    expect(offeredLevels(kollej)).toEqual(['kasbiy', 'til_kursi']);
+  });
+
+  it('panelda til kursi yorlig‘i Excel yuklay oladigan xodimga doim ochiq', () => {
+    expect(panelLevels(excelsiz, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(panelLevels(excelsiz, false)).toEqual(['bakalavr', 'magistratura']);
+    expect(panelLevels(ikkalasi, false)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(panelLevels(ikkalasi, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+  });
+
+  it('til kursi yashirilgan universitetda yorliq chiqmaydi', () => {
+    const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] }, [til]);
+    expect(offeredLevels(yashirin)).toEqual(['bakalavr', 'magistratura']);
+    expect(panelLevels(yashirin, true)).toEqual(['bakalavr', 'magistratura']);
+  });
+
+  it('"Barcha darajalar"da karta o‘qish darajasini ko‘rsatadi, til kursi yangi bo‘lsa ham', () => {
+    expect(guidelinesForLevel(ikkalasi, 'hammasi').map((g) => g.id)).toEqual(['b']);
+    expect(focusGuideline(ikkalasi, 'hammasi')?.id).toBe('b');
+    expect(focusGuideline(ikkalasi, 'til_kursi')?.id).toBe('t');
+  });
+
+  it('faqat til kursi Excel‘i bo‘lsa "Barcha darajalar"da o‘sha ko‘rinadi', () => {
+    expect(focusGuideline(faqatTilKursi, 'hammasi')?.id).toBe('t');
+    expect(matchesFilter(faqatTilKursi, 'malumotli')).toBe(true);
+    expect(matchesFilter(faqatTilKursi, 'malumotli', 'bakalavr')).toBe(false);
+  });
+
+  it('til kursida fakultetlar varag‘idagi qatorlar — kurslar', () => {
+    expect(facultyNoun('til_kursi')).toEqual({ one: 'kurs', many: 'kurslar' });
+    expect(facultyNoun('bakalavr')).toEqual({ one: 'fakultet', many: 'fakultetlar' });
+    expect(facultyNoun(null)).toEqual({ one: 'fakultet', many: 'fakultetlar' });
   });
 });

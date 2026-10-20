@@ -9,6 +9,7 @@ import {
   contractFromNote,
   DARAJALAR,
   parseGuidelineWorkbook,
+  SEMESTRLAR,
   SUPPORTED_FORMAT_VERSION,
 } from '../universityGuidelineExcel';
 
@@ -184,14 +185,58 @@ describe("parseGuidelineWorkbook — kasbiy ta'lim", () => {
     }
   });
 
-  it('shablondagi daraja ro‘yxati sayt qabul qiladigan qiymatlar bilan bir xil', async () => {
+  it('shablondagi daraja va semestr ro‘yxatlari sayt qabul qiladigan qiymatlar bilan bir xil', async () => {
     const buf = readFileSync(join(fixtureDir, '../../../../public/templates/universitet-guideline-shablon.xlsx'));
     const bytes = new ArrayBuffer(buf.byteLength);
     new Uint8Array(bytes).set(buf);
     const zip = await JSZip.loadAsync(bytes);
     const sheet = await zip.file('xl/worksheets/sheet1.xml')!.async('string');
-    const list = sheet.match(/<dataValidation sqref="I2"[^>]*><formula1>"([^"]*)"<\/formula1>/)?.[1];
-    expect(list?.split(',')).toEqual([...DARAJALAR]);
+    const list = (cell: string) =>
+      sheet.match(new RegExp(`<dataValidation sqref="${cell}"[^>]*><formula1>"([^"]*)"</formula1>`))?.[1]?.split(',');
+    expect(list('I2')).toEqual([...DARAJALAR]);
+    expect(list('H2')).toEqual([...SEMESTRLAR]);
+  });
+});
+
+describe('parseGuidelineWorkbook — til kursi', () => {
+  /** universitet varag'idagi daraja va semestrni almashtiradi. */
+  function tilKursiWorkbook(daraja: string, semestr = 'bahor') {
+    return patchedWorkbook((xml, path) =>
+      path === 'xl/worksheets/sheet1.xml'
+        ? xml.replace('<t>bakalavr</t>', `<t>${daraja}</t>`).replace('<t>bahor</t>', `<t>${semestr}</t>`)
+        : xml,
+    );
+  }
+
+  it('daraja = til_kursi bo‘lgan faylni qabul qiladi', async () => {
+    const result = await parseGuidelineWorkbook(await tilKursiWorkbook('til_kursi'), 'f.xlsx');
+    expect(result.errors).toEqual([]);
+    expect(result.ok).toBe(true);
+    expect(result.payload!.universitet.daraja).toBe('til_kursi');
+  });
+
+  it('"Til kursi", "어학당" kabi yozuvlarni ham til_kursi deb o‘qiydi', async () => {
+    for (const written of ['Til kursi', 'til-kursi', 'Korean Language Program', '어학당', '한국어연수']) {
+      const result = await parseGuidelineWorkbook(await tilKursiWorkbook(written), 'f.xlsx');
+      expect(result.errors).toEqual([]);
+      expect(result.payload!.universitet.daraja).toBe('til_kursi');
+    }
+  });
+
+  it('til kursida yoz va qish termlari ham bo‘ladi', async () => {
+    for (const semestr of ['yoz', 'qish']) {
+      const result = await parseGuidelineWorkbook(await tilKursiWorkbook('til_kursi', semestr), 'f.xlsx');
+      expect(result.errors).toEqual([]);
+      expect(result.payload!.universitet.semestr).toBe(semestr);
+    }
+  });
+
+  it('yoz yoki qish boshqa darajada yozilsa — xato', async () => {
+    const result = await parseGuidelineWorkbook(await tilKursiWorkbook('magistratura', 'qish'), 'f.xlsx');
+    expect(result.ok).toBe(false);
+    expect(result.errors).toEqual([
+      expect.stringContaining('semestr: "qish" faqat til kursi uchun'),
+    ]);
   });
 });
 
@@ -209,7 +254,7 @@ describe('parseGuidelineWorkbook — xatolar', () => {
 
   it('noto‘g‘ri tanlov qiymatini qator raqami bilan qaytaradi', async () => {
     const buf = await patchedWorkbook((xml, path) =>
-      path === 'xl/worksheets/sheet1.xml' ? xml.replace('<t>bahor</t>', '<t>yoz</t>') : xml,
+      path === 'xl/worksheets/sheet1.xml' ? xml.replace('<t>bahor</t>', '<t>yanvar</t>') : xml,
     );
 
     const result = await parseGuidelineWorkbook(buf, 'f.xlsx');

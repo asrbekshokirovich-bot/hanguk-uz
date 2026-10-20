@@ -62,10 +62,11 @@ import {
   contractRange,
   DEGREE_LEVELS,
   displayName,
+  facultyNoun,
   formatMoney,
   guidelinesForLevel,
   levelLabel,
-  offeredLevels,
+  panelLevels,
   periodLabel,
   type DegreeLevel,
   type LevelFilter,
@@ -436,12 +437,17 @@ function MuddatlarTab({ rounds }: { rounds: GuidelineRound[] }) {
 // Fakultetlar
 // ---------------------------------------------------------------------------
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 function FakultetlarTab({
   faculties,
   currency,
+  noun,
 }: {
   faculties: GuidelineFaculty[];
   currency: string | null;
+  /** Til kursida qatorlar — kurslar. */
+  noun: { one: string; many: string };
 }) {
   const [query, setQuery] = useState('');
   const [track, setTrack] = useState<'hammasi' | 'english' | 'korean'>('hammasi');
@@ -458,7 +464,7 @@ function FakultetlarTab({
   }, [faculties, query, track]);
 
   if (faculties.length === 0) {
-    return <EmptyState icon={Users} title="Fakultetlar kiritilmagan" />;
+    return <EmptyState icon={Users} title={`${capitalize(noun.many)} kiritilmagan`} />;
   }
 
   return (
@@ -469,7 +475,7 @@ function FakultetlarTab({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Fakultet qidirish (EN yoki 한국어)"
+            placeholder={`${capitalize(noun.one)} qidirish (EN yoki 한국어)`}
             className="pl-8"
           />
         </div>
@@ -486,14 +492,14 @@ function FakultetlarTab({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {filtered.length} / {faculties.length} fakultet
+        {filtered.length} / {faculties.length} {noun.one}
       </p>
 
       <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Fakultet</TableHead>
+              <TableHead>{capitalize(noun.one)}</TableHead>
               <TableHead className="w-24">Track</TableHead>
               <TableHead className="w-28">Til</TableHead>
               <TableHead className="w-40 text-right">Kontrakt</TableHead>
@@ -637,10 +643,11 @@ export function GuidelineDetailSheet({
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Faqat universitetda bor darajalar: kollejda — kasbiy ta'lim, 대학원대학교da — magistr.
+  // Til kursi — Excel'i bo'lsa, Excel yuklay oladigan xodimga esa doim.
   const tabs = useMemo(() => {
-    const levels = entry ? offeredLevels(entry) : [];
+    const levels = entry ? panelLevels(entry, canUpload) : [];
     return DEGREE_LEVELS.filter((l) => levels.includes(l.key));
-  }, [entry]);
+  }, [entry, canUpload]);
 
   // Odatiy yorliq: katalogda tanlangan daraja; u bo'lmasa — ma'lumoti bor
   // birinchi daraja (bakalavr ustun); hech qayerda ma'lumot bo'lmasa — birinchi
@@ -692,6 +699,7 @@ export function GuidelineDetailSheet({
   const detail = useGuidelineDetail(open ? activeId : null);
   const name = entry ? displayName(entry) : null;
   const city = entry ? cityLabel(entry) : null;
+  const noun = facultyNoun(darajaTab);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -722,7 +730,7 @@ export function GuidelineDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        {/* Bakalavr, magistr va kasbiy ta'lim — ma'lumoti butunlay boshqa, shuning uchun alohida panel. */}
+        {/* Bakalavr, magistr, kasbiy ta'lim va til kursi — ma'lumoti butunlay boshqa, shuning uchun alohida panel. */}
         <div className="mt-4 flex flex-wrap gap-1.5">
           {tabs.map((t) => {
             const count = entry ? guidelinesForLevel(entry, t.key).length : 0;
@@ -784,7 +792,7 @@ export function GuidelineDetailSheet({
               title={`Bu universitet uchun ${levelLabel(darajaTab).toLowerCase()} excel yuklanmagan`}
               description={
                 canUpload
-                  ? "Shablon bo'yicha to'ldirilgan .xlsx faylni yuklang — muddatlar, fakultetlar va hujjatlar shu yerda ko'rinadi."
+                  ? `Shablon bo'yicha to'ldirilgan .xlsx faylni yuklang — muddatlar, ${noun.many} va hujjatlar shu yerda ko'rinadi.`
                   : "Ma'lumot yuklangach shu yerda ko'rinadi."
               }
               action={
@@ -819,7 +827,7 @@ export function GuidelineDetailSheet({
                   />
                 </TabsTrigger>
                 <TabsTrigger value="fakultetlar" className="py-1.5">
-                  <TabLabel icon={Users} label="Fakultetlar" count={detail.data.faculties.length} />
+                  <TabLabel icon={Users} label={capitalize(noun.many)} count={detail.data.faculties.length} />
                 </TabsTrigger>
                 <TabsTrigger value="hujjatlar" className="py-1.5">
                   <TabLabel
@@ -840,6 +848,7 @@ export function GuidelineDetailSheet({
                 <FakultetlarTab
                   faculties={detail.data.faculties}
                   currency={detail.data.guideline.narx_valyuta}
+                  noun={noun}
                 />
               </TabsContent>
               <TabsContent value="hujjatlar" className="mt-3">

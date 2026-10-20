@@ -7,6 +7,7 @@ import {
   cityLabel,
   contractRange,
   displayName,
+  facultyNoun,
   focusGuideline,
   guidelinesForLevel,
   languageBadges,
@@ -146,7 +147,7 @@ export function UniversityCard({ entry, level = 'hammasi', highlights, onOpen }:
               </div>
               {latest.fakultet_soni > 0 && (
                 <Badge variant="neutral" className="shrink-0">
-                  {latest.fakultet_soni} fakultet
+                  {latest.fakultet_soni} {facultyNoun(latest.daraja).one}
                 </Badge>
               )}
             </div>

@@ -6,7 +6,8 @@ import UniversityCatalogContent from '../UniversityCatalogContent';
 /**
  * Daraja filtri (egasi, 2026-10-05): "Magistr" bosilsa — faqat magistratura
  * o'qitadigan universitetlar, "Kasbiy ta'lim" — kollejlar. Kasbiy ta'lim
- * Excel'i ham alohida tugma bilan yuklanadi.
+ * Excel'i ham alohida tugma bilan yuklanadi. Til kursi (egasi, 2026-10-20) —
+ * xuddi shunday, filtrda esa til kursi Excel'i yuklanganlar.
  */
 
 function guideline(over: Partial<GuidelineSummary>): GuidelineSummary {
@@ -72,8 +73,9 @@ const entries: CatalogEntry[] = [
     guideline({ id: 'y1', institution_id: 'yonsei', daraja: 'bakalavr' }),
     guideline({ id: 'y2', institution_id: 'yonsei', daraja: 'magistratura' }),
   ]),
-  // Faqat bakalavr Excel'i
+  // Bakalavr va til kursi Excel'i (til kursining yozgi termi — eng yangisi)
   uni('gachon', 'Gachon University', 'private', [
+    guideline({ id: 'ga2', institution_id: 'gachon', daraja: 'til_kursi', semestr: 'yoz' }),
     guideline({ id: 'ga1', institution_id: 'gachon', daraja: 'bakalavr' }),
   ]),
   // Faqat magistratura o'qitadi
@@ -139,6 +141,7 @@ describe('Universitetlar — daraja filtri', () => {
     expect(levelButton(/^Bakalavr/)).toHaveTextContent('Bakalavr2');
     expect(levelButton(/^Magistr/)).toHaveTextContent('Magistr3');
     expect(levelButton(/^Kasbiy/)).toHaveTextContent("Kasbiy ta'lim2");
+    expect(levelButton(/^Til kursi/)).toHaveTextContent('Til kursi1');
   });
 
   it('"Magistr" bosilsa faqat magistratura o‘qitadigan universitetlar qoladi', () => {
@@ -168,6 +171,13 @@ describe('Universitetlar — daraja filtri', () => {
     expect(shownUniversities()).toEqual(['Daegu Health College', 'Yeungjin University']);
   });
 
+  it('"Til kursi" bosilsa faqat til kursi Excel‘i yuklanganlar qoladi', () => {
+    render(<UniversityCatalogContent />);
+    fireEvent.click(levelButton(/^Til kursi/));
+
+    expect(shownUniversities()).toEqual(['Gachon University']);
+  });
+
   it('sarlavhada Shablon va umumiy Excel tugmalari yo‘q — Excel universitet panelidan yuklanadi', () => {
     render(<UniversityCatalogContent />);
     expect(screen.queryByRole('link', { name: /Shablon/ })).not.toBeInTheDocument();
@@ -178,8 +188,15 @@ describe('Universitetlar — daraja filtri', () => {
 });
 
 describe('Universitetlar — universitet panelidan Excel yuklash', () => {
-  /** Universitet kartasini ochib, panelda "Excel kasbiy ta'lim yuklash" orqali fayl tanlaydi. */
-  async function uploadFromPanel(university: string, payload: { guideline_id: string; univ_kod: string; daraja: string }) {
+  const KASBIY = { tab: "Kasbiy ta'lim", button: "Excel kasbiy ta'lim yuklash" };
+  const TIL_KURSI = { tab: 'Til kursi', button: 'Excel til kursi yuklash' };
+
+  /** Universitet kartasini ochib, panelda daraja yorlig'ini tanlaydi va "Excel ... yuklash" orqali fayl tanlaydi. */
+  async function uploadFromPanel(
+    university: string,
+    payload: { guideline_id: string; univ_kod: string; daraja: string },
+    level = KASBIY,
+  ) {
     mocks.parsed = {
       ok: true,
       payload: { fayl_nomi: 'f.xlsx', universitet: payload, muddatlar: [], fakultetlar: [], hujjatlar: [] },
@@ -188,7 +205,9 @@ describe('Universitetlar — universitet panelidan Excel yuklash', () => {
     };
     const { container } = render(<UniversityCatalogContent />);
     fireEvent.click(screen.getByText(university));
-    fireEvent.click(screen.getAllByRole('button', { name: "Excel kasbiy ta'lim yuklash" })[0]);
+    const sheet = screen.getByRole('dialog');
+    fireEvent.click(within(sheet).getByRole('button', { name: level.tab }));
+    fireEvent.click(within(sheet).getAllByRole('button', { name: level.button })[0]);
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(['x'], 'f.xlsx');
     Object.defineProperty(file, 'arrayBuffer', { value: async () => new ArrayBuffer(1) });
@@ -217,5 +236,18 @@ describe('Universitetlar — universitet panelidan Excel yuklash', () => {
 
     expect(await screen.findByText(/"Excel kasbiy ta'lim yuklash" tugmasi bosildi/)).toBeInTheDocument();
     expect(mocks.mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('til kursi Excel‘i hali yo‘q universitetga til kursi yorlig‘idan yuklanadi', async () => {
+    mocks.mutateAsync.mockResolvedValue({ muddatlar: 11, fakultetlar: 2, hujjatlar: 5 });
+    await uploadFromPanel(
+      'Yonsei University',
+      { guideline_id: 'yonsei_2027_yoz_til_kursi', univ_kod: 'yonsei', daraja: 'til_kursi' },
+      TIL_KURSI,
+    );
+
+    expect(mocks.mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ institutionId: 'yonsei' }));
+    // Til kursida fakultetlar varag'idagi qatorlar — kurslar.
+    expect(await screen.findByText('2 kurs')).toBeInTheDocument();
   });
 });

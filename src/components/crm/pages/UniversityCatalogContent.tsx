@@ -52,6 +52,7 @@ import { GuidelineDetailSheet } from './university-catalog/GuidelineDetailSheet'
 import { SortPanel } from './university-catalog/SortPanel';
 import {
   DEGREE_LEVELS,
+  facultyNoun,
   guidelinesForLevel,
   levelLabel,
   matchesFilter,
@@ -105,6 +106,8 @@ interface UploadReport {
   errors: string[];
   warnings: string[];
   imported: { muddatlar: number; fakultetlar: number; hujjatlar: number } | null;
+  /** Fakultetlar varag'idagi qatorlar nomi — til kursida "kurs". */
+  facultyNoun?: string;
 }
 
 const emptyNewInstitution = {
@@ -243,6 +246,7 @@ export default function UniversityCatalogContent() {
         payload: parsed.payload,
         institutionId: target.institutionId,
       });
+      const noun = facultyNoun(target.daraja).one;
       setReport({
         fileName: file.name,
         errors: [],
@@ -252,10 +256,11 @@ export default function UniversityCatalogContent() {
           fakultetlar: outcome.fakultetlar,
           hujjatlar: outcome.hujjatlar,
         },
+        facultyNoun: noun,
       });
       toast({
         title: 'Excel yuklandi',
-        description: `${outcome.fakultetlar} fakultet, ${outcome.muddatlar} muddat, ${outcome.hujjatlar} hujjat.`,
+        description: `${outcome.fakultetlar} ${noun}, ${outcome.muddatlar} muddat, ${outcome.hujjatlar} hujjat.`,
       });
     } catch (err) {
       setReport({
@@ -338,11 +343,11 @@ export default function UniversityCatalogContent() {
         </div>
       </div>
 
-      {/* Daraja: bakalavr, magistr yoki kasbiy ta'lim o'qitadigan universitetlar. Sonlar — boshqa filtrlar bilan birga. */}
+      {/* Daraja: bakalavr, magistr, kasbiy ta'lim yoki til kursi bor universitetlar. Sonlar — boshqa filtrlar bilan birga. */}
       <div
         role="group"
         aria-label="Daraja"
-        className="grid grid-cols-2 gap-0.5 rounded-md bg-muted p-[3px] sm:flex sm:w-fit"
+        className="grid grid-cols-2 gap-0.5 rounded-md bg-muted p-[3px] sm:flex sm:w-fit sm:flex-wrap"
       >
         {LEVEL_OPTIONS.map((o) => {
           const active = level === o.key;
@@ -357,6 +362,8 @@ export default function UniversityCatalogContent() {
               }}
               className={cn(
                 'flex h-8 items-center justify-center gap-1.5 rounded-sm px-3 text-sm transition-colors',
+                // Telefonda: "Barcha darajalar" butun qatorda, qolgan 4 tasi 2 x 2.
+                o.key === 'hammasi' && 'col-span-2',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card',
                 active
                   ? 'bg-card font-semibold text-foreground shadow-card'
@@ -478,7 +485,9 @@ export default function UniversityCatalogContent() {
           <div className="max-h-80 space-y-3 overflow-y-auto">
             {report?.imported && (
               <div className="flex flex-wrap gap-1.5">
-                <Badge variant="successSoft">{report.imported.fakultetlar} fakultet</Badge>
+                <Badge variant="successSoft">
+                  {report.imported.fakultetlar} {report.facultyNoun ?? 'fakultet'}
+                </Badge>
                 <Badge variant="successSoft">{report.imported.muddatlar} muddat</Badge>
                 <Badge variant="successSoft">{report.imported.hujjatlar} hujjat</Badge>
               </div>
