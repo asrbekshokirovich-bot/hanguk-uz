@@ -4943,4 +4943,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdTopikLevel6 => 'Near native';
+
+  @override
+  String fdCodeSms(String bold) {
+    return 'The $bold code your consultant sent by SMS';
+  }
+
+  @override
+  String get fdCodeEight => '8-character';
+
+  @override
+  String get fdCodeUnlocks => 'The code opens';
+
+  @override
+  String get fdCodeChat => 'Consultant chat';
+
+  @override
+  String get fdCodeScanShort => 'Scan QR';
+
+  @override
+  String get fdCodeNone => 'No code';
+
+  @override
+  String get fdCodeFreeConsult => 'Free consultation';
 }

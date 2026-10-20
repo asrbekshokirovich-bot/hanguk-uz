@@ -116,151 +116,286 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final ready = _code.length >= ClientCodeScreen.length;
     final message = _error ?? _retryNotice ?? widget.notice;
+    final eight = l.fdCodeEight;
+    final sms = l.fdCodeSms(eight);
+    final at = sms.indexOf(eight);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
       body: FdPage(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              LayoutBuilder(
-                builder: (context, box) => SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: box.maxHeight),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 2, 18, 0),
-                            child: Row(
+        // The page's glow fills the screen, not just the content's height.
+        child: SizedBox.expand(
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Semantics(
+                        button: true,
+                        label: MaterialLocalizations.of(context).backButtonTooltip,
+                        excludeSemantics: true,
+                        child: GestureDetector(
+                          onTap: _back,
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: FdColors.card,
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(color: FdColors.ink, width: 1.5),
+                            ),
+                            child: const Icon(Icons.arrow_back, size: 22, color: FdColors.ink),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          l.fdCodeTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: fdText(26, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // "Konsultant SMS da yuborgan **8 belgili** kod".
+                  Text.rich(
+                    TextSpan(
+                      style: fdText(14, FontWeight.w400, FdColors.pageMuted, height: 1.4),
+                      children: at < 0
+                          ? [TextSpan(text: sms)]
+                          : [
+                              TextSpan(text: sms.substring(0, at)),
+                              TextSpan(text: eight, style: fdText(14, FontWeight.w800, FdColors.onPage, height: 1.4)),
+                              TextSpan(text: sms.substring(at + eight.length)),
+                            ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _Cells(
+                    controller: _ctrl,
+                    focus: _focus,
+                    enabled: !_loading,
+                    onChanged: () => setState(() => _error = null),
+                    onSubmitted: _submit,
+                    semanticLabel: l.magicCodeTitle,
+                    cellLabel: l.fdCodeCell,
+                  ),
+                  const SizedBox(height: 14),
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _ctrl,
+                    builder: (context, value, _) => _Progress(filled: value.text.length),
+                  ),
+                  if (message != null) ...[
+                    const SizedBox(height: 14),
+                    Semantics(
+                      liveRegion: true,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _error != null ? const Color(0xFFFDECEC) : FdColors.tint,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: FdColors.ink, width: 1.5),
+                        ),
+                        child: Text(
+                          message,
+                          style: fdText(
+                            12,
+                            FontWeight.w700,
+                            _error != null ? FdColors.bad : FdColors.ink,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  HardButton(
+                    label: l.fdCodeSubmit,
+                    onPressed: _submit,
+                    loading: _loading,
+                    trailing: const Icon(Icons.arrow_forward, size: 18, color: FdColors.onLime),
+                  ),
+                  if (_offerGuest) ...[
+                    const SizedBox(height: 12),
+                    HardChoice(
+                      label: l.welcomeExploreCta,
+                      selected: false,
+                      height: 44,
+                      onTap: () => context.go(kDiscoverPath),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  Text(
+                    l.fdCodeUnlocks.toUpperCase(),
+                    style: fdText(11, FontWeight.w800, FdColors.pageMuted, letterSpacing: 0.8),
+                  ),
+                  const SizedBox(height: 10),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: _Unlock(
+                            icon: const Lucide(LucideIcons.clipboardList, size: 18, color: FdColors.onLime),
+                            label: l.fdJourneyTitle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _Unlock(
+                            icon: const Lucide(LucideIcons.fileText, size: 18, color: FdColors.onLime),
+                            label: l.fdDocsTitle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _Unlock(
+                            icon: const Icon(Icons.chat_bubble_outline, size: 18, color: FdColors.onLime),
+                            label: l.fdCodeChat,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _WhiteButton(
+                          icon: const Lucide(LucideIcons.qrCode, size: 16, color: FdColors.ink),
+                          label: l.fdCodeScanShort,
+                          onTap: _loading ? null : _scan,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _WhiteButton(
+                          icon: const Lucide(LucideIcons.phone, size: 16, color: FdColors.ink),
+                          label: l.fdCodeNone,
+                          onTap: _call,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Center(
+                    child: Semantics(
+                      button: true,
+                      child: GestureDetector(
+                        onTap: _call,
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                          child: Text.rich(
+                            TextSpan(
+                              style: fdText(12, FontWeight.w500, FdColors.pageMuted),
                               children: [
-                                HardIconButton(
-                                  glyph: LucideIcons.chevronLeft,
-                                  size: 38,
-                                  semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                                  onTap: _back,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    l.fdCodeTitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.5),
-                                  ),
+                                TextSpan(text: '${l.fdCodeFreeConsult} · '),
+                                TextSpan(
+                                  text: ContactLinks.phoneDisplay,
+                                  style: fdText(12, FontWeight.w800, FdColors.lime),
                                 ),
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
-                            child: Text(l.fdCodeSub, style: fdText(15, FontWeight.w400, FdColors.pageMuted, height: 1.45)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-                            child: _Cells(
-                              controller: _ctrl,
-                              focus: _focus,
-                              enabled: !_loading,
-                              onChanged: () => setState(() => _error = null),
-                              onSubmitted: _submit,
-                              semanticLabel: l.magicCodeTitle,
-                              cellLabel: l.fdCodeCell,
-                            ),
-                          ),
-                          if (message != null)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-                              child: Semantics(
-                                liveRegion: true,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: _error != null ? const Color(0xFFFDECEC) : FdColors.tint,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: FdColors.ink, width: 1.5),
-                                  ),
-                                  child: Text(
-                                    message,
-                                    style: fdText(12, FontWeight.w700, _error != null ? FdColors.bad : FdColors.ink, height: 1.35),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                // White until all eight cells are filled, then lime.
-                                HardButton(
-                                  label: l.fdCodeSubmit,
-                                  onPressed: _submit,
-                                  loading: _loading,
-                                  fill: ready || _loading ? FdColors.lime : FdColors.card,
-                                  foreground: ready || _loading ? FdColors.onLime : FdColors.muted,
-                                ),
-                                const SizedBox(height: 12),
-                                _ScanButton(label: l.fdCodeScan, onTap: _loading ? null : _scan),
-                                if (_offerGuest) ...[
-                                  const SizedBox(height: 12),
-                                  HardChoice(
-                                    label: l.welcomeExploreCta,
-                                    selected: false,
-                                    height: 44,
-                                    onTap: () => context.go(kDiscoverPath),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
-                            child: Column(
-                              children: [
-                                Text(l.fdCodeNoCode, style: fdText(12, FontWeight.w400, FdColors.pageMuted)),
-                                const SizedBox(height: 6),
-                                Semantics(
-                                  button: true,
-                                  child: GestureDetector(
-                                    onTap: _call,
-                                    behavior: HitTestBehavior.opaque,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                                      child: Text(
-                                        ContactLinks.phoneDisplay,
-                                        style: fdText(15, FontWeight.w800, FdColors.lime),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
-
 }
 
-/// The white "QR kodni skanerlash" button under "Kirish".
-class _ScanButton extends StatelessWidget {
-  const _ScanButton({required this.label, required this.onTap});
+/// Eight short bars under the cells: lime for each character typed.
+class _Progress extends StatelessWidget {
+  const _Progress({required this.filled});
 
+  final int filled;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      for (var i = 0; i < ClientCodeScreen.length; i++) ...[
+        if (i > 0) const SizedBox(width: 6),
+        Expanded(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            height: 4,
+            decoration: BoxDecoration(
+              color: i < filled ? FdColors.lime : Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+/// One of "Kod bilan ochiladi": a lime icon tile over its name, on the
+/// page's translucent card.
+class _Unlock extends StatelessWidget {
+  const _Unlock({required this.icon, required this.label});
+
+  final Widget icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(6, 14, 6, 12),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.06),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.16), width: 1.2),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: FdColors.lime,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: FdColors.ink, width: 1.5),
+          ),
+          child: icon,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: fdText(12, FontWeight.w800, FdColors.onPage, height: 1.2),
+        ),
+      ],
+    ),
+  );
+}
+
+/// The white "QR skanerlash" / "Kod yo'q" buttons.
+class _WhiteButton extends StatelessWidget {
+  const _WhiteButton({required this.icon, required this.label, required this.onTap});
+
+  final Widget icon;
   final String label;
   final VoidCallback? onTap;
 
@@ -272,7 +407,7 @@ class _ScanButton extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 44,
+        height: 46,
         decoration: BoxDecoration(
           color: FdColors.card,
           borderRadius: BorderRadius.circular(12),
@@ -281,14 +416,14 @@ class _ScanButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Lucide(LucideIcons.qrCode, size: 16, color: FdColors.ink),
+            icon,
             const SizedBox(width: 8),
             Flexible(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: fdText(13, FontWeight.w700, FdColors.ink),
+                style: fdText(13, FontWeight.w800, FdColors.ink),
               ),
             ),
           ],
@@ -306,7 +441,10 @@ class _CodeFormatter extends TextInputFormatter {
   TextEditingValue formatEditUpdate(TextEditingValue old, TextEditingValue value) {
     final clean = value.text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
     final text = clean.length > ClientCodeScreen.length ? clean.substring(0, ClientCodeScreen.length) : clean;
-    return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: text.length));
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
   }
 }
 
@@ -366,14 +504,21 @@ class _CellsState extends State<_Cells> with SingleTickerProviderStateMixin {
       textField: true,
       label: widget.semanticLabel,
       child: SizedBox(
-        height: 52,
+        height: 64,
         child: Stack(
           children: [
             ExcludeSemantics(
+              // HK7R – ____: two groups of four, as the code is read out.
               child: Row(
                 children: [
                   for (var i = 0; i < ClientCodeScreen.length; i++) ...[
-                    if (i > 0) const SizedBox(width: 6),
+                    if (i == ClientCodeScreen.length ~/ 2)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Text('–', style: fdText(22, FontWeight.w800, FdColors.pageMuted)),
+                      )
+                    else if (i > 0)
+                      const SizedBox(width: 6),
                     Expanded(
                       child: _Cell(
                         char: i < text.length ? text[i] : null,
@@ -412,7 +557,8 @@ class _CellsState extends State<_Cells> with SingleTickerProviderStateMixin {
                 onChanged: (_) => widget.onChanged(),
                 onSubmitted: (_) => widget.onSubmitted(),
                 textInputAction: TextInputAction.done,
-                contextMenuBuilder: (context, state) => AdaptiveTextSelectionToolbar.editableText(editableTextState: state),
+                contextMenuBuilder: (context, state) =>
+                    AdaptiveTextSelectionToolbar.editableText(editableTextState: state),
               ),
             ),
           ],
@@ -432,38 +578,64 @@ class _Cell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filled = char != null;
-    final box = Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: filled || current ? FdColors.card : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        border: filled || current ? Border.all(color: current ? FdColors.lime : FdColors.ink, width: current ? 2 : 1.5) : null,
+    if (!filled && !current) {
+      // Still to come: a dashed outline on the page.
+      return CustomPaint(
+        foregroundPainter: const DashedPillPainter(color: FdColors.navRule, radius: 12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const SizedBox.expand(),
+        ),
+      );
+    }
+    // Typed: white; the next one: lime with the cursor. Both stand on a hard
+    // ink shadow.
+    return Padding(
+      padding: const EdgeInsets.only(right: 3, bottom: 3),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: filled ? FdColors.card : FdColors.lime,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+          boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
+        ),
+        child: filled
+            ? Text(
+                char!,
+                style: const TextStyle(
+                  fontFamily: 'JetBrainsMono',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: FdColors.ink,
+                  height: 1,
+                ),
+              )
+            : FadeTransition(
+                opacity: blink,
+                child: const SizedBox(width: 2.5, height: 28, child: ColoredBox(color: FdColors.ink)),
+              ),
       ),
-      child: filled
-          ? Text(char!, style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 22, fontWeight: FontWeight.w600, color: FdColors.ink, height: 1))
-          : current
-          ? FadeTransition(opacity: blink, child: const SizedBox(width: 2, height: 24, child: ColoredBox(color: FdColors.ink)))
-          : null,
     );
-    if (filled || current) return box;
-    return CustomPaint(foregroundPainter: const DashedPillPainter(color: FdColors.navRule, radius: 10), child: box);
   }
 }
 
 /// The words for an [AuthError], in the app language.
-String authErrorMessage(AppLocalizations l, AuthError error) =>
-    switch (error) {
-      AuthError.invalidAccessCode => l.loginErrorInvalidAccessCode,
-      AuthError.codeNotFound => l.authErrorCodeNotFound,
-      AuthError.serverUnreachable => l.authErrorServerUnreachable,
-      AuthError.staffBlocked => l.authErrorStaffBlocked,
-      AuthError.accountSetupBusy => l.authErrorAccountSetupBusy,
-      AuthError.loginServerError => l.authErrorLoginServer,
-      AuthError.unexpected => l.authErrorUnexpected,
-      AuthError.crmAccount => l.authErrorCrmAccount,
-      AuthError.alreadyRegistered => l.authErrorAlreadyRegistered,
-      AuthError.signUpDisabled => l.authErrorSignUpDisabled,
-      AuthError.invalidPhoneFormat => l.authErrorPhoneFormat,
-      AuthError.invalidCredentials => l.loginErrorInvalidCredentials,
-      AuthError.signUpFailed => l.authErrorSignUpFailed,
-    };
+String authErrorMessage(AppLocalizations l, AuthError error) => switch (error) {
+  AuthError.invalidAccessCode => l.loginErrorInvalidAccessCode,
+  AuthError.codeNotFound => l.authErrorCodeNotFound,
+  AuthError.serverUnreachable => l.authErrorServerUnreachable,
+  AuthError.staffBlocked => l.authErrorStaffBlocked,
+  AuthError.accountSetupBusy => l.authErrorAccountSetupBusy,
+  AuthError.loginServerError => l.authErrorLoginServer,
+  AuthError.unexpected => l.authErrorUnexpected,
+  AuthError.crmAccount => l.authErrorCrmAccount,
+  AuthError.alreadyRegistered => l.authErrorAlreadyRegistered,
+  AuthError.signUpDisabled => l.authErrorSignUpDisabled,
+  AuthError.invalidPhoneFormat => l.authErrorPhoneFormat,
+  AuthError.invalidCredentials => l.loginErrorInvalidCredentials,
+  AuthError.signUpFailed => l.authErrorSignUpFailed,
+};

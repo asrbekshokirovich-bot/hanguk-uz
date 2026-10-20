@@ -1589,5 +1589,12 @@
   "fdTopikLevel3": "Giao tiếp hằng ngày",
   "fdTopikLevel4": "Trò chuyện tự do",
   "fdTopikLevel5": "Văn bản học thuật",
-  "fdTopikLevel6": "Gần như bản ngữ"
+  "fdTopikLevel6": "Gần như bản ngữ",
+  "fdCodeSms": "Mã {bold} tư vấn viên gửi qua SMS",
+  "fdCodeEight": "8 ký tự",
+  "fdCodeUnlocks": "Mã sẽ mở",
+  "fdCodeChat": "Chat với tư vấn viên",
+  "fdCodeScanShort": "Quét QR",
+  "fdCodeNone": "Không có mã",
+  "fdCodeFreeConsult": "Tư vấn miễn phí"
 }

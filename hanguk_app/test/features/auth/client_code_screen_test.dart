@@ -55,6 +55,12 @@ void main() {
     for (final c in ['H', 'G', '7', 'K']) {
       expect(find.text(c), findsOneWidget);
     }
+    // The bars under the cells: one lime bar per character typed.
+    await t.pump(const Duration(milliseconds: 300));
+    final lime = find.byWidgetPredicate(
+      (w) => w is AnimatedContainer && (w.decoration as BoxDecoration?)?.color == const Color(0xFFCCFF00),
+    );
+    expect(lime, findsNWidgets(4));
     await t.enterText(find.byType(TextField), 'ab-cd efghij');
     await t.pump();
     expect(tester(t).controller!.text, 'ABCDEFGH');

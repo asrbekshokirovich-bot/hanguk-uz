@@ -1589,5 +1589,12 @@
   "fdTopikLevel3": "Бытовое общение",
   "fdTopikLevel4": "Свободное общение",
   "fdTopikLevel5": "Научные тексты",
-  "fdTopikLevel6": "Как родной"
+  "fdTopikLevel6": "Как родной",
+  "fdCodeSms": "{bold} код из SMS консультанта",
+  "fdCodeEight": "8-значный",
+  "fdCodeUnlocks": "Код открывает",
+  "fdCodeChat": "Чат с консультантом",
+  "fdCodeScanShort": "Сканировать QR",
+  "fdCodeNone": "Нет кода",
+  "fdCodeFreeConsult": "Бесплатная консультация"
 }

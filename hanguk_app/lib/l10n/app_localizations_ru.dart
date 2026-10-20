@@ -4946,4 +4946,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdTopikLevel6 => 'Как родной';
+
+  @override
+  String fdCodeSms(String bold) {
+    return '$bold код из SMS консультанта';
+  }
+
+  @override
+  String get fdCodeEight => '8-значный';
+
+  @override
+  String get fdCodeUnlocks => 'Код открывает';
+
+  @override
+  String get fdCodeChat => 'Чат с консультантом';
+
+  @override
+  String get fdCodeScanShort => 'Сканировать QR';
+
+  @override
+  String get fdCodeNone => 'Нет кода';
+
+  @override
+  String get fdCodeFreeConsult => 'Бесплатная консультация';
 }

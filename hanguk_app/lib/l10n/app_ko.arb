@@ -1589,5 +1589,12 @@
   "fdTopikLevel3": "일상 대화",
   "fdTopikLevel4": "자유로운 대화",
   "fdTopikLevel5": "학술 글",
-  "fdTopikLevel6": "원어민 수준"
+  "fdTopikLevel6": "원어민 수준",
+  "fdCodeSms": "상담원이 SMS로 보낸 {bold} 코드",
+  "fdCodeEight": "8자리",
+  "fdCodeUnlocks": "코드로 열리는 기능",
+  "fdCodeChat": "상담원 채팅",
+  "fdCodeScanShort": "QR 스캔",
+  "fdCodeNone": "코드 없음",
+  "fdCodeFreeConsult": "무료 상담"
 }

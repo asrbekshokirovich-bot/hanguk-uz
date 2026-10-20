@@ -4757,4 +4757,27 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdTopikLevel6 => '원어민 수준';
+
+  @override
+  String fdCodeSms(String bold) {
+    return '상담원이 SMS로 보낸 $bold 코드';
+  }
+
+  @override
+  String get fdCodeEight => '8자리';
+
+  @override
+  String get fdCodeUnlocks => '코드로 열리는 기능';
+
+  @override
+  String get fdCodeChat => '상담원 채팅';
+
+  @override
+  String get fdCodeScanShort => 'QR 스캔';
+
+  @override
+  String get fdCodeNone => '코드 없음';
+
+  @override
+  String get fdCodeFreeConsult => '무료 상담';
 }

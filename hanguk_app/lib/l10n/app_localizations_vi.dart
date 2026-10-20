@@ -4919,4 +4919,27 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdTopikLevel6 => 'Gần như bản ngữ';
+
+  @override
+  String fdCodeSms(String bold) {
+    return 'Mã $bold tư vấn viên gửi qua SMS';
+  }
+
+  @override
+  String get fdCodeEight => '8 ký tự';
+
+  @override
+  String get fdCodeUnlocks => 'Mã sẽ mở';
+
+  @override
+  String get fdCodeChat => 'Chat với tư vấn viên';
+
+  @override
+  String get fdCodeScanShort => 'Quét QR';
+
+  @override
+  String get fdCodeNone => 'Không có mã';
+
+  @override
+  String get fdCodeFreeConsult => 'Tư vấn miễn phí';
 }

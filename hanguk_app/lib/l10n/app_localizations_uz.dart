@@ -4940,4 +4940,27 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fdTopikLevel6 => 'Ona tilidek';
+
+  @override
+  String fdCodeSms(String bold) {
+    return 'Konsultant SMS da yuborgan $bold kod';
+  }
+
+  @override
+  String get fdCodeEight => '8 belgili';
+
+  @override
+  String get fdCodeUnlocks => 'Kod bilan ochiladi';
+
+  @override
+  String get fdCodeChat => 'Konsultant chati';
+
+  @override
+  String get fdCodeScanShort => 'QR skanerlash';
+
+  @override
+  String get fdCodeNone => 'Kod yo\'q';
+
+  @override
+  String get fdCodeFreeConsult => 'Bepul konsultatsiya';
 }

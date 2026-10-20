@@ -8845,6 +8845,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Near native'**
   String get fdTopikLevel6;
+
+  /// Code screen: line under the title; {bold} is fdCodeEight, shown bold.
+  ///
+  /// In en, this message translates to:
+  /// **'The {bold} code your consultant sent by SMS'**
+  String fdCodeSms(String bold);
+
+  /// Code screen: the bold part of fdCodeSms.
+  ///
+  /// In en, this message translates to:
+  /// **'8-character'**
+  String get fdCodeEight;
+
+  /// Code screen: heading over what the code opens (shown upper case).
+  ///
+  /// In en, this message translates to:
+  /// **'The code opens'**
+  String get fdCodeUnlocks;
+
+  /// Code screen: the consultant chat tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Consultant chat'**
+  String get fdCodeChat;
+
+  /// Code screen: QR button.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get fdCodeScanShort;
+
+  /// Code screen: 'no code' button, calls the office.
+  ///
+  /// In en, this message translates to:
+  /// **'No code'**
+  String get fdCodeNone;
+
+  /// Code screen footer, before the phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'Free consultation'**
+  String get fdCodeFreeConsult;
 }
 
 class _AppLocalizationsDelegate

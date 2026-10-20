@@ -1589,5 +1589,12 @@
   "fdTopikLevel3": "Kundalik suhbat",
   "fdTopikLevel4": "Erkin suhbat",
   "fdTopikLevel5": "Ilmiy matnlar",
-  "fdTopikLevel6": "Ona tilidek"
+  "fdTopikLevel6": "Ona tilidek",
+  "fdCodeSms": "Konsultant SMS da yuborgan {bold} kod",
+  "fdCodeEight": "8 belgili",
+  "fdCodeUnlocks": "Kod bilan ochiladi",
+  "fdCodeChat": "Konsultant chati",
+  "fdCodeScanShort": "QR skanerlash",
+  "fdCodeNone": "Kod yo'q",
+  "fdCodeFreeConsult": "Bepul konsultatsiya"
 }

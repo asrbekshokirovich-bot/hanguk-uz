@@ -6517,5 +6517,38 @@
   "fdTopikLevel6": "Near native",
   "@fdTopikLevel6": {
     "description": "What TOPIK 6 means."
+  },
+  "fdCodeSms": "The {bold} code your consultant sent by SMS",
+  "@fdCodeSms": {
+    "description": "Code screen: line under the title; {bold} is fdCodeEight, shown bold.",
+    "placeholders": {
+      "bold": {
+        "type": "String"
+      }
+    }
+  },
+  "fdCodeEight": "8-character",
+  "@fdCodeEight": {
+    "description": "Code screen: the bold part of fdCodeSms."
+  },
+  "fdCodeUnlocks": "The code opens",
+  "@fdCodeUnlocks": {
+    "description": "Code screen: heading over what the code opens (shown upper case)."
+  },
+  "fdCodeChat": "Consultant chat",
+  "@fdCodeChat": {
+    "description": "Code screen: the consultant chat tile."
+  },
+  "fdCodeScanShort": "Scan QR",
+  "@fdCodeScanShort": {
+    "description": "Code screen: QR button."
+  },
+  "fdCodeNone": "No code",
+  "@fdCodeNone": {
+    "description": "Code screen: 'no code' button, calls the office."
+  },
+  "fdCodeFreeConsult": "Free consultation",
+  "@fdCodeFreeConsult": {
+    "description": "Code screen footer, before the phone number."
   }
 }
