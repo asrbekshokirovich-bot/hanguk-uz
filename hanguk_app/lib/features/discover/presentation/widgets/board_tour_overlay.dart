@@ -23,9 +23,10 @@ class BoardTourTargets {
 
 /// The home board's first-run tour (design 12a–12d): one section lit at a
 /// time, everything else dimmed under it — the tab bar too — with a single
-/// lime label beside the lit section and, at the top, "O'tkazish", the
-/// progress dots and "Keyingi →" ("Boshlash ✓" on the last). The lit section
-/// stays usable: a field can be picked on the first step.
+/// lime label beside the lit section. Each step stays [stepDuration] and
+/// moves on by itself; there are no buttons. The lit section stays usable: a
+/// field can be picked on the first step, and the last step's button ends
+/// the tour.
 class BoardTour extends ConsumerStatefulWidget {
   const BoardTour({super.key, required this.builder});
 
@@ -39,8 +40,18 @@ class _BoardTourState extends ConsumerState<BoardTour> {
   final _targets = BoardTourTargets();
   final _portal = OverlayPortalController();
   int _step = 0;
+  Timer? _timer;
 
   static const int _steps = 4;
+
+  /// How long each section stays lit (owner, 2026-10-20: "2 yoki 3 sekund").
+  static const Duration stepDuration = Duration(seconds: 3);
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +69,6 @@ class _BoardTourState extends ConsumerState<BoardTour> {
         step: _step,
         steps: _steps,
         target: _rectOf(_targets.inOrder[_step]),
-        onNext: _next,
-        onSkip: () => _finish('skip'),
         onTargetTap: _step == _steps - 1 ? () => _finish('button') : null,
       ),
       child: widget.builder(context, _targets),
@@ -85,7 +94,10 @@ class _BoardTourState extends ConsumerState<BoardTour> {
         alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
       );
     }
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    _timer?.cancel();
+    _timer = Timer(stepDuration, _next);
     // One more frame: the rect is read after layout settles.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
@@ -93,6 +105,7 @@ class _BoardTourState extends ConsumerState<BoardTour> {
   }
 
   void _next() {
+    if (!mounted || !_portal.isShowing) return;
     if (_step == _steps - 1) {
       _finish('done');
       return;
@@ -102,6 +115,7 @@ class _BoardTourState extends ConsumerState<BoardTour> {
   }
 
   void _finish(String how) {
+    _timer?.cancel();
     AppEvents.track('board_tour', props: {'action': how, 'step': _step + 1});
     ref.read(boardTourProvider.notifier).markSeen();
     if (_portal.isShowing) _portal.hide();
@@ -119,16 +133,12 @@ class _TourLayer extends StatelessWidget {
     required this.step,
     required this.steps,
     required this.target,
-    required this.onNext,
-    required this.onSkip,
     required this.onTargetTap,
   });
 
   final int step;
   final int steps;
   final Rect? target;
-  final VoidCallback onNext;
-  final VoidCallback onSkip;
   final VoidCallback? onTargetTap;
 
   @override
@@ -137,7 +147,6 @@ class _TourLayer extends StatelessWidget {
     final media = MediaQuery.of(context);
     final screen = media.size;
     final hole = target?.inflate(step == 0 ? 8 : 6);
-    final last = step == steps - 1;
     final (label, icon) = switch (step) {
       0 => (l.btField, Icons.touch_app_outlined),
       1 => (l.btCount, Icons.tag),
@@ -155,10 +164,7 @@ class _TourLayer extends StatelessWidget {
             builder: (context, rect, _) => _Barrier(
               hole: rect,
               onHoleTap: onTargetTap,
-              child: CustomPaint(
-                painter: _DimPainter(rect, topBand: media.padding.top + 48),
-                size: Size.infinite,
-              ),
+              child: CustomPaint(painter: _DimPainter(rect), size: Size.infinite),
             ),
           ),
         ),
@@ -179,58 +185,6 @@ class _TourLayer extends StatelessWidget {
                   : Icon(icon, size: 17, color: FdColors.onLime),
             ),
           ),
-        Positioned(
-          top: media.padding.top + 6,
-          right: 16,
-          child: Row(
-            children: [
-              Semantics(
-                button: true,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onSkip,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                    child: Text(l.btSkip, style: fdText(13, FontWeight.w800, Colors.white)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              for (var i = 0; i < steps; i++) ...[
-                if (i > 0) const SizedBox(width: 4),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: i == step ? 18 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: i == step
-                        ? Colors.white
-                        : i < step
-                        ? FdColors.lime
-                        : Colors.white.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-              ],
-              const SizedBox(width: 12),
-              Semantics(
-                button: true,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onNext,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999)),
-                    child: Text(
-                      last ? '${l.btStart} ✓' : '${l.fdNext} →',
-                      style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.1),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -309,13 +263,9 @@ class _Pill extends StatelessWidget {
 
 /// The dim over everything but the lit section, its lime outline and glow.
 class _DimPainter extends CustomPainter {
-  const _DimPainter(this.hole, {required this.topBand});
+  const _DimPainter(this.hole);
 
   final Rect? hole;
-
-  /// The strip the tour's own bar sits on: dimmed further, so the board's
-  /// title under it does not read through.
-  final double topBand;
 
   static const double _radius = 20;
 
@@ -326,12 +276,10 @@ class _DimPainter extends CustomPainter {
     final h = hole;
     if (h == null) {
       canvas.drawPath(screen, dim);
-      _band(canvas, size);
       return;
     }
     final rrect = RRect.fromRectAndRadius(h, const Radius.circular(_radius));
     canvas.drawPath(Path.combine(PathOperation.difference, screen, Path()..addRRect(rrect)), dim);
-    _band(canvas, size);
     canvas.drawRRect(
       rrect.inflate(7),
       Paint()
@@ -348,21 +296,8 @@ class _DimPainter extends CustomPainter {
     );
   }
 
-  void _band(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, topBand),
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xF2050B26), Color(0xE6050B26), Color(0x00050B26)],
-          stops: [0, 0.75, 1],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, topBand)),
-    );
-  }
-
   @override
-  bool shouldRepaint(_DimPainter old) => old.hole != hole || old.topBand != topBand;
+  bool shouldRepaint(_DimPainter old) => old.hole != hole;
 }
 
 /// Swallows every touch except those on the lit section, which go through to

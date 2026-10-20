@@ -4672,12 +4672,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get ajBack => '뒤로';
 
   @override
-  String get btSkip => '건너뛰기';
-
-  @override
-  String get btStart => '시작하기';
-
-  @override
   String get btField => '여기서 시작하세요';
 
   @override

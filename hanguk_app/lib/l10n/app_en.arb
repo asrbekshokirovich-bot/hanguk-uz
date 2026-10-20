@@ -6392,14 +6392,6 @@
   "@ajBack": {
     "description": "Accessibility label of the back button on the detail page."
   },
-  "btSkip": "Skip",
-  "@btSkip": {
-    "description": "Home board tour (design 12): skip the tour."
-  },
-  "btStart": "Start",
-  "@btStart": {
-    "description": "Home board tour: the last step's button; the tour ends."
-  },
   "btField": "Start here",
   "@btField": {
     "description": "Home board tour step 1: label beside the field tiles."

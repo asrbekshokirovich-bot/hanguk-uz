@@ -4834,12 +4834,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ajBack => 'Quay lại';
 
   @override
-  String get btSkip => 'Bỏ qua';
-
-  @override
-  String get btStart => 'Bắt đầu';
-
-  @override
   String get btField => 'Bắt đầu từ đây';
 
   @override

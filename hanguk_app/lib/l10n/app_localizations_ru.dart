@@ -4861,12 +4861,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ajBack => 'Назад';
 
   @override
-  String get btSkip => 'Пропустить';
-
-  @override
-  String get btStart => 'Начать';
-
-  @override
   String get btField => 'Начните отсюда';
 
   @override

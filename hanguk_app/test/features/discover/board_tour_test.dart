@@ -59,33 +59,25 @@ void main() {
     return container;
   }
 
-  testWidgets('a first visit walks through the four sections, one label at a time', (t) async {
+  testWidgets('a first visit lights the four sections in turn, three seconds each, then ends', (t) async {
     final c = await pump(t, fresh: true);
     expect(find.text('Bu yerdan boshlang'), findsOneWidget);
-    expect(find.text("O'tkazish"), findsOneWidget);
-    for (final (label, others) in [
-      ('Mos universitetlar', ['Bu yerdan boshlang']),
-      ('Viza imkoningiz', ['Mos universitetlar']),
-      ("Ro'yxatni ko'rish", ['Viza imkoningiz']),
+    // No buttons: it moves on by itself.
+    expect(find.text("O'tkazish"), findsNothing);
+    expect(find.textContaining('Keyingi'), findsNothing);
+    for (final (label, previous) in [
+      ('Mos universitetlar', 'Bu yerdan boshlang'),
+      ('Viza imkoningiz', 'Mos universitetlar'),
+      ("Ro'yxatni ko'rish", 'Viza imkoningiz'),
     ]) {
-      await t.tap(find.text('Keyingi →'));
+      await t.pump(const Duration(seconds: 3));
       await t.pumpAndSettle();
       expect(find.text(label), findsOneWidget);
-      for (final o in others) {
-        expect(find.text(o), findsNothing);
-      }
+      expect(find.text(previous), findsNothing);
     }
-    await t.tap(find.text('Boshlash ✓'));
+    await t.pump(const Duration(seconds: 3));
     await t.pumpAndSettle();
-    expect(find.text("O'tkazish"), findsNothing);
-    expect(c.read(boardTourProvider), isTrue);
-  });
-
-  testWidgets("O'tkazish ends it at once", (t) async {
-    final c = await pump(t, fresh: true);
-    await t.tap(find.text("O'tkazish"));
-    await t.pumpAndSettle();
-    expect(find.text('Bu yerdan boshlang'), findsNothing);
+    expect(find.text("Ro'yxatni ko'rish"), findsNothing);
     expect(c.read(boardTourProvider), isTrue);
   });
 
@@ -98,11 +90,12 @@ void main() {
     await t.tap(find.text('Seul'), warnIfMissed: false);
     await t.pumpAndSettle();
     expect(c.read(catalogFilterProvider).regions, isEmpty);
+    await t.pump(const Duration(seconds: 12));
+    await t.pumpAndSettle();
   });
 
   testWidgets('once seen, the board opens without it', (t) async {
     await pump(t, fresh: false);
     expect(find.text('Bu yerdan boshlang'), findsNothing);
-    expect(find.text("O'tkazish"), findsNothing);
   });
 }

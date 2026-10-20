@@ -4855,12 +4855,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get ajBack => 'Orqaga';
 
   @override
-  String get btSkip => 'O\'tkazish';
-
-  @override
-  String get btStart => 'Boshlash';
-
-  @override
   String get btField => 'Bu yerdan boshlang';
 
   @override

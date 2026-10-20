@@ -4858,12 +4858,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ajBack => 'Back';
 
   @override
-  String get btSkip => 'Skip';
-
-  @override
-  String get btStart => 'Start';
-
-  @override
   String get btField => 'Start here';
 
   @override

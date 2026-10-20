@@ -8684,18 +8684,6 @@ abstract class AppLocalizations {
   /// **'Back'**
   String get ajBack;
 
-  /// Home board tour (design 12): skip the tour.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip'**
-  String get btSkip;
-
-  /// Home board tour: the last step's button; the tour ends.
-  ///
-  /// In en, this message translates to:
-  /// **'Start'**
-  String get btStart;
-
   /// Home board tour step 1: label beside the field tiles.
   ///
   /// In en, this message translates to:
