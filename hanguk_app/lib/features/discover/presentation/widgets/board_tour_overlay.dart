@@ -10,18 +10,29 @@ import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/board_tour.dart';
 
-/// What the tour points at, in order: the field tiles, the count, the visa
-/// gauge, the "N ta universitetni ko'rish" button.
+/// What the tour points at, top to bottom: the twelve places of the board
+/// (owner, 2026-10-20) — the count, the visa gauge, the strip, each choice
+/// section, and the "N ta universitetni ko'rish" button.
 class BoardTourTargets {
-  final field = GlobalKey(debugLabel: 'tour-field');
   final count = GlobalKey(debugLabel: 'tour-count');
   final visa = GlobalKey(debugLabel: 'tour-visa');
+  final strip = GlobalKey(debugLabel: 'tour-strip');
+  final field = GlobalKey(debugLabel: 'tour-field');
+  final city = GlobalKey(debugLabel: 'tour-city');
+  final degree = GlobalKey(debugLabel: 'tour-degree');
+  final topik = GlobalKey(debugLabel: 'tour-topik');
+  final ielts = GlobalKey(debugLabel: 'tour-ielts');
+  final fee = GlobalKey(debugLabel: 'tour-fee');
+  final type = GlobalKey(debugLabel: 'tour-type');
+  final grant = GlobalKey(debugLabel: 'tour-grant');
   final button = GlobalKey(debugLabel: 'tour-button');
 
-  List<GlobalKey> get inOrder => [field, count, visa, button];
+  List<GlobalKey> get inOrder => [count, visa, strip, field, city, degree, topik, ielts, fee, type, grant, button];
+
+  static const int _count = 12;
 }
 
-/// The home board's first-run tour (design 12a–12d): one section lit at a
+/// The home board's first-run tour (design 12a–12d, twelve places): one section lit at a
 /// time, everything else dimmed under it — the tab bar too — with a single
 /// lime label beside the lit section. Each step stays [stepDuration] and
 /// moves on by itself; there are no buttons. The lit section stays usable: a
@@ -42,7 +53,7 @@ class _BoardTourState extends ConsumerState<BoardTour> {
   int _step = 0;
   Timer? _timer;
 
-  static const int _steps = 4;
+  static int get _steps => BoardTourTargets._count;
 
   /// How long each section stays lit (owner, 2026-10-20: "2 yoki 3 sekund").
   static const Duration stepDuration = Duration(seconds: 3);
@@ -83,16 +94,12 @@ class _BoardTourState extends ConsumerState<BoardTour> {
     _reveal();
   }
 
-  /// Scrolls the step's section into view (a short phone may have the
-  /// field tiles below the fold), then redraws the light on it.
+  /// Scrolls the step's section to the middle of the list (the lower ones
+  /// start below the fold), then redraws the light on it.
   Future<void> _reveal() async {
     final ctx = _targets.inOrder[_step].currentContext;
     if (ctx != null && Scrollable.maybeOf(ctx) != null) {
-      await Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 250),
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-      );
+      await Scrollable.ensureVisible(ctx, alignment: 0.45, duration: const Duration(milliseconds: 300));
     }
     if (!mounted) return;
     setState(() {});
@@ -116,6 +123,11 @@ class _BoardTourState extends ConsumerState<BoardTour> {
 
   void _finish(String how) {
     _timer?.cancel();
+    // Back to the top of the board, where the student starts.
+    final first = _targets.strip.currentContext;
+    if (first != null && Scrollable.maybeOf(first) != null) {
+      Scrollable.ensureVisible(first, duration: const Duration(milliseconds: 300));
+    }
     AppEvents.track('board_tour', props: {'action': how, 'step': _step + 1});
     ref.read(boardTourProvider.notifier).markSeen();
     if (_portal.isShowing) _portal.hide();
@@ -146,11 +158,19 @@ class _TourLayer extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final media = MediaQuery.of(context);
     final screen = media.size;
-    final hole = target?.inflate(step == 0 ? 8 : 6);
+    final hole = target?.inflate(6);
     final (label, icon) = switch (step) {
-      0 => (l.btField, Icons.touch_app_outlined),
-      1 => (l.btCount, Icons.tag),
-      2 => (l.btVisa, null),
+      0 => (l.btCount, Icons.tag),
+      1 => (l.btVisa, null),
+      2 => (l.btStrip, Icons.auto_awesome_outlined),
+      3 => (l.btField, Icons.touch_app_outlined),
+      4 => (l.btCity, Icons.place_outlined),
+      5 => (l.btDegree, Icons.school_outlined),
+      6 => (l.btTopik, Icons.translate),
+      7 => (l.btIelts, Icons.language),
+      8 => (l.btFee, Icons.payments_outlined),
+      9 => (l.btType, Icons.account_balance_outlined),
+      10 => (l.btGrant, Icons.card_giftcard_outlined),
       _ => (l.btList, Icons.format_list_bulleted),
     };
 
@@ -172,10 +192,12 @@ class _TourLayer extends StatelessWidget {
           _Label(
             hole: hole,
             screen: screen,
-            above: step == 0 || step == steps - 1,
+            // Below a section in the top half of the screen, above one in
+            // the bottom half, so the label never covers it.
+            above: hole.center.dy > screen.height / 2,
             align: switch (step) {
-              1 => _Align.start,
-              2 => _Align.end,
+              0 => _Align.start,
+              1 => _Align.end,
               _ => _Align.center,
             },
             child: _Pill(
@@ -255,7 +277,14 @@ class _Pill extends StatelessWidget {
       children: [
         icon,
         const SizedBox(width: 8),
-        Text(label, style: fdText(14, FontWeight.w800, FdColors.onLime, height: 1.1)),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: fdText(14, FontWeight.w800, FdColors.onLime, height: 1.1),
+          ),
+        ),
       ],
     ),
   );

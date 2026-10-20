@@ -4858,7 +4858,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ajBack => 'Back';
 
   @override
-  String get btField => 'Start here';
+  String get btField => 'Pick your field';
 
   @override
   String get btCount => 'Matching universities';
@@ -4868,4 +4868,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get btList => 'See the list';
+
+  @override
+  String get btStrip => 'Your best matches';
+
+  @override
+  String get btCity => 'Which city?';
+
+  @override
+  String get btDegree => 'Which degree?';
+
+  @override
+  String get btTopik => 'Your Korean level';
+
+  @override
+  String get btIelts => 'Your IELTS score';
+
+  @override
+  String get btFee => 'Tuition';
+
+  @override
+  String get btType => 'State or private';
+
+  @override
+  String get btGrant => 'Need a grant?';
+
+  @override
+  String get fdSectionIelts => 'My English (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => 'I won\'t study in English';
+
+  @override
+  String fdIeltsHint(String score) {
+    return 'English programmes up to IELTS $score';
+  }
+
+  @override
+  String get fdSectionGrant => 'Grant / scholarship';
+
+  @override
+  String get fdGrantHint => 'Tuition discount';
+
+  @override
+  String get fdGrantNone => 'Not needed';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return 'Grant $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — TOPIK $level+ opens';
+  }
+
+  @override
+  String get fdTopikHintNone => 'Pick your level';
+
+  @override
+  String get fdTopikLevel1 => 'Greetings';
+
+  @override
+  String get fdTopikLevel2 => 'Simple sentences';
+
+  @override
+  String get fdTopikLevel3 => 'Everyday talk';
+
+  @override
+  String get fdTopikLevel4 => 'Free conversation';
+
+  @override
+  String get fdTopikLevel5 => 'Academic texts';
+
+  @override
+  String get fdTopikLevel6 => 'Near native';
 }

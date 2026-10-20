@@ -4834,7 +4834,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ajBack => 'Quay lại';
 
   @override
-  String get btField => 'Bắt đầu từ đây';
+  String get btField => 'Chọn ngành';
 
   @override
   String get btCount => 'Trường phù hợp';
@@ -4844,4 +4844,79 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get btList => 'Xem danh sách';
+
+  @override
+  String get btStrip => 'Trường hợp với bạn';
+
+  @override
+  String get btCity => 'Thành phố nào?';
+
+  @override
+  String get btDegree => 'Bậc học nào?';
+
+  @override
+  String get btTopik => 'Trình độ tiếng Hàn';
+
+  @override
+  String get btIelts => 'Điểm IELTS của bạn';
+
+  @override
+  String get btFee => 'Học phí';
+
+  @override
+  String get btType => 'Công lập hay tư thục';
+
+  @override
+  String get btGrant => 'Cần học bổng?';
+
+  @override
+  String get fdSectionIelts => 'Tiếng Anh của tôi (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => 'Tôi không học bằng tiếng Anh';
+
+  @override
+  String fdIeltsHint(String score) {
+    return 'Chương trình tiếng Anh — đến IELTS $score';
+  }
+
+  @override
+  String get fdSectionGrant => 'Học bổng';
+
+  @override
+  String get fdGrantHint => 'Giảm học phí';
+
+  @override
+  String get fdGrantNone => 'Không cần';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return 'Học bổng $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — mở TOPIK $level+';
+  }
+
+  @override
+  String get fdTopikHintNone => 'Chọn trình độ';
+
+  @override
+  String get fdTopikLevel1 => 'Chào hỏi';
+
+  @override
+  String get fdTopikLevel2 => 'Câu đơn giản';
+
+  @override
+  String get fdTopikLevel3 => 'Giao tiếp hằng ngày';
+
+  @override
+  String get fdTopikLevel4 => 'Trò chuyện tự do';
+
+  @override
+  String get fdTopikLevel5 => 'Văn bản học thuật';
+
+  @override
+  String get fdTopikLevel6 => 'Gần như bản ngữ';
 }

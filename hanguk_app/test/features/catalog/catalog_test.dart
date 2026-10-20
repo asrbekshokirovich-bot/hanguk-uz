@@ -98,6 +98,19 @@ void main() {
       expect(out.map((u) => u.institutionId), ['u2']);
     });
 
+    test('grant keeps the universities whose largest waiver reaches it; no data yet filters nothing', () {
+      const grants = {'u1': 100, 'u3': 30};
+      expect(
+        applyCatalogFilter(all, const CatalogFilter(grant: 50), grants: grants).map((u) => u.institutionId),
+        ['u1'],
+      );
+      expect(
+        applyCatalogFilter(all, const CatalogFilter(grant: 30), grants: grants).map((u) => u.institutionId),
+        ['u1', 'u3'],
+      );
+      expect(applyCatalogFilter(all, const CatalogFilter(grant: 50)).length, 3);
+    });
+
     test('degree keeps only universities with that guideline', () {
       final out = applyCatalogFilter(all, const CatalogFilter(degree: CatalogDegree.master));
       expect(out.map((u) => u.institutionId), ['u1']);

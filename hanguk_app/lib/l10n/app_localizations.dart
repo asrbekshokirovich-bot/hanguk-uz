@@ -8687,7 +8687,7 @@ abstract class AppLocalizations {
   /// Home board tour step 1: label beside the field tiles.
   ///
   /// In en, this message translates to:
-  /// **'Start here'**
+  /// **'Pick your field'**
   String get btField;
 
   /// Home board tour step 2: label beside the count of matching universities.
@@ -8707,6 +8707,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See the list'**
   String get btList;
+
+  /// Board tour: label beside the strip of matching universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best matches'**
+  String get btStrip;
+
+  /// Board tour: label beside the city chips.
+  ///
+  /// In en, this message translates to:
+  /// **'Which city?'**
+  String get btCity;
+
+  /// Board tour: label beside the degree choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Which degree?'**
+  String get btDegree;
+
+  /// Board tour: label beside the student's TOPIK level.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Korean level'**
+  String get btTopik;
+
+  /// Board tour: label beside the IELTS score.
+  ///
+  /// In en, this message translates to:
+  /// **'Your IELTS score'**
+  String get btIelts;
+
+  /// Board tour: label beside the tuition slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get btFee;
+
+  /// Board tour: label beside state/private.
+  ///
+  /// In en, this message translates to:
+  /// **'State or private'**
+  String get btType;
+
+  /// Board tour: label beside the grant choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Need a grant?'**
+  String get btGrant;
+
+  /// Board section title: the student's IELTS score.
+  ///
+  /// In en, this message translates to:
+  /// **'My English (IELTS)'**
+  String get fdSectionIelts;
+
+  /// Note beside the IELTS section when 'No' is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'I won\'t study in English'**
+  String get fdIeltsNoneHint;
+
+  /// Note beside the IELTS section when a score is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'English programmes up to IELTS {score}'**
+  String fdIeltsHint(String score);
+
+  /// Board section title: the grant / scholarship wanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant / scholarship'**
+  String get fdSectionGrant;
+
+  /// Note beside the grant section.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition discount'**
+  String get fdGrantHint;
+
+  /// Grant choice: not needed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get fdGrantNone;
+
+  /// The grant choice in the one-line filter summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant {pct}%+'**
+  String fdGrantSummary(int pct);
+
+  /// Note beside the TOPIK level: what it means and what it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'{meaning} — TOPIK {level}+ opens'**
+  String fdTopikHint(String meaning, int level);
+
+  /// Note beside the TOPIK level when none is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your level'**
+  String get fdTopikHintNone;
+
+  /// What TOPIK 1 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Greetings'**
+  String get fdTopikLevel1;
+
+  /// What TOPIK 2 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple sentences'**
+  String get fdTopikLevel2;
+
+  /// What TOPIK 3 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday talk'**
+  String get fdTopikLevel3;
+
+  /// What TOPIK 4 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Free conversation'**
+  String get fdTopikLevel4;
+
+  /// What TOPIK 5 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic texts'**
+  String get fdTopikLevel5;
+
+  /// What TOPIK 6 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Near native'**
+  String get fdTopikLevel6;
 }
 
 class _AppLocalizationsDelegate

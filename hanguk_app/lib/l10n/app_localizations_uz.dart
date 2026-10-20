@@ -4855,7 +4855,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get ajBack => 'Orqaga';
 
   @override
-  String get btField => 'Bu yerdan boshlang';
+  String get btField => 'Yo\'nalishni tanlang';
 
   @override
   String get btCount => 'Mos universitetlar';
@@ -4865,4 +4865,79 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get btList => 'Ro\'yxatni ko\'rish';
+
+  @override
+  String get btStrip => 'Sizga mos universitetlar';
+
+  @override
+  String get btCity => 'Qaysi shahar?';
+
+  @override
+  String get btDegree => 'Qaysi daraja?';
+
+  @override
+  String get btTopik => 'Koreys tili darajangiz';
+
+  @override
+  String get btIelts => 'IELTS balingiz';
+
+  @override
+  String get btFee => 'Kontrakt narxi';
+
+  @override
+  String get btType => 'Davlat yoki xususiy';
+
+  @override
+  String get btGrant => 'Grant kerakmi?';
+
+  @override
+  String get fdSectionIelts => 'Ingliz tilim (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => 'Ingliz tilida o\'qimayman';
+
+  @override
+  String fdIeltsHint(String score) {
+    return 'Ingliz tilidagi dasturlar — IELTS $score gacha';
+  }
+
+  @override
+  String get fdSectionGrant => 'Grant / stipendiya';
+
+  @override
+  String get fdGrantHint => 'Kontraktdan chegirma';
+
+  @override
+  String get fdGrantNone => 'Shart emas';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return 'Grant $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — TOPIK $level+ ochiladi';
+  }
+
+  @override
+  String get fdTopikHintNone => 'Darajangizni tanlang';
+
+  @override
+  String get fdTopikLevel1 => 'Salomlashish';
+
+  @override
+  String get fdTopikLevel2 => 'Oddiy gaplar';
+
+  @override
+  String get fdTopikLevel3 => 'Kundalik suhbat';
+
+  @override
+  String get fdTopikLevel4 => 'Erkin suhbat';
+
+  @override
+  String get fdTopikLevel5 => 'Ilmiy matnlar';
+
+  @override
+  String get fdTopikLevel6 => 'Ona tilidek';
 }

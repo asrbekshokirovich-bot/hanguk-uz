@@ -4672,7 +4672,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get ajBack => '뒤로';
 
   @override
-  String get btField => '여기서 시작하세요';
+  String get btField => '전공을 고르세요';
 
   @override
   String get btCount => '맞는 대학';
@@ -4682,4 +4682,79 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get btList => '목록 보기';
+
+  @override
+  String get btStrip => '나에게 맞는 대학';
+
+  @override
+  String get btCity => '어느 도시?';
+
+  @override
+  String get btDegree => '어떤 과정?';
+
+  @override
+  String get btTopik => '나의 한국어 수준';
+
+  @override
+  String get btIelts => '나의 IELTS 점수';
+
+  @override
+  String get btFee => '등록금';
+
+  @override
+  String get btType => '국립 또는 사립';
+
+  @override
+  String get btGrant => '장학금이 필요한가요?';
+
+  @override
+  String get fdSectionIelts => '나의 영어 (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => '영어로 공부하지 않아요';
+
+  @override
+  String fdIeltsHint(String score) {
+    return '영어 과정 — IELTS $score까지';
+  }
+
+  @override
+  String get fdSectionGrant => '장학금';
+
+  @override
+  String get fdGrantHint => '등록금 감면';
+
+  @override
+  String get fdGrantNone => '상관없음';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return '장학금 $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — TOPIK $level+ 대학 열림';
+  }
+
+  @override
+  String get fdTopikHintNone => '수준을 선택하세요';
+
+  @override
+  String get fdTopikLevel1 => '인사';
+
+  @override
+  String get fdTopikLevel2 => '간단한 문장';
+
+  @override
+  String get fdTopikLevel3 => '일상 대화';
+
+  @override
+  String get fdTopikLevel4 => '자유로운 대화';
+
+  @override
+  String get fdTopikLevel5 => '학술 글';
+
+  @override
+  String get fdTopikLevel6 => '원어민 수준';
 }

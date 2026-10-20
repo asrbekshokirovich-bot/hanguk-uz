@@ -20,6 +20,7 @@ import '../../onboarding/domain/quiz_answers.dart';
 import '../data/chances.dart';
 import 'widgets/board_tour_overlay.dart';
 import '../data/field_filter.dart';
+import '../data/grant_summary.dart';
 import 'discover_routes.dart';
 import 'widgets/chance_badge.dart';
 import 'widgets/fd_parts.dart';
@@ -33,8 +34,24 @@ const double kGpaMax = 5.0;
 /// answer for the chosen field folded in.
 List<CatalogUniversity> boardResults(WidgetRef ref, List<CatalogUniversity> all, CatalogFilter f) {
   final matches = f.field == null ? null : ref.watch(fieldUniversitiesProvider(f.field!)).value;
-  return applyCatalogFilter(all, f.copyWith(query: ''), fieldMatches: matches);
+  final grants = f.grant == null ? null : ref.watch(grantSummaryProvider).value;
+  return applyCatalogFilter(all, f.copyWith(query: ''), fieldMatches: matches, grants: grants);
 }
+
+/// The board's IELTS choices: "Yo'q" (null), then 5.0 to 9.0.
+const List<double?> kBoardIeltsScores = [null, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0];
+
+/// The note beside "Koreys tilim (TOPIK)": what the level means and what it
+/// opens.
+String topikHint(AppLocalizations l, int level) => switch (level) {
+  1 => l.fdTopikHint(l.fdTopikLevel1, 1),
+  2 => l.fdTopikHint(l.fdTopikLevel2, 2),
+  3 => l.fdTopikHint(l.fdTopikLevel3, 3),
+  4 => l.fdTopikHint(l.fdTopikLevel4, 4),
+  5 => l.fdTopikHint(l.fdTopikLevel5, 5),
+  6 => l.fdTopikHint(l.fdTopikLevel6, 6),
+  _ => l.fdTopikHintNone,
+};
 
 /// A field tile's label ("IT", "Muhandislik").
 String fieldLabel(AppLocalizations l, String key) => switch (key) {
@@ -64,9 +81,11 @@ String? filterSummary(AppLocalizations l, CatalogFilter f) {
     if (f.degree == CatalogDegree.bachelor) l.catalogDegreeBachelor,
     if (f.degree == CatalogDegree.master) l.catalogDegreeMaster,
     if (f.topik == CatalogTopik.none) 'TOPIK: ${l.fdTopikNone}' else if (f.topik != null) 'TOPIK ≤${f.topik}',
+    if (f.ielts != null) 'IELTS ${_ielts(f.ielts!)}',
     if (f.maxPrice != null) l.fdFeeUpTo(money(f.maxPrice!, 'KRW', locale: l.localeName)),
     if (f.type == 'state') l.catalogTypeStateShort,
     if (f.type == 'private') l.catalogTypePrivateShort,
+    if (f.grant != null) l.fdGrantSummary(f.grant!),
   ];
   return parts.isEmpty ? null : parts.join(' · ');
 }
@@ -175,212 +194,290 @@ class FilterBoardScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+                _Section(
+                  key: tour.strip,
                   children: [
-                    Expanded(
-                      child: Text(l.fdBoardStripTitle, style: fdText(13, FontWeight.w800, FdColors.onPage)),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Expanded(
+                          child: Text(l.fdBoardStripTitle, style: fdText(13, FontWeight.w800, FdColors.onPage)),
+                        ),
+                        Text(l.fdBoardStripHint, style: fdText(10, FontWeight.w700, FdColors.pageMuted)),
+                      ],
                     ),
-                    Text(l.fdBoardStripHint, style: fdText(10, FontWeight.w700, FdColors.pageMuted)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  height: 104,
-                  // The strip runs to the screen's edges, as the prototype's does.
-                  child: OverflowBox(
-                    maxWidth: MediaQuery.sizeOf(context).width,
-                    child: results.isEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 2, 18, 6),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: CustomPaint(
-                                painter: const DashedPillPainter(color: FdColors.pageMuted, radius: 12),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                  child: Text(
-                                    l.fdBoardStripEmpty,
-                                    style: fdText(11, FontWeight.w700, FdColors.pageMuted),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: 104,
+                      // The strip runs to the screen's edges, as the prototype's does.
+                      child: OverflowBox(
+                        maxWidth: MediaQuery.sizeOf(context).width,
+                        child: results.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.fromLTRB(18, 2, 18, 6),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: CustomPaint(
+                                    painter: const DashedPillPainter(color: FdColors.pageMuted, radius: 12),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                      child: Text(
+                                        l.fdBoardStripEmpty,
+                                        style: fdText(11, FontWeight.w700, FdColors.pageMuted),
+                                      ),
+                                    ),
                                   ),
                                 ),
+                              )
+                            : ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.fromLTRB(18, 2, 18, 6),
+                                itemCount: results.length > 14 ? 14 : results.length,
+                                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                                itemBuilder: (context, i) => _StripCard(
+                                  university: results[i],
+                                  guideline: guidelineFor(results[i], f) ?? results[i].primary,
+                                  percent: book.admission(results[i]),
+                                  onTap: () => context.push(universityPath(results[i].institutionId)),
+                                ),
                               ),
-                            ),
-                          )
-                        : ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.fromLTRB(18, 2, 18, 6),
-                            itemCount: results.length > 14 ? 14 : results.length,
-                            separatorBuilder: (_, _) => const SizedBox(width: 8),
-                            itemBuilder: (context, i) => _StripCard(
-                              university: results[i],
-                              guideline: guidelineFor(results[i], f) ?? results[i].primary,
-                              percent: book.admission(results[i]),
-                              onTap: () => context.push(universityPath(results[i].institutionId)),
-                            ),
-                          ),
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 10),
-                // The field label and tiles: what the tour lights first.
-                KeyedSubtree(
+                _Section(
                   key: tour.field,
-                  child: _FieldSection(
-                    label: FdSectionLabel(l.fdSectionField),
-                    grid: _Grid(
-                  columns: 4,
-                  gap: 8,
                   children: [
-                    for (final t in kFieldTiles)
-                      HardChoice(
-                        label: fieldLabel(l, t.key),
-                        glyph: t.glyph,
-                        height: 68,
-                        radius: 14,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        selected: f.field == t.key,
-                        onTap: () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
-                      ),
-                    HardChoice(
-                      label: l.fdOther,
-                      glyph: LucideIcons.layers,
-                      height: 68,
-                      radius: 14,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      selected: false,
-                      onTap: () => context.push(kDiscoverSearchPath),
+                    FdSectionLabel(l.fdSectionField),
+                    const SizedBox(height: 8),
+                    _Grid(
+                      columns: 4,
+                      gap: 8,
+                      children: [
+                        for (final t in kFieldTiles)
+                          HardChoice(
+                            label: fieldLabel(l, t.key),
+                            glyph: t.glyph,
+                            height: 68,
+                            radius: 14,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            selected: f.field == t.key,
+                            onTap: () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
+                          ),
+                        HardChoice(
+                          label: l.fdOther,
+                          glyph: LucideIcons.layers,
+                          height: 68,
+                          radius: 14,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          selected: false,
+                          onTap: () => context.push(kDiscoverSearchPath),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                  ),
-                ),
                 const SizedBox(height: 16),
-                FdSectionLabel(l.fdSectionCity),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                _Section(
+                  key: tour.city,
                   children: [
-                    for (final r in CatalogRegion.all)
-                      // As wide as its label: a centred choice would
-                      // otherwise fill the Wrap's whole row.
-                      IntrinsicWidth(
-                        child: HardChoice(
-                          label: regionLabel(l, r),
-                          height: 36,
-                          radius: 999,
-                          fontSize: 13,
-                          padding: const EdgeInsets.symmetric(horizontal: 13),
-                          selected: f.regions.contains(r),
-                          onTap: () {
-                            final next = {...f.regions};
-                            next.contains(r) ? next.remove(r) : next.add(r);
-                            set(f.copyWith(regions: next));
-                          },
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                FdSectionLabel(l.fdSectionDegree),
-                const SizedBox(height: 8),
-                // One degree for both: it narrows the list and is the route the
-                // chances and the visa are read for.
-                Row(
-                  children: [
-                    for (final (i, (route, label)) in [
-                      (StudyRoute.bachelor, l.catalogDegreeBachelor),
-                      (StudyRoute.master, l.catalogDegreeMaster),
-                      (StudyRoute.languageCourse, l.fdLanguageCourse),
-                    ].indexed) ...[
-                      if (i > 0) const SizedBox(width: 6),
-                      Expanded(
-                        child: HardChoice(
-                          label: label,
-                          selected: profile.route == route,
-                          onTap: () {
-                            setProfile(profile.copyWith(route: route));
-                            set(f.copyWith(degree: switch (route) {
-                              StudyRoute.bachelor => CatalogDegree.bachelor,
-                              StudyRoute.master => CatalogDegree.master,
-                              _ => CatalogDegree.all,
-                            }));
-                          },
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 16),
-                FdSectionLabel(l.fdSectionTopik),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    for (final (i, (value, label, flex)) in [
-                      (null, l.fdAny, 3),
-                      (CatalogTopik.none, l.fdTopikNone, 3),
-                      ('2', '≤ 2', 2),
-                      ('3', '≤ 3', 2),
-                      ('4', '≤ 4', 2),
-                    ].indexed) ...[
-                      if (i > 0) const SizedBox(width: 6),
-                      Expanded(
-                        flex: flex,
-                        child: HardChoice(
-                          label: label,
-                          height: 40,
-                          radius: 12,
-                          fontSize: 12,
-                          selected: f.topik == value,
-                          onTap: () => set(f.copyWith(topik: () => value)),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 16),
-                FdSectionLabel(
-                  l.fdSectionFee,
-                  trailing: LimeTag(fee == null ? l.fdAny : l.fdFeeUpTo(money(fee, 'KRW', locale: l.localeName))),
-                ),
-                const SizedBox(height: 4),
-                HardSlider(
-                  value: feeShare,
-                  semanticLabel: l.fdSectionFee,
-                  onChanged: (v) {
-                    if (v >= 0.995) {
-                      set(f.copyWith(maxPrice: () => null));
-                      return;
-                    }
-                    final raw = bounds.min + (bounds.max - bounds.min) * v;
-                    set(f.copyWith(maxPrice: () => (raw / 100000).round() * 100000));
-                  },
-                ),
-                Row(
-                  children: [
-                    Text(
-                      money(bounds.min, 'KRW', locale: l.localeName),
-                      style: fdText(10, FontWeight.w700, FdColors.pageMuted),
+                    FdSectionLabel(l.fdSectionCity),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final r in CatalogRegion.all)
+                          // As wide as its label: a centred choice would
+                          // otherwise fill the Wrap's whole row.
+                          IntrinsicWidth(
+                            child: HardChoice(
+                              label: regionLabel(l, r),
+                              height: 36,
+                              radius: 999,
+                              fontSize: 13,
+                              padding: const EdgeInsets.symmetric(horizontal: 13),
+                              selected: f.regions.contains(r),
+                              onTap: () {
+                                final next = {...f.regions};
+                                next.contains(r) ? next.remove(r) : next.add(r);
+                                set(f.copyWith(regions: next));
+                              },
+                            ),
+                          ),
+                      ],
                     ),
-                    const Spacer(),
-                    Text(l.fdAny, style: fdText(10, FontWeight.w700, FdColors.pageMuted)),
                   ],
                 ),
                 const SizedBox(height: 16),
-                FdSectionLabel(l.fdSectionType),
-                const SizedBox(height: 8),
-                _Grid(
-                  columns: 3,
+                _Section(
+                  key: tour.degree,
                   children: [
-                    for (final (value, label) in [
-                      ('state', l.catalogTypeStateShort),
-                      ('private', l.catalogTypePrivateShort),
-                      (null, l.fdAny),
-                    ])
-                      HardChoice(label: label, selected: f.type == value, onTap: () => set(f.copyWith(type: () => value))),
+                    FdSectionLabel(l.fdSectionDegree),
+                    const SizedBox(height: 8),
+                    // One degree for both: it narrows the list and is the route the
+                    // chances and the visa are read for.
+                    Row(
+                      children: [
+                        for (final (i, (route, label)) in [
+                          (StudyRoute.bachelor, l.catalogDegreeBachelor),
+                          (StudyRoute.master, l.catalogDegreeMaster),
+                          (StudyRoute.languageCourse, l.fdLanguageCourse),
+                        ].indexed) ...[
+                          if (i > 0) const SizedBox(width: 6),
+                          Expanded(
+                            child: HardChoice(
+                              label: label,
+                              selected: profile.route == route,
+                              onTap: () {
+                                setProfile(profile.copyWith(route: route));
+                                set(f.copyWith(degree: switch (route) {
+                                  StudyRoute.bachelor => CatalogDegree.bachelor,
+                                  StudyRoute.master => CatalogDegree.master,
+                                  _ => CatalogDegree.all,
+                                }));
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // The student's own TOPIK (design 2026-10-20): it feeds the
+                // chances and the visa, and opens the universities asking for
+                // that level or less.
+                _Section(
+                  key: tour.topik,
+                  children: [
+                    FdSectionLabel(l.fdAssessTopik, trailing: _Hint(topikHint(l, profile.topik))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (var t = 0; t <= 6; t++) ...[
+                          if (t > 0) const SizedBox(width: 4),
+                          Expanded(
+                            child: HardChoice(
+                              label: t == 0 ? '—' : '$t',
+                              radius: 10,
+                              fontWeight: FontWeight.w800,
+                              selected: profile.topik == t,
+                              onTap: () {
+                                setProfile(profile.copyWith(topik: t));
+                                set(f.copyWith(topik: () => t == 0 ? null : '$t'));
+                              },
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _Section(
+                  key: tour.ielts,
+                  children: [
+                    FdSectionLabel(
+                      l.fdSectionIelts,
+                      trailing: _Hint(f.ielts == null ? l.fdIeltsNoneHint : l.fdIeltsHint(_ielts(f.ielts!))),
+                    ),
+                    const SizedBox(height: 8),
+                    _Grid(
+                      columns: 5,
+                      gap: 6,
+                      children: [
+                        for (final v in kBoardIeltsScores)
+                          HardChoice(
+                            label: v == null ? l.fdNo : _ielts(v),
+                            radius: 10,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            selected: f.ielts == v,
+                            onTap: () => set(f.copyWith(ielts: () => v)),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _Section(
+                  key: tour.fee,
+                  children: [
+                    FdSectionLabel(
+                      l.fdSectionFee,
+                      trailing: LimeTag(fee == null ? l.fdAny : l.fdFeeUpTo(money(fee, 'KRW', locale: l.localeName))),
+                    ),
+                    const SizedBox(height: 4),
+                    HardSlider(
+                      value: feeShare,
+                      semanticLabel: l.fdSectionFee,
+                      onChanged: (v) {
+                        if (v >= 0.995) {
+                          set(f.copyWith(maxPrice: () => null));
+                          return;
+                        }
+                        final raw = bounds.min + (bounds.max - bounds.min) * v;
+                        set(f.copyWith(maxPrice: () => (raw / 100000).round() * 100000));
+                      },
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          money(bounds.min, 'KRW', locale: l.localeName),
+                          style: fdText(10, FontWeight.w700, FdColors.pageMuted),
+                        ),
+                        const Spacer(),
+                        Text(l.fdAny, style: fdText(10, FontWeight.w700, FdColors.pageMuted)),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _Section(
+                  key: tour.type,
+                  children: [
+                    FdSectionLabel(l.fdSectionType),
+                    const SizedBox(height: 8),
+                    _Grid(
+                      columns: 3,
+                      children: [
+                        for (final (value, label) in [
+                          ('state', l.catalogTypeStateShort),
+                          ('private', l.catalogTypePrivateShort),
+                          (null, l.fdAny),
+                        ])
+                          HardChoice(label: label, selected: f.type == value, onTap: () => set(f.copyWith(type: () => value))),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _Section(
+                  key: tour.grant,
+                  children: [
+                    FdSectionLabel(l.fdSectionGrant, trailing: _Hint(l.fdGrantHint)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (final (i, value) in const <int?>[null, 30, 50, 100].indexed) ...[
+                          if (i > 0) const SizedBox(width: 6),
+                          Expanded(
+                            child: HardChoice(
+                              label: value == null ? l.fdGrantNone : '$value%${value < 100 ? '+' : ''}',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              selected: f.grant == value,
+                              onTap: () => set(f.copyWith(grant: () => value)),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 22),
@@ -388,25 +485,6 @@ class FilterBoardScreen extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(l.fdBoardProfileHint, style: fdText(11, FontWeight.w400, FdColors.pageMuted, height: 1.4)),
                 const SizedBox(height: 12),
-                FdSectionLabel(l.fdAssessTopik),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    for (var t = 0; t <= 6; t++) ...[
-                      if (t > 0) const SizedBox(width: 4),
-                      Expanded(
-                        child: HardChoice(
-                          label: t == 0 ? '—' : '$t',
-                          radius: 10,
-                          fontWeight: FontWeight.w800,
-                          selected: profile.topik == t,
-                          onTap: () => setProfile(profile.copyWith(topik: t)),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 16),
                 FdSectionLabel(l.fdAssessGpa, trailing: LimeTag(profile.gpa.toStringAsFixed(1))),
                 const SizedBox(height: 4),
                 HardSlider(
@@ -469,6 +547,8 @@ class FilterBoardScreen extends ConsumerWidget {
                           'degree': f.degree,
                           'topik': f.topik,
                           'type': f.type,
+                          'ielts': f.ielts,
+                          'grant': f.grant,
                           'max_price': f.maxPrice,
                           'results': results.length,
                         },
@@ -489,19 +569,39 @@ class FilterBoardScreen extends ConsumerWidget {
   static final TextStyle _title = fdText(20, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.4);
 }
 
-/// "Yo'nalish" over its tiles, kept together so the tour can light both.
-class _FieldSection extends StatelessWidget {
-  const _FieldSection({required this.label, required this.grid});
+/// One section of the board — its label and its choices — kept together so
+/// the first-run tour can light it whole.
+class _Section extends StatelessWidget {
+  const _Section({super.key, required this.children});
 
-  final Widget label;
-  final Widget grid;
+  final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [label, const SizedBox(height: 8), grid],
+  Widget build(BuildContext context) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+}
+
+/// The small light-blue note to the right of a section label ("Oddiy gaplar —
+/// TOPIK 2+ ochiladi").
+class _Hint extends StatelessWidget {
+  const _Hint(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Flexible(
+    child: Text(
+      text,
+      textAlign: TextAlign.right,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: fdText(10, FontWeight.w700, FdColors.onNavyMuted, height: 1.3),
+    ),
   );
 }
+
+/// "5.0", "6.5".
+String _ielts(double v) => v.toStringAsFixed(1);
 
 /// The blue card: how many universities match (with its 20-tick meter) beside
 /// the D-2 visa gauge; both follow the board live.

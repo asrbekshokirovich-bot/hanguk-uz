@@ -6392,7 +6392,7 @@
   "@ajBack": {
     "description": "Accessibility label of the back button on the detail page."
   },
-  "btField": "Start here",
+  "btField": "Pick your field",
   "@btField": {
     "description": "Home board tour step 1: label beside the field tiles."
   },
@@ -6407,5 +6407,115 @@
   "btList": "See the list",
   "@btList": {
     "description": "Home board tour step 4: label above the show-universities button."
+  },
+  "btStrip": "Your best matches",
+  "@btStrip": {
+    "description": "Board tour: label beside the strip of matching universities."
+  },
+  "btCity": "Which city?",
+  "@btCity": {
+    "description": "Board tour: label beside the city chips."
+  },
+  "btDegree": "Which degree?",
+  "@btDegree": {
+    "description": "Board tour: label beside the degree choice."
+  },
+  "btTopik": "Your Korean level",
+  "@btTopik": {
+    "description": "Board tour: label beside the student's TOPIK level."
+  },
+  "btIelts": "Your IELTS score",
+  "@btIelts": {
+    "description": "Board tour: label beside the IELTS score."
+  },
+  "btFee": "Tuition",
+  "@btFee": {
+    "description": "Board tour: label beside the tuition slider."
+  },
+  "btType": "State or private",
+  "@btType": {
+    "description": "Board tour: label beside state/private."
+  },
+  "btGrant": "Need a grant?",
+  "@btGrant": {
+    "description": "Board tour: label beside the grant choice."
+  },
+  "fdSectionIelts": "My English (IELTS)",
+  "@fdSectionIelts": {
+    "description": "Board section title: the student's IELTS score."
+  },
+  "fdIeltsNoneHint": "I won't study in English",
+  "@fdIeltsNoneHint": {
+    "description": "Note beside the IELTS section when 'No' is chosen."
+  },
+  "fdIeltsHint": "English programmes up to IELTS {score}",
+  "@fdIeltsHint": {
+    "description": "Note beside the IELTS section when a score is chosen.",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "fdSectionGrant": "Grant / scholarship",
+  "@fdSectionGrant": {
+    "description": "Board section title: the grant / scholarship wanted."
+  },
+  "fdGrantHint": "Tuition discount",
+  "@fdGrantHint": {
+    "description": "Note beside the grant section."
+  },
+  "fdGrantNone": "Not needed",
+  "@fdGrantNone": {
+    "description": "Grant choice: not needed."
+  },
+  "fdGrantSummary": "Grant {pct}%+",
+  "@fdGrantSummary": {
+    "description": "The grant choice in the one-line filter summary.",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "fdTopikHint": "{meaning} — TOPIK {level}+ opens",
+  "@fdTopikHint": {
+    "description": "Note beside the TOPIK level: what it means and what it opens.",
+    "placeholders": {
+      "meaning": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "fdTopikHintNone": "Pick your level",
+  "@fdTopikHintNone": {
+    "description": "Note beside the TOPIK level when none is chosen."
+  },
+  "fdTopikLevel1": "Greetings",
+  "@fdTopikLevel1": {
+    "description": "What TOPIK 1 means."
+  },
+  "fdTopikLevel2": "Simple sentences",
+  "@fdTopikLevel2": {
+    "description": "What TOPIK 2 means."
+  },
+  "fdTopikLevel3": "Everyday talk",
+  "@fdTopikLevel3": {
+    "description": "What TOPIK 3 means."
+  },
+  "fdTopikLevel4": "Free conversation",
+  "@fdTopikLevel4": {
+    "description": "What TOPIK 4 means."
+  },
+  "fdTopikLevel5": "Academic texts",
+  "@fdTopikLevel5": {
+    "description": "What TOPIK 5 means."
+  },
+  "fdTopikLevel6": "Near native",
+  "@fdTopikLevel6": {
+    "description": "What TOPIK 6 means."
   }
 }
