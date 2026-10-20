@@ -4832,4 +4832,22 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get ajBack => 'Quay lại';
+
+  @override
+  String get btSkip => 'Bỏ qua';
+
+  @override
+  String get btStart => 'Bắt đầu';
+
+  @override
+  String get btField => 'Bắt đầu từ đây';
+
+  @override
+  String get btCount => 'Trường phù hợp';
+
+  @override
+  String get btVisa => 'Khả năng visa của bạn';
+
+  @override
+  String get btList => 'Xem danh sách';
 }

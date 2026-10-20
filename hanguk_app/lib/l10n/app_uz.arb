@@ -1562,5 +1562,11 @@
   "ajUntil": "{date} gacha",
   "ajActionStudyPlan": "Study Plan imzongiz kerak — shundan keyin topshiramiz",
   "ajOpenUniversity": "{name} — batafsil",
-  "ajBack": "Orqaga"
+  "ajBack": "Orqaga",
+  "btSkip": "O'tkazish",
+  "btStart": "Boshlash",
+  "btField": "Bu yerdan boshlang",
+  "btCount": "Mos universitetlar",
+  "btVisa": "Viza imkoningiz",
+  "btList": "Ro'yxatni ko'rish"
 }

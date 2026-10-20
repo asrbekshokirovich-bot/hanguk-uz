@@ -1562,5 +1562,11 @@
   "ajUntil": "до {date}",
   "ajActionStudyPlan": "Нужна ваша подпись Study Plan — после этого подаём",
   "ajOpenUniversity": "Открыть {name}",
-  "ajBack": "Назад"
+  "ajBack": "Назад",
+  "btSkip": "Пропустить",
+  "btStart": "Начать",
+  "btField": "Начните отсюда",
+  "btCount": "Подходящие университеты",
+  "btVisa": "Ваши шансы на визу",
+  "btList": "Смотреть список"
 }

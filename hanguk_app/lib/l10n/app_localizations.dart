@@ -8683,6 +8683,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get ajBack;
+
+  /// Home board tour (design 12): skip the tour.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get btSkip;
+
+  /// Home board tour: the last step's button; the tour ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get btStart;
+
+  /// Home board tour step 1: label beside the field tiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Start here'**
+  String get btField;
+
+  /// Home board tour step 2: label beside the count of matching universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching universities'**
+  String get btCount;
+
+  /// Home board tour step 3: label beside the visa gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Your visa chances'**
+  String get btVisa;
+
+  /// Home board tour step 4: label above the show-universities button.
+  ///
+  /// In en, this message translates to:
+  /// **'See the list'**
+  String get btList;
 }
 
 class _AppLocalizationsDelegate

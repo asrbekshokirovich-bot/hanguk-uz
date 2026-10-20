@@ -18,6 +18,7 @@ import '../../assessment/domain/assessment.dart';
 import '../../assessment/presentation/assessment_widgets.dart' show shortUniversityName;
 import '../../onboarding/domain/quiz_answers.dart';
 import '../data/chances.dart';
+import 'widgets/board_tour_overlay.dart';
 import '../data/field_filter.dart';
 import 'discover_routes.dart';
 import 'widgets/chance_badge.dart';
@@ -86,7 +87,10 @@ class FilterBoardScreen extends ConsumerWidget {
   final bool showBack;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) =>
+      BoardTour(builder: (context, tour) => _board(context, ref, tour));
+
+  Widget _board(BuildContext context, WidgetRef ref, BoardTourTargets tour) {
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final f = ref.watch(catalogFilterProvider);
@@ -163,6 +167,8 @@ class FilterBoardScreen extends ConsumerWidget {
               total: all.length,
               loading: fieldLoading,
               visa: book.visa,
+              countKey: tour.count,
+              visaKey: tour.visa,
             ),
           ),
           Expanded(
@@ -217,9 +223,12 @@ class FilterBoardScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                FdSectionLabel(l.fdSectionField),
-                const SizedBox(height: 8),
-                _Grid(
+                // The field label and tiles: what the tour lights first.
+                KeyedSubtree(
+                  key: tour.field,
+                  child: _FieldSection(
+                    label: FdSectionLabel(l.fdSectionField),
+                    grid: _Grid(
                   columns: 4,
                   gap: 8,
                   children: [
@@ -245,6 +254,8 @@ class FilterBoardScreen extends ConsumerWidget {
                       onTap: () => context.push(kDiscoverSearchPath),
                     ),
                   ],
+                ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 FdSectionLabel(l.fdSectionCity),
@@ -445,6 +456,7 @@ class FilterBoardScreen extends ConsumerWidget {
           FdBottomBar(
             aboveNav: !showBack,
             child: HardButton(
+              key: tour.button,
               label: l.fdShowUniversities(results.length),
               onPressed: results.isEmpty
                   ? null
@@ -477,6 +489,20 @@ class FilterBoardScreen extends ConsumerWidget {
   static final TextStyle _title = fdText(20, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.4);
 }
 
+/// "Yo'nalish" over its tiles, kept together so the tour can light both.
+class _FieldSection extends StatelessWidget {
+  const _FieldSection({required this.label, required this.grid});
+
+  final Widget label;
+  final Widget grid;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [label, const SizedBox(height: 8), grid],
+  );
+}
+
 /// The blue card: how many universities match (with its 20-tick meter) beside
 /// the D-2 visa gauge; both follow the board live.
 class _CountCard extends StatelessWidget {
@@ -485,12 +511,18 @@ class _CountCard extends StatelessWidget {
     required this.total,
     required this.loading,
     required this.visa,
+    this.countKey,
+    this.visaKey,
   });
 
   final int count;
   final int total;
   final bool loading;
   final int? visa;
+
+  /// The tour's handles on the two halves (design 12b, 12c).
+  final Key? countKey;
+  final Key? visaKey;
 
   @override
   Widget build(BuildContext context) {
@@ -510,6 +542,7 @@ class _CountCard extends StatelessWidget {
           children: [
             Expanded(
               child: Column(
+                key: countKey,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -519,23 +552,32 @@ class _CountCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: fdText(9, FontWeight.w800, FdColors.onNavyMuted, letterSpacing: 0.54),
                   ),
+                  // The spinner sits beside the baseline row, not in it: it has
+                  // no baseline, and the card's IntrinsicHeight asks for one.
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text('$count', style: fdText(46, FontWeight.w800, FdColors.lime, height: 1, letterSpacing: -1.84)),
-                      const SizedBox(width: 6),
                       Flexible(
-                        child: Text(
-                          l.fdOfTotalShort(total),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: fdText(12, FontWeight.w700, FdColors.onNavyMuted),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text('$count', style: fdText(46, FontWeight.w800, FdColors.lime, height: 1, letterSpacing: -1.84)),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                l.fdOfTotalShort(total),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: fdText(12, FontWeight.w700, FdColors.onNavyMuted),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       if (loading)
                         const Padding(
-                          padding: EdgeInsets.only(left: 6),
+                          padding: EdgeInsets.only(left: 6, top: 18),
                           child: SizedBox.square(
                             dimension: 11,
                             child: CircularProgressIndicator(strokeWidth: 1.6, color: FdColors.lime),
@@ -569,6 +611,7 @@ class _CountCard extends StatelessWidget {
             const ColoredBox(color: Color(0x40FFFFFF), child: SizedBox(width: 1)),
             const SizedBox(width: 12),
             Semantics(
+              key: visaKey,
               button: true,
               label: l.fdBoardVisaTitle,
               child: VisaGauge(percent: visa),

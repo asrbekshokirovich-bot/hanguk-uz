@@ -4859,4 +4859,22 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get ajBack => 'Назад';
+
+  @override
+  String get btSkip => 'Пропустить';
+
+  @override
+  String get btStart => 'Начать';
+
+  @override
+  String get btField => 'Начните отсюда';
+
+  @override
+  String get btCount => 'Подходящие университеты';
+
+  @override
+  String get btVisa => 'Ваши шансы на визу';
+
+  @override
+  String get btList => 'Смотреть список';
 }

@@ -4856,4 +4856,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ajBack => 'Back';
+
+  @override
+  String get btSkip => 'Skip';
+
+  @override
+  String get btStart => 'Start';
+
+  @override
+  String get btField => 'Start here';
+
+  @override
+  String get btCount => 'Matching universities';
+
+  @override
+  String get btVisa => 'Your visa chances';
+
+  @override
+  String get btList => 'See the list';
 }

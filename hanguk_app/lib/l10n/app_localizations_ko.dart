@@ -4670,4 +4670,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ajBack => '뒤로';
+
+  @override
+  String get btSkip => '건너뛰기';
+
+  @override
+  String get btStart => '시작하기';
+
+  @override
+  String get btField => '여기서 시작하세요';
+
+  @override
+  String get btCount => '맞는 대학';
+
+  @override
+  String get btVisa => '비자 가능성';
+
+  @override
+  String get btList => '목록 보기';
 }
