@@ -547,8 +547,16 @@ class _CellsState extends State<_Cells> with SingleTickerProviderStateMixin {
                 showCursor: false,
                 cursorColor: Colors.transparent,
                 style: const TextStyle(color: Colors.transparent, fontSize: 1, height: 1),
+                // Every border spelled out: the app theme's input borders
+                // (a lime focus ring, a glass fill) would otherwise draw
+                // around the whole row of cells.
                 decoration: const InputDecoration(
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
                   counterText: '',
                   contentPadding: EdgeInsets.zero,
                   fillColor: Colors.transparent,
@@ -580,14 +588,19 @@ class _Cell extends StatelessWidget {
     final filled = char != null;
     if (!filled && !current) {
       // Still to come: a dashed outline on the page.
-      return CustomPaint(
-        foregroundPainter: const DashedPillPainter(color: FdColors.navRule, radius: 12),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
+      // The same inset as a filled cell's shadow takes, so all eight are
+      // one size.
+      return Padding(
+        padding: const EdgeInsets.only(right: 3, bottom: 3),
+        child: CustomPaint(
+          foregroundPainter: const DashedPillPainter(color: FdColors.navRule, radius: 12),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const SizedBox.expand(),
           ),
-          child: const SizedBox.expand(),
         ),
       );
     }

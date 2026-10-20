@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/features/auth/data/auth_repository.dart';
 import 'package:hanguk_app/features/auth/presentation/client_code_screen.dart';
+import 'package:hanguk_app/design_system/theme/app_theme.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 class _FakeAuth extends Fake implements AuthRepository {
@@ -31,21 +32,31 @@ void main() {
     await t.pumpWidget(
       ProviderScope(
         overrides: [authRepositoryProvider.overrideWithValue(auth)],
-        child: const MaterialApp(
-          locale: Locale('uz'),
+        child: MaterialApp(
+          // The app's own theme: its input borders must not reach the cells.
+          theme: AppTheme.materialTheme,
+          locale: const Locale('uz'),
           supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: ClientCodeScreen(),
+          home: const ClientCodeScreen(),
         ),
       ),
     );
     await t.pump();
   }
+
+  testWidgets("the theme's input borders do not draw around the cells", (t) async {
+    await pump(t);
+    final deco = t.widget<TextField>(find.byType(TextField)).decoration!;
+    for (final b in [deco.border, deco.enabledBorder, deco.focusedBorder, deco.disabledBorder]) {
+      expect(b, InputBorder.none);
+    }
+  });
 
   testWidgets('typing fills the cells in capitals, eight at most', (t) async {
     await pump(t);
