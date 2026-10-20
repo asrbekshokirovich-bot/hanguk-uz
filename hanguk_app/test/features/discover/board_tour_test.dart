@@ -88,6 +88,23 @@ void main() {
     expect(c.read(boardTourProvider), isTrue);
   });
 
+  testWidgets('a tap anywhere moves it on at once; on the last step it ends', (t) async {
+    final c = await pump(t, fresh: true);
+    expect(find.text('Mos universitetlar'), findsOneWidget);
+    await t.tapAt(const Offset(200, 600));
+    await t.pumpAndSettle();
+    expect(find.text('Viza imkoningiz'), findsOneWidget);
+    for (var i = 0; i < 10; i++) {
+      await t.tapAt(const Offset(200, 600));
+      await t.pumpAndSettle();
+    }
+    expect(find.text("Ro'yxatni ko'rish"), findsOneWidget);
+    await t.tapAt(const Offset(200, 600));
+    await t.pumpAndSettle();
+    expect(find.text("Ro'yxatni ko'rish"), findsNothing);
+    expect(c.read(boardTourProvider), isTrue);
+  });
+
   testWidgets('the lit section stays usable: a field can be picked while it is lit', (t) async {
     final c = await pump(t, fresh: true);
     for (var i = 0; i < 3; i++) {
@@ -98,10 +115,14 @@ void main() {
     await t.tap(find.text('Biznes'), warnIfMissed: false);
     await t.pumpAndSettle();
     expect(c.read(catalogFilterProvider).field, 'business');
-    // A touch outside the lit section does nothing.
-    await t.tap(find.text('Seul'), warnIfMissed: false);
+    // The tap also moved the tour on, to the cities.
+    expect(find.text('Qaysi shahar?'), findsOneWidget);
+    // A touch outside the lit section only moves it on: the board does not
+    // get it.
+    await t.tap(find.text('Biznes'), warnIfMissed: false);
     await t.pumpAndSettle();
-    expect(c.read(catalogFilterProvider).regions, isEmpty);
+    expect(c.read(catalogFilterProvider).field, 'business');
+    expect(find.text('Qaysi daraja?'), findsOneWidget);
     await t.pump(const Duration(seconds: 30));
     await t.pumpAndSettle();
   });

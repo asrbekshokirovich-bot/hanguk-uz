@@ -32,12 +32,16 @@ class BoardTourTargets {
   static const int _count = 12;
 }
 
-/// The home board's first-run tour (design 12a–12d, twelve places): one section lit at a
-/// time, everything else dimmed under it — the tab bar too — with a single
-/// lime label beside the lit section. Each step stays [stepDuration] and
-/// moves on by itself; there are no buttons. The lit section stays usable: a
-/// field can be picked on the first step, and the last step's button ends
-/// the tour.
+/// The home board's first-run tour (design 12a–12d, twelve places): one
+/// section lit at a time, everything else dimmed under it — the tab bar too —
+/// with a single lime label beside the lit section. Each step stays
+/// [stepDuration] and moves on by itself, or at once on a tap anywhere; there
+/// are no buttons. The lit section stays usable (a tap on it reaches the board
+/// as well), and the last step's tap ends the tour.
+///
+/// Moving on, the list first scrolls the next section into view with the
+/// light still following the current one, then the light glides across — it
+/// never jumps to where the next section was before the scroll.
 class BoardTour extends ConsumerStatefulWidget {
   const BoardTour({super.key, required this.builder});
 
@@ -47,11 +51,19 @@ class BoardTour extends ConsumerStatefulWidget {
   ConsumerState<BoardTour> createState() => _BoardTourState();
 }
 
-class _BoardTourState extends ConsumerState<BoardTour> {
+class _BoardTourState extends ConsumerState<BoardTour> with SingleTickerProviderStateMixin {
   final _targets = BoardTourTargets();
   final _portal = OverlayPortalController();
+  late final AnimationController _glide = AnimationController(vsync: this, duration: const Duration(milliseconds: 280));
   int _step = 0;
   Timer? _timer;
+
+  /// Where the light starts its glide to the step's section.
+  Rect? _from;
+
+  /// Scrolling to the next section, or gliding to it.
+  bool _moving = false;
+  ScrollPosition? _scroll;
 
   static int get _steps => BoardTourTargets._count;
 
@@ -61,6 +73,8 @@ class _BoardTourState extends ConsumerState<BoardTour> {
   @override
   void dispose() {
     _timer?.cancel();
+    _scroll?.removeListener(_follow);
+    _glide.dispose();
     super.dispose();
   }
 
@@ -76,11 +90,19 @@ class _BoardTourState extends ConsumerState<BoardTour> {
     }
     return OverlayPortal(
       controller: _portal,
-      overlayChildBuilder: (context) => _TourLayer(
-        step: _step,
-        steps: _steps,
-        target: _rectOf(_targets.inOrder[_step]),
-        onTargetTap: _step == _steps - 1 ? () => _finish('button') : null,
+      overlayChildBuilder: (context) => AnimatedBuilder(
+        animation: _glide,
+        builder: (context, _) {
+          final live = _rectOf(_targets.inOrder[_step]);
+          final from = _from;
+          final gliding = _glide.isAnimating && from != null && live != null;
+          return _TourLayer(
+            step: _step,
+            hole: (gliding ? Rect.lerp(from, live, Curves.easeOutCubic.transform(_glide.value)) : live)?.inflate(6),
+            showLabel: !_moving,
+            onTap: _onTap,
+          );
+        },
       ),
       child: widget.builder(context, _targets),
     );
@@ -89,40 +111,65 @@ class _BoardTourState extends ConsumerState<BoardTour> {
   void _start() {
     if (!mounted || _portal.isShowing || ref.read(boardTourProvider) != false) return;
     AppEvents.track('board_tour', props: {'action': 'start'});
+    // The light follows its section while the list scrolls under it.
+    final ctx = _targets.strip.currentContext;
+    _scroll = ctx == null ? null : Scrollable.maybeOf(ctx)?.position;
+    _scroll?.addListener(_follow);
     setState(() => _step = 0);
     _portal.show();
-    _reveal();
-  }
-
-  /// Scrolls the step's section to the middle of the list (the lower ones
-  /// start below the fold), then redraws the light on it.
-  Future<void> _reveal() async {
-    final ctx = _targets.inOrder[_step].currentContext;
-    if (ctx != null && Scrollable.maybeOf(ctx) != null) {
-      await Scrollable.ensureVisible(ctx, alignment: 0.45, duration: const Duration(milliseconds: 300));
-    }
-    if (!mounted) return;
-    setState(() {});
-    _timer?.cancel();
-    _timer = Timer(stepDuration, _next);
-    // One more frame: the rect is read after layout settles.
+    // One more frame: the rects are read once the board is laid out.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });
+    _arm();
   }
 
-  void _next() {
-    if (!mounted || !_portal.isShowing) return;
+  void _follow() {
+    if (mounted && _portal.isShowing) setState(() {});
+  }
+
+  void _arm() {
+    _timer?.cancel();
+    _timer = Timer(stepDuration, _next);
+  }
+
+  void _onTap() {
+    if (_moving) return;
+    if (_step == _steps - 1) {
+      _finish('tap');
+    } else {
+      _next();
+    }
+  }
+
+  Future<void> _next() async {
+    if (!mounted || !_portal.isShowing || _moving) return;
+    _timer?.cancel();
     if (_step == _steps - 1) {
       _finish('done');
       return;
     }
-    setState(() => _step++);
-    _reveal();
+    setState(() => _moving = true);
+    final next = _step + 1;
+    final ctx = _targets.inOrder[next].currentContext;
+    if (ctx != null && Scrollable.maybeOf(ctx) != null) {
+      await Scrollable.ensureVisible(ctx, alignment: 0.45, duration: const Duration(milliseconds: 300));
+    }
+    if (!mounted || !_portal.isShowing) return;
+    setState(() {
+      _from = _rectOf(_targets.inOrder[_step]);
+      _step = next;
+    });
+    await _glide.forward(from: 0);
+    if (!mounted) return;
+    setState(() => _moving = false);
+    _arm();
   }
 
   void _finish(String how) {
     _timer?.cancel();
+    _scroll?.removeListener(_follow);
+    _scroll = null;
     // Back to the top of the board, where the student starts.
     final first = _targets.strip.currentContext;
     if (first != null && Scrollable.maybeOf(first) != null) {
@@ -141,24 +188,18 @@ class _BoardTourState extends ConsumerState<BoardTour> {
 }
 
 class _TourLayer extends StatelessWidget {
-  const _TourLayer({
-    required this.step,
-    required this.steps,
-    required this.target,
-    required this.onTargetTap,
-  });
+  const _TourLayer({required this.step, required this.hole, required this.showLabel, required this.onTap});
 
   final int step;
-  final int steps;
-  final Rect? target;
-  final VoidCallback? onTargetTap;
+  final Rect? hole;
+  final bool showLabel;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final media = MediaQuery.of(context);
-    final screen = media.size;
-    final hole = target?.inflate(6);
+    final screen = MediaQuery.sizeOf(context);
+    final hole = this.hole;
     final (label, icon) = switch (step) {
       0 => (l.btCount, Icons.tag),
       1 => (l.btVisa, null),
@@ -177,18 +218,13 @@ class _TourLayer extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(
-          child: TweenAnimationBuilder<Rect?>(
-            tween: RectTween(end: hole),
-            duration: const Duration(milliseconds: 280),
-            curve: Curves.easeOutCubic,
-            builder: (context, rect, _) => _Barrier(
-              hole: rect,
-              onHoleTap: onTargetTap,
-              child: CustomPaint(painter: _DimPainter(rect), size: Size.infinite),
-            ),
+          child: _Barrier(
+            hole: hole,
+            onTap: onTap,
+            child: CustomPaint(painter: _DimPainter(hole), size: Size.infinite),
           ),
         ),
-        if (hole != null)
+        if (hole != null && showLabel)
           _Label(
             hole: hole,
             screen: screen,
@@ -200,11 +236,13 @@ class _TourLayer extends StatelessWidget {
               1 => _Align.end,
               _ => _Align.center,
             },
-            child: _Pill(
-              label: label,
-              icon: icon == null
-                  ? const Lucide(LucideIcons.plane, size: 16, color: FdColors.onLime)
-                  : Icon(icon, size: 17, color: FdColors.onLime),
+            child: IgnorePointer(
+              child: _Pill(
+                label: label,
+                icon: icon == null
+                    ? const Lucide(LucideIcons.plane, size: 16, color: FdColors.onLime)
+                    : Icon(icon, size: 17, color: FdColors.onLime),
+              ),
             ),
           ),
       ],
@@ -329,42 +367,57 @@ class _DimPainter extends CustomPainter {
   bool shouldRepaint(_DimPainter old) => old.hole != hole;
 }
 
-/// Swallows every touch except those on the lit section, which go through to
-/// the board underneath ([onHoleTap] hears them first).
+/// Takes every touch: a tap anywhere moves the tour on ([onTap]). Touches on
+/// the lit section also go through to the board underneath, so it stays
+/// usable; elsewhere they stop here.
 class _Barrier extends SingleChildRenderObjectWidget {
-  const _Barrier({required this.hole, required this.onHoleTap, super.child});
+  const _Barrier({required this.hole, required this.onTap, super.child});
 
   final Rect? hole;
-  final VoidCallback? onHoleTap;
+  final VoidCallback onTap;
 
   @override
-  _RenderBarrier createRenderObject(BuildContext context) => _RenderBarrier(hole, onHoleTap);
+  _RenderBarrier createRenderObject(BuildContext context) => _RenderBarrier(hole, onTap);
 
   @override
   void updateRenderObject(BuildContext context, _RenderBarrier renderObject) {
     renderObject
       ..hole = hole
-      ..onHoleTap = onHoleTap;
+      ..onTap = onTap;
   }
 }
 
 class _RenderBarrier extends RenderProxyBox {
-  _RenderBarrier(this.hole, this.onHoleTap);
+  _RenderBarrier(this.hole, this.onTap);
 
   Rect? hole;
-  VoidCallback? onHoleTap;
+  VoidCallback onTap;
+  final _downs = <int, Offset>{};
+
+  /// Further than this between down and up is a drag (the strip, a slider),
+  /// not a tap.
+  static const double _slop = 18;
 
   @override
   bool hitTest(BoxHitTestResult result, {required Offset position}) {
-    final h = hole;
-    if (h != null && h.contains(localToGlobal(position))) {
-      // Not from inside the hit test: the tour closes after the touch is
-      // delivered to the board.
-      final tap = onHoleTap;
-      if (tap != null) scheduleMicrotask(tap);
-      return false;
-    }
     result.add(BoxHitTestEntry(this, position));
-    return true;
+    final h = hole;
+    // On the lit section: heard here and passed on to the board below.
+    return !(h != null && h.contains(localToGlobal(position)));
+  }
+
+  @override
+  void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
+    if (event is PointerDownEvent) {
+      _downs[event.pointer] = event.position;
+    } else if (event is PointerUpEvent) {
+      final down = _downs.remove(event.pointer);
+      if (down != null && (event.position - down).distance < _slop) {
+        // After the board has had the touch.
+        scheduleMicrotask(onTap);
+      }
+    } else if (event is PointerCancelEvent) {
+      _downs.remove(event.pointer);
+    }
   }
 }
