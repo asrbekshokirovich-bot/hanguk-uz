@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/study_plan_repository.dart';
 import '../study_plan_screen.dart';
 import 'training_status_label.dart';
+import '../../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Past Study Plan / Personal Statement sessions, scoped to one
 /// document type. Mirrors `InterviewHistoryView` and ports the React
@@ -202,7 +203,7 @@ class _StudyPlanHistoryViewState extends ConsumerState<StudyPlanHistoryView> {
             .loadSession(widget.documentType, session.id);
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => StudyPlanScreen(documentType: widget.documentType),
+            builder: (_) => NavScaffold(current: AppTab.prepare, child: StudyPlanScreen(documentType: widget.documentType)),
           ),
         );
       },

@@ -13,6 +13,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/map_analytics.dart';
 import '../../domain/university.dart';
 import 'virtual_tour_screen.dart';
+import '../../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Matches a string that opens with a hangul syllable (U+AC00–U+D7A3).
 final RegExp _hangulStart = RegExp(r'^[가-힣]');
@@ -224,9 +225,12 @@ class UniversityDetailSheet extends ConsumerWidget {
             analytics.virtualTourOpen(university.id);
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => VirtualTourScreen(
+                builder: (_) => NavScaffold(
+                  current: AppTab.universities,
+                  child: VirtualTourScreen(
                   institutionName: university.name,
                   tourSpec: university.virtualTour!,
+                  ),
                 ),
               ),
             );

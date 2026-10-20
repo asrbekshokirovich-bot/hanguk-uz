@@ -9,6 +9,7 @@ import 'widgets/interview_setup_view.dart';
 import 'widgets/interview_active_view.dart';
 import 'widgets/interview_analytics_view.dart';
 import 'widgets/interview_history_view.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 class InterviewScreen extends ConsumerStatefulWidget {
   /// Optional initial configuration passed by the caller.
@@ -153,7 +154,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         onHistoryTapped: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+            MaterialPageRoute(
+              builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
+            ),
           );
         },
       );
@@ -172,7 +175,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         onHistoryTapped: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+            MaterialPageRoute(
+              builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
+            ),
           );
         },
       );

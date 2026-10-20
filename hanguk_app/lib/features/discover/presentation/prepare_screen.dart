@@ -9,6 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../chat/presentation/chat_tab.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../../training/presentation/study_plan_builder_screen.dart';
+import 'widgets/app_nav.dart';
 
 /// Design screen 18, "Tayyorgarlik": Study Plan, the interview practice and
 /// "Hanguk AI ga savol bering". All three are a student's tools: for a guest
@@ -22,7 +23,13 @@ class PrepareScreen extends StatelessWidget {
   void _signIn(BuildContext context) => context.push('/login', extra: const {'magic_code': true});
 
   void _push(BuildContext context, Widget screen, String name) =>
-      Navigator.of(context).push(MaterialPageRoute<void>(settings: RouteSettings(name: name), builder: (_) => screen));
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          settings: RouteSettings(name: name),
+          // The home's nav stays under every page opened from here.
+          builder: (_) => NavScaffold(current: AppTab.prepare, child: screen),
+        ),
+      );
 
   void _openChat(BuildContext context) {
     AppEvents.track('screen_view', screen: 'ai_chat');

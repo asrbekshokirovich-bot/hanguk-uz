@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
 import 'interview_analytics_view.dart';
 import 'training_status_label.dart';
+import '../../../../features/discover/presentation/widgets/app_nav.dart';
 
 class InterviewHistoryView extends ConsumerStatefulWidget {
   const InterviewHistoryView({super.key});
@@ -192,10 +193,13 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => InterviewAnalyticsView(
+              builder: (_) => NavScaffold(
+                current: AppTab.prepare,
+                child: InterviewAnalyticsView(
                 overrideSessionId: session['id'],
                 overrideVapiCallId: session['vapi_call_id'] as String?,
                 onBackPressed: () => Navigator.pop(context),
+                ),
               ),
             ),
           );

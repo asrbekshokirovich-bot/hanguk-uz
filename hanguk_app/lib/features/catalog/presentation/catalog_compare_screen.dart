@@ -16,6 +16,7 @@ import '../data/catalog_filters.dart';
 import '../data/catalog_repository.dart';
 import '../domain/catalog_models.dart';
 import 'catalog_format.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Taqqoslash ekrani — the two universities picked in compare mode, side by
 /// side: their columns on top, then the key facts row by row (the better
@@ -28,7 +29,11 @@ class CatalogCompareScreen extends ConsumerStatefulWidget {
   final bool isGuest;
 
   static Future<void> open(BuildContext context, {required bool isGuest}) =>
-      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => CatalogCompareScreen(isGuest: isGuest)));
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => NavScaffold(current: AppTab.universities, child: CatalogCompareScreen(isGuest: isGuest)),
+        ),
+      );
 
   @override
   ConsumerState<CatalogCompareScreen> createState() => _CatalogCompareScreenState();
