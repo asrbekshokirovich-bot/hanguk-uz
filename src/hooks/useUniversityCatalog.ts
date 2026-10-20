@@ -106,11 +106,13 @@ const SUMMARY_COLUMNS =
   ' fakultet_soni,' +
   ' fayl_nomi, updated_at';
 
-/** Kuz qabuli bahordan keyin keladi — "eng yangisi" shunga qarab tanlanadi. */
+/** Yil ichida qabullar shu tartibda: bahor, yoz, kuz, qish (yoz va qish — til kursi termlari). */
+const TERM_ORDER: Record<string, number> = { bahor: 0, yoz: 1, kuz: 2, qish: 3 };
+
+/** "Eng yangisi" qabul yili va semestriga qarab tanlanadi. */
 function recency(g: GuidelineSummary): number {
   const year = g.qabul_yili ?? 0;
-  const term = g.semestr === 'kuz' ? 1 : 0;
-  return year * 2 + term;
+  return year * 4 + (TERM_ORDER[g.semestr ?? ''] ?? 0);
 }
 
 export const CATALOG_KEY = ['university-catalog'] as const;

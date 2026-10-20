@@ -102,7 +102,7 @@ export function admissionLabel(g: GuidelineSummary | null): string | null {
   const parts = [
     g.qabul_yili ? String(g.qabul_yili) : null,
     g.semestr === 'bahor' ? 'bahor' : g.semestr === 'kuz' ? 'kuz' : g.semestr,
-    g.daraja,
+    g.daraja?.replace(/_/g, ' '), // til_kursi -> "til kursi"
   ].filter(Boolean);
   return parts.length > 0 ? parts.join(' · ') : null;
 }
@@ -196,17 +196,18 @@ export function matchesSearch(entry: CatalogEntry, rawQuery: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// O'qish darajalari: bakalavr, magistr, kasbiy ta'lim
+// O'qish darajalari: bakalavr, magistr, kasbiy ta'lim, til kursi
 // ---------------------------------------------------------------------------
 
 /** Excel alohida yuklanadigan va katalogda alohida filtrlanadigan darajalar. */
-export type DegreeLevel = 'bakalavr' | 'magistratura' | 'kasbiy';
+export type DegreeLevel = 'bakalavr' | 'magistratura' | 'kasbiy' | 'til_kursi';
 
 /** Filtr, karta va panel darajalarni shu tartibda ko'rsatadi. */
 export const DEGREE_LEVELS: readonly { key: DegreeLevel; label: string }[] = [
   { key: 'bakalavr', label: 'Bakalavr' },
   { key: 'magistratura', label: 'Magistr' },
   { key: 'kasbiy', label: "Kasbiy ta'lim" },
+  { key: 'til_kursi', label: 'Til kursi' },
 ];
 
 /** "hammasi" — daraja bo'yicha ajratilmagan. */
@@ -216,16 +217,28 @@ export function levelLabel(level: DegreeLevel): string {
   return DEGREE_LEVELS.find((l) => l.key === level)?.label ?? level;
 }
 
-/** Shu darajadagi guideline'lar, eng yangisi birinchi (entry.guidelines tartibi). */
+/**
+ * Shu darajadagi guideline'lar, eng yangisi birinchi (entry.guidelines tartibi).
+ * "Barcha darajalar"da til kursi (어학당) faqat boshqa Excel bo'lmasa olinadi:
+ * uning narxi term uchun va talablari boshqa, karta, filtr va saralash esa
+ * universitetning o'qish darajalariga qarasin.
+ */
 export function guidelinesForLevel(entry: CatalogEntry, level: LevelFilter): GuidelineSummary[] {
-  if (level === 'hammasi') return entry.guidelines;
+  if (level === 'hammasi') {
+    const degrees = entry.guidelines.filter((g) => g.daraja !== 'til_kursi');
+    return degrees.length > 0 ? degrees : entry.guidelines;
+  }
   return entry.guidelines.filter((g) => g.daraja === level);
 }
 
-/** Kartada ko'rinadigan guideline: tanlangan darajaning eng yangisi, aks holda umumiy eng yangisi. */
+/** Kartada ko'rinadigan guideline: tanlangan darajaning (yoki "Barcha darajalar"ning) eng yangisi. */
 export function focusGuideline(entry: CatalogEntry, level: LevelFilter): GuidelineSummary | null {
-  if (level === 'hammasi') return entry.latest;
   return guidelinesForLevel(entry, level)[0] ?? null;
+}
+
+/** Til kursi Excel'ining fakultetlar varag'ida kurslar turadi (masalan, 10 haftalik muntazam kurs). */
+export function facultyNoun(daraja: string | null | undefined): { one: string; many: string } {
+  return daraja === 'til_kursi' ? { one: 'kurs', many: 'kurslar' } : { one: 'fakultet', many: 'fakultetlar' };
 }
 
 /** 대학원대학교, "KDI School"ning 국제정책대학원 kabi faqat magistratura o'qitadigan oliygohlar. */
@@ -239,8 +252,9 @@ function isGraduateOnly(entry: CatalogEntry): boolean {
  * Universitet qaysi darajalarda o'qitadi. Excel yuklangan daraja — aniq bor.
  * Qolgani oliygoh turidan: kollej (전문대학) — kasbiy ta'lim, nomida 대학원
  * bo'lgan oliygoh — faqat magistratura, qolgan 4 yillik universitetlarda ham
- * bakalavr, ham magistratura (대학원) bor. institutions.hidden_levels'dagi
- * darajalar olib tashlanadi.
+ * bakalavr, ham magistratura (대학원) bor. Til kursi (어학당) qaysi
+ * universitetda borligi oldindan ma'lum emas — faqat Excel'i yuklanganda.
+ * institutions.hidden_levels'dagi darajalar olib tashlanadi.
  */
 export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   const levels = new Set<DegreeLevel>();
@@ -258,6 +272,18 @@ export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   // Xodim yashirgan daraja (chet ellik qabuli yo'q, faqat diniy) — Excel bo'lsa ham ko'rinmaydi.
   for (const hidden of entry.institution.hidden_levels ?? []) levels.delete(hidden as DegreeLevel);
   return DEGREE_LEVELS.map((l) => l.key).filter((key) => levels.has(key));
+}
+
+/**
+ * Universitet panelidagi daraja yorliqlari. Til kursi Excel'i hali yo'q
+ * universitetda ham Excel yuklay oladigan xodimga yorliq ochiq turadi —
+ * birinchi faylni shu yerdan yuklaydi (daraja yashirilgan bo'lsa — yo'q).
+ */
+export function panelLevels(entry: CatalogEntry, canUpload: boolean): DegreeLevel[] {
+  const levels = offeredLevels(entry);
+  const hidden = entry.institution.hidden_levels ?? [];
+  if (canUpload && !levels.includes('til_kursi') && !hidden.includes('til_kursi')) levels.push('til_kursi');
+  return levels;
 }
 
 export function matchesLevel(entry: CatalogEntry, level: LevelFilter): boolean {

@@ -27,13 +27,43 @@ Universitet ustiga bosilganda o'ng tomondan panel ochiladi: **Umumiy**,
 **Muddatlar**, **Fakultetlar** (EN + 한국어, qidiruv va track filtri bilan),
 **Hujjatlar**.
 
+## Darajalar
+
+Bo'lim tepasidagi filtr: **Barcha darajalar · Bakalavr · Magistr · Kasbiy
+ta'lim · Til kursi**. Har bir daraja Excel'i alohida yuklanadi va panelda
+alohida yorliqda turadi.
+
+| Daraja | `daraja` (Excel) | Filtrda qaysi universitetlar |
+| --- | --- | --- |
+| Bakalavr | `bakalavr` | 4 yillik universitetlar |
+| Magistr | `magistratura` | 4 yillik universitetlar va 대학원대학교 |
+| Kasbiy ta'lim | `kasbiy` | kollejlar (전문대학) |
+| Til kursi | `til_kursi` | til kursi (어학당) Excel'i yuklanganlar |
+
+Qaysi universitetda til kursi borligi oldindan ma'lum emas, shuning uchun
+"Til kursi" yorlig'i Excel yuklay oladigan xodimga hamma universitetda
+ko'rinadi — birinchi faylni shu yerdan yuklaydi. Qolganlar uni Excel
+yuklangandan keyin ko'radi.
+
+Til kursi Excel'i shu shablonda to'ldiriladi:
+
+- `semestr` — termi: `bahor` (mart), `yoz` (iyun, 여름학기), `kuz`
+  (sentabr), `qish` (dekabr, 겨울학기). `yoz` va `qish` faqat til kursiga
+  ruxsat etiladi. Har bir term — alohida fayl.
+- `fakultetlar` varag'iga kurslar yoziladi (masalan, Regular Korean Language
+  Program), narxi — `kontrakt_summa`, davri — `term`. Panelda bu yorliq
+  **Kurslar** deb ataladi.
+
+"Barcha darajalar"da kartada universitetning o'qish darajasi (bakalavr,
+magistr, kasbiy ta'lim) ma'lumoti ko'rinadi; til kursi faqat boshqa Excel
+bo'lmasa ko'rsatiladi — uning narxi term uchun, saralashni buzmasin.
+
 ## Excel shabloni
 
 Bitta fayl = bitta qabul (`guideline_id`). Ya'ni 2027-bahor bakalavr va
 2027-kuz magistratura — ikki alohida fayl.
 
-Shablonni yuklab olish: bo'limdagi **Shablon** tugmasi yoki
-[`public/templates/universitet-guideline-shablon.xlsx`](../public/templates/universitet-guideline-shablon.xlsx).
+Shablon: [`public/templates/universitet-guideline-shablon.xlsx`](../public/templates/universitet-guideline-shablon.xlsx).
 
 Fayl ichida 5 ta varaq bor, sayt shundan 4 tasini o'qiydi:
 
@@ -61,18 +91,16 @@ boshqa versiya kelsa import to'xtamaydi, lekin ogohlantirish chiqadi.
 
 ## Yuklash
 
-Ikki yo'l bor, ikkalasi ham faqat admin uchun:
-
-1. **Yuqoridagi "Excel yuklash"** — fayl `univ_kod` bo'yicha o'zi tegishli
-   universitetni topadi.
-2. **Universitet panelidagi "Excel yuklash"** — aynan o'sha universitetga
-   yoziladi.
+Excel universitet panelidan yuklanadi: daraja yorlig'ini tanlab, **"Excel
+bakalavr / magistr / kasbiy ta'lim / til kursi yuklash"** tugmasini bosiladi.
+Fayl aynan o'sha universitetga yoziladi. Fayldagi `daraja` bosilgan tugmaga
+mos kelishi shart — masalan, til kursi yorlig'idan bakalavr fayli yuklanmaydi.
 
 Yuklashdan oldin fayl brauzerda tekshiriladi. Xato bo'lsa import boshlanmaydi
 va oyna qaysi varaqning qaysi qatorida nima xato ekanini ko'rsatadi, masalan:
 
 ```
-universitet 2-qator, semestr: "yoz" — ruxsat etilgan qiymatlar: bahor, kuz
+universitet 2-qator, semestr: "yanvar" — ruxsat etilgan qiymatlar: bahor, yoz, kuz, qish
 fakultetlar 14-qator, kontrakt_summa: "tekin" — raqam emas
 ```
 
@@ -83,6 +111,8 @@ butunlay almashtiriladi.
 ## Bazadagi jadvallar
 
 Migratsiya: `supabase/migrations/20260921090000_university_catalog.sql`
+(keyin: `..._university_guidelines_kasbiy.sql` — `kasbiy` darajasi,
+`..._university_guidelines_til_kursi.sql` — `yoz` va `qish` semestrlari)
 
 ```
 university_guidelines            -- universitet varag'i (+ katalog uchun xulosa)
@@ -113,8 +143,8 @@ funksiyani tahrirlash kifoya, 4 ta siyosat va RPC uni ishlatadi. Import
 tekshiradi. Yangi funksiyalar `anon` rolidan yopilgan — tizimga kirmagan
 foydalanuvchi ularni chaqira olmaydi.
 
-Interfeysda ham shu qoida: yuklash, shablon va "Universitet qo'shish"
-tugmalari `useUserRole().isDocumentHandler` ostida (u admin'ni ham qamraydi).
+Interfeysda ham shu qoida: yuklash va "Universitet qo'shish" tugmalari
+`useUserRole().isDocumentHandler` ostida (u admin'ni ham qamraydi).
 
 ## Kod
 

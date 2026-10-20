@@ -37,10 +37,12 @@ interface ColSpec {
 const c = (name: string, type: ColType = 'matn', extra: Omit<ColSpec, 'name' | 'type'> = {}): ColSpec =>
   ({ name, type, ...extra });
 
-const SEMESTRLAR = ['bahor', 'kuz'] as const;
-// kasbiy — kasbiy ta'lim (전문대학, 전문학사).
+// yoz va qish — faqat til kursi termlari (여름학기 — iyun, 겨울학기 — dekabr).
+export const SEMESTRLAR = ['bahor', 'yoz', 'kuz', 'qish'] as const;
+const FAQAT_TIL_KURSI_SEMESTRLARI = ['yoz', 'qish'];
+// kasbiy — kasbiy ta'lim (전문대학, 전문학사), til_kursi — til kursi (어학당).
 export const DARAJALAR = ['bakalavr', 'transfer', 'magistratura', 'doktorantura', 'til_kursi', 'kasbiy'] as const;
-/** Kasbiy ta'lim fayllarida daraja turlicha yoziladi — hammasi "kasbiy" deb o'qiladi. */
+/** Kasbiy ta'lim va til kursi fayllarida daraja turlicha yoziladi — rasmiy qiymatga o'giriladi. */
 const DARAJA_ALIASES: Readonly<Record<string, string>> = {
   kollej: 'kasbiy',
   college: 'kasbiy',
@@ -50,6 +52,18 @@ const DARAJA_ALIASES: Readonly<Record<string, string>> = {
   junior_college: 'kasbiy',
   '전문대학': 'kasbiy',
   '전문학사': 'kasbiy',
+  'til kursi': 'til_kursi',
+  'til-kursi': 'til_kursi',
+  tilkursi: 'til_kursi',
+  'language course': 'til_kursi',
+  'language program': 'til_kursi',
+  'korean language course': 'til_kursi',
+  'korean language program': 'til_kursi',
+  '어학당': 'til_kursi',
+  '어학연수': 'til_kursi',
+  '한국어연수': 'til_kursi',
+  '한국어 연수': 'til_kursi',
+  '한국어연수과정': 'til_kursi',
 };
 const VALYUTALAR = ['KRW', 'USD'] as const;
 const TRACKLAR = ['english', 'korean'] as const;
@@ -463,6 +477,15 @@ export async function parseGuidelineWorkbook(
     ).filter(([, rows]) => rows.some((row) => row.guideline_id !== gid));
     for (const [sheet] of mismatched) {
       errors.push(`"${sheet}" varag'ida boshqa guideline_id bor — "${gid}" bo'lishi kerak`);
+    }
+
+    // Bakalavr, magistr va kollejlar bahor yoki kuzda qabul qiladi — yoz/qish
+    // boshqa darajada yozilgan bo'lsa, bu xato.
+    const semestr = universitet.semestr as string | undefined;
+    if (semestr && FAQAT_TIL_KURSI_SEMESTRLARI.includes(semestr) && universitet.daraja !== 'til_kursi') {
+      errors.push(
+        `universitet 2-qator, semestr: "${semestr}" faqat til kursi uchun (daraja = til_kursi) — boshqa darajalar bahor yoki kuzda qabul qiladi`,
+      );
     }
   }
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type {
   CatalogEntry,
@@ -244,7 +244,7 @@ describe('GuidelineDetailSheet — darajalar', () => {
     latest: null,
   };
 
-  it('kollejda faqat "Kasbiy ta‘lim" yorlig‘i va o‘sha darajaning yuklash tugmasi', () => {
+  it('kollejda "Kasbiy ta‘lim" yorlig‘i va o‘sha darajaning yuklash tugmasi, bakalavr va magistr yo‘q', () => {
     const onUpload = vi.fn();
     render(
       <GuidelineDetailSheet
@@ -258,6 +258,7 @@ describe('GuidelineDetailSheet — darajalar', () => {
     );
 
     expect(screen.getByRole('button', { name: "Kasbiy ta'lim" })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Til kursi' })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByRole('button', { name: /^Bakalavr/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Magistr/ })).not.toBeInTheDocument();
 
@@ -287,5 +288,91 @@ describe('GuidelineDetailSheet — darajalar', () => {
     expect(screen.getByRole('button', { name: /^Bakalavr/ })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Magistr' })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByRole('button', { name: /Kasbiy/ })).not.toBeInTheDocument();
+  });
+});
+
+describe('GuidelineDetailSheet — til kursi', () => {
+  afterEach(() => {
+    mocks.detail = detail;
+  });
+
+  it('Excel yuklay oladigan xodim til kursi yorlig‘idan til kursi faylini yuklaydi', () => {
+    const onUpload = vi.fn();
+    render(
+      <GuidelineDetailSheet
+        entry={entry}
+        open
+        onOpenChange={() => {}}
+        canUpload
+        onUpload={onUpload}
+        uploading={false}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Til kursi' }));
+    expect(screen.getByRole('button', { name: 'Til kursi' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Bu universitet uchun til kursi excel yuklanmagan')).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Excel til kursi yuklash' })[0]);
+    expect(onUpload).toHaveBeenCalledWith(entry, 'til_kursi');
+  });
+
+  it('til kursi Excel‘i yo‘q universitetda ko‘ruvchiga yorliq chiqmaydi', () => {
+    render(
+      <GuidelineDetailSheet
+        entry={entry}
+        open
+        onOpenChange={() => {}}
+        canUpload={false}
+        onUpload={() => {}}
+        uploading={false}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: /Til kursi/ })).not.toBeInTheDocument();
+  });
+
+  it('til kursi Excel‘ida fakultetlar o‘rniga kurslar ko‘rinadi', () => {
+    const til: GuidelineSummary = {
+      ...summary,
+      id: 'g2',
+      guideline_id: 'jbnu_2027_yoz_til_kursi',
+      semestr: 'yoz',
+      daraja: 'til_kursi',
+      kontrakt_min: 1700000,
+      kontrakt_max: 1700000,
+      kontrakt_davri: 'term',
+      fakultet_soni: 1,
+    };
+    mocks.detail = {
+      ...detail,
+      guideline: { ...detail.guideline, ...til },
+      faculties: [
+        {
+          ...detail.faculties[0],
+          kollej_en: null,
+          kollej_kr: null,
+          fakultet_en: 'Regular Korean Language Program',
+          fakultet_kr: '정규과정',
+          kontrakt_summa: 1700000,
+          kontrakt_davri: 'term',
+        },
+      ],
+    };
+    render(
+      <GuidelineDetailSheet
+        entry={{ ...entry, guidelines: [til, summary], latest: til }}
+        open
+        onOpenChange={() => {}}
+        canUpload={false}
+        onUpload={() => {}}
+        uploading={false}
+        initialLevel="til_kursi"
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /^Til kursi/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('tab', { name: /Kurslar\s*1/ })).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Fakultetlar/ })).not.toBeInTheDocument();
+    expect(screen.getByText('/ term')).toBeInTheDocument();
   });
 });
