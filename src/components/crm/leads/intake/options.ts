@@ -100,3 +100,19 @@ export const MAX_AGE = 45;
 
 /** A phone number is considered dialable once it carries this many digits. */
 export const MIN_PHONE_DIGITS = 9;
+
+/**
+ * A stored channel as the list shows it.
+ *
+ * Some stored rows say "instagram" while the form writes the CHANNELS spelling
+ * ("Instagram"), so the same channel showed two ways in one column. The list
+ * shows the CHANNELS spelling for any case of a known channel and leaves
+ * anything else as stored. Display only — the stored value is not touched,
+ * since reporting groups on it.
+ */
+export const channelLabel = (stored: string | null | undefined): string => {
+  const value = (stored ?? '').trim();
+  if (!value) return '';
+  const known = CHANNELS.find((channel) => channel.toLowerCase() === value.toLowerCase());
+  return known ?? value;
+};
