@@ -5536,4 +5536,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String fltCount(int n) {
     return 'ПОДХОДЯЩИЕ ВУЗЫ · ИЗ $n';
   }
+
+  @override
+  String get vzReport => 'Посмотреть отчёт →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'Тест не открылся — проверьте интернет и попробуйте снова';
 }

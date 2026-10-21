@@ -7,9 +7,10 @@ import '../domain/admission_tests.dart';
 
 /// The signed-in student's Study Plan and interview results, by university:
 /// the latest AI score of each (1–10, read as out of 100) and how many times
-/// each was taken. Empty for a guest, who cannot take them.
+/// each was taken — the student's, or a guest's under their anonymous
+/// session. Empty with no session.
 final admissionTestsProvider = FutureProvider<Map<String, AdmissionTests>>((ref) async {
-  if (!ref.watch(signedInProvider)) return const {};
+  ref.watch(authStateProvider);
   final client = Supabase.instance.client;
   final uid = client.auth.currentUser?.id;
   if (uid == null) return const {};

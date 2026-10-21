@@ -5534,4 +5534,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String fltCount(int n) {
     return 'MATCHING UNIVERSITIES · OF $n';
   }
+
+  @override
+  String get vzReport => 'See the report →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'The test couldn\'t open — check your connection and try again';
 }

@@ -64,6 +64,8 @@ void main() {
     expect(find.text(l.vzTourEducation), findsOneWidget);
     for (var i = 0; i < 6; i++) {
       await t.tapAt(const Offset(10, 400));
+      // A step further down the lazy list scrolls a while before it is lit.
+      await settle(t);
       await settle(t);
     }
     expect(find.text(l.vzTourGauge), findsNothing);

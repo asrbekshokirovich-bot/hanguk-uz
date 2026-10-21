@@ -6840,5 +6840,7 @@
         "type": "int"
       }
     }
-  }
+  },
+  "vzReport": "See the report →",
+  "uaTestsUnavailable": "The test couldn't open — check your connection and try again"
 }

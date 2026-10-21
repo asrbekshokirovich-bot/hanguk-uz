@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -19,6 +21,7 @@ import '../../onboarding/domain/quiz_answers.dart';
 import '../data/board_tour.dart';
 import '../data/slots.dart';
 import 'filter_board_screen.dart' show boardResults;
+import 'discover_routes.dart';
 import 'widgets/app_nav.dart';
 import 'widgets/assess_parts.dart';
 import 'widgets/fd_bottom_nav.dart';
@@ -55,23 +58,23 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
   }
 
   Widget _tour() => PageTour(
-          name: 'visa',
-          seen: tourSeenProvider('visa'),
-          steps: (context) {
-            final l = AppLocalizations.of(context)!;
-            Widget icon(LucideGlyph g) => Lucide(g, size: 16, color: FdColors.onLime);
-            return [
-              TourStep(l.vzTourGauge, icon: icon(LucideIcons.plane)),
-              TourStep(l.vzTourEducation, icon: icon(LucideIcons.graduationCap)),
-              TourStep(l.vzTourLanguage, icon: icon(LucideIcons.languages)),
-              TourStep(l.vzTourMoney, icon: icon(LucideIcons.banknote)),
-              TourStep(l.vzTourHistory, icon: icon(LucideIcons.rotateCcw)),
-              TourStep(l.vzTourPrep, icon: icon(LucideIcons.target)),
-              TourStep(l.vzTourReplay, icon: icon(LucideIcons.chevronRight), align: TourAlign.end),
-            ];
-          },
-          builder: (context, keys) => SafeArea(bottom: false, child: _body(context, keys)),
-        );
+    name: 'visa',
+    seen: tourSeenProvider('visa'),
+    steps: (context) {
+      final l = AppLocalizations.of(context)!;
+      Widget icon(LucideGlyph g) => Lucide(g, size: 16, color: FdColors.onLime);
+      return [
+        TourStep(l.vzTourGauge, icon: icon(LucideIcons.plane)),
+        TourStep(l.vzTourEducation, icon: icon(LucideIcons.graduationCap)),
+        TourStep(l.vzTourLanguage, icon: icon(LucideIcons.languages)),
+        TourStep(l.vzTourMoney, icon: icon(LucideIcons.wallet)),
+        TourStep(l.vzTourHistory, icon: icon(LucideIcons.history)),
+        TourStep(l.vzTourPrep, icon: icon(LucideIcons.target)),
+        TourStep(l.vzTourReplay, icon: icon(LucideIcons.chevronRight), align: TourAlign.end),
+      ];
+    },
+    builder: (context, keys) => SafeArea(bottom: false, child: _body(context, keys)),
+  );
 
   Widget _body(BuildContext context, List<GlobalKey> keys) {
     final l = AppLocalizations.of(context)!;
@@ -376,28 +379,43 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
             ],
           ),
         ),
+        // The gauge stays put; the questions scroll under it.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+          child: KeyedSubtree(
+            key: keys[0],
+            child: _GaugeCard(
+              percent: nowVisa,
+              consultant: visaWithConsultant(input, requiredBankKrw: need),
+            ),
+          ),
+        ),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+            padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
             children: [
-              KeyedSubtree(
-                key: keys[0],
-                child: _GaugeCard(
-                  percent: nowVisa,
-                  consultant: visaWithConsultant(input, requiredBankKrw: need),
-                ),
-              ),
-              const SizedBox(height: 12),
               section(0, keys[1], LucideIcons.graduationCap, l.vzSecEducation, education),
               const SizedBox(height: 12),
               section(1, keys[2], LucideIcons.languages, l.uaSecLanguage, language),
               const SizedBox(height: 12),
-              section(2, keys[3], LucideIcons.banknote, l.vzSecMoney, money),
+              section(2, keys[3], LucideIcons.wallet, l.vzSecMoney, money),
               const SizedBox(height: 12),
-              section(3, keys[4], LucideIcons.rotateCcw, l.vzSecHistory, history),
+              section(3, keys[4], LucideIcons.history, l.vzSecHistory, history),
               const SizedBox(height: 12),
               section(4, keys[5], LucideIcons.target, l.vzSecPrep, prep),
             ],
+          ),
+        ),
+        FdBottomBar(
+          aboveNav: true,
+          child: HardButton(
+            label: l.vzReport,
+            onPressed: () {
+              final picks = ref.read(slotsProvider).whereType<String>().toList();
+              final ids = picks.isNotEmpty ? picks : [for (final u in pool.take(3)) u.institutionId];
+              ref.read(assessmentProvider.notifier).useUniversities(ids);
+              context.push(kAssessmentReportPath);
+            },
           ),
         ),
       ],

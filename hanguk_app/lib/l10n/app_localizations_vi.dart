@@ -5508,4 +5508,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String fltCount(int n) {
     return 'TRƯỜNG PHÙ HỢP · TRÊN $n';
   }
+
+  @override
+  String get vzReport => 'Xem báo cáo →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'Không mở được bài kiểm tra — kiểm tra mạng và thử lại';
 }

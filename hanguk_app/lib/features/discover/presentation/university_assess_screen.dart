@@ -363,10 +363,16 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
   }
 
   Future<void> _start(BuildContext context, AppLocalizations l, CatalogUniversity u, {required bool interview}) async {
-    if (!ref.read(signedInProvider)) {
-      context.push('/login', extra: {'notice': l.uaTestsNeedCode});
+    // No client code asked here (owner, 2026-10-21): a guest takes the
+    // tests under an anonymous session.
+    final messenger = ScaffoldMessenger.of(context);
+    if (!await ensureTestSession()) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l.uaTestsUnavailable)));
       return;
     }
+    if (!context.mounted) return;
     final page = interview
         ? InterviewScreen(
             initialSessionType: 'university_specific',

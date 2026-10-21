@@ -396,7 +396,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) => resolveAppRedirect(
       loc: state.uri.toString(),
       isLoading: authStateAsync.isLoading,
-      isAuthenticated: authStateAsync.value?.session != null,
+      isAuthenticated: isClientSession(authStateAsync.value?.session),
       hasLanguage: hasLanguage,
     ),
   );

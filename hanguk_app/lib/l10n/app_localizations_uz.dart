@@ -4067,7 +4067,7 @@ class AppLocalizationsUz extends AppLocalizations {
   }
 
   @override
-  String get fdNavApplication => 'Ariza';
+  String get fdNavApplication => 'Arizam';
 
   @override
   String get fdNavDocuments => 'Hujjatlar';
@@ -5534,4 +5534,11 @@ class AppLocalizationsUz extends AppLocalizations {
   String fltCount(int n) {
     return 'MOS UNIVERSITETLAR · $n TADAN';
   }
+
+  @override
+  String get vzReport => 'Hisobotni ko\'rish →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko\'ring';
 }

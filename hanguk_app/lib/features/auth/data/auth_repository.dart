@@ -56,17 +56,36 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
-/// Whether a student is signed in. False before Supabase is up, so screens
-/// that only adapt to it (the bottom nav of a pushed screen) can be built
-/// anywhere.
+/// Whether a student is signed in with their client code. False before
+/// Supabase is up, so screens that only adapt to it (the bottom nav of a
+/// pushed screen) can be built anywhere. A guest's anonymous session (the
+/// university tests, [ensureTestSession]) is not a sign-in.
 final signedInProvider = Provider<bool>((ref) {
   try {
     final state = ref.watch(authStateProvider);
-    return (state.value?.session ?? Supabase.instance.client.auth.currentSession) != null;
+    return isClientSession(state.value?.session ?? Supabase.instance.client.auth.currentSession);
   } catch (_) {
     return false;
   }
 });
+
+/// A session that is a student's own, not a guest's anonymous one.
+bool isClientSession(Session? s) => s != null && !s.user.isAnonymous;
+
+/// A session to take the university's tests with (owner, 2026-10-21: they
+/// ask for no client code): the student's own, or else an anonymous one for
+/// the guest. False when neither can be had.
+Future<bool> ensureTestSession() async {
+  final auth = Supabase.instance.client.auth;
+  if (auth.currentSession != null) return true;
+  try {
+    await auth.signInAnonymously();
+    return auth.currentSession != null;
+  } catch (e) {
+    debugPrint('[TestSession] $e');
+    return false;
+  }
+}
 
 /// The signed-in student's display name, read from `profiles.full_name`.
 ///

@@ -5342,4 +5342,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String fltCount(int n) {
     return '맞는 대학교 · $n곳 중';
   }
+
+  @override
+  String get vzReport => '보고서 보기 →';
+
+  @override
+  String get uaTestsUnavailable => '테스트를 열 수 없습니다 — 인터넷을 확인하고 다시 시도하세요';
 }

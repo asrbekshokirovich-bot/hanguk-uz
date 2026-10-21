@@ -1772,5 +1772,7 @@
   "fltFeeSem": "Học phí / học kỳ",
   "ulCount": "{n}",
   "ulSubtitle": "{n} trường · chạm vào thẻ",
-  "fltCount": "TRƯỜNG PHÙ HỢP · TRÊN {n}"
+  "fltCount": "TRƯỜNG PHÙ HỢP · TRÊN {n}",
+  "vzReport": "Xem báo cáo →",
+  "uaTestsUnavailable": "Không mở được bài kiểm tra — kiểm tra mạng và thử lại"
 }

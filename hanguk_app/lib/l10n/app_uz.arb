@@ -1334,7 +1334,7 @@
   "fdMapOpen360": "360° ko'rinish",
   "fdMapEmpty": "Bu filtr bo'yicha universitet topilmadi.",
   "fdMapCardOf": "{n} / {total}",
-  "fdNavApplication": "Ariza",
+  "fdNavApplication": "Arizam",
   "fdNavDocuments": "Hujjatlar",
   "fdJourneyTitle": "Ariza jarayoni",
   "fdJourneyCurrent": "Hozirgi bosqich",
@@ -1772,5 +1772,7 @@
   "fltFeeSem": "Kontrakt / semestr",
   "ulCount": "{n} ta",
   "ulSubtitle": "{n} ta universitet · kartani bosing",
-  "fltCount": "MOS UNIVERSITETLAR · {n} TADAN"
+  "fltCount": "MOS UNIVERSITETLAR · {n} TADAN",
+  "vzReport": "Hisobotni ko'rish →",
+  "uaTestsUnavailable": "Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko'ring"
 }

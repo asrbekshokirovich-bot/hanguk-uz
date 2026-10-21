@@ -1772,5 +1772,7 @@
   "fltFeeSem": "등록금 / 학기",
   "ulCount": "{n}개",
   "ulSubtitle": "대학교 {n}곳 · 카드를 누르세요",
-  "fltCount": "맞는 대학교 · {n}곳 중"
+  "fltCount": "맞는 대학교 · {n}곳 중",
+  "vzReport": "보고서 보기 →",
+  "uaTestsUnavailable": "테스트를 열 수 없습니다 — 인터넷을 확인하고 다시 시도하세요"
 }

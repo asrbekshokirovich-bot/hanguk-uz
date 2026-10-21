@@ -9943,6 +9943,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MATCHING UNIVERSITIES · OF {n}'**
   String fltCount(int n);
+
+  /// No description provided for @vzReport.
+  ///
+  /// In en, this message translates to:
+  /// **'See the report →'**
+  String get vzReport;
+
+  /// No description provided for @uaTestsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The test couldn\'t open — check your connection and try again'**
+  String get uaTestsUnavailable;
 }
 
 class _AppLocalizationsDelegate
