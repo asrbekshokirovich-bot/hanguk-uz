@@ -9955,6 +9955,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The test couldn\'t open — check your connection and try again'**
   String get uaTestsUnavailable;
+
+  /// No description provided for @tuChances.
+  ///
+  /// In en, this message translates to:
+  /// **'Your admission and visa chances, from your answers'**
+  String get tuChances;
 }
 
 class _AppLocalizationsDelegate

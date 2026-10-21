@@ -5515,4 +5515,7 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get uaTestsUnavailable =>
       'Không mở được bài kiểm tra — kiểm tra mạng và thử lại';
+
+  @override
+  String get tuChances => 'Khả năng trúng tuyển và visa — theo câu trả lời';
 }

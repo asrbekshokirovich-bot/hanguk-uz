@@ -1774,5 +1774,6 @@
   "ulSubtitle": "{n} ta universitet · kartani bosing",
   "fltCount": "MOS UNIVERSITETLAR · {n} TADAN",
   "vzReport": "Hisobotni ko'rish →",
-  "uaTestsUnavailable": "Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko'ring"
+  "uaTestsUnavailable": "Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko'ring",
+  "tuChances": "Qabul va viza imkoningiz — javoblaringizga qarab"
 }

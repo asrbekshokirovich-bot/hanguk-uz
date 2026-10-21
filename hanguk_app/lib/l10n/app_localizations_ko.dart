@@ -5348,4 +5348,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get uaTestsUnavailable => '테스트를 열 수 없습니다 — 인터넷을 확인하고 다시 시도하세요';
+
+  @override
+  String get tuChances => '합격·비자 가능성 — 답변에 따라';
 }

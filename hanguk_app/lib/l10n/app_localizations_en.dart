@@ -5541,4 +5541,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get uaTestsUnavailable =>
       'The test couldn\'t open — check your connection and try again';
+
+  @override
+  String get tuChances => 'Your admission and visa chances, from your answers';
 }

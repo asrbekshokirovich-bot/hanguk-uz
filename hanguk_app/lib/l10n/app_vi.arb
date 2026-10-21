@@ -1774,5 +1774,6 @@
   "ulSubtitle": "{n} trường · chạm vào thẻ",
   "fltCount": "TRƯỜNG PHÙ HỢP · TRÊN {n}",
   "vzReport": "Xem báo cáo →",
-  "uaTestsUnavailable": "Không mở được bài kiểm tra — kiểm tra mạng và thử lại"
+  "uaTestsUnavailable": "Không mở được bài kiểm tra — kiểm tra mạng và thử lại",
+  "tuChances": "Khả năng trúng tuyển và visa — theo câu trả lời"
 }

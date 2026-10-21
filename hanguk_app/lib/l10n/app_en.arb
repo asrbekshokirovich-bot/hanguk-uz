@@ -6842,5 +6842,6 @@
     }
   },
   "vzReport": "See the report →",
-  "uaTestsUnavailable": "The test couldn't open — check your connection and try again"
+  "uaTestsUnavailable": "The test couldn't open — check your connection and try again",
+  "tuChances": "Your admission and visa chances, from your answers"
 }

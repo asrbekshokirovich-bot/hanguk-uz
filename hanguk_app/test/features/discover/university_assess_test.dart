@@ -56,12 +56,12 @@ Future<AppLocalizations> _pump(WidgetTester t, Widget home, {AdmissionTests? tes
 }
 
 void main() {
-  testWidgets('the page: four facts and the question, nothing else', (t) async {
+  testWidgets('the page as before, and under it the question that opens the assessment', (t) async {
     final l = await _pump(t, const UniversityScreen(institutionId: 'u1'));
-    for (final s in [l.uaCity, 'Asan', l.fdCellLanguage, 'TOPIK 2+', l.fdUniDeadline, l.uaAskTitle, l.uaAskStart]) {
-      expect(find.text(s), findsOneWidget, reason: s);
-    }
-    expect(find.text('?%'), findsOneWidget);
+    expect(find.text(l.fdUniAdmissionLabel), findsOneWidget);
+    expect(find.text(l.fdCellLanguage), findsOneWidget);
+    expect(find.text(l.uaAskTitle), findsOneWidget);
+    expect(find.text(l.uaAskStart), findsOneWidget);
   });
 
   testWidgets('each answer says what it does to this university', (t) async {

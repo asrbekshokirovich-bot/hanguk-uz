@@ -5541,4 +5541,7 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get uaTestsUnavailable =>
       'Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko\'ring';
+
+  @override
+  String get tuChances => 'Qabul va viza imkoningiz — javoblaringizga qarab';
 }

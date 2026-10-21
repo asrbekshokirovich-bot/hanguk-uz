@@ -5543,4 +5543,7 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get uaTestsUnavailable =>
       'Тест не открылся — проверьте интернет и попробуйте снова';
+
+  @override
+  String get tuChances => 'Шансы на поступление и визу — по вашим ответам';
 }
