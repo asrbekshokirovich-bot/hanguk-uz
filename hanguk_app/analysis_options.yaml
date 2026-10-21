@@ -19,13 +19,6 @@ analyzer:
     - tools/**
     - "test/vapi_test.dart"
     - "test/vapi_connection_test.dart"
-    - build/**
-    - android/**
-    - ios/**
-    - web/**
-    - windows/**
-    - macos/**
-    - linux/**
   errors:
     # Pre-existing dead code in lib/ that is unrelated to the
     # store-readiness PR. Downgrade so CI stops flagging warnings the
