@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../assessment/data/admission_tests_repository.dart';
 import '../../assessment/data/assessment_controller.dart';
+import '../../assessment/domain/admission_tests.dart';
 import '../../assessment/domain/assessment.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
@@ -14,10 +16,15 @@ import '../../onboarding/domain/eligibility_engine.dart';
 /// a figure is always there and moves with the board.
 @immutable
 class ChanceBook {
-  const ChanceBook({required this.input, required this.rules, this.visa});
+  const ChanceBook({required this.input, required this.rules, this.visa, this.tests = const {}});
 
   final AssessmentInput input;
   final EligibilityRules rules;
+
+  /// The Study Plan and interview results by university ([combinedAdmission]).
+  final Map<String, AdmissionTests> tests;
+
+  AdmissionTests testsOf(CatalogUniversity u) => tests[u.institutionId] ?? AdmissionTests.none;
 
   /// The D-2 visa chance.
   final int? visa;
@@ -28,12 +35,15 @@ class ChanceBook {
     return degree == null ? u.primary : u.forDegree(degree) ?? u.primary;
   }
 
-  /// [u]'s admission chance.
-  int admission(CatalogUniversity u) => admissionPercent(input, guidelineOf(u), rules: rules);
+  /// [u]'s admission chance: the profile's, with the tests taken for it.
+  int admission(CatalogUniversity u) => combinedAdmission(profileAdmission(u), testsOf(u));
+
+  /// The profile's part alone (TOPIK, certificate, partner).
+  int profileAdmission(CatalogUniversity u) => admissionPercent(input, guidelineOf(u), rules: rules);
 
   /// What the same student would have with [topik].
   int admissionWithTopik(CatalogUniversity u, int topik) =>
-      admissionPercent(input.copyWith(topik: topik), guidelineOf(u), rules: rules);
+      combinedAdmission(admissionPercent(input.copyWith(topik: topik), guidelineOf(u), rules: rules), testsOf(u));
 }
 
 final chanceBookProvider = Provider<ChanceBook>((ref) {
@@ -41,7 +51,8 @@ final chanceBookProvider = Provider<ChanceBook>((ref) {
   final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
   final catalog = ref.watch(catalogProvider).value;
   final visa = catalog == null ? null : assess(input, catalog: catalog, rules: rules).visaPercent;
-  return ChanceBook(input: input, rules: rules, visa: visa);
+  final tests = ref.watch(admissionTestsProvider).value ?? const {};
+  return ChanceBook(input: input, rules: rules, visa: visa, tests: tests);
 });
 
 /// The best admission chance among [universities] and "N%" for the round
