@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
-import 'filter_board_screen.dart';
+import 'visa_screen.dart';
 import 'prepare_screen.dart';
 import 'universities_screen.dart';
 import 'widgets/app_nav.dart';
@@ -47,7 +47,7 @@ class _DiscoverShellState extends State<DiscoverShell> {
     return switch (tab) {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(),
-      AppTab.home => FilterBoardScreen(showBack: false, onShow: () => _go(AppTab.universities)),
+      AppTab.home => const VisaScreen(embedded: true),
       // A guest never gets here: the nav sends them to the sign-in instead.
       _ => const SizedBox.shrink(),
     };

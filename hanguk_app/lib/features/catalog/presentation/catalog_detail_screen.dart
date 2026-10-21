@@ -11,6 +11,7 @@ import '../data/catalog_filters.dart';
 import '../data/catalog_repository.dart';
 import '../domain/catalog_models.dart';
 import 'catalog_format.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Design screen 03 — "Talablar, narx va daraja": one university's faculties
 /// and fees, what it asks for, and its timeline, all from the guideline Excel
@@ -36,10 +37,13 @@ class CatalogDetailScreen extends ConsumerStatefulWidget {
   }) {
     return Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CatalogDetailScreen(
+        builder: (_) => NavScaffold(
+          current: AppTab.universities,
+          child: CatalogDetailScreen(
           university: university,
           initialDegree: degree,
           isGuest: isGuest,
+          ),
         ),
       ),
     );

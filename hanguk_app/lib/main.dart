@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/analytics/app_events.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
+import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/widgets/sign_in_chrome.dart';
 import 'features/entry/data/entry_store.dart';
 import 'features/map/data/map_repository.dart';
@@ -160,7 +161,7 @@ class HangukApp extends ConsumerWidget {
 
 bool _signedIn() {
   try {
-    return Supabase.instance.client.auth.currentUser != null;
+    return isClientSession(Supabase.instance.client.auth.currentSession);
   } catch (_) {
     return false;
   }

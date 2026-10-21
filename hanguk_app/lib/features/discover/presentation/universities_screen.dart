@@ -2,44 +2,79 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../design_system/seoul_night/seoul_night_tokens.dart' show SeoulColors;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
-import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton;
+import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../assessment/data/assessment_controller.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
+import '../../catalog/data/campus_photos.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
-import '../../map/data/map_repository.dart';
-import '../../map/presentation/widgets/university_map_view.dart';
+import '../../catalog/presentation/catalog_format.dart';
 import '../data/chances.dart';
-import '../data/list_mode.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
 import 'filter_board_screen.dart';
-import 'widgets/chance_badge.dart';
 import 'widgets/fd_parts.dart';
 
-/// "Sizga mos N ta" (the prototype's list): what the filter board leaves, best
-/// chance first, with the switch between the admission chance, the visa
-/// chance and the map. Under it the colour key and how many of the three
-/// places are taken. The bottom nav belongs to the shell.
-class UniversitiesScreen extends ConsumerWidget {
+/// "Universitetlar" (design 2026-10-21): the universities the filter leaves,
+/// as cards two to a row — the photo or the blue tile with the Korean name and
+/// the contract, the heart that picks it, then the type, the name and "city ·
+/// TOPIK". The search narrows them by name or city; the button beside it
+/// opens the filter. Best chance first. The bottom nav belongs to the shell.
+class UniversitiesScreen extends ConsumerStatefulWidget {
   const UniversitiesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UniversitiesScreen> createState() => _UniversitiesScreenState();
+}
+
+class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final f = ref.watch(catalogFilterProvider);
     final book = ref.watch(chanceBookProvider);
-    final mode = ref.watch(uniModeProvider);
-    final picked = ref.watch(slotsProvider).whereType<String>().length;
+    final slots = ref.watch(slotsProvider);
+    final picked = slots.whereType<String>().length;
 
     var list = boardResults(ref, all, f);
+    final q = _search.text.trim().toLowerCase();
+    if (q.isNotEmpty) {
+      list = [
+        for (final u in list)
+          if ([
+            u.displayName,
+            u.nameKo,
+            u.nameKoShort,
+            u.city,
+            guidelineFor(u, f)?.city,
+          ].whereType<String>().any((s) => s.toLowerCase().contains(q)))
+            u,
+      ];
+    }
     // Best chance first; the sort is stable, so ties keep the catalogue's order.
     list = [...list]..sort((a, b) => book.admission(b).compareTo(book.admission(a)));
+
+    void pick(CatalogUniversity u) {
+      final n = ref.read(slotsProvider.notifier);
+      if (n.indexOf(u.institutionId) >= 0) {
+        n.remove(u.institutionId);
+      } else if (!n.add(u.institutionId)) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(l.fdSlotsFull)));
+      }
+    }
 
     return SafeArea(
       bottom: false,
@@ -54,27 +89,92 @@ class UniversitiesScreen extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    l.fdListTitle(list.length),
+                    l.ulTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.36),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(color: FdColors.lime, borderRadius: BorderRadius.circular(999)),
+                  child: Text(l.ulCount(list.length), style: fdText(12, FontWeight.w800, FdColors.onLime)),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 46,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: FdColors.card,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: FdColors.ink, width: 1.5),
+                    ),
+                    child: Row(
+                      children: [
+                        const Lucide(LucideIcons.search, size: 18, color: FdColors.ink),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _search,
+                            onChanged: (_) => setState(() {}),
+                            textInputAction: TextInputAction.search,
+                            style: fdText(14, FontWeight.w600, FdColors.ink),
+                            decoration: InputDecoration(
+                              hintText: l.ulSearchHint,
+                              hintStyle: fdText(14, FontWeight.w500, FdColors.muted),
+                              isDense: true,
+                              filled: false,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Semantics(
+                  button: true,
+                  label: l.fltTitle,
+                  excludeSemantics: true,
+                  child: GestureDetector(
+                    onTap: () => context.push(kDiscoverFilterPath),
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: FdColors.blue,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: FdColors.ink, width: 1.5),
+                      ),
+                      child: const Lucide(LucideIcons.slidersHorizontal, size: 18, color: Colors.white),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
-            child: FdSegments(
-              labels: [l.fdModeAdmission, l.fdModeVisa, l.fdModeMap],
-              selected: mode.index,
-              onSelect: (i) => ref.read(uniModeProvider.notifier).set(UniMode.values[i]),
-            ),
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
+            child: Text(l.ulSubtitle(list.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
           ),
           Expanded(
-            child: mode == UniMode.map
-                ? const _RealMap()
-                : list.isEmpty
+            child: list.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -85,40 +185,32 @@ class UniversitiesScreen extends ConsumerWidget {
                       ),
                     ),
                   )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(18, 10, 18, 8),
+                : GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(18, 2, 18, 12),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      mainAxisExtent: 222,
+                    ),
                     itemCount: list.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, i) {
                       final u = list[i];
-                      final percent = mode == UniMode.visa ? book.visa : book.admission(u);
-                      return _Row(
+                      return _Card(
                         university: u,
                         guideline: guidelineFor(u, f) ?? u.primary,
-                        percent: percent,
+                        picked: slots.contains(u.institutionId),
                         onTap: () => context.push(universityPath(u.institutionId)),
+                        onPick: () => pick(u),
                       );
                     },
                   ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
-            child: _Key(picked: picked),
-          ),
-          // Pinned: the visa report is one tap away however far the list is
-          // scrolled. It weighs the three picks, or else the three best here.
-          FdBottomBar(
-            aboveNav: true,
-            child: HardButton(
-              label: l.fdListReportCta,
-              onPressed: list.isEmpty
-                  ? null
-                  : () {
-                      final picks = ref.read(slotsProvider).whereType<String>().toList();
-                      final ids = picks.isNotEmpty ? picks : [for (final u in list.take(3)) u.institutionId];
-                      ref.read(assessmentProvider.notifier).useUniversities(ids);
-                      context.push(kAssessmentReportPath);
-                    },
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text('♥$picked/$kSlotCount', style: fdText(12, FontWeight.w800, FdColors.lime)),
             ),
           ),
         ],
@@ -127,129 +219,178 @@ class UniversitiesScreen extends ConsumerWidget {
   }
 }
 
-class _Row extends StatelessWidget {
-  const _Row({required this.university, required this.guideline, required this.percent, required this.onTap});
+/// One university's card (design 2026-10-21).
+class _Card extends StatelessWidget {
+  const _Card({
+    required this.university,
+    required this.guideline,
+    required this.picked,
+    required this.onTap,
+    required this.onPick,
+  });
 
   final CatalogUniversity university;
   final CatalogGuideline guideline;
-  final int? percent;
+  final bool picked;
   final VoidCallback onTap;
+  final VoidCallback onPick;
+
+  static const _privateTone = Color(0xFFA5B4FC);
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final photo = campusPhotoAsset(university.institutionId);
+    final price = priceOf(guideline);
+    final state = catalogType(guideline.institutionType) == CatalogType.state;
+    final need = guideline.topikMin;
+    final meta = [
+      if (university.city != null) shortCity(university.city!),
+      need != null && need > 0 && guideline.koreanTrack != false ? 'TOPIK ${scoreText(need)}+' : l.ulNoRequirement,
+    ].join(' · ');
+    final hangul = university.nameKoShort ?? university.nameKo;
+
     return Semantics(
       button: true,
+      label: university.displayName,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
-            color: FdColors.card,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: FdColors.ink, width: 1.5),
+            color: const Color(0xFF1B2A6B),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0x33FFFFFF), width: 1.5),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              UniThumb(university: university, width: 52, height: 38, radius: 8),
-              const SizedBox(width: 10),
-              Expanded(
+              SizedBox(
+                height: 116,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (photo != null)
+                        Image.asset(photo, fit: BoxFit.cover, cacheWidth: 500)
+                      else
+                        const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [FdColors.blue, FdColors.blueDeep],
+                            ),
+                          ),
+                          child: Center(child: Icon(Icons.apartment, size: 56, color: Color(0x26FFFFFF))),
+                        ),
+                      if (photo != null) const ColoredBox(color: Color(0x55060D2B)),
+                      Positioned(
+                        left: 6,
+                        right: 6,
+                        bottom: 8,
+                        child: Column(
+                          children: [
+                            if (hangul != null)
+                              Text(
+                                hangul,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: fdText(15, FontWeight.w800, Colors.white, height: 1.2),
+                              ),
+                            if (price != null) ...[
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xCC0A1440),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: const Color(0x99FFFFFF)),
+                                ),
+                                child: Text(
+                                  money(price, guideline.currency, locale: l.localeName),
+                                  style: fdText(11, FontWeight.w800, Colors.white, height: 1.2),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Semantics(
+                          button: true,
+                          selected: picked,
+                          label: l.fdUniAddPick(0),
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            onTap: onPick,
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                              child: Icon(
+                                picked ? Icons.favorite : Icons.favorite_border,
+                                size: 17,
+                                color: picked ? FdColors.bad : FdColors.ink,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      university.displayName,
+                      state ? l.ulState : l.ulPrivate,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: fdText(13, FontWeight.w800, FdColors.ink),
+                      style: fdText(10, FontWeight.w800, state ? FdColors.lime : _privateTone),
                     ),
-                    const SizedBox(height: 1),
-                    uniMetaLine(l, university, guideline, maxLines: 1),
+                    const SizedBox(height: 2),
+                    Text(
+                      university.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: fdText(13, FontWeight.w800, Colors.white, height: 1.2),
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 1),
+                          child: Lucide(LucideIcons.mapPin, size: 12, color: FdColors.pageMuted),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            meta,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: fdText(11, FontWeight.w600, FdColors.pageMuted, height: 1.3),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
-              ChanceBadge(percent: percent),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// "80%+ · 50–80 · <50" with the colours, and "♥ 2/3" on the right.
-class _Key extends StatelessWidget {
-  const _Key({required this.picked});
-
-  final int picked;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget swatch(Color c, String label, {bool ink = false}) => Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: c,
-            borderRadius: BorderRadius.circular(3),
-            border: ink ? Border.all(color: FdColors.ink) : null,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(label, style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
-      ],
-    );
-    return Row(
-      children: [
-        swatch(FdColors.lime, '80%+', ink: true),
-        const SizedBox(width: 10),
-        swatch(FdColors.warn, '50–80'),
-        const SizedBox(width: 10),
-        swatch(FdColors.bad, '<50'),
-        const Spacer(),
-        Text('♥ $picked/$kSlotCount', style: fdText(11, FontWeight.w700, FdColors.lime)),
-      ],
-    );
-  }
-}
-
-/// The "Xarita" mode: the app's own map of every university, pins and all.
-class _RealMap extends ConsumerWidget {
-  const _RealMap();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context)!;
-    final unis = ref.watch(universitiesProvider);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 10, 18, 8),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: SeoulColors.mapWater,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: FdColors.ink, width: 1.5),
-        ),
-        child: unis.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: FdColors.lime)),
-          error: (_, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l.uniDbLoadFailed, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.onPage)),
-                  const SizedBox(height: 14),
-                  HardButton(label: l.commonRetry, onPressed: () => ref.invalidate(universitiesProvider)),
-                ],
-              ),
-            ),
-          ),
-          data: (list) => UniversityMapView(universities: list),
         ),
       ),
     );

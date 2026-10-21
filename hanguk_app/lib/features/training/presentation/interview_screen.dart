@@ -9,6 +9,7 @@ import 'widgets/interview_setup_view.dart';
 import 'widgets/interview_active_view.dart';
 import 'widgets/interview_analytics_view.dart';
 import 'widgets/interview_history_view.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 class InterviewScreen extends ConsumerStatefulWidget {
   /// Optional initial configuration passed by the caller.
@@ -20,6 +21,10 @@ class InterviewScreen extends ConsumerStatefulWidget {
   final String? initialLanguage;
   final String? initialPersona;
 
+  /// The university assessment's interview test: timed, on a set topic.
+  final int? initialTimeLimitSeconds;
+  final String? initialFocusTopic;
+
   const InterviewScreen({
     super.key,
     this.initialSessionType,
@@ -27,6 +32,8 @@ class InterviewScreen extends ConsumerStatefulWidget {
     this.initialUniversityName,
     this.initialLanguage,
     this.initialPersona,
+    this.initialTimeLimitSeconds,
+    this.initialFocusTopic,
   });
 
   @override
@@ -49,6 +56,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               targetUniversityName: widget.initialUniversityName,
               language: widget.initialLanguage ?? 'ko',
               persona: widget.initialPersona ?? 'friendly',
+              focusTopic: widget.initialFocusTopic,
+              timedMode: widget.initialTimeLimitSeconds != null,
+              timeLimitSeconds: widget.initialTimeLimitSeconds,
             );
       });
     }
@@ -153,7 +163,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         onHistoryTapped: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+            MaterialPageRoute(
+              builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
+            ),
           );
         },
       );
@@ -172,7 +184,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         onHistoryTapped: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+            MaterialPageRoute(
+              builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
+            ),
           );
         },
       );

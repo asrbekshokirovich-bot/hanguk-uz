@@ -28,6 +28,7 @@ class CatalogFilter {
     this.regions = const {},
     this.topik,
     this.type,
+    this.grant,
   });
 
   final String query;
@@ -55,6 +56,10 @@ class CatalogFilter {
   /// `state` or `private`; null for "Farqi yo'q".
   final String? type;
 
+  /// "Grant / stipendiya": the least tuition waiver wanted, in percent (30,
+  /// 50, 100); null for "Shart emas".
+  final int? grant;
+
   bool get hasPrice => minPrice != null || maxPrice != null;
 
   /// The number on the filter button's badge: cities + degree + price + IELTS.
@@ -66,7 +71,8 @@ class CatalogFilter {
       (field != null ? 1 : 0) +
       regions.length +
       (topik != null ? 1 : 0) +
-      (type != null ? 1 : 0);
+      (type != null ? 1 : 0) +
+      (grant != null ? 1 : 0);
 
   CatalogFilter copyWith({
     String? query,
@@ -79,6 +85,7 @@ class CatalogFilter {
     Set<String>? regions,
     String? Function()? topik,
     String? Function()? type,
+    int? Function()? grant,
   }) {
     return CatalogFilter(
       query: query ?? this.query,
@@ -91,6 +98,7 @@ class CatalogFilter {
       regions: regions ?? this.regions,
       topik: topik != null ? topik() : this.topik,
       type: type != null ? type() : this.type,
+      grant: grant != null ? grant() : this.grant,
     );
   }
 
@@ -124,11 +132,14 @@ num? priceOf(CatalogGuideline g) => g.tuitionMin ?? g.tuitionMax;
 /// Apply [f] to [all]. Cheapest first; a university with no fee sorts last.
 /// [fieldMatches] is the field search's answer for [CatalogFilter.field]:
 /// the universities with a programme of that field (null while it loads, or
-/// with no field chosen — then the field does not filter).
+/// with no field chosen — then the field does not filter). [grants] is each
+/// university's largest tuition waiver in percent, for [CatalogFilter.grant]
+/// (null while it loads — then the grant does not filter).
 List<CatalogUniversity> applyCatalogFilter(
   List<CatalogUniversity> all,
   CatalogFilter f, {
   Set<String>? fieldMatches,
+  Map<String, int>? grants,
 }) {
   final q = f.query.trim().toLowerCase();
   final out = all.where((u) {
@@ -137,6 +148,7 @@ List<CatalogUniversity> applyCatalogFilter(
     if (f.cities.isNotEmpty && !f.cities.contains(u.city)) return false;
     if (f.field != null && fieldMatches != null && !fieldMatches.contains(u.institutionId)) return false;
     if (f.regions.isNotEmpty && !f.regions.contains(catalogRegionOf(g.city ?? u.city))) return false;
+    if (f.grant != null && grants != null && (grants[u.institutionId] ?? 0) < f.grant!) return false;
     if (f.topik != null) {
       final need = g.topikMin;
       if (f.topik == CatalogTopik.none) {

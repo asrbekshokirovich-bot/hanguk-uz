@@ -14,6 +14,7 @@ import 'widgets/study_plan_analysis_view.dart';
 import 'widgets/advanced_drafting_workspace.dart';
 import 'widgets/study_plan_history_view.dart';
 import 'widgets/training_status_label.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 class StudyPlanScreen extends ConsumerStatefulWidget {
   final String documentType; // 'study_plan' or 'personal_statement'
@@ -132,8 +133,10 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
               icon: const Icon(Icons.history),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) =>
-                      StudyPlanHistoryView(documentType: widget.documentType),
+                  builder: (_) => NavScaffold(
+                    current: AppTab.prepare,
+                    child: StudyPlanHistoryView(documentType: widget.documentType),
+                  ),
                 ),
               ),
             ),

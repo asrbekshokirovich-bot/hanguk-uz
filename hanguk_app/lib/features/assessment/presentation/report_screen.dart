@@ -8,7 +8,6 @@ import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../discover/presentation/chosen_screen.dart' show kConsultantVisaBoost;
 import '../../discover/presentation/discover_routes.dart';
 import '../../discover/presentation/widgets/chance_badge.dart';
 import '../../onboarding/domain/eligibility_engine.dart';
@@ -103,7 +102,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         children: [
                           Expanded(child: _BestCard(best: best)),
                           const SizedBox(width: 12),
-                          Expanded(child: _VisaCard(visa: outcome.visaPercent)),
+                          Expanded(child: _VisaCard(visa: outcome.visaPercent, consultant: outcome.visaWithConsultantPercent ?? outcome.visaPercent)),
                         ],
                       ),
                     ),
@@ -180,9 +179,10 @@ class _BestCard extends StatelessWidget {
 
 /// "VIZA D-2 51% → 72% konsultant bilan".
 class _VisaCard extends StatelessWidget {
-  const _VisaCard({required this.visa});
+  const _VisaCard({required this.visa, required this.consultant});
 
   final int visa;
+  final int consultant;
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +200,7 @@ class _VisaCard extends StatelessWidget {
             style: fdText(44, FontWeight.w800, chanceLook(visa).accent, height: 1.1, letterSpacing: -1.5),
           ),
           Text(
-            l.fdReportWithConsultant((visa + kConsultantVisaBoost).clamp(0, 96)),
+            l.fdReportWithConsultant(consultant),
             style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.25),
           ),
         ],

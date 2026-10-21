@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+
+import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
+import '../../../../design_system/seoul_night/widgets/lucide.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../assessment/domain/assessment.dart';
+
+/// The parts the assessment pages share: the university's ("Baholash") and
+/// "Vizam chiqadimi?".
+
+/// The answers as pills, the picked one lime.
+Widget assessPills<T>(List<(T, String)> options, T value, ValueChanged<T> onPick) => Wrap(
+  spacing: 6,
+  runSpacing: 6,
+  children: [
+    for (final (v, label) in options)
+      IntrinsicWidth(
+        child: HardChoice(
+          label: label,
+          selected: v == value,
+          height: 34,
+          radius: 999,
+          fontSize: 13,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          onTap: () => onPick(v),
+        ),
+      ),
+  ],
+);
+
+/// One question: its label, what answer changes nothing, and the answers.
+class AssessQuestion {
+  const AssessQuestion(this.label, this.neutral, this.answer);
+
+  final String label;
+
+  /// The same answers with this one set to what changes nothing.
+  final AssessmentInput Function(AssessmentInput) neutral;
+  final Widget answer;
+}
+
+/// What an answer does: "viza +8% · qabul +10%" in green, a loss in red,
+/// "ta'sir yo'q" in blue.
+class AssessImpact extends StatelessWidget {
+  const AssessImpact({super.key, this.visa = 0, this.admission = 0});
+
+  final int visa;
+  final int admission;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    String part(int n, String Function(int) up, String Function(int) down) => n > 0 ? up(n) : down(-n);
+    final parts = [
+      if (visa != 0) part(visa, l.uaVisaUp, l.uaVisaDown),
+      if (admission != 0) part(admission, l.uaImpactUp, l.uaImpactDown),
+    ];
+    final color = parts.isEmpty
+        ? FdColors.blue
+        : visa < 0 || admission < 0
+        ? FdColors.bad
+        : FdColors.good;
+    return Text(parts.isEmpty ? l.uaImpactNone : parts.join(' · '), style: fdText(11, FontWeight.w800, color));
+  }
+}
+
+class AssessQuestionHead extends StatelessWidget {
+  const AssessQuestionHead({super.key, required this.label, required this.impact});
+
+  final String label;
+  final Widget impact;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(child: Text(label, style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.25))),
+      const SizedBox(width: 8),
+      Padding(padding: const EdgeInsets.only(top: 1), child: impact),
+    ],
+  );
+}
+
+/// A white group card: its icon tile and title, what the group adds (or a
+/// dash to fold it), and the questions.
+class AssessSection extends StatelessWidget {
+  const AssessSection({
+    super.key,
+    required this.glyph,
+    required this.title,
+    required this.children,
+    required this.open,
+    this.trailing,
+    this.onToggle,
+  });
+
+  final LucideGlyph glyph;
+  final String title;
+  final Widget? trailing;
+  final bool open;
+  final VoidCallback? onToggle;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+    decoration: BoxDecoration(
+      color: FdColors.card,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: FdColors.ink, width: 1.5),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GestureDetector(
+          onTap: onToggle,
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: FdColors.tint, borderRadius: BorderRadius.circular(9)),
+                child: Lucide(glyph, size: 16, color: FdColors.navy),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: fdText(15, FontWeight.w800, FdColors.ink))),
+              trailing ??
+                  (onToggle == null
+                      ? const SizedBox.shrink()
+                      : Lucide(open ? LucideIcons.minus : LucideIcons.plus, size: 16, color: FdColors.muted)),
+            ],
+          ),
+        ),
+        SizedBox(height: open ? 14 : 12),
+        if (open) ...children,
+      ],
+    ),
+  );
+}
+
+/// A slider's value beside it: "3.5 / 5", "19 yosh" — lime, inked, lifted.
+class AssessValue extends StatelessWidget {
+  const AssessValue(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: FdColors.lime,
+      borderRadius: BorderRadius.circular(9),
+      border: Border.all(color: FdColors.ink, width: 1.5),
+      boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(2, 2))],
+    ),
+    child: Text(text, style: fdText(13, FontWeight.w800, FdColors.onLime, height: 1.1)),
+  );
+}

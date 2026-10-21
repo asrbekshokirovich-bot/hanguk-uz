@@ -17,6 +17,7 @@ import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/language_sheet.dart';
 import '../../training/presentation/study_plan_screen.dart';
 import '../../uni_db/data/admin_review_providers.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Account management screen — sign out and (irreversibly) delete the
 /// account. The deletion flow is required by both Apple App Store
@@ -295,7 +296,10 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     label: l10n.personalStatementCardTitle,
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const StudyPlanScreen(documentType: 'personal_statement'),
+                        builder: (_) => const NavScaffold(
+                          current: AppTab.prepare,
+                          child: StudyPlanScreen(documentType: 'personal_statement'),
+                        ),
                       ),
                     ),
                   ),

@@ -8683,6 +8683,1278 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get ajBack;
+
+  /// Home board tour step 1: label beside the field tiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your field'**
+  String get btField;
+
+  /// Home board tour step 2: label beside the count of matching universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching universities'**
+  String get btCount;
+
+  /// Home board tour step 3: label beside the visa gauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Your visa chances'**
+  String get btVisa;
+
+  /// Home board tour step 4: label above the show-universities button.
+  ///
+  /// In en, this message translates to:
+  /// **'See the list'**
+  String get btList;
+
+  /// Board tour: label beside the strip of matching universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best matches'**
+  String get btStrip;
+
+  /// Board tour: label beside the city chips.
+  ///
+  /// In en, this message translates to:
+  /// **'Which city?'**
+  String get btCity;
+
+  /// Board tour: label beside the degree choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Which degree?'**
+  String get btDegree;
+
+  /// Board tour: label beside the student's TOPIK level.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Korean level'**
+  String get btTopik;
+
+  /// Board tour: label beside the IELTS score.
+  ///
+  /// In en, this message translates to:
+  /// **'Your IELTS score'**
+  String get btIelts;
+
+  /// Board tour: label beside the tuition slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition'**
+  String get btFee;
+
+  /// Board tour: label beside state/private.
+  ///
+  /// In en, this message translates to:
+  /// **'State or private'**
+  String get btType;
+
+  /// Board tour: label beside the grant choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Need a grant?'**
+  String get btGrant;
+
+  /// Board section title: the student's IELTS score.
+  ///
+  /// In en, this message translates to:
+  /// **'My English (IELTS)'**
+  String get fdSectionIelts;
+
+  /// Note beside the IELTS section when 'No' is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'I won\'t study in English'**
+  String get fdIeltsNoneHint;
+
+  /// Note beside the IELTS section when a score is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'English programmes up to IELTS {score}'**
+  String fdIeltsHint(String score);
+
+  /// Board section title: the grant / scholarship wanted.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant / scholarship'**
+  String get fdSectionGrant;
+
+  /// Note beside the grant section.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuition discount'**
+  String get fdGrantHint;
+
+  /// Grant choice: not needed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get fdGrantNone;
+
+  /// The grant choice in the one-line filter summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant {pct}%+'**
+  String fdGrantSummary(int pct);
+
+  /// Note beside the TOPIK level: what it means and what it opens.
+  ///
+  /// In en, this message translates to:
+  /// **'{meaning} — TOPIK {level}+ opens'**
+  String fdTopikHint(String meaning, int level);
+
+  /// Note beside the TOPIK level when none is chosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick your level'**
+  String get fdTopikHintNone;
+
+  /// What TOPIK 1 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Greetings'**
+  String get fdTopikLevel1;
+
+  /// What TOPIK 2 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple sentences'**
+  String get fdTopikLevel2;
+
+  /// What TOPIK 3 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyday talk'**
+  String get fdTopikLevel3;
+
+  /// What TOPIK 4 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Free conversation'**
+  String get fdTopikLevel4;
+
+  /// What TOPIK 5 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic texts'**
+  String get fdTopikLevel5;
+
+  /// What TOPIK 6 means.
+  ///
+  /// In en, this message translates to:
+  /// **'Near native'**
+  String get fdTopikLevel6;
+
+  /// Code screen: line under the title; {bold} is fdCodeEight, shown bold.
+  ///
+  /// In en, this message translates to:
+  /// **'The {bold} code your consultant sent by SMS'**
+  String fdCodeSms(String bold);
+
+  /// Code screen: the bold part of fdCodeSms.
+  ///
+  /// In en, this message translates to:
+  /// **'8-character'**
+  String get fdCodeEight;
+
+  /// Code screen: heading over what the code opens (shown upper case).
+  ///
+  /// In en, this message translates to:
+  /// **'The code opens'**
+  String get fdCodeUnlocks;
+
+  /// Code screen: the consultant chat tile.
+  ///
+  /// In en, this message translates to:
+  /// **'Consultant chat'**
+  String get fdCodeChat;
+
+  /// Code screen: QR button.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get fdCodeScanShort;
+
+  /// Code screen: 'no code' button, calls the office.
+  ///
+  /// In en, this message translates to:
+  /// **'No code'**
+  String get fdCodeNone;
+
+  /// Code screen footer, before the phone number.
+  ///
+  /// In en, this message translates to:
+  /// **'Free consultation'**
+  String get fdCodeFreeConsult;
+
+  /// No description provided for @uaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission chance'**
+  String get uaTitle;
+
+  /// No description provided for @uaCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get uaCity;
+
+  /// No description provided for @uaAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Want to know your chance of getting into this university?'**
+  String get uaAskTitle;
+
+  /// No description provided for @uaAskBody.
+  ///
+  /// In en, this message translates to:
+  /// **'12 questions + Study Plan + a test interview · about 3 minutes. The percentage, its accuracy and ways to raise it come at the end.'**
+  String get uaAskBody;
+
+  /// No description provided for @uaAskStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the assessment →'**
+  String get uaAskStart;
+
+  /// No description provided for @uaImpactNone.
+  ///
+  /// In en, this message translates to:
+  /// **'no effect'**
+  String get uaImpactNone;
+
+  /// No description provided for @uaSecAcademic.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic'**
+  String get uaSecAcademic;
+
+  /// No description provided for @uaSecLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get uaSecLanguage;
+
+  /// No description provided for @uaSecDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get uaSecDocuments;
+
+  /// No description provided for @uaSecTests.
+  ///
+  /// In en, this message translates to:
+  /// **'Assessment tests'**
+  String get uaSecTests;
+
+  /// No description provided for @uaTestsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'counts toward the %'**
+  String get uaTestsCount;
+
+  /// No description provided for @uaNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get uaNo;
+
+  /// No description provided for @uaHave.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get uaHave;
+
+  /// No description provided for @uaQDegree.
+  ///
+  /// In en, this message translates to:
+  /// **'Which level are you applying for'**
+  String get uaQDegree;
+
+  /// No description provided for @uaDegLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language course (D-4)'**
+  String get uaDegLanguage;
+
+  /// No description provided for @uaDegBachelor.
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor'**
+  String get uaDegBachelor;
+
+  /// No description provided for @uaDegMaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Master'**
+  String get uaDegMaster;
+
+  /// No description provided for @uaQGpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate / diploma average'**
+  String get uaQGpa;
+
+  /// No description provided for @uaQGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Time since graduating'**
+  String get uaQGap;
+
+  /// No description provided for @uaGap0.
+  ///
+  /// In en, this message translates to:
+  /// **'0 yrs'**
+  String get uaGap0;
+
+  /// No description provided for @uaGap1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 yr'**
+  String get uaGap1;
+
+  /// No description provided for @uaGap2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 yrs'**
+  String get uaGap2;
+
+  /// No description provided for @uaGap3.
+  ///
+  /// In en, this message translates to:
+  /// **'3+ yrs'**
+  String get uaGap3;
+
+  /// No description provided for @uaQExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Experience in your chosen field'**
+  String get uaQExperience;
+
+  /// No description provided for @uaExpCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Course / club'**
+  String get uaExpCourse;
+
+  /// No description provided for @uaExpProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get uaExpProject;
+
+  /// No description provided for @uaExpWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work experience'**
+  String get uaExpWork;
+
+  /// No description provided for @uaQOlympiad.
+  ///
+  /// In en, this message translates to:
+  /// **'Olympiad / contest results'**
+  String get uaQOlympiad;
+
+  /// No description provided for @uaOlSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get uaOlSchool;
+
+  /// No description provided for @uaOlNational.
+  ///
+  /// In en, this message translates to:
+  /// **'National'**
+  String get uaOlNational;
+
+  /// No description provided for @uaOlInternational.
+  ///
+  /// In en, this message translates to:
+  /// **'International'**
+  String get uaOlInternational;
+
+  /// No description provided for @uaQTopik.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK level'**
+  String get uaQTopik;
+
+  /// No description provided for @uaQTopikCert.
+  ///
+  /// In en, this message translates to:
+  /// **'TOPIK certificate'**
+  String get uaQTopikCert;
+
+  /// No description provided for @uaCertOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 2 years old'**
+  String get uaCertOld;
+
+  /// No description provided for @uaCertFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid (under 2 years)'**
+  String get uaCertFresh;
+
+  /// No description provided for @uaQIelts.
+  ///
+  /// In en, this message translates to:
+  /// **'English (IELTS)'**
+  String get uaQIelts;
+
+  /// No description provided for @uaQMotivation.
+  ///
+  /// In en, this message translates to:
+  /// **'Motivation letter'**
+  String get uaQMotivation;
+
+  /// No description provided for @uaMotDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get uaMotDraft;
+
+  /// No description provided for @uaMotReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get uaMotReady;
+
+  /// No description provided for @uaQRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation (from a teacher)'**
+  String get uaQRecommendation;
+
+  /// No description provided for @uaQPortfolio.
+  ///
+  /// In en, this message translates to:
+  /// **'Portfolio (design, art, projects)'**
+  String get uaQPortfolio;
+
+  /// No description provided for @uaQActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra activities'**
+  String get uaQActivity;
+
+  /// No description provided for @uaActVolunteer.
+  ///
+  /// In en, this message translates to:
+  /// **'Volunteering'**
+  String get uaActVolunteer;
+
+  /// No description provided for @uaActSportArt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport / art'**
+  String get uaActSportArt;
+
+  /// No description provided for @uaActLeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Led an organisation'**
+  String get uaActLeader;
+
+  /// No description provided for @uaTestPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan test'**
+  String get uaTestPlan;
+
+  /// No description provided for @uaTestTalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview test'**
+  String get uaTestTalk;
+
+  /// No description provided for @uaTestStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get uaTestStart;
+
+  /// No description provided for @uaTestTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken · one attempt only'**
+  String get uaTestTaken;
+
+  /// No description provided for @uaTestsNeedCode.
+  ///
+  /// In en, this message translates to:
+  /// **'The tests open with your client code — your consultant sends it by SMS'**
+  String get uaTestsNeedCode;
+
+  /// No description provided for @uaResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your admission chance'**
+  String get uaResultTitle;
+
+  /// No description provided for @uaAccuracyLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy: low — no tests taken yet'**
+  String get uaAccuracyLow;
+
+  /// No description provided for @uaAccuracyMid.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy: medium — one test taken'**
+  String get uaAccuracyMid;
+
+  /// No description provided for @uaAccuracyHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy: high — both tests taken'**
+  String get uaAccuracyHigh;
+
+  /// No description provided for @uaInterviewFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The interview scored under 60 — in a real admission this stage would not be passed.'**
+  String get uaInterviewFailed;
+
+  /// No description provided for @uaWays.
+  ///
+  /// In en, this message translates to:
+  /// **'WAYS TO RAISE IT'**
+  String get uaWays;
+
+  /// No description provided for @uaWayMotivation.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish your motivation letter'**
+  String get uaWayMotivation;
+
+  /// No description provided for @uaWayRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a recommendation'**
+  String get uaWayRecommendation;
+
+  /// No description provided for @sptQ1.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this university and this major?'**
+  String get sptQ1;
+
+  /// No description provided for @sptQ2.
+  ///
+  /// In en, this message translates to:
+  /// **'What will you study in Korea, and how?'**
+  String get sptQ2;
+
+  /// No description provided for @sptQ3.
+  ///
+  /// In en, this message translates to:
+  /// **'What will you do after graduating?'**
+  String get sptQ3;
+
+  /// No description provided for @sptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write in Korean or English'**
+  String get sptHint;
+
+  /// No description provided for @sptSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send for checking'**
+  String get sptSubmit;
+
+  /// No description provided for @sptChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI is checking…'**
+  String get sptChecking;
+
+  /// No description provided for @sptError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check it. Check your connection and send again.'**
+  String get sptError;
+
+  /// No description provided for @sptResultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'STUDY PLAN SCORE'**
+  String get sptResultTitle;
+
+  /// No description provided for @sptMotivation.
+  ///
+  /// In en, this message translates to:
+  /// **'Motivation and knowing the major'**
+  String get sptMotivation;
+
+  /// No description provided for @sptPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Study plan'**
+  String get sptPlan;
+
+  /// No description provided for @sptCareer.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan after graduating'**
+  String get sptCareer;
+
+  /// No description provided for @sptLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language and writing'**
+  String get sptLanguage;
+
+  /// No description provided for @sptStrengths.
+  ///
+  /// In en, this message translates to:
+  /// **'Strengths'**
+  String get sptStrengths;
+
+  /// No description provided for @sptImprovements.
+  ///
+  /// In en, this message translates to:
+  /// **'To improve'**
+  String get sptImprovements;
+
+  /// No description provided for @sptDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get sptDone;
+
+  /// No description provided for @uaImpactUp.
+  ///
+  /// In en, this message translates to:
+  /// **'admission +{n}%'**
+  String uaImpactUp(int n);
+
+  /// No description provided for @uaImpactDown.
+  ///
+  /// In en, this message translates to:
+  /// **'admission −{n}%'**
+  String uaImpactDown(int n);
+
+  /// No description provided for @uaGpaValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} / 5'**
+  String uaGpaValue(String value);
+
+  /// No description provided for @uaTestMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'For {name} · {questions} questions · {minutes} min · 1 attempt'**
+  String uaTestMeta(String name, int questions, int minutes);
+
+  /// No description provided for @uaTestScore.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}/100'**
+  String uaTestScore(int n);
+
+  /// No description provided for @uaWayTopik.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach TOPIK {level}'**
+  String uaWayTopik(int level);
+
+  /// No description provided for @sptIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer 3 questions for {name}. You have {minutes} minutes and one attempt; when time runs out, what you wrote is sent.'**
+  String sptIntro(String name, int minutes);
+
+  /// No description provided for @vzTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Will I get'**
+  String get vzTitle;
+
+  /// No description provided for @vzTitleMark.
+  ///
+  /// In en, this message translates to:
+  /// **'the visa?'**
+  String get vzTitleMark;
+
+  /// No description provided for @vzYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get vzYes;
+
+  /// No description provided for @vzOne.
+  ///
+  /// In en, this message translates to:
+  /// **'One'**
+  String get vzOne;
+
+  /// No description provided for @vzTwoPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Two or more'**
+  String get vzTwoPlus;
+
+  /// No description provided for @vzSecEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get vzSecEducation;
+
+  /// No description provided for @vzSecMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Finances'**
+  String get vzSecMoney;
+
+  /// No description provided for @vzSecHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get vzSecHistory;
+
+  /// No description provided for @vzSecPrep.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get vzSecPrep;
+
+  /// No description provided for @vzQEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your last education'**
+  String get vzQEducation;
+
+  /// No description provided for @vzEduSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School (11th grade)'**
+  String get vzEduSchool;
+
+  /// No description provided for @vzEduCollege.
+  ///
+  /// In en, this message translates to:
+  /// **'College / lyceum'**
+  String get vzEduCollege;
+
+  /// No description provided for @vzQAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get vzQAge;
+
+  /// No description provided for @vzQIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Your parents\' yearly income'**
+  String get vzQIncome;
+
+  /// No description provided for @vzIncome0.
+  ///
+  /// In en, this message translates to:
+  /// **'< \$5,000'**
+  String get vzIncome0;
+
+  /// No description provided for @vzIncome1.
+  ///
+  /// In en, this message translates to:
+  /// **'\$5–10k'**
+  String get vzIncome1;
+
+  /// No description provided for @vzIncome2.
+  ///
+  /// In en, this message translates to:
+  /// **'\$10–20k'**
+  String get vzIncome2;
+
+  /// No description provided for @vzIncome3.
+  ///
+  /// In en, this message translates to:
+  /// **'\$20k+'**
+  String get vzIncome3;
+
+  /// No description provided for @vzQIncomeDocumented.
+  ///
+  /// In en, this message translates to:
+  /// **'Income is officially documented (salary, tax, business)'**
+  String get vzQIncomeDocumented;
+
+  /// No description provided for @vzQSponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is the sponsor'**
+  String get vzQSponsor;
+
+  /// No description provided for @vzSponsorSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Myself'**
+  String get vzSponsorSelf;
+
+  /// No description provided for @vzSponsorParents.
+  ///
+  /// In en, this message translates to:
+  /// **'My parents'**
+  String get vzSponsorParents;
+
+  /// No description provided for @vzSponsorRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'Another relative'**
+  String get vzSponsorRelative;
+
+  /// No description provided for @vzQRelationDoc.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinship certificate (apostilled)'**
+  String get vzQRelationDoc;
+
+  /// No description provided for @vzQStability.
+  ///
+  /// In en, this message translates to:
+  /// **'How long the income has been steady'**
+  String get vzQStability;
+
+  /// No description provided for @vzStable0.
+  ///
+  /// In en, this message translates to:
+  /// **'< 6 months'**
+  String get vzStable0;
+
+  /// No description provided for @vzStable1.
+  ///
+  /// In en, this message translates to:
+  /// **'6–12 months'**
+  String get vzStable1;
+
+  /// No description provided for @vzStable2.
+  ///
+  /// In en, this message translates to:
+  /// **'1–3 years'**
+  String get vzStable2;
+
+  /// No description provided for @vzStable3.
+  ///
+  /// In en, this message translates to:
+  /// **'3+ years'**
+  String get vzStable3;
+
+  /// No description provided for @vzQProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Property in your parents\' name (house, flat, land)'**
+  String get vzQProperty;
+
+  /// No description provided for @vzQCar.
+  ///
+  /// In en, this message translates to:
+  /// **'A car in your parents\' name'**
+  String get vzQCar;
+
+  /// No description provided for @vzQBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Your parents\' business / registered company'**
+  String get vzQBusiness;
+
+  /// No description provided for @vzBusinessIp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sole trader (IP)'**
+  String get vzBusinessIp;
+
+  /// No description provided for @vzBusinessLlc.
+  ///
+  /// In en, this message translates to:
+  /// **'Company (LLC)'**
+  String get vzBusinessLlc;
+
+  /// No description provided for @vzQRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Has a visa been refused before'**
+  String get vzQRefused;
+
+  /// No description provided for @vzQKoreaBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you been to Korea before'**
+  String get vzQKoreaBefore;
+
+  /// No description provided for @vzKoreaOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, left on time'**
+  String get vzKoreaOnTime;
+
+  /// No description provided for @vzKoreaOverstay.
+  ///
+  /// In en, this message translates to:
+  /// **'I overstayed'**
+  String get vzKoreaOverstay;
+
+  /// No description provided for @vzQIllegalRelatives.
+  ///
+  /// In en, this message translates to:
+  /// **'Any close relatives staying illegally in South Korea'**
+  String get vzQIllegalRelatives;
+
+  /// No description provided for @vzQLegalRelatives.
+  ///
+  /// In en, this message translates to:
+  /// **'Relatives living legally in Korea'**
+  String get vzQLegalRelatives;
+
+  /// No description provided for @vzQStudyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get vzQStudyPlan;
+
+  /// No description provided for @vzQInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get vzQInterview;
+
+  /// No description provided for @vzInterviewSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Practised on my own'**
+  String get vzInterviewSelf;
+
+  /// No description provided for @vzInterviewAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI 3+ times'**
+  String get vzInterviewAi;
+
+  /// No description provided for @vzBandHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Good chance'**
+  String get vzBandHigh;
+
+  /// No description provided for @vzBandHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'get the papers ready'**
+  String get vzBandHighHint;
+
+  /// No description provided for @vzBandMid.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair chance'**
+  String get vzBandMid;
+
+  /// No description provided for @vzBandMidHint.
+  ///
+  /// In en, this message translates to:
+  /// **'needs work'**
+  String get vzBandMidHint;
+
+  /// No description provided for @vzBandLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low chance'**
+  String get vzBandLow;
+
+  /// No description provided for @vzBandLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'much to fix'**
+  String get vzBandLowHint;
+
+  /// No description provided for @vzTourGauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Your visa chance — it moves with your answers'**
+  String get vzTourGauge;
+
+  /// No description provided for @vzTourEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education: level, grades, age'**
+  String get vzTourEducation;
+
+  /// No description provided for @vzTourLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language: TOPIK and IELTS'**
+  String get vzTourLanguage;
+
+  /// No description provided for @vzTourMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Finances: what the embassy checks most'**
+  String get vzTourMoney;
+
+  /// No description provided for @vzTourHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History: past visas and relatives'**
+  String get vzTourHistory;
+
+  /// No description provided for @vzTourPrep.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation: Study Plan, interview, letters'**
+  String get vzTourPrep;
+
+  /// No description provided for @vzTourReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the guide again'**
+  String get vzTourReplay;
+
+  /// No description provided for @uaVisaUp.
+  ///
+  /// In en, this message translates to:
+  /// **'visa +{n}%'**
+  String uaVisaUp(int n);
+
+  /// No description provided for @uaVisaDown.
+  ///
+  /// In en, this message translates to:
+  /// **'visa −{n}%'**
+  String uaVisaDown(int n);
+
+  /// No description provided for @vzAgeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} yrs'**
+  String vzAgeValue(int n);
+
+  /// No description provided for @vzWithConsultant.
+  ///
+  /// In en, this message translates to:
+  /// **'with a consultant ~{n}%'**
+  String vzWithConsultant(int n);
+
+  /// No description provided for @tuHero.
+  ///
+  /// In en, this message translates to:
+  /// **'The university: name, city and price'**
+  String get tuHero;
+
+  /// No description provided for @tuFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'City, contract, language and document deadline'**
+  String get tuFacts;
+
+  /// No description provided for @tuAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your admission chance here'**
+  String get tuAsk;
+
+  /// No description provided for @tuPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Like it? Add it to your picks, up to 3'**
+  String get tuPick;
+
+  /// No description provided for @taAcademic.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic: each answer shows its effect'**
+  String get taAcademic;
+
+  /// No description provided for @taLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language: TOPIK and IELTS'**
+  String get taLanguage;
+
+  /// No description provided for @taDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents: letter, recommendation, portfolio'**
+  String get taDocuments;
+
+  /// No description provided for @taTests.
+  ///
+  /// In en, this message translates to:
+  /// **'Tests: Study Plan and interview — once each'**
+  String get taTests;
+
+  /// No description provided for @taResult.
+  ///
+  /// In en, this message translates to:
+  /// **'The result: the % and ways to raise it'**
+  String get taResult;
+
+  /// No description provided for @fdCodeBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is for Hanguk students'**
+  String get fdCodeBannerTitle;
+
+  /// No description provided for @fdCodeBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Become our student and use everything: Preparation, My application and Documents open in full.'**
+  String get fdCodeBannerBody;
+
+  /// No description provided for @fdCodeTelegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the admin on Telegram'**
+  String get fdCodeTelegram;
+
+  /// No description provided for @fdCodeSmsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS · Hanguk'**
+  String get fdCodeSmsFrom;
+
+  /// No description provided for @fdCodeYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your client code:'**
+  String get fdCodeYours;
+
+  /// No description provided for @fdCodePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'use it →'**
+  String get fdCodePaste;
+
+  /// No description provided for @fdPrepareNeedsCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation is for Premium and No-Risk clients. Enter your code if you have one'**
+  String get fdPrepareNeedsCode;
+
+  /// No description provided for @fdGrantOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'scores first → then the grant'**
+  String get fdGrantOrder;
+
+  /// No description provided for @fdGrantStepScores.
+  ///
+  /// In en, this message translates to:
+  /// **'1 · YOUR SCORES'**
+  String get fdGrantStepScores;
+
+  /// No description provided for @fdGrantStepWanted.
+  ///
+  /// In en, this message translates to:
+  /// **'2 · GRANT YOU NEED'**
+  String get fdGrantStepWanted;
+
+  /// No description provided for @fdGrantAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get fdGrantAny;
+
+  /// No description provided for @fdSectionCityMap.
+  ///
+  /// In en, this message translates to:
+  /// **'City · pick on the map'**
+  String get fdSectionCityMap;
+
+  /// No description provided for @fdAllRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get fdAllRegions;
+
+  /// No description provided for @fdRegionGangwonPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Gangwon+'**
+  String get fdRegionGangwonPlus;
+
+  /// No description provided for @fdGrantAtLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {n}%'**
+  String fdGrantAtLeast(int n);
+
+  /// No description provided for @ulTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities'**
+  String get ulTitle;
+
+  /// No description provided for @ulSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, field, city'**
+  String get ulSearchHint;
+
+  /// No description provided for @ulPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private university'**
+  String get ulPrivate;
+
+  /// No description provided for @ulState.
+  ///
+  /// In en, this message translates to:
+  /// **'State university'**
+  String get ulState;
+
+  /// No description provided for @ulNoRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'No requirement'**
+  String get ulNoRequirement;
+
+  /// No description provided for @fltTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get fltTitle;
+
+  /// No description provided for @fltAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get fltAllFields;
+
+  /// No description provided for @fltFeeSem.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract / semester'**
+  String get fltFeeSem;
+
+  /// No description provided for @ulCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}'**
+  String ulCount(int n);
+
+  /// No description provided for @ulSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} universities · tap a card'**
+  String ulSubtitle(int n);
+
+  /// No description provided for @fltCount.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCHING UNIVERSITIES · OF {n}'**
+  String fltCount(int n);
+
+  /// No description provided for @vzReport.
+  ///
+  /// In en, this message translates to:
+  /// **'See the report →'**
+  String get vzReport;
+
+  /// No description provided for @uaTestsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The test couldn\'t open — check your connection and try again'**
+  String get uaTestsUnavailable;
 }
 
 class _AppLocalizationsDelegate

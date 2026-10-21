@@ -7,6 +7,7 @@ import '../data/catalog_filters.dart';
 import '../data/catalog_repository.dart';
 import '../domain/catalog_models.dart';
 import 'catalog_format.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Design screen 02 — "Filtr tugmasi bosilganda": city, degree, the IELTS
 /// score and the fee range. Changes apply as they are made, so the button at
@@ -15,7 +16,10 @@ class CatalogFilterScreen extends ConsumerWidget {
   const CatalogFilterScreen({super.key});
 
   static Future<void> open(BuildContext context) => Navigator.of(context).push(
-    MaterialPageRoute<void>(fullscreenDialog: true, builder: (_) => const CatalogFilterScreen()),
+    MaterialPageRoute<void>(
+      fullscreenDialog: true,
+      builder: (_) => const NavScaffold(current: AppTab.universities, child: CatalogFilterScreen()),
+    ),
   );
 
   static const _ieltsOptions = <double?>[null, 5.5, 6.0, 6.5];

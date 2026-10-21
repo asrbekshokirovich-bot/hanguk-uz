@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../onboarding/domain/eligibility_engine.dart';
 import '../../onboarding/domain/quiz_answers.dart';
+import 'visa_model.dart';
 
 /// "Koreaga keta olamanmi o'zi?" (design screens 11–12): the answers on the
 /// assessment board.
@@ -15,6 +16,30 @@ class AssessmentInput {
     this.route = StudyRoute.bachelor,
     this.visaRefused = false,
     this.universityIds = const [],
+    this.gapYears = 0,
+    this.experience = 0,
+    this.olympiad = 0,
+    this.topikFresh = true,
+    this.ielts = 0,
+    this.motivation = 0,
+    this.recommendation = false,
+    this.portfolio = false,
+    this.activity = 0,
+    this.education = 0,
+    this.age = 19,
+    this.income = 0,
+    this.incomeDocumented = false,
+    this.sponsor = 0,
+    this.relationDoc = false,
+    this.incomeStability = 0,
+    this.property = 0,
+    this.car = 0,
+    this.business = 0,
+    this.koreaBefore = 0,
+    this.illegalRelatives = false,
+    this.legalRelatives = false,
+    this.studyPlan = 0,
+    this.interviewPrep = 0,
   });
 
   /// The TOPIK level the student has; 0 for none ("—").
@@ -33,6 +58,72 @@ class AssessmentInput {
   /// The universities the student is weighing, in the order shown.
   final List<String> universityIds;
 
+  // The university assessment's questions (design: Akademik, Til,
+  // Hujjatlar to'plami); each default is the "Yo'q" answer.
+
+  /// Years since graduating: 0, 1, 2, or 3 for three and more.
+  final int gapYears;
+
+  /// Experience in the chosen field: none, course/club, project, work.
+  final int experience;
+
+  /// Olympiad or contest results: none, school, national, international.
+  final int olympiad;
+
+  /// Whether the TOPIK certificate is under two years old: older ones are
+  /// not accepted, so the level counts as none.
+  final bool topikFresh;
+
+  /// IELTS band; 0 for none.
+  final double ielts;
+
+  /// Motivation letter: none, draft, ready.
+  final int motivation;
+  final bool recommendation;
+  final bool portfolio;
+
+  /// Extra activity: none, volunteering, sport/art, leading an organisation.
+  final int activity;
+
+  // "Vizam chiqadimi?" (visa_model.dart); each default is the first answer.
+
+  /// Last education: school, college/lyceum, bachelor, master.
+  final int education;
+  final int age;
+
+  /// Parents' yearly income: under \$5k, \$5–10k, \$10–20k, \$20k and more.
+  final int income;
+  final bool incomeDocumented;
+
+  /// Who pays: the student, the parents, another relative.
+  final int sponsor;
+
+  /// The kinship certificate, apostilled.
+  final bool relationDoc;
+
+  /// How long the income has been steady: under 6 months, 6–12 months,
+  /// 1–3 years, 3 years and more.
+  final int incomeStability;
+
+  /// Property, cars: none, one, two and more. Business: none, sole
+  /// trader (IP), company (MChJ).
+  final int property;
+  final int car;
+  final int business;
+
+  /// Been to Korea: no, yes and left on time, stayed past the visa.
+  final int koreaBefore;
+  final bool illegalRelatives;
+  final bool legalRelatives;
+
+  /// Study plan: none, draft, ready. Interview practice: none, on one's
+  /// own, three or more times with Hanguk AI.
+  final int studyPlan;
+  final int interviewPrep;
+
+  /// The TOPIK level the documents can show.
+  int get topikCounted => topikFresh ? topik : 0;
+
   AssessmentInput copyWith({
     int? topik,
     double? gpa,
@@ -40,6 +131,30 @@ class AssessmentInput {
     StudyRoute? route,
     bool? visaRefused,
     List<String>? universityIds,
+    int? gapYears,
+    int? experience,
+    int? olympiad,
+    bool? topikFresh,
+    double? ielts,
+    int? motivation,
+    bool? recommendation,
+    bool? portfolio,
+    int? activity,
+    int? education,
+    int? age,
+    int? income,
+    bool? incomeDocumented,
+    int? sponsor,
+    bool? relationDoc,
+    int? incomeStability,
+    int? property,
+    int? car,
+    int? business,
+    int? koreaBefore,
+    bool? illegalRelatives,
+    bool? legalRelatives,
+    int? studyPlan,
+    int? interviewPrep,
   }) => AssessmentInput(
     topik: topik ?? this.topik,
     gpa: gpa ?? this.gpa,
@@ -47,6 +162,30 @@ class AssessmentInput {
     route: route ?? this.route,
     visaRefused: visaRefused ?? this.visaRefused,
     universityIds: universityIds ?? this.universityIds,
+    gapYears: gapYears ?? this.gapYears,
+    experience: experience ?? this.experience,
+    olympiad: olympiad ?? this.olympiad,
+    topikFresh: topikFresh ?? this.topikFresh,
+    ielts: ielts ?? this.ielts,
+    motivation: motivation ?? this.motivation,
+    recommendation: recommendation ?? this.recommendation,
+    portfolio: portfolio ?? this.portfolio,
+    activity: activity ?? this.activity,
+    education: education ?? this.education,
+    age: age ?? this.age,
+    income: income ?? this.income,
+    incomeDocumented: incomeDocumented ?? this.incomeDocumented,
+    sponsor: sponsor ?? this.sponsor,
+    relationDoc: relationDoc ?? this.relationDoc,
+    incomeStability: incomeStability ?? this.incomeStability,
+    property: property ?? this.property,
+    car: car ?? this.car,
+    business: business ?? this.business,
+    koreaBefore: koreaBefore ?? this.koreaBefore,
+    illegalRelatives: illegalRelatives ?? this.illegalRelatives,
+    legalRelatives: legalRelatives ?? this.legalRelatives,
+    studyPlan: studyPlan ?? this.studyPlan,
+    interviewPrep: interviewPrep ?? this.interviewPrep,
   );
 
   /// The answers as the CRM's lead card reads them (`leads.quiz_answers`):
@@ -60,9 +199,33 @@ class AssessmentInput {
     'bank_krw': bankKrw,
     'visa_refused': visaRefused,
     'universities': universityIds,
+    'gap_years': gapYears,
+    'experience': experience,
+    'olympiad': olympiad,
+    'topik_fresh': topikFresh,
+    'ielts': ielts,
+    'motivation': motivation,
+    'recommendation': recommendation,
+    'portfolio': portfolio,
+    'activity': activity,
+    'education': education,
+    'age': age,
+    'income': income,
+    'income_documented': incomeDocumented,
+    'sponsor': sponsor,
+    'relation_doc': relationDoc,
+    'income_stability': incomeStability,
+    'property': property,
+    'car': car,
+    'business': business,
+    'korea_before': koreaBefore,
+    'illegal_relatives': illegalRelatives,
+    'legal_relatives': legalRelatives,
+    'study_plan': studyPlan,
+    'interview_prep': interviewPrep,
   };
 
-  KoreanLevel get koreanLevel => switch (topik) {
+  KoreanLevel get koreanLevel => switch (topikCounted) {
     <= 0 => KoreanLevel.none,
     1 => KoreanLevel.topik1,
     2 => KoreanLevel.topik2,
@@ -114,6 +277,7 @@ class AssessmentOutcome {
   const AssessmentOutcome({
     required this.band,
     required this.visaPercent,
+    this.visaWithConsultantPercent,
     required this.requiredBankKrw,
     required this.chances,
     required this.fixes,
@@ -122,6 +286,9 @@ class AssessmentOutcome {
   /// "HA" / "BALKI" / "HOZIRCHA YO'Q", from the same rules as the old quiz.
   final EligibilityBand band;
   final int visaPercent;
+
+  /// The visa chance with the papers a consultant puts in order.
+  final int? visaWithConsultantPercent;
 
   /// The KDB deposit the embassy asks for on this route, in won.
   final int requiredBankKrw;
@@ -137,10 +304,11 @@ class AssessmentOutcome {
     'visa_pct': visaPercent,
     'required_bank_krw': requiredBankKrw,
     'universities': [
-      for (final c in chances)
-        {'id': c.university.institutionId, 'name': c.university.displayName, 'pct': c.percent},
+      for (final c in chances) {'id': c.university.institutionId, 'name': c.university.displayName, 'pct': c.percent},
     ],
-    'fixes': [for (final f in fixes) {'kind': f.kind.name, 'value': f.value, 'gain': f.gain}],
+    'fixes': [
+      for (final f in fixes) {'kind': f.kind.name, 'value': f.value, 'gain': f.gain},
+    ],
   };
 }
 
@@ -161,10 +329,8 @@ int segmentsOf(int percent) => percent < 25
 
 /// Computes the board.
 ///
-/// The visa side is the old quiz's embassy check ([evaluateEligibility]):
-/// the TOPIK level the route needs and the KDB deposit, with a prior refusal
-/// counted as one more soft point. Its band is turned into a percentage on a
-/// fixed scale — low 15–39, mid 40–64, high 65–85 — by where the score sits.
+/// The visa side is [visaScore] ("Vizam chiqadimi?"), its band high from
+/// 65 and mid from 40.
 ///
 /// Admission is per university, from its own TOPIK requirement (the route's
 /// when the Excel gives none) against the student's level — short by two or
@@ -187,7 +353,11 @@ AssessmentOutcome assess(
   List<AdmissionChance> chancesFor(AssessmentInput i) => [
     for (final u in chosen)
       if ((degree == null ? u.primary : u.forDegree(degree) ?? u.primary) case final g)
-        AdmissionChance(university: u, guideline: g, percent: admissionPercent(i, g, rules: rules)),
+        AdmissionChance(
+          university: u,
+          guideline: g,
+          percent: admissionPercent(i, g, rules: rules),
+        ),
   ];
 
   final chances = chancesFor(input);
@@ -215,6 +385,7 @@ AssessmentOutcome assess(
   return AssessmentOutcome(
     band: visa.$1,
     visaPercent: visa.$2,
+    visaWithConsultantPercent: visaWithConsultant(input, requiredBankKrw: requiredKrw),
     requiredBankKrw: requiredKrw,
     chances: chances,
     fixes: fixes,
@@ -223,7 +394,11 @@ AssessmentOutcome assess(
 
 /// The KDB deposit for [route] in won: the capital area's figure when any of
 /// the universities is there.
-int requiredBank(StudyRoute route, List<CatalogUniversity> universities, {EligibilityRules rules = const EligibilityRules()}) {
+int requiredBank(
+  StudyRoute route,
+  List<CatalogUniversity> universities, {
+  EligibilityRules rules = const EligibilityRules(),
+}) {
   final kdb = rules.kdbUsd(route);
   final capital = universities.any((u) => u.primary.inCapitalArea);
   return ((capital ? kdb.$2 : kdb.$1) * rules.krwPerUsd).round();
@@ -236,43 +411,25 @@ int requiredBank(StudyRoute route, List<CatalogUniversity> universities, {Eligib
   required int requiredKrw,
   DateTime? now,
 }) {
-  final answers = QuizAnswers(
-    route: input.route,
-    korean: input.koreanLevel,
-    english: EnglishLevel.none,
-    kdb: input.kdbDeposit(requiredKrw),
-  );
-  final r = evaluateEligibility(answers, catalog: catalog, rules: rules, now: now);
-  var score = r.score;
-  var band = r.band;
-  if (input.visaRefused) {
-    score -= rules.softPenalty;
-    band = band.atMost(EligibilityBand.fromScore(score, rules));
-  }
-  // Where the score sits between the band's floor and the next one.
-  final lo = switch (band) {
-    EligibilityBand.high => rules.bandHighMin,
-    EligibilityBand.mid => rules.bandMidMin,
-    EligibilityBand.low => 0,
-  };
-  final hi = switch (band) {
-    EligibilityBand.high => rules.bandHighMin + 2,
-    EligibilityBand.mid => rules.bandHighMin,
-    EligibilityBand.low => rules.bandMidMin,
-  };
-  final (pLo, pHi) = switch (band) {
-    EligibilityBand.high => (65, 85),
-    EligibilityBand.mid => (40, 64),
-    EligibilityBand.low => (15, 39),
-  };
-  final t = hi <= lo ? 1.0 : ((score - lo) / (hi - lo)).clamp(0.0, 1.0);
-  return (band, (pLo + (pHi - pLo) * t).round());
+  final p = visaScore(input, requiredBankKrw: requiredKrw);
+  return (visaBandOf(p), p);
 }
 
-/// One university's admission chance (see [assess]).
+/// The band the CRM sorts by, from the visa chance.
+EligibilityBand visaBandOf(int percent) => percent >= 65
+    ? EligibilityBand.high
+    : percent >= 40
+    ? EligibilityBand.mid
+    : EligibilityBand.low;
+
+/// One university's admission chance (see [assess]), with what the
+/// university assessment's answers add to the documents: experience,
+/// contests, IELTS, the letter, recommendation, portfolio and activities
+/// raise it, a gap of two years and more lowers it, and a TOPIK certificate
+/// over two years old counts as none.
 int admissionPercent(AssessmentInput input, CatalogGuideline g, {EligibilityRules rules = const EligibilityRules()}) {
   final need = g.topikMin?.round() ?? rules.topikMin(input.route);
-  final diff = input.topik - need;
+  final diff = input.topikCounted - need;
   var p = diff <= -2
       ? 15
       : diff == -1
@@ -284,5 +441,35 @@ int admissionPercent(AssessmentInput input, CatalogGuideline g, {EligibilityRule
       : 78;
   p += ((input.gpa - 3.5) * 10).clamp(-15, 15).round();
   if (g.isPartner == true) p += 5;
+  p += documentsBonus(input);
   return p.clamp(5, 95);
+}
+
+/// The points the documents' answers add (or take) on top of TOPIK and the
+/// certificate.
+int documentsBonus(AssessmentInput i) {
+  var p = 0;
+  p += switch (i.gapYears) {
+    <= 1 => 0,
+    2 => -3,
+    _ => -6,
+  };
+  p += const [0, 2, 3, 4][i.experience.clamp(0, 3)];
+  p += const [0, 2, 4, 6][i.olympiad.clamp(0, 3)];
+  p += i.ielts >= 7
+      ? 5
+      : i.ielts >= 6.5
+      ? 4
+      : i.ielts >= 6
+      ? 3
+      : i.ielts >= 5.5
+      ? 2
+      : i.ielts >= 5
+      ? 1
+      : 0;
+  p += const [0, 2, 4][i.motivation.clamp(0, 2)];
+  if (i.recommendation) p += 2;
+  if (i.portfolio) p += 2;
+  p += const [0, 2, 2, 3][i.activity.clamp(0, 3)];
+  return p;
 }

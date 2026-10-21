@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
-import '../../discover/presentation/filter_board_screen.dart';
+import '../../discover/presentation/visa_screen.dart';
 import '../../discover/presentation/prepare_screen.dart';
 import '../../discover/presentation/universities_screen.dart';
 import '../../discover/presentation/widgets/app_nav.dart';
@@ -52,7 +52,7 @@ class _ClientShellState extends State<ClientShell> {
     return switch (i) {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(signedIn: true),
-      AppTab.home => FilterBoardScreen(showBack: false, onShow: () => _go(AppTab.universities)),
+      AppTab.home => const VisaScreen(embedded: true),
       AppTab.application => JourneyScreen(onBrowse: () => _go(AppTab.universities)),
       _ => const ClientDocumentsScreen(),
     };

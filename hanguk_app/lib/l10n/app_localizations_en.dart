@@ -4856,4 +4856,689 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ajBack => 'Back';
+
+  @override
+  String get btField => 'Pick your field';
+
+  @override
+  String get btCount => 'Matching universities';
+
+  @override
+  String get btVisa => 'Your visa chances';
+
+  @override
+  String get btList => 'See the list';
+
+  @override
+  String get btStrip => 'Your best matches';
+
+  @override
+  String get btCity => 'Which city?';
+
+  @override
+  String get btDegree => 'Which degree?';
+
+  @override
+  String get btTopik => 'Your Korean level';
+
+  @override
+  String get btIelts => 'Your IELTS score';
+
+  @override
+  String get btFee => 'Tuition';
+
+  @override
+  String get btType => 'State or private';
+
+  @override
+  String get btGrant => 'Need a grant?';
+
+  @override
+  String get fdSectionIelts => 'My English (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => 'I won\'t study in English';
+
+  @override
+  String fdIeltsHint(String score) {
+    return 'English programmes up to IELTS $score';
+  }
+
+  @override
+  String get fdSectionGrant => 'Grant / scholarship';
+
+  @override
+  String get fdGrantHint => 'Tuition discount';
+
+  @override
+  String get fdGrantNone => 'Not needed';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return 'Grant $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — TOPIK $level+ opens';
+  }
+
+  @override
+  String get fdTopikHintNone => 'Pick your level';
+
+  @override
+  String get fdTopikLevel1 => 'Greetings';
+
+  @override
+  String get fdTopikLevel2 => 'Simple sentences';
+
+  @override
+  String get fdTopikLevel3 => 'Everyday talk';
+
+  @override
+  String get fdTopikLevel4 => 'Free conversation';
+
+  @override
+  String get fdTopikLevel5 => 'Academic texts';
+
+  @override
+  String get fdTopikLevel6 => 'Near native';
+
+  @override
+  String fdCodeSms(String bold) {
+    return 'The $bold code your consultant sent by SMS';
+  }
+
+  @override
+  String get fdCodeEight => '8-character';
+
+  @override
+  String get fdCodeUnlocks => 'The code opens';
+
+  @override
+  String get fdCodeChat => 'Consultant chat';
+
+  @override
+  String get fdCodeScanShort => 'Scan QR';
+
+  @override
+  String get fdCodeNone => 'No code';
+
+  @override
+  String get fdCodeFreeConsult => 'Free consultation';
+
+  @override
+  String get uaTitle => 'Admission chance';
+
+  @override
+  String get uaCity => 'City';
+
+  @override
+  String get uaAskTitle =>
+      'Want to know your chance of getting into this university?';
+
+  @override
+  String get uaAskBody =>
+      '12 questions + Study Plan + a test interview · about 3 minutes. The percentage, its accuracy and ways to raise it come at the end.';
+
+  @override
+  String get uaAskStart => 'Start the assessment →';
+
+  @override
+  String get uaImpactNone => 'no effect';
+
+  @override
+  String get uaSecAcademic => 'Academic';
+
+  @override
+  String get uaSecLanguage => 'Language';
+
+  @override
+  String get uaSecDocuments => 'Documents';
+
+  @override
+  String get uaSecTests => 'Assessment tests';
+
+  @override
+  String get uaTestsCount => 'counts toward the %';
+
+  @override
+  String get uaNo => 'No';
+
+  @override
+  String get uaHave => 'Yes';
+
+  @override
+  String get uaQDegree => 'Which level are you applying for';
+
+  @override
+  String get uaDegLanguage => 'Language course (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Bachelor';
+
+  @override
+  String get uaDegMaster => 'Master';
+
+  @override
+  String get uaQGpa => 'Certificate / diploma average';
+
+  @override
+  String get uaQGap => 'Time since graduating';
+
+  @override
+  String get uaGap0 => '0 yrs';
+
+  @override
+  String get uaGap1 => '1 yr';
+
+  @override
+  String get uaGap2 => '2 yrs';
+
+  @override
+  String get uaGap3 => '3+ yrs';
+
+  @override
+  String get uaQExperience => 'Experience in your chosen field';
+
+  @override
+  String get uaExpCourse => 'Course / club';
+
+  @override
+  String get uaExpProject => 'Project';
+
+  @override
+  String get uaExpWork => 'Work experience';
+
+  @override
+  String get uaQOlympiad => 'Olympiad / contest results';
+
+  @override
+  String get uaOlSchool => 'School';
+
+  @override
+  String get uaOlNational => 'National';
+
+  @override
+  String get uaOlInternational => 'International';
+
+  @override
+  String get uaQTopik => 'TOPIK level';
+
+  @override
+  String get uaQTopikCert => 'TOPIK certificate';
+
+  @override
+  String get uaCertOld => 'Over 2 years old';
+
+  @override
+  String get uaCertFresh => 'Valid (under 2 years)';
+
+  @override
+  String get uaQIelts => 'English (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Motivation letter';
+
+  @override
+  String get uaMotDraft => 'Draft';
+
+  @override
+  String get uaMotReady => 'Ready';
+
+  @override
+  String get uaQRecommendation => 'Recommendation (from a teacher)';
+
+  @override
+  String get uaQPortfolio => 'Portfolio (design, art, projects)';
+
+  @override
+  String get uaQActivity => 'Extra activities';
+
+  @override
+  String get uaActVolunteer => 'Volunteering';
+
+  @override
+  String get uaActSportArt => 'Sport / art';
+
+  @override
+  String get uaActLeader => 'Led an organisation';
+
+  @override
+  String get uaTestPlan => 'Study Plan test';
+
+  @override
+  String get uaTestTalk => 'Interview test';
+
+  @override
+  String get uaTestStart => 'Start';
+
+  @override
+  String get uaTestTaken => 'Taken · one attempt only';
+
+  @override
+  String get uaTestsNeedCode =>
+      'The tests open with your client code — your consultant sends it by SMS';
+
+  @override
+  String get uaResultTitle => 'Your admission chance';
+
+  @override
+  String get uaAccuracyLow => 'Accuracy: low — no tests taken yet';
+
+  @override
+  String get uaAccuracyMid => 'Accuracy: medium — one test taken';
+
+  @override
+  String get uaAccuracyHigh => 'Accuracy: high — both tests taken';
+
+  @override
+  String get uaInterviewFailed =>
+      'The interview scored under 60 — in a real admission this stage would not be passed.';
+
+  @override
+  String get uaWays => 'WAYS TO RAISE IT';
+
+  @override
+  String get uaWayMotivation => 'Finish your motivation letter';
+
+  @override
+  String get uaWayRecommendation => 'Get a recommendation';
+
+  @override
+  String get sptQ1 => 'Why this university and this major?';
+
+  @override
+  String get sptQ2 => 'What will you study in Korea, and how?';
+
+  @override
+  String get sptQ3 => 'What will you do after graduating?';
+
+  @override
+  String get sptHint => 'Write in Korean or English';
+
+  @override
+  String get sptSubmit => 'Send for checking';
+
+  @override
+  String get sptChecking => 'The AI is checking…';
+
+  @override
+  String get sptError =>
+      'Couldn\'t check it. Check your connection and send again.';
+
+  @override
+  String get sptResultTitle => 'STUDY PLAN SCORE';
+
+  @override
+  String get sptMotivation => 'Motivation and knowing the major';
+
+  @override
+  String get sptPlan => 'Study plan';
+
+  @override
+  String get sptCareer => 'Plan after graduating';
+
+  @override
+  String get sptLanguage => 'Language and writing';
+
+  @override
+  String get sptStrengths => 'Strengths';
+
+  @override
+  String get sptImprovements => 'To improve';
+
+  @override
+  String get sptDone => 'Done';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'admission +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'admission −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return 'For $name · $questions questions · $minutes min · 1 attempt';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'Reach TOPIK $level';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return 'Answer 3 questions for $name. You have $minutes minutes and one attempt; when time runs out, what you wrote is sent.';
+  }
+
+  @override
+  String get vzTitle => 'Will I get';
+
+  @override
+  String get vzTitleMark => 'the visa?';
+
+  @override
+  String get vzYes => 'Yes';
+
+  @override
+  String get vzOne => 'One';
+
+  @override
+  String get vzTwoPlus => 'Two or more';
+
+  @override
+  String get vzSecEducation => 'Education';
+
+  @override
+  String get vzSecMoney => 'Finances';
+
+  @override
+  String get vzSecHistory => 'History';
+
+  @override
+  String get vzSecPrep => 'Preparation';
+
+  @override
+  String get vzQEducation => 'Your last education';
+
+  @override
+  String get vzEduSchool => 'School (11th grade)';
+
+  @override
+  String get vzEduCollege => 'College / lyceum';
+
+  @override
+  String get vzQAge => 'Age';
+
+  @override
+  String get vzQIncome => 'Your parents\' yearly income';
+
+  @override
+  String get vzIncome0 => '< \$5,000';
+
+  @override
+  String get vzIncome1 => '\$5–10k';
+
+  @override
+  String get vzIncome2 => '\$10–20k';
+
+  @override
+  String get vzIncome3 => '\$20k+';
+
+  @override
+  String get vzQIncomeDocumented =>
+      'Income is officially documented (salary, tax, business)';
+
+  @override
+  String get vzQSponsor => 'Who is the sponsor';
+
+  @override
+  String get vzSponsorSelf => 'Myself';
+
+  @override
+  String get vzSponsorParents => 'My parents';
+
+  @override
+  String get vzSponsorRelative => 'Another relative';
+
+  @override
+  String get vzQRelationDoc => 'Kinship certificate (apostilled)';
+
+  @override
+  String get vzQStability => 'How long the income has been steady';
+
+  @override
+  String get vzStable0 => '< 6 months';
+
+  @override
+  String get vzStable1 => '6–12 months';
+
+  @override
+  String get vzStable2 => '1–3 years';
+
+  @override
+  String get vzStable3 => '3+ years';
+
+  @override
+  String get vzQProperty =>
+      'Property in your parents\' name (house, flat, land)';
+
+  @override
+  String get vzQCar => 'A car in your parents\' name';
+
+  @override
+  String get vzQBusiness => 'Your parents\' business / registered company';
+
+  @override
+  String get vzBusinessIp => 'Sole trader (IP)';
+
+  @override
+  String get vzBusinessLlc => 'Company (LLC)';
+
+  @override
+  String get vzQRefused => 'Has a visa been refused before';
+
+  @override
+  String get vzQKoreaBefore => 'Have you been to Korea before';
+
+  @override
+  String get vzKoreaOnTime => 'Yes, left on time';
+
+  @override
+  String get vzKoreaOverstay => 'I overstayed';
+
+  @override
+  String get vzQIllegalRelatives =>
+      'Any close relatives staying illegally in South Korea';
+
+  @override
+  String get vzQLegalRelatives => 'Relatives living legally in Korea';
+
+  @override
+  String get vzQStudyPlan => 'Study Plan';
+
+  @override
+  String get vzQInterview => 'Interview practice';
+
+  @override
+  String get vzInterviewSelf => 'Practised on my own';
+
+  @override
+  String get vzInterviewAi => 'Hanguk AI 3+ times';
+
+  @override
+  String get vzBandHigh => 'Good chance';
+
+  @override
+  String get vzBandHighHint => 'get the papers ready';
+
+  @override
+  String get vzBandMid => 'Fair chance';
+
+  @override
+  String get vzBandMidHint => 'needs work';
+
+  @override
+  String get vzBandLow => 'Low chance';
+
+  @override
+  String get vzBandLowHint => 'much to fix';
+
+  @override
+  String get vzTourGauge => 'Your visa chance — it moves with your answers';
+
+  @override
+  String get vzTourEducation => 'Education: level, grades, age';
+
+  @override
+  String get vzTourLanguage => 'Language: TOPIK and IELTS';
+
+  @override
+  String get vzTourMoney => 'Finances: what the embassy checks most';
+
+  @override
+  String get vzTourHistory => 'History: past visas and relatives';
+
+  @override
+  String get vzTourPrep => 'Preparation: Study Plan, interview, letters';
+
+  @override
+  String get vzTourReplay => 'Watch the guide again';
+
+  @override
+  String uaVisaUp(int n) {
+    return 'visa +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return 'visa −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n yrs';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return 'with a consultant ~$n%';
+  }
+
+  @override
+  String get tuHero => 'The university: name, city and price';
+
+  @override
+  String get tuFacts => 'City, contract, language and document deadline';
+
+  @override
+  String get tuAsk => 'Find your admission chance here';
+
+  @override
+  String get tuPick => 'Like it? Add it to your picks, up to 3';
+
+  @override
+  String get taAcademic => 'Academic: each answer shows its effect';
+
+  @override
+  String get taLanguage => 'Language: TOPIK and IELTS';
+
+  @override
+  String get taDocuments => 'Documents: letter, recommendation, portfolio';
+
+  @override
+  String get taTests => 'Tests: Study Plan and interview — once each';
+
+  @override
+  String get taResult => 'The result: the % and ways to raise it';
+
+  @override
+  String get fdCodeBannerTitle => 'This section is for Hanguk students';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Become our student and use everything: Preparation, My application and Documents open in full.';
+
+  @override
+  String get fdCodeTelegram => 'Message the admin on Telegram';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Your client code:';
+
+  @override
+  String get fdCodePaste => 'use it →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Preparation is for Premium and No-Risk clients. Enter your code if you have one';
+
+  @override
+  String get fdGrantOrder => 'scores first → then the grant';
+
+  @override
+  String get fdGrantStepScores => '1 · YOUR SCORES';
+
+  @override
+  String get fdGrantStepWanted => '2 · GRANT YOU NEED';
+
+  @override
+  String get fdGrantAny => 'Not needed';
+
+  @override
+  String get fdSectionCityMap => 'City · pick on the map';
+
+  @override
+  String get fdAllRegions => 'All';
+
+  @override
+  String get fdRegionGangwonPlus => 'Gangwon+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'At least $n%';
+  }
+
+  @override
+  String get ulTitle => 'Universities';
+
+  @override
+  String get ulSearchHint => 'Name, field, city';
+
+  @override
+  String get ulPrivate => 'Private university';
+
+  @override
+  String get ulState => 'State university';
+
+  @override
+  String get ulNoRequirement => 'No requirement';
+
+  @override
+  String get fltTitle => 'Filter';
+
+  @override
+  String get fltAllFields => 'All';
+
+  @override
+  String get fltFeeSem => 'Contract / semester';
+
+  @override
+  String ulCount(int n) {
+    return '$n';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n universities · tap a card';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'MATCHING UNIVERSITIES · OF $n';
+  }
+
+  @override
+  String get vzReport => 'See the report →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'The test couldn\'t open — check your connection and try again';
 }

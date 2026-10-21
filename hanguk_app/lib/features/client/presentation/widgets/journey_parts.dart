@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../applications/data/journey_repository.dart';
 import '../../../applications/domain/application_journey.dart';
 import '../../../training/presentation/study_plan_builder_screen.dart';
+import '../../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Shared by the Ariza list (design 7b) and a university's page (8a): the
 /// words each state is shown with, the tile, and "Imzolash".
@@ -195,7 +196,7 @@ Future<void> openStudyPlan(BuildContext context, WidgetRef ref) async {
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
       settings: const RouteSettings(name: 'study_plan'),
-      builder: (_) => const StudyPlanBuilderScreen(),
+      builder: (_) => const NavScaffold(current: AppTab.application, child: StudyPlanBuilderScreen()),
     ),
   );
   ref.invalidate(applicationJourneyProvider);
