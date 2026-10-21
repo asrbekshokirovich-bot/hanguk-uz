@@ -1,0 +1,91 @@
+name: Student app on the web (GitHub Pages)
+
+# Builds the Flutter student app (hanguk_app) for the web and publishes it to
+# GitHub Pages:
+#
+#   https://<owner>.github.io/<repo>/       desktop: the app inside a phone frame
+#                                           (hanguk_app/web_frame/index.html);
+#                                           phones: redirects straight to app/
+#   https://<owner>.github.io/<repo>/app/   the app itself, full screen
+#
+# One-time setup: Settings -> Pages -> Build and deployment -> Source:
+# "GitHub Actions". Until that is set the deploy job fails with a 404.
+#
+# The router uses the default hash URL strategy (/app/#/route), so deep links
+# and reloads work on Pages without any 404.html rewrite.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hanguk_app/lib/**'
+      - 'hanguk_app/assets/**'
+      - 'hanguk_app/packages/**'
+      - 'hanguk_app/web/**'
+      - 'hanguk_app/web_frame/**'
+      - 'hanguk_app/pubspec.yaml'
+      - 'hanguk_app/pubspec.lock'
+      - '.github/workflows/web-app-pages.yml'
+  workflow_dispatch:
+    inputs:
+      flutter_version:
+        description: "Flutter version to build with. Blank = latest stable."
+        required: false
+        default: ""
+
+concurrency:
+  group: web-app-pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+
+      - name: Resolve Dart dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: |
+          flutter build web --release \
+            --base-href "/${{ github.event.repository.name }}/app/" \
+            --no-wasm-dry-run
+
+      - name: Assemble site
+        run: |
+          mkdir -p "$RUNNER_TEMP/site"
+          cp -r build/web "$RUNNER_TEMP/site/app"
+          cp web_frame/index.html "$RUNNER_TEMP/site/index.html"
+          touch "$RUNNER_TEMP/site/.nojekyll"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
