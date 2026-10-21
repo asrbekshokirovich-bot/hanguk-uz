@@ -104,7 +104,7 @@ vi.mock('@/hooks/useUniversityCatalog', () => ({
   useGuidelineImport: () => ({ mutateAsync: mocks.mutateAsync, isPending: false }),
   useAddInstitution: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useGuidelineDetail: () => ({ data: null, isLoading: false, error: null, refetch: () => {} }),
-  useCatalogExtras: () => ({ extras: { faculties: new Map(), grants: new Map() }, loading: false, error: null }),
+  useCatalogExtras: () => ({ extras: { faculties: new Map() }, loading: false, error: null }),
 }));
 
 vi.mock('@/lib/universityGuidelineExcel', () => ({

@@ -16,11 +16,11 @@ import {
   periodLabel,
   type LevelFilter,
 } from './format';
+import { cardGrant } from './grants';
 
-/** Saralash panelidan (operator / admin): nufuz, grant va qidirilgan yo'nalishga mos fakultetlar. */
+/** Saralash panelidan (operator / admin): nufuz va qidirilgan yo'nalishga mos fakultetlar. */
 export interface CardHighlights {
   tier: string | null;
-  grant: string | null;
   directions: { names: string[]; more: number } | null;
 }
 
@@ -34,7 +34,7 @@ interface Props {
 
 /**
  * Katalogdagi bitta universitet. Xodim bir qarashda ko'rishi kerak bo'lgani:
- * nomi (ingliz + koreys), shahri, kontrakt narxi va TOPIK/IELTS talabi.
+ * nomi (ingliz + koreys), shahri, kontrakt narxi, TOPIK/IELTS talabi va grant.
  */
 export function UniversityCard({ entry, level = 'hammasi', highlights, onOpen }: Props) {
   const { primary, secondary } = displayName(entry);
@@ -42,6 +42,7 @@ export function UniversityCard({ entry, level = 'hammasi', highlights, onOpen }:
   const latest = focusGuideline(entry, level);
   const contract = contractRange(latest);
   const badges = languageBadges(latest);
+  const grant = cardGrant(latest);
   const admission = admissionLabel(latest);
   const period = periodLabel(latest?.kontrakt_davri);
   const levels = offeredLevels(entry);
@@ -98,20 +99,12 @@ export function UniversityCard({ entry, level = 'hammasi', highlights, onOpen }:
           )}
         </div>
 
-        {highlights && (highlights.tier || highlights.grant) && (
+        {highlights?.tier && (
           <div className="flex flex-wrap gap-1.5">
-            {highlights.tier && (
-              <Badge variant="neutral" className="gap-1 text-[11px]">
-                <Award className="h-3 w-3" aria-hidden="true" />
-                {highlights.tier}
-              </Badge>
-            )}
-            {highlights.grant && (
-              <Badge variant="warning" className="gap-1 text-[11px]">
-                <Gift className="h-3 w-3" aria-hidden="true" />
-                {highlights.grant}
-              </Badge>
-            )}
+            <Badge variant="neutral" className="gap-1 text-[11px]">
+              <Award className="h-3 w-3" aria-hidden="true" />
+              {highlights.tier}
+            </Badge>
           </div>
         )}
 
@@ -125,13 +118,20 @@ export function UniversityCard({ entry, level = 'hammasi', highlights, onOpen }:
 
         {latest ? (
           <>
-            {badges.length > 0 && (
+            {(badges.length > 0 || grant) && (
               <div className="flex flex-wrap gap-1.5">
                 {badges.map((b) => (
                   <Badge key={b.key} variant={b.key === 'topik' ? 'info' : 'successSoft'}>
                     {b.label}
                   </Badge>
                 ))}
+                {/* Shu darajadagi guideline granti: TOPIK / IELTS ga qarab kirishda — foizlar oralig'i */}
+                {grant && (
+                  <Badge variant="warning" className="gap-1" title={grant.title}>
+                    <Gift className="h-3 w-3" aria-hidden="true" />
+                    {grant.label}
+                  </Badge>
+                )}
               </div>
             )}
 

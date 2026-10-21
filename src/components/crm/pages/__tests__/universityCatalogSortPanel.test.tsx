@@ -38,8 +38,8 @@ function guideline(over: Partial<GuidelineSummary>): GuidelineSummary {
   };
 }
 
-function uni(id: string, name: string, tier: number): CatalogEntry {
-  const g = guideline({ id: `g-${id}`, institution_id: id, univ_nomi_en: name });
+function uni(id: string, name: string, tier: number, over: Partial<GuidelineSummary> = {}): CatalogEntry {
+  const g = guideline({ id: `g-${id}`, institution_id: id, univ_nomi_en: name, ...over });
   return {
     institution: {
       id,
@@ -64,7 +64,6 @@ const mocks = vi.hoisted(() => ({
   role: { isDocumentHandler: false, isCallOperator: true },
   entries: [] as unknown[],
   faculties: new Map<string, unknown[]>(),
-  grants: new Map<string, unknown>(),
 }));
 
 vi.mock('@/hooks/useUniversityCatalog', () => ({
@@ -73,7 +72,7 @@ vi.mock('@/hooks/useUniversityCatalog', () => ({
   useAddInstitution: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useGuidelineDetail: () => ({ data: null, isLoading: false, error: null, refetch: () => {} }),
   useCatalogExtras: () => ({
-    extras: { faculties: mocks.faculties, grants: mocks.grants },
+    extras: { faculties: mocks.faculties },
     loading: false,
     error: null,
   }),
@@ -92,12 +91,14 @@ function shownUniversities(): string[] {
 
 beforeEach(() => {
   mocks.role = { isDocumentHandler: false, isCallOperator: true };
-  mocks.entries = [uni('a', 'Alpha University', 3), uni('b', 'Beta University', 1)];
+  mocks.entries = [
+    uni('a', 'Alpha University', 3, { grant_holat: 'malumot_yoq' }),
+    uni('b', 'Beta University', 1, { grant_holat: 'kirishda', grant_min: 50, grant_max: 50 }),
+  ];
   mocks.faculties = new Map([
     ['g-a', [{ guideline_uuid: 'g-a', track: 'korean', kollej_en: null, kollej_kr: null, fakultet_en: 'Department of Nursing', fakultet_kr: null, kontrakt_summa: null }]],
     ['g-b', [{ guideline_uuid: 'g-b', track: 'korean', kollej_en: null, kollej_kr: null, fakultet_en: 'Business Administration', fakultet_kr: null, kontrakt_summa: null }]],
   ]);
-  mocks.grants = new Map([['b', { maxWaiverPct: 50, stipend: false, count: 1 }]]);
 });
 
 describe('Universitetlar — saralash paneli', () => {
@@ -122,10 +123,11 @@ describe('Universitetlar — saralash paneli', () => {
     expect(shownUniversities()).toEqual(['Beta University']);
   });
 
-  it('hujjatchi (call operator emas) panelni ko‘rmaydi', () => {
+  it('hujjatchi (call operator emas) panelni ko‘rmaydi, grant esa kartada qoladi', () => {
     mocks.role = { isDocumentHandler: true, isCallOperator: false };
     render(<UniversityCatalogContent />);
     expect(screen.queryByLabelText("Yo'nalish qidirish")).not.toBeInTheDocument();
     expect(screen.queryByText('Nufuz: 1-daraja')).not.toBeInTheDocument();
+    expect(screen.getByText('Grant: 50% gacha')).toBeInTheDocument();
   });
 });

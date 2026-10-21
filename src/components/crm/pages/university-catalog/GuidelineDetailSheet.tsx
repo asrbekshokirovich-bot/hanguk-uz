@@ -37,6 +37,7 @@ import {
   ExternalLink,
   FileSpreadsheet,
   FileText,
+  Gift,
   Info,
   Landmark,
   Languages,
@@ -54,6 +55,7 @@ import {
   type GuidelineDoc,
   type GuidelineFaculty,
   type GuidelineFull,
+  type GuidelineGrant,
   type GuidelineRound,
 } from '@/hooks/useUniversityCatalog';
 import {
@@ -71,6 +73,14 @@ import {
   type DegreeLevel,
   type LevelFilter,
 } from './format';
+import {
+  awardLabel,
+  grantStatus,
+  groupGrants,
+  requirementLabel,
+  type GrantGroup,
+  type GrantTone,
+} from './grants';
 
 interface Props {
   entry: CatalogEntry | null;
@@ -366,6 +376,212 @@ function UmumiyTab({ g }: { g: GuidelineFull }) {
           </div>
         </CollapsibleContent>
       </Collapsible>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Grantlar
+// ---------------------------------------------------------------------------
+
+const GRANT_TONE: Record<GrantTone, string> = {
+  success: 'border-success/30 bg-success/5',
+  info: 'border-info/30 bg-info/5',
+  warning: 'border-warning/30 bg-warning/5',
+  neutral: 'bg-muted/30',
+};
+
+/** Matndagi havolalarni bosiladigan qiladi (manbadagi universitet sayti). */
+function Linkified({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(https?:\/\/\S+)/).map((part, i) =>
+        /^https?:\/\//.test(part) ? (
+          <a key={i} href={part} target="_blank" rel="noreferrer" className="break-all text-primary hover:underline">
+            {part}
+          </a>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+/** Sahifa va asl matn — tekshirish uchun, bosilganda ochiladi. */
+function GrantSource({ rule }: { rule: GuidelineGrant }) {
+  const [open, setOpen] = useState(false);
+  const page = rule.sahifa ? `${rule.sahifa}-bet` : null;
+  if (!rule.iqtibos) return page ? <p className="text-[11px] text-muted-foreground">{page}</p> : null;
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
+      >
+        {[page, open ? 'asl matnni yopish' : 'asl matn'].filter(Boolean).join(' · ')}
+      </button>
+      {open && (
+        <div className="mt-1 space-y-0.5 rounded-md bg-muted/40 px-2 py-1.5">
+          <p className="whitespace-pre-wrap text-xs leading-relaxed">{rule.iqtibos}</p>
+          {rule.manba && <p className="break-all text-[11px] text-muted-foreground">{rule.manba}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Bitta guruh ("yangi qabul — Korean track"): har bir daraja — talab chapda, grant o'ngda. */
+function GrantGroupCard({ group }: { group: GrantGroup }) {
+  return (
+    <section className="rounded-lg border">
+      <header className="border-b bg-muted/30 px-3 py-2">
+        <h5 className="text-sm font-medium leading-snug">{group.audience ?? 'Hammasi'}</h5>
+        {group.names.length > 0 && (
+          <p className="text-xs text-muted-foreground">{group.names.join(' · ')}</p>
+        )}
+      </header>
+      <ol className="divide-y">
+        {group.rules.map((r) => {
+          const req = requirementLabel(r);
+          const award = awardLabel(r);
+          const original = r.talab?.trim();
+          return (
+            <li key={r.id} className="flex gap-3 px-3 py-2">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-sm font-medium leading-snug">{req.main}</p>
+                {req.note && <p className="text-xs text-muted-foreground">{req.note}</p>}
+                {original && original !== req.main && (
+                  <p className="text-xs text-muted-foreground">{original}</p>
+                )}
+                {award.details.length > 0 && (
+                  <p className="text-xs">
+                    <span className="text-muted-foreground">Grant: </span>
+                    {award.details.join(' · ')}
+                  </p>
+                )}
+                {r.muddat && (
+                  <p className="text-xs">
+                    <span className="text-muted-foreground">Muddati: </span>
+                    {r.muddat}
+                  </p>
+                )}
+                {r.davom_shart && (
+                  <p className="text-xs">
+                    <span className="text-muted-foreground">Davom etishi: </span>
+                    {r.davom_shart}
+                  </p>
+                )}
+                {r.kampus && (
+                  <Badge variant="neutral" className="text-[11px]">
+                    {r.kampus}
+                  </Badge>
+                )}
+                <GrantSource rule={r} />
+              </div>
+              {award.value && (
+                <div className="shrink-0 text-right">
+                  <p className="text-lg font-semibold tabular-nums">{award.value}</p>
+                  {award.caveat && <p className="text-[11px] text-warning">{award.caveat}</p>}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+function GrantlarTab({ g, grants }: { g: GuidelineFull; grants: GuidelineGrant[] }) {
+  const status = grantStatus(g);
+  const { kirishda, oqishDavomida } = useMemo(() => groupGrants(grants), [grants]);
+  const duringCount = oqishDavomida.reduce((n, group) => n + group.rules.length, 0);
+
+  if (!status && grants.length === 0) {
+    return (
+      <EmptyState
+        icon={Gift}
+        title="Grant ma'lumoti kiritilmagan"
+        description="Bu qabul guideline'ining grantlari hali o'rganilmagan."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {status && (
+        <div className={cn('rounded-lg border px-3 py-2', GRANT_TONE[status.tone])}>
+          <p className="text-sm font-semibold">{status.label}</p>
+          {status.hint && <p className="text-xs text-muted-foreground">{status.hint}</p>}
+        </div>
+      )}
+
+      {kirishda.length > 0 && (
+        <section className="space-y-2">
+          <h4 className="text-sm font-semibold">Kirishda</h4>
+          {kirishda.map((group) => (
+            <GrantGroupCard key={group.rules[0].id} group={group} />
+          ))}
+        </section>
+      )}
+
+      {/* O'qish davomidagi grantlar ko'p (baho x TOPIK) — kirish granti bo'lsa yopiq turadi */}
+      {oqishDavomida.length > 0 && (
+        <Collapsible defaultOpen={kirishda.length === 0}>
+          <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-muted/30">
+            O'qish davomida
+            <span className="rounded-full bg-muted-foreground/15 px-1.5 text-[11px] font-medium tabular-nums">
+              {duringCount}
+            </span>
+            <ChevronDown
+              className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180"
+              aria-hidden="true"
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2 pt-2">
+            {oqishDavomida.map((group) => (
+              <GrantGroupCard key={group.rules[0].id} group={group} />
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {!isEmpty(g.grant_boshqa) && (
+        <InfoCard icon={Gift} title="Boshqa grantlar (tilga bog'liq emas)">
+          <Note text={g.grant_boshqa} />
+        </InfoCard>
+      )}
+
+      {!isEmpty(g.grant_izoh) && (
+        <InfoCard icon={Info} title="Izoh">
+          <Note text={g.grant_izoh} />
+        </InfoCard>
+      )}
+
+      {!isEmpty(g.grant_manba) && (
+        <Collapsible>
+          <CollapsibleTrigger className="group flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/30">
+            <Database className="h-4 w-4" aria-hidden="true" />
+            Grant manbasi
+            <ChevronDown
+              className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180"
+              aria-hidden="true"
+            />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="space-y-2 rounded-b-lg border border-t-0 px-3 py-2">
+              <p className="whitespace-pre-wrap break-words text-xs leading-relaxed">
+                <Linkified text={String(g.grant_manba)} />
+              </p>
+              <Row label="Tekshirilgan" value={g.grant_tekshirilgan} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
   );
 }
@@ -815,9 +1031,12 @@ export function GuidelineDetailSheet({
           ) : detail.data ? (
             <Tabs defaultValue="umumiy">
               {/* Yorliqlar uzun ro'yxatlar ustida ham ko'rinib tursin */}
-              <TabsList className="sticky top-0 z-10 grid h-auto w-full grid-cols-4 gap-1 p-1">
+              <TabsList className="sticky top-0 z-10 grid h-auto w-full grid-cols-3 gap-1 p-1 sm:grid-cols-5">
                 <TabsTrigger value="umumiy" className="py-1.5">
                   <TabLabel icon={Info} label="Umumiy" />
+                </TabsTrigger>
+                <TabsTrigger value="grantlar" className="py-1.5">
+                  <TabLabel icon={Gift} label="Grantlar" />
                 </TabsTrigger>
                 <TabsTrigger value="muddatlar" className="py-1.5">
                   <TabLabel
@@ -840,6 +1059,9 @@ export function GuidelineDetailSheet({
 
               <TabsContent value="umumiy" className="mt-3">
                 <UmumiyTab g={detail.data.guideline} />
+              </TabsContent>
+              <TabsContent value="grantlar" className="mt-3">
+                <GrantlarTab g={detail.data.guideline} grants={detail.data.grants} />
               </TabsContent>
               <TabsContent value="muddatlar" className="mt-3">
                 <MuddatlarTab rounds={detail.data.rounds} />

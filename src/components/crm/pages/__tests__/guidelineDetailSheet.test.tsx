@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type {
   CatalogEntry,
   GuidelineDetail,
+  GuidelineGrant,
   GuidelineSummary,
 } from '@/hooks/useUniversityCatalog';
 import { GuidelineDetailSheet } from '../university-catalog/GuidelineDetailSheet';
@@ -108,6 +109,7 @@ const detail: GuidelineDetail = {
       sahifa: '4',
     },
   ],
+  grants: [],
 };
 
 // Hook'ni to'liq almashtiramiz: haqiqiy modul supabase klientini yuklaydi,
@@ -374,5 +376,112 @@ describe('GuidelineDetailSheet — til kursi', () => {
     expect(screen.getByRole('tab', { name: /Kurslar\s*1/ })).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: /Fakultetlar/ })).not.toBeInTheDocument();
     expect(screen.getByText('/ term')).toBeInTheDocument();
+  });
+});
+
+describe('GuidelineDetailSheet — Grantlar', () => {
+  afterEach(() => {
+    mocks.detail = detail;
+  });
+
+  function grant(over: Partial<GuidelineGrant>): GuidelineGrant {
+    return {
+      id: 'gr',
+      tartib: 1,
+      qachon: 'kirishda',
+      nomi: 'International Student Scholarship',
+      kimlar_uchun: 'yangi qabul — Korean track',
+      mezon: 'TOPIK',
+      talab: 'TOPIK 6급',
+      topik_min: 6,
+      topik_max: null,
+      ielts_min: null,
+      toefl_ibt_min: null,
+      boshqa_test: null,
+      grant_foiz: 100,
+      grant_asosi: 'kontrakt (수업료)',
+      grant_summa: null,
+      grant_qoshimcha: null,
+      muddat: 'faqat 1-semestr',
+      davom_shart: null,
+      kampus: null,
+      sahifa: '17',
+      iqtibos: 'TOPIK 6급 | 수업료 100%',
+      manba: null,
+      ...over,
+    };
+  }
+
+  // Radix yorlig'i sichqoncha bosilganda (mousedown) almashadi.
+  function openGrants(grants: GuidelineGrant[], guideline: Record<string, unknown>) {
+    mocks.detail = { ...detail, guideline: { ...detail.guideline, ...guideline }, grants };
+    open();
+    fireEvent.mouseDown(screen.getByRole('tab', { name: /Grantlar/ }));
+  }
+
+  it('kirishdagi TOPIK granti: har bir daraja — talab, foiz va muddat', () => {
+    openGrants(
+      [
+        grant({ id: 'a', tartib: 1 }),
+        grant({ id: 'b', tartib: 2, talab: 'TOPIK 4~5급', topik_min: 4, topik_max: 5, grant_foiz: 30 }),
+      ],
+      { grant_holat: 'kirishda', grant_min: 30, grant_max: 100 },
+    );
+
+    expect(screen.getByText('Kirishda TOPIK / IELTS granti: 30–100%')).toBeInTheDocument();
+    expect(screen.getByText('yangi qabul — Korean track')).toBeInTheDocument();
+    expect(screen.getByText('TOPIK 6+')).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    expect(screen.getByText('TOPIK 4–5')).toBeInTheDocument();
+    expect(screen.getByText('30%')).toBeInTheDocument();
+    // Hujjatdagi asl yozuv ham turadi
+    expect(screen.getByText('TOPIK 4~5급')).toBeInTheDocument();
+    expect(screen.getAllByText('faqat 1-semestr')).toHaveLength(2);
+  });
+
+  it('asl matn so‘ralganda ochiladi', () => {
+    openGrants([grant({ id: 'a' })], { grant_holat: 'kirishda', grant_min: 100, grant_max: 100 });
+    expect(screen.queryByText('TOPIK 6급 | 수업료 100%')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /17-bet · asl matn/ }));
+    expect(screen.getByText('TOPIK 6급 | 수업료 100%')).toBeInTheDocument();
+  });
+
+  it('kirish granti bo‘lsa, o‘qish davomidagilar yopiq turadi', () => {
+    openGrants(
+      [
+        grant({ id: 'a', tartib: 1 }),
+        grant({
+          id: 'b',
+          tartib: 2,
+          qachon: 'oqish_davomida',
+          kimlar_uchun: "o'qish davomida TOPIK olganlar",
+          talab: 'TOPIK 5급',
+          topik_min: 5,
+          grant_foiz: 20,
+        }),
+      ],
+      { grant_holat: 'kirishda', grant_min: 100, grant_max: 100 },
+    );
+
+    expect(screen.queryByText("o'qish davomida TOPIK olganlar")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /O'qish davomida\s*1/ }));
+    expect(screen.getByText("o'qish davomida TOPIK olganlar")).toBeInTheDocument();
+    expect(screen.getByText('20%')).toBeInTheDocument();
+  });
+
+  it('til granti yo‘q universitetda — boshqa grantlar', () => {
+    openGrants([], {
+      grant_holat: 'tilga_bogliq_emas',
+      grant_boshqa: 'Kirish bali bo‘yicha yuqori 30% — 1-semestr kontrakti to‘liq.',
+    });
+    expect(screen.getByText("TOPIK / IELTS darajasiga qarab grant yo'q")).toBeInTheDocument();
+    expect(screen.getByText("Boshqa grantlar (tilga bog'liq emas)")).toBeInTheDocument();
+    expect(screen.getByText(/yuqori 30%/)).toBeInTheDocument();
+  });
+
+  it('grant o‘rganilmagan guideline — bo‘sh holat', () => {
+    openGrants([], {});
+    expect(screen.getByText("Grant ma'lumoti kiritilmagan")).toBeInTheDocument();
   });
 });

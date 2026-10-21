@@ -66,7 +66,6 @@ import {
 import {
   directionNames,
   EMPTY_PANEL,
-  grantLabel,
   matchesPanel,
   matchingFaculties,
   sortEntries,
@@ -177,7 +176,6 @@ export default function UniversityCatalogContent() {
     const matched = panel.direction.trim() ? matchingFaculties(e, panel.direction, level, extras) : [];
     return {
       tier: tierLabel(e.institution.tier),
-      grant: grantLabel(extras.grants.get(e.institution.id)),
       directions: matched.length ? directionNames(matched) : null,
     };
   };
