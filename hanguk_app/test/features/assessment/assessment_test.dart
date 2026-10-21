@@ -83,13 +83,15 @@ void main() {
     final catalog = [uni('a', topik: 3), uni('b', topik: 4), uni('c', topik: 2)];
     final need = requiredBank(StudyRoute.bachelor, catalog);
 
-    test('enough bank and TOPIK: a high band', () {
+    test('enough bank and TOPIK alone: a fair chance, not yet a high one', () {
       final o = assess(
         AssessmentInput(topik: 4, gpa: 4.2, bankKrw: need, universityIds: const ['a', 'b', 'c']),
         catalog: catalog,
       );
-      expect(o.band, EligibilityBand.high);
-      expect(o.visaPercent, inInclusiveRange(65, 85));
+      // 30 + TOPIK 4 (12) + the bank (15) + a 4.2 certificate (3).
+      expect(o.band, EligibilityBand.mid);
+      expect(o.visaPercent, 60);
+      expect(o.visaWithConsultantPercent, greaterThan(o.visaPercent));
       expect(o.chances.map((c) => c.university.institutionId), ['a', 'b', 'c']);
       expect(o.openCount, 3);
       expect(o.fixes.where((f) => f.kind == FixKind.bank), isEmpty);
@@ -103,7 +105,7 @@ void main() {
       final bank = o.fixes.firstWhere((f) => f.kind == FixKind.bank);
       expect(bank.value, need);
       expect(bank.gain, greaterThan(0));
-      expect(o.visaPercent + bank.gain, lessThanOrEqualTo(85));
+      expect(o.visaPercent + bank.gain, lessThanOrEqualTo(95));
     });
 
     test('a prior refusal never raises the visa chance', () {

@@ -17,6 +17,9 @@ import '../../onboarding/domain/quiz_answers.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../data/chances.dart';
 import 'study_plan_test_screen.dart';
+import 'widgets/assess_parts.dart';
+import 'widgets/page_tour.dart';
+import '../data/board_tour.dart';
 import 'widgets/app_nav.dart';
 import 'widgets/chance_cards.dart';
 import 'widgets/fd_bottom_nav.dart';
@@ -83,7 +86,21 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
               Expanded(
                 child: u == null
                     ? const Center(child: CircularProgressIndicator(color: FdColors.lime))
-                    : _body(context, l, u),
+                    : PageTour(
+                        name: 'university_assess',
+                        seen: tourSeenProvider('university_assess'),
+                        steps: (context) {
+                          Widget icon(LucideGlyph g) => Lucide(g, size: 16, color: FdColors.onLime);
+                          return [
+                            TourStep(l.taAcademic, icon: icon(LucideIcons.graduationCap)),
+                            TourStep(l.taLanguage, icon: icon(LucideIcons.languages)),
+                            TourStep(l.taDocuments, icon: icon(LucideIcons.fileText)),
+                            TourStep(l.taTests, icon: icon(LucideIcons.target)),
+                            TourStep(l.taResult, icon: icon(LucideIcons.award)),
+                          ];
+                        },
+                        builder: (context, keys) => _body(context, l, u, keys),
+                      ),
               ),
             ],
           ),
@@ -92,7 +109,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     );
   }
 
-  Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u) {
+  Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u, List<GlobalKey> keys) {
     final input = ref.watch(assessmentProvider);
     final book = ref.watch(chanceBookProvider);
     final tests = book.testsOf(u);
@@ -104,17 +121,20 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     int profile(AssessmentInput i) => admissionPercent(i, g, rules: book.rules);
     int gain(AssessmentInput Function(AssessmentInput) neutral) => profile(input) - profile(neutral(input));
 
-    Widget section(int id, LucideGlyph glyph, String title, List<_Question> questions) {
+    Widget section(int id, LucideGlyph glyph, String title, List<AssessQuestion> questions) {
       final total = gain((i) => questions.fold(i, (x, q) => q.neutral(x)));
-      return _Section(
+      return AssessSection(
         glyph: glyph,
         title: title,
-        trailing: total == 0 ? null : _Impact(total),
+        trailing: total == 0 ? null : AssessImpact(admission: total),
         open: !_closed.contains(id),
         onToggle: () => setState(() => _closed.contains(id) ? _closed.remove(id) : _closed.add(id)),
         children: [
           for (final q in questions) ...[
-            _QuestionHead(label: q.label, impact: _Impact(gain(q.neutral))),
+            AssessQuestionHead(
+              label: q.label,
+              impact: AssessImpact(admission: gain(q.neutral)),
+            ),
             const SizedBox(height: 8),
             q.answer,
             const SizedBox(height: 14),
@@ -123,31 +143,12 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
       );
     }
 
-    Widget pills<T>(List<(T, String)> options, T value, ValueChanged<T> onPick) => Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        for (final (v, label) in options)
-          IntrinsicWidth(
-            child: HardChoice(
-              label: label,
-              selected: v == value,
-              height: 34,
-              radius: 999,
-              fontSize: 13,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              onTap: () => onPick(v),
-            ),
-          ),
-      ],
-    );
-
     final no = l.uaNo;
     final academic = [
-      _Question(
+      AssessQuestion(
         l.uaQDegree,
         (i) => i.copyWith(route: StudyRoute.bachelor),
-        pills(
+        assessPills(
           [
             (StudyRoute.languageCourse, l.uaDegLanguage),
             (StudyRoute.bachelor, l.uaDegBachelor),
@@ -157,7 +158,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
           (v) => set(input.copyWith(route: v)),
         ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQGpa,
         (i) => i.copyWith(gpa: 3.5),
         Row(
@@ -170,32 +171,32 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
               ),
             ),
             const SizedBox(width: 10),
-            LimeTag(l.uaGpaValue(input.gpa.toStringAsFixed(1))),
+            AssessValue(l.uaGpaValue(input.gpa.toStringAsFixed(1))),
           ],
         ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQGap,
         (i) => i.copyWith(gapYears: 0),
-        pills(
+        assessPills(
           [(0, l.uaGap0), (1, l.uaGap1), (2, l.uaGap2), (3, l.uaGap3)],
           input.gapYears,
           (v) => set(input.copyWith(gapYears: v)),
         ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQExperience,
         (i) => i.copyWith(experience: 0),
-        pills(
+        assessPills(
           [(0, no), (1, l.uaExpCourse), (2, l.uaExpProject), (3, l.uaExpWork)],
           input.experience,
           (v) => set(input.copyWith(experience: v)),
         ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQOlympiad,
         (i) => i.copyWith(olympiad: 0),
-        pills(
+        assessPills(
           [(0, no), (1, l.uaOlSchool), (2, l.uaOlNational), (3, l.uaOlInternational)],
           input.olympiad,
           (v) => set(input.copyWith(olympiad: v)),
@@ -203,24 +204,28 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
       ),
     ];
     final language = [
-      _Question(
+      AssessQuestion(
         l.uaQTopik,
         (i) => i.copyWith(topik: 0),
-        pills([(0, no), for (var t = 1; t <= 6; t++) (t, '$t')], input.topik, (v) => set(input.copyWith(topik: v))),
+        assessPills(
+          [(0, no), for (var t = 1; t <= 6; t++) (t, '$t')],
+          input.topik,
+          (v) => set(input.copyWith(topik: v)),
+        ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQTopikCert,
         (i) => i.copyWith(topikFresh: true),
-        pills(
+        assessPills(
           [(false, l.uaCertOld), (true, l.uaCertFresh)],
           input.topikFresh,
           (v) => set(input.copyWith(topikFresh: v)),
         ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQIelts,
         (i) => i.copyWith(ielts: 0),
-        pills(
+        assessPills(
           [(0.0, no), (5.0, '5.0'), (5.5, '5.5'), (6.0, '6.0'), (6.5, '6.5'), (7.0, '7.0+')],
           input.ielts,
           (v) => set(input.copyWith(ielts: v)),
@@ -228,29 +233,33 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
       ),
     ];
     final documents = [
-      _Question(
+      AssessQuestion(
         l.uaQMotivation,
         (i) => i.copyWith(motivation: 0),
-        pills(
+        assessPills(
           [(0, no), (1, l.uaMotDraft), (2, l.uaMotReady)],
           input.motivation,
           (v) => set(input.copyWith(motivation: v)),
         ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQRecommendation,
         (i) => i.copyWith(recommendation: false),
-        pills([(false, no), (true, l.uaHave)], input.recommendation, (v) => set(input.copyWith(recommendation: v))),
+        assessPills(
+          [(false, no), (true, l.uaHave)],
+          input.recommendation,
+          (v) => set(input.copyWith(recommendation: v)),
+        ),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQPortfolio,
         (i) => i.copyWith(portfolio: false),
-        pills([(false, no), (true, l.uaHave)], input.portfolio, (v) => set(input.copyWith(portfolio: v))),
+        assessPills([(false, no), (true, l.uaHave)], input.portfolio, (v) => set(input.copyWith(portfolio: v))),
       ),
-      _Question(
+      AssessQuestion(
         l.uaQActivity,
         (i) => i.copyWith(activity: 0),
-        pills(
+        assessPills(
           [(0, no), (1, l.uaActVolunteer), (2, l.uaActSportArt), (3, l.uaActLeader)],
           input.activity,
           (v) => set(input.copyWith(activity: v)),
@@ -265,13 +274,14 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
       children: [
-        section(0, LucideIcons.graduationCap, l.uaSecAcademic, academic),
+        KeyedSubtree(key: keys[0], child: section(0, LucideIcons.graduationCap, l.uaSecAcademic, academic)),
         const SizedBox(height: 12),
-        section(1, LucideIcons.languages, l.uaSecLanguage, language),
+        KeyedSubtree(key: keys[1], child: section(1, LucideIcons.languages, l.uaSecLanguage, language)),
         const SizedBox(height: 12),
-        section(2, LucideIcons.fileText, l.uaSecDocuments, documents),
+        KeyedSubtree(key: keys[2], child: section(2, LucideIcons.fileText, l.uaSecDocuments, documents)),
         const SizedBox(height: 12),
-        _Section(
+        AssessSection(
+          key: keys[3],
           glyph: LucideIcons.target,
           title: l.uaSecTests,
           trailing: Text(l.uaTestsCount, style: fdText(11, FontWeight.w800, FdColors.good)),
@@ -299,6 +309,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
         ),
         const SizedBox(height: 16),
         ChanceCard(
+          key: keys[4],
           label: l.uaResultTitle,
           percent: admission,
           note: switch (taken) {
@@ -373,109 +384,6 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     );
     ref.invalidate(admissionTestsProvider);
   }
-}
-
-class _Question {
-  const _Question(this.label, this.neutral, this.answer);
-
-  final String label;
-
-  /// The same answers with this one set to what changes nothing.
-  final AssessmentInput Function(AssessmentInput) neutral;
-  final Widget answer;
-}
-
-/// "qabul +10%" in green, "qabul −3%" in red, "ta'sir yo'q" in blue.
-class _Impact extends StatelessWidget {
-  const _Impact(this.gain);
-
-  final int gain;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final (text, color) = gain > 0
-        ? (l.uaImpactUp(gain), FdColors.good)
-        : gain < 0
-        ? (l.uaImpactDown(-gain), FdColors.bad)
-        : (l.uaImpactNone, FdColors.blue);
-    return Text(text, style: fdText(11, FontWeight.w800, color));
-  }
-}
-
-class _QuestionHead extends StatelessWidget {
-  const _QuestionHead({required this.label, required this.impact});
-
-  final String label;
-  final Widget impact;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(child: Text(label, style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.25))),
-      const SizedBox(width: 8),
-      Padding(padding: const EdgeInsets.only(top: 1), child: impact),
-    ],
-  );
-}
-
-/// A white group card: its icon tile and title, what the group adds (or a
-/// dash to fold it), and the questions.
-class _Section extends StatelessWidget {
-  const _Section({
-    required this.glyph,
-    required this.title,
-    required this.children,
-    required this.open,
-    this.trailing,
-    this.onToggle,
-  });
-
-  final LucideGlyph glyph;
-  final String title;
-  final Widget? trailing;
-  final bool open;
-  final VoidCallback? onToggle;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
-    decoration: BoxDecoration(
-      color: FdColors.card,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: FdColors.ink, width: 1.5),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        GestureDetector(
-          onTap: onToggle,
-          behavior: HitTestBehavior.opaque,
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: FdColors.tint, borderRadius: BorderRadius.circular(9)),
-                child: Lucide(glyph, size: 16, color: FdColors.navy),
-              ),
-              const SizedBox(width: 10),
-              Expanded(child: Text(title, style: fdText(15, FontWeight.w800, FdColors.ink))),
-              trailing ??
-                  (onToggle == null
-                      ? const SizedBox.shrink()
-                      : Lucide(open ? LucideIcons.minus : LucideIcons.plus, size: 16, color: FdColors.muted)),
-            ],
-          ),
-        ),
-        SizedBox(height: open ? 14 : 12),
-        if (open) ...children,
-      ],
-    ),
-  );
 }
 
 /// One test: its icon, name and terms, and "Boshlash" — or the score once

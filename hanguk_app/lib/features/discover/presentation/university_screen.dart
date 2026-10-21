@@ -21,6 +21,8 @@ import 'discover_routes.dart';
 import 'widgets/app_nav.dart';
 import 'widgets/fd_bottom_nav.dart';
 import 'widgets/fd_parts.dart';
+import 'widgets/page_tour.dart';
+import '../data/board_tour.dart';
 
 /// "Universitet sahifasi" (design screen 10, as of 2026-10-21): the photo,
 /// four facts — city, contract, language, the documents' last day — and the
@@ -85,7 +87,20 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                         ),
                       ),
                     )
-            : _body(context, l, u),
+            : PageTour(
+                name: 'university',
+                seen: tourSeenProvider('university'),
+                steps: (context) {
+                  Widget icon(LucideGlyph g) => Lucide(g, size: 16, color: FdColors.onLime);
+                  return [
+                    TourStep(l.tuHero, icon: icon(LucideIcons.graduationCap)),
+                    TourStep(l.tuFacts, icon: icon(LucideIcons.calendar)),
+                    TourStep(l.tuAsk, icon: icon(LucideIcons.target)),
+                    TourStep(l.tuPick, icon: icon(LucideIcons.heart)),
+                  ];
+                },
+                builder: (context, keys) => _body(context, l, u, keys),
+              ),
       ),
     );
   }
@@ -98,7 +113,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     }
   }
 
-  Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u) {
+  Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u, List<GlobalKey> keys) {
     final book = ref.watch(chanceBookProvider);
     final g = book.guidelineOf(u);
     final slots = ref.watch(slotsProvider);
@@ -177,8 +192,12 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
             child: ListView(
               padding: const EdgeInsets.only(top: 8, bottom: 20),
               children: [
-                _Hero(university: u, guideline: g),
+                KeyedSubtree(
+                  key: keys[0],
+                  child: _Hero(university: u, guideline: g),
+                ),
                 Padding(
+                  key: keys[1],
                   padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
                   child: Column(
                     children: [
@@ -201,6 +220,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 16, 22, 0),
                   child: _AskCard(
+                    key: keys[2],
                     percent: assessed ? book.admission(u) : null,
                     onStart: () => context.push(universityAssessPath(u.institutionId)),
                   ),
@@ -209,6 +229,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
             ),
           ),
           FdBottomBar(
+            key: keys[3],
             aboveNav: true,
             child: HardButton(
               label: slot >= 0 ? l.fdUniInPick(picked) : l.fdUniAddPick(picked),
@@ -291,7 +312,7 @@ class _FactCell extends StatelessWidget {
 /// "Bu universitetga kirish ehtimolingizni bilmoqchimisiz?": blue, lifted on
 /// a lime shadow, "?%" in a dashed ring until the student has been assessed.
 class _AskCard extends StatelessWidget {
-  const _AskCard({required this.percent, required this.onStart});
+  const _AskCard({super.key, required this.percent, required this.onStart});
 
   final int? percent;
   final VoidCallback onStart;

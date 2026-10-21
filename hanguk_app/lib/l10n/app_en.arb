@@ -6688,5 +6688,103 @@
         "type": "int"
       }
     }
-  }
+  },
+  "vzTitle": "Will I get",
+  "vzTitleMark": "the visa?",
+  "vzYes": "Yes",
+  "vzOne": "One",
+  "vzTwoPlus": "Two or more",
+  "vzSecEducation": "Education",
+  "vzSecMoney": "Finances",
+  "vzSecHistory": "History",
+  "vzSecPrep": "Preparation",
+  "vzQEducation": "Your last education",
+  "vzEduSchool": "School (11th grade)",
+  "vzEduCollege": "College / lyceum",
+  "vzQAge": "Age",
+  "vzQIncome": "Your parents' yearly income",
+  "vzIncome0": "< $5,000",
+  "vzIncome1": "$5–10k",
+  "vzIncome2": "$10–20k",
+  "vzIncome3": "$20k+",
+  "vzQIncomeDocumented": "Income is officially documented (salary, tax, business)",
+  "vzQSponsor": "Who is the sponsor",
+  "vzSponsorSelf": "Myself",
+  "vzSponsorParents": "My parents",
+  "vzSponsorRelative": "Another relative",
+  "vzQRelationDoc": "Kinship certificate (apostilled)",
+  "vzQStability": "How long the income has been steady",
+  "vzStable0": "< 6 months",
+  "vzStable1": "6–12 months",
+  "vzStable2": "1–3 years",
+  "vzStable3": "3+ years",
+  "vzQProperty": "Property in your parents' name (house, flat, land)",
+  "vzQCar": "A car in your parents' name",
+  "vzQBusiness": "Your parents' business / registered company",
+  "vzBusinessIp": "Sole trader (IP)",
+  "vzBusinessLlc": "Company (LLC)",
+  "vzQRefused": "Has a visa been refused before",
+  "vzQKoreaBefore": "Have you been to Korea before",
+  "vzKoreaOnTime": "Yes, left on time",
+  "vzKoreaOverstay": "I overstayed",
+  "vzQIllegalRelatives": "Any close relatives staying illegally in South Korea",
+  "vzQLegalRelatives": "Relatives living legally in Korea",
+  "vzQStudyPlan": "Study Plan",
+  "vzQInterview": "Interview practice",
+  "vzInterviewSelf": "Practised on my own",
+  "vzInterviewAi": "Hanguk AI 3+ times",
+  "vzBandHigh": "Good chance",
+  "vzBandHighHint": "get the papers ready",
+  "vzBandMid": "Fair chance",
+  "vzBandMidHint": "needs work",
+  "vzBandLow": "Low chance",
+  "vzBandLowHint": "much to fix",
+  "vzTourGauge": "Your visa chance — it moves with your answers",
+  "vzTourEducation": "Education: level, grades, age",
+  "vzTourLanguage": "Language: TOPIK and IELTS",
+  "vzTourMoney": "Finances: what the embassy checks most",
+  "vzTourHistory": "History: past visas and relatives",
+  "vzTourPrep": "Preparation: Study Plan, interview, letters",
+  "vzTourReplay": "Watch the guide again",
+  "uaVisaUp": "visa +{n}%",
+  "@uaVisaUp": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaVisaDown": "visa −{n}%",
+  "@uaVisaDown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vzAgeValue": "{n} yrs",
+  "@vzAgeValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vzWithConsultant": "with a consultant ~{n}%",
+  "@vzWithConsultant": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tuHero": "The university: name, city and price",
+  "tuFacts": "City, contract, language and document deadline",
+  "tuAsk": "Find your admission chance here",
+  "tuPick": "Like it? Add it to your picks, up to 3",
+  "taAcademic": "Academic: each answer shows its effect",
+  "taLanguage": "Language: TOPIK and IELTS",
+  "taDocuments": "Documents: letter, recommendation, portfolio",
+  "taTests": "Tests: Study Plan and interview — once each",
+  "taResult": "The result: the % and ways to raise it"
 }

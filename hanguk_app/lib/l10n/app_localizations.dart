@@ -9367,6 +9367,426 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Answer 3 questions for {name}. You have {minutes} minutes and one attempt; when time runs out, what you wrote is sent.'**
   String sptIntro(String name, int minutes);
+
+  /// No description provided for @vzTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Will I get'**
+  String get vzTitle;
+
+  /// No description provided for @vzTitleMark.
+  ///
+  /// In en, this message translates to:
+  /// **'the visa?'**
+  String get vzTitleMark;
+
+  /// No description provided for @vzYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get vzYes;
+
+  /// No description provided for @vzOne.
+  ///
+  /// In en, this message translates to:
+  /// **'One'**
+  String get vzOne;
+
+  /// No description provided for @vzTwoPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Two or more'**
+  String get vzTwoPlus;
+
+  /// No description provided for @vzSecEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get vzSecEducation;
+
+  /// No description provided for @vzSecMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Finances'**
+  String get vzSecMoney;
+
+  /// No description provided for @vzSecHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get vzSecHistory;
+
+  /// No description provided for @vzSecPrep.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation'**
+  String get vzSecPrep;
+
+  /// No description provided for @vzQEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your last education'**
+  String get vzQEducation;
+
+  /// No description provided for @vzEduSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School (11th grade)'**
+  String get vzEduSchool;
+
+  /// No description provided for @vzEduCollege.
+  ///
+  /// In en, this message translates to:
+  /// **'College / lyceum'**
+  String get vzEduCollege;
+
+  /// No description provided for @vzQAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get vzQAge;
+
+  /// No description provided for @vzQIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Your parents\' yearly income'**
+  String get vzQIncome;
+
+  /// No description provided for @vzIncome0.
+  ///
+  /// In en, this message translates to:
+  /// **'< \$5,000'**
+  String get vzIncome0;
+
+  /// No description provided for @vzIncome1.
+  ///
+  /// In en, this message translates to:
+  /// **'\$5–10k'**
+  String get vzIncome1;
+
+  /// No description provided for @vzIncome2.
+  ///
+  /// In en, this message translates to:
+  /// **'\$10–20k'**
+  String get vzIncome2;
+
+  /// No description provided for @vzIncome3.
+  ///
+  /// In en, this message translates to:
+  /// **'\$20k+'**
+  String get vzIncome3;
+
+  /// No description provided for @vzQIncomeDocumented.
+  ///
+  /// In en, this message translates to:
+  /// **'Income is officially documented (salary, tax, business)'**
+  String get vzQIncomeDocumented;
+
+  /// No description provided for @vzQSponsor.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is the sponsor'**
+  String get vzQSponsor;
+
+  /// No description provided for @vzSponsorSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Myself'**
+  String get vzSponsorSelf;
+
+  /// No description provided for @vzSponsorParents.
+  ///
+  /// In en, this message translates to:
+  /// **'My parents'**
+  String get vzSponsorParents;
+
+  /// No description provided for @vzSponsorRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'Another relative'**
+  String get vzSponsorRelative;
+
+  /// No description provided for @vzQRelationDoc.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinship certificate (apostilled)'**
+  String get vzQRelationDoc;
+
+  /// No description provided for @vzQStability.
+  ///
+  /// In en, this message translates to:
+  /// **'How long the income has been steady'**
+  String get vzQStability;
+
+  /// No description provided for @vzStable0.
+  ///
+  /// In en, this message translates to:
+  /// **'< 6 months'**
+  String get vzStable0;
+
+  /// No description provided for @vzStable1.
+  ///
+  /// In en, this message translates to:
+  /// **'6–12 months'**
+  String get vzStable1;
+
+  /// No description provided for @vzStable2.
+  ///
+  /// In en, this message translates to:
+  /// **'1–3 years'**
+  String get vzStable2;
+
+  /// No description provided for @vzStable3.
+  ///
+  /// In en, this message translates to:
+  /// **'3+ years'**
+  String get vzStable3;
+
+  /// No description provided for @vzQProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Property in your parents\' name (house, flat, land)'**
+  String get vzQProperty;
+
+  /// No description provided for @vzQCar.
+  ///
+  /// In en, this message translates to:
+  /// **'A car in your parents\' name'**
+  String get vzQCar;
+
+  /// No description provided for @vzQBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Your parents\' business / registered company'**
+  String get vzQBusiness;
+
+  /// No description provided for @vzBusinessIp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sole trader (IP)'**
+  String get vzBusinessIp;
+
+  /// No description provided for @vzBusinessLlc.
+  ///
+  /// In en, this message translates to:
+  /// **'Company (LLC)'**
+  String get vzBusinessLlc;
+
+  /// No description provided for @vzQRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Has a visa been refused before'**
+  String get vzQRefused;
+
+  /// No description provided for @vzQKoreaBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you been to Korea before'**
+  String get vzQKoreaBefore;
+
+  /// No description provided for @vzKoreaOnTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, left on time'**
+  String get vzKoreaOnTime;
+
+  /// No description provided for @vzKoreaOverstay.
+  ///
+  /// In en, this message translates to:
+  /// **'I overstayed'**
+  String get vzKoreaOverstay;
+
+  /// No description provided for @vzQIllegalRelatives.
+  ///
+  /// In en, this message translates to:
+  /// **'Any close relatives staying illegally in South Korea'**
+  String get vzQIllegalRelatives;
+
+  /// No description provided for @vzQLegalRelatives.
+  ///
+  /// In en, this message translates to:
+  /// **'Relatives living legally in Korea'**
+  String get vzQLegalRelatives;
+
+  /// No description provided for @vzQStudyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Study Plan'**
+  String get vzQStudyPlan;
+
+  /// No description provided for @vzQInterview.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview practice'**
+  String get vzQInterview;
+
+  /// No description provided for @vzInterviewSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Practised on my own'**
+  String get vzInterviewSelf;
+
+  /// No description provided for @vzInterviewAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI 3+ times'**
+  String get vzInterviewAi;
+
+  /// No description provided for @vzBandHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Good chance'**
+  String get vzBandHigh;
+
+  /// No description provided for @vzBandHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'get the papers ready'**
+  String get vzBandHighHint;
+
+  /// No description provided for @vzBandMid.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair chance'**
+  String get vzBandMid;
+
+  /// No description provided for @vzBandMidHint.
+  ///
+  /// In en, this message translates to:
+  /// **'needs work'**
+  String get vzBandMidHint;
+
+  /// No description provided for @vzBandLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low chance'**
+  String get vzBandLow;
+
+  /// No description provided for @vzBandLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'much to fix'**
+  String get vzBandLowHint;
+
+  /// No description provided for @vzTourGauge.
+  ///
+  /// In en, this message translates to:
+  /// **'Your visa chance — it moves with your answers'**
+  String get vzTourGauge;
+
+  /// No description provided for @vzTourEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education: level, grades, age'**
+  String get vzTourEducation;
+
+  /// No description provided for @vzTourLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language: TOPIK and IELTS'**
+  String get vzTourLanguage;
+
+  /// No description provided for @vzTourMoney.
+  ///
+  /// In en, this message translates to:
+  /// **'Finances: what the embassy checks most'**
+  String get vzTourMoney;
+
+  /// No description provided for @vzTourHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History: past visas and relatives'**
+  String get vzTourHistory;
+
+  /// No description provided for @vzTourPrep.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation: Study Plan, interview, letters'**
+  String get vzTourPrep;
+
+  /// No description provided for @vzTourReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch the guide again'**
+  String get vzTourReplay;
+
+  /// No description provided for @uaVisaUp.
+  ///
+  /// In en, this message translates to:
+  /// **'visa +{n}%'**
+  String uaVisaUp(int n);
+
+  /// No description provided for @uaVisaDown.
+  ///
+  /// In en, this message translates to:
+  /// **'visa −{n}%'**
+  String uaVisaDown(int n);
+
+  /// No description provided for @vzAgeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} yrs'**
+  String vzAgeValue(int n);
+
+  /// No description provided for @vzWithConsultant.
+  ///
+  /// In en, this message translates to:
+  /// **'with a consultant ~{n}%'**
+  String vzWithConsultant(int n);
+
+  /// No description provided for @tuHero.
+  ///
+  /// In en, this message translates to:
+  /// **'The university: name, city and price'**
+  String get tuHero;
+
+  /// No description provided for @tuFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'City, contract, language and document deadline'**
+  String get tuFacts;
+
+  /// No description provided for @tuAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your admission chance here'**
+  String get tuAsk;
+
+  /// No description provided for @tuPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Like it? Add it to your picks, up to 3'**
+  String get tuPick;
+
+  /// No description provided for @taAcademic.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic: each answer shows its effect'**
+  String get taAcademic;
+
+  /// No description provided for @taLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language: TOPIK and IELTS'**
+  String get taLanguage;
+
+  /// No description provided for @taDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents: letter, recommendation, portfolio'**
+  String get taDocuments;
+
+  /// No description provided for @taTests.
+  ///
+  /// In en, this message translates to:
+  /// **'Tests: Study Plan and interview — once each'**
+  String get taTests;
+
+  /// No description provided for @taResult.
+  ///
+  /// In en, this message translates to:
+  /// **'The result: the % and ways to raise it'**
+  String get taResult;
 }
 
 class _AppLocalizationsDelegate

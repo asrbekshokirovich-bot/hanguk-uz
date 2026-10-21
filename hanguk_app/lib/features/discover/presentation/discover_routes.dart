@@ -24,6 +24,9 @@ const String kAssessmentLeadPath = '/assess/lead';
 /// Screen 13, "Yuborildi".
 const String kAssessmentSentPath = '/assess/sent';
 
+/// "Vizam chiqadimi?", opened by the round "BAHOLASH" button.
+const String kVisaPath = '/visa';
+
 /// Screen 10, a university's page.
 String universityPath(String institutionId) => '/university/$institutionId';
 

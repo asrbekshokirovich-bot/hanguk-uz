@@ -16,7 +16,7 @@ import '../../onboarding/domain/eligibility_engine.dart';
 /// a figure is always there and moves with the board.
 @immutable
 class ChanceBook {
-  const ChanceBook({required this.input, required this.rules, this.visa, this.tests = const {}});
+  const ChanceBook({required this.input, required this.rules, this.visa, this.visaConsultant, this.tests = const {}});
 
   final AssessmentInput input;
   final EligibilityRules rules;
@@ -26,8 +26,9 @@ class ChanceBook {
 
   AdmissionTests testsOf(CatalogUniversity u) => tests[u.institutionId] ?? AdmissionTests.none;
 
-  /// The D-2 visa chance.
+  /// The D-2 visa chance, and with a consultant.
   final int? visa;
+  final int? visaConsultant;
 
   /// The guideline the student's route reads of [u].
   CatalogGuideline guidelineOf(CatalogUniversity u) {
@@ -50,9 +51,15 @@ final chanceBookProvider = Provider<ChanceBook>((ref) {
   final input = ref.watch(assessmentProvider);
   final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
   final catalog = ref.watch(catalogProvider).value;
-  final visa = catalog == null ? null : assess(input, catalog: catalog, rules: rules).visaPercent;
+  final outcome = catalog == null ? null : assess(input, catalog: catalog, rules: rules);
   final tests = ref.watch(admissionTestsProvider).value ?? const {};
-  return ChanceBook(input: input, rules: rules, visa: visa, tests: tests);
+  return ChanceBook(
+    input: input,
+    rules: rules,
+    visa: outcome?.visaPercent,
+    visaConsultant: outcome?.visaWithConsultantPercent,
+    tests: tests,
+  );
 });
 
 /// The best admission chance among [universities] and "N%" for the round

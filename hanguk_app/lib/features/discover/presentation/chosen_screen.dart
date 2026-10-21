@@ -22,11 +22,6 @@ void openAssessmentFor(BuildContext context, WidgetRef ref, List<String> ids) {
   context.push(kAssessmentPath);
 }
 
-/// What the prototype says a consultant adds to the visa chance, in points.
-/// The prototype's own figure, not measured: change it here if the agency's
-/// numbers say otherwise.
-const int kConsultantVisaBoost = 21;
-
 /// "Ajoyib tanlov!": the three picked universities with their chances, the
 /// overall D-2 visa chance, and the question the app answers next — "Koreaga
 /// keta olamanmi?". A cross takes a university out of the picks.
@@ -81,7 +76,7 @@ class ChosenScreen extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: 12),
-                  _VisaCard(visa: book.visa),
+                  _VisaCard(visa: book.visa, consultant: book.visaConsultant),
                 ],
               ),
             ),
@@ -199,9 +194,10 @@ class _Row extends StatelessWidget {
 /// "UMUMIY VIZA D-2 56% · konsultant bilan ~77%" on a blue card with a lime
 /// shadow and a bar.
 class _VisaCard extends StatelessWidget {
-  const _VisaCard({required this.visa});
+  const _VisaCard({required this.visa, required this.consultant});
 
   final int? visa;
+  final int? consultant;
 
   @override
   Widget build(BuildContext context) {
@@ -226,10 +222,10 @@ class _VisaCard extends StatelessWidget {
             children: [
               Text(v == null ? '?%' : '$v%', style: fdText(40, FontWeight.w800, FdColors.lime, height: 1, letterSpacing: -1.2)),
               const SizedBox(width: 10),
-              if (v != null)
+              if (v != null && consultant != null)
                 Flexible(
                   child: Text(
-                    l.fdPickedWithConsultant((v + kConsultantVisaBoost).clamp(0, 96)),
+                    l.fdPickedWithConsultant(consultant!),
                     style: fdText(12, FontWeight.w700, Colors.white),
                   ),
                 ),

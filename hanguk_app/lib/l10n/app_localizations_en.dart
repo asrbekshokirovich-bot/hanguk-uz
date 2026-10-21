@@ -5225,4 +5225,225 @@ class AppLocalizationsEn extends AppLocalizations {
   String sptIntro(String name, int minutes) {
     return 'Answer 3 questions for $name. You have $minutes minutes and one attempt; when time runs out, what you wrote is sent.';
   }
+
+  @override
+  String get vzTitle => 'Will I get';
+
+  @override
+  String get vzTitleMark => 'the visa?';
+
+  @override
+  String get vzYes => 'Yes';
+
+  @override
+  String get vzOne => 'One';
+
+  @override
+  String get vzTwoPlus => 'Two or more';
+
+  @override
+  String get vzSecEducation => 'Education';
+
+  @override
+  String get vzSecMoney => 'Finances';
+
+  @override
+  String get vzSecHistory => 'History';
+
+  @override
+  String get vzSecPrep => 'Preparation';
+
+  @override
+  String get vzQEducation => 'Your last education';
+
+  @override
+  String get vzEduSchool => 'School (11th grade)';
+
+  @override
+  String get vzEduCollege => 'College / lyceum';
+
+  @override
+  String get vzQAge => 'Age';
+
+  @override
+  String get vzQIncome => 'Your parents\' yearly income';
+
+  @override
+  String get vzIncome0 => '< \$5,000';
+
+  @override
+  String get vzIncome1 => '\$5–10k';
+
+  @override
+  String get vzIncome2 => '\$10–20k';
+
+  @override
+  String get vzIncome3 => '\$20k+';
+
+  @override
+  String get vzQIncomeDocumented =>
+      'Income is officially documented (salary, tax, business)';
+
+  @override
+  String get vzQSponsor => 'Who is the sponsor';
+
+  @override
+  String get vzSponsorSelf => 'Myself';
+
+  @override
+  String get vzSponsorParents => 'My parents';
+
+  @override
+  String get vzSponsorRelative => 'Another relative';
+
+  @override
+  String get vzQRelationDoc => 'Kinship certificate (apostilled)';
+
+  @override
+  String get vzQStability => 'How long the income has been steady';
+
+  @override
+  String get vzStable0 => '< 6 months';
+
+  @override
+  String get vzStable1 => '6–12 months';
+
+  @override
+  String get vzStable2 => '1–3 years';
+
+  @override
+  String get vzStable3 => '3+ years';
+
+  @override
+  String get vzQProperty =>
+      'Property in your parents\' name (house, flat, land)';
+
+  @override
+  String get vzQCar => 'A car in your parents\' name';
+
+  @override
+  String get vzQBusiness => 'Your parents\' business / registered company';
+
+  @override
+  String get vzBusinessIp => 'Sole trader (IP)';
+
+  @override
+  String get vzBusinessLlc => 'Company (LLC)';
+
+  @override
+  String get vzQRefused => 'Has a visa been refused before';
+
+  @override
+  String get vzQKoreaBefore => 'Have you been to Korea before';
+
+  @override
+  String get vzKoreaOnTime => 'Yes, left on time';
+
+  @override
+  String get vzKoreaOverstay => 'I overstayed';
+
+  @override
+  String get vzQIllegalRelatives =>
+      'Any close relatives staying illegally in South Korea';
+
+  @override
+  String get vzQLegalRelatives => 'Relatives living legally in Korea';
+
+  @override
+  String get vzQStudyPlan => 'Study Plan';
+
+  @override
+  String get vzQInterview => 'Interview practice';
+
+  @override
+  String get vzInterviewSelf => 'Practised on my own';
+
+  @override
+  String get vzInterviewAi => 'Hanguk AI 3+ times';
+
+  @override
+  String get vzBandHigh => 'Good chance';
+
+  @override
+  String get vzBandHighHint => 'get the papers ready';
+
+  @override
+  String get vzBandMid => 'Fair chance';
+
+  @override
+  String get vzBandMidHint => 'needs work';
+
+  @override
+  String get vzBandLow => 'Low chance';
+
+  @override
+  String get vzBandLowHint => 'much to fix';
+
+  @override
+  String get vzTourGauge => 'Your visa chance — it moves with your answers';
+
+  @override
+  String get vzTourEducation => 'Education: level, grades, age';
+
+  @override
+  String get vzTourLanguage => 'Language: TOPIK and IELTS';
+
+  @override
+  String get vzTourMoney => 'Finances: what the embassy checks most';
+
+  @override
+  String get vzTourHistory => 'History: past visas and relatives';
+
+  @override
+  String get vzTourPrep => 'Preparation: Study Plan, interview, letters';
+
+  @override
+  String get vzTourReplay => 'Watch the guide again';
+
+  @override
+  String uaVisaUp(int n) {
+    return 'visa +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return 'visa −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n yrs';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return 'with a consultant ~$n%';
+  }
+
+  @override
+  String get tuHero => 'The university: name, city and price';
+
+  @override
+  String get tuFacts => 'City, contract, language and document deadline';
+
+  @override
+  String get tuAsk => 'Find your admission chance here';
+
+  @override
+  String get tuPick => 'Like it? Add it to your picks, up to 3';
+
+  @override
+  String get taAcademic => 'Academic: each answer shows its effect';
+
+  @override
+  String get taLanguage => 'Language: TOPIK and IELTS';
+
+  @override
+  String get taDocuments => 'Documents: letter, recommendation, portfolio';
+
+  @override
+  String get taTests => 'Tests: Study Plan and interview — once each';
+
+  @override
+  String get taResult => 'The result: the % and ways to raise it';
 }

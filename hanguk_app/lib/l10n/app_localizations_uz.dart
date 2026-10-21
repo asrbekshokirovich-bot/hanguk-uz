@@ -5222,4 +5222,228 @@ class AppLocalizationsUz extends AppLocalizations {
   String sptIntro(String name, int minutes) {
     return '$name uchun 3 ta savolga javob yozing. Vaqt — $minutes daqiqa, test faqat bir marta topshiriladi. Vaqt tugasa, yozilgani yuboriladi.';
   }
+
+  @override
+  String get vzTitle => 'Vizam';
+
+  @override
+  String get vzTitleMark => 'chiqadimi?';
+
+  @override
+  String get vzYes => 'Ha';
+
+  @override
+  String get vzOne => 'Bitta';
+
+  @override
+  String get vzTwoPlus => 'Ikki va ko\'p';
+
+  @override
+  String get vzSecEducation => 'Ta\'lim';
+
+  @override
+  String get vzSecMoney => 'Moliya';
+
+  @override
+  String get vzSecHistory => 'Tarix';
+
+  @override
+  String get vzSecPrep => 'Tayyorgarlik';
+
+  @override
+  String get vzQEducation => 'Oxirgi ma\'lumotingiz';
+
+  @override
+  String get vzEduSchool => 'Maktab (11-sinf)';
+
+  @override
+  String get vzEduCollege => 'Kollej / litsey';
+
+  @override
+  String get vzQAge => 'Yosh';
+
+  @override
+  String get vzQIncome => 'Ota-onangizning yillik daromadi';
+
+  @override
+  String get vzIncome0 => '< \$5 000';
+
+  @override
+  String get vzIncome1 => '\$5–10 ming';
+
+  @override
+  String get vzIncome2 => '\$10–20 ming';
+
+  @override
+  String get vzIncome3 => '\$20 ming+';
+
+  @override
+  String get vzQIncomeDocumented =>
+      'Daromad rasmiy hujjatlangan (ish haqi, soliq, biznes)';
+
+  @override
+  String get vzQSponsor => 'Sponsor kim';
+
+  @override
+  String get vzSponsorSelf => 'O\'zim';
+
+  @override
+  String get vzSponsorParents => 'Ota-onam';
+
+  @override
+  String get vzSponsorRelative => 'Boshqa qarindosh';
+
+  @override
+  String get vzQRelationDoc => 'Qarindoshlik hujjati (apostil bilan)';
+
+  @override
+  String get vzQStability => 'Daromad necha vaqtdan beri barqaror';
+
+  @override
+  String get vzStable0 => '< 6 oy';
+
+  @override
+  String get vzStable1 => '6–12 oy';
+
+  @override
+  String get vzStable2 => '1–3 yil';
+
+  @override
+  String get vzStable3 => '3 yil+';
+
+  @override
+  String get vzQProperty =>
+      'Ota-onangiz nomida ko\'chmas mulk bormi (uy, kvartira, yer)';
+
+  @override
+  String get vzQCar => 'Ota-onangiz nomida avtomobil bormi';
+
+  @override
+  String get vzQBusiness =>
+      'Ota-onangizning biznesi / ro\'yxatdan o\'tgan kompaniyasi bormi';
+
+  @override
+  String get vzBusinessIp => 'Yakka tartibda (IP)';
+
+  @override
+  String get vzBusinessLlc => 'Kompaniya (MChJ)';
+
+  @override
+  String get vzQRefused => 'Oldin viza rad etilganmi';
+
+  @override
+  String get vzQKoreaBefore => 'Koreyada oldin bo\'lganmisiz';
+
+  @override
+  String get vzKoreaOnTime => 'Ha, muddatida qaytganman';
+
+  @override
+  String get vzKoreaOverstay => 'Muddatdan oshganman';
+
+  @override
+  String get vzQIllegalRelatives =>
+      'Yaqin qarindoshlaringizdan Janubiy Koreyada noqonuniy (nelegal) bo\'lganlar bormi';
+
+  @override
+  String get vzQLegalRelatives =>
+      'Koreyada qonuniy yashovchi qarindoshlaringiz bormi';
+
+  @override
+  String get vzQStudyPlan => 'Study Plan (o\'qish rejasi)';
+
+  @override
+  String get vzQInterview => 'Suhbatga tayyorgarlik';
+
+  @override
+  String get vzInterviewSelf => 'O\'zim mashq qildim';
+
+  @override
+  String get vzInterviewAi => 'Hanguk AI bilan 3+ marta';
+
+  @override
+  String get vzBandHigh => 'Yuqori imkon';
+
+  @override
+  String get vzBandHighHint => 'hujjatlarni tayyorlang';
+
+  @override
+  String get vzBandMid => 'O\'rtacha imkon';
+
+  @override
+  String get vzBandMidHint => 'ishlash kerak';
+
+  @override
+  String get vzBandLow => 'Past imkon';
+
+  @override
+  String get vzBandLowHint => 'ko\'p ishlash kerak';
+
+  @override
+  String get vzTourGauge =>
+      'Viza ehtimolingiz — javoblaringizga qarab o\'zgaradi';
+
+  @override
+  String get vzTourEducation => 'Ta\'lim: daraja, ball, yosh';
+
+  @override
+  String get vzTourLanguage => 'Til: TOPIK va IELTS';
+
+  @override
+  String get vzTourMoney => 'Moliya: elchixona eng ko\'p shuni tekshiradi';
+
+  @override
+  String get vzTourHistory => 'Tarix: oldingi vizalar va qarindoshlar';
+
+  @override
+  String get vzTourPrep => 'Tayyorgarlik: Study Plan, suhbat, xatlar';
+
+  @override
+  String get vzTourReplay => 'Yo\'riqnomani qayta ko\'rish';
+
+  @override
+  String uaVisaUp(int n) {
+    return 'viza +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return 'viza −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n yosh';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return 'konsultant bilan ~$n%';
+  }
+
+  @override
+  String get tuHero => 'Universitet: nomi, shahri va narxi';
+
+  @override
+  String get tuFacts => 'Shahar, kontrakt, til talabi va hujjat muddati';
+
+  @override
+  String get tuAsk => 'Bu yerdan kirish ehtimolingizni bilasiz';
+
+  @override
+  String get tuPick => 'Yoqsa — tanlovga qo\'shing, 3 tagacha';
+
+  @override
+  String get taAcademic => 'Akademik: har javob qabulga ta\'sirini ko\'rsatadi';
+
+  @override
+  String get taLanguage => 'Til: TOPIK va IELTS';
+
+  @override
+  String get taDocuments => 'Hujjatlar: xat, tavsiyanoma, portfolio';
+
+  @override
+  String get taTests => 'Testlar: Study Plan va suhbat — bir marta';
+
+  @override
+  String get taResult => 'Natija: foiz va uni oshirish yo\'llari';
 }

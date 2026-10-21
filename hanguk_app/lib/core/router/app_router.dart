@@ -29,6 +29,7 @@ import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
 import '../../features/discover/presentation/university_assess_screen.dart';
 import '../../features/discover/presentation/university_screen.dart';
+import '../../features/discover/presentation/visa_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/onboarding/onboarding_routes.dart';
 import '../../features/onboarding/presentation/quiz_s02_screen.dart';
@@ -121,6 +122,7 @@ List<RouteBase> _guestRoutes() => [
     path: '/university/:id',
     builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
   ),
+  GoRoute(path: kVisaPath, builder: (context, state) => const VisaScreen()),
   GoRoute(
     path: '/university/:id/assess',
     builder: (context, state) => UniversityAssessScreen(institutionId: state.pathParameters['id'] ?? ''),

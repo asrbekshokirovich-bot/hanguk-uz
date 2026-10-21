@@ -5036,4 +5036,222 @@ class AppLocalizationsKo extends AppLocalizations {
   String sptIntro(String name, int minutes) {
     return '$name 지원용 3개 질문에 답하세요. 제한 시간 $minutes분, 1회만 응시 가능하며 시간이 끝나면 작성한 내용이 제출됩니다.';
   }
+
+  @override
+  String get vzTitle => '비자';
+
+  @override
+  String get vzTitleMark => '나올까?';
+
+  @override
+  String get vzYes => '예';
+
+  @override
+  String get vzOne => '1개';
+
+  @override
+  String get vzTwoPlus => '2개 이상';
+
+  @override
+  String get vzSecEducation => '학력';
+
+  @override
+  String get vzSecMoney => '재정';
+
+  @override
+  String get vzSecHistory => '이력';
+
+  @override
+  String get vzSecPrep => '준비';
+
+  @override
+  String get vzQEducation => '최종 학력';
+
+  @override
+  String get vzEduSchool => '고등학교';
+
+  @override
+  String get vzEduCollege => '전문학교 / 리세';
+
+  @override
+  String get vzQAge => '나이';
+
+  @override
+  String get vzQIncome => '부모님 연소득';
+
+  @override
+  String get vzIncome0 => '\$5,000 미만';
+
+  @override
+  String get vzIncome1 => '\$5천–1만';
+
+  @override
+  String get vzIncome2 => '\$1만–2만';
+
+  @override
+  String get vzIncome3 => '\$2만 이상';
+
+  @override
+  String get vzQIncomeDocumented => '소득 공식 증빙 (급여·세금·사업)';
+
+  @override
+  String get vzQSponsor => '재정보증인';
+
+  @override
+  String get vzSponsorSelf => '본인';
+
+  @override
+  String get vzSponsorParents => '부모님';
+
+  @override
+  String get vzSponsorRelative => '기타 친척';
+
+  @override
+  String get vzQRelationDoc => '가족관계 증명 (아포스티유)';
+
+  @override
+  String get vzQStability => '소득 유지 기간';
+
+  @override
+  String get vzStable0 => '6개월 미만';
+
+  @override
+  String get vzStable1 => '6–12개월';
+
+  @override
+  String get vzStable2 => '1–3년';
+
+  @override
+  String get vzStable3 => '3년 이상';
+
+  @override
+  String get vzQProperty => '부모 명의 부동산 (주택·아파트·토지)';
+
+  @override
+  String get vzQCar => '부모 명의 자동차';
+
+  @override
+  String get vzQBusiness => '부모님 사업 / 등록 회사';
+
+  @override
+  String get vzBusinessIp => '개인사업자 (IP)';
+
+  @override
+  String get vzBusinessLlc => '법인 (LLC)';
+
+  @override
+  String get vzQRefused => '비자 거절 이력';
+
+  @override
+  String get vzQKoreaBefore => '한국 체류 경험';
+
+  @override
+  String get vzKoreaOnTime => '예, 기한 내 출국';
+
+  @override
+  String get vzKoreaOverstay => '체류기간 초과';
+
+  @override
+  String get vzQIllegalRelatives => '가까운 친척 중 한국 불법체류자';
+
+  @override
+  String get vzQLegalRelatives => '한국 합법 체류 친척';
+
+  @override
+  String get vzQStudyPlan => '학업계획서';
+
+  @override
+  String get vzQInterview => '면접 준비';
+
+  @override
+  String get vzInterviewSelf => '혼자 연습';
+
+  @override
+  String get vzInterviewAi => 'Hanguk AI와 3회 이상';
+
+  @override
+  String get vzBandHigh => '높은 가능성';
+
+  @override
+  String get vzBandHighHint => '서류를 준비하세요';
+
+  @override
+  String get vzBandMid => '보통';
+
+  @override
+  String get vzBandMidHint => '보완이 필요해요';
+
+  @override
+  String get vzBandLow => '낮은 가능성';
+
+  @override
+  String get vzBandLowHint => '많은 보완 필요';
+
+  @override
+  String get vzTourGauge => '비자 가능성 — 답변에 따라 바뀝니다';
+
+  @override
+  String get vzTourEducation => '학력: 과정·성적·나이';
+
+  @override
+  String get vzTourLanguage => '어학: TOPIK·IELTS';
+
+  @override
+  String get vzTourMoney => '재정: 대사관이 가장 많이 확인';
+
+  @override
+  String get vzTourHistory => '이력: 이전 비자·친척';
+
+  @override
+  String get vzTourPrep => '준비: 학업계획서·면접·추천서';
+
+  @override
+  String get vzTourReplay => '가이드 다시 보기';
+
+  @override
+  String uaVisaUp(int n) {
+    return '비자 +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return '비자 −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n세';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return '상담사와 함께 ~$n%';
+  }
+
+  @override
+  String get tuHero => '대학교: 이름·도시·등록금';
+
+  @override
+  String get tuFacts => '도시·등록금·어학 요건·서류 마감';
+
+  @override
+  String get tuAsk => '여기서 합격 가능성을 확인하세요';
+
+  @override
+  String get tuPick => '마음에 들면 최대 3개까지 추가';
+
+  @override
+  String get taAcademic => '학업: 답마다 영향이 표시됩니다';
+
+  @override
+  String get taLanguage => '어학: TOPIK·IELTS';
+
+  @override
+  String get taDocuments => '서류: 자기소개서·추천서·포트폴리오';
+
+  @override
+  String get taTests => '테스트: 학업계획서·면접 — 각 1회';
+
+  @override
+  String get taResult => '결과: 확률과 올리는 방법';
 }
