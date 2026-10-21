@@ -29,7 +29,10 @@ import 'widgets/page_tour.dart';
 /// Tayyorgarlik — each saying what its answer does to the visa and to
 /// admission. The round "BAHOLASH" button opens it.
 class VisaScreen extends ConsumerStatefulWidget {
-  const VisaScreen({super.key});
+  const VisaScreen({super.key, this.embedded = false});
+
+  /// The home tab's content: the shell draws the page and the nav.
+  final bool embedded;
 
   @override
   ConsumerState<VisaScreen> createState() => _VisaScreenState();
@@ -40,13 +43,18 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tour = _tour();
+    if (widget.embedded) return tour;
     return Scaffold(
       backgroundColor: Colors.transparent,
       bottomNavigationBar: const AppNav(current: AppTab.home),
       floatingActionButton: AppNavOrb(current: AppTab.home, onTap: () {}),
       floatingActionButtonLocation: kFdNavOrbLocation,
-      body: FdPage(
-        child: PageTour(
+      body: FdPage(child: tour),
+    );
+  }
+
+  Widget _tour() => PageTour(
           name: 'visa',
           seen: tourSeenProvider('visa'),
           steps: (context) {
@@ -63,10 +71,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
             ];
           },
           builder: (context, keys) => SafeArea(bottom: false, child: _body(context, keys)),
-        ),
-      ),
-    );
-  }
+        );
 
   Widget _body(BuildContext context, List<GlobalKey> keys) {
     final l = AppLocalizations.of(context)!;

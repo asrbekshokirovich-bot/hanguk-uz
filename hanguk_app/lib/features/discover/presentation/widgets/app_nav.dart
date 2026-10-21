@@ -90,8 +90,8 @@ class AppNav extends ConsumerWidget {
 }
 
 /// The round button of [AppNav]: the best chance among the three picked
-/// universities, or "?%", over "BAHOLASH"; it opens "Vizam chiqadimi?"
-/// (owner, 2026-10-21). Give it to the Scaffold as its
+/// universities, or "?%", over "BAHOLASH"; it opens the home tab, "Vizam
+/// chiqadimi?" (owner, 2026-10-21). Give it to the Scaffold as its
 /// `floatingActionButton`, with [kFdNavOrbLocation].
 class AppNavOrb extends ConsumerWidget {
   const AppNavOrb({super.key, required this.current, this.onLocal, this.onTap});
@@ -99,7 +99,7 @@ class AppNavOrb extends ConsumerWidget {
   final int current;
   final ValueChanged<int>? onLocal;
 
-  /// In place of opening the visa page (the visa page itself).
+  /// In place of opening the home tab (the visa page pushed on its own).
   final VoidCallback? onTap;
 
   @override
@@ -118,7 +118,7 @@ class AppNavOrb extends ConsumerWidget {
       value: best == null ? '?%' : '$best%',
       label: l.fdNavAssess,
       active: current == AppTab.home,
-      onTap: onTap ?? () => context.push(kVisaPath),
+      onTap: onTap ?? () => openAppTab(context, ref, AppTab.home, onLocal: onLocal),
     );
   }
 }
