@@ -58,15 +58,10 @@ qolsa "100% gacha" deb yoziladi. Saralash panelidagi **Granti borlar** va
 bo'yicha).
 
 Ma'lumot `supabase/data/university_grants_2027.json` faylida. Yangilash:
-faylni o'zgartirib push qilish, keyin bazada (SQL editor yoki service role):
-
-```sql
--- 1) faylni yuklab olish (<commit> — fayl o'zgargan commit)
-select net.http_get('https://raw.githubusercontent.com/asrbekshokirovich-bot/hanguk-uz/<commit>/supabase/data/university_grants_2027.json');
--- 2) javob kelgach (bir necha soniya), qaytgan id bilan
-select public.load_university_guideline_grants(content::jsonb)
-from net._http_response where id = <id>;
-```
+faylni o'zgartirib push qilish, keyin Supabase SQL editor'da
+`supabase/data/load_university_grants.sql` skriptini qadamma-qadam ishlatish
+(fayl GitHub'dan `net.http_get` bilan olinadi, fayldagi guideline'larning eski
+qoidalari bitta tranzaksiyada almashtiriladi).
 
 Excel qayta yuklanganda grantlar o'chmaydi — guideline qatori o'sha id bilan
 yangilanadi.
