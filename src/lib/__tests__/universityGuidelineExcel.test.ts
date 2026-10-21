@@ -118,7 +118,9 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
     expect(u.ariza_tolovi).toBe(80000);
     expect(u.bank_summa).toBe(16000000);
     expect(u.tahlil_sanasi).toBe('2026-09-21');
-    expect(u.format_versiya).toBe(SUPPORTED_FORMAT_VERSION);
+    // JBNU fayli v2 — eski formatlar ham o'qiladi.
+    expect(u.format_versiya).toBe(2);
+    expect(SUPPORTED_FORMAT_VERSION).toBe(4);
   });
 
   it('bo‘sh kataklarni kalitsiz qoldiradi (NULL bo‘lib tushsin)', async () => {

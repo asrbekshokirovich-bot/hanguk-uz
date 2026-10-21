@@ -294,8 +294,10 @@ export interface GuidelineGrant {
   qachon: 'kirishda' | 'oqish_davomida';
   nomi: string | null;
   kimlar_uchun: string | null;
-  /** TOPIK | IELTS | TOPIK yoki IELTS | TOPIK va IELTS | IELTS yoki TOEFL | boshqa ... */
+  /** TOPIK | IELTS | TOPIK yoki IELTS | TOPIK va IELTS | IELTS yoki TOEFL | TOEFL | boshqa ... */
   mezon: string | null;
+  /** Excel'dan yuklangan qoidada — mezon_turi aynan (topik, gpa, hammaga ...); qo'lda yuklanganda null. */
+  mezon_turi?: string | null;
   /** Hujjatdagidek: "TOPIK 5급 이상", "IELTS 6.5 or above". */
   talab: string | null;
   topik_min: number | null;
@@ -307,7 +309,11 @@ export interface GuidelineGrant {
   /** Foiz nimadan: "kontrakt (수업료)", "kirish to'lovi (입학금)" ... */
   grant_asosi: string | null;
   grant_summa: number | null;
+  /** grant_summa valyutasi; null — KRW. */
+  grant_valyuta?: string | null;
   grant_qoshimcha: string | null;
+  /** Excel'dan: kontrakt, kirish_tolovi, kontrakt_va_kirish, yotoqxona, naqd, boshqa. */
+  nimaga?: string | null;
   muddat: string | null;
   davom_shart: string | null;
   kampus: string | null;
@@ -378,6 +384,8 @@ export interface ImportOutcome {
   muddatlar: number;
   fakultetlar: number;
   hujjatlar: number;
+  /** Grantlar varag'i bo'lmagan faylda (v2/v3) — null: grantlarga tegilmadi. */
+  grantlar?: number | null;
 }
 
 interface ImportArgs {
