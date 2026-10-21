@@ -13,6 +13,7 @@ import {
   focusGuideline,
   formatMoney,
   guidelinesForLevel,
+  hiddenLevels,
   institutionCode,
   languageBadges,
   matchesFilter,
@@ -487,10 +488,30 @@ describe('til kursi', () => {
     expect(panelLevels(ikkalasi, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
   });
 
-  it('til kursi yashirilgan universitetda yorliq chiqmaydi', () => {
-    const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] }, [til]);
+  it('til kursi yashirilgan universitetda yorliq faqat Excel yuklay oladiganga chiqadi', () => {
+    const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] });
     expect(offeredLevels(yashirin)).toEqual(['bakalavr', 'magistratura']);
-    expect(panelLevels(yashirin, true)).toEqual(['bakalavr', 'magistratura']);
+    expect(panelLevels(yashirin, false)).toEqual(['bakalavr', 'magistratura']);
+    expect(panelLevels(yashirin, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(hiddenLevels(yashirin)).toEqual(['til_kursi']);
+  });
+
+  it('yashirilgan darajaga Excel yuklansa — daraja bor (서울장신대 magistraturasi)', () => {
+    const sjs = uni({ institution_type: 'private', hidden_levels: ['magistratura'] });
+    // Ro'yxat bo'yicha yashirilgan: katalogda va operatorga ko'rinmaydi ...
+    expect(offeredLevels(sjs)).toEqual(['bakalavr']);
+    expect(matchesLevel(sjs, 'magistratura')).toBe(false);
+    expect(panelLevels(sjs, false)).toEqual(['bakalavr']);
+    // ... lekin Excel yuklay oladigan xodim yorliqni ko'radi va Excel'ni yuklay oladi.
+    expect(panelLevels(sjs, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(hiddenLevels(sjs)).toEqual(['magistratura']);
+
+    const mag = guideline({ id: 'm', daraja: 'magistratura' });
+    const sjsExcel = uni({ institution_type: 'private', hidden_levels: ['magistratura'] }, [mag]);
+    expect(offeredLevels(sjsExcel)).toEqual(['bakalavr', 'magistratura']);
+    expect(matchesLevel(sjsExcel, 'magistratura')).toBe(true);
+    expect(panelLevels(sjsExcel, false)).toEqual(['bakalavr', 'magistratura']);
+    expect(hiddenLevels(sjsExcel)).toEqual([]);
   });
 
   it('"Barcha darajalar"da karta o‘qish darajasini ko‘rsatadi, til kursi yangi bo‘lsa ham', () => {
