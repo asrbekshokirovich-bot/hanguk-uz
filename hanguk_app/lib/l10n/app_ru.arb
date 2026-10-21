@@ -1761,5 +1761,16 @@
   "fdSectionCityMap": "Город · выберите на карте",
   "fdAllRegions": "Все",
   "fdRegionGangwonPlus": "Канвон+",
-  "fdGrantAtLeast": "Не менее {n}%"
+  "fdGrantAtLeast": "Не менее {n}%",
+  "ulTitle": "Университеты",
+  "ulSearchHint": "Название, направление, город",
+  "ulPrivate": "Частный университет",
+  "ulState": "Государственный университет",
+  "ulNoRequirement": "Без требований",
+  "fltTitle": "Фильтр",
+  "fltAllFields": "Все",
+  "fltFeeSem": "Контракт / семестр",
+  "ulCount": "{n}",
+  "ulSubtitle": "{n} университетов · нажмите на карточку",
+  "fltCount": "ПОДХОДЯЩИЕ ВУЗЫ · ИЗ {n}"
 }

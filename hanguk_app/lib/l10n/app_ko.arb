@@ -1761,5 +1761,16 @@
   "fdSectionCityMap": "도시 · 지도에서 선택",
   "fdAllRegions": "전체",
   "fdRegionGangwonPlus": "강원+",
-  "fdGrantAtLeast": "최소 {n}%"
+  "fdGrantAtLeast": "최소 {n}%",
+  "ulTitle": "대학교",
+  "ulSearchHint": "이름·전공·도시",
+  "ulPrivate": "사립대학교",
+  "ulState": "국립대학교",
+  "ulNoRequirement": "요건 없음",
+  "fltTitle": "필터",
+  "fltAllFields": "전체",
+  "fltFeeSem": "등록금 / 학기",
+  "ulCount": "{n}개",
+  "ulSubtitle": "대학교 {n}곳 · 카드를 누르세요",
+  "fltCount": "맞는 대학교 · {n}곳 중"
 }

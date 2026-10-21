@@ -1761,5 +1761,16 @@
   "fdSectionCityMap": "Shahar · xaritadan tanlang",
   "fdAllRegions": "Hammasi",
   "fdRegionGangwonPlus": "Gangwon+",
-  "fdGrantAtLeast": "Kamida {n}%"
+  "fdGrantAtLeast": "Kamida {n}%",
+  "ulTitle": "Universitetlar",
+  "ulSearchHint": "Nom, yo'nalish, shahar",
+  "ulPrivate": "Xususiy universitet",
+  "ulState": "Davlat universiteti",
+  "ulNoRequirement": "Talab yo'q",
+  "fltTitle": "Filtr",
+  "fltAllFields": "Barchasi",
+  "fltFeeSem": "Kontrakt / semestr",
+  "ulCount": "{n} ta",
+  "ulSubtitle": "{n} ta universitet · kartani bosing",
+  "fltCount": "MOS UNIVERSITETLAR · {n} TADAN"
 }

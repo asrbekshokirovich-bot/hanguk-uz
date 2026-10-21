@@ -9877,6 +9877,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At least {n}%'**
   String fdGrantAtLeast(int n);
+
+  /// No description provided for @ulTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Universities'**
+  String get ulTitle;
+
+  /// No description provided for @ulSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name, field, city'**
+  String get ulSearchHint;
+
+  /// No description provided for @ulPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private university'**
+  String get ulPrivate;
+
+  /// No description provided for @ulState.
+  ///
+  /// In en, this message translates to:
+  /// **'State university'**
+  String get ulState;
+
+  /// No description provided for @ulNoRequirement.
+  ///
+  /// In en, this message translates to:
+  /// **'No requirement'**
+  String get ulNoRequirement;
+
+  /// No description provided for @fltTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get fltTitle;
+
+  /// No description provided for @fltAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get fltAllFields;
+
+  /// No description provided for @fltFeeSem.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract / semester'**
+  String get fltFeeSem;
+
+  /// No description provided for @ulCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}'**
+  String ulCount(int n);
+
+  /// No description provided for @ulSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} universities · tap a card'**
+  String ulSubtitle(int n);
+
+  /// No description provided for @fltCount.
+  ///
+  /// In en, this message translates to:
+  /// **'MATCHING UNIVERSITIES · OF {n}'**
+  String fltCount(int n);
 }
 
 class _AppLocalizationsDelegate

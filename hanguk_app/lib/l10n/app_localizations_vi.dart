@@ -5469,4 +5469,43 @@ class AppLocalizationsVi extends AppLocalizations {
   String fdGrantAtLeast(int n) {
     return 'Ít nhất $n%';
   }
+
+  @override
+  String get ulTitle => 'Trường đại học';
+
+  @override
+  String get ulSearchHint => 'Tên, ngành, thành phố';
+
+  @override
+  String get ulPrivate => 'Trường tư thục';
+
+  @override
+  String get ulState => 'Trường công lập';
+
+  @override
+  String get ulNoRequirement => 'Không yêu cầu';
+
+  @override
+  String get fltTitle => 'Bộ lọc';
+
+  @override
+  String get fltAllFields => 'Tất cả';
+
+  @override
+  String get fltFeeSem => 'Học phí / học kỳ';
+
+  @override
+  String ulCount(int n) {
+    return '$n';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n trường · chạm vào thẻ';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'TRƯỜNG PHÙ HỢP · TRÊN $n';
+  }
 }

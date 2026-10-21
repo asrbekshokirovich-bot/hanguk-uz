@@ -21,12 +21,12 @@ import '../../features/discover/presentation/chosen_screen.dart';
 import '../../features/discover/presentation/compare_screen.dart';
 import '../../features/discover/presentation/discover_shell.dart';
 import '../../features/discover/presentation/duel_screen.dart';
-import '../../features/discover/presentation/filter_board_screen.dart';
 import '../../features/discover/presentation/universities_screen.dart';
 import '../../features/discover/presentation/widgets/app_nav.dart';
 import '../../features/discover/data/list_mode.dart';
 import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
+import '../../features/discover/presentation/filter_screen.dart';
 import '../../features/discover/presentation/university_assess_screen.dart';
 import '../../features/discover/presentation/university_screen.dart';
 import '../../features/discover/presentation/visa_screen.dart';
@@ -97,7 +97,7 @@ List<RouteBase> _guestRoutes() => [
   ),
   GoRoute(
     path: kDiscoverFilterPath,
-    builder: (context, state) => const NavScaffold(current: AppTab.home, child: FilterBoardScreen()),
+    builder: (context, state) => const NavScaffold(current: AppTab.universities, child: FilterScreen()),
   ),
   GoRoute(
     path: kDiscoverResultsPath,

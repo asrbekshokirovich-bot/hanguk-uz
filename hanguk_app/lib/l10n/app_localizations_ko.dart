@@ -5303,4 +5303,43 @@ class AppLocalizationsKo extends AppLocalizations {
   String fdGrantAtLeast(int n) {
     return '최소 $n%';
   }
+
+  @override
+  String get ulTitle => '대학교';
+
+  @override
+  String get ulSearchHint => '이름·전공·도시';
+
+  @override
+  String get ulPrivate => '사립대학교';
+
+  @override
+  String get ulState => '국립대학교';
+
+  @override
+  String get ulNoRequirement => '요건 없음';
+
+  @override
+  String get fltTitle => '필터';
+
+  @override
+  String get fltAllFields => '전체';
+
+  @override
+  String get fltFeeSem => '등록금 / 학기';
+
+  @override
+  String ulCount(int n) {
+    return '$n개';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '대학교 $n곳 · 카드를 누르세요';
+  }
+
+  @override
+  String fltCount(int n) {
+    return '맞는 대학교 · $n곳 중';
+  }
 }

@@ -5495,4 +5495,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String fdGrantAtLeast(int n) {
     return 'At least $n%';
   }
+
+  @override
+  String get ulTitle => 'Universities';
+
+  @override
+  String get ulSearchHint => 'Name, field, city';
+
+  @override
+  String get ulPrivate => 'Private university';
+
+  @override
+  String get ulState => 'State university';
+
+  @override
+  String get ulNoRequirement => 'No requirement';
+
+  @override
+  String get fltTitle => 'Filter';
+
+  @override
+  String get fltAllFields => 'All';
+
+  @override
+  String get fltFeeSem => 'Contract / semester';
+
+  @override
+  String ulCount(int n) {
+    return '$n';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n universities · tap a card';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'MATCHING UNIVERSITIES · OF $n';
+  }
 }

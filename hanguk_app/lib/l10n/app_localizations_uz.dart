@@ -5495,4 +5495,43 @@ class AppLocalizationsUz extends AppLocalizations {
   String fdGrantAtLeast(int n) {
     return 'Kamida $n%';
   }
+
+  @override
+  String get ulTitle => 'Universitetlar';
+
+  @override
+  String get ulSearchHint => 'Nom, yo\'nalish, shahar';
+
+  @override
+  String get ulPrivate => 'Xususiy universitet';
+
+  @override
+  String get ulState => 'Davlat universiteti';
+
+  @override
+  String get ulNoRequirement => 'Talab yo\'q';
+
+  @override
+  String get fltTitle => 'Filtr';
+
+  @override
+  String get fltAllFields => 'Barchasi';
+
+  @override
+  String get fltFeeSem => 'Kontrakt / semestr';
+
+  @override
+  String ulCount(int n) {
+    return '$n ta';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n ta universitet · kartani bosing';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'MOS UNIVERSITETLAR · $n TADAN';
+  }
 }

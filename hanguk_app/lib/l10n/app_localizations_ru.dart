@@ -5497,4 +5497,43 @@ class AppLocalizationsRu extends AppLocalizations {
   String fdGrantAtLeast(int n) {
     return 'Не менее $n%';
   }
+
+  @override
+  String get ulTitle => 'Университеты';
+
+  @override
+  String get ulSearchHint => 'Название, направление, город';
+
+  @override
+  String get ulPrivate => 'Частный университет';
+
+  @override
+  String get ulState => 'Государственный университет';
+
+  @override
+  String get ulNoRequirement => 'Без требований';
+
+  @override
+  String get fltTitle => 'Фильтр';
+
+  @override
+  String get fltAllFields => 'Все';
+
+  @override
+  String get fltFeeSem => 'Контракт / семестр';
+
+  @override
+  String ulCount(int n) {
+    return '$n';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n университетов · нажмите на карточку';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'ПОДХОДЯЩИЕ ВУЗЫ · ИЗ $n';
+  }
 }

@@ -6808,5 +6808,37 @@
         "type": "int"
       }
     }
+  },
+  "ulTitle": "Universities",
+  "ulSearchHint": "Name, field, city",
+  "ulPrivate": "Private university",
+  "ulState": "State university",
+  "ulNoRequirement": "No requirement",
+  "fltTitle": "Filter",
+  "fltAllFields": "All",
+  "fltFeeSem": "Contract / semester",
+  "ulCount": "{n}",
+  "@ulCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ulSubtitle": "{n} universities · tap a card",
+  "@ulSubtitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fltCount": "MATCHING UNIVERSITIES · OF {n}",
+  "@fltCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

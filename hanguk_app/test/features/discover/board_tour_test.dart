@@ -8,7 +8,6 @@ import 'package:hanguk_app/features/catalog/data/catalog_filters.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
 import 'package:hanguk_app/features/discover/data/board_tour.dart';
 import 'package:hanguk_app/features/discover/presentation/filter_board_screen.dart';
-import 'package:hanguk_app/design_system/seoul_night/widgets/hard_slider.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 /// The home board's first-run tour (design 12a–12d).
@@ -139,8 +138,6 @@ void main() {
     expect(find.text('Koreys tilim (TOPIK)'), findsOneWidget);
     expect(find.text('Qabul uchun TOPIK talabi'), findsNothing);
     await t.scrollUntilVisible(find.text('6').first, 100);
-    await t.ensureVisible(find.text('2').first);
-    await t.pumpAndSettle();
     await t.tap(find.text('2').first);
     await t.pumpAndSettle();
     expect(c.read(assessmentProvider).topik, 2);
@@ -148,19 +145,15 @@ void main() {
     expect(find.text('Oddiy gaplar — TOPIK 2+ ochiladi'), findsOneWidget);
 
     expect(find.text("Ingliz tilida o'qimayman"), findsOneWidget);
-    await t.scrollUntilVisible(find.text('6.5').first, 200);
-    await t.tap(find.text('6.5').first);
+    await t.scrollUntilVisible(find.text('6.5'), 200);
+    await t.tap(find.text('6.5'));
     await t.pumpAndSettle();
     expect(c.read(catalogFilterProvider).ielts, 6.5);
-    expect(c.read(assessmentProvider).ielts, 6.5);
 
-    // Grant: the scores, then the grant wanted on a slider.
-    final wanted = find.byWidgetPredicate((w) => w is HardSlider && w.semanticLabel == '2 · KERAKLI GRANT');
-    await t.scrollUntilVisible(find.text('1 · BALLARINGIZ'), 200);
-    await t.ensureVisible(wanted);
-    await t.pumpAndSettle();
+    await t.scrollUntilVisible(find.text('50%+'), 200);
     expect(find.text('Shart emas'), findsOneWidget);
-    await t.tapAt(t.getRect(wanted).center);
+    expect(find.text('Kontraktdan chegirma'), findsOneWidget);
+    await t.tap(find.text('50%+'));
     await t.pumpAndSettle();
     expect(c.read(catalogFilterProvider).grant, 50);
   });

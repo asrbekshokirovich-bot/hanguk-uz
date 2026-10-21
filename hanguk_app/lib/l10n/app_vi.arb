@@ -1761,5 +1761,16 @@
   "fdSectionCityMap": "Thành phố · chọn trên bản đồ",
   "fdAllRegions": "Tất cả",
   "fdRegionGangwonPlus": "Gangwon+",
-  "fdGrantAtLeast": "Ít nhất {n}%"
+  "fdGrantAtLeast": "Ít nhất {n}%",
+  "ulTitle": "Trường đại học",
+  "ulSearchHint": "Tên, ngành, thành phố",
+  "ulPrivate": "Trường tư thục",
+  "ulState": "Trường công lập",
+  "ulNoRequirement": "Không yêu cầu",
+  "fltTitle": "Bộ lọc",
+  "fltAllFields": "Tất cả",
+  "fltFeeSem": "Học phí / học kỳ",
+  "ulCount": "{n}",
+  "ulSubtitle": "{n} trường · chạm vào thẻ",
+  "fltCount": "TRƯỜNG PHÙ HỢP · TRÊN {n}"
 }
