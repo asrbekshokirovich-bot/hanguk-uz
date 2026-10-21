@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Why a sign-in or sign-up failed. The screen turns it into words in the
@@ -69,17 +70,30 @@ final signedInProvider = Provider<bool>((ref) {
   }
 });
 
-/// A session that is a student's own, not a guest's anonymous one.
-bool isClientSession(Session? s) => s != null && !s.user.isAnonymous;
+/// A session that is a student's own, not a guest's test session
+/// ([ensureTestSession]).
+bool isClientSession(Session? s) => s != null && !s.user.isAnonymous && s.user.appMetadata['guest'] != true;
 
 /// A session to take the university's tests with (owner, 2026-10-21: they
-/// ask for no client code): the student's own, or else an anonymous one for
-/// the guest. False when neither can be had.
+/// ask for no client code): the student's own, or else the guest's test
+/// user — made once by `guest-test-session`, its credentials kept on the
+/// phone. False when neither can be had.
 Future<bool> ensureTestSession() async {
   final auth = Supabase.instance.client.auth;
   if (auth.currentSession != null) return true;
+  const storage = FlutterSecureStorage();
+  const key = 'guest_test_creds_v1';
   try {
-    await auth.signInAnonymously();
+    var creds = await storage.read(key: key);
+    if (creds == null) {
+      final res = await Supabase.instance.client.functions.invoke('guest-test-session', body: const {});
+      final data = res.data;
+      if (data is! Map || data['email'] is! String || data['password'] is! String) return false;
+      creds = '${data['email']}\n${data['password']}';
+      await storage.write(key: key, value: creds);
+    }
+    final parts = creds.split('\n');
+    await auth.signInWithPassword(email: parts.first, password: parts.last);
     return auth.currentSession != null;
   } catch (e) {
     debugPrint('[TestSession] $e');
