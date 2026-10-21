@@ -5543,5 +5543,32 @@ class AppLocalizationsUz extends AppLocalizations {
       'Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko\'ring';
 
   @override
-  String get tuChances => 'Qabul va viza imkoningiz — javoblaringizga qarab';
+  String get tuGrants => 'TOPIK yoki IELTS natijangizga qarab grant';
+
+  @override
+  String get ugTitle => 'Grant';
+
+  @override
+  String get ugSubtitle =>
+      'Kirishda kontraktdan chegirma — TOPIK / IELTS ga qarab';
+
+  @override
+  String get ugNoCertificate => 'Sertifikatsiz';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik yoki $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik va $english';
+  }
+
+  @override
+  String get ugNone =>
+      'Bu universitet qo\'llanmasida TOPIK / IELTS granti yo\'q';
+
+  @override
+  String get ugYours => 'SIZGA';
 }

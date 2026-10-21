@@ -7,7 +7,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// university_guideline_grants).
 @immutable
 class GrantTier {
-  const GrantTier({required this.test, required this.percent, this.topikMin, this.topikMax, this.ieltsMin});
+  const GrantTier({
+    required this.test,
+    required this.percent,
+    this.topikMin,
+    this.topikMax,
+    this.ieltsMin,
+    this.toeflMin,
+    this.sum,
+  });
 
   factory GrantTier.fromRow(Map<String, dynamic> r) {
     double? n(String k) => (r[k] as num?)?.toDouble();
@@ -24,6 +32,8 @@ class GrantTier {
       topikMin: n('topik_min'),
       topikMax: n('topik_max'),
       ieltsMin: n('ielts_min'),
+      toeflMin: n('toefl_ibt_min'),
+      sum: r['grant_sum'] as num?,
     );
   }
 
@@ -32,6 +42,11 @@ class GrantTier {
   final double? topikMin;
   final double? topikMax;
   final double? ieltsMin;
+  final double? toeflMin;
+
+  /// The grant as a sum off the tuition (KRW) when the guideline gives one
+  /// instead of a percent ([percent] is 0 then).
+  final num? sum;
 
   /// Whether TOPIK [topik] (0 for none) earns it: within the row's levels;
   /// a TOPIK row with no level is the grant every new student gets.
@@ -83,3 +98,20 @@ Map<String, List<GrantTier>> grantTiersFrom(List<dynamic> rows) {
   }
   return out;
 }
+
+/// One guideline's admission grants for TOPIK / IELTS, in its own order —
+/// percents and sums alike (`app_university_grants`); open to guests.
+final universityGrantsProvider = FutureProvider.family<List<GrantTier>, String>((ref, guidelineId) async {
+  final rows = await Supabase.instance.client
+      .rpc('app_university_grants', params: {'p_guideline': guidelineId})
+      .timeout(const Duration(seconds: 20));
+  // A guideline's table can repeat a row (one per campus or track): once.
+  final seen = <Object>{};
+  return [
+    for (final r in rows as List? ?? const [])
+      if (r is Map<String, dynamic>)
+        if (GrantTier.fromRow(r) case final t
+            when seen.add((t.test, t.percent, t.sum, t.topikMin, t.topikMax, t.ieltsMin, t.toeflMin)))
+          t,
+  ];
+});

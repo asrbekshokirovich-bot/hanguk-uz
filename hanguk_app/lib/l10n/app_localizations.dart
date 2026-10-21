@@ -9956,11 +9956,53 @@ abstract class AppLocalizations {
   /// **'The test couldn\'t open — check your connection and try again'**
   String get uaTestsUnavailable;
 
-  /// No description provided for @tuChances.
+  /// University page grant table
   ///
   /// In en, this message translates to:
-  /// **'Your admission and visa chances, from your answers'**
-  String get tuChances;
+  /// **'Grants for your TOPIK or IELTS result'**
+  String get tuGrants;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'Grant'**
+  String get ugTitle;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'Off the tuition on admission, by TOPIK / IELTS'**
+  String get ugSubtitle;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'No certificate'**
+  String get ugNoCertificate;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'{topik} or {english}'**
+  String ugEither(String topik, String english);
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'{topik} and {english}'**
+  String ugBoth(String topik, String english);
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'No TOPIK / IELTS grant in this university\'s guide'**
+  String get ugNone;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'YOURS'**
+  String get ugYours;
 }
 
 class _AppLocalizationsDelegate

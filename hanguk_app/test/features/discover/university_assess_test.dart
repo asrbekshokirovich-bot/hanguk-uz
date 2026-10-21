@@ -5,6 +5,7 @@ import 'package:hanguk_app/features/assessment/data/admission_tests_repository.d
 import 'package:hanguk_app/features/assessment/domain/admission_tests.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
 import 'package:hanguk_app/features/discover/data/application_windows.dart';
+import 'package:hanguk_app/features/discover/data/grant_tiers.dart';
 import 'package:hanguk_app/features/discover/presentation/university_assess_screen.dart';
 import 'package:hanguk_app/features/discover/presentation/university_screen.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
@@ -31,6 +32,15 @@ final _rows = [
   },
 ];
 
+final _grants = {
+  'g1': [
+    {'mezon': 'TOPIK', 'topik_min': null, 'topik_max': null, 'grant_sum': 1000000},
+    {'mezon': 'TOPIK', 'topik_min': 3, 'topik_max': 3, 'grant_pct': 50},
+    {'mezon': 'TOPIK', 'topik_min': 4, 'topik_max': null, 'grant_pct': 70},
+    {'mezon': 'IELTS yoki TOEFL', 'ielts_min': 5.5, 'toefl_ibt_min': 71, 'grant_pct': 30},
+  ],
+};
+
 Future<AppLocalizations> _pump(WidgetTester t, Widget home, {AdmissionTests? tests}) async {
   t.view.physicalSize = const Size(390 * 3, 3000 * 3);
   t.view.devicePixelRatio = 3;
@@ -42,6 +52,9 @@ Future<AppLocalizations> _pump(WidgetTester t, Widget home, {AdmissionTests? tes
         catalogProvider.overrideWith((ref) async => groupCatalogRows(_rows)),
         applicationWindowsProvider.overrideWith((ref) async => const {}),
         admissionTestsProvider.overrideWith((ref) async => tests == null ? const {} : {'u1': tests}),
+        universityGrantsProvider.overrideWith(
+          (ref, id) async => [for (final r in _grants[id] ?? const <Map<String, dynamic>>[]) GrantTier.fromRow(r)],
+        ),
       ],
       child: MaterialApp(
         locale: const Locale('uz'),
@@ -56,9 +69,19 @@ Future<AppLocalizations> _pump(WidgetTester t, Widget home, {AdmissionTests? tes
 }
 
 void main() {
-  testWidgets('the page as before, and under it the question that opens the assessment', (t) async {
+  testWidgets('the page as before with its grants, and under it the question that opens the assessment', (t) async {
     final l = await _pump(t, const UniversityScreen(institutionId: 'u1'));
-    expect(find.text(l.fdUniAdmissionLabel), findsOneWidget);
+    // No admission / visa percents on the page any more.
+    expect(find.text(l.fdUniAdmissionLabel), findsNothing);
+    // The grant table: each TOPIK / IELTS result and what it takes off.
+    await t.pump();
+    expect(find.text(l.ugTitle), findsOneWidget);
+    expect(find.text(l.ugNoCertificate), findsOneWidget);
+    expect(find.text('TOPIK 3'), findsOneWidget);
+    expect(find.text('50%'), findsOneWidget);
+    expect(find.text('TOPIK 4+'), findsOneWidget);
+    expect(find.text('70%'), findsOneWidget);
+    expect(find.text('IELTS 5.5+ / TOEFL 71+'), findsOneWidget);
     expect(find.text(l.fdCellLanguage), findsOneWidget);
     expect(find.text(l.uaAskTitle), findsOneWidget);
     expect(find.text(l.uaAskStart), findsOneWidget);

@@ -1775,5 +1775,12 @@
   "fltCount": "맞는 대학교 · {n}곳 중",
   "vzReport": "보고서 보기 →",
   "uaTestsUnavailable": "테스트를 열 수 없습니다 — 인터넷을 확인하고 다시 시도하세요",
-  "tuChances": "합격·비자 가능성 — 답변에 따라"
+  "tuGrants": "TOPIK·IELTS 성적별 장학금",
+  "ugTitle": "장학금",
+  "ugSubtitle": "입학 시 등록금 감면 — TOPIK / IELTS 기준",
+  "ugNoCertificate": "자격증 없음",
+  "ugEither": "{topik} 또는 {english}",
+  "ugBoth": "{topik} 및 {english}",
+  "ugNone": "이 대학 모집요강에 TOPIK / IELTS 장학금이 없습니다",
+  "ugYours": "내 장학금"
 }

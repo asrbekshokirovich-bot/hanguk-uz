@@ -5350,5 +5350,30 @@ class AppLocalizationsKo extends AppLocalizations {
   String get uaTestsUnavailable => '테스트를 열 수 없습니다 — 인터넷을 확인하고 다시 시도하세요';
 
   @override
-  String get tuChances => '합격·비자 가능성 — 답변에 따라';
+  String get tuGrants => 'TOPIK·IELTS 성적별 장학금';
+
+  @override
+  String get ugTitle => '장학금';
+
+  @override
+  String get ugSubtitle => '입학 시 등록금 감면 — TOPIK / IELTS 기준';
+
+  @override
+  String get ugNoCertificate => '자격증 없음';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik 또는 $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik 및 $english';
+  }
+
+  @override
+  String get ugNone => '이 대학 모집요강에 TOPIK / IELTS 장학금이 없습니다';
+
+  @override
+  String get ugYours => '내 장학금';
 }

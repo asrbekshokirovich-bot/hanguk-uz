@@ -5543,5 +5543,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'The test couldn\'t open — check your connection and try again';
 
   @override
-  String get tuChances => 'Your admission and visa chances, from your answers';
+  String get tuGrants => 'Grants for your TOPIK or IELTS result';
+
+  @override
+  String get ugTitle => 'Grant';
+
+  @override
+  String get ugSubtitle => 'Off the tuition on admission, by TOPIK / IELTS';
+
+  @override
+  String get ugNoCertificate => 'No certificate';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik or $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik and $english';
+  }
+
+  @override
+  String get ugNone => 'No TOPIK / IELTS grant in this university\'s guide';
+
+  @override
+  String get ugYours => 'YOURS';
 }

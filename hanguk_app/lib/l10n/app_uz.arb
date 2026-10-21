@@ -1775,5 +1775,12 @@
   "fltCount": "MOS UNIVERSITETLAR · {n} TADAN",
   "vzReport": "Hisobotni ko'rish →",
   "uaTestsUnavailable": "Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko'ring",
-  "tuChances": "Qabul va viza imkoningiz — javoblaringizga qarab"
+  "tuGrants": "TOPIK yoki IELTS natijangizga qarab grant",
+  "ugTitle": "Grant",
+  "ugSubtitle": "Kirishda kontraktdan chegirma — TOPIK / IELTS ga qarab",
+  "ugNoCertificate": "Sertifikatsiz",
+  "ugEither": "{topik} yoki {english}",
+  "ugBoth": "{topik} va {english}",
+  "ugNone": "Bu universitet qo'llanmasida TOPIK / IELTS granti yo'q",
+  "ugYours": "SIZGA"
 }
