@@ -5376,4 +5376,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ugYours => '내 장학금';
+
+  @override
+  String get fltOnePercent => '상위 1% 대학';
+
+  @override
+  String get fltOnePercentOnly => '1%만';
 }

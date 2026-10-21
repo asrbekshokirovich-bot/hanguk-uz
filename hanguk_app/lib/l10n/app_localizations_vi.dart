@@ -5543,4 +5543,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get ugYours => 'CỦA BẠN';
+
+  @override
+  String get fltOnePercent => 'Trường top 1%';
+
+  @override
+  String get fltOnePercentOnly => 'Chỉ top 1%';
 }

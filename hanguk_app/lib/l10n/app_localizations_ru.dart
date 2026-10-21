@@ -5572,4 +5572,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get ugYours => 'ВАШ';
+
+  @override
+  String get fltOnePercent => 'Университеты топ-1%';
+
+  @override
+  String get fltOnePercentOnly => 'Только 1%';
 }

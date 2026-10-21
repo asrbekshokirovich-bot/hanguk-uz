@@ -1782,5 +1782,7 @@
   "ugEither": "{topik} 또는 {english}",
   "ugBoth": "{topik} 및 {english}",
   "ugNone": "이 대학 모집요강에 TOPIK / IELTS 장학금이 없습니다",
-  "ugYours": "내 장학금"
+  "ugYours": "내 장학금",
+  "fltOnePercent": "상위 1% 대학",
+  "fltOnePercentOnly": "1%만"
 }

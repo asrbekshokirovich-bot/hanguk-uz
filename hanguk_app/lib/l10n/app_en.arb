@@ -6890,5 +6890,13 @@
   "ugYours": "YOURS",
   "@ugYours": {
     "description": "University page grant table"
+  },
+  "fltOnePercent": "Top 1% universities",
+  "@fltOnePercent": {
+    "description": "Filtr: Hanguk's top 1% university list"
+  },
+  "fltOnePercentOnly": "Only the 1%",
+  "@fltOnePercentOnly": {
+    "description": "Filtr: Hanguk's top 1% university list"
   }
 }

@@ -1782,5 +1782,7 @@
   "ugEither": "{topik} или {english}",
   "ugBoth": "{topik} и {english}",
   "ugNone": "В руководстве этого университета нет гранта за TOPIK / IELTS",
-  "ugYours": "ВАШ"
+  "ugYours": "ВАШ",
+  "fltOnePercent": "Университеты топ-1%",
+  "fltOnePercentOnly": "Только 1%"
 }

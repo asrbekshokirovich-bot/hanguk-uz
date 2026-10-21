@@ -1782,5 +1782,7 @@
   "ugEither": "{topik} hoặc {english}",
   "ugBoth": "{topik} và {english}",
   "ugNone": "Hướng dẫn của trường không có học bổng TOPIK / IELTS",
-  "ugYours": "CỦA BẠN"
+  "ugYours": "CỦA BẠN",
+  "fltOnePercent": "Trường top 1%",
+  "fltOnePercentOnly": "Chỉ top 1%"
 }

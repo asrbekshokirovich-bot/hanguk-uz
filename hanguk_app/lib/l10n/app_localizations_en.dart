@@ -5569,4 +5569,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ugYours => 'YOURS';
+
+  @override
+  String get fltOnePercent => 'Top 1% universities';
+
+  @override
+  String get fltOnePercentOnly => 'Only the 1%';
 }

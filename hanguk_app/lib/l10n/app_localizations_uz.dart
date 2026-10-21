@@ -5571,4 +5571,10 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get ugYours => 'SIZGA';
+
+  @override
+  String get fltOnePercent => '1% universitetlar';
+
+  @override
+  String get fltOnePercentOnly => 'Faqat 1%';
 }

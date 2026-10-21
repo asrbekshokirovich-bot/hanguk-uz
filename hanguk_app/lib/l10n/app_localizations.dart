@@ -10003,6 +10003,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'YOURS'**
   String get ugYours;
+
+  /// Filtr: Hanguk's top 1% university list
+  ///
+  /// In en, this message translates to:
+  /// **'Top 1% universities'**
+  String get fltOnePercent;
+
+  /// Filtr: Hanguk's top 1% university list
+  ///
+  /// In en, this message translates to:
+  /// **'Only the 1%'**
+  String get fltOnePercentOnly;
 }
 
 class _AppLocalizationsDelegate

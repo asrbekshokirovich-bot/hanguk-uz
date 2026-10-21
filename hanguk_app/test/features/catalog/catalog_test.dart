@@ -98,6 +98,16 @@ void main() {
       expect(out.map((u) => u.institutionId), ['u2']);
     });
 
+    test('1% keeps only the universities on Hanguk\'s 1% list', () {
+      final list = groupCatalogRows([
+        _row('g1', 'u1', name: 'Konkuk University', nameKo: '건국대학교'),
+        _row('g2', 'u2', name: 'Alpha University', nameKo: '알파대학교'),
+      ]);
+      expect(applyCatalogFilter(list, const CatalogFilter(onePercent: true)).map((u) => u.institutionId), ['u1']);
+      expect(applyCatalogFilter(list, const CatalogFilter()).length, 2);
+      expect(const CatalogFilter(onePercent: true).activeCount, 1);
+    });
+
     test('grant keeps the universities whose largest waiver reaches it; no data yet filters nothing', () {
       const grants = {'u1': 100, 'u3': 30};
       expect(

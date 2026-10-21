@@ -1782,5 +1782,7 @@
   "ugEither": "{topik} yoki {english}",
   "ugBoth": "{topik} va {english}",
   "ugNone": "Bu universitet qo'llanmasida TOPIK / IELTS granti yo'q",
-  "ugYours": "SIZGA"
+  "ugYours": "SIZGA",
+  "fltOnePercent": "1% universitetlar",
+  "fltOnePercentOnly": "Faqat 1%"
 }
