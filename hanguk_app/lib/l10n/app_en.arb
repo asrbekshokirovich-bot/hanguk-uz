@@ -6550,5 +6550,143 @@
   "fdCodeFreeConsult": "Free consultation",
   "@fdCodeFreeConsult": {
     "description": "Code screen footer, before the phone number."
+  },
+  "uaTitle": "Admission chance",
+  "uaCity": "City",
+  "uaAskTitle": "Want to know your chance of getting into this university?",
+  "uaAskBody": "12 questions + Study Plan + a test interview · about 3 minutes. The percentage, its accuracy and ways to raise it come at the end.",
+  "uaAskStart": "Start the assessment →",
+  "uaImpactNone": "no effect",
+  "uaSecAcademic": "Academic",
+  "uaSecLanguage": "Language",
+  "uaSecDocuments": "Documents",
+  "uaSecTests": "Assessment tests",
+  "uaTestsCount": "counts toward the %",
+  "uaNo": "No",
+  "uaHave": "Yes",
+  "uaQDegree": "Which level are you applying for",
+  "uaDegLanguage": "Language course (D-4)",
+  "uaDegBachelor": "Bachelor",
+  "uaDegMaster": "Master",
+  "uaQGpa": "Certificate / diploma average",
+  "uaQGap": "Time since graduating",
+  "uaGap0": "0 yrs",
+  "uaGap1": "1 yr",
+  "uaGap2": "2 yrs",
+  "uaGap3": "3+ yrs",
+  "uaQExperience": "Experience in your chosen field",
+  "uaExpCourse": "Course / club",
+  "uaExpProject": "Project",
+  "uaExpWork": "Work experience",
+  "uaQOlympiad": "Olympiad / contest results",
+  "uaOlSchool": "School",
+  "uaOlNational": "National",
+  "uaOlInternational": "International",
+  "uaQTopik": "TOPIK level",
+  "uaQTopikCert": "TOPIK certificate",
+  "uaCertOld": "Over 2 years old",
+  "uaCertFresh": "Valid (under 2 years)",
+  "uaQIelts": "English (IELTS)",
+  "uaQMotivation": "Motivation letter",
+  "uaMotDraft": "Draft",
+  "uaMotReady": "Ready",
+  "uaQRecommendation": "Recommendation (from a teacher)",
+  "uaQPortfolio": "Portfolio (design, art, projects)",
+  "uaQActivity": "Extra activities",
+  "uaActVolunteer": "Volunteering",
+  "uaActSportArt": "Sport / art",
+  "uaActLeader": "Led an organisation",
+  "uaTestPlan": "Study Plan test",
+  "uaTestTalk": "Interview test",
+  "uaTestStart": "Start",
+  "uaTestTaken": "Taken · one attempt only",
+  "uaTestsNeedCode": "The tests open with your client code — your consultant sends it by SMS",
+  "uaResultTitle": "Your admission chance",
+  "uaAccuracyLow": "Accuracy: low — no tests taken yet",
+  "uaAccuracyMid": "Accuracy: medium — one test taken",
+  "uaAccuracyHigh": "Accuracy: high — both tests taken",
+  "uaInterviewFailed": "The interview scored under 60 — in a real admission this stage would not be passed.",
+  "uaWays": "WAYS TO RAISE IT",
+  "uaWayMotivation": "Finish your motivation letter",
+  "uaWayRecommendation": "Get a recommendation",
+  "sptQ1": "Why this university and this major?",
+  "sptQ2": "What will you study in Korea, and how?",
+  "sptQ3": "What will you do after graduating?",
+  "sptHint": "Write in Korean or English",
+  "sptSubmit": "Send for checking",
+  "sptChecking": "The AI is checking…",
+  "sptError": "Couldn't check it. Check your connection and send again.",
+  "sptResultTitle": "STUDY PLAN SCORE",
+  "sptMotivation": "Motivation and knowing the major",
+  "sptPlan": "Study plan",
+  "sptCareer": "Plan after graduating",
+  "sptLanguage": "Language and writing",
+  "sptStrengths": "Strengths",
+  "sptImprovements": "To improve",
+  "sptDone": "Done",
+  "uaImpactUp": "admission +{n}%",
+  "@uaImpactUp": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaImpactDown": "admission −{n}%",
+  "@uaImpactDown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaGpaValue": "{value} / 5",
+  "@uaGpaValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "uaTestMeta": "For {name} · {questions} questions · {minutes} min · 1 attempt",
+  "@uaTestMeta": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "questions": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "uaTestScore": "{n}/100",
+  "@uaTestScore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaWayTopik": "Reach TOPIK {level}",
+  "@uaWayTopik": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "sptIntro": "Answer 3 questions for {name}. You have {minutes} minutes and one attempt; when time runs out, what you wrote is sent.",
+  "@sptIntro": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
   }
 }

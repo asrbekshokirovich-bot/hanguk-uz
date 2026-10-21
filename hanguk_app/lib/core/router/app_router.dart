@@ -27,6 +27,7 @@ import '../../features/discover/presentation/widgets/app_nav.dart';
 import '../../features/discover/data/list_mode.dart';
 import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
+import '../../features/discover/presentation/university_assess_screen.dart';
 import '../../features/discover/presentation/university_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/onboarding/onboarding_routes.dart';
@@ -119,6 +120,10 @@ List<RouteBase> _guestRoutes() => [
   GoRoute(
     path: '/university/:id',
     builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
+  ),
+  GoRoute(
+    path: '/university/:id/assess',
+    builder: (context, state) => UniversityAssessScreen(institutionId: state.pathParameters['id'] ?? ''),
   ),
   // The assessment's questions live on the home board now; a link to the old
   // page opens the report.

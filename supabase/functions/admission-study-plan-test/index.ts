@@ -64,6 +64,16 @@ serve(async (req) => {
     if (!uni) return json({ error: "Unknown university" }, 404);
     const uniName = uni.name_en || uni.name_ko;
 
+    // Taken once per university.
+    const { data: earlier } = await admin
+      .from("study_plan_sessions")
+      .select("id, study_plan_analyses!inner(overall_score)")
+      .eq("student_id", user.id)
+      .eq("target_institution_id", institutionId)
+      .not("study_plan_analyses.overall_score", "is", null)
+      .limit(1);
+    if (earlier && earlier.length > 0) return json({ error: "already_taken" }, 409);
+
     let result = {
       score: 0,
       motivation: 0,

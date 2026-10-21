@@ -21,6 +21,10 @@ class InterviewScreen extends ConsumerStatefulWidget {
   final String? initialLanguage;
   final String? initialPersona;
 
+  /// The university assessment's interview test: timed, on a set topic.
+  final int? initialTimeLimitSeconds;
+  final String? initialFocusTopic;
+
   const InterviewScreen({
     super.key,
     this.initialSessionType,
@@ -28,6 +32,8 @@ class InterviewScreen extends ConsumerStatefulWidget {
     this.initialUniversityName,
     this.initialLanguage,
     this.initialPersona,
+    this.initialTimeLimitSeconds,
+    this.initialFocusTopic,
   });
 
   @override
@@ -50,6 +56,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               targetUniversityName: widget.initialUniversityName,
               language: widget.initialLanguage ?? 'ko',
               persona: widget.initialPersona ?? 'friendly',
+              focusTopic: widget.initialFocusTopic,
+              timedMode: widget.initialTimeLimitSeconds != null,
+              timeLimitSeconds: widget.initialTimeLimitSeconds,
             );
       });
     }

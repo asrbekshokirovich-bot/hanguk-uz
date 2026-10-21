@@ -4969,4 +4969,262 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fdCodeFreeConsult => 'Бесплатная консультация';
+
+  @override
+  String get uaTitle => 'Шанс поступления';
+
+  @override
+  String get uaCity => 'Город';
+
+  @override
+  String get uaAskTitle => 'Хотите узнать шанс поступить в этот университет?';
+
+  @override
+  String get uaAskBody =>
+      '12 вопросов + Study Plan + тестовое собеседование · около 3 минут. Процент, точность и способы повысить — в конце.';
+
+  @override
+  String get uaAskStart => 'Начать оценку →';
+
+  @override
+  String get uaImpactNone => 'не влияет';
+
+  @override
+  String get uaSecAcademic => 'Учёба';
+
+  @override
+  String get uaSecLanguage => 'Язык';
+
+  @override
+  String get uaSecDocuments => 'Пакет документов';
+
+  @override
+  String get uaSecTests => 'Оценочные тесты';
+
+  @override
+  String get uaTestsCount => 'входит в процент';
+
+  @override
+  String get uaNo => 'Нет';
+
+  @override
+  String get uaHave => 'Есть';
+
+  @override
+  String get uaQDegree => 'На какую ступень поступаете';
+
+  @override
+  String get uaDegLanguage => 'Языковые курсы (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Бакалавриат';
+
+  @override
+  String get uaDegMaster => 'Магистратура';
+
+  @override
+  String get uaQGpa => 'Средний балл аттестата / диплома';
+
+  @override
+  String get uaQGap => 'Сколько прошло после выпуска';
+
+  @override
+  String get uaGap0 => '0 лет';
+
+  @override
+  String get uaGap1 => '1 год';
+
+  @override
+  String get uaGap2 => '2 года';
+
+  @override
+  String get uaGap3 => '3+ лет';
+
+  @override
+  String get uaQExperience => 'Опыт по выбранному направлению';
+
+  @override
+  String get uaExpCourse => 'Курс / кружок';
+
+  @override
+  String get uaExpProject => 'Проект';
+
+  @override
+  String get uaExpWork => 'Опыт работы';
+
+  @override
+  String get uaQOlympiad => 'Олимпиады / конкурсы';
+
+  @override
+  String get uaOlSchool => 'Школьная';
+
+  @override
+  String get uaOlNational => 'Республиканская';
+
+  @override
+  String get uaOlInternational => 'Международная';
+
+  @override
+  String get uaQTopik => 'Уровень TOPIK';
+
+  @override
+  String get uaQTopikCert => 'Сертификат TOPIK';
+
+  @override
+  String get uaCertOld => 'Старше 2 лет';
+
+  @override
+  String get uaCertFresh => 'Действует (до 2 лет)';
+
+  @override
+  String get uaQIelts => 'Английский (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Мотивационное письмо';
+
+  @override
+  String get uaMotDraft => 'Черновик';
+
+  @override
+  String get uaMotReady => 'Готово';
+
+  @override
+  String get uaQRecommendation => 'Рекомендация (от учителя)';
+
+  @override
+  String get uaQPortfolio => 'Портфолио (дизайн, искусство, проекты)';
+
+  @override
+  String get uaQActivity => 'Внеучебная деятельность';
+
+  @override
+  String get uaActVolunteer => 'Волонтёрство';
+
+  @override
+  String get uaActSportArt => 'Спорт / искусство';
+
+  @override
+  String get uaActLeader => 'Руководил организацией';
+
+  @override
+  String get uaTestPlan => 'Тест Study Plan';
+
+  @override
+  String get uaTestTalk => 'Тестовое собеседование';
+
+  @override
+  String get uaTestStart => 'Начать';
+
+  @override
+  String get uaTestTaken => 'Сдан · только одна попытка';
+
+  @override
+  String get uaTestsNeedCode =>
+      'Тесты открываются по коду клиента — консультант пришлёт его по SMS';
+
+  @override
+  String get uaResultTitle => 'Ваш шанс поступления';
+
+  @override
+  String get uaAccuracyLow => 'Точность: низкая — тесты ещё не сданы';
+
+  @override
+  String get uaAccuracyMid => 'Точность: средняя — сдан один тест';
+
+  @override
+  String get uaAccuracyHigh => 'Точность: высокая — сданы оба теста';
+
+  @override
+  String get uaInterviewFailed =>
+      'Собеседование ниже 60 баллов — при реальном поступлении этот этап не пройти.';
+
+  @override
+  String get uaWays => 'КАК ПОВЫСИТЬ';
+
+  @override
+  String get uaWayMotivation => 'Подготовьте мотивационное письмо';
+
+  @override
+  String get uaWayRecommendation => 'Получите рекомендацию';
+
+  @override
+  String get sptQ1 => 'Почему именно этот университет и это направление?';
+
+  @override
+  String get sptQ2 => 'Что и как вы будете изучать в Корее?';
+
+  @override
+  String get sptQ3 => 'Чем займётесь после выпуска?';
+
+  @override
+  String get sptHint => 'Пишите на корейском или английском';
+
+  @override
+  String get sptSubmit => 'Отправить на проверку';
+
+  @override
+  String get sptChecking => 'ИИ проверяет…';
+
+  @override
+  String get sptError =>
+      'Не удалось проверить. Проверьте интернет и отправьте снова.';
+
+  @override
+  String get sptResultTitle => 'БАЛЛ STUDY PLAN';
+
+  @override
+  String get sptMotivation => 'Мотивация и знание направления';
+
+  @override
+  String get sptPlan => 'План обучения';
+
+  @override
+  String get sptCareer => 'План после выпуска';
+
+  @override
+  String get sptLanguage => 'Язык и стиль';
+
+  @override
+  String get sptStrengths => 'Сильные стороны';
+
+  @override
+  String get sptImprovements => 'Что улучшить';
+
+  @override
+  String get sptDone => 'Готово';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'поступление +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'поступление −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return 'Для $name · $questions вопроса · $minutes мин · 1 попытка';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'Сдайте TOPIK $level';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return 'Ответьте на 3 вопроса для $name. Время — $minutes мин, одна попытка; когда время выйдет, написанное отправится.';
+  }
 }

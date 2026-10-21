@@ -27,6 +27,9 @@ const String kAssessmentSentPath = '/assess/sent';
 /// Screen 10, a university's page.
 String universityPath(String institutionId) => '/university/$institutionId';
 
+/// A university's assessment: the questions, its two tests, the chance.
+String universityAssessPath(String institutionId) => '/university/$institutionId/assess';
+
 /// Screen 07, "Bu yoki bu?": the duel that fills the empty slots.
 const String kDiscoverDuelPath = '/guest/duel';
 

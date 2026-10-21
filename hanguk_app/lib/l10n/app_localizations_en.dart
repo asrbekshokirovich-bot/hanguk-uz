@@ -4966,4 +4966,263 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fdCodeFreeConsult => 'Free consultation';
+
+  @override
+  String get uaTitle => 'Admission chance';
+
+  @override
+  String get uaCity => 'City';
+
+  @override
+  String get uaAskTitle =>
+      'Want to know your chance of getting into this university?';
+
+  @override
+  String get uaAskBody =>
+      '12 questions + Study Plan + a test interview · about 3 minutes. The percentage, its accuracy and ways to raise it come at the end.';
+
+  @override
+  String get uaAskStart => 'Start the assessment →';
+
+  @override
+  String get uaImpactNone => 'no effect';
+
+  @override
+  String get uaSecAcademic => 'Academic';
+
+  @override
+  String get uaSecLanguage => 'Language';
+
+  @override
+  String get uaSecDocuments => 'Documents';
+
+  @override
+  String get uaSecTests => 'Assessment tests';
+
+  @override
+  String get uaTestsCount => 'counts toward the %';
+
+  @override
+  String get uaNo => 'No';
+
+  @override
+  String get uaHave => 'Yes';
+
+  @override
+  String get uaQDegree => 'Which level are you applying for';
+
+  @override
+  String get uaDegLanguage => 'Language course (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Bachelor';
+
+  @override
+  String get uaDegMaster => 'Master';
+
+  @override
+  String get uaQGpa => 'Certificate / diploma average';
+
+  @override
+  String get uaQGap => 'Time since graduating';
+
+  @override
+  String get uaGap0 => '0 yrs';
+
+  @override
+  String get uaGap1 => '1 yr';
+
+  @override
+  String get uaGap2 => '2 yrs';
+
+  @override
+  String get uaGap3 => '3+ yrs';
+
+  @override
+  String get uaQExperience => 'Experience in your chosen field';
+
+  @override
+  String get uaExpCourse => 'Course / club';
+
+  @override
+  String get uaExpProject => 'Project';
+
+  @override
+  String get uaExpWork => 'Work experience';
+
+  @override
+  String get uaQOlympiad => 'Olympiad / contest results';
+
+  @override
+  String get uaOlSchool => 'School';
+
+  @override
+  String get uaOlNational => 'National';
+
+  @override
+  String get uaOlInternational => 'International';
+
+  @override
+  String get uaQTopik => 'TOPIK level';
+
+  @override
+  String get uaQTopikCert => 'TOPIK certificate';
+
+  @override
+  String get uaCertOld => 'Over 2 years old';
+
+  @override
+  String get uaCertFresh => 'Valid (under 2 years)';
+
+  @override
+  String get uaQIelts => 'English (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Motivation letter';
+
+  @override
+  String get uaMotDraft => 'Draft';
+
+  @override
+  String get uaMotReady => 'Ready';
+
+  @override
+  String get uaQRecommendation => 'Recommendation (from a teacher)';
+
+  @override
+  String get uaQPortfolio => 'Portfolio (design, art, projects)';
+
+  @override
+  String get uaQActivity => 'Extra activities';
+
+  @override
+  String get uaActVolunteer => 'Volunteering';
+
+  @override
+  String get uaActSportArt => 'Sport / art';
+
+  @override
+  String get uaActLeader => 'Led an organisation';
+
+  @override
+  String get uaTestPlan => 'Study Plan test';
+
+  @override
+  String get uaTestTalk => 'Interview test';
+
+  @override
+  String get uaTestStart => 'Start';
+
+  @override
+  String get uaTestTaken => 'Taken · one attempt only';
+
+  @override
+  String get uaTestsNeedCode =>
+      'The tests open with your client code — your consultant sends it by SMS';
+
+  @override
+  String get uaResultTitle => 'Your admission chance';
+
+  @override
+  String get uaAccuracyLow => 'Accuracy: low — no tests taken yet';
+
+  @override
+  String get uaAccuracyMid => 'Accuracy: medium — one test taken';
+
+  @override
+  String get uaAccuracyHigh => 'Accuracy: high — both tests taken';
+
+  @override
+  String get uaInterviewFailed =>
+      'The interview scored under 60 — in a real admission this stage would not be passed.';
+
+  @override
+  String get uaWays => 'WAYS TO RAISE IT';
+
+  @override
+  String get uaWayMotivation => 'Finish your motivation letter';
+
+  @override
+  String get uaWayRecommendation => 'Get a recommendation';
+
+  @override
+  String get sptQ1 => 'Why this university and this major?';
+
+  @override
+  String get sptQ2 => 'What will you study in Korea, and how?';
+
+  @override
+  String get sptQ3 => 'What will you do after graduating?';
+
+  @override
+  String get sptHint => 'Write in Korean or English';
+
+  @override
+  String get sptSubmit => 'Send for checking';
+
+  @override
+  String get sptChecking => 'The AI is checking…';
+
+  @override
+  String get sptError =>
+      'Couldn\'t check it. Check your connection and send again.';
+
+  @override
+  String get sptResultTitle => 'STUDY PLAN SCORE';
+
+  @override
+  String get sptMotivation => 'Motivation and knowing the major';
+
+  @override
+  String get sptPlan => 'Study plan';
+
+  @override
+  String get sptCareer => 'Plan after graduating';
+
+  @override
+  String get sptLanguage => 'Language and writing';
+
+  @override
+  String get sptStrengths => 'Strengths';
+
+  @override
+  String get sptImprovements => 'To improve';
+
+  @override
+  String get sptDone => 'Done';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'admission +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'admission −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return 'For $name · $questions questions · $minutes min · 1 attempt';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'Reach TOPIK $level';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return 'Answer 3 questions for $name. You have $minutes minutes and one attempt; when time runs out, what you wrote is sent.';
+  }
 }

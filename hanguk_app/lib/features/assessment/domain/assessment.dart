@@ -15,6 +15,15 @@ class AssessmentInput {
     this.route = StudyRoute.bachelor,
     this.visaRefused = false,
     this.universityIds = const [],
+    this.gapYears = 0,
+    this.experience = 0,
+    this.olympiad = 0,
+    this.topikFresh = true,
+    this.ielts = 0,
+    this.motivation = 0,
+    this.recommendation = false,
+    this.portfolio = false,
+    this.activity = 0,
   });
 
   /// The TOPIK level the student has; 0 for none ("—").
@@ -33,6 +42,36 @@ class AssessmentInput {
   /// The universities the student is weighing, in the order shown.
   final List<String> universityIds;
 
+  // The university assessment's questions (design: Akademik, Til,
+  // Hujjatlar to'plami); each default is the "Yo'q" answer.
+
+  /// Years since graduating: 0, 1, 2, or 3 for three and more.
+  final int gapYears;
+
+  /// Experience in the chosen field: none, course/club, project, work.
+  final int experience;
+
+  /// Olympiad or contest results: none, school, national, international.
+  final int olympiad;
+
+  /// Whether the TOPIK certificate is under two years old: older ones are
+  /// not accepted, so the level counts as none.
+  final bool topikFresh;
+
+  /// IELTS band; 0 for none.
+  final double ielts;
+
+  /// Motivation letter: none, draft, ready.
+  final int motivation;
+  final bool recommendation;
+  final bool portfolio;
+
+  /// Extra activity: none, volunteering, sport/art, leading an organisation.
+  final int activity;
+
+  /// The TOPIK level the documents can show.
+  int get topikCounted => topikFresh ? topik : 0;
+
   AssessmentInput copyWith({
     int? topik,
     double? gpa,
@@ -40,6 +79,15 @@ class AssessmentInput {
     StudyRoute? route,
     bool? visaRefused,
     List<String>? universityIds,
+    int? gapYears,
+    int? experience,
+    int? olympiad,
+    bool? topikFresh,
+    double? ielts,
+    int? motivation,
+    bool? recommendation,
+    bool? portfolio,
+    int? activity,
   }) => AssessmentInput(
     topik: topik ?? this.topik,
     gpa: gpa ?? this.gpa,
@@ -47,6 +95,15 @@ class AssessmentInput {
     route: route ?? this.route,
     visaRefused: visaRefused ?? this.visaRefused,
     universityIds: universityIds ?? this.universityIds,
+    gapYears: gapYears ?? this.gapYears,
+    experience: experience ?? this.experience,
+    olympiad: olympiad ?? this.olympiad,
+    topikFresh: topikFresh ?? this.topikFresh,
+    ielts: ielts ?? this.ielts,
+    motivation: motivation ?? this.motivation,
+    recommendation: recommendation ?? this.recommendation,
+    portfolio: portfolio ?? this.portfolio,
+    activity: activity ?? this.activity,
   );
 
   /// The answers as the CRM's lead card reads them (`leads.quiz_answers`):
@@ -60,9 +117,18 @@ class AssessmentInput {
     'bank_krw': bankKrw,
     'visa_refused': visaRefused,
     'universities': universityIds,
+    'gap_years': gapYears,
+    'experience': experience,
+    'olympiad': olympiad,
+    'topik_fresh': topikFresh,
+    'ielts': ielts,
+    'motivation': motivation,
+    'recommendation': recommendation,
+    'portfolio': portfolio,
+    'activity': activity,
   };
 
-  KoreanLevel get koreanLevel => switch (topik) {
+  KoreanLevel get koreanLevel => switch (topikCounted) {
     <= 0 => KoreanLevel.none,
     1 => KoreanLevel.topik1,
     2 => KoreanLevel.topik2,
@@ -137,10 +203,11 @@ class AssessmentOutcome {
     'visa_pct': visaPercent,
     'required_bank_krw': requiredBankKrw,
     'universities': [
-      for (final c in chances)
-        {'id': c.university.institutionId, 'name': c.university.displayName, 'pct': c.percent},
+      for (final c in chances) {'id': c.university.institutionId, 'name': c.university.displayName, 'pct': c.percent},
     ],
-    'fixes': [for (final f in fixes) {'kind': f.kind.name, 'value': f.value, 'gain': f.gain}],
+    'fixes': [
+      for (final f in fixes) {'kind': f.kind.name, 'value': f.value, 'gain': f.gain},
+    ],
   };
 }
 
@@ -187,7 +254,11 @@ AssessmentOutcome assess(
   List<AdmissionChance> chancesFor(AssessmentInput i) => [
     for (final u in chosen)
       if ((degree == null ? u.primary : u.forDegree(degree) ?? u.primary) case final g)
-        AdmissionChance(university: u, guideline: g, percent: admissionPercent(i, g, rules: rules)),
+        AdmissionChance(
+          university: u,
+          guideline: g,
+          percent: admissionPercent(i, g, rules: rules),
+        ),
   ];
 
   final chances = chancesFor(input);
@@ -223,7 +294,11 @@ AssessmentOutcome assess(
 
 /// The KDB deposit for [route] in won: the capital area's figure when any of
 /// the universities is there.
-int requiredBank(StudyRoute route, List<CatalogUniversity> universities, {EligibilityRules rules = const EligibilityRules()}) {
+int requiredBank(
+  StudyRoute route,
+  List<CatalogUniversity> universities, {
+  EligibilityRules rules = const EligibilityRules(),
+}) {
   final kdb = rules.kdbUsd(route);
   final capital = universities.any((u) => u.primary.inCapitalArea);
   return ((capital ? kdb.$2 : kdb.$1) * rules.krwPerUsd).round();
@@ -269,10 +344,14 @@ int requiredBank(StudyRoute route, List<CatalogUniversity> universities, {Eligib
   return (band, (pLo + (pHi - pLo) * t).round());
 }
 
-/// One university's admission chance (see [assess]).
+/// One university's admission chance (see [assess]), with what the
+/// university assessment's answers add to the documents: experience,
+/// contests, IELTS, the letter, recommendation, portfolio and activities
+/// raise it, a gap of two years and more lowers it, and a TOPIK certificate
+/// over two years old counts as none.
 int admissionPercent(AssessmentInput input, CatalogGuideline g, {EligibilityRules rules = const EligibilityRules()}) {
   final need = g.topikMin?.round() ?? rules.topikMin(input.route);
-  final diff = input.topik - need;
+  final diff = input.topikCounted - need;
   var p = diff <= -2
       ? 15
       : diff == -1
@@ -284,5 +363,35 @@ int admissionPercent(AssessmentInput input, CatalogGuideline g, {EligibilityRule
       : 78;
   p += ((input.gpa - 3.5) * 10).clamp(-15, 15).round();
   if (g.isPartner == true) p += 5;
+  p += documentsBonus(input);
   return p.clamp(5, 95);
+}
+
+/// The points the documents' answers add (or take) on top of TOPIK and the
+/// certificate.
+int documentsBonus(AssessmentInput i) {
+  var p = 0;
+  p += switch (i.gapYears) {
+    <= 1 => 0,
+    2 => -3,
+    _ => -6,
+  };
+  p += const [0, 2, 3, 4][i.experience.clamp(0, 3)];
+  p += const [0, 2, 4, 6][i.olympiad.clamp(0, 3)];
+  p += i.ielts >= 7
+      ? 5
+      : i.ielts >= 6.5
+      ? 4
+      : i.ielts >= 6
+      ? 3
+      : i.ielts >= 5.5
+      ? 2
+      : i.ielts >= 5
+      ? 1
+      : 0;
+  p += const [0, 2, 4][i.motivation.clamp(0, 2)];
+  if (i.recommendation) p += 2;
+  if (i.portfolio) p += 2;
+  p += const [0, 2, 2, 3][i.activity.clamp(0, 3)];
+  return p;
 }

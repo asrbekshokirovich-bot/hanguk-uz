@@ -194,6 +194,15 @@ abstract final class LucideIcons {
     paths: ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v4a2 2 0 0 0 2 2h4', 'M10 9H8', 'M16 13H8', 'M16 17H8'],
   );
 
+  /// lucide `file-pen`
+  static const filePen = LucideGlyph(
+    paths: [
+      'M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5',
+      'M14 2v4a2 2 0 0 0 2 2h4',
+      'M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z',
+    ],
+  );
+
   /// lucide `clipboard-list`
   static const clipboardList = LucideGlyph(
     paths: [

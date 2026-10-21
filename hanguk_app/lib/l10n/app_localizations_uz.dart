@@ -4963,4 +4963,263 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fdCodeFreeConsult => 'Bepul konsultatsiya';
+
+  @override
+  String get uaTitle => 'Kirish ehtimoli';
+
+  @override
+  String get uaCity => 'Shahar';
+
+  @override
+  String get uaAskTitle =>
+      'Bu universitetga kirish ehtimolingizni bilmoqchimisiz?';
+
+  @override
+  String get uaAskBody =>
+      '12 ta savol + Study Plan + test suhbat · taxminan 3 daqiqa. Foiz, aniqlik va oshirish yo\'llari oxirida chiqadi.';
+
+  @override
+  String get uaAskStart => 'Baholashni boshlash →';
+
+  @override
+  String get uaImpactNone => 'ta\'sir yo\'q';
+
+  @override
+  String get uaSecAcademic => 'Akademik';
+
+  @override
+  String get uaSecLanguage => 'Til';
+
+  @override
+  String get uaSecDocuments => 'Hujjatlar to\'plami';
+
+  @override
+  String get uaSecTests => 'Baholash testlari';
+
+  @override
+  String get uaTestsCount => 'natija foizga kiradi';
+
+  @override
+  String get uaNo => 'Yo\'q';
+
+  @override
+  String get uaHave => 'Bor';
+
+  @override
+  String get uaQDegree => 'Qaysi darajaga topshirasiz';
+
+  @override
+  String get uaDegLanguage => 'Til kursi (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Bakalavr';
+
+  @override
+  String get uaDegMaster => 'Magistr';
+
+  @override
+  String get uaQGpa => 'Attestat / diplom o\'rtacha bali';
+
+  @override
+  String get uaQGap => 'Bitirgandan keyin o\'tgan vaqt';
+
+  @override
+  String get uaGap0 => '0 yil';
+
+  @override
+  String get uaGap1 => '1 yil';
+
+  @override
+  String get uaGap2 => '2 yil';
+
+  @override
+  String get uaGap3 => '3+ yil';
+
+  @override
+  String get uaQExperience => 'Tanlagan yo\'nalish bo\'yicha tajriba';
+
+  @override
+  String get uaExpCourse => 'Kurs / to\'garak';
+
+  @override
+  String get uaExpProject => 'Loyiha';
+
+  @override
+  String get uaExpWork => 'Ish tajribasi';
+
+  @override
+  String get uaQOlympiad => 'Olimpiada / musobaqa yutuqlari';
+
+  @override
+  String get uaOlSchool => 'Maktab';
+
+  @override
+  String get uaOlNational => 'Respublika';
+
+  @override
+  String get uaOlInternational => 'Xalqaro';
+
+  @override
+  String get uaQTopik => 'TOPIK darajasi';
+
+  @override
+  String get uaQTopikCert => 'TOPIK sertifikati';
+
+  @override
+  String get uaCertOld => '2 yildan eski';
+
+  @override
+  String get uaCertFresh => 'Amalda (2 yilgacha)';
+
+  @override
+  String get uaQIelts => 'Ingliz tili (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Motivatsiya xati';
+
+  @override
+  String get uaMotDraft => 'Qoralama';
+
+  @override
+  String get uaMotReady => 'Tayyor';
+
+  @override
+  String get uaQRecommendation => 'Tavsiyanoma (o\'qituvchidan)';
+
+  @override
+  String get uaQPortfolio => 'Portfolio (dizayn, san\'at, loyiha)';
+
+  @override
+  String get uaQActivity => 'Qo\'shimcha faoliyat';
+
+  @override
+  String get uaActVolunteer => 'Ko\'ngilli ish';
+
+  @override
+  String get uaActSportArt => 'Sport / san\'at';
+
+  @override
+  String get uaActLeader => 'Tashkilot rahbari';
+
+  @override
+  String get uaTestPlan => 'Study Plan testi';
+
+  @override
+  String get uaTestTalk => 'Suhbat testi';
+
+  @override
+  String get uaTestStart => 'Boshlash';
+
+  @override
+  String get uaTestTaken => 'Topshirildi · bir marta topshiriladi';
+
+  @override
+  String get uaTestsNeedCode =>
+      'Testlar mijoz kodi bilan ochiladi — konsultant SMS yuboradi';
+
+  @override
+  String get uaResultTitle => 'Kirish ehtimolingiz';
+
+  @override
+  String get uaAccuracyLow => 'Aniqlik: past — testlar hali topshirilmagan';
+
+  @override
+  String get uaAccuracyMid => 'Aniqlik: o\'rta — bitta test topshirilgan';
+
+  @override
+  String get uaAccuracyHigh => 'Aniqlik: yuqori — ikkala test topshirilgan';
+
+  @override
+  String get uaInterviewFailed =>
+      'Suhbat 60 balldan past — haqiqiy qabulda ham bu bosqichdan o\'tib bo\'lmaydi.';
+
+  @override
+  String get uaWays => 'OSHIRISH YO\'LLARI';
+
+  @override
+  String get uaWayMotivation => 'Motivatsiya xatini tayyorlang';
+
+  @override
+  String get uaWayRecommendation => 'Tavsiyanoma oling';
+
+  @override
+  String get sptQ1 => 'Nega aynan shu universitet va shu yo\'nalish?';
+
+  @override
+  String get sptQ2 => 'Koreyada nimani va qanday o\'qiysiz?';
+
+  @override
+  String get sptQ3 => 'Bitirgandan keyin nima qilasiz?';
+
+  @override
+  String get sptHint => 'Koreys yoki ingliz tilida yozing';
+
+  @override
+  String get sptSubmit => 'Tekshirishga yuborish';
+
+  @override
+  String get sptChecking => 'Sun\'iy intellekt tekshirmoqda…';
+
+  @override
+  String get sptError =>
+      'Tekshirib bo\'lmadi. Internetni tekshirib, qayta yuboring.';
+
+  @override
+  String get sptResultTitle => 'STUDY PLAN BALI';
+
+  @override
+  String get sptMotivation => 'Motivatsiya va yo\'nalishni bilish';
+
+  @override
+  String get sptPlan => 'O\'qish rejasi';
+
+  @override
+  String get sptCareer => 'Bitirgandan keyingi reja';
+
+  @override
+  String get sptLanguage => 'Til va yozuv';
+
+  @override
+  String get sptStrengths => 'Kuchli tomonlar';
+
+  @override
+  String get sptImprovements => 'Yaxshilash kerak';
+
+  @override
+  String get sptDone => 'Tayyor';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'qabul +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'qabul −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return '$name uchun · $questions savol · $minutes daqiqa · 1 urinish';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'TOPIK $level ga chiqing';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return '$name uchun 3 ta savolga javob yozing. Vaqt — $minutes daqiqa, test faqat bir marta topshiriladi. Vaqt tugasa, yozilgani yuboriladi.';
+  }
 }

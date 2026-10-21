@@ -4942,4 +4942,261 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fdCodeFreeConsult => 'Tư vấn miễn phí';
+
+  @override
+  String get uaTitle => 'Khả năng trúng tuyển';
+
+  @override
+  String get uaCity => 'Thành phố';
+
+  @override
+  String get uaAskTitle => 'Bạn muốn biết khả năng vào trường này?';
+
+  @override
+  String get uaAskBody =>
+      '12 câu hỏi + Study Plan + phỏng vấn thử · khoảng 3 phút. Tỷ lệ, độ chính xác và cách tăng sẽ hiện ở cuối.';
+
+  @override
+  String get uaAskStart => 'Bắt đầu đánh giá →';
+
+  @override
+  String get uaImpactNone => 'không ảnh hưởng';
+
+  @override
+  String get uaSecAcademic => 'Học tập';
+
+  @override
+  String get uaSecLanguage => 'Ngôn ngữ';
+
+  @override
+  String get uaSecDocuments => 'Hồ sơ';
+
+  @override
+  String get uaSecTests => 'Bài kiểm tra đánh giá';
+
+  @override
+  String get uaTestsCount => 'tính vào tỷ lệ';
+
+  @override
+  String get uaNo => 'Không';
+
+  @override
+  String get uaHave => 'Có';
+
+  @override
+  String get uaQDegree => 'Bạn đăng ký bậc nào';
+
+  @override
+  String get uaDegLanguage => 'Khóa tiếng (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Cử nhân';
+
+  @override
+  String get uaDegMaster => 'Thạc sĩ';
+
+  @override
+  String get uaQGpa => 'Điểm trung bình bằng';
+
+  @override
+  String get uaQGap => 'Thời gian từ khi tốt nghiệp';
+
+  @override
+  String get uaGap0 => '0 năm';
+
+  @override
+  String get uaGap1 => '1 năm';
+
+  @override
+  String get uaGap2 => '2 năm';
+
+  @override
+  String get uaGap3 => '3+ năm';
+
+  @override
+  String get uaQExperience => 'Kinh nghiệm trong ngành đã chọn';
+
+  @override
+  String get uaExpCourse => 'Khóa học / CLB';
+
+  @override
+  String get uaExpProject => 'Dự án';
+
+  @override
+  String get uaExpWork => 'Kinh nghiệm làm việc';
+
+  @override
+  String get uaQOlympiad => 'Thành tích olympic / cuộc thi';
+
+  @override
+  String get uaOlSchool => 'Cấp trường';
+
+  @override
+  String get uaOlNational => 'Quốc gia';
+
+  @override
+  String get uaOlInternational => 'Quốc tế';
+
+  @override
+  String get uaQTopik => 'Cấp TOPIK';
+
+  @override
+  String get uaQTopikCert => 'Chứng chỉ TOPIK';
+
+  @override
+  String get uaCertOld => 'Quá 2 năm';
+
+  @override
+  String get uaCertFresh => 'Còn hạn (dưới 2 năm)';
+
+  @override
+  String get uaQIelts => 'Tiếng Anh (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Thư động lực';
+
+  @override
+  String get uaMotDraft => 'Bản nháp';
+
+  @override
+  String get uaMotReady => 'Hoàn thành';
+
+  @override
+  String get uaQRecommendation => 'Thư giới thiệu (giáo viên)';
+
+  @override
+  String get uaQPortfolio => 'Portfolio (thiết kế, nghệ thuật, dự án)';
+
+  @override
+  String get uaQActivity => 'Hoạt động ngoại khóa';
+
+  @override
+  String get uaActVolunteer => 'Tình nguyện';
+
+  @override
+  String get uaActSportArt => 'Thể thao / nghệ thuật';
+
+  @override
+  String get uaActLeader => 'Trưởng tổ chức';
+
+  @override
+  String get uaTestPlan => 'Bài kiểm tra Study Plan';
+
+  @override
+  String get uaTestTalk => 'Bài kiểm tra phỏng vấn';
+
+  @override
+  String get uaTestStart => 'Bắt đầu';
+
+  @override
+  String get uaTestTaken => 'Đã làm · chỉ một lần';
+
+  @override
+  String get uaTestsNeedCode =>
+      'Bài kiểm tra mở bằng mã khách hàng — tư vấn viên gửi qua SMS';
+
+  @override
+  String get uaResultTitle => 'Khả năng trúng tuyển của bạn';
+
+  @override
+  String get uaAccuracyLow => 'Độ chính xác: thấp — chưa làm bài kiểm tra';
+
+  @override
+  String get uaAccuracyMid => 'Độ chính xác: trung bình — đã làm một bài';
+
+  @override
+  String get uaAccuracyHigh => 'Độ chính xác: cao — đã làm cả hai bài';
+
+  @override
+  String get uaInterviewFailed =>
+      'Phỏng vấn dưới 60 điểm — trong tuyển sinh thật sẽ không qua vòng này.';
+
+  @override
+  String get uaWays => 'CÁCH TĂNG';
+
+  @override
+  String get uaWayMotivation => 'Hoàn thành thư động lực';
+
+  @override
+  String get uaWayRecommendation => 'Xin thư giới thiệu';
+
+  @override
+  String get sptQ1 => 'Vì sao chọn trường và ngành này?';
+
+  @override
+  String get sptQ2 => 'Bạn sẽ học gì và học thế nào ở Hàn Quốc?';
+
+  @override
+  String get sptQ3 => 'Bạn sẽ làm gì sau khi tốt nghiệp?';
+
+  @override
+  String get sptHint => 'Viết bằng tiếng Hàn hoặc tiếng Anh';
+
+  @override
+  String get sptSubmit => 'Gửi chấm điểm';
+
+  @override
+  String get sptChecking => 'AI đang chấm…';
+
+  @override
+  String get sptError => 'Không chấm được. Kiểm tra mạng và gửi lại.';
+
+  @override
+  String get sptResultTitle => 'ĐIỂM STUDY PLAN';
+
+  @override
+  String get sptMotivation => 'Động lực và hiểu ngành';
+
+  @override
+  String get sptPlan => 'Kế hoạch học tập';
+
+  @override
+  String get sptCareer => 'Kế hoạch sau tốt nghiệp';
+
+  @override
+  String get sptLanguage => 'Ngôn ngữ và cách viết';
+
+  @override
+  String get sptStrengths => 'Điểm mạnh';
+
+  @override
+  String get sptImprovements => 'Cần cải thiện';
+
+  @override
+  String get sptDone => 'Xong';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'trúng tuyển +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'trúng tuyển −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return 'Cho $name · $questions câu · $minutes phút · 1 lần';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'Đạt TOPIK $level';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return 'Trả lời 3 câu hỏi cho $name. Thời gian $minutes phút, chỉ một lần; hết giờ, bài sẽ được gửi.';
+  }
 }

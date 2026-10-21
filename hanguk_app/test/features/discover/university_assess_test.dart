@@ -1,0 +1,92 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/features/assessment/data/admission_tests_repository.dart';
+import 'package:hanguk_app/features/assessment/domain/admission_tests.dart';
+import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
+import 'package:hanguk_app/features/discover/data/application_windows.dart';
+import 'package:hanguk_app/features/discover/presentation/university_assess_screen.dart';
+import 'package:hanguk_app/features/discover/presentation/university_screen.dart';
+import 'package:hanguk_app/l10n/app_localizations.dart';
+
+final _rows = [
+  {
+    'is_partner': false,
+    'guideline_id': 'g1',
+    'institution_id': 'u1',
+    'name_ko': '선문대학교',
+    'name_en': 'Sun Moon University',
+    'institution_type': 'private',
+    'univ_nomi_en': 'Sun Moon University',
+    'shahar': 'Asan',
+    'qabul_yili': 2027,
+    'semestr': 'bahor',
+    'daraja': 'bakalavr',
+    'english_track': false,
+    'topik_min': 2,
+    'narx_valyuta': 'KRW',
+    'kontrakt_min': 1900000,
+    'kontrakt_max': 1900000,
+    'kontrakt_davri': 'semestr',
+  },
+];
+
+Future<AppLocalizations> _pump(WidgetTester t, Widget home, {AdmissionTests? tests}) async {
+  t.view.physicalSize = const Size(390 * 3, 3000 * 3);
+  t.view.devicePixelRatio = 3;
+  addTearDown(t.view.reset);
+  await t.pumpWidget(
+    ProviderScope(
+      key: UniqueKey(),
+      overrides: [
+        catalogProvider.overrideWith((ref) async => groupCatalogRows(_rows)),
+        applicationWindowsProvider.overrideWith((ref) async => const {}),
+        admissionTestsProvider.overrideWith((ref) async => tests == null ? const {} : {'u1': tests}),
+      ],
+      child: MaterialApp(
+        locale: const Locale('uz'),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: home,
+      ),
+    ),
+  );
+  await t.pump(const Duration(milliseconds: 300));
+  return AppLocalizations.delegate.load(const Locale('uz'));
+}
+
+void main() {
+  testWidgets('the page: four facts and the question, nothing else', (t) async {
+    final l = await _pump(t, const UniversityScreen(institutionId: 'u1'));
+    for (final s in [l.uaCity, 'Asan', l.fdCellLanguage, 'TOPIK 2+', l.fdUniDeadline, l.uaAskTitle, l.uaAskStart]) {
+      expect(find.text(s), findsOneWidget, reason: s);
+    }
+    expect(find.text('?%'), findsOneWidget);
+  });
+
+  testWidgets('each answer says what it does to this university', (t) async {
+    final l = await _pump(t, const UniversityAssessScreen(institutionId: 'u1'));
+    expect(find.text(l.uaQTopik), findsOneWidget);
+    // TOPIK 2 meets the requirement: the answer raises admission.
+    await t.tap(find.text('2').first);
+    await t.pump();
+    expect(find.text(l.uaImpactUp(40)), findsWidgets);
+    // An expired certificate counts as no TOPIK.
+    await t.tap(find.text(l.uaCertOld));
+    await t.pump();
+    expect(find.text(l.uaImpactDown(40)), findsOneWidget);
+    expect(find.text(l.uaAccuracyLow), findsOneWidget);
+  });
+
+  testWidgets('a test taken shows its score instead of Boshlash', (t) async {
+    final l = await _pump(
+      t,
+      const UniversityAssessScreen(institutionId: 'u1'),
+      tests: const AdmissionTests(studyPlan: 70, interview: 80, studyPlanAttempts: 1, interviewAttempts: 1),
+    );
+    expect(find.text(l.uaTestStart), findsNothing);
+    expect(find.text(l.uaTestScore(70)), findsOneWidget);
+    expect(find.text(l.uaTestScore(80)), findsOneWidget);
+    expect(find.text(l.uaAccuracyHigh), findsOneWidget);
+  });
+}

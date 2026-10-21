@@ -4780,4 +4780,260 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fdCodeFreeConsult => '무료 상담';
+
+  @override
+  String get uaTitle => '합격 가능성';
+
+  @override
+  String get uaCity => '도시';
+
+  @override
+  String get uaAskTitle => '이 대학교 합격 가능성을 알고 싶으신가요?';
+
+  @override
+  String get uaAskBody =>
+      '12개 질문 + 학업계획서 + 모의 면접 · 약 3분. 확률, 정확도, 올리는 방법은 마지막에 나옵니다.';
+
+  @override
+  String get uaAskStart => '평가 시작 →';
+
+  @override
+  String get uaImpactNone => '영향 없음';
+
+  @override
+  String get uaSecAcademic => '학업';
+
+  @override
+  String get uaSecLanguage => '어학';
+
+  @override
+  String get uaSecDocuments => '서류';
+
+  @override
+  String get uaSecTests => '평가 테스트';
+
+  @override
+  String get uaTestsCount => '결과가 확률에 반영';
+
+  @override
+  String get uaNo => '없음';
+
+  @override
+  String get uaHave => '있음';
+
+  @override
+  String get uaQDegree => '지원 과정';
+
+  @override
+  String get uaDegLanguage => '어학연수 (D-4)';
+
+  @override
+  String get uaDegBachelor => '학사';
+
+  @override
+  String get uaDegMaster => '석사';
+
+  @override
+  String get uaQGpa => '고교·대학 평균 성적';
+
+  @override
+  String get uaQGap => '졸업 후 경과 기간';
+
+  @override
+  String get uaGap0 => '0년';
+
+  @override
+  String get uaGap1 => '1년';
+
+  @override
+  String get uaGap2 => '2년';
+
+  @override
+  String get uaGap3 => '3년 이상';
+
+  @override
+  String get uaQExperience => '지원 전공 관련 경험';
+
+  @override
+  String get uaExpCourse => '강좌 / 동아리';
+
+  @override
+  String get uaExpProject => '프로젝트';
+
+  @override
+  String get uaExpWork => '실무 경력';
+
+  @override
+  String get uaQOlympiad => '올림피아드 / 대회 수상';
+
+  @override
+  String get uaOlSchool => '학교';
+
+  @override
+  String get uaOlNational => '전국';
+
+  @override
+  String get uaOlInternational => '국제';
+
+  @override
+  String get uaQTopik => 'TOPIK 급수';
+
+  @override
+  String get uaQTopikCert => 'TOPIK 성적표';
+
+  @override
+  String get uaCertOld => '2년 경과';
+
+  @override
+  String get uaCertFresh => '유효 (2년 이내)';
+
+  @override
+  String get uaQIelts => '영어 (IELTS)';
+
+  @override
+  String get uaQMotivation => '자기소개서';
+
+  @override
+  String get uaMotDraft => '초안';
+
+  @override
+  String get uaMotReady => '완성';
+
+  @override
+  String get uaQRecommendation => '추천서 (교사)';
+
+  @override
+  String get uaQPortfolio => '포트폴리오 (디자인·예술·프로젝트)';
+
+  @override
+  String get uaQActivity => '비교과 활동';
+
+  @override
+  String get uaActVolunteer => '봉사활동';
+
+  @override
+  String get uaActSportArt => '스포츠 / 예술';
+
+  @override
+  String get uaActLeader => '단체 리더';
+
+  @override
+  String get uaTestPlan => '학업계획서 테스트';
+
+  @override
+  String get uaTestTalk => '면접 테스트';
+
+  @override
+  String get uaTestStart => '시작';
+
+  @override
+  String get uaTestTaken => '응시 완료 · 1회만 가능';
+
+  @override
+  String get uaTestsNeedCode => '테스트는 고객 코드로 열립니다 — 상담사가 문자로 보내 드립니다';
+
+  @override
+  String get uaResultTitle => '나의 합격 가능성';
+
+  @override
+  String get uaAccuracyLow => '정확도: 낮음 — 아직 테스트 미응시';
+
+  @override
+  String get uaAccuracyMid => '정확도: 보통 — 테스트 1개 응시';
+
+  @override
+  String get uaAccuracyHigh => '정확도: 높음 — 테스트 2개 모두 응시';
+
+  @override
+  String get uaInterviewFailed =>
+      '면접 점수가 60점 미만입니다 — 실제 입학에서도 이 단계를 통과하기 어렵습니다.';
+
+  @override
+  String get uaWays => '올리는 방법';
+
+  @override
+  String get uaWayMotivation => '자기소개서를 완성하세요';
+
+  @override
+  String get uaWayRecommendation => '추천서를 받으세요';
+
+  @override
+  String get sptQ1 => '왜 이 대학교, 이 전공인가요?';
+
+  @override
+  String get sptQ2 => '한국에서 무엇을 어떻게 공부할 계획인가요?';
+
+  @override
+  String get sptQ3 => '졸업 후 무엇을 할 계획인가요?';
+
+  @override
+  String get sptHint => '한국어 또는 영어로 작성하세요';
+
+  @override
+  String get sptSubmit => '제출하기';
+
+  @override
+  String get sptChecking => 'AI가 평가 중입니다…';
+
+  @override
+  String get sptError => '평가하지 못했습니다. 인터넷을 확인하고 다시 제출하세요.';
+
+  @override
+  String get sptResultTitle => '학업계획서 점수';
+
+  @override
+  String get sptMotivation => '지원동기·전공 이해';
+
+  @override
+  String get sptPlan => '학업 계획';
+
+  @override
+  String get sptCareer => '졸업 후 진로';
+
+  @override
+  String get sptLanguage => '언어·문장력';
+
+  @override
+  String get sptStrengths => '강점';
+
+  @override
+  String get sptImprovements => '보완할 점';
+
+  @override
+  String get sptDone => '완료';
+
+  @override
+  String uaImpactUp(int n) {
+    return '합격 +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return '합격 −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return '$name · $questions문항 · $minutes분 · 1회';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'TOPIK $level급 취득';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return '$name 지원용 3개 질문에 답하세요. 제한 시간 $minutes분, 1회만 응시 가능하며 시간이 끝나면 작성한 내용이 제출됩니다.';
+  }
 }
