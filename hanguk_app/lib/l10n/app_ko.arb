@@ -1746,5 +1746,12 @@
   "taLanguage": "어학: TOPIK·IELTS",
   "taDocuments": "서류: 자기소개서·추천서·포트폴리오",
   "taTests": "테스트: 학업계획서·면접 — 각 1회",
-  "taResult": "결과: 확률과 올리는 방법"
+  "taResult": "결과: 확률과 올리는 방법",
+  "fdCodeBannerTitle": "이 메뉴는 Hanguk 학생 전용입니다",
+  "fdCodeBannerBody": "Hanguk 학생이 되어 모든 기능을 이용하세요: 준비, 내 지원, 서류 메뉴가 모두 열립니다.",
+  "fdCodeTelegram": "텔레그램으로 관리자에게 문의",
+  "fdCodeSmsFrom": "문자 · Hanguk",
+  "fdCodeYours": "고객 코드:",
+  "fdCodePaste": "입력 →",
+  "fdPrepareNeedsCode": "준비 메뉴는 Premium·No-Risk 고객 전용입니다. 코드가 있으면 입력하세요"
 }

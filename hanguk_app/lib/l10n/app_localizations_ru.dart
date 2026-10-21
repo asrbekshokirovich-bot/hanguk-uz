@@ -5448,4 +5448,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get taResult => 'Итог: процент и как его повысить';
+
+  @override
+  String get fdCodeBannerTitle => 'Этот раздел — для студентов Hanguk';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Станьте нашим студентом и пользуйтесь всем: Подготовка, Моя заявка и Документы откроются полностью.';
+
+  @override
+  String get fdCodeTelegram => 'Написать админу в Telegram';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Ваш код клиента:';
+
+  @override
+  String get fdCodePaste => 'вставить →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Подготовка — для клиентов Premium и No-Risk. Если есть код, введите его';
 }

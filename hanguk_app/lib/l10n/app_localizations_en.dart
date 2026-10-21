@@ -5446,4 +5446,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get taResult => 'The result: the % and ways to raise it';
+
+  @override
+  String get fdCodeBannerTitle => 'This section is for Hanguk students';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Become our student and use everything: Preparation, My application and Documents open in full.';
+
+  @override
+  String get fdCodeTelegram => 'Message the admin on Telegram';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Your client code:';
+
+  @override
+  String get fdCodePaste => 'use it →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Preparation is for Premium and No-Risk clients. Enter your code if you have one';
 }

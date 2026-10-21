@@ -5446,4 +5446,27 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get taResult => 'Natija: foiz va uni oshirish yo\'llari';
+
+  @override
+  String get fdCodeBannerTitle => 'Bu bo\'lim Hanguk ichki talabalari uchun';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Bizning talabamizga aylaning va barcha imkoniyatlardan foydalaning: Tayyorgarlik, Arizam va Hujjatlar bo\'limlari to\'liq ochiladi.';
+
+  @override
+  String get fdCodeTelegram => 'Telegramda admin bilan yozishish';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Mijoz kodingiz:';
+
+  @override
+  String get fdCodePaste => 'qo\'yish →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Tayyorgarlik — Premium va No-Risk mijozlar uchun. Kodingiz bo\'lsa kiriting';
 }

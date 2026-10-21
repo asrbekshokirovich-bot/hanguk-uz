@@ -1746,5 +1746,12 @@
   "taLanguage": "Til: TOPIK va IELTS",
   "taDocuments": "Hujjatlar: xat, tavsiyanoma, portfolio",
   "taTests": "Testlar: Study Plan va suhbat — bir marta",
-  "taResult": "Natija: foiz va uni oshirish yo'llari"
+  "taResult": "Natija: foiz va uni oshirish yo'llari",
+  "fdCodeBannerTitle": "Bu bo'lim Hanguk ichki talabalari uchun",
+  "fdCodeBannerBody": "Bizning talabamizga aylaning va barcha imkoniyatlardan foydalaning: Tayyorgarlik, Arizam va Hujjatlar bo'limlari to'liq ochiladi.",
+  "fdCodeTelegram": "Telegramda admin bilan yozishish",
+  "fdCodeSmsFrom": "SMS · Hanguk",
+  "fdCodeYours": "Mijoz kodingiz:",
+  "fdCodePaste": "qo'yish →",
+  "fdPrepareNeedsCode": "Tayyorgarlik — Premium va No-Risk mijozlar uchun. Kodingiz bo'lsa kiriting"
 }

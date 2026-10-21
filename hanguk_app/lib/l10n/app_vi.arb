@@ -1746,5 +1746,12 @@
   "taLanguage": "Ngôn ngữ: TOPIK và IELTS",
   "taDocuments": "Hồ sơ: thư, thư giới thiệu, portfolio",
   "taTests": "Bài kiểm tra: Study Plan và phỏng vấn — mỗi bài một lần",
-  "taResult": "Kết quả: tỷ lệ và cách tăng"
+  "taResult": "Kết quả: tỷ lệ và cách tăng",
+  "fdCodeBannerTitle": "Mục này dành cho học viên Hanguk",
+  "fdCodeBannerBody": "Trở thành học viên của chúng tôi để dùng mọi tính năng: Chuẩn bị, Hồ sơ của tôi và Giấy tờ sẽ mở đầy đủ.",
+  "fdCodeTelegram": "Nhắn admin qua Telegram",
+  "fdCodeSmsFrom": "SMS · Hanguk",
+  "fdCodeYours": "Mã khách hàng:",
+  "fdCodePaste": "dùng mã →",
+  "fdPrepareNeedsCode": "Chuẩn bị dành cho khách Premium và No-Risk. Có mã thì nhập vào"
 }

@@ -1746,5 +1746,12 @@
   "taLanguage": "Язык: TOPIK и IELTS",
   "taDocuments": "Документы: письмо, рекомендация, портфолио",
   "taTests": "Тесты: Study Plan и собеседование — по разу",
-  "taResult": "Итог: процент и как его повысить"
+  "taResult": "Итог: процент и как его повысить",
+  "fdCodeBannerTitle": "Этот раздел — для студентов Hanguk",
+  "fdCodeBannerBody": "Станьте нашим студентом и пользуйтесь всем: Подготовка, Моя заявка и Документы откроются полностью.",
+  "fdCodeTelegram": "Написать админу в Telegram",
+  "fdCodeSmsFrom": "SMS · Hanguk",
+  "fdCodeYours": "Ваш код клиента:",
+  "fdCodePaste": "вставить →",
+  "fdPrepareNeedsCode": "Подготовка — для клиентов Premium и No-Risk. Если есть код, введите его"
 }

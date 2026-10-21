@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +25,24 @@ class _FakeAuth extends Fake implements AuthRepository {
 
 void main() {
   late _FakeAuth auth;
+  final stored = <String, String>{};
+  setUp(() {
+    stored.clear();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+      (call) async {
+        final args = (call.arguments as Map?) ?? const {};
+        final key = args['key'] as String?;
+        switch (call.method) {
+          case 'read':
+            return stored[key];
+          case 'write':
+            stored[key!] = args['value'] as String;
+        }
+        return null;
+      },
+    );
+  });
 
   Future<void> pump(WidgetTester t) async {
     t.view.physicalSize = const Size(390 * 3, 844 * 3);
@@ -71,48 +90,69 @@ void main() {
     expect(t.widget<TextField>(find.byType(TextField)).focusNode!.hasFocus, isTrue);
   });
 
-  testWidgets('typing fills the cells in capitals, eight at most', (t) async {
+  testWidgets('typing fills the cells in capitals; the eighth signs in', (t) async {
     await pump(t);
-    expect(find.text('Kirish'), findsOneWidget);
     await t.enterText(find.byType(TextField), 'hg7k');
     await t.pump();
     for (final c in ['H', 'G', '7', 'K']) {
       expect(find.text(c), findsOneWidget);
     }
-    // The bars under the cells: one lime bar per character typed.
-    await t.pump(const Duration(milliseconds: 300));
-    final lime = find.byWidgetPredicate(
-      (w) => w is AnimatedContainer && (w.decoration as BoxDecoration?)?.color == const Color(0xFFCCFF00),
-    );
-    expect(lime, findsNWidgets(4));
+    expect(auth.codes, isEmpty);
     await t.enterText(find.byType(TextField), 'ab-cd efghij');
     await t.pump();
+    await t.pump();
     expect(tester(t).controller!.text, 'ABCDEFGH');
-  });
-
-  testWidgets('too short a code is refused without calling the server', (t) async {
-    await pump(t);
-    await t.enterText(find.byType(TextField), 'AB12');
-    await t.tap(find.text('Kirish'));
-    await t.pump();
-    expect(
-      find.text(AppLocalizations.of(t.element(find.byType(ClientCodeScreen)))!.loginErrorInvalidAccessCode),
-      findsOneWidget,
-    );
-    expect(auth.codes, isEmpty);
-  });
-
-  testWidgets('a full code is sent, and the server\'s answer is shown in words', (t) async {
-    await pump(t);
-    await t.enterText(find.byType(TextField), 'hg7k1234');
-    await t.tap(find.text('Kirish'));
-    await t.pump();
-    await t.pump();
-    expect(auth.codes, ['HG7K1234']);
+    expect(auth.codes, ['ABCDEFGH']);
     expect(
       find.text(AppLocalizations.of(t.element(find.byType(ClientCodeScreen)))!.authErrorCodeNotFound),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the first time: no SMS card and no keypad, the banner and Telegram', (t) async {
+    await pump(t);
+    final l = await AppLocalizations.delegate.load(const Locale('uz'));
+    expect(find.text(l.fdCodeBannerTitle), findsOneWidget);
+    expect(find.text(l.fdCodeTelegram), findsOneWidget);
+    expect(find.text(l.fdCodeSmsFrom), findsNothing);
+    expect(find.text(l.fdCodePaste), findsNothing);
+    expect(find.text('Kirish'), findsNothing);
+  });
+
+  testWidgets('once a code has worked: its SMS and its own keypad', (t) async {
+    stored['client_code_v1'] = 'HG7K2M9P';
+    await pump(t);
+    await t.pump();
+    final l = await AppLocalizations.delegate.load(const Locale('uz'));
+    expect(find.text(l.fdCodeSmsFrom), findsOneWidget);
+    expect(find.textContaining('HG7K2M9P', findRichText: true), findsOneWidget);
+    // The keypad: the code's characters and ⌫, nothing else.
+    for (final c in ['H', 'G', '7', 'K', '2', 'M', '9', 'P']) {
+      expect(find.bySemanticsLabel(c), findsOneWidget);
+    }
+    await t.tap(find.bySemanticsLabel('H'));
+    await t.tap(find.bySemanticsLabel('G'));
+    await t.pump();
+    expect(tester(t).controller!.text, 'HG');
+    await t.tap(
+      find.bySemanticsLabel(MaterialLocalizations.of(t.element(find.byType(ClientCodeScreen))).deleteButtonTooltip),
+    );
+    await t.pump();
+    expect(tester(t).controller!.text, 'H');
+    // "qo'yish →" puts the whole code in, and that signs in.
+    await t.tap(find.text(l.fdCodePaste));
+    await t.pump();
+    await t.pump();
+    expect(auth.codes, ['HG7K2M9P']);
+  });
+
+  testWidgets('a code that works is remembered', (t) async {
+    await pump(t);
+    auth.answer = null;
+    await t.enterText(find.byType(TextField), 'hg7k2m9p');
+    await t.pump();
+    await t.pump();
+    expect(stored['client_code_v1'], 'HG7K2M9P');
   });
 }
 

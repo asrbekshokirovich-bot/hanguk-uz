@@ -14,7 +14,7 @@ import '../../discover/presentation/discover_routes.dart';
 import '../../discover/presentation/widgets/app_nav.dart';
 import '../../discover/presentation/widgets/fd_bottom_nav.dart';
 import '../data/auth_repository.dart';
-import 'qr_scan_screen.dart';
+import '../data/remembered_code.dart';
 
 /// "Mijoz kodi bilan kirish" (design screen 14): the 8-character code the
 /// consultant gave, typed into eight cells. The sign-in itself is the same
@@ -46,6 +46,17 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   /// code: the way out is the guest home (App Review 2.1(a)).
   bool _offerGuest = false;
 
+  /// The code that worked on this phone before; null the first time.
+  String? _remembered;
+
+  @override
+  void initState() {
+    super.initState();
+    RememberedCode.read().then((code) {
+      if (mounted && code != null) setState(() => _remembered = code);
+    });
+  }
+
   @override
   void dispose() {
     _ctrl.dispose();
@@ -63,6 +74,12 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     }
   }
 
+  /// The eighth character signs in: there is no button (owner, 2026-10-21).
+  void _changed() {
+    setState(() => _error = null);
+    if (_code.length == ClientCodeScreen.length) _submit();
+  }
+
   Future<void> _submit() async {
     final l = AppLocalizations.of(context)!;
     if (_loading) return;
@@ -70,6 +87,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
       setState(() => _error = l.loginErrorInvalidAccessCode);
       return;
     }
+    final code = _code;
     setState(() {
       _error = null;
       _offerGuest = false;
@@ -79,12 +97,13 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     final result = await ref
         .read(authRepositoryProvider)
         .signInWithMagicCode(
-          _code,
+          code,
           onRetry: (attempt, total) {
             if (!mounted) return;
             setState(() => _retryNotice = '${AppLocalizations.of(context)!.connecting} ($attempt/$total)');
           },
         );
+    if (result.error == null) await RememberedCode.save(code);
     // The await lasts up to 34 seconds; the router may have moved on.
     if (!mounted) return;
     setState(() {
@@ -98,30 +117,35 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     }
   }
 
-  /// "QR kodni skanerlash": the code from the consultant's QR, signed in
-  /// with as if typed.
-  Future<void> _scan() async {
+  /// A key of the code's own keypad: a character, or ⌫ when null.
+  void _key(String? char) {
     if (_loading) return;
-    final code = await QrScanScreen.open(context);
-    AppEvents.track('qr_scan', props: {'result': code == null ? 'closed' : 'code'});
-    if (code == null || !mounted) return;
-    _ctrl.text = code;
-    setState(() => _error = null);
-    await _submit();
+    final t = _code;
+    if (char == null) {
+      if (t.isNotEmpty) _ctrl.text = t.substring(0, t.length - 1);
+    } else if (t.length < ClientCodeScreen.length) {
+      _ctrl.text = t + char;
+    }
+    _changed();
   }
 
-  Future<void> _call() async {
-    AppEvents.track('contact_tap', screen: 'client_code', props: {'channel': 'phone'});
-    await launchUrl(ContactLinks.phoneUri, mode: LaunchMode.externalApplication);
+  /// "qo'yish →": the remembered code, all at once.
+  void _paste() {
+    if (_loading || _remembered == null) return;
+    _ctrl.text = _remembered!;
+    _changed();
+  }
+
+  Future<void> _telegram() async {
+    AppEvents.track('contact_tap', screen: 'client_code', props: {'channel': 'telegram'});
+    await launchUrl(ContactLinks.telegramDirectUri, mode: LaunchMode.externalApplication);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final message = _error ?? _retryNotice ?? widget.notice;
-    final eight = l.fdCodeEight;
-    final sms = l.fdCodeSms(eight);
-    final at = sms.indexOf(eight);
+    final remembered = _remembered;
 
     // The home's nav, as on every page; it steps aside for the keyboard.
     final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
@@ -142,96 +166,55 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                 children: [
                   Row(
                     children: [
-                      Semantics(
-                        button: true,
-                        label: MaterialLocalizations.of(context).backButtonTooltip,
-                        excludeSemantics: true,
-                        child: GestureDetector(
-                          onTap: _back,
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: FdColors.card,
-                              borderRadius: BorderRadius.circular(13),
-                              border: Border.all(color: FdColors.ink, width: 1.5),
-                            ),
-                            child: const Icon(Icons.arrow_back, size: 22, color: FdColors.ink),
-                          ),
-                        ),
+                      HardIconButton(
+                        glyph: LucideIcons.chevronLeft,
+                        semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+                        onTap: _back,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           l.fdCodeTitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: fdText(26, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.6),
+                          style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.36),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  // "Konsultant SMS da yuborgan **8 belgili** kod".
-                  Text.rich(
-                    TextSpan(
-                      style: fdText(14, FontWeight.w400, FdColors.pageMuted, height: 1.4),
-                      children: at < 0
-                          ? [TextSpan(text: sms)]
-                          : [
-                              TextSpan(text: sms.substring(0, at)),
-                              TextSpan(text: eight, style: fdText(14, FontWeight.w800, FdColors.onPage, height: 1.4)),
-                              TextSpan(text: sms.substring(at + eight.length)),
-                            ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
+                  _Banner(onTelegram: _telegram),
+                  const SizedBox(height: 18),
+                  Text(l.fdCodeSms(l.fdCodeEight), style: fdText(12, FontWeight.w500, FdColors.pageMuted, height: 1.4)),
+                  const SizedBox(height: 12),
                   _Cells(
                     controller: _ctrl,
                     focus: _focus,
                     enabled: !_loading,
-                    onChanged: () => setState(() => _error = null),
+                    // With the code's own keypad below, the phone's stays
+                    // down.
+                    systemKeyboard: remembered == null,
+                    onChanged: _changed,
                     onSubmitted: _submit,
                     semanticLabel: l.magicCodeTitle,
                     cellLabel: l.fdCodeCell,
                   ),
-                  const SizedBox(height: 14),
-                  ValueListenableBuilder<TextEditingValue>(
-                    valueListenable: _ctrl,
-                    builder: (context, value, _) => _Progress(filled: value.text.length),
-                  ),
-                  if (message != null) ...[
+                  if (remembered != null) ...[
                     const SizedBox(height: 14),
-                    Semantics(
-                      liveRegion: true,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _error != null ? const Color(0xFFFDECEC) : FdColors.tint,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: FdColors.ink, width: 1.5),
-                        ),
-                        child: Text(
-                          message,
-                          style: fdText(
-                            12,
-                            FontWeight.w700,
-                            _error != null ? FdColors.bad : FdColors.ink,
-                            height: 1.35,
-                          ),
-                        ),
+                    _SmsCard(code: remembered, onPaste: _paste),
+                    const SizedBox(height: 12),
+                    _Keypad(code: remembered, onKey: _key),
+                  ],
+                  if (_loading) ...[
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: SizedBox.square(
+                        dimension: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: FdColors.lime),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 20),
-                  HardButton(
-                    label: l.fdCodeSubmit,
-                    onPressed: _submit,
-                    loading: _loading,
-                    trailing: const Icon(Icons.arrow_forward, size: 18, color: FdColors.onLime),
-                  ),
+                  if (message != null) ...[const SizedBox(height: 14), _Note(text: message, error: _error != null)],
                   if (_offerGuest) ...[
                     const SizedBox(height: 12),
                     HardChoice(
@@ -241,84 +224,6 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                       onTap: () => context.go(kDiscoverPath),
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  Text(
-                    l.fdCodeUnlocks.toUpperCase(),
-                    style: fdText(11, FontWeight.w800, FdColors.pageMuted, letterSpacing: 0.8),
-                  ),
-                  const SizedBox(height: 10),
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: _Unlock(
-                            icon: const Lucide(LucideIcons.clipboardList, size: 18, color: FdColors.onLime),
-                            label: l.fdJourneyTitle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _Unlock(
-                            icon: const Lucide(LucideIcons.fileText, size: 18, color: FdColors.onLime),
-                            label: l.fdDocsTitle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _Unlock(
-                            icon: const Icon(Icons.chat_bubble_outline, size: 18, color: FdColors.onLime),
-                            label: l.fdCodeChat,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _WhiteButton(
-                          icon: const Lucide(LucideIcons.qrCode, size: 16, color: FdColors.ink),
-                          label: l.fdCodeScanShort,
-                          onTap: _loading ? null : _scan,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _WhiteButton(
-                          icon: const Lucide(LucideIcons.phone, size: 16, color: FdColors.ink),
-                          label: l.fdCodeNone,
-                          onTap: _call,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Center(
-                    child: Semantics(
-                      button: true,
-                      child: GestureDetector(
-                        onTap: _call,
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                          child: Text.rich(
-                            TextSpan(
-                              style: fdText(12, FontWeight.w500, FdColors.pageMuted),
-                              children: [
-                                TextSpan(text: '${l.fdCodeFreeConsult} · '),
-                                TextSpan(
-                                  text: ContactLinks.phoneDisplay,
-                                  style: fdText(12, FontWeight.w800, FdColors.lime),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -329,118 +234,229 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   }
 }
 
-/// Eight short bars under the cells: lime for each character typed.
-class _Progress extends StatelessWidget {
-  const _Progress({required this.filled});
+/// "Bu bo'lim Hanguk ichki talabalari uchun": blue on a lime shadow, the
+/// lock, what the code opens, and the way to the admin on Telegram.
+class _Banner extends StatelessWidget {
+  const _Banner({required this.onTelegram});
 
-  final int filled;
+  final VoidCallback onTelegram;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      for (var i = 0; i < ClientCodeScreen.length; i++) ...[
-        if (i > 0) const SizedBox(width: 6),
-        Expanded(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            height: 4,
-            decoration: BoxDecoration(
-              color: i < filled ? FdColors.lime : Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      margin: const EdgeInsets.only(right: 5, bottom: 5),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: FdColors.ink, width: 1.5),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [FdColors.blue, FdColors.blueDeep],
         ),
-      ],
-    ],
-  );
+        boxShadow: const [BoxShadow(color: FdColors.lime, offset: Offset(5, 5))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: FdColors.lime,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: FdColors.ink, width: 1.5),
+                ),
+                child: const Icon(Icons.lock_outline, size: 18, color: FdColors.onLime),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(l.fdCodeBannerTitle, style: fdText(15, FontWeight.w800, FdColors.onPage, height: 1.2)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(l.fdCodeBannerBody, style: fdText(12, FontWeight.w500, const Color(0xFFC9D3F5), height: 1.45)),
+          const SizedBox(height: 12),
+          HardButton(
+            label: l.fdCodeTelegram,
+            onPressed: onTelegram,
+            leading: const Lucide(LucideIcons.send, size: 16, color: FdColors.onLime),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-/// One of "Kod bilan ochiladi": a lime icon tile over its name, on the
-/// page's translucent card.
-class _Unlock extends StatelessWidget {
-  const _Unlock({required this.icon, required this.label});
+/// The consultant's SMS as it would read: "SMS · Hanguk", the code, and
+/// "qo'yish →" to put it in.
+class _SmsCard extends StatelessWidget {
+  const _SmsCard({required this.code, required this.onPaste});
 
-  final Widget icon;
-  final String label;
+  final String code;
+  final VoidCallback onPaste;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(6, 14, 6, 12),
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.06),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.16), width: 1.2),
-    ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onPaste,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
           decoration: BoxDecoration(
-            color: FdColors.lime,
-            borderRadius: BorderRadius.circular(10),
+            color: FdColors.card,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: FdColors.ink, width: 1.5),
           ),
-          child: icon,
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: FdColors.tint, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.chat_bubble_outline, size: 18, color: FdColors.navy),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l.fdCodeSmsFrom, style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.2)),
+                    const SizedBox(height: 2),
+                    Text.rich(
+                      TextSpan(
+                        style: fdText(12, FontWeight.w500, FdColors.muted, height: 1.3),
+                        children: [
+                          TextSpan(text: '${l.fdCodeYours} '),
+                          TextSpan(
+                            text: code,
+                            style: const TextStyle(
+                              fontFamily: 'JetBrainsMono',
+                              fontWeight: FontWeight.w600,
+                              color: FdColors.ink,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(l.fdCodePaste, style: fdText(12, FontWeight.w800, FdColors.blue)),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: fdText(12, FontWeight.w800, FdColors.onPage, height: 1.2),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
-/// The white "QR skanerlash" / "Kod yo'q" buttons.
-class _WhiteButton extends StatelessWidget {
-  const _WhiteButton({required this.icon, required this.label, required this.onTap});
+/// The keypad of the code's own characters, three to a row, and ⌫.
+class _Keypad extends StatelessWidget {
+  const _Keypad({required this.code, required this.onKey});
 
-  final Widget icon;
-  final String label;
-  final VoidCallback? onTap;
+  final String code;
+  final ValueChanged<String?> onKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final keys = <String?>[
+      ...{for (final c in code.split('')) c},
+      null,
+    ];
+    final rows = <List<String?>>[
+      for (var i = 0; i < keys.length; i += 3) keys.sublist(i, (i + 3).clamp(0, keys.length)),
+    ];
+    return Column(
+      children: [
+        for (final row in rows) ...[
+          if (row != rows.first) const SizedBox(height: 8),
+          Row(
+            children: [
+              for (var i = 0; i < 3; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: i < row.length ? _Key(char: row[i], onTap: () => onKey(row[i])) : const SizedBox(height: 44),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _Key extends StatelessWidget {
+  const _Key({required this.char, required this.onTap});
+
+  final String? char;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    enabled: onTap != null,
+    label: char ?? MaterialLocalizations.of(context).deleteButtonTooltip,
+    excludeSemantics: true,
     child: GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 46,
+        height: 44,
+        margin: const EdgeInsets.only(right: 2, bottom: 2),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: FdColors.card,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: FdColors.ink, width: 1.5),
+          boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(2, 2))],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: fdText(13, FontWeight.w800, FdColors.ink),
-              ),
-            ),
-          ],
-        ),
+        child: char == null
+            ? const Icon(Icons.backspace_outlined, size: 18, color: FdColors.ink)
+            : Text(char!, style: fdText(16, FontWeight.w800, FdColors.ink, height: 1)),
       ),
     ),
   );
 }
 
-/// Keeps letters and digits only, capitals, at most [ClientCodeScreen.length].
+/// What the page has to say — the reason it was opened, a wrong code, a
+/// retry — on the dark note with a lime edge.
+class _Note extends StatelessWidget {
+  const _Note({required this.text, required this.error});
+
+  final String text;
+  final bool error;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: FdColors.blueNight,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: error ? FdColors.bad : FdColors.lime, width: 1.5),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: fdText(13, FontWeight.w800, error ? const Color(0xFFFFB4B4) : FdColors.onPage, height: 1.35),
+      ),
+    ),
+  );
+}
+
 class _CodeFormatter extends TextInputFormatter {
   const _CodeFormatter();
 
@@ -464,6 +480,7 @@ class _Cells extends StatefulWidget {
     required this.controller,
     required this.focus,
     required this.enabled,
+    required this.systemKeyboard,
     required this.onChanged,
     required this.onSubmitted,
     required this.semanticLabel,
@@ -473,6 +490,7 @@ class _Cells extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focus;
   final bool enabled;
+  final bool systemKeyboard;
   final VoidCallback onChanged;
   final VoidCallback onSubmitted;
   final String semanticLabel;
@@ -547,7 +565,7 @@ class _CellsState extends State<_Cells> with SingleTickerProviderStateMixin {
                 autocorrect: false,
                 enableSuggestions: false,
                 textCapitalization: TextCapitalization.characters,
-                keyboardType: TextInputType.visiblePassword,
+                keyboardType: widget.systemKeyboard ? TextInputType.visiblePassword : TextInputType.none,
                 autofillHints: const [AutofillHints.oneTimeCode],
                 inputFormatters: const [_CodeFormatter()],
                 maxLength: ClientCodeScreen.length,

@@ -6786,5 +6786,12 @@
   "taLanguage": "Language: TOPIK and IELTS",
   "taDocuments": "Documents: letter, recommendation, portfolio",
   "taTests": "Tests: Study Plan and interview — once each",
-  "taResult": "The result: the % and ways to raise it"
+  "taResult": "The result: the % and ways to raise it",
+  "fdCodeBannerTitle": "This section is for Hanguk students",
+  "fdCodeBannerBody": "Become our student and use everything: Preparation, My application and Documents open in full.",
+  "fdCodeTelegram": "Message the admin on Telegram",
+  "fdCodeSmsFrom": "SMS · Hanguk",
+  "fdCodeYours": "Your client code:",
+  "fdCodePaste": "use it →",
+  "fdPrepareNeedsCode": "Preparation is for Premium and No-Risk clients. Enter your code if you have one"
 }

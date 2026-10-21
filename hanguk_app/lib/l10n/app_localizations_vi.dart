@@ -5420,4 +5420,27 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get taResult => 'Kết quả: tỷ lệ và cách tăng';
+
+  @override
+  String get fdCodeBannerTitle => 'Mục này dành cho học viên Hanguk';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Trở thành học viên của chúng tôi để dùng mọi tính năng: Chuẩn bị, Hồ sơ của tôi và Giấy tờ sẽ mở đầy đủ.';
+
+  @override
+  String get fdCodeTelegram => 'Nhắn admin qua Telegram';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Mã khách hàng:';
+
+  @override
+  String get fdCodePaste => 'dùng mã →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Chuẩn bị dành cho khách Premium và No-Risk. Có mã thì nhập vào';
 }

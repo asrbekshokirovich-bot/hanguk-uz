@@ -20,7 +20,8 @@ class PrepareScreen extends StatelessWidget {
 
   final bool signedIn;
 
-  void _signIn(BuildContext context) => context.push('/login', extra: const {'magic_code': true});
+  void _signIn(BuildContext context) =>
+      context.push('/login', extra: {'magic_code': true, 'notice': AppLocalizations.of(context)!.fdPrepareNeedsCode});
 
   void _push(BuildContext context, Widget screen, String name) =>
       Navigator.of(context).push(

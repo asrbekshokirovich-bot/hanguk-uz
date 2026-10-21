@@ -9787,6 +9787,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The result: the % and ways to raise it'**
   String get taResult;
+
+  /// No description provided for @fdCodeBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This section is for Hanguk students'**
+  String get fdCodeBannerTitle;
+
+  /// No description provided for @fdCodeBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Become our student and use everything: Preparation, My application and Documents open in full.'**
+  String get fdCodeBannerBody;
+
+  /// No description provided for @fdCodeTelegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the admin on Telegram'**
+  String get fdCodeTelegram;
+
+  /// No description provided for @fdCodeSmsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS · Hanguk'**
+  String get fdCodeSmsFrom;
+
+  /// No description provided for @fdCodeYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your client code:'**
+  String get fdCodeYours;
+
+  /// No description provided for @fdCodePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'use it →'**
+  String get fdCodePaste;
+
+  /// No description provided for @fdPrepareNeedsCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation is for Premium and No-Risk clients. Enter your code if you have one'**
+  String get fdPrepareNeedsCode;
 }
 
 class _AppLocalizationsDelegate

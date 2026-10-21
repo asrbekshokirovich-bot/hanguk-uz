@@ -5254,4 +5254,27 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get taResult => '결과: 확률과 올리는 방법';
+
+  @override
+  String get fdCodeBannerTitle => '이 메뉴는 Hanguk 학생 전용입니다';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Hanguk 학생이 되어 모든 기능을 이용하세요: 준비, 내 지원, 서류 메뉴가 모두 열립니다.';
+
+  @override
+  String get fdCodeTelegram => '텔레그램으로 관리자에게 문의';
+
+  @override
+  String get fdCodeSmsFrom => '문자 · Hanguk';
+
+  @override
+  String get fdCodeYours => '고객 코드:';
+
+  @override
+  String get fdCodePaste => '입력 →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      '준비 메뉴는 Premium·No-Risk 고객 전용입니다. 코드가 있으면 입력하세요';
 }
