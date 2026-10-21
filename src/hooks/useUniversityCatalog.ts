@@ -3,8 +3,8 @@
  *
  * Katalog kartasi uchun kerak bo'lgani (shahar, kontrakt oralig'i, TOPIK/IELTS)
  * university_guidelines qatoridayoq hisoblangan holda turadi, shuning uchun
- * ro'yxat ikkita yengil so'rov bilan yig'iladi. Fakultetlar, muddatlar va
- * hujjatlar faqat universitet ochilganda tortiladi.
+ * ro'yxat ikkita yengil so'rov bilan yig'iladi. Fakultetlar, muddatlar,
+ * hujjatlar va grantlar faqat universitet ochilganda tortiladi.
  *
  * Yangi jadvallar hali `supabase gen types` ga tushmagan — quyidagi `db`
  * yordamchisi orqali tipsiz o'qiladi.
@@ -17,10 +17,8 @@ import type { GuidelinePayload } from '@/lib/universityGuidelineExcel';
 import {
   EMPTY_EXTRAS,
   groupFaculties,
-  summarizeGrants,
   type CatalogExtras,
   type FacultyName,
-  type ScholarshipRow,
 } from '@/components/crm/pages/university-catalog/sorting';
 
 interface PostgrestLikeResult {
@@ -64,6 +62,15 @@ export interface CatalogInstitution {
   hidden_levels?: string[] | null;
 }
 
+/**
+ * Guideline'dagi TOPIK / IELTS granti (university_guidelines.grant_holat):
+ * kirishda — kirishda til darajasiga qarab grant bor; oqish_davomida — faqat
+ * o'qish davomida; aniq_emas — tilga oid grant bor, lekin TOPIK/IELTS jadvali
+ * yo'q; tilga_bogliq_emas — grantlar bor, lekin tilga bog'liq emas;
+ * malumot_yoq — guideline'da grant haqida ma'lumot yo'q.
+ */
+export type GrantHolat = 'kirishda' | 'oqish_davomida' | 'aniq_emas' | 'tilga_bogliq_emas' | 'malumot_yoq';
+
 /** Katalog kartasi uchun yetarli bo'lgan guideline xulosasi. */
 export interface GuidelineSummary {
   id: string;
@@ -90,6 +97,11 @@ export interface GuidelineSummary {
   fakultet_soni: number;
   fayl_nomi: string | null;
   updated_at: string;
+  /** Grant hali o'rganilmagan guideline'da — null. */
+  grant_holat?: GrantHolat | null;
+  /** Kirishdagi TOPIK/IELTS grantining kontraktdan eng kichik va eng katta foizi. */
+  grant_min?: number | null;
+  grant_max?: number | null;
 }
 
 export interface CatalogEntry {
@@ -103,7 +115,7 @@ const SUMMARY_COLUMNS =
   'id, guideline_id, institution_id, univ_kod, univ_nomi_en, univ_nomi_kr, kampus, shahar,' +
   ' qabul_yili, semestr, daraja, english_track, korean_track, topik_min, ielts_min,' +
   ' toefl_ibt_min, narx_valyuta, kirish_tolovi, kontrakt_min, kontrakt_max, kontrakt_davri,' +
-  ' fakultet_soni,' +
+  ' fakultet_soni, grant_holat, grant_min, grant_max,' +
   ' fayl_nomi, updated_at';
 
 /** Yil ichida qabullar shu tartibda: bahor, yoz, kuz, qish (yoz va qish — til kursi termlari). */
@@ -174,7 +186,7 @@ export function useUniversityCatalog() {
 }
 
 // ---------------------------------------------------------------------------
-// Saralash paneli uchun: fakultet nomlari va grantlar
+// Saralash paneli uchun: fakultet nomlari
 // ---------------------------------------------------------------------------
 
 /** PostgREST bir so'rovda ko'pi bilan 1000 qator beradi — fakultetlar sahifalab o'qiladi. */
@@ -183,7 +195,8 @@ const FACULTY_PAGE = 1000;
 /**
  * Operator / admin saralash paneli uchun qo'shimcha ma'lumot: barcha
  * fakultetlarning nomi va narxi (yo'nalish qidiruvi, yo'nalish narxi bo'yicha
- * saralash) va scholarships'dan grant xulosasi. Panel ko'rinmaydigan rolda
+ * saralash). Grant bo'yicha filtr va saralash guideline xulosasidan
+ * (grant_holat, grant_max) hisoblanadi. Panel ko'rinmaydigan rolda
  * (`enabled = false`) umuman yuklanmaydi.
  */
 export function useCatalogExtras(enabled: boolean) {
@@ -207,28 +220,15 @@ export function useCatalogExtras(enabled: boolean) {
     },
   });
 
-  const grantsQuery = useQuery<ScholarshipRow[], Error>({
-    queryKey: [...CATALOG_KEY, 'grants'],
-    enabled,
-    queryFn: async () => {
-      const { data, error } = await db.from('scholarships').select('institution_id, award_type, award_value');
-      if (error) throw new Error(error.message);
-      return (data ?? []) as ScholarshipRow[];
-    },
-  });
-
   const extras = useMemo<CatalogExtras>(() => {
-    if (!facultiesQuery.data && !grantsQuery.data) return EMPTY_EXTRAS;
-    return {
-      faculties: groupFaculties(facultiesQuery.data ?? []),
-      grants: summarizeGrants(grantsQuery.data ?? []),
-    };
-  }, [facultiesQuery.data, grantsQuery.data]);
+    if (!facultiesQuery.data) return EMPTY_EXTRAS;
+    return { faculties: groupFaculties(facultiesQuery.data) };
+  }, [facultiesQuery.data]);
 
   return {
     extras,
-    loading: enabled && (facultiesQuery.isLoading || grantsQuery.isLoading),
-    error: facultiesQuery.error ?? grantsQuery.error ?? null,
+    loading: enabled && facultiesQuery.isLoading,
+    error: facultiesQuery.error ?? null,
   };
 }
 
@@ -286,6 +286,38 @@ export interface GuidelineDoc {
   sahifa: string | null;
 }
 
+/** Bitta grant qoidasi — jadvaldagi bitta daraja (masalan, "TOPIK 5급 이상 → 100%"). */
+export interface GuidelineGrant {
+  id: string;
+  tartib: number;
+  /** Yangi qabul va o'qiyotganlarga birga tegishli grant ham 'kirishda'. */
+  qachon: 'kirishda' | 'oqish_davomida';
+  nomi: string | null;
+  kimlar_uchun: string | null;
+  /** TOPIK | IELTS | TOPIK yoki IELTS | TOPIK va IELTS | IELTS yoki TOEFL | boshqa ... */
+  mezon: string | null;
+  /** Hujjatdagidek: "TOPIK 5급 이상", "IELTS 6.5 or above". */
+  talab: string | null;
+  topik_min: number | null;
+  topik_max: number | null;
+  ielts_min: number | null;
+  toefl_ibt_min: number | null;
+  boshqa_test: string | null;
+  grant_foiz: number | null;
+  /** Foiz nimadan: "kontrakt (수업료)", "kirish to'lovi (입학금)" ... */
+  grant_asosi: string | null;
+  grant_summa: number | null;
+  grant_qoshimcha: string | null;
+  muddat: string | null;
+  davom_shart: string | null;
+  kampus: string | null;
+  sahifa: string | null;
+  /** Guideline'dagi asl matn. */
+  iqtibos: string | null;
+  /** Bir nechta faylli guideline'da — qoida qaysi fayldan. */
+  manba: string | null;
+}
+
 /** universitet varag'ining barcha ustunlari + xulosa. */
 export type GuidelineFull = GuidelineSummary & Record<string, unknown>;
 
@@ -294,6 +326,7 @@ export interface GuidelineDetail {
   rounds: GuidelineRound[];
   faculties: GuidelineFaculty[];
   docs: GuidelineDoc[];
+  grants: GuidelineGrant[];
 }
 
 export function useGuidelineDetail(guidelineUuid: string | null) {
@@ -303,7 +336,7 @@ export function useGuidelineDetail(guidelineUuid: string | null) {
     queryFn: async () => {
       const id = guidelineUuid as string;
 
-      const [guideline, rounds, faculties, docs] = await Promise.all([
+      const [guideline, rounds, faculties, docs, grants] = await Promise.all([
         db.from('university_guidelines').select('*').eq('id', id).maybeSingle(),
         db
           .from('university_guideline_rounds')
@@ -317,9 +350,10 @@ export function useGuidelineDetail(guidelineUuid: string | null) {
           .eq('guideline_uuid', id)
           .order('tartib'),
         db.from('university_guideline_docs').select('*').eq('guideline_uuid', id).order('tartib'),
+        db.from('university_guideline_grants').select('*').eq('guideline_uuid', id).order('tartib'),
       ]);
 
-      const failure = guideline.error ?? rounds.error ?? faculties.error ?? docs.error;
+      const failure = guideline.error ?? rounds.error ?? faculties.error ?? docs.error ?? grants.error;
       if (failure) throw new Error(failure.message);
       if (!guideline.data) return null;
 
@@ -328,6 +362,7 @@ export function useGuidelineDetail(guidelineUuid: string | null) {
         rounds: (rounds.data ?? []) as unknown as GuidelineRound[],
         faculties: (faculties.data ?? []) as unknown as GuidelineFaculty[],
         docs: (docs.data ?? []) as unknown as GuidelineDoc[],
+        grants: (grants.data ?? []) as unknown as GuidelineGrant[],
       };
     },
   });

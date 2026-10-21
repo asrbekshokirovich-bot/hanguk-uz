@@ -20,12 +20,56 @@ yuklanmagan" deb yoziladi.
 - Shahri
 - Qabul: yil · semestr · daraja
 - TOPIK / IELTS / TOEFL talabi
+- Grant: kirishdagi TOPIK / IELTS grantining foizlar oralig'i ("Grant: 30–100%")
 - Kontrakt narxi oralig'i (eng arzon–eng qimmat fakultet) va davri
 - Fakultetlar soni
 
 Universitet ustiga bosilganda o'ng tomondan panel ochiladi: **Umumiy**,
-**Muddatlar**, **Fakultetlar** (EN + 한국어, qidiruv va track filtri bilan),
-**Hujjatlar**.
+**Grantlar**, **Muddatlar**, **Fakultetlar** (EN + 한국어, qidiruv va track
+filtri bilan), **Hujjatlar**.
+
+## Grantlar
+
+2027 qabul guideline'larining stipendiya bo'limlari o'qib chiqilgan va ikki
+marta tekshirilgan (2026-10-20): qaysi TOPIK / IELTS (TOEFL, TEPS, til kursi
+...) darajasiga necha foiz grant beriladi. Har bir daraja — alohida qator:
+talab, grant (foiz yoki summa va nimadan — kontrakt, kirish to'lovi ...),
+muddati, davom etish sharti, guideline sahifasi va asl matn.
+
+**Grantlar** yorlig'ida: tepada xulosa, keyin **Kirishda** (kimlar uchun —
+yangi qabul, transfer, Korean / English track — bo'yicha guruhlangan) va
+**O'qish davomida** grantlari, tilga bog'liq bo'lmagan boshqa grantlar, izoh
+va manba.
+
+Grant holati (`grant_holat`):
+
+| Qiymat | Ma'nosi | Kartada |
+| --- | --- | --- |
+| `kirishda` | Kirishda TOPIK / IELTS darajasiga qarab grant bor | Grant: 30–100% |
+| `oqish_davomida` | Til granti faqat o'qish davomida | Grant: o'qish davomida |
+| `aniq_emas` | Tilga oid grant bor, lekin TOPIK / IELTS jadvali yo'q | Grant bor |
+| `tilga_bogliq_emas` | Grantlar bor, lekin tilga bog'liq emas | Grant bor |
+| `malumot_yoq` | Guideline'da grant haqida ma'lumot yo'q | — |
+
+Kartadagi oraliqqa faqat kontraktdan foizlar kiradi; kontraktning bir qismiga
+(수업료1/2) tegishli yoki qat'iy summali darajalar kirmaydi — bitta foiz
+qolsa "100% gacha" deb yoziladi. Saralash panelidagi **Granti borlar** va
+**Granti kattasi birinchi** ham shu ma'lumotga qaraydi (tanlangan daraja
+bo'yicha).
+
+Ma'lumot `supabase/data/university_grants_2027.json` faylida. Yangilash:
+faylni o'zgartirib push qilish, keyin bazada (SQL editor yoki service role):
+
+```sql
+-- 1) faylni yuklab olish (<commit> — fayl o'zgargan commit)
+select net.http_get('https://raw.githubusercontent.com/asrbekshokirovich-bot/hanguk-uz/<commit>/supabase/data/university_grants_2027.json');
+-- 2) javob kelgach (bir necha soniya), qaytgan id bilan
+select public.load_university_guideline_grants(content::jsonb)
+from net._http_response where id = <id>;
+```
+
+Excel qayta yuklanganda grantlar o'chmaydi — guideline qatori o'sha id bilan
+yangilanadi.
 
 ## Darajalar
 
@@ -112,13 +156,15 @@ butunlay almashtiriladi.
 
 Migratsiya: `supabase/migrations/20260921090000_university_catalog.sql`
 (keyin: `..._university_guidelines_kasbiy.sql` — `kasbiy` darajasi,
-`..._university_guidelines_til_kursi.sql` — `yoz` va `qish` semestrlari)
+`..._university_guidelines_til_kursi.sql` — `yoz` va `qish` semestrlari,
+`..._university_guideline_grants.sql` — grantlar)
 
 ```
-university_guidelines            -- universitet varag'i (+ katalog uchun xulosa)
+university_guidelines            -- universitet varag'i (+ katalog uchun xulosa, grant_* ustunlari)
   university_guideline_rounds    -- muddatlar
   university_guideline_faculties -- fakultetlar
   university_guideline_docs      -- hujjatlar
+  university_guideline_grants    -- TOPIK / IELTS grantlari (har bir daraja — qator)
 ```
 
 Katalog kartasi uchun kerak bo'lgan `kontrakt_min`, `kontrakt_max`,
@@ -138,7 +184,8 @@ tortiladi.
 
 O'qish `is_non_investor_staff()`, yozish `can_edit_university_catalog()`
 funksiyasi orqali hal qilinadi — yozish qoidasi o'zgarsa, faqat o'sha
-funksiyani tahrirlash kifoya, 4 ta siyosat va RPC uni ishlatadi. Import
+funksiyani tahrirlash kifoya, katalog jadvallarining yozish siyosatlari va RPC
+uni ishlatadi. Import
 `import_university_guideline(payload)` RPC'si orqali ketadi va rolni o'zi ham
 tekshiradi. Yangi funksiyalar `anon` rolidan yopilgan — tizimga kirmagan
 foydalanuvchi ularni chaqira olmaydi.
@@ -154,7 +201,7 @@ Interfeysda ham shu qoida: yuklash va "Universitet qo'shish" tugmalari
 | `src/lib/universityGuidelineExcel.ts` | Shablon qoidalari, tekshirish, RPC uchun JSON |
 | `src/hooks/useUniversityCatalog.ts` | Katalog, detal, import va universitet qo'shish |
 | `src/components/crm/pages/UniversityCatalogContent.tsx` | Bo'limning o'zi |
-| `src/components/crm/pages/university-catalog/` | Karta, detal paneli, formatlash |
+| `src/components/crm/pages/university-catalog/` | Karta, detal paneli, formatlash, grantlar (`grants.ts`) |
 
 > `/crm/admin/institutions` — bu boshqa sahifa: uni_db bazasini boshqarish
 > (hamkor/xarita bayroqlari, guideline PDF yuklash). Xodimlar ishlatadigan

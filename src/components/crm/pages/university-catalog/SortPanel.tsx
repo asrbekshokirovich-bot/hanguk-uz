@@ -23,7 +23,7 @@ interface Props {
   sort: SortKey;
   onSortChange: (next: SortKey) => void;
   cities: string[];
-  /** Fakultet nomlari va grantlar hali yuklanmoqda. */
+  /** Fakultet nomlari hali yuklanmoqda. */
   extrasLoading: boolean;
 }
 

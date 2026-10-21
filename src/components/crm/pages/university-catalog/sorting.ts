@@ -3,13 +3,15 @@
  * TOPIK / IELTS darajasi, shahar, o'qish bosqichi, yo'nalish, kontrakt
  * (arzon / qimmat), nufuz va grant bo'yicha. Sof funksiyalar — sinaladi.
  *
- * Ma'lumot: guideline xulosasi (useUniversityCatalog), fakultet nomlari va
- * grantlar (useCatalogExtras). Hammasi brauzerda hisoblanadi: katalog bir
- * necha yuz universitet, fakultetlar bir necha ming qator.
+ * Ma'lumot: guideline xulosasi (useUniversityCatalog; grant ham shu yerda —
+ * grant_holat, grant_max) va fakultet nomlari (useCatalogExtras). Hammasi
+ * brauzerda hisoblanadi: katalog bir necha yuz universitet, fakultetlar bir
+ * necha ming qator.
  */
 
 import type { CatalogEntry, GuidelineSummary } from '@/hooks/useUniversityCatalog';
 import { cityLabel, displayName, guidelinesForLevel, type LevelFilter } from './format';
+import { grantRank } from './grants';
 
 export interface FacultyName {
   guideline_uuid: string;
@@ -21,43 +23,12 @@ export interface FacultyName {
   kontrakt_summa: number | null;
 }
 
-/** Universitetning grantlari (scholarships jadvali) bo'yicha xulosa. */
-export interface GrantInfo {
-  /** Kontraktdan eng katta chegirma, foizda (tuition_waiver_pct). */
-  maxWaiverPct: number | null;
-  /** Oylik stipendiya beradimi (stipend_monthly). */
-  stipend: boolean;
-  count: number;
-}
-
 export interface CatalogExtras {
   /** guideline id -> fakultetlar */
   faculties: Map<string, FacultyName[]>;
-  /** institution id -> grant xulosasi */
-  grants: Map<string, GrantInfo>;
 }
 
-export const EMPTY_EXTRAS: CatalogExtras = { faculties: new Map(), grants: new Map() };
-
-export interface ScholarshipRow {
-  institution_id: string;
-  award_type: string | null;
-  award_value: number | null;
-}
-
-export function summarizeGrants(rows: ScholarshipRow[]): Map<string, GrantInfo> {
-  const out = new Map<string, GrantInfo>();
-  for (const r of rows) {
-    const info = out.get(r.institution_id) ?? { maxWaiverPct: null, stipend: false, count: 0 };
-    info.count += 1;
-    if (r.award_type === 'tuition_waiver_pct' && r.award_value !== null && Number.isFinite(r.award_value)) {
-      info.maxWaiverPct = Math.max(info.maxWaiverPct ?? 0, Math.min(r.award_value, 100));
-    }
-    if (r.award_type === 'stipend_monthly') info.stipend = true;
-    out.set(r.institution_id, info);
-  }
-  return out;
-}
+export const EMPTY_EXTRAS: CatalogExtras = { faculties: new Map() };
 
 export function groupFaculties(rows: FacultyName[]): Map<string, FacultyName[]> {
   const out = new Map<string, FacultyName[]>();
@@ -170,7 +141,7 @@ export interface PanelFilter {
   city: string | null;
   /** Yo'nalish qidiruvi (fakultet nomi). */
   direction: string;
-  /** Faqat granti borlar. */
+  /** Faqat granti borlar (tanlangan darajadagi guideline'da). */
   grantOnly: boolean;
 }
 
@@ -210,7 +181,7 @@ export function matchesPanel(
   }
   if (f.city && cityLabel(entry) !== f.city) return false;
   if (f.direction.trim() && matchingFaculties(entry, f.direction, level, extras).length === 0) return false;
-  if (f.grantOnly && !extras.grants.has(entry.institution.id)) return false;
+  if (f.grantOnly && grantRank(entry, level) === null) return false;
   return true;
 }
 
@@ -293,10 +264,9 @@ function sortValue(
     case 'nufuz':
       return entry.institution.tier ?? null;
     case 'grant': {
-      const g = extras.grants.get(entry.institution.id);
-      if (!g) return null;
-      // Foizli chegirma birinchi, keyin stipendiya, keyin boshqa grantlar.
-      return -((g.maxWaiverPct ?? 0) * 10 + (g.stipend ? 5 : 0) + Math.min(g.count, 4));
+      // Kirishdagi foiz kattasi birinchi, keyin o'qish davomidagi va boshqa grantlar.
+      const rank = grantRank(entry, level);
+      return rank === null ? null : -rank;
     }
     case 'topik':
       return minRequirement(entry, level, 'topik_min');
@@ -336,11 +306,4 @@ export function sortEntries(
 export function tierLabel(tier: number | null | undefined): string | null {
   if (tier === null || tier === undefined) return null;
   return `Nufuz: ${tier}-daraja`;
-}
-
-export function grantLabel(info: GrantInfo | undefined): string | null {
-  if (!info) return null;
-  if (info.maxWaiverPct) return `Grant: ${info.maxWaiverPct}% gacha`;
-  if (info.stipend) return 'Grant: stipendiya';
-  return 'Grant bor';
 }

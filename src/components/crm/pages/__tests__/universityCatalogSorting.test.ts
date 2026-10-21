@@ -6,13 +6,11 @@ import {
   directionTerms,
   EMPTY_EXTRAS,
   EMPTY_PANEL,
-  grantLabel,
   groupFaculties,
   matchesPanel,
   matchingFaculties,
   perSemesterKrw,
   sortEntries,
-  summarizeGrants,
   type CatalogExtras,
   type FacultyName,
 } from '../university-catalog/sorting';
@@ -94,7 +92,6 @@ describe('matchingFaculties', () => {
       faculty('g-a', 'Computer Science'),
       faculty('g-a', 'Chair Design'),
     ]),
-    grants: new Map(),
   };
   it('o‘zbekcha so‘rov bilan inglizcha fakultetni topadi', () => {
     expect(matchingFaculties(e, 'hamshira', 'hammasi', extras).map((f) => f.fakultet_en)).toEqual(['Department of Nursing']);
@@ -132,10 +129,15 @@ describe('matchesPanel', () => {
   it('granti borlar va yo‘nalish', () => {
     const extras: CatalogExtras = {
       faculties: groupFaculties([faculty('g-a', 'Business Administration')]),
-      grants: summarizeGrants([{ institution_id: 'a', award_type: 'tuition_waiver_pct', award_value: 50 }]),
     };
-    expect(matchesPanel(topik3, { ...EMPTY_PANEL, grantOnly: true }, 'hammasi', extras)).toBe(true);
+    const withGrant = entry('a', 'A', { topik_min: 3, korean_track: true, grant_holat: 'kirishda', grant_min: 30, grant_max: 50 });
+    const noInfo = entry('d', 'D', { grant_holat: 'malumot_yoq' });
+    expect(matchesPanel(withGrant, { ...EMPTY_PANEL, grantOnly: true }, 'hammasi', extras)).toBe(true);
+    // Grant o'rganilmagan yoki guideline'da ma'lumot yo'q — chiqmaydi
     expect(matchesPanel(ielts6, { ...EMPTY_PANEL, grantOnly: true }, 'hammasi', extras)).toBe(false);
+    expect(matchesPanel(noInfo, { ...EMPTY_PANEL, grantOnly: true }, 'hammasi', extras)).toBe(false);
+    // Grant bakalavr guideline'ida — magistraturada "granti borlar"ga tushmaydi
+    expect(matchesPanel(withGrant, { ...EMPTY_PANEL, grantOnly: true }, 'magistratura', extras)).toBe(false);
     expect(matchesPanel(topik3, { ...EMPTY_PANEL, direction: 'biznes' }, 'hammasi', extras)).toBe(true);
     expect(matchesPanel(topik3, { ...EMPTY_PANEL, direction: 'hamshira' }, 'hammasi', extras)).toBe(false);
   });
@@ -177,18 +179,19 @@ describe('sortEntries', () => {
   it('TOPIK talabi pastidan', () => {
     expect(names(sortEntries(all, 'topik', 'hammasi', EMPTY_EXTRAS))).toEqual(['Beta', 'Alpha', 'Gamma']);
   });
-  it('grant: kattasi birinchi, grantsizlar oxirida', () => {
-    const extras: CatalogExtras = {
-      faculties: new Map(),
-      grants: summarizeGrants([
-        { institution_id: 'a', award_type: 'tuition_waiver_pct', award_value: 100 },
-        { institution_id: 'b', award_type: 'tuition_waiver_pct', award_value: 30 },
-        { institution_id: 'b', award_type: 'stipend_monthly', award_value: null },
-      ]),
-    };
-    expect(names(sortEntries(all, 'grant', 'hammasi', extras))).toEqual(['Alpha', 'Beta', 'Gamma']);
-    expect(grantLabel(extras.grants.get('a'))).toBe('Grant: 100% gacha');
-    expect(grantLabel(undefined)).toBeNull();
+  it('grant: kirishdagi foiz kattasi birinchi, keyin boshqa grantlar, grantsizlar oxirida', () => {
+    const full = entry('a', 'Alpha', { grant_holat: 'kirishda', grant_min: 30, grant_max: 100 });
+    const half = entry('b', 'Beta', { grant_holat: 'kirishda', grant_min: 20, grant_max: 50 });
+    const later = entry('c', 'Gamma', { grant_holat: 'oqish_davomida' });
+    const other = entry('d', 'Delta', { grant_holat: 'tilga_bogliq_emas' });
+    const none = entry('e', 'Epsilon', { grant_holat: 'malumot_yoq' });
+    expect(names(sortEntries([none, other, later, half, full], 'grant', 'hammasi', EMPTY_EXTRAS))).toEqual([
+      'Alpha',
+      'Beta',
+      'Gamma',
+      'Delta',
+      'Epsilon',
+    ]);
   });
   it('nomi bo‘yicha', () => {
     expect(names(sortEntries(all, 'nom', 'hammasi', EMPTY_EXTRAS))).toEqual(['Alpha', 'Beta', 'Gamma']);
