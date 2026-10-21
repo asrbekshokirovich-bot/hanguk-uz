@@ -20,10 +20,11 @@ import '../../onboarding/domain/quiz_answers.dart';
 import '../data/chances.dart';
 import 'widgets/board_tour_overlay.dart';
 import '../data/field_filter.dart';
-import '../data/grant_summary.dart';
+import '../data/grant_tiers.dart';
 import 'discover_routes.dart';
 import 'widgets/chance_badge.dart';
 import 'widgets/fd_parts.dart';
+import 'widgets/region_map.dart';
 import 'widgets/visa_gauge.dart';
 
 /// The certificate slider's ends (Uzbek school grades pass from 3).
@@ -34,7 +35,17 @@ const double kGpaMax = 5.0;
 /// answer for the chosen field folded in.
 List<CatalogUniversity> boardResults(WidgetRef ref, List<CatalogUniversity> all, CatalogFilter f) {
   final matches = f.field == null ? null : ref.watch(fieldUniversitiesProvider(f.field!)).value;
-  final grants = f.grant == null ? null : ref.watch(grantSummaryProvider).value;
+  // The grant each university gives for the student's own TOPIK / IELTS,
+  // from its guideline's scholarship table.
+  final tiers = f.grant == null ? null : ref.watch(grantTiersProvider).value;
+  final profile = ref.watch(assessmentProvider);
+  final grants = tiers == null
+      ? null
+      : {
+          for (final u in all)
+            if (guidelineFor(u, f) case final g?)
+              u.institutionId: grantPercentFor(tiers[g.id] ?? const [], topik: profile.topikCounted, ielts: profile.ielts),
+        };
   return applyCatalogFilter(all, f.copyWith(query: ''), fieldMatches: matches, grants: grants);
 }
 
@@ -119,6 +130,12 @@ class FilterBoardScreen extends ConsumerWidget {
     var results = boardResults(ref, all, f);
     results = [...results]..sort((a, b) => book.admission(b).compareTo(book.admission(a)));
     final bounds = priceBounds(all);
+    // How many each city group would show with the other choices as they are.
+    final regionCounts = <String, int>{};
+    for (final u in boardResults(ref, all, f.copyWith(regions: const {}))) {
+      final r = catalogRegionOf(guidelineFor(u, f)?.city ?? u.city);
+      regionCounts[r] = (regionCounts[r] ?? 0) + 1;
+    }
 
     void set(CatalogFilter next) => notifier.set(next);
 
@@ -285,31 +302,26 @@ class FilterBoardScreen extends ConsumerWidget {
                 _Section(
                   key: tour.city,
                   children: [
-                    FdSectionLabel(l.fdSectionCity),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        for (final r in CatalogRegion.all)
-                          // As wide as its label: a centred choice would
-                          // otherwise fill the Wrap's whole row.
-                          IntrinsicWidth(
-                            child: HardChoice(
-                              label: regionLabel(l, r),
-                              height: 36,
-                              radius: 999,
-                              fontSize: 13,
-                              padding: const EdgeInsets.symmetric(horizontal: 13),
-                              selected: f.regions.contains(r),
-                              onTap: () {
-                                final next = {...f.regions};
-                                next.contains(r) ? next.remove(r) : next.add(r);
-                                set(f.copyWith(regions: next));
-                              },
+                    FdSectionLabel(
+                      l.fdSectionCityMap,
+                      trailing: f.regions.isEmpty
+                          ? _Hint(l.fdAllRegions)
+                          : GestureDetector(
+                              onTap: () => set(f.copyWith(regions: const {})),
+                              behavior: HitTestBehavior.opaque,
+                              child: Text(l.fdAllRegions, style: fdText(11, FontWeight.w800, FdColors.lime)),
                             ),
-                          ),
-                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    RegionMap(
+                      counts: regionCounts,
+                      selected: f.regions,
+                      labels: (r) => r == CatalogRegion.other ? l.fdRegionGangwonPlus : regionLabel(l, r),
+                      onToggle: (r) {
+                        final next = {...f.regions};
+                        next.contains(r) ? next.remove(r) : next.add(r);
+                        set(f.copyWith(regions: next));
+                      },
                     ),
                   ],
                 ),
@@ -398,7 +410,10 @@ class FilterBoardScreen extends ConsumerWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             selected: f.ielts == v,
-                            onTap: () => set(f.copyWith(ielts: () => v)),
+                            onTap: () {
+                              setProfile(profile.copyWith(ielts: v ?? 0));
+                              set(f.copyWith(ielts: () => v));
+                            },
                           ),
                       ],
                     ),
@@ -460,23 +475,18 @@ class FilterBoardScreen extends ConsumerWidget {
                 _Section(
                   key: tour.grant,
                   children: [
-                    FdSectionLabel(l.fdSectionGrant, trailing: _Hint(l.fdGrantHint)),
+                    FdSectionLabel(l.fdSectionGrant, trailing: _Hint(l.fdGrantOrder)),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        for (final (i, value) in const <int?>[null, 30, 50, 100].indexed) ...[
-                          if (i > 0) const SizedBox(width: 6),
-                          Expanded(
-                            child: HardChoice(
-                              label: value == null ? l.fdGrantNone : '$value%${value < 100 ? '+' : ''}',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              selected: f.grant == value,
-                              onTap: () => set(f.copyWith(grant: () => value)),
-                            ),
-                          ),
-                        ],
-                      ],
+                    _GrantBox(
+                      topik: profile.topik,
+                      ielts: profile.ielts,
+                      grant: f.grant ?? 0,
+                      onTopik: (t) {
+                        setProfile(profile.copyWith(topik: t));
+                        set(f.copyWith(topik: () => t == 0 ? null : '$t'));
+                      },
+                      onIelts: (v) => setProfile(profile.copyWith(ielts: v)),
+                      onGrant: (g) => set(f.copyWith(grant: () => g == 0 ? null : g)),
                     ),
                   ],
                 ),
@@ -839,6 +849,103 @@ class _Grid extends StatelessWidget {
       children: [
         for (var i = 0; i < rows.length; i++) ...[if (i > 0) SizedBox(height: gap), rows[i]],
       ],
+    );
+  }
+}
+
+/// "Grant / stipendiya" (design 2026-10-21): the student's scores first —
+/// TOPIK and IELTS — then the grant wanted. A university stays only if its
+/// scholarship table gives at least that much for those scores.
+class _GrantBox extends StatelessWidget {
+  const _GrantBox({
+    required this.topik,
+    required this.ielts,
+    required this.grant,
+    required this.onTopik,
+    required this.onIelts,
+    required this.onGrant,
+  });
+
+  final int topik;
+  final double ielts;
+
+  /// The grant wanted, in percent; 0 for any.
+  final int grant;
+  final ValueChanged<int> onTopik;
+  final ValueChanged<double> onIelts;
+  final ValueChanged<int> onGrant;
+
+  static const List<double> _ieltsBands = [0, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5];
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    Widget step(String text) => Text(text, style: fdText(11, FontWeight.w800, FdColors.lime, letterSpacing: 0.4));
+    Widget test(String text) => Text(text, style: fdText(10, FontWeight.w800, FdColors.pageMuted, letterSpacing: 0.4));
+    Widget row<T>(List<(T, String)> options, T value, ValueChanged<T> onTap) => Row(
+      children: [
+        for (final (i, (v, label)) in options.indexed) ...[
+          if (i > 0) const SizedBox(width: 4),
+          Expanded(
+            child: HardChoice(
+              label: label,
+              height: 36,
+              radius: 9,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              selected: v == value,
+              onTap: () => onTap(v),
+            ),
+          ),
+        ],
+      ],
+    );
+    // The band at or under the student's IELTS.
+    final band = _ieltsBands.lastWhere((b) => b <= ielts, orElse: () => 0);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      decoration: BoxDecoration(
+        color: const Color(0x14FFFFFF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: FdColors.navRule, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          step(l.fdGrantStepScores),
+          const SizedBox(height: 8),
+          test('TOPIK'),
+          const SizedBox(height: 6),
+          row([for (var t = 0; t <= 6; t++) (t, t == 0 ? '—' : '$t')], topik, onTopik),
+          const SizedBox(height: 10),
+          test('IELTS'),
+          const SizedBox(height: 6),
+          row([
+            for (final b in _ieltsBands) (b, b == 0 ? '—' : (b == 7.5 ? '7.5+' : b.toStringAsFixed(1))),
+          ], band, onIelts),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(child: step(l.fdGrantStepWanted)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(color: FdColors.lime, borderRadius: BorderRadius.circular(999)),
+                child: Text(
+                  grant == 0 ? l.fdGrantAny : l.fdGrantAtLeast(grant),
+                  style: fdText(12, FontWeight.w800, FdColors.onLime),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          HardSlider(
+            value: grant / 100,
+            semanticLabel: l.fdGrantStepWanted,
+            onChanged: (v) => onGrant(((v * 100) / 10).round() * 10),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -5443,4 +5443,30 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get fdPrepareNeedsCode =>
       'Chuẩn bị dành cho khách Premium và No-Risk. Có mã thì nhập vào';
+
+  @override
+  String get fdGrantOrder => 'điểm trước → học bổng sau';
+
+  @override
+  String get fdGrantStepScores => '1 · ĐIỂM CỦA BẠN';
+
+  @override
+  String get fdGrantStepWanted => '2 · HỌC BỔNG CẦN';
+
+  @override
+  String get fdGrantAny => 'Không cần';
+
+  @override
+  String get fdSectionCityMap => 'Thành phố · chọn trên bản đồ';
+
+  @override
+  String get fdAllRegions => 'Tất cả';
+
+  @override
+  String get fdRegionGangwonPlus => 'Gangwon+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'Ít nhất $n%';
+  }
 }

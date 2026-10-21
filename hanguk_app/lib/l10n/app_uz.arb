@@ -1753,5 +1753,13 @@
   "fdCodeSmsFrom": "SMS · Hanguk",
   "fdCodeYours": "Mijoz kodingiz:",
   "fdCodePaste": "qo'yish →",
-  "fdPrepareNeedsCode": "Tayyorgarlik — Premium va No-Risk mijozlar uchun. Kodingiz bo'lsa kiriting"
+  "fdPrepareNeedsCode": "Tayyorgarlik — Premium va No-Risk mijozlar uchun. Kodingiz bo'lsa kiriting",
+  "fdGrantOrder": "avval ball → keyin grant",
+  "fdGrantStepScores": "1 · BALLARINGIZ",
+  "fdGrantStepWanted": "2 · KERAKLI GRANT",
+  "fdGrantAny": "Shart emas",
+  "fdSectionCityMap": "Shahar · xaritadan tanlang",
+  "fdAllRegions": "Hammasi",
+  "fdRegionGangwonPlus": "Gangwon+",
+  "fdGrantAtLeast": "Kamida {n}%"
 }

@@ -5469,4 +5469,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fdPrepareNeedsCode =>
       'Preparation is for Premium and No-Risk clients. Enter your code if you have one';
+
+  @override
+  String get fdGrantOrder => 'scores first → then the grant';
+
+  @override
+  String get fdGrantStepScores => '1 · YOUR SCORES';
+
+  @override
+  String get fdGrantStepWanted => '2 · GRANT YOU NEED';
+
+  @override
+  String get fdGrantAny => 'Not needed';
+
+  @override
+  String get fdSectionCityMap => 'City · pick on the map';
+
+  @override
+  String get fdAllRegions => 'All';
+
+  @override
+  String get fdRegionGangwonPlus => 'Gangwon+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'At least $n%';
+  }
 }

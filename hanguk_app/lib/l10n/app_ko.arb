@@ -1753,5 +1753,13 @@
   "fdCodeSmsFrom": "문자 · Hanguk",
   "fdCodeYours": "고객 코드:",
   "fdCodePaste": "입력 →",
-  "fdPrepareNeedsCode": "준비 메뉴는 Premium·No-Risk 고객 전용입니다. 코드가 있으면 입력하세요"
+  "fdPrepareNeedsCode": "준비 메뉴는 Premium·No-Risk 고객 전용입니다. 코드가 있으면 입력하세요",
+  "fdGrantOrder": "점수 먼저 → 장학금",
+  "fdGrantStepScores": "1 · 나의 점수",
+  "fdGrantStepWanted": "2 · 필요한 장학금",
+  "fdGrantAny": "상관없음",
+  "fdSectionCityMap": "도시 · 지도에서 선택",
+  "fdAllRegions": "전체",
+  "fdRegionGangwonPlus": "강원+",
+  "fdGrantAtLeast": "최소 {n}%"
 }

@@ -6793,5 +6793,20 @@
   "fdCodeSmsFrom": "SMS · Hanguk",
   "fdCodeYours": "Your client code:",
   "fdCodePaste": "use it →",
-  "fdPrepareNeedsCode": "Preparation is for Premium and No-Risk clients. Enter your code if you have one"
+  "fdPrepareNeedsCode": "Preparation is for Premium and No-Risk clients. Enter your code if you have one",
+  "fdGrantOrder": "scores first → then the grant",
+  "fdGrantStepScores": "1 · YOUR SCORES",
+  "fdGrantStepWanted": "2 · GRANT YOU NEED",
+  "fdGrantAny": "Not needed",
+  "fdSectionCityMap": "City · pick on the map",
+  "fdAllRegions": "All",
+  "fdRegionGangwonPlus": "Gangwon+",
+  "fdGrantAtLeast": "At least {n}%",
+  "@fdGrantAtLeast": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
 }

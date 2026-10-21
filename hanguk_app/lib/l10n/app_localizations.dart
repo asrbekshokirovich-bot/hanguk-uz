@@ -9829,6 +9829,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparation is for Premium and No-Risk clients. Enter your code if you have one'**
   String get fdPrepareNeedsCode;
+
+  /// No description provided for @fdGrantOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'scores first → then the grant'**
+  String get fdGrantOrder;
+
+  /// No description provided for @fdGrantStepScores.
+  ///
+  /// In en, this message translates to:
+  /// **'1 · YOUR SCORES'**
+  String get fdGrantStepScores;
+
+  /// No description provided for @fdGrantStepWanted.
+  ///
+  /// In en, this message translates to:
+  /// **'2 · GRANT YOU NEED'**
+  String get fdGrantStepWanted;
+
+  /// No description provided for @fdGrantAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Not needed'**
+  String get fdGrantAny;
+
+  /// No description provided for @fdSectionCityMap.
+  ///
+  /// In en, this message translates to:
+  /// **'City · pick on the map'**
+  String get fdSectionCityMap;
+
+  /// No description provided for @fdAllRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get fdAllRegions;
+
+  /// No description provided for @fdRegionGangwonPlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Gangwon+'**
+  String get fdRegionGangwonPlus;
+
+  /// No description provided for @fdGrantAtLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {n}%'**
+  String fdGrantAtLeast(int n);
 }
 
 class _AppLocalizationsDelegate

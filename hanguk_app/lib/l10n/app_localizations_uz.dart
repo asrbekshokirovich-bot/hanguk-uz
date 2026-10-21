@@ -5469,4 +5469,30 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get fdPrepareNeedsCode =>
       'Tayyorgarlik — Premium va No-Risk mijozlar uchun. Kodingiz bo\'lsa kiriting';
+
+  @override
+  String get fdGrantOrder => 'avval ball → keyin grant';
+
+  @override
+  String get fdGrantStepScores => '1 · BALLARINGIZ';
+
+  @override
+  String get fdGrantStepWanted => '2 · KERAKLI GRANT';
+
+  @override
+  String get fdGrantAny => 'Shart emas';
+
+  @override
+  String get fdSectionCityMap => 'Shahar · xaritadan tanlang';
+
+  @override
+  String get fdAllRegions => 'Hammasi';
+
+  @override
+  String get fdRegionGangwonPlus => 'Gangwon+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'Kamida $n%';
+  }
 }

@@ -1753,5 +1753,13 @@
   "fdCodeSmsFrom": "SMS · Hanguk",
   "fdCodeYours": "Ваш код клиента:",
   "fdCodePaste": "вставить →",
-  "fdPrepareNeedsCode": "Подготовка — для клиентов Premium и No-Risk. Если есть код, введите его"
+  "fdPrepareNeedsCode": "Подготовка — для клиентов Premium и No-Risk. Если есть код, введите его",
+  "fdGrantOrder": "сначала баллы → потом грант",
+  "fdGrantStepScores": "1 · ВАШИ БАЛЛЫ",
+  "fdGrantStepWanted": "2 · НУЖНЫЙ ГРАНТ",
+  "fdGrantAny": "Не важно",
+  "fdSectionCityMap": "Город · выберите на карте",
+  "fdAllRegions": "Все",
+  "fdRegionGangwonPlus": "Канвон+",
+  "fdGrantAtLeast": "Не менее {n}%"
 }

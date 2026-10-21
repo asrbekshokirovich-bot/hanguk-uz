@@ -5471,4 +5471,30 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get fdPrepareNeedsCode =>
       'Подготовка — для клиентов Premium и No-Risk. Если есть код, введите его';
+
+  @override
+  String get fdGrantOrder => 'сначала баллы → потом грант';
+
+  @override
+  String get fdGrantStepScores => '1 · ВАШИ БАЛЛЫ';
+
+  @override
+  String get fdGrantStepWanted => '2 · НУЖНЫЙ ГРАНТ';
+
+  @override
+  String get fdGrantAny => 'Не важно';
+
+  @override
+  String get fdSectionCityMap => 'Город · выберите на карте';
+
+  @override
+  String get fdAllRegions => 'Все';
+
+  @override
+  String get fdRegionGangwonPlus => 'Канвон+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'Не менее $n%';
+  }
 }

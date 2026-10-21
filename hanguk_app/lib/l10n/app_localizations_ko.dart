@@ -5277,4 +5277,30 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get fdPrepareNeedsCode =>
       '준비 메뉴는 Premium·No-Risk 고객 전용입니다. 코드가 있으면 입력하세요';
+
+  @override
+  String get fdGrantOrder => '점수 먼저 → 장학금';
+
+  @override
+  String get fdGrantStepScores => '1 · 나의 점수';
+
+  @override
+  String get fdGrantStepWanted => '2 · 필요한 장학금';
+
+  @override
+  String get fdGrantAny => '상관없음';
+
+  @override
+  String get fdSectionCityMap => '도시 · 지도에서 선택';
+
+  @override
+  String get fdAllRegions => '전체';
+
+  @override
+  String get fdRegionGangwonPlus => '강원+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return '최소 $n%';
+  }
 }

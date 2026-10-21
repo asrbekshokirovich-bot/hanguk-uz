@@ -1753,5 +1753,13 @@
   "fdCodeSmsFrom": "SMS · Hanguk",
   "fdCodeYours": "Mã khách hàng:",
   "fdCodePaste": "dùng mã →",
-  "fdPrepareNeedsCode": "Chuẩn bị dành cho khách Premium và No-Risk. Có mã thì nhập vào"
+  "fdPrepareNeedsCode": "Chuẩn bị dành cho khách Premium và No-Risk. Có mã thì nhập vào",
+  "fdGrantOrder": "điểm trước → học bổng sau",
+  "fdGrantStepScores": "1 · ĐIỂM CỦA BẠN",
+  "fdGrantStepWanted": "2 · HỌC BỔNG CẦN",
+  "fdGrantAny": "Không cần",
+  "fdSectionCityMap": "Thành phố · chọn trên bản đồ",
+  "fdAllRegions": "Tất cả",
+  "fdRegionGangwonPlus": "Gangwon+",
+  "fdGrantAtLeast": "Ít nhất {n}%"
 }
