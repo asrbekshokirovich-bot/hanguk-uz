@@ -302,7 +302,7 @@ class _Preset {
   String label(AppLocalizations l) {
     if (upTo) return l.catalogPriceUpTo(money(hi, 'KRW', locale: l.localeName));
     if (plus) return '${money(lo, 'KRW', locale: l.localeName)}+';
-    return '${money(lo, 'KRW', locale: l.localeName)}–${groupThousands(hi, locale: l.localeName)}';
+    return '${money(lo, 'KRW', locale: l.localeName)}–${money(hi, 'KRW', locale: l.localeName)}';
   }
 }
 

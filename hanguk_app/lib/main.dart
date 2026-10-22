@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/analytics/app_events.dart';
+import 'core/money/fx_rates.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
 import 'features/auth/data/auth_repository.dart';
@@ -51,6 +52,10 @@ Future<void> main() async {
   // up, known before the first frame (the splash tagline and the router both
   // use it). Local secure storage only — no network.
   EntryStore.initial = await EntryStore.load();
+
+  // Yesterday's bank rates for fees in won, before the first frame; today's
+  // are asked for once the app is up (FxRates).
+  await FxRates.loadSaved();
 
   // Show a splash while Supabase initializes — prevents ANR on slow emulators
   runApp(const _SplashApp());
@@ -96,6 +101,7 @@ Future<void> main() async {
   runApp(
     UncontrolledProviderScope(container: container, child: const HangukApp()),
   );
+  unawaited(FxRates.refreshAndRebuild());
 }
 
 /// Lightweight splash shown while Supabase initialises (prevents ANR).

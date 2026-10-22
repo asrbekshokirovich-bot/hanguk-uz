@@ -1,5 +1,5 @@
 import '../../../l10n/app_localizations.dart';
-import '../../catalog/presentation/catalog_format.dart' show groupThousands;
+import '../../catalog/presentation/catalog_format.dart' show money;
 import '../domain/requirements_row.dart';
 import '../domain/scholarship_row.dart';
 
@@ -10,7 +10,7 @@ import '../domain/scholarship_row.dart';
 /// through untouched.
 
 /// `₩4,134,000` grouped the way the student's language groups digits.
-String uniDbKrw(AppLocalizations l, num amount) => '₩${groupThousands(amount, locale: l.localeName)}';
+String uniDbKrw(AppLocalizations l, num amount) => money(amount, 'KRW', locale: l.localeName);
 
 /// cycle_dates.event_type → label; an event type the app does not model yet
 /// reads as a generic "key date" rather than an English identifier.
