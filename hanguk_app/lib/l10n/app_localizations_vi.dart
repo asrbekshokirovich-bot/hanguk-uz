@@ -5515,4 +5515,38 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get uaTestsUnavailable =>
       'Không mở được bài kiểm tra — kiểm tra mạng và thử lại';
+
+  @override
+  String get tuGrants => 'Học bổng theo kết quả TOPIK hoặc IELTS';
+
+  @override
+  String get ugTitle => 'Học bổng';
+
+  @override
+  String get ugSubtitle => 'Giảm học phí khi nhập học — theo TOPIK / IELTS';
+
+  @override
+  String get ugNoCertificate => 'Không chứng chỉ';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik hoặc $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik và $english';
+  }
+
+  @override
+  String get ugNone => 'Hướng dẫn của trường không có học bổng TOPIK / IELTS';
+
+  @override
+  String get ugYours => 'CỦA BẠN';
+
+  @override
+  String get fltOnePercent => 'Trường top 1%';
+
+  @override
+  String get fltOnePercentOnly => 'Chỉ top 1%';
 }

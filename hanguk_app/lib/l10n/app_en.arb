@@ -6842,5 +6842,61 @@
     }
   },
   "vzReport": "See the report →",
-  "uaTestsUnavailable": "The test couldn't open — check your connection and try again"
+  "uaTestsUnavailable": "The test couldn't open — check your connection and try again",
+  "tuGrants": "Grants for your TOPIK or IELTS result",
+  "@tuGrants": {
+    "description": "University page grant table"
+  },
+  "ugTitle": "Grant",
+  "@ugTitle": {
+    "description": "University page grant table"
+  },
+  "ugSubtitle": "Off the tuition on admission, by TOPIK / IELTS",
+  "@ugSubtitle": {
+    "description": "University page grant table"
+  },
+  "ugNoCertificate": "No certificate",
+  "@ugNoCertificate": {
+    "description": "University page grant table"
+  },
+  "ugEither": "{topik} or {english}",
+  "@ugEither": {
+    "description": "University page grant table",
+    "placeholders": {
+      "topik": {
+        "type": "String"
+      },
+      "english": {
+        "type": "String"
+      }
+    }
+  },
+  "ugBoth": "{topik} and {english}",
+  "@ugBoth": {
+    "description": "University page grant table",
+    "placeholders": {
+      "topik": {
+        "type": "String"
+      },
+      "english": {
+        "type": "String"
+      }
+    }
+  },
+  "ugNone": "No TOPIK / IELTS grant in this university's guide",
+  "@ugNone": {
+    "description": "University page grant table"
+  },
+  "ugYours": "YOURS",
+  "@ugYours": {
+    "description": "University page grant table"
+  },
+  "fltOnePercent": "Top 1% universities",
+  "@fltOnePercent": {
+    "description": "Filtr: Hanguk's top 1% university list"
+  },
+  "fltOnePercentOnly": "Only the 1%",
+  "@fltOnePercentOnly": {
+    "description": "Filtr: Hanguk's top 1% university list"
+  }
 }

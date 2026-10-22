@@ -5543,4 +5543,39 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get uaTestsUnavailable =>
       'Тест не открылся — проверьте интернет и попробуйте снова';
+
+  @override
+  String get tuGrants => 'Грант по вашему результату TOPIK или IELTS';
+
+  @override
+  String get ugTitle => 'Грант';
+
+  @override
+  String get ugSubtitle => 'Скидка с оплаты при поступлении — по TOPIK / IELTS';
+
+  @override
+  String get ugNoCertificate => 'Без сертификата';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik или $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik и $english';
+  }
+
+  @override
+  String get ugNone =>
+      'В руководстве этого университета нет гранта за TOPIK / IELTS';
+
+  @override
+  String get ugYours => 'ВАШ';
+
+  @override
+  String get fltOnePercent => 'Университеты топ-1%';
+
+  @override
+  String get fltOnePercentOnly => 'Только 1%';
 }

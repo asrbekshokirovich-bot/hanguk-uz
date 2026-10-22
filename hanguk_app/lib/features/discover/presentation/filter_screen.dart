@@ -177,6 +177,20 @@ class FilterScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
+                FdSectionLabel(l.fltOnePercent),
+                const SizedBox(height: 8),
+                _Grid(
+                  columns: 2,
+                  children: [
+                    for (final (value, label) in [(true, l.fltOnePercentOnly), (false, l.fdAny)])
+                      HardChoice(
+                        label: label,
+                        selected: f.onePercent == value,
+                        onTap: () => set(f.copyWith(onePercent: value)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 20),
                 FdSectionLabel(
                   l.fdSectionGrant,
                   trailing: Text(l.fdGrantOrder, style: fdText(10, FontWeight.w700, FdColors.onNavyMuted)),

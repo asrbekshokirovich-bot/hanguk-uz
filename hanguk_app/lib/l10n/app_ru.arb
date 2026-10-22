@@ -1774,5 +1774,15 @@
   "ulSubtitle": "{n} университетов · нажмите на карточку",
   "fltCount": "ПОДХОДЯЩИЕ ВУЗЫ · ИЗ {n}",
   "vzReport": "Посмотреть отчёт →",
-  "uaTestsUnavailable": "Тест не открылся — проверьте интернет и попробуйте снова"
+  "uaTestsUnavailable": "Тест не открылся — проверьте интернет и попробуйте снова",
+  "tuGrants": "Грант по вашему результату TOPIK или IELTS",
+  "ugTitle": "Грант",
+  "ugSubtitle": "Скидка с оплаты при поступлении — по TOPIK / IELTS",
+  "ugNoCertificate": "Без сертификата",
+  "ugEither": "{topik} или {english}",
+  "ugBoth": "{topik} и {english}",
+  "ugNone": "В руководстве этого университета нет гранта за TOPIK / IELTS",
+  "ugYours": "ВАШ",
+  "fltOnePercent": "Университеты топ-1%",
+  "fltOnePercentOnly": "Только 1%"
 }

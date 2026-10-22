@@ -9955,6 +9955,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The test couldn\'t open — check your connection and try again'**
   String get uaTestsUnavailable;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'Grants for your TOPIK or IELTS result'**
+  String get tuGrants;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'Grant'**
+  String get ugTitle;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'Off the tuition on admission, by TOPIK / IELTS'**
+  String get ugSubtitle;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'No certificate'**
+  String get ugNoCertificate;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'{topik} or {english}'**
+  String ugEither(String topik, String english);
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'{topik} and {english}'**
+  String ugBoth(String topik, String english);
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'No TOPIK / IELTS grant in this university\'s guide'**
+  String get ugNone;
+
+  /// University page grant table
+  ///
+  /// In en, this message translates to:
+  /// **'YOURS'**
+  String get ugYours;
+
+  /// Filtr: Hanguk's top 1% university list
+  ///
+  /// In en, this message translates to:
+  /// **'Top 1% universities'**
+  String get fltOnePercent;
+
+  /// Filtr: Hanguk's top 1% university list
+  ///
+  /// In en, this message translates to:
+  /// **'Only the 1%'**
+  String get fltOnePercentOnly;
 }
 
 class _AppLocalizationsDelegate
