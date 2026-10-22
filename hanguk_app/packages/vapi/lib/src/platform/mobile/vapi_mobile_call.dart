@@ -60,6 +60,21 @@ class VapiMobileCall implements VapiCall {
   /// Completer for waiting until the call becomes active
   final Completer<void> _activeCallCompleter = Completer<void>();
 
+  /// The one leave() in flight, shared by everyone who asks to leave.
+  ///
+  /// When the assistant hangs up, the remote participant leaves and this
+  /// class calls leave() itself; the app, seeing the end, calls stop() and
+  /// then dispose(). Two leave() calls racing, and destroying the native
+  /// client while a leave() was still running, killed the whole app at the
+  /// end of every interview. Now there is one leave, and the native client
+  /// is destroyed only after it settles.
+  Future<void>? _leaving;
+
+  /// Set once dispose() starts: no more native calls, no more events.
+  bool _disposed = false;
+
+  StreamSubscription<dynamic>? _eventSub;
+
   /// Stream of Vapi events that occur during this call's lifecycle
   ///
   /// Events include:
@@ -200,13 +215,14 @@ class VapiMobileCall implements VapiCall {
 
   /// Sets up event listeners for the call client
   void _setupEventListeners() {
-    _call.events.listen((event) {
+    _eventSub = _call.events.listen((event) {
+      if (_disposed) return;
       event.whenOrNull(
         callStateUpdated: (stateData) {
           switch (stateData.state) {
             case CallState.left:
               _status = VapiCallStatus.ended;
-              _streamController.add(const VapiEvent("call-end"));
+              _emit(const VapiEvent("call-end"));
               break;
             case CallState.joined:
               break;
@@ -216,7 +232,8 @@ class VapiMobileCall implements VapiCall {
         },
         participantLeft: (participantData) {
           if (participantData.info.isLocal) return;
-          _call.leave();
+          if (_status == VapiCallStatus.ended) return;
+          unawaited(_leave());
         },
         appMessageReceived: (messageData, id) {
           _onAppMessage(messageData);
@@ -224,13 +241,17 @@ class VapiMobileCall implements VapiCall {
         participantUpdated: (participantData) {
           if (participantData.info.username == "Vapi Speaker" &&
               participantData.media?.microphone.state == MediaState.playable) {
-            _call.sendAppMessage(jsonEncode({'message': "playable"}), null);
+            if (!_disposed && _status != VapiCallStatus.ended) {
+              _call.sendAppMessage(jsonEncode({'message': "playable"}), null);
+            }
           }
         },
         participantJoined: (participantData) {
           if (participantData.info.username == "Vapi Speaker" &&
               participantData.media?.microphone.state == MediaState.playable) {
-            _call.sendAppMessage(jsonEncode({'message': "playable"}), null);
+            if (!_disposed && _status != VapiCallStatus.ended) {
+              _call.sendAppMessage(jsonEncode({'message': "playable"}), null);
+            }
           }
         },
       );
@@ -284,7 +305,7 @@ class VapiMobileCall implements VapiCall {
           _activeCallCompleter.complete();
         }
 
-        _streamController.add(const VapiEvent("call-start"));
+        _emit(const VapiEvent("call-start"));
         return;
       }
 
@@ -292,14 +313,14 @@ class VapiMobileCall implements VapiCall {
       final messageMap = jsonDecode(jsonDecode(msg));
       if (messageMap['type'] == "speech-update") {
         if (messageMap['status'] == "started") {
-          _streamController.add(const VapiEvent("speech-start"));
+          _emit(const VapiEvent("speech-start"));
         } else if (messageMap['status'] == "stopped") {
-          _streamController.add(const VapiEvent("speech-end"));
+          _emit(const VapiEvent("speech-end"));
         }
         return;
       }
 
-      _streamController.add(VapiEvent("message", messageMap));
+      _emit(VapiEvent("message", messageMap));
     } catch (parseError) {
       // Silently ignore parse errors for non-JSON messages
     }
@@ -313,10 +334,22 @@ class VapiMobileCall implements VapiCall {
   /// Throws [VapiCallEndedException] if this call has already ended.
   @override
   Future<void> stop() async {
-    if (_status == VapiCallStatus.ended) {
+    if (_status == VapiCallStatus.ended || _disposed) {
       throw const VapiCallEndedException();
     }
-    await _call.leave();
+    await _leave();
+  }
+
+  /// Leaves the Daily room once; later callers share the same future.
+  Future<void> _leave() {
+    if (_disposed) return Future.value();
+    return _leaving ??= _call.leave().catchError((_) {});
+  }
+
+  /// Adds an event unless this call has been torn down.
+  void _emit(VapiEvent event) {
+    if (_disposed || _streamController.isClosed) return;
+    _streamController.add(event);
   }
 
   /// Mutes or unmutes the microphone during this call
@@ -381,7 +414,24 @@ class VapiMobileCall implements VapiCall {
   /// Note: This will also dispose of the underlying call client.
   @override
   void dispose() {
-    _call.dispose();
-    _streamController.close();
+    if (_disposed) return;
+    // Leave first (or wait for the leave already running), give the native
+    // side a moment to finish its teardown events, and only then destroy the
+    // client. Never throws: this runs from widget dispose().
+    final leaving = _status == VapiCallStatus.ended ? _leaving : _leave();
+    _disposed = true;
+    unawaited(() async {
+      try {
+        await leaving?.timeout(const Duration(seconds: 5));
+      } catch (_) {}
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      try {
+        await _eventSub?.cancel();
+      } catch (_) {}
+      try {
+        await _call.dispose();
+      } catch (_) {}
+      if (!_streamController.isClosed) await _streamController.close();
+    }());
   }
 }
