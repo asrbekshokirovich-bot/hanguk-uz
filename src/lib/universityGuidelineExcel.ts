@@ -1,5 +1,5 @@
 /**
- * Universitet guideline Excel shabloni (format v2) — o'qish va tekshirish.
+ * Universitet guideline Excel shabloni (format v2–v4) — o'qish va tekshirish.
  *
  * Shablon xodimlar tomonidan qo'lda to'ldiriladi, shuning uchun bu yerdagi
  * asosiy ish — xatoni saytga emas, xodimga qaytarish: qaysi varaq, qaysi
@@ -7,7 +7,8 @@
  * import_university_guideline() RPC'siga yuboriladigan JSON bo'ladi.
  *
  * Qoidalar manbai — faylning "qollanma" varag'i:
- *   - faqat 4 varaq o'qiladi: universitet, muddatlar, fakultetlar, hujjatlar
+ *   - 4 ta majburiy varaq: universitet, muddatlar, fakultetlar, hujjatlar;
+ *     v4 fayllarda 5-varaq — grantlar (v3 va undan oldingilarida yo'q)
  *   - 1-qator sarlavha, ma'lumot 2-qatordan
  *   - bo'sh katak = "guideline'da ko'rsatilmagan" (NULL), "yoq" = aniq yo'q
  *   - sanalar YYYY-MM-DD matn, vaqt HH:MM matn, pul va ballar — raqam
@@ -15,11 +16,18 @@
  */
 
 import { readXlsx } from './xlsxReader';
+import { buildGrantImport, type GrantImport } from './universityGuidelineGrants';
 
-export const SUPPORTED_FORMAT_VERSION = 2;
+/** Sayt tushunadigan eng yangi format: v4 = grantlar varag'i bor. */
+export const SUPPORTED_FORMAT_VERSION = 4;
+/** v2 va v3 fayllar ham to'liq o'qiladi — ular faqat grantlar varag'isiz. */
+const OLDEST_FORMAT_VERSION = 2;
 
+/** Har bir faylda bo'lishi shart bo'lgan varaqlar. */
 export const GUIDELINE_SHEETS = ['universitet', 'muddatlar', 'fakultetlar', 'hujjatlar'] as const;
-export type GuidelineSheet = (typeof GUIDELINE_SHEETS)[number];
+/** v4 dan boshlab — grantlar. Eski fayllarda yo'q, shuning uchun majburiy emas. */
+export const GRANTS_SHEET = 'grantlar' as const;
+export type GuidelineSheet = (typeof GUIDELINE_SHEETS)[number] | typeof GRANTS_SHEET;
 
 type ColType = 'matn' | 'raqam' | 'butun' | 'sana' | 'vaqt' | 'tanlov' | 'bool';
 
@@ -68,6 +76,15 @@ const DARAJA_ALIASES: Readonly<Record<string, string>> = {
 const VALYUTALAR = ['KRW', 'USD'] as const;
 const TRACKLAR = ['english', 'korean'] as const;
 const HOLATLAR = ['tasdiqlangan', 'taxminiy', 'nisbiy', 'keyin_elon', 'etap_yoq'] as const;
+
+/** grantlar.mezon_turi — grant nimaga qarab beriladi (qollanma varag'i). */
+export const MEZON_TURLARI = [
+  'topik', 'ielts', 'toefl_ibt', 'toeic', 'teps', 'cefr', 'duolingo', 'til_kursi', 'gpa', 'reyting', 'hammaga', 'boshqa',
+] as const;
+export const GRANT_NIMAGA = ['kontrakt', 'kirish_tolovi', 'kontrakt_va_kirish', 'yotoqxona', 'naqd', 'boshqa'] as const;
+export const GRANT_DAVRLARI = [
+  'birinchi_semestr', 'birinchi_yil', 'har_semestr', 'har_oy', 'butun_oqish', 'bir_martalik',
+] as const;
 
 /** muddatlar.etap_nomi uchun qat'iy ro'yxat — qollanma varag'idagi 11 ta etap. */
 export const ETAPLAR = [
@@ -176,6 +193,27 @@ const SCHEMA: Record<GuidelineSheet, readonly ColSpec[]> = {
     c('izoh'),
     c('sahifa'),
   ],
+  grantlar: [
+    c('guideline_id', 'matn', { required: true }),
+    c('tartib', 'butun', { min: 1 }),
+    c('grant_nomi'),
+    c('grant_nomi_asl'),
+    c('track', 'tanlov', { choices: [...TRACKLAR, 'hammasi'] }),
+    c('qamrov'),
+    c('mezon_turi', 'tanlov', { choices: MEZON_TURLARI }),
+    c('mezon_min', 'raqam', { min: 0 }),
+    c('mezon_max', 'raqam', { min: 0 }),
+    c('mezon_matn'),
+    c('grant_foiz', 'raqam', { min: 0, max: 100 }),
+    c('grant_summa', 'raqam', { min: 0 }),
+    c('grant_valyuta', 'tanlov', { choices: VALYUTALAR }),
+    c('nimaga', 'tanlov', { choices: GRANT_NIMAGA }),
+    c('davr', 'tanlov', { choices: GRANT_DAVRLARI }),
+    c('davom_sharti'),
+    c('qoshiladi', 'tanlov', { choices: ['ha', 'yoq'] }),
+    c('izoh'),
+    c('sahifa'),
+  ],
 };
 
 export type CellValue = string | number | boolean;
@@ -187,6 +225,11 @@ export interface GuidelinePayload {
   muddatlar: GuidelineRow[];
   fakultetlar: GuidelineRow[];
   hujjatlar: GuidelineRow[];
+  /**
+   * Faqat grantlar varag'i bor (v4) faylda. Bo'lsa — guideline'ning grantlari
+   * shu bilan to'liq almashtiriladi; bo'lmasa — bazadagi grantlarga tegilmaydi.
+   */
+  grantlar?: GrantImport;
 }
 
 export interface ParseResult {
@@ -447,6 +490,9 @@ export async function parseGuidelineWorkbook(
   const muddatlar = readSheetRows('muddatlar', sheets.get('muddatlar') ?? [], errors, warnings);
   const fakultetlar = readSheetRows('fakultetlar', sheets.get('fakultetlar') ?? [], errors, warnings);
   const hujjatlar = readSheetRows('hujjatlar', sheets.get('hujjatlar') ?? [], errors, warnings);
+  const grantRows = sheets.has(GRANTS_SHEET)
+    ? readSheetRows(GRANTS_SHEET, sheets.get(GRANTS_SHEET) ?? [], errors, warnings)
+    : null;
 
   if (universitetRows.length === 0) {
     errors.push("universitet varag'i bo'sh — bitta ma'lumot qatori bo'lishi kerak");
@@ -459,9 +505,14 @@ export async function parseGuidelineWorkbook(
   const universitet = universitetRows[0];
   if (universitet) {
     const version = universitet.format_versiya as number | undefined;
-    if (version !== undefined && version !== SUPPORTED_FORMAT_VERSION) {
+    if (version !== undefined && (version < OLDEST_FORMAT_VERSION || version > SUPPORTED_FORMAT_VERSION)) {
       warnings.push(
-        `Fayl formati v${version}, sayt v${SUPPORTED_FORMAT_VERSION} ni kutadi — ustunlar mos kelmasligi mumkin`,
+        `Fayl formati v${version}, sayt v${OLDEST_FORMAT_VERSION}–v${SUPPORTED_FORMAT_VERSION} ni tushunadi — ustunlar mos kelmasligi mumkin`,
+      );
+    }
+    if (version !== undefined && version >= 4 && grantRows === null) {
+      warnings.push(
+        `Fayl formati v${version}, lekin "${GRANTS_SHEET}" varag'i yo'q — bazadagi grantlar o'zgarmadi`,
       );
     }
 
@@ -473,6 +524,7 @@ export async function parseGuidelineWorkbook(
         ['muddatlar', muddatlar],
         ['fakultetlar', fakultetlar],
         ['hujjatlar', hujjatlar],
+        [GRANTS_SHEET, grantRows ?? []],
       ] as const
     ).filter(([, rows]) => rows.some((row) => row.guideline_id !== gid));
     for (const [sheet] of mismatched) {
@@ -491,6 +543,7 @@ export async function parseGuidelineWorkbook(
 
   checkRounds(muddatlar, warnings);
   fillContractFromNotes(fakultetlar, warnings);
+  const grantlar = grantRows === null ? undefined : buildGrantImport(grantRows, faylNomi, errors, warnings);
 
   if (errors.length > 0 || !universitet) {
     return { ok: false, payload: null, errors, warnings };
@@ -498,7 +551,14 @@ export async function parseGuidelineWorkbook(
 
   return {
     ok: true,
-    payload: { fayl_nomi: faylNomi, universitet, muddatlar, fakultetlar, hujjatlar },
+    payload: {
+      fayl_nomi: faylNomi,
+      universitet,
+      muddatlar,
+      fakultetlar,
+      hujjatlar,
+      ...(grantlar ? { grantlar } : {}),
+    },
     errors,
     warnings,
   };

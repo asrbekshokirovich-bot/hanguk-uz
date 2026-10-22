@@ -179,7 +179,9 @@ export function awardLabel(r: GuidelineGrant): AwardLabel {
     const approx = !!basis && new RegExp(`(taxminan|약)\\s*~?\\s*${pct.replace('.', '\\.')}\\s*%`).test(basis);
     return { value: `${approx ? '~' : ''}${pct}%`, caveat: pctCaveat(basis, approx), details };
   }
-  if (r.grant_summa !== null) return { value: formatMoney(r.grant_summa, 'KRW'), caveat: null, details };
+  if (r.grant_summa !== null) {
+    return { value: formatMoney(r.grant_summa, r.grant_valyuta ?? 'KRW'), caveat: null, details };
+  }
   // Foizsiz grant (masalan, yotoqxona chegirmasi) — tafsiloti avval
   return { value: null, caveat: null, details: [extra, basis].filter((t): t is string => !!t) };
 }
