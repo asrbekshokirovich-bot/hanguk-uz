@@ -52,7 +52,7 @@ class _ClientShellState extends State<ClientShell> {
     return switch (i) {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(signedIn: true),
-      AppTab.home => const VisaScreen(embedded: true),
+      AppTab.home => VisaScreen(embedded: true, active: _tab == AppTab.home),
       AppTab.application => JourneyScreen(onBrowse: () => _go(AppTab.universities)),
       _ => const ClientDocumentsScreen(),
     };

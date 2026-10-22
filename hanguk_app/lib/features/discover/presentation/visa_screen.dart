@@ -32,10 +32,13 @@ import 'widgets/page_tour.dart';
 /// Tayyorgarlik — each saying what its answer does to the visa and to
 /// admission. The round "BAHOLASH" button opens it.
 class VisaScreen extends ConsumerStatefulWidget {
-  const VisaScreen({super.key, this.embedded = false});
+  const VisaScreen({super.key, this.embedded = false, this.active = true});
 
   /// The home tab's content: the shell draws the page and the nav.
   final bool embedded;
+
+  /// False while it is the home's tab under another tab: its tour waits.
+  final bool active;
 
   @override
   ConsumerState<VisaScreen> createState() => _VisaScreenState();
@@ -59,6 +62,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
 
   Widget _tour() => PageTour(
     name: 'visa',
+    active: widget.active,
     seen: tourSeenProvider('visa'),
     steps: (context) {
       final l = AppLocalizations.of(context)!;

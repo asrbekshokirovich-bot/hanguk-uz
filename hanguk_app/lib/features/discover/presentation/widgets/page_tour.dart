@@ -30,7 +30,18 @@ class TourStep {
 /// still following the current one, then the light glides across — it never
 /// jumps to where the next place was before the scroll.
 class PageTour extends ConsumerStatefulWidget {
-  const PageTour({super.key, required this.name, required this.seen, required this.steps, required this.builder});
+  const PageTour({
+    super.key,
+    required this.name,
+    required this.seen,
+    required this.steps,
+    required this.builder,
+    this.active = true,
+  });
+
+  /// False while the page is built but not on screen (a tab of the home
+  /// that another tab covers): the tour waits, and pauses if it was running.
+  final bool active;
 
   /// For the analytics event.
   final String name;
@@ -75,8 +86,27 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
   bool _moving = false;
   ScrollPosition? _scroll;
 
+  /// Bumped when the lit place has moved on screen since the light was
+  /// drawn (a section that loads late and pushes the rest down), so the
+  /// light follows it (owner, 2026-10-22: it lit the wrong places).
+  final _tick = ValueNotifier<int>(0);
+  Rect? _drawn;
+  bool _watching = false;
+
+  /// The route still sliding in: the tour waits for it to finish
+  /// (owner, 2026-10-22: it started before the page had opened).
+  Animation<double>? _routeAnimation;
+
+  @override
+  void didUpdateWidget(PageTour old) {
+    super.didUpdateWidget(old);
+    if (old.active && !widget.active) _pause();
+  }
+
   @override
   void dispose() {
+    _routeAnimation?.removeStatusListener(_routeStatus);
+    _tick.dispose();
     _timer?.cancel();
     _scroll?.removeListener(_follow);
     _glide.dispose();
@@ -90,13 +120,15 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
       _keys.add(GlobalKey(debugLabel: '${widget.name}-tour-${_keys.length}'));
     }
     final show = ref.watch(widget.seen) == false;
-    if (show && !_portal.isShowing) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _start());
+    // Rebuilt when the route becomes the top one again.
+    final route = ModalRoute.of(context);
+    if (show && widget.active && !_portal.isShowing && (route?.isCurrent ?? true)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _whenOpen());
     }
     return OverlayPortal(
       controller: _portal,
       overlayChildBuilder: (context) => AnimatedBuilder(
-        animation: _glide,
+        animation: Listenable.merge([_glide, _tick]),
         builder: (context, _) {
           final live = _rectOf(_keys[_step]);
           final from = _from;
@@ -113,6 +145,56 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
     );
   }
 
+  /// Starts the first-run tour once the page has opened: its route done
+  /// sliding in, and the page on screen.
+  void _whenOpen() {
+    if (!mounted || _portal.isShowing || !widget.active) return;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return;
+    final animation = route?.animation;
+    if (animation != null && animation.status != AnimationStatus.completed) {
+      if (_routeAnimation != animation) {
+        _routeAnimation?.removeStatusListener(_routeStatus);
+        _routeAnimation = animation..addStatusListener(_routeStatus);
+      }
+      return;
+    }
+    _start();
+  }
+
+  /// After every frame while the tour shows: if the lit place is no longer
+  /// where the light was drawn, draw it again. It schedules no frame of its
+  /// own, so a page at rest stays at rest.
+  void _watchLayout() {
+    if (!mounted || !_portal.isShowing) {
+      _watching = false;
+      return;
+    }
+    final now = _glide.isAnimating ? _drawn : _rectOf(_keys[_step]);
+    if (now != _drawn) {
+      _drawn = now;
+      _tick.value++;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _watchLayout());
+  }
+
+  void _routeStatus(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    _routeAnimation?.removeStatusListener(_routeStatus);
+    _routeAnimation = null;
+    _whenOpen();
+  }
+
+  /// Off screen: the tour stops where it is, not marked seen, and starts
+  /// again from the top when the page is back.
+  void _pause() {
+    _timer?.cancel();
+    _scroll?.removeListener(_follow);
+    _scroll = null;
+    if (_portal.isShowing) _portal.hide();
+    _moving = false;
+  }
+
   void _start({bool force = false}) {
     if (!mounted || _portal.isShowing || _steps.isEmpty) return;
     if (!force && ref.read(widget.seen) != false) return;
@@ -127,6 +209,11 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
       _moving = false;
     });
     _portal.show();
+    _drawn = null;
+    if (!_watching) {
+      _watching = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _watchLayout());
+    }
     // One more frame: the rects are read once the page is laid out.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
