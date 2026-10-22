@@ -53,7 +53,7 @@ class _DiscoverShellState extends State<DiscoverShell> {
     return switch (tab) {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(),
-      AppTab.home => const VisaScreen(embedded: true),
+      AppTab.home => VisaScreen(embedded: true, active: _tab == AppTab.home),
       _ => ClientCodeScreen(embedded: true, notice: AppLocalizations.of(context)!.fdNavNeedsClientCode),
     };
   }
