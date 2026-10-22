@@ -8954,6 +8954,18 @@ abstract class AppLocalizations {
   /// **'counts toward the %'**
   String get uaTestsCount;
 
+  /// No description provided for @uaTestsBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'+ accuracy'**
+  String get uaTestsBadge;
+
+  /// No description provided for @uaTestsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the tests and your admission chance gets more accurate'**
+  String get uaTestsHint;
+
   /// No description provided for @uaNo.
   ///
   /// In en, this message translates to:

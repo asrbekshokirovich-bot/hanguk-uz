@@ -285,7 +285,13 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
           key: keys[3],
           glyph: LucideIcons.target,
           title: l.uaSecTests,
-          trailing: Text(l.uaTestsCount, style: fdText(11, FontWeight.w800, FdColors.good)),
+          subtitle: l.uaTestsHint,
+          highlight: true,
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(color: FdColors.ink, borderRadius: BorderRadius.circular(999)),
+            child: Text(l.uaTestsBadge, style: fdText(11, FontWeight.w800, FdColors.lime)),
+          ),
           open: true,
           children: [
             _TestRow(

@@ -4978,6 +4978,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get uaTestsCount => 'tính vào tỷ lệ';
 
   @override
+  String get uaTestsBadge => '+ độ chính xác';
+
+  @override
+  String get uaTestsHint =>
+      'Làm bài kiểm tra để khả năng trúng tuyển được tính chính xác hơn';
+
+  @override
   String get uaNo => 'Không';
 
   @override
