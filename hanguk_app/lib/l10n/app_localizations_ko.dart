@@ -4819,8 +4819,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get uaTestsBadge => '+ 정확도';
 
   @override
-  String get uaTestsHint =>
-      '테스트를 보면 합격 가능성이 더 정확해져요';
+  String get uaTestsHint => '테스트를 보면 합격 가능성이 더 정확해져요';
 
   @override
   String get uaNo => '없음';

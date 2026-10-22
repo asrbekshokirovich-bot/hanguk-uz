@@ -5008,8 +5008,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get uaTestsBadge => '+ точность';
 
   @override
-  String get uaTestsHint =>
-      'Пройдите тесты — шанс поступления станет точнее';
+  String get uaTestsHint => 'Пройдите тесты — шанс поступления станет точнее';
 
   @override
   String get uaNo => 'Нет';
