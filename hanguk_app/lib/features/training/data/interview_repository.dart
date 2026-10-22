@@ -458,6 +458,9 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
   /// permanent no-op — the user could never leave the interview screen.
   bool _ending = false;
 
+  /// The last end found nothing to score or could not score it.
+  bool get endFailed => !_disposed && state.error == interviewErrorFeedback && state.feedback == null;
+
   /// Last-resort escape hatch for the interview view: whatever went wrong,
   /// return the UI to the setup screen (unless the session finished
   /// normally and is showing feedback).

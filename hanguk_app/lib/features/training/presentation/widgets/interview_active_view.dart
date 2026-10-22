@@ -631,6 +631,10 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // so the flow keeps working even if the view unmounts mid-way.
     final notifier = ref.read(interviewProvider.notifier);
     final lang = ref.read(interviewProvider).selectedLanguage;
+    // Taken now: when scoring fails the session goes back to idle, which
+    // unmounts this view before the message below could be shown.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = AppLocalizations.of(context);
     try {
       _stopCall();
     } catch (e) {
@@ -648,12 +652,9 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // The analysis failed (network, or the model couldn't produce a real
     // evaluation). Say so — dropping the student back on the setup screen
     // with no explanation reads like the End button ate their session.
-    if (!mounted) return;
-    final s = ref.read(interviewProvider);
-    if (s.error == 'feedback_failed' && s.feedback == null) {
-      final l = AppLocalizations.of(context);
-      if (l != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
+    if (notifier.endFailed) {
+      if (l != null && messenger != null) {
+        messenger.showSnackBar(
           SnackBar(
             content: Text(
               l.noFeedbackAvailable,
@@ -672,7 +673,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// 'completed' with feedback.
   void _endFromUser() {
     if (_didEndSession) return;
-    _didEndSession = true;
+    setState(() => _didEndSession = true);
     unawaited(_completeAutoEnd());
   }
 
@@ -874,6 +875,17 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                 enabled: _isCallActive && _call != null,
                 label: _muted ? l.fdInterviewUnmute : l.fdInterviewMute,
                 onTap: _toggleMute,
+              ),
+            ),
+            // A labelled End button under the mic (owner, 2026-10-22: the X
+            // alone was not seen as "yakunlash"). Same single end path; while
+            // the answers are being scored it says so.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+              child: HardButton(
+                label: state.isLoading ? l.sptChecking : l.endInterview,
+                loading: state.isLoading,
+                onPressed: _didEndSession ? null : _endFromUser,
               ),
             ),
             Padding(
