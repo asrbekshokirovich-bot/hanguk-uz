@@ -69,6 +69,16 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
 
+    // The university's interview test: when it ends without a result (the
+    // student never answered, or scoring failed — the live view says which),
+    // go back to the university page, not to the general practice setup.
+    if (widget.initialTimeLimitSeconds != null) {
+      ref.listen(interviewProvider, (prev, next) {
+        final wasLive = prev?.status == 'active' || prev?.status == 'abandoned';
+        if (wasLive && next.status == 'idle' && mounted) Navigator.of(context).maybePop();
+      });
+    }
+
     // The live call is design screen 20, on the light page with its own
     // header (the X there ends the call).
     if (state.status == 'active') {

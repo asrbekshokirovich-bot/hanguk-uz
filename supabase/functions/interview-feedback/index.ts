@@ -263,6 +263,10 @@ Include message_scores for EVERY student response in the transcript.`;
           // and see a different number, which is exactly what "approximate"
           // looks like from the outside.
           temperature: 0,
+          // "low": the model's own reasoning was most of the ~40s wait after
+          // "Suhbatni tugatish"; the score comes from the rubric, not from
+          // long deliberation, so keep it short and the result comes fast.
+          reasoning_effort: "low",
           response_format: { type: "json_object" },
         }),
       });
