@@ -21,10 +21,15 @@ import '../data/remembered_code.dart';
 /// as before — [AuthRepository.signInWithMagicCode], its retries and its
 /// error codes — only the screen is new.
 class ClientCodeScreen extends ConsumerStatefulWidget {
-  const ClientCodeScreen({super.key, this.notice});
+  const ClientCodeScreen({super.key, this.notice, this.embedded = false});
 
   /// Shown above the cells when another screen sent the visitor here.
   final String? notice;
+
+  /// Inside the guest home's Arizam / Hujjatlar tab (owner, 2026-10-22): the
+  /// home's own nav stays under it with that tab lit, so this page has no
+  /// nav of its own and no back button.
+  final bool embedded;
 
   /// Every code the CRM has issued is this long.
   static const int length = 8;
@@ -147,6 +152,80 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     final message = _error ?? _retryNotice ?? widget.notice;
     final remembered = _remembered;
 
+    final page = SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (!widget.embedded) ...[
+                HardIconButton(
+                  glyph: LucideIcons.chevronLeft,
+                  semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+                  onTap: _back,
+                ),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Text(
+                  l.fdCodeTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.36),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _Banner(onTelegram: _telegram),
+          const SizedBox(height: 18),
+          Text(l.fdCodeSms(l.fdCodeEight), style: fdText(12, FontWeight.w500, FdColors.pageMuted, height: 1.4)),
+          const SizedBox(height: 12),
+          _Cells(
+            controller: _ctrl,
+            focus: _focus,
+            enabled: !_loading,
+            // With the code's own keypad below, the phone's stays
+            // down.
+            systemKeyboard: remembered == null,
+            onChanged: _changed,
+            onSubmitted: _submit,
+            semanticLabel: l.magicCodeTitle,
+            cellLabel: l.fdCodeCell,
+          ),
+          if (remembered != null) ...[
+            const SizedBox(height: 14),
+            _SmsCard(code: remembered, onPaste: _paste),
+            const SizedBox(height: 12),
+            _Keypad(code: remembered, onKey: _key),
+          ],
+          if (_loading) ...[
+            const SizedBox(height: 16),
+            const Center(
+              child: SizedBox.square(
+                dimension: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: FdColors.lime),
+              ),
+            ),
+          ],
+          if (message != null) ...[const SizedBox(height: 14), _Note(text: message, error: _error != null)],
+          if (_offerGuest) ...[
+            const SizedBox(height: 12),
+            HardChoice(
+              label: l.welcomeExploreCta,
+              selected: false,
+              height: 44,
+              onTap: () => context.go(kDiscoverPath),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    // In the home's tab: the home's page, nav and round button are around it.
+    if (widget.embedded) return SafeArea(bottom: false, child: page);
+
     // The home's nav, as on every page; it steps aside for the keyboard.
     final typing = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
@@ -158,76 +237,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
       body: FdPage(
         // The page's glow fills the screen, not just the content's height.
         child: SizedBox.expand(
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      HardIconButton(
-                        glyph: LucideIcons.chevronLeft,
-                        semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                        onTap: _back,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          l.fdCodeTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1.1, letterSpacing: -0.36),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  _Banner(onTelegram: _telegram),
-                  const SizedBox(height: 18),
-                  Text(l.fdCodeSms(l.fdCodeEight), style: fdText(12, FontWeight.w500, FdColors.pageMuted, height: 1.4)),
-                  const SizedBox(height: 12),
-                  _Cells(
-                    controller: _ctrl,
-                    focus: _focus,
-                    enabled: !_loading,
-                    // With the code's own keypad below, the phone's stays
-                    // down.
-                    systemKeyboard: remembered == null,
-                    onChanged: _changed,
-                    onSubmitted: _submit,
-                    semanticLabel: l.magicCodeTitle,
-                    cellLabel: l.fdCodeCell,
-                  ),
-                  if (remembered != null) ...[
-                    const SizedBox(height: 14),
-                    _SmsCard(code: remembered, onPaste: _paste),
-                    const SizedBox(height: 12),
-                    _Keypad(code: remembered, onKey: _key),
-                  ],
-                  if (_loading) ...[
-                    const SizedBox(height: 16),
-                    const Center(
-                      child: SizedBox.square(
-                        dimension: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5, color: FdColors.lime),
-                      ),
-                    ),
-                  ],
-                  if (message != null) ...[const SizedBox(height: 14), _Note(text: message, error: _error != null)],
-                  if (_offerGuest) ...[
-                    const SizedBox(height: 12),
-                    HardChoice(
-                      label: l.welcomeExploreCta,
-                      selected: false,
-                      height: 44,
-                      onTap: () => context.go(kDiscoverPath),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
+          child: SafeArea(child: page),
         ),
       ),
     );
