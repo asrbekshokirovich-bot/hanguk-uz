@@ -252,7 +252,7 @@ describe('LeadsContent delete', () => {
 
   it('is not offered on a blank new sheet — there is nothing to delete', async () => {
     await renderPage([]);
-    fireEvent.click(screen.getByRole('button', { name: '+ Yangi lead' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Yangi lid' }));
     await screen.findByRole('button', { name: 'Saqlash' });
     expect(screen.queryByRole('button', { name: 'O‘chirish' })).not.toBeInTheDocument();
   });

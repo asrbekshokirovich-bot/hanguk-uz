@@ -771,9 +771,9 @@
       "subtitle": "Qatorga bosib o‘quvchi ma’lumotlarini to‘ldiring",
       "newSectionSubtitle": "Instagram va Telegram’da bizga birinchi marta yozgan yangi chatlar. 10 daqiqa ichida aloqa chiqing — chatga javob yozsangiz yoki ALOQA ustunida natijani belgilasangiz, lid bu yerdan chiqadi.",
       "todaySectionSubtitle": "Bugun kelgan lidlar — “Yangi lid”dan chiqqanidan keyin shu yerda turadi. Tun yarmida (00:00) “Lidlar” bo‘limiga o‘tadi.",
-      "newLead": "+ Yangi lead",
-      "newTitle": "Yangi lead",
-      "empty": "Hozircha lead yo‘q. “+ Yangi lead” tugmasi orqali qo‘shing.",
+      "newLead": "+ Yangi lid",
+      "newTitle": "Yangi lid",
+      "empty": "Hozircha lid yo‘q. “+ Yangi lid” tugmasi orqali qo‘shing.",
       "openRow": "{{name}} ma’lumotlarini ochish",
       "allRequired": "Ism kifoya — qolganini keyin to‘ldirsangiz bo‘ladi",
       "optional": "(majburiy emas)",
@@ -892,7 +892,7 @@
       ],
       "working": "Bajarilmoqda…",
       "tabs": {
-        "label": "Lead holati",
+        "label": "Lid holati",
         "active": "Ishlanmoqda",
         "converted": "O‘quvchilar",
         "rejected": "Rad etilganlar"
@@ -900,14 +900,14 @@
       "emptyBy": {
         "new": "Hozircha yangi lid yo‘q. Instagram yoki Telegram’da bizga birinchi marta kimdir yozsa, shu yerda paydo bo‘ladi.",
         "today": "Bugun hali lid yo‘q. “Yangi lid”dan chiqqan bugungi lidlar shu yerda paydo bo‘ladi.",
-        "active": "Ishlanayotgan lead yo‘q. “+ Yangi lead” orqali qo‘shing.",
-        "converted": "Hali birorta lead o‘quvchiga aylantirilmagan.",
-        "rejected": "Rad etilgan lead yo‘q."
+        "active": "Ishlanayotgan lid yo‘q. “+ Yangi lid” orqali qo‘shing.",
+        "converted": "Hali birorta lid o‘quvchiga aylantirilmagan.",
+        "rejected": "Rad etilgan lid yo‘q."
       },
       "convert": {
         "action": "O‘quvchiga",
-        "title": "Lead o‘quvchiga aylantirilsinmi?",
-        "body": "{{name}} uchun o‘quvchi akkaunti ochiladi va sehrli kod beriladi. Lead “O‘quvchilar” ro‘yxatiga o‘tadi.",
+        "title": "Lid o‘quvchiga aylantirilsinmi?",
+        "body": "{{name}} uchun o‘quvchi akkaunti ochiladi va sehrli kod beriladi. Lid “O‘quvchilar” ro‘yxatiga o‘tadi.",
         "confirm": "Aylantirish",
         "done": "Allaqachon o‘quvchi",
         "needsComplete": "Aylantirishdan oldin barcha maydonlarni to‘ldiring",
@@ -915,7 +915,7 @@
       },
       "reject": {
         "action": "Rad etish",
-        "title": "Lead rad etilsinmi?",
+        "title": "Lid rad etilsinmi?",
         "body": "{{name}} ishchi ro‘yxatdan chiqariladi. Keyinroq qaytarishingiz mumkin.",
         "confirm": "Rad etish",
         "reason": "Sabab",
@@ -928,7 +928,7 @@
       "needName": "Kamida ism yoki familiyani yozing",
       "savePartial_one": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
       "savePartial_other": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
-      "searchPlaceholder": "Ism, familiya yoki telefon",
+      "searchPlaceholder": "Ism, familiya, telefon yoki oxirgi 4 raqam",
       "searchLabel": "Lidlarni qidirish",
       "noMatches": "“{{query}}” bo‘yicha hech narsa topilmadi",
       "convertFull": "Talabaga aylantirish",

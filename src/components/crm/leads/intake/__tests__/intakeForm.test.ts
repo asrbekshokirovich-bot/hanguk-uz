@@ -8,13 +8,16 @@ import {
   initialsOf,
   isLeadComplete,
   matchesLeadQuery,
+  isLastDigitsQuery,
+  formatPhoneForList,
+  phoneNumbersOf,
   isoDaysFromNow,
   joinName,
   leadDataFromForm,
   splitName,
   validateIntake,
 } from '../intakeForm';
-import { needsSourceNote, semesterOptions } from '../options';
+import { channelLabel, needsSourceNote, semesterOptions } from '../options';
 
 /** A lead with every intake answer filled in; tests blank out what they probe. */
 const completeLead = (overrides: Partial<Lead> = {}): Lead =>
@@ -318,5 +321,84 @@ describe('matchesLeadQuery', () => {
 
   it('says no when nothing matches', () => {
     expect(matchesLeadQuery(person(), 'zzz')).toBe(false);
+  });
+
+  it('finds a lead by the last four digits, however the number is stored', () => {
+    for (const stored of ['+998 90 123-45-67', '901234567', '(90) 123-45-67', 'Tel: 901234567']) {
+      expect(matchesLeadQuery(person({ phone: stored }), '4567')).toBe(true);
+      expect(matchesLeadQuery(person({ phone: stored }), '45 67')).toBe(true);
+    }
+  });
+
+  it('four digits match the end of the number, not the middle', () => {
+    // '2345' sits inside 901234567 but is not how it ends.
+    expect(matchesLeadQuery(person(), '2345')).toBe(false);
+    expect(matchesLeadQuery(person(), '4567')).toBe(true);
+  });
+
+  it('four digits match the end of either number in a two-number field', () => {
+    const two = person({ phone: '90 123 45 67 / 91 765 43 21' });
+    expect(matchesLeadQuery(two, '4567')).toBe(true);
+    expect(matchesLeadQuery(two, '4321')).toBe(true);
+    expect(matchesLeadQuery(two, '7654')).toBe(false);
+  });
+
+  it('longer and shorter digit queries still match anywhere in the number', () => {
+    expect(matchesLeadQuery(person(), '12345')).toBe(true);
+    expect(matchesLeadQuery(person(), '123')).toBe(true);
+  });
+});
+
+describe('isLastDigitsQuery', () => {
+  it('is exactly four digits, spaces allowed', () => {
+    expect(isLastDigitsQuery('4567')).toBe(true);
+    expect(isLastDigitsQuery(' 45 67 ')).toBe(true);
+    expect(isLastDigitsQuery('456')).toBe(false);
+    expect(isLastDigitsQuery('45678')).toBe(false);
+    expect(isLastDigitsQuery('+4567')).toBe(false);
+    expect(isLastDigitsQuery('ab12')).toBe(false);
+  });
+});
+
+describe('formatPhoneForList', () => {
+  it('lays out an Uzbek number stored in any shape', () => {
+    expect(formatPhoneForList('998901234567')).toBe('+998 90 123 45 67');
+    expect(formatPhoneForList('+998 90 123-45-67')).toBe('+998 90 123 45 67');
+    expect(formatPhoneForList('901234567')).toBe('90 123 45 67');
+    expect(formatPhoneForList('(90) 123-45-67')).toBe('90 123 45 67');
+  });
+
+  it('shows anything ambiguous exactly as stored', () => {
+    expect(formatPhoneForList('+82 10 1234 5678')).toBe('+82 10 1234 5678');
+    expect(formatPhoneForList('90 123 45 67 / 91 765 43 21')).toBe('90 123 45 67 / 91 765 43 21');
+    expect(formatPhoneForList('Tel: 901234567')).toBe('Tel: 901234567');
+    expect(formatPhoneForList('12345')).toBe('12345');
+  });
+
+  it('is empty for no phone', () => {
+    expect(formatPhoneForList(null)).toBe('');
+    expect(formatPhoneForList('  ')).toBe('');
+  });
+});
+
+describe('phoneNumbersOf', () => {
+  it('splits a field holding more than one number', () => {
+    expect(phoneNumbersOf('90 123 45 67 / 91 765 43 21')).toEqual(['901234567', '917654321']);
+    expect(phoneNumbersOf('901234567, 917654321')).toEqual(['901234567', '917654321']);
+    expect(phoneNumbersOf(null)).toEqual([]);
+  });
+});
+
+describe('channelLabel', () => {
+  it('shows a known channel in one spelling, whatever case it was stored in', () => {
+    expect(channelLabel('instagram')).toBe('Instagram');
+    expect(channelLabel('INSTAGRAM')).toBe('Instagram');
+    expect(channelLabel('Instagram')).toBe('Instagram');
+    expect(channelLabel('telegram')).toBe('Telegram');
+  });
+
+  it('leaves an unknown channel as stored and a blank as empty', () => {
+    expect(channelLabel('Facebook')).toBe('Facebook');
+    expect(channelLabel(null)).toBe('');
   });
 });

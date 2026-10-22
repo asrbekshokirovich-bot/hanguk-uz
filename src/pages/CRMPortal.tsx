@@ -30,6 +30,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { cn } from '@/lib/utils';
 
 // Lazy load page contents for better performance
 const FinanceOverviewContent = lazy(() => import('@/components/finance/FinanceOverview').then(m => ({ default: m.FinanceOverview })));
@@ -60,6 +61,9 @@ const ApplicationsPipeline = lazy(() => import('@/components/crm/pages/Applicati
 const DocumentsContent = lazy(() => import('@/components/crm/pages/DocumentsContent'));
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
+
+/** Views given a wider content column — see the main content wrapper. */
+const WIDE_VIEWS = new Set(['leads', 'new-leads', 'today-leads']);
 const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfileContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
@@ -530,7 +534,16 @@ export default function CRMPortal() {
               <CallsProvider>
                 <MessagesProvider>
                   <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
-                    <div key={activeView} className="mx-auto max-w-[1240px] animate-fade-up space-y-6">
+                    {/* The lead lists are twelve-column tables; on a wide monitor
+                        they get the room to show every column at once instead of
+                        scrolling sideways inside a 1240px box. */}
+                    <div
+                      key={activeView}
+                      className={cn(
+                        'mx-auto animate-fade-up space-y-6',
+                        WIDE_VIEWS.has(activeView) ? 'max-w-[1440px]' : 'max-w-[1240px]',
+                      )}
+                    >
                       {renderContent()}
                     </div>
                   </main>
