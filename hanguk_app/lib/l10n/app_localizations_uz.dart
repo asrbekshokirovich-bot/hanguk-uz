@@ -5000,6 +5000,13 @@ class AppLocalizationsUz extends AppLocalizations {
   String get uaTestsCount => 'natija foizga kiradi';
 
   @override
+  String get uaTestsBadge => '+ aniqlik';
+
+  @override
+  String get uaTestsHint =>
+      'Testlarni topshirsangiz, kirish ehtimolingiz aniqroq hisoblanadi';
+
+  @override
   String get uaNo => 'Yo\'q';
 
   @override

@@ -1608,6 +1608,8 @@
   "uaSecDocuments": "Hujjatlar to'plami",
   "uaSecTests": "Baholash testlari",
   "uaTestsCount": "natija foizga kiradi",
+  "uaTestsBadge": "+ aniqlik",
+  "uaTestsHint": "Testlarni topshirsangiz, kirish ehtimolingiz aniqroq hisoblanadi",
   "uaNo": "Yo'q",
   "uaHave": "Bor",
   "uaQDegree": "Qaysi darajaga topshirasiz",

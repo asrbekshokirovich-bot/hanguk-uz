@@ -5005,6 +5005,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get uaTestsCount => 'входит в процент';
 
   @override
+  String get uaTestsBadge => '+ точность';
+
+  @override
+  String get uaTestsHint => 'Пройдите тесты — шанс поступления станет точнее';
+
+  @override
   String get uaNo => 'Нет';
 
   @override

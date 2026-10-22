@@ -1608,6 +1608,8 @@
   "uaSecDocuments": "Hồ sơ",
   "uaSecTests": "Bài kiểm tra đánh giá",
   "uaTestsCount": "tính vào tỷ lệ",
+  "uaTestsBadge": "+ độ chính xác",
+  "uaTestsHint": "Làm bài kiểm tra để khả năng trúng tuyển được tính chính xác hơn",
   "uaNo": "Không",
   "uaHave": "Có",
   "uaQDegree": "Bạn đăng ký bậc nào",

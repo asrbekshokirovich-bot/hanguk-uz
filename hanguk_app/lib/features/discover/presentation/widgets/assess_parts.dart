@@ -92,7 +92,16 @@ class AssessSection extends StatelessWidget {
     required this.open,
     this.trailing,
     this.onToggle,
+    this.highlight = false,
+    this.subtitle,
   });
+
+  /// Lime, on a blue hard shadow, so it stands out from the white sections
+  /// (owner, 2026-10-22: the tests must catch the student's eye).
+  final bool highlight;
+
+  /// A line under the title.
+  final String? subtitle;
 
   final LucideGlyph glyph;
   final String title;
@@ -105,9 +114,10 @@ class AssessSection extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
     decoration: BoxDecoration(
-      color: FdColors.card,
+      color: highlight ? FdColors.lime : FdColors.card,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: FdColors.ink, width: 1.5),
+      border: Border.all(color: FdColors.ink, width: highlight ? 2 : 1.5),
+      boxShadow: highlight ? const [BoxShadow(color: FdColors.blue, offset: Offset(4, 4))] : null,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,11 +131,17 @@ class AssessSection extends StatelessWidget {
                 width: 32,
                 height: 32,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: FdColors.tint, borderRadius: BorderRadius.circular(9)),
+                decoration: BoxDecoration(
+                  color: highlight ? FdColors.card : FdColors.tint,
+                  borderRadius: BorderRadius.circular(9),
+                  border: highlight ? Border.all(color: FdColors.ink, width: 1.5) : null,
+                ),
                 child: Lucide(glyph, size: 16, color: FdColors.navy),
               ),
               const SizedBox(width: 10),
-              Expanded(child: Text(title, style: fdText(15, FontWeight.w800, FdColors.ink))),
+              Expanded(
+                child: Text(title, style: fdText(15, FontWeight.w800, highlight ? FdColors.onLime : FdColors.ink)),
+              ),
               trailing ??
                   (onToggle == null
                       ? const SizedBox.shrink()
@@ -133,6 +149,10 @@ class AssessSection extends StatelessWidget {
             ],
           ),
         ),
+        if (subtitle case final s?) ...[
+          const SizedBox(height: 6),
+          Text(s, style: fdText(12, FontWeight.w600, highlight ? FdColors.onLime : FdColors.muted, height: 1.35)),
+        ],
         SizedBox(height: open ? 14 : 12),
         if (open) ...children,
       ],

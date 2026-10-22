@@ -5003,6 +5003,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uaTestsCount => 'counts toward the %';
 
   @override
+  String get uaTestsBadge => '+ accuracy';
+
+  @override
+  String get uaTestsHint =>
+      'Take the tests and your admission chance gets more accurate';
+
+  @override
   String get uaNo => 'No';
 
   @override

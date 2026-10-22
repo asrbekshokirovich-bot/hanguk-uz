@@ -1608,6 +1608,8 @@
   "uaSecDocuments": "서류",
   "uaSecTests": "평가 테스트",
   "uaTestsCount": "결과가 확률에 반영",
+  "uaTestsBadge": "+ 정확도",
+  "uaTestsHint": "테스트를 보면 합격 가능성이 더 정확해져요",
   "uaNo": "없음",
   "uaHave": "있음",
   "uaQDegree": "지원 과정",
