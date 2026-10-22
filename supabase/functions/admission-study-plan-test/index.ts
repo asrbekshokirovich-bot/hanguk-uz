@@ -111,7 +111,12 @@ Reply with JSON only: {"motivation":n,"plan":n,"career":n,"language":n,"strength
             { role: "user", content: user_ },
           ],
           temperature: 0,
-          max_tokens: 1500,
+          // 1500 was too low: gemini-2.5-flash spends output tokens on its
+          // own reasoning first, hit the cap before writing any JSON, and the
+          // empty reply failed to parse — every check came back as an error.
+          // "low" keeps the reasoning short, so the mark comes back fast.
+          max_tokens: 8000,
+          reasoning_effort: "low",
           response_format: { type: "json_object" },
         }),
       });
@@ -120,8 +125,13 @@ Reply with JSON only: {"motivation":n,"plan":n,"career":n,"language":n,"strength
         return json({ error: res.status === 429 ? "rate_limited" : "ai_failed" }, res.status === 429 ? 429 : 502);
       }
       const raw = (await res.json()).choices?.[0]?.message?.content ?? "";
-      const body = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
-      const p = JSON.parse(body);
+      const start = raw.indexOf("{");
+      const end = raw.lastIndexOf("}");
+      if (start < 0 || end <= start) {
+        console.error("AI reply without JSON", raw.slice(0, 300));
+        return json({ error: "ai_failed" }, 502);
+      }
+      const p = JSON.parse(raw.slice(start, end + 1));
       const list = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string").slice(0, 4) : []);
       result = {
         motivation: clamp(p.motivation, 0, 30),

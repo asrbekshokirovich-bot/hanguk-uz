@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 
 import '../../design_system/seoul_night/seoul_night.dart';
 import '../analytics/app_events.dart';
@@ -366,13 +367,40 @@ List<RouteBase> _uniDbRoutes() => [
   ),
 ];
 
+/// What the redirect needs from the auth stream, and a ping when it changes.
+///
+/// The router used to `ref.watch` the auth stream itself, so EVERY auth event
+/// built a brand-new GoRouter at '/': the guest sign-in that opens the
+/// university tests, and the token refresh when the app comes back from the
+/// microphone prompt or the background. Each one threw the student out of the
+/// Study Plan / interview test to the home screen. Now the router is built
+/// once and only re-runs its redirect when being signed in actually changes.
+class _AuthGate extends ChangeNotifier {
+  bool isLoading = true;
+  bool isAuthenticated = false;
+
+  void update({required bool isLoading, required bool isAuthenticated}) {
+    if (isLoading == this.isLoading && isAuthenticated == this.isAuthenticated) return;
+    this.isLoading = isLoading;
+    this.isAuthenticated = isAuthenticated;
+    notifyListeners();
+  }
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authStateAsync = ref.watch(authStateProvider);
   // Only the language gate rebuilds the router; switching language later
   // must not throw the visitor back to the first screen.
   final hasLanguage = ref.watch(entryProvider.select((s) => s.hasLanguage));
 
-  return GoRouter(
+  final gate = _AuthGate();
+  void sync(AsyncValue<AuthState> s) => gate.update(
+    isLoading: s.isLoading,
+    isAuthenticated: isClientSession(s.value?.session),
+  );
+  sync(ref.read(authStateProvider));
+  ref.listen<AsyncValue<AuthState>>(authStateProvider, (_, next) => sync(next));
+
+  final router = GoRouter(
     initialLocation: '/',
     observers: [AppEventsNavigatorObserver()],
     routes: <RouteBase>[
@@ -393,13 +421,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           builder: (context, state) => const SeoulNightGallery(),
         ),
     ],
+    refreshListenable: gate,
     redirect: (context, state) => resolveAppRedirect(
       loc: state.uri.toString(),
-      isLoading: authStateAsync.isLoading,
-      isAuthenticated: isClientSession(authStateAsync.value?.session),
+      isLoading: gate.isLoading,
+      isAuthenticated: gate.isAuthenticated,
       hasLanguage: hasLanguage,
     ),
   );
+  return router;
 });
 
 /// Where [loc] should go instead, or null to stay. Pure, so the gates can be
