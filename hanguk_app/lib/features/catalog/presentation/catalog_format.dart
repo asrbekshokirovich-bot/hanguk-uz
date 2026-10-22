@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/money/fx_rates.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/catalog_models.dart';
 
@@ -24,16 +25,29 @@ String groupThousands(num value, {String? locale}) {
   return b.toString();
 }
 
-/// An amount in the currency the guideline quotes it in — never converted.
-/// KRW is the only currency the catalogue uses today and reads "₩4,134,000";
-/// anything else keeps its ISO code. [locale] picks the digit grouping.
+/// An amount for the student. Won is shown in the currency of the app's
+/// language at the Central Bank of Uzbekistan's rate ([FxRates]; owner,
+/// 2026-10-22): Uzbek "37 330 000 so'm", English and Russian "\$3,120",
+/// Korean and Vietnamese "₩4,134,000" as quoted — and as quoted too until the
+/// app has rates. Other currencies are never converted and keep their ISO
+/// code. [locale] picks the language and the digit grouping.
 String money(num value, String? currency, {String? locale}) {
-  final n = groupThousands(value, locale: locale);
-  switch ((currency ?? 'KRW').toUpperCase()) {
+  var code = (currency ?? 'KRW').toUpperCase();
+  var amount = value;
+  final rates = FxRates.current;
+  final target = displayCurrencyFor(locale);
+  if (code == 'KRW' && rates != null && target != null) {
+    amount = convertKrw(value, target, rates);
+    code = target;
+  }
+  final n = groupThousands(amount, locale: locale);
+  switch (code) {
     case 'KRW':
       return '₩$n';
     case 'USD':
       return '\$$n';
+    case 'UZS':
+      return "$n so'm";
     default:
       return '$n ${currency!.toUpperCase()}';
   }

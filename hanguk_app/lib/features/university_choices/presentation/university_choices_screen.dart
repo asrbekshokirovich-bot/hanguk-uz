@@ -7,6 +7,7 @@ import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../catalog/presentation/catalog_format.dart' show money;
 import '../data/university_choices_repository.dart';
 import '../domain/university_choice.dart';
 
@@ -356,6 +357,8 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
 
 /// "₩2,100,000" — the guideline's currency in front of the amount.
 String formatMoney(double amount, String? currency, String locale) {
+  final c = (currency ?? '').toUpperCase();
+  if (c == 'KRW' || c == 'WON' || c == '₩') return money(amount, 'KRW', locale: locale);
   final n = NumberFormat.decimalPattern(locale).format(amount.round());
   final sign = switch ((currency ?? '').toUpperCase()) {
     'KRW' || 'WON' || '₩' => '₩',
