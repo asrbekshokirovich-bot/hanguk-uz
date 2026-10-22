@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +20,7 @@ final admissionTestsProvider = FutureProvider<Map<String, AdmissionTests>>((ref)
     final results = await Future.wait([
       client
           .from('study_plan_sessions')
-          .select('target_institution_id, study_plan_analyses(overall_score, created_at)')
+          .select('target_institution_id, study_plan_analyses(overall_score, ai_response, created_at)')
           .eq('student_id', uid)
           .not('target_institution_id', 'is', null),
       client
@@ -45,7 +47,7 @@ Map<String, AdmissionTests> admissionTestsFrom({required List<dynamic> studyPlan
             final num s,
             final DateTime at,
           ))
-            (id, at, (s * 10).round().clamp(0, 100)),
+            (id, at, _exactScore(a['ai_response']) ?? (s * 10).round().clamp(0, 100)),
   ];
 
   final plans = scored(studyPlans, 'study_plan_analyses');
@@ -71,3 +73,15 @@ List<Map<String, dynamic>> _list(Object? v) => switch (v) {
   final Map<String, dynamic> m => [m],
   _ => const [],
 };
+
+/// The Study Plan test's own mark out of 100, kept in `ai_response` by
+/// `admission-study-plan-test`. `overall_score` holds it rounded to 1–10, so
+/// read from there a 73 showed as 70 and a blank 0 as 10.
+int? _exactScore(Object? aiResponse) {
+  if (aiResponse is! String || !aiResponse.trimLeft().startsWith('{')) return null;
+  try {
+    final j = jsonDecode(aiResponse);
+    if (j is Map && j['score'] is num) return (j['score'] as num).round().clamp(0, 100);
+  } catch (_) {}
+  return null;
+}

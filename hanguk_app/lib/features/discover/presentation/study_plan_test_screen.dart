@@ -112,6 +112,10 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
     return StudyPlanTestResult.fromJson(data);
   }
 
+  /// At least one answer long enough to be marked (the server gives 0
+  /// without marking when every answer is under 20 characters).
+  bool get _hasAnswer => _answers.any((c) => c.text.trim().length >= 20);
+
   Future<void> _submit() async {
     if (_sending || _result != null) return;
     _timer?.cancel();
@@ -238,7 +242,17 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                         ),
                         const SizedBox(height: 10),
                       ],
-                      HardButton(label: l.sptSubmit, loading: _sending, onPressed: _sending ? null : _submit),
+                      // Nothing written, nothing to send: the test is taken once,
+                      // and a tap on an empty form used to spend that one try on
+                      // a 0. When the time runs out, what is there is sent anyway.
+                      ListenableBuilder(
+                        listenable: Listenable.merge(_answers),
+                        builder: (context, _) => HardButton(
+                          label: l.sptSubmit,
+                          loading: _sending,
+                          onPressed: _sending || !_hasAnswer ? null : _submit,
+                        ),
+                      ),
                     ],
             ),
           ),

@@ -76,6 +76,10 @@ class InterviewSessionState {
   final bool timedMode;
   final int? timeLimitSeconds; // Hard cap; null = untimed
 
+  /// The university's interview test asks exactly this many questions and
+  /// then ends; null for free practice.
+  final int? questionLimit;
+
   const InterviewSessionState({
     this.sessionId,
     this.sessionType = 'general',
@@ -95,6 +99,7 @@ class InterviewSessionState {
     this.focusTopic,
     this.timedMode = false,
     this.timeLimitSeconds,
+    this.questionLimit,
   });
 
   InterviewSessionState copyWith({
@@ -117,6 +122,8 @@ class InterviewSessionState {
     String? focusTopic,
     bool? timedMode,
     int? timeLimitSeconds,
+    int? questionLimit,
+    bool clearQuestionLimit = false,
   }) {
     return InterviewSessionState(
       sessionId: sessionId ?? this.sessionId,
@@ -137,6 +144,7 @@ class InterviewSessionState {
       focusTopic: focusTopic ?? this.focusTopic,
       timedMode: timedMode ?? this.timedMode,
       timeLimitSeconds: timeLimitSeconds ?? this.timeLimitSeconds,
+      questionLimit: clearQuestionLimit ? null : (questionLimit ?? this.questionLimit),
     );
   }
 }
@@ -220,6 +228,7 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     String persona = 'friendly',
     bool timedMode = false,
     int? timeLimitSeconds,
+    int? questionLimit,
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
@@ -259,6 +268,8 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
         focusTopic: focusTopic,
         timedMode: timedMode,
         timeLimitSeconds: timeLimitSeconds,
+        questionLimit: questionLimit,
+        clearQuestionLimit: questionLimit == null,
         // NOTE: We do NOT call sendMessage here anymore.
         // Vapi handles the greeting via its own firstMessage field.
         // Calling sendMessage here caused a duplicate greeting race condition.
