@@ -132,7 +132,8 @@ IMPORTANT: Evaluate if the student demonstrated knowledge about this specific un
 
     const feedbackLang = language === "uz" ? "Uzbek" : 
                          language === "ru" ? "Russian" :
-                         language === "en" ? "English" : "Korean";
+                         language === "en" ? "English" :
+                         language === "vi" ? "Vietnamese" : "Korean";
 
     const systemPrompt = `You are an expert Korean university admission interview evaluator. 
 Analyze this practice interview transcript and provide detailed feedback.

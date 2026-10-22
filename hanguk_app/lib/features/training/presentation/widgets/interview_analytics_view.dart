@@ -14,11 +14,16 @@ class InterviewAnalyticsView extends ConsumerStatefulWidget {
   final String?
   overrideVapiCallId; // Vapi call id for audio playback when viewing a past session
 
+  /// The university's interview test: its result ends with "Tayyor", which
+  /// calls this, instead of "start another interview".
+  final VoidCallback? onDone;
+
   const InterviewAnalyticsView({
     super.key,
     this.onBackPressed,
     this.overrideSessionId,
     this.overrideVapiCallId,
+    this.onDone,
   });
 
   @override
@@ -268,12 +273,15 @@ class _InterviewAnalyticsViewState
         // feedback (the prior implementation called resetSession which
         // wiped it). Routes back through the setup view by transitioning
         // status: 'completed' -> 'idle' via resetForNewSession.
-        LimeButton(
-          label: l.startAnotherInterview,
-          icon: Icons.refresh,
-          onPressed: () =>
-              ref.read(interviewProvider.notifier).resetForNewSession(),
-        ),
+        if (widget.onDone case final done?)
+          LimeButton(label: l.sptDone, onPressed: done)
+        else
+          LimeButton(
+            label: l.startAnotherInterview,
+            icon: Icons.refresh,
+            onPressed: () =>
+                ref.read(interviewProvider.notifier).resetForNewSession(),
+          ),
       ],
     );
   }

@@ -49,4 +49,33 @@ void main() {
     expect(m.keys, ['a']);
     expect(m['a'], const AdmissionTests(studyPlan: 80, interview: 70, studyPlanAttempts: 2, interviewAttempts: 1));
   });
+
+  test('the Study Plan test mark is read exactly from ai_response', () {
+    final m = admissionTestsFrom(
+      studyPlans: [
+        {
+          'target_institution_id': 'a',
+          'study_plan_analyses': [
+            {'overall_score': 7, 'ai_response': '{"score":73,"seconds":120}', 'created_at': '2026-10-05T00:00:00Z'},
+          ],
+        },
+        {
+          'target_institution_id': 'b',
+          'study_plan_analyses': [
+            {'overall_score': 1, 'ai_response': '{"score":0}', 'created_at': '2026-10-05T00:00:00Z'},
+          ],
+        },
+        {
+          'target_institution_id': 'c',
+          'study_plan_analyses': [
+            {'overall_score': 6, 'ai_response': 'This is an initial analysis', 'created_at': '2026-10-05T00:00:00Z'},
+          ],
+        },
+      ],
+      interviews: const [],
+    );
+    expect(m['a']!.studyPlan, 73);
+    expect(m['b']!.studyPlan, 0);
+    expect(m['c']!.studyPlan, 60);
+  });
 }

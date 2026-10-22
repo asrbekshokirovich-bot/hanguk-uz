@@ -387,7 +387,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
             initialUniversityName: u.displayName,
             initialLanguage: language,
             initialTimeLimitSeconds: kInterviewTestMinutes * 60,
-            initialFocusTopic: 'Admission interview test: ask exactly $kInterviewTestQuestions questions',
+            initialQuestionLimit: kInterviewTestQuestions,
           )
         : StudyPlanTestScreen(university: u);
     await Navigator.of(context).push(

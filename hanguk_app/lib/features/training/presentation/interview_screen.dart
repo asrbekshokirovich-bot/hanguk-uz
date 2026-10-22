@@ -25,6 +25,10 @@ class InterviewScreen extends ConsumerStatefulWidget {
   final int? initialTimeLimitSeconds;
   final String? initialFocusTopic;
 
+  /// The university's interview test: exactly this many questions, then the
+  /// result, then back to the university page.
+  final int? initialQuestionLimit;
+
   const InterviewScreen({
     super.key,
     this.initialSessionType,
@@ -34,6 +38,7 @@ class InterviewScreen extends ConsumerStatefulWidget {
     this.initialPersona,
     this.initialTimeLimitSeconds,
     this.initialFocusTopic,
+    this.initialQuestionLimit,
   });
 
   @override
@@ -59,6 +64,7 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               focusTopic: widget.initialFocusTopic,
               timedMode: widget.initialTimeLimitSeconds != null,
               timeLimitSeconds: widget.initialTimeLimitSeconds,
+              questionLimit: widget.initialQuestionLimit,
             );
       });
     }
@@ -118,7 +124,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
             label: l.a11yTooltipBack,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).maybePop(),
+              onTap: isCompleted && widget.initialTimeLimitSeconds != null
+                  ? _done
+                  : () => Navigator.of(context).maybePop(),
               child: Container(
                 width: SeoulSizes.minTapTarget,
                 height: SeoulSizes.minTapTarget,
@@ -153,6 +161,15 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     );
   }
 
+  /// Back to the university page, then clear the finished test out of the
+  /// shared interview state (after the route has gone), so the practice
+  /// interview does not open on this result.
+  void _done() {
+    final notifier = ref.read(interviewProvider.notifier);
+    Navigator.of(context).maybePop();
+    Future<void>.delayed(const Duration(milliseconds: 400), notifier.resetForNewSession);
+  }
+
   Widget _buildCurrentView(InterviewSessionState state) {
     final l = AppLocalizations.of(context)!;
     if (state.status == 'idle') {
@@ -184,7 +201,11 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
       // scores, strengths/improvements, and the audio player for replaying
       // the recorded session. The simpler InterviewFeedbackView is reachable
       // separately if needed.
-      return const InterviewAnalyticsView();
+      // The university's test is taken once: its result ends with "Tayyor"
+      // back to the university page, not a new practice interview.
+      return InterviewAnalyticsView(
+        onDone: widget.initialTimeLimitSeconds != null ? _done : null,
+      );
     } else if (state.status == 'active') {
       return const InterviewActiveView();
     } else {
