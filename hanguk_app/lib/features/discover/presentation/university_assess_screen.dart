@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -366,6 +367,12 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     // No client code asked here (owner, 2026-10-21): a guest takes the
     // tests under an anonymous session.
     final messenger = ScaffoldMessenger.of(context);
+    // The interview runs in Korean or English, the student's choice.
+    String? language;
+    if (interview) {
+      language = await _pickInterviewLanguage(context, l);
+      if (language == null || !context.mounted) return;
+    }
     if (!await ensureTestSession()) {
       messenger
         ..hideCurrentSnackBar()
@@ -378,6 +385,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
             initialSessionType: 'university_specific',
             initialUniversityId: u.institutionId,
             initialUniversityName: u.displayName,
+            initialLanguage: language,
             initialTimeLimitSeconds: kInterviewTestMinutes * 60,
             initialFocusTopic: 'Admission interview test: ask exactly $kInterviewTestQuestions questions',
           )
@@ -390,6 +398,31 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     );
     ref.invalidate(admissionTestsProvider);
   }
+}
+
+/// Korean or English for the interview test; null when dismissed.
+Future<String?> _pickInterviewLanguage(BuildContext context, AppLocalizations l) {
+  return showModalBottomSheet<String>(
+    context: context,
+    backgroundColor: FdColors.card,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(l.languageLabel, style: fdText(16, FontWeight.w800, FdColors.ink)),
+            const SizedBox(height: 14),
+            HardButton(label: '한국어', onPressed: () => Navigator.of(ctx).pop('ko')),
+            const SizedBox(height: 10),
+            HardButton(label: 'English', onPressed: () => Navigator.of(ctx).pop('en')),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 /// One test: its icon, name and terms, and "Boshlash" — or the score once
