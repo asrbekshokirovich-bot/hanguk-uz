@@ -35,17 +35,19 @@ abstract final class AppTab {
 const List<int> _navTabs = [AppTab.universities, AppTab.prepare, AppTab.application, AppTab.documents];
 
 /// Opens [tab] of the home from a screen pushed over it (or from the home's
-/// own nav when [onLocal] is null): a client's tabs for a guest go to the
-/// client-code sign-in with a note, as the prototype's lock dots promise.
+/// own nav when [onLocal] is null). A client's tab for a guest opens in the
+/// guest home itself, where it asks for the client code (owner, 2026-10-22).
 /// The sign-in's own nav passes [onLocked], as it is that page already.
 void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>? onLocal, VoidCallback? onLocked}) {
   final signedIn = ref.read(signedInProvider);
   if (AppTab.needsClient(tab) && !signedIn) {
     if (onLocked != null) {
       onLocked();
-      return;
+    } else if (onLocal != null) {
+      onLocal(tab);
+    } else {
+      context.go(discoverTabPath(tab));
     }
-    context.push('/login', extra: {'notice': AppLocalizations.of(context)!.fdNavNeedsClientCode});
     return;
   }
   if (onLocal != null) {

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/features/auth/data/auth_repository.dart';
 import 'package:hanguk_app/features/auth/presentation/client_code_screen.dart';
+import 'package:hanguk_app/design_system/seoul_night/widgets/fd_kit.dart' show HardIconButton;
 import 'package:hanguk_app/features/discover/presentation/widgets/app_nav.dart';
 import 'package:hanguk_app/design_system/theme/app_theme.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
@@ -44,7 +45,7 @@ void main() {
     );
   });
 
-  Future<void> pump(WidgetTester t) async {
+  Future<void> pump(WidgetTester t, {Widget home = const ClientCodeScreen()}) async {
     t.view.physicalSize = const Size(390 * 3, 844 * 3);
     t.view.devicePixelRatio = 3;
     addTearDown(t.view.reset);
@@ -63,7 +64,7 @@ void main() {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: const ClientCodeScreen(),
+          home: home,
         ),
       ),
     );
@@ -88,6 +89,16 @@ void main() {
     // No second sign-in page over this one: the field takes the focus.
     expect(find.byType(ClientCodeScreen), findsOneWidget);
     expect(t.widget<TextField>(find.byType(TextField)).focusNode!.hasFocus, isTrue);
+  });
+
+  testWidgets("in the guest home's tab: no back button and no nav of its own", (t) async {
+    await pump(t, home: const Scaffold(body: ClientCodeScreen(embedded: true, notice: 'note')));
+    final l = await AppLocalizations.delegate.load(const Locale('uz'));
+    expect(find.text(l.fdCodeTitle), findsOneWidget);
+    expect(find.text('note'), findsOneWidget);
+    expect(find.byType(HardIconButton), findsNothing);
+    expect(find.byType(AppNav), findsNothing);
+    expect(find.byType(TextField), findsOneWidget);
   });
 
   testWidgets('typing fills the cells in capitals; the eighth signs in', (t) async {
