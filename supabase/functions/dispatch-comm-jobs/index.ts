@@ -15,6 +15,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Mirrors comm_processing_jobs.max_attempts (table default). A job at this many
+// attempts is permanently failed and no longer claimable.
+const MAX_ATTEMPTS = 3;
+
 const WORKERS: Record<string, { fn: string; param: string }> = {
   call_transcribe_analyze: { fn: "process-call-recording", param: "call_id" },
   document_extract: { fn: "process-document", param: "document_id" },
@@ -44,19 +48,24 @@ Deno.serve(async (req) => {
     if (Number.isFinite(body?.limit)) limit = Math.max(1, Math.min(25, body.limit));
   } catch (_e) { /* default */ }
 
-  // Pick claimable jobs: pending, or errored but still under max_attempts.
+  // Pick claimable jobs: pending, or errored but still under max_attempts. The
+  // attempts filter lives in SQL so permanently-failed jobs can't sit at the
+  // front of the queue and starve the rest (backfilled jobs share one
+  // created_at, so id is a stable deterministic tiebreak).
   const { data: jobs, error } = await supabase
     .from("comm_processing_jobs")
     .select("id, job_type, ref_id, attempts, max_attempts, status")
     .in("status", ["pending", "error"])
+    .lt("attempts", MAX_ATTEMPTS)
     .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
     .limit(limit);
 
   if (error) {
     return json({ ok: false, error: error.message }, 500);
   }
 
-  const claimable = (jobs ?? []).filter((j: any) => (j.attempts ?? 0) < (j.max_attempts ?? 3));
+  const claimable = jobs ?? [];
   const results: any[] = [];
 
   for (const jobRow of claimable) {
