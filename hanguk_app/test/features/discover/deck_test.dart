@@ -131,4 +131,23 @@ void main() {
     await pump(t);
     expect(find.text("Surib ko'ring"), findsNothing);
   });
+
+  testWidgets('nothing saved: the page ends at the first screen', (t) async {
+    await pump(t);
+    expect(find.text('Saqlanganlar'), findsNothing);
+  });
+
+  testWidgets('saved universities continue the page below the first screen', (t) async {
+    final c = await pump(t);
+    c.read(savedUniversitiesProvider.notifier).save('Gamma');
+    c.read(savedUniversitiesProvider.notifier).save('Beta');
+    await t.pump();
+    // The heading shows at the foot; the list follows when the page scrolls.
+    expect(find.text('Saqlanganlar'), findsOneWidget);
+    expect(find.text('2 ta'), findsOneWidget);
+    await t.drag(find.byType(SingleChildScrollView).first, const Offset(0, -500));
+    await t.pumpAndSettle();
+    expect(find.text('Gamma University'), findsWidgets);
+    expect(find.bySemanticsLabel('Saqlanganlardan olib tashlash'), findsNWidgets(2));
+  });
 }
