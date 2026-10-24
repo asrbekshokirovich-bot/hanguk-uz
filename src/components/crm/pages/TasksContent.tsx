@@ -97,20 +97,11 @@ export default function TasksContent() {
         const userIds = [...new Set(roles.map((r) => r.user_id))].filter(
           (id) => !HIDDEN_FROM_ASSIGNEES.has(id),
         );
-        const profiles: (Tables<'profiles'> & { user_id: string })[] = [];
-
-        for (const userId of userIds) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', userId)
-            .maybeSingle();
-
-          if (data) {
-            profiles.push(data);
-          }
-        }
-        setStaffMembers(profiles);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('user_id', userIds);
+        setStaffMembers(profiles ?? []);
       }
     };
 
