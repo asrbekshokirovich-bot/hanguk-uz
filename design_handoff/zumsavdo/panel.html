@@ -1,0 +1,562 @@
+<title>ZumSavdo Panel</title>
+<style>
+:root{
+  --ground:#FAF7F8; --surface:#FFFFFF; --surface2:#F3EDF1; --sunken:#EFE8EC;
+  --line:#E2D6DE; --line2:#CFBFCA;
+  --ink:#221A20; --ink2:#5F5259; --ink3:#8C7C86;
+  --accent:#6D2F5B; --accentSoft:#F3E4EE; --onAccent:#FFFFFF;
+  --amber:#9C6212; --amberSoft:#FBEFDC;
+  --exact:#1F6350; --exactSoft:#DFF0EA;
+  --approx:#7A6A4F; --approxSoft:#F2ECDF;
+  --skel:#EAE1E7; --skel2:#F2ECEF;
+  --grid:#EBE1E7;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SFMono-Regular",Consolas,monospace;
+  --r:10px; --shadow:0 1px 2px rgba(34,26,32,.05), 0 8px 24px -18px rgba(34,26,32,.35);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#141215; --surface:#1C181D; --surface2:#241F27; --sunken:#100E12;
+    --line:#332C36; --line2:#4A404E;
+    --ink:#EFE7EC; --ink2:#B0A2AC; --ink3:#847785;
+    --accent:#E4A0C6; --accentSoft:#33202D; --onAccent:#1B1119;
+    --amber:#E0AC5B; --amberSoft:#332711;
+    --exact:#6FCFAE; --exactSoft:#122A24;
+    --approx:#C9B588; --approxSoft:#2A2519;
+    --skel:#2C2632; --skel2:#231E28;
+    --grid:#2A2430;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#141215; --surface:#1C181D; --surface2:#241F27; --sunken:#100E12;
+  --line:#332C36; --line2:#4A404E;
+  --ink:#EFE7EC; --ink2:#B0A2AC; --ink3:#847785;
+  --accent:#E4A0C6; --accentSoft:#33202D; --onAccent:#1B1119;
+  --amber:#E0AC5B; --amberSoft:#332711;
+  --exact:#6FCFAE; --exactSoft:#122A24;
+  --approx:#C9B588; --approxSoft:#2A2519;
+  --skel:#2C2632; --skel2:#231E28;
+  --grid:#2A2430;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--sans);font-size:14.5px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+h1{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;text-wrap:balance;margin:0}
+
+/* ---------- shell ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--onAccent);
+  display:grid;place-items:center;font-family:var(--serif);font-size:17px;font-weight:600;flex:none}
+.brand b{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.01em}
+.spacer{flex:1}
+.health{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.health .item{display:flex;flex-direction:column;gap:3px;line-height:1.25}
+.health .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+
+/* skeleton primitives — bu joylar maʻlumot bilan toʻldiriladi */
+.sk{display:block;background:var(--skel);border-radius:4px}
+.sk.l{background:var(--skel2)}
+.dash{font-family:var(--mono);color:var(--ink3);font-variant-numeric:tabular-nums}
+
+.screens{border-bottom:1px solid var(--line);background:var(--surface2)}
+.screens-in{max-width:1180px;margin:0 auto;padding:0 20px;display:flex;gap:2px;overflow-x:auto}
+.stab{padding:11px 15px 9px;border-bottom:2px solid transparent;color:var(--ink2);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.stab:hover{color:var(--ink)}
+.stab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+
+main{max-width:1180px;margin:0 auto;padding:22px 20px 90px}
+.panel[hidden]{display:none}
+
+/* ---------- shared ---------- */
+.crumb{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-bottom:14px;flex-wrap:wrap}
+.crumb a{color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--line2)}
+.crumb a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.crumb .sep{color:var(--line2)}
+
+.pagehead{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap}
+.thumb{width:56px;height:56px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);flex:none}
+.pagehead .titleslot{display:flex;flex-direction:column;gap:9px;padding-top:4px}
+.pagehead h1{font-size:26px;line-height:1.2}
+.meta{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.meta .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.meta .divider{color:var(--line2)}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border:1px solid transparent}
+.badge.exact{background:var(--exactSoft);color:var(--exact);border-color:color-mix(in srgb,var(--exact) 30%,transparent)}
+.badge.approx{background:var(--approxSoft);color:var(--approx);border-color:color-mix(in srgb,var(--approx) 32%,transparent)}
+.badge.plain{background:var(--surface2);color:var(--ink2);border-color:var(--line)}
+
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.segmented{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:3px}
+.segmented button{padding:5px 13px;border-radius:999px;font-family:var(--mono);font-size:11.5px;color:var(--ink2);letter-spacing:.04em;white-space:nowrap}
+.segmented button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:700}
+.hint{font-size:12.5px;color:var(--ink3)}
+
+.grid{display:grid;gap:14px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:860px){.g3,.g2{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;gap:8px;padding:12px 15px 0;flex-wrap:wrap}
+.card-h .t{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.card-b{padding:8px 15px 15px}
+
+.stat .num{font-family:var(--serif);font-size:38px;line-height:1.05;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px;margin:4px 0 2px;color:var(--ink3)}
+.stat .num .tilde{color:var(--approx)}
+.stat .sub{font-size:12.5px;color:var(--ink2);margin-top:8px}
+.stat .sub code{font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+/* search */
+.searchcard{padding:15px}
+.searchrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.searchinput{flex:1;min-width:220px;display:flex;align-items:center;gap:9px;
+  background:var(--surface2);border:1px solid var(--line2);border-radius:9px;padding:9px 12px;color:var(--ink3);font-size:14px}
+.kbd{font-family:var(--mono);font-size:10.5px;color:var(--ink3);border:1px solid var(--line);border-radius:5px;padding:2px 6px;background:var(--surface)}
+
+/* lists */
+table{width:100%;border-collapse:collapse}
+.tablewrap{overflow-x:auto}
+th{text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink3);font-weight:400;padding:0 10px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+th.r,td.r{text-align:right}
+td{padding:11px 10px;border-bottom:1px solid var(--grid);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+.idx{font-family:var(--mono);font-size:11px;color:var(--ink3);width:22px}
+.namecell{display:flex;flex-direction:column;gap:6px}
+.numslot{display:flex;justify-content:flex-end}
+.share{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.bar{width:64px;height:6px;border-radius:3px;background:var(--sunken);flex:none}
+
+/* charts — boʻsh oʻqlar */
+.plot{position:relative;border-radius:8px;background:var(--surface2);border:1px dashed var(--line2)}
+.plot svg{display:block;width:100%;height:auto}
+.plot .empty{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--ink2);padding:2px 0 8px}
+.legend i{display:inline-block;width:16px;height:0;border-top:2px solid var(--accent);vertical-align:4px;margin-right:6px}
+.legend .dashed i{border-top-style:dashed;border-color:var(--ink3)}
+.axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink3);padding-top:5px}
+.stack{display:grid;gap:12px}
+.smallchart .t{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+
+/* events */
+.ev{display:grid;grid-template-columns:76px 1fr 72px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--grid)}
+.ev:last-child{border-bottom:none}
+.note{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--surface2);
+  border-left:3px solid var(--line2);font-size:12.5px;color:var(--ink2)}
+.note b{color:var(--ink)}
+
+.verdict{display:flex;gap:14px;align-items:flex-start;padding:15px;border-radius:var(--r);
+  background:var(--amberSoft);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent)}
+.verdict .icon{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--amber);text-transform:uppercase;font-weight:700;white-space:nowrap;padding-top:3px}
+.verdict .body{flex:1;display:flex;flex-direction:column;gap:9px}
+.verdict p{margin:0;font-size:12.5px;color:var(--ink2)}
+
+footer{max-width:1180px;margin:0 auto;padding:0 20px 60px;color:var(--ink3);font-size:12.5px}
+footer hr{border:none;border-top:1px solid var(--line);margin:0 0 14px}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="mark">Z</span><b>ZumSavdo</b></div>
+    <span class="spacer"></span>
+    <div class="health">
+      <span class="item"><span class="lbl">Oxirgi oʻlchov</span><span class="sk" style="width:96px;height:9px"></span></span>
+      <span class="item"><span class="lbl">Qamrov</span><span class="sk" style="width:76px;height:9px"></span></span>
+      <span class="item"><span class="lbl">Xatolar</span><span class="sk" style="width:52px;height:9px"></span></span>
+    </div>
+  </div>
+</header>
+
+<nav class="screens" aria-label="Sahifalar">
+  <div class="screens-in" role="tablist">
+    <button class="stab" role="tab" aria-selected="true" aria-controls="p-home" id="t-home">Bosh sahifa</button>
+    <button class="stab" role="tab" aria-selected="false" aria-controls="p-seller" id="t-seller">Sotuvchi</button>
+    <button class="stab" role="tab" aria-selected="false" aria-controls="p-product" id="t-product">Mahsulot</button>
+    <button class="stab" role="tab" aria-selected="false" aria-controls="p-cat" id="t-cat">Turkum</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ 1. BOSH SAHIFA ============ -->
+<section class="panel" id="p-home" role="tabpanel" aria-labelledby="t-home">
+  <div class="pagehead">
+    <div class="titleslot">
+      <h1>Bozor holati</h1>
+      <div class="meta"><span class="lbl">Sana</span><span class="sk l" style="width:120px;height:9px"></span>
+        <span class="divider">·</span><span class="lbl">Bugungi oʻlchovlar</span><span class="sk l" style="width:48px;height:9px"></span></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="segmented" role="group" aria-label="Davr">
+      <button aria-pressed="true">Bugun</button>
+      <button aria-pressed="false">7 kun</button>
+      <button aria-pressed="false">30 kun</button>
+      <button aria-pressed="false">Sana tanlash</button>
+    </div>
+    <span class="hint">Maʻlumot yigʻila boshlagan sanadan oldingi kunlar tanlanmaydi.</span>
+  </div>
+
+  <div class="grid g2">
+    <div class="card stat">
+      <div class="card-h"><span class="t">Buyurtmalar</span><span class="badge exact">Aniq</span></div>
+      <div class="card-b">
+        <div class="num"><span class="dash">—</span></div>
+        <div class="sub">Butun bozor boʻyicha jami. Manba: <code>Shop.ordersQuantity</code> farqi. “Bugun” tanlansa, nechta oʻlchov tushgani shu yerda koʻrsatiladi.</div>
+      </div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Aylanma</span><span class="badge approx">~ Taxminiy</span></div>
+      <div class="card-b">
+        <div class="num"><span class="tilde">~</span><span class="dash">—</span></div>
+        <div class="sub">Dona × narx boʻyicha hisoblanadi. Hech qachon aniq deb koʻrsatilmaydi.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card searchcard" style="margin-top:14px">
+    <div class="searchrow" style="margin-bottom:10px">
+      <div class="segmented" role="group" aria-label="Qidiruv turi">
+        <button aria-pressed="true">Sotuvchi</button>
+        <button aria-pressed="false">Mahsulot</button>
+        <button aria-pressed="false">Turkum</button>
+      </div>
+      <span class="hint">Lotin ham, kirill ham bir xil qidiriladi.</span>
+    </div>
+    <div class="searchrow">
+      <span class="searchinput">Qidirish…</span>
+      <span class="kbd">2 harfdan keyin natija chiqadi</span>
+    </div>
+    <div class="tablewrap" style="margin-top:12px">
+      <table>
+        <thead><tr><th></th><th>Nom</th><th class="r">Buyurtma</th><th class="r">Aylanma</th><th class="r">Oʻrin</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">1</td><td><span class="namecell"><span class="sk" style="width:190px;height:10px"></span><span class="sk l" style="width:96px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:52px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td></tr>
+          <tr><td class="idx">2</td><td><span class="namecell"><span class="sk" style="width:150px;height:10px"></span><span class="sk l" style="width:88px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:44px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td></tr>
+          <tr><td class="idx">3</td><td><span class="namecell"><span class="sk" style="width:168px;height:10px"></span><span class="sk l" style="width:80px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="t">Kunlik grafik — butun bozor</span></div>
+    <div class="card-b">
+      <div class="plot">
+        <svg viewBox="0 0 700 180" preserveAspectRatio="none" aria-hidden="true">
+          <g stroke="var(--grid)" stroke-width="1">
+            <line x1="0" y1="45" x2="700" y2="45"/><line x1="0" y1="90" x2="700" y2="90"/><line x1="0" y1="135" x2="700" y2="135"/>
+          </g>
+        </svg>
+        <span class="empty">Maʻlumot yoʻq</span>
+      </div>
+      <div class="axis"><span class="dash">—</span><span class="dash">—</span><span class="dash">—</span><span class="dash">—</span></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <div class="card-h"><span class="t">Top sotuvchilar</span><span class="badge plain">Buyurtma boʻyicha</span></div>
+      <div class="card-b tablewrap">
+        <table>
+          <thead><tr><th></th><th>Sotuvchi</th><th class="r">Buyurtma</th><th class="r">Ulush</th></tr></thead>
+          <tbody>
+            <tr><td class="idx">1</td><td><span class="sk" style="width:160px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:48px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:32px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">2</td><td><span class="sk" style="width:132px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:44px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:32px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">3</td><td><span class="sk" style="width:176px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:32px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">4</td><td><span class="sk" style="width:144px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:32px;height:9px"></span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="t">Top turkumlar</span><span class="badge plain">Buyurtma boʻyicha</span></div>
+      <div class="card-b tablewrap">
+        <table>
+          <thead><tr><th></th><th>Turkum</th><th class="r">Buyurtma</th><th class="r">Sotuvchi</th></tr></thead>
+          <tbody>
+            <tr><td class="idx">1</td><td><span class="sk" style="width:120px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:52px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:40px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">2</td><td><span class="sk" style="width:150px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:48px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:40px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">3</td><td><span class="sk" style="width:104px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:48px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:40px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">4</td><td><span class="sk" style="width:136px;height:10px"></span></td><td class="r"><span class="numslot"><span class="sk" style="width:44px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:40px;height:9px"></span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. SOTUVCHI ============ -->
+<section class="panel" id="p-seller" role="tabpanel" aria-labelledby="t-seller" hidden>
+  <div class="crumb"><a href="#">Bosh sahifa</a><span class="sep">/</span><a href="#">Turkum</a><span class="sep">/</span><span>Sotuvchi</span></div>
+
+  <div class="pagehead">
+    <span class="thumb"></span>
+    <div class="titleslot">
+      <span class="sk" style="width:280px;height:20px"></span>
+      <div class="meta">
+        <span class="lbl">id</span><span class="sk l" style="width:52px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Turkum</span><span class="sk l" style="width:96px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Kuzatilayotgan mahsulot</span><span class="sk l" style="width:40px;height:9px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="segmented" role="group" aria-label="Davr">
+      <button aria-pressed="false">Bugun</button><button aria-pressed="true">7 kun</button>
+      <button aria-pressed="false">30 kun</button><button aria-pressed="false">Sana tanlash</button>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card stat">
+      <div class="card-h"><span class="t">Buyurtmalar</span><span class="badge exact">Aniq</span></div>
+      <div class="card-b"><div class="num"><span class="dash">—</span></div>
+        <div class="sub">Bu sotuvchining buyurtmasi. <code>Shop.ordersQuantity</code> farqi — tizimdagi eng ishonchli raqam.</div></div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Aylanma</span><span class="badge approx">~ Taxminiy</span></div>
+      <div class="card-b"><div class="num"><span class="tilde">~</span><span class="dash">—</span></div>
+        <div class="sub">Dona × narx boʻyicha hisoblanadi.</div></div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Oʻrin</span><span class="badge plain">Davr koʻrsatiladi</span></div>
+      <div class="card-b"><div class="num"><span class="dash">— / —</span></div>
+        <div class="sub">Uch narsa yoziladi: nima boʻyicha, kimlar orasida, qaysi davrda. Oʻsish strelkasi yoʻq — ikkinchi oʻlchov yigʻilmagan.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="t">Sotuvchi va turkum — bitta oʻqda</span></div>
+    <div class="card-b">
+      <div class="legend"><span><i></i>Sotuvchi</span><span class="dashed"><i></i>Turkum</span></div>
+      <div class="plot">
+        <svg viewBox="0 0 700 180" preserveAspectRatio="none" aria-hidden="true">
+          <g stroke="var(--grid)" stroke-width="1"><line x1="0" y1="45" x2="700" y2="45"/><line x1="0" y1="90" x2="700" y2="90"/><line x1="0" y1="135" x2="700" y2="135"/></g>
+        </svg>
+        <span class="empty">Maʻlumot yoʻq</span>
+      </div>
+      <div class="axis"><span class="dash">—</span><span class="dash">—</span><span class="dash">—</span><span class="dash">—</span></div>
+      <div class="note">Ikki chiziq eng muhimi: sotuvchi bozordan yaxshiroqmi yoki bozor bilan birga harakatlanyaptimi.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="t">Nima oʻzgardi</span></div>
+    <div class="card-b">
+      <div class="ev"><span class="sk l" style="width:56px;height:9px"></span><span class="sk" style="width:70%;height:10px"></span><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></div>
+      <div class="ev"><span class="sk l" style="width:56px;height:9px"></span><span class="sk" style="width:55%;height:10px"></span><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></div>
+      <div class="ev"><span class="sk l" style="width:56px;height:9px"></span><span class="sk" style="width:62%;height:10px"></span><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></div>
+      <div class="note">Sana · nima oʻzgardi · qanchaga. <b>“Sabab” deb yozilmaydi</b> — faqat bir vaqtda nima boʻlgani.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="t">Mahsulotlar</span><span class="badge plain">Saralanadi</span></div>
+    <div class="card-b tablewrap">
+      <table>
+        <thead><tr><th></th><th>Mahsulot</th><th class="r">Narx</th><th class="r">Xaridor / hafta</th><th class="r">Sotuv (dona)</th><th class="r">Qoldiq</th></tr></thead>
+        <tbody>
+          <tr><td class="idx">1</td><td><span class="namecell"><span class="sk" style="width:210px;height:10px"></span><span class="sk l" style="width:70px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:64px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:36px;height:9px"></span></span></td></tr>
+          <tr><td class="idx">2</td><td><span class="namecell"><span class="sk" style="width:180px;height:10px"></span><span class="sk l" style="width:70px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:64px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:36px;height:9px"></span></span></td></tr>
+          <tr><td class="idx">3</td><td><span class="namecell"><span class="sk" style="width:230px;height:10px"></span><span class="sk l" style="width:70px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:64px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:36px;height:9px"></span></span></td></tr>
+          <tr><td class="idx">4</td><td><span class="namecell"><span class="sk" style="width:196px;height:10px"></span><span class="sk l" style="width:70px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:64px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:36px;height:9px"></span></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. MAHSULOT ============ -->
+<section class="panel" id="p-product" role="tabpanel" aria-labelledby="t-product" hidden>
+  <div class="crumb"><a href="#">Bosh sahifa</a><span class="sep">/</span><a href="#">Sotuvchi</a><span class="sep">/</span><a href="#">Turkum</a><span class="sep">/</span><span>Mahsulot</span></div>
+
+  <div class="pagehead">
+    <span class="thumb"></span>
+    <div class="titleslot">
+      <span class="sk" style="width:340px;height:20px"></span>
+      <div class="meta">
+        <span class="lbl">id</span><span class="sk l" style="width:60px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Sotuvchi</span><span class="sk l" style="width:110px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Turkum</span><span class="sk l" style="width:96px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Chegirma</span><span class="sk l" style="width:36px;height:9px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card stat">
+      <div class="card-h"><span class="t">Xaridorlar / hafta</span><span class="badge exact">Aniq</span></div>
+      <div class="card-b"><div class="num"><span class="dash">—</span></div>
+        <div class="sub">Manba: <code>MotivationAction.text</code>. Bu <b>odam</b> soni — buyurtma ham, dona ham emas. Har doim 7 kunlik, davr tugmasi buni oʻzgartirmaydi.</div></div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Sotuv (dona)</span><span class="badge approx">~ Taxminiy</span></div>
+      <div class="card-b"><div class="num"><span class="tilde">~</span><span class="dash">—</span></div>
+        <div class="sub">Qoldiq kamayishidan hisoblanadi. Oraliqda tovar keltirilsa, sotuvning bir qismi koʻrinmay qoladi.</div></div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Oʻrin</span><span class="badge plain">Turkum ichida</span></div>
+      <div class="card-b"><div class="num"><span class="dash">— / —</span></div>
+        <div class="sub">Nechta mahsulot orasida ekani yoziladi. Strelka yoʻq.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="t">Toʻrt oʻlchov — bitta vaqt oʻqi</span></div>
+    <div class="card-b">
+      <div class="legend"><span><i style="border-top:6px solid var(--sunken);border-radius:2px"></i>Kulrang ustun — tovar boʻlmagan kunlar</span></div>
+      <div class="stack">
+        <div class="smallchart"><div class="t">Sotuv</div>
+          <div class="plot"><svg viewBox="0 0 700 70" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="var(--grid)" stroke-width="1"><line x1="0" y1="23" x2="700" y2="23"/><line x1="0" y1="47" x2="700" y2="47"/></g></svg></div></div>
+        <div class="smallchart"><div class="t">Narx</div>
+          <div class="plot"><svg viewBox="0 0 700 70" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="var(--grid)" stroke-width="1"><line x1="0" y1="23" x2="700" y2="23"/><line x1="0" y1="47" x2="700" y2="47"/></g></svg></div></div>
+        <div class="smallchart"><div class="t">Qoldiq</div>
+          <div class="plot"><svg viewBox="0 0 700 70" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="var(--grid)" stroke-width="1"><line x1="0" y1="23" x2="700" y2="23"/><line x1="0" y1="47" x2="700" y2="47"/></g></svg></div></div>
+        <div class="smallchart"><div class="t">Sharhlar</div>
+          <div class="plot"><svg viewBox="0 0 700 70" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="var(--grid)" stroke-width="1"><line x1="0" y1="23" x2="700" y2="23"/><line x1="0" y1="47" x2="700" y2="47"/></g></svg></div></div>
+      </div>
+      <div class="axis"><span class="dash">—</span><span class="dash">—</span><span class="dash">—</span><span class="dash">—</span></div>
+      <div class="note">Sahifadagi eng muhim joy: toʻrt grafik bir xil sanalarga tik joylashadi, shuning uchun narx tushgan, tovar tugagan va sharhlar koʻpaygan kun <b>aynan bir vertikalda</b> turadi.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="t">Nima oʻzgardi</span></div>
+    <div class="card-b">
+      <div class="ev"><span class="sk l" style="width:56px;height:9px"></span><span class="sk" style="width:72%;height:10px"></span><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></div>
+      <div class="ev"><span class="sk l" style="width:56px;height:9px"></span><span class="sk" style="width:58%;height:10px"></span><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></div>
+      <div class="ev"><span class="sk l" style="width:56px;height:9px"></span><span class="sk" style="width:66%;height:10px"></span><span class="numslot"><span class="sk l" style="width:44px;height:9px"></span></span></div>
+      <div class="note">Sana · hodisa · raqam. <b>“Sababi shu” deb yozilmaydi</b> — xulosani sotuvchi oʻzi chiqaradi.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. TURKUM ============ -->
+<section class="panel" id="p-cat" role="tabpanel" aria-labelledby="t-cat" hidden>
+  <div class="crumb"><a href="#">Bosh sahifa</a><span class="sep">/</span><span>Turkum</span></div>
+
+  <div class="pagehead">
+    <span class="thumb"></span>
+    <div class="titleslot">
+      <span class="sk" style="width:210px;height:20px"></span>
+      <div class="meta">
+        <span class="lbl">id</span><span class="sk l" style="width:52px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Mahsulot</span><span class="sk l" style="width:44px;height:9px"></span><span class="divider">·</span>
+        <span class="lbl">Sotuvchi</span><span class="sk l" style="width:44px;height:9px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="segmented" role="group" aria-label="Davr">
+      <button aria-pressed="false">Bugun</button><button aria-pressed="false">7 kun</button>
+      <button aria-pressed="true">30 kun</button><button aria-pressed="false">Sana tanlash</button>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="card stat">
+      <div class="card-h"><span class="t">Buyurtmalar</span><span class="badge exact">Aniq</span></div>
+      <div class="card-b"><div class="num"><span class="dash">—</span></div>
+        <div class="sub">Turkumdagi kuzatilayotgan sotuvchilar yigʻindisi.</div></div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Aylanma</span><span class="badge approx">~ Taxminiy</span></div>
+      <div class="card-b"><div class="num"><span class="tilde">~</span><span class="dash">—</span></div>
+        <div class="sub">Dona × narx.</div></div>
+    </div>
+    <div class="card stat">
+      <div class="card-h"><span class="t">Raqobat</span><span class="badge plain">Buyurtma / mahsulot</span></div>
+      <div class="card-b"><div class="num"><span class="dash">—</span></div>
+        <div class="sub">Bitta mahsulotga necha buyurtma toʻgʻri kelishi. “Bu yerga kirsam boʻladimi?” degan savolga javob beradigan raqam.</div></div>
+    </div>
+  </div>
+
+  <div class="verdict" style="margin-top:14px">
+    <span class="icon">Xulosa</span>
+    <div class="body">
+      <span class="sk" style="width:62%;height:13px;background:color-mix(in srgb,var(--amber) 26%,transparent)"></span>
+      <span class="sk" style="width:44%;height:9px;background:color-mix(in srgb,var(--amber) 18%,transparent)"></span>
+      <p>“Kirish oson / oʻrtacha / qiyin” + top 5 sotuvchi ulushi. Kam sotuvchi kuzatilgan boʻlsa, bu blok <b>xulosa chiqarmaydi</b> va qamrov yetishmagani yoziladi.</p>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <div class="card-h"><span class="t">Sotuvchilar</span><span class="badge plain">Ulush boʻyicha</span></div>
+      <div class="card-b tablewrap">
+        <table>
+          <thead><tr><th></th><th>Sotuvchi</th><th class="r">Buyurtma</th><th class="r">Ulush</th></tr></thead>
+          <tbody>
+            <tr><td class="idx">1</td><td><span class="namecell"><span class="sk" style="width:150px;height:10px"></span><span class="sk l" style="width:56px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:48px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:34px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">2</td><td><span class="namecell"><span class="sk" style="width:122px;height:10px"></span><span class="sk l" style="width:56px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:44px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:34px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">3</td><td><span class="namecell"><span class="sk" style="width:170px;height:10px"></span><span class="sk l" style="width:56px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:44px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:34px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">4</td><td><span class="namecell"><span class="sk" style="width:134px;height:10px"></span><span class="sk l" style="width:56px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="share"><span class="bar"></span><span class="sk l" style="width:34px;height:9px"></span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="t">Mahsulotlar</span><span class="badge plain">Saralanadi</span></div>
+      <div class="card-b tablewrap">
+        <table>
+          <thead><tr><th></th><th>Mahsulot</th><th class="r">Xaridor</th><th class="r">Narx</th></tr></thead>
+          <tbody>
+            <tr><td class="idx">1</td><td><span class="namecell"><span class="sk" style="width:190px;height:10px"></span><span class="sk l" style="width:80px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">2</td><td><span class="namecell"><span class="sk" style="width:160px;height:10px"></span><span class="sk l" style="width:80px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:40px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">3</td><td><span class="namecell"><span class="sk" style="width:210px;height:10px"></span><span class="sk l" style="width:80px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:36px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td></tr>
+            <tr><td class="idx">4</td><td><span class="namecell"><span class="sk" style="width:178px;height:10px"></span><span class="sk l" style="width:80px;height:8px"></span></span></td><td class="r"><span class="numslot"><span class="sk" style="width:36px;height:9px"></span></span></td><td class="r"><span class="numslot"><span class="sk l" style="width:60px;height:9px"></span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <hr>
+  <p>Sahifalardagi barcha raqam va nomlar boʻsh — kulrang blok maʻlumot tushadigan joy, <span class="dash">—</span> esa hali qiymat yoʻqligini bildiradi.
+  <b>ANIQ</b> — Uzumning oʻzi bergan raqam. <b>~ TAXMINIY</b> — biz hisoblagan raqam, oldida <span class="dash">~</span> turadi.</p>
+</footer>
+
+<script>
+const tabs = [...document.querySelectorAll('.stab')];
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  tabs.forEach(t => {
+    const on = t === tab;
+    t.setAttribute('aria-selected', String(on));
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}));
+document.querySelectorAll('.segmented').forEach(group => {
+  const btns = [...group.querySelectorAll('button')];
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+});
+</script>
