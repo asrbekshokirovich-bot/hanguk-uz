@@ -25,7 +25,7 @@
 //   - Bug B (listUsers pagination scaling) — needs a profiles.auth_email column.
 //   - Bug C (client setSession refresh-only)             — Dart-side change.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -335,6 +335,85 @@ async function mintSessionWithoutPassword(
   }
 }
 
+const DOCUMENTS_BUCKET = 'student-documents'
+
+type ReconcileSummary = { checked: number; relinked: number; moved: number; failed: number }
+
+/**
+ * Point every `documents.file_path` of this student at where the file is.
+ *
+ * `documents.student_id` references `profiles.user_id` ON UPDATE CASCADE, so
+ * repointing the profile at the real auth user (the repair just above the call
+ * site) carries every document row across on its own. The file does not
+ * follow: the create branch moves it from `<placeholder id>/...` to
+ * `<auth id>/...`, and until 2026-09-16 nothing rewrote `file_path` to match.
+ * The row then named a folder the student may not read — the storage policy
+ * is "first folder of the object name = auth.uid()" — so every preview from
+ * the app answered 400 "Object not found" (the 서류 tab's "문서를 열지
+ * 못했습니다"), and staff got a 404 from document-proxy because the object had
+ * left that path too. 137 rows across 23 students by the time it was found;
+ * migration 20260916123000_documents_file_path_follows_user_id repaired the
+ * ones whose file had already been moved.
+ *
+ * This runs on every login, not only in the create branch: the students whose
+ * files were never moved (accounts created outside this function) are fixed
+ * the next time they sign in, and any future drift closes itself. A healthy
+ * student costs one indexed select. Best-effort throughout — a storage fault
+ * here must not turn into a failed login.
+ */
+async function reconcileDocumentPaths(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<ReconcileSummary> {
+  const summary: ReconcileSummary = { checked: 0, relinked: 0, moved: 0, failed: 0 }
+  try {
+    const { data: rows, error } = await admin
+      .from('documents')
+      .select('id, file_path')
+      .eq('student_id', userId)
+      .not('file_path', 'like', `${userId}/%`)
+    if (error || !rows) return summary
+
+    const bucket = admin.storage.from(DOCUMENTS_BUCKET)
+    for (const row of rows as Array<{ id: string; file_path: string | null }>) {
+      const oldPath = row.file_path ?? ''
+      const firstSlash = oldPath.indexOf('/')
+      // Not `<folder>/<file>` — a legacy absolute URL or an empty value. Leave it.
+      if (/^[a-z][a-z0-9+.-]*:\/\//i.test(oldPath)) continue
+      if (firstSlash <= 0 || firstSlash === oldPath.length - 1) continue
+      summary.checked++
+
+      const newPath = `${userId}/${oldPath.slice(firstSlash + 1)}`
+      const lastSlash = newPath.lastIndexOf('/')
+      const dir = newPath.slice(0, lastSlash)
+      const fileName = newPath.slice(lastSlash + 1)
+
+      // Either an earlier login already moved the file and only the row is
+      // stale, or the file still sits in the old folder and moves now.
+      const { data: inFolder } = await bucket.list(dir, { search: fileName })
+      const alreadyMoved = (inFolder ?? []).some((f) => f.name === fileName)
+      if (!alreadyMoved) {
+        const { error: moveErr } = await bucket.move(oldPath, newPath)
+        if (moveErr) {
+          summary.failed++
+          continue
+        }
+        summary.moved++
+      }
+
+      const { error: updateErr } = await admin
+        .from('documents')
+        .update({ file_path: newPath })
+        .eq('id', row.id)
+      if (updateErr) summary.failed++
+      else summary.relinked++
+    }
+  } catch {
+    summary.failed++
+  }
+  return summary
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
@@ -459,7 +538,9 @@ Deno.serve(async (req) => {
         branch = 'created'
 
         // Best-effort migration of any pre-login storage uploads into the
-        // new user's folder. v1 had this; preserved here.
+        // new user's folder. v1 had this; preserved here. The `documents`
+        // rows are repointed after the profile repair below, once the
+        // cascade has moved them to the new id — see reconcileDocumentPaths.
         try {
           const { data: oldFiles } = await admin.storage
             .from('student-documents')
@@ -487,6 +568,13 @@ Deno.serve(async (req) => {
     // Repair profile.user_id if it drifted from the actual auth user.
     if (profile.user_id !== authUser.id) {
       await admin.from('profiles').update({ user_id: authUser.id }).eq('id', profile.id)
+    }
+
+    // The rows followed the profile through the cascade; make their storage
+    // paths follow too, moving any file still left in the old folder.
+    const docs = await reconcileDocumentPaths(admin, authUser.id)
+    if (docs.checked > 0) {
+      logEvent({ result: 'DOCS_RECONCILED', code_mask: codeMask, branch, ...docs })
     }
 
     // Use a non-admin client to actually exchange the token for a session.
