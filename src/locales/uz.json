@@ -2862,7 +2862,36 @@
       "exitScreen": "Tugagan ekran: {{screen}}"
     },
     "fileName": "Ilova marketing",
-    "exportFailed": "Fayl yaratib bo'lmadi"
+    "exportFailed": "Fayl yaratib bo'lmadi",
+    "seg": {
+      "title": "Kesim:",
+      "all": "hammasi",
+      "clear": "Kesimni tozalash",
+      "everyone": "hammasi (kesimsiz)",
+      "keys": {
+        "title": "Kesim",
+        "who": "Mehmon/mijoz",
+        "channel": "Kanal",
+        "platform": "Platforma",
+        "age": "Yangi/qaytgan",
+        "route": "Yo'nalish",
+        "topik": "TOPIK",
+        "ielts": "IELTS",
+        "bank": "Byudjet (bankdagi pul)",
+        "income": "Moliya (daromad)",
+        "income_documented": "Rasmiy daromad",
+        "region": "Viloyat",
+        "for_whom": "Kim uchun"
+      },
+      "who": {
+        "guest": "Mehmon",
+        "client": "Mijoz"
+      },
+      "age": {
+        "new": "Yangi",
+        "returning": "Qaytgan"
+      }
+    }
   },
   "live": {
     "title": "Jonli",

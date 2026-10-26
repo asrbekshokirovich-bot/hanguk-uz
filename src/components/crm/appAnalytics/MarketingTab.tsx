@@ -21,12 +21,15 @@ import {
   useChannelNames,
   useMarketing,
   useRetention,
+  useSegmentOptions,
   type ChannelRow,
   type Cohort,
   type Marketing,
   type PeriodKey,
+  type Segment,
 } from './marketing';
 import { exportCsv, exportXlsx } from './marketingExport';
+import Segments from './Segments';
 
 type T = (k: string, o?: Record<string, unknown>) => string;
 const PERIODS: PeriodKey[] = ['today', '7', '30', '90', 'range'];
@@ -38,6 +41,7 @@ const PERIODS: PeriodKey[] = ['today', '7', '30', '90', 'range'];
  * by the own answer to «Qayerdan topdingiz?» (S3) with spend (S9), then the
  * plan's blocks in its order — Voronka, Talab, To'xtash joylari, Qaytish,
  * Xarajat, Test filtri. A period and the one before it (S8); Excel and CSV.
+ * Above the panel, the cuts (S4): every block then counts only those devices.
  */
 export default function MarketingTab() {
   const { t } = useTranslation();
@@ -45,10 +49,13 @@ export default function MarketingTab() {
   const [period, setPeriod] = useState<PeriodKey>('7');
   const [range, setRange] = useState({ from: addDays(today, -6), to: today });
   const [includeTest, setIncludeTest] = useState(false);
+  const [seg, setSeg] = useState<Segment>({});
   const p = periodOf(period, range, today);
-  const { data, prev, loading, error, reload } = useMarketing(p.from, p.to, p.prevFrom, p.prevTo, includeTest);
+  const { data, prev, loading, error, reload } = useMarketing(p.from, p.to, p.prevFrom, p.prevTo, includeTest, seg);
   const names = useChannelNames();
-  const cohorts = useRetention(includeTest);
+  const cohorts = useRetention(includeTest, seg);
+  const options = useSegmentOptions(includeTest);
+  const channelKeys = useMemo(() => [...Object.keys(names), 'unknown'], [names]);
   const label = periodLabel(p.from, p.to);
 
   return (
@@ -86,6 +93,7 @@ export default function MarketingTab() {
           </button>
         </div>
       </div>
+      <Segments seg={seg} onChange={setSeg} names={names} options={options} channels={channelKeys} t={t} />
 
       <section className={plan.frame}>
         <div className={plan.bar}>

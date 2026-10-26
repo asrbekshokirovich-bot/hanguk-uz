@@ -2798,7 +2798,36 @@
       "exitScreen": "Ended on: {{screen}}"
     },
     "fileName": "App marketing",
-    "exportFailed": "Could not create the file"
+    "exportFailed": "Could not create the file",
+    "seg": {
+      "title": "Cut:",
+      "all": "all",
+      "clear": "Clear the cut",
+      "everyone": "everyone (no cut)",
+      "keys": {
+        "title": "Cut",
+        "who": "Guest/client",
+        "channel": "Channel",
+        "platform": "Platform",
+        "age": "New/returning",
+        "route": "Route",
+        "topik": "TOPIK",
+        "ielts": "IELTS",
+        "bank": "Budget (money in the bank)",
+        "income": "Finance (income)",
+        "income_documented": "Documented income",
+        "region": "Region",
+        "for_whom": "For whom"
+      },
+      "who": {
+        "guest": "Guest",
+        "client": "Client"
+      },
+      "age": {
+        "new": "New",
+        "returning": "Returning"
+      }
+    }
   },
   "live": {
     "title": "Live",
