@@ -1001,7 +1001,19 @@
         "copyFailed": "Could not copy",
         "linkUnavailable": "Could not get the bot name — reopen later",
         "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}",
-        "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once."
+        "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once.",
+        "appLink": "App link",
+        "appInviteText": "Hello {{name}}! Open the Hanguk app with this link: {{link}} — choose universities and see your admission and visa chances; I'll see your choices and advise you better.",
+        "appTied": "App connected: {{date}} · {{via}}",
+        "appNotYet": "Not opened in the app yet",
+        "appVia": {
+          "form": "the app's form",
+          "link": "the link",
+          "referrer": "installed through the link",
+          "web": "the web app",
+          "telegram_code": "Telegram code",
+          "bot_start": "the bot"
+        }
       },
       "app": {
         "title": "App: eligibility check",
