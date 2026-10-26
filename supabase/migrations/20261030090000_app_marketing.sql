@@ -15,7 +15,8 @@
 --   channel), demand, the places people stop, new against returning.
 -- * analytics_retention(weeks, test): week cohorts, back on day 1, within 7
 --   and within 30 days.
--- * analytics_live(minutes): who is in the app right now and what they do.
+-- * analytics_live(minutes): who is in the app right now and what they do
+--   («Jonli»: devices now, how many of them are known leads, the last hour's steps).
 -- * analytics_spend_set / analytics_spend_list.
 --
 -- Definitions (the plan's «Ta'riflar»): a request is the «Konsultant
@@ -409,21 +410,29 @@ begin
   if not public.app_events_staff_can_read() then
     raise exception 'forbidden' using errcode = '42501';
   end if;
-  return jsonb_build_object(
+  -- «N qurilma hozir ilovada · K tasi tanilgan lid»: devices with a step in
+  -- the last p_minutes (test devices aside); K — those tied to a lead card
+  -- and not signed in as a student.
+  return (
+  with now_in as (
+    select e.install_id,
+           bool_or(coalesce(e.user_id, i.user_id) is not null) as student,
+           bool_or(i.lead_id is not null) as lead
+      from public.app_events e
+      join public.app_installs i on i.install_id = e.install_id
+     where e.received_at >= v_from and i.test_reason is null
+     group by e.install_id)
+  select jsonb_build_object(
     'now', now(),
-    'devices', (select count(distinct e.install_id) from public.app_events e
-                  join public.app_installs i on i.install_id = e.install_id
-                 where e.received_at >= v_from and i.test_reason is null),
-    'known', (select count(distinct e.install_id) from public.app_events e
-                join public.app_installs i on i.install_id = e.install_id
-               where e.received_at >= v_from and i.test_reason is null
-                 and (i.lead_id is not null or i.user_id is not null)),
+    'devices', (select count(*) from now_in),
+    'leads', (select count(*) from now_in where lead and not student),
     'events', coalesce((
       select jsonb_agg(jsonb_build_object(
                'at', x.occurred_at, 'event', x.event, 'screen', x.screen, 'element', x.element,
                'duration_ms', x.duration_ms, 'props', x.props - 'x' - 'y', 'platform', x.platform,
                'kind', case when x.user_id is not null then 'student' when x.lead_id is not null then 'lead' else 'guest' end,
-               'name', coalesce(pr.full_name, l.full_name), 'lead_id', x.lead_id)
+               'name', coalesce(pr.full_name, l.full_name), 'lead_id', x.lead_id,
+               'source', l.source, 'contact_channel', l.contact_channel)
              order by x.occurred_at desc)
         from (select e.occurred_at, e.event, e.screen, e.element, e.duration_ms, e.props, i.platform,
                      coalesce(e.user_id, i.user_id) as user_id, i.lead_id
@@ -436,8 +445,7 @@ begin
                limit 60) x
         left join public.leads l on l.id = x.lead_id
         left join public.profiles pr on pr.user_id = x.user_id
-    ), '[]'::jsonb)
-  );
+    ), '[]'::jsonb)));
 end;
 $$;
 
