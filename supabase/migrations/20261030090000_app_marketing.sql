@@ -12,9 +12,13 @@
 --   the three numbers (new active devices; requests from the app — the form
 --   and the app's code in Telegram — and their share of all new leads;
 --   app-involved contracts), the channel table, the funnel (all and per
---   channel), demand, the places people stop, new against returning.
--- * analytics_retention(weeks, test): week cohorts, back on day 1, within 7
---   and within 30 days.
+--   channel), demand, the places people stop, new against returning. With
+--   a cut (S4, p_seg) every block counts only the devices in it — and the
+--   requests and contracts of the people those devices belong to.
+-- * analytics_retention(weeks, test, seg): week cohorts, back on day 1,
+--   within 7 and within 30 days.
+-- * analytics_segment_options(test): what the cuts can be — the answers the
+--   app has seen, the cities on tied cards.
 -- * analytics_live(minutes): who is in the app right now and what they do
 --   («Jonli»: devices now, how many of them are known leads, the last hour's steps).
 -- * analytics_spend_set / analytics_spend_list.
@@ -99,8 +103,125 @@ $$;
 
 revoke all on function public.fn_app_install_channel(uuid, uuid) from public, anon, authenticated;
 
+-- 2b. Cuts (S4) -------------------------------------------------------------------------
+-- A device's latest answer to a test question (question_answer: the range
+-- the app sends, never the figure) before [p_before].
+create or replace function public.fn_app_answer(p_install uuid, p_q text, p_before timestamptz)
+returns text
+language sql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+  select e.props ->> 'band'
+    from public.app_events e
+   where e.install_id = p_install and e.event = 'question_answer' and e.props ->> 'q' = p_q
+     and e.occurred_at < p_before
+   order by e.occurred_at desc
+   limit 1;
+$$;
+
+revoke all on function public.fn_app_answer(uuid, text, timestamptz) from public, anon, authenticated;
+
+-- The cut, cleaned: an object of text values; empty values and unknown keys left out.
+create or replace function public.fn_app_segment(p_seg jsonb)
+returns jsonb
+language sql
+immutable
+set search_path to 'pg_catalog', 'public'
+as $$
+  select coalesce(jsonb_object_agg(k, v), '{}'::jsonb)
+    from jsonb_each_text(case when jsonb_typeof(p_seg) = 'object' then p_seg else '{}'::jsonb end) x(k, v)
+   where v is not null and btrim(v) <> ''
+     and k in ('who', 'channel', 'platform', 'age', 'route', 'topik', 'ielts', 'bank', 'income',
+               'income_documented', 'region', 'for_whom');
+$$;
+
+-- Whether a device is in the cut (S4, «hamma kesimlar»): who — 'guest' or
+-- 'client' (signed in with a client code); channel — its «Qayerdan
+-- topdingiz?» key or 'unknown'; platform; age — 'new' (first seen in the
+-- period) or 'returning'; route, topik, ielts, bank, income,
+-- income_documented — its latest answer; region — the city on its card;
+-- for_whom — the card's «Kim uchun?». Keys left out don't cut.
+create or replace function public.fn_app_in_segment(
+  p_install uuid, p_user uuid, p_platform text, p_channel text, p_first_seen timestamptz, p_lead uuid,
+  p_seg jsonb, p_t0 timestamptz, p_t1 timestamptz)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+declare
+  q text;
+begin
+  if p_seg ? 'who' and (p_seg ->> 'who' = 'client') <> (p_user is not null) then return false; end if;
+  if p_seg ? 'channel' and p_channel is distinct from p_seg ->> 'channel' then return false; end if;
+  if p_seg ? 'platform' and p_platform is distinct from p_seg ->> 'platform' then return false; end if;
+  if p_seg ? 'age' and p_t0 is not null and (p_seg ->> 'age' = 'new') <> (p_first_seen >= p_t0) then return false; end if;
+  if p_seg ? 'region' and not exists (
+       select 1 from public.leads l
+        where l.id = p_lead and lower(btrim(l.city)) = lower(btrim(p_seg ->> 'region'))) then
+    return false;
+  end if;
+  if p_seg ? 'for_whom' and not exists (
+       select 1 from public.leads l where l.id = p_lead and l.for_whom = p_seg ->> 'for_whom') then
+    return false;
+  end if;
+  foreach q in array array['route', 'topik', 'ielts', 'bank', 'income', 'income_documented'] loop
+    if p_seg ? q and public.fn_app_answer(p_install, q, p_t1) is distinct from p_seg ->> q then
+      return false;
+    end if;
+  end loop;
+  return true;
+end;
+$$;
+
+revoke all on function public.fn_app_in_segment(uuid, uuid, text, text, timestamptz, uuid, jsonb, timestamptz, timestamptz)
+  from public, anon, authenticated;
+
+-- What each cut can be: the answers seen (with how many devices gave them)
+-- and the cities on cards tied to a device. Test devices aside unless asked.
+create or replace function public.analytics_segment_options(p_include_test boolean default false)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+begin
+  if not (public.app_events_staff_can_read() or auth.role() = 'service_role') then
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+  return jsonb_build_object(
+    'answers', coalesce((
+      select jsonb_object_agg(x.q, x.bands)
+        from (select y.q, jsonb_agg(jsonb_build_object('band', y.band, 'devices', y.n)
+                                    order by case when y.band ~ '^\d+(\.\d+)?$' then y.band::numeric end, y.band) as bands
+                from (select e.props ->> 'q' as q, e.props ->> 'band' as band, count(distinct e.install_id) as n
+                        from public.app_events e
+                        join public.app_installs i on i.install_id = e.install_id
+                       where e.event = 'question_answer' and (p_include_test or i.test_reason is null)
+                         and e.props ->> 'q' in ('route', 'topik', 'ielts', 'bank', 'income', 'income_documented')
+                         and coalesce(e.props ->> 'band', '') <> ''
+                       group by 1, 2) y
+               group by y.q) x), '{}'::jsonb),
+    'regions', coalesce((
+      select jsonb_agg(jsonb_build_object('value', r.v, 'devices', r.n) order by r.n desc, r.v)
+        from (select btrim(l.city) as v, count(distinct i.install_id) as n
+                from public.app_installs i
+                join public.leads l on l.id = i.lead_id
+               where (p_include_test or i.test_reason is null) and coalesce(btrim(l.city), '') <> ''
+               group by 1) r), '[]'::jsonb));
+end;
+$$;
+
+revoke all on function public.analytics_segment_options(boolean) from public, anon;
+grant execute on function public.analytics_segment_options(boolean) to authenticated, service_role;
+
 -- 3. The panel ------------------------------------------------------------------------
-create or replace function public.analytics_marketing(p_from date, p_to date, p_include_test boolean default false)
+create or replace function public.analytics_marketing(
+  p_from date, p_to date, p_include_test boolean default false, p_seg jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
 stable
@@ -110,6 +231,9 @@ as $$
 declare
   v_t0  timestamptz := p_from::timestamp at time zone 'Asia/Tashkent';
   v_t1  timestamptz := (p_to + 1)::timestamp at time zone 'Asia/Tashkent';
+  v_seg jsonb := public.fn_app_segment(p_seg);
+  -- no cut: requests, leads and contracts are counted whole, as before
+  v_all boolean := public.fn_app_segment(p_seg) = '{}'::jsonb;
   v_out jsonb;
 begin
   if not (public.app_events_staff_can_read() or auth.role() = 'service_role') then
@@ -119,14 +243,20 @@ begin
     raise exception 'bad period' using errcode = '22023';
   end if;
 
-  with dev as (
-    select i.install_id, i.first_seen_at, i.lead_id, i.user_id,
+  with dev0 as (
+    select i.install_id, i.first_seen_at, i.lead_id, i.user_id, i.platform,
            public.fn_app_install_channel(i.lead_id, i.user_id) as channel,
            coalesce(i.lead_id, (select l.id from public.leads l
                                  where i.user_id is not null and l.converted_to_student_id = i.user_id
                                  order by l.created_at limit 1)) as lead_key
       from public.app_installs i
      where p_include_test or i.test_reason is null
+  ),
+  dev as (
+    select d.* from dev0 d
+     where v_all
+        or public.fn_app_in_segment(d.install_id, d.user_id, d.platform, d.channel, d.first_seen_at, d.lead_key,
+                                    v_seg, v_t0, v_t1)
   ),
   days as (
     select d.install_id, d.milestones
@@ -149,11 +279,13 @@ begin
     select l.id as lead_id, 'form' as via, l.how_heard
       from public.leads l
      where l.quiz_submitted_at >= v_t0 and l.quiz_submitted_at < v_t1
+       and (v_all or l.id in (select dev.lead_key from dev))
     union
     select a.lead_id, 'telegram', l.how_heard
       from public.app_identity a
       join public.leads l on l.id = a.lead_id
      where a.via in ('telegram_code', 'bot_start') and a.created_at >= v_t0 and a.created_at < v_t1
+       and (v_all or l.id in (select dev.lead_key from dev))
   ),
   req_lead as (
     select r.lead_id, bool_or(r.via = 'form') as form, bool_or(r.via = 'telegram') as tg,
@@ -167,11 +299,13 @@ begin
       from public.leads l
       left join public.profiles p on p.user_id = l.converted_to_student_id
      where coalesce(l.contract_date, p.contract_date) between p_from and p_to
+       and (v_all or l.id in (select dev.lead_key from dev))
     union all
     select null, p.user_id, p.contract_date, 'unknown'
       from public.profiles p
      where p.contract_date between p_from and p_to
        and not exists (select 1 from public.leads l where l.converted_to_student_id = p.user_id)
+       and (v_all or p.user_id in (select dev.user_id from dev))
   ),
   -- app-involved: a tied device did something in the app before the contract day ended
   app_contracts as (
@@ -232,14 +366,15 @@ begin
     select distinct d.install_id from days d where 'active' = any (d.milestones)
   )
   select jsonb_build_object(
-    'from', p_from, 'to', p_to, 'include_test', p_include_test,
+    'from', p_from, 'to', p_to, 'include_test', p_include_test, 'seg', v_seg,
     'kpi', jsonb_build_object(
       'new_devices', (select count(*) from new_dev),
       'new_active', (select count(*) from new_dev where 'active' = any (ms)),
       'requests', (select count(*) from req_lead),
       'requests_form', (select count(*) from req_lead where form),
       'requests_telegram', (select count(*) from req_lead where tg),
-      'new_leads', (select count(*) from public.leads l where l.created_at >= v_t0 and l.created_at < v_t1),
+      'new_leads', (select count(*) from public.leads l where l.created_at >= v_t0 and l.created_at < v_t1
+                       and (v_all or l.id in (select dev.lead_key from dev))),
       'contracts', (select count(*) from contracts),
       'app_contracts', (select count(*) from app_contracts),
       'test_devices', (select count(*) from public.app_installs i where i.test_reason is not null)
@@ -341,13 +476,14 @@ begin
 end;
 $$;
 
-revoke all on function public.analytics_marketing(date, date, boolean) from public, anon;
-grant execute on function public.analytics_marketing(date, date, boolean) to authenticated, service_role;
+revoke all on function public.analytics_marketing(date, date, boolean, jsonb) from public, anon;
+grant execute on function public.analytics_marketing(date, date, boolean, jsonb) to authenticated, service_role;
 
 -- «Qaytish»: devices by the week they were first seen (the last [p_weeks]),
 -- how many came back the next day, within 7 days, within 30 days. A cohort
 -- too young for a mark has null there.
-create or replace function public.analytics_retention(p_weeks int default 8, p_include_test boolean default false)
+create or replace function public.analytics_retention(
+  p_weeks int default 8, p_include_test boolean default false, p_seg jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
 stable
@@ -356,6 +492,7 @@ set search_path to 'pg_catalog', 'public'
 as $$
 declare
   v_today date := (now() at time zone 'Asia/Tashkent')::date;
+  v_seg   jsonb := public.fn_app_segment(p_seg) - 'age';
   v_out   jsonb;
 begin
   if not (public.app_events_staff_can_read() or auth.role() = 'service_role') then
@@ -368,6 +505,14 @@ begin
        and i.first_seen_at >= (date_trunc('week', v_today::timestamp)
                                - make_interval(weeks => greatest(1, least(coalesce(p_weeks, 8), 26)) - 1))
                               at time zone 'Asia/Tashkent'
+       and (v_seg = '{}'::jsonb
+            or public.fn_app_in_segment(
+                 i.install_id, i.user_id, i.platform, public.fn_app_install_channel(i.lead_id, i.user_id),
+                 i.first_seen_at,
+                 coalesce(i.lead_id, (select l.id from public.leads l
+                                       where i.user_id is not null and l.converted_to_student_id = i.user_id
+                                       order by l.created_at limit 1)),
+                 v_seg, null, now()))
   ),
   back as (
     select dev.install_id, dev.day0,
@@ -392,8 +537,8 @@ begin
 end;
 $$;
 
-revoke all on function public.analytics_retention(int, boolean) from public, anon;
-grant execute on function public.analytics_retention(int, boolean) to authenticated, service_role;
+revoke all on function public.analytics_retention(int, boolean, jsonb) from public, anon;
+grant execute on function public.analytics_retention(int, boolean, jsonb) to authenticated, service_role;
 
 -- «Jonli»: devices in the app in the last [p_minutes], how many are known
 -- people, and the latest steps with who did them. Test devices aside.
