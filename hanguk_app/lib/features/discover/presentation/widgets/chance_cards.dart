@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import 'chance_badge.dart';
 
@@ -26,7 +27,7 @@ class ChanceCard extends StatelessWidget {
       label: '$label ${p == null ? '?' : '$p%'}',
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('chance_cards.chance_card', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.all(12),
@@ -79,7 +80,7 @@ class BoostRow extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('chance_cards.boost_row', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton;
 import '../../../l10n/app_localizations.dart';
@@ -126,9 +127,9 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
           children: [
             Text(type.localizedName(l), style: fdText(15, FontWeight.w800, FdColors.onPage)),
             const SizedBox(height: 12),
-            HardChoice(label: l.fdDocView, selected: true, height: 46, fontSize: 14, onTap: () => Navigator.of(context).pop('view')),
+            HardChoice(label: l.fdDocView, selected: true, height: 46, fontSize: 14, onTap: tracked('client_documents.doc_view', () => Navigator.of(context).pop('view'))),
             const SizedBox(height: 8),
-            HardChoice(label: l.fdDocRemove, selected: false, height: 46, fontSize: 14, onTap: () => Navigator.of(context).pop('remove')),
+            HardChoice(label: l.fdDocRemove, selected: false, height: 46, fontSize: 14, onTap: tracked('client_documents.doc_remove', () => Navigator.of(context).pop('remove'))),
           ],
         ),
       ),
@@ -185,7 +186,7 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
             selected: false,
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            onTap: () => ref.invalidate(documentsProvider),
+            onTap: tracked('client_documents.retry', () => ref.invalidate(documentsProvider)),
           ),
         ],
       ),
@@ -215,8 +216,8 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
                   name: types[i].localizedName(l),
                   state: states[i],
                   busy: _busy[types[i].id] ?? false,
-                  onUpload: () => _upload(types[i]),
-                  onOpen: matches[i] == null ? null : () => _actions(types[i], matches[i]!),
+                  onUpload: tracked('client_documents.doc_row_upload', () => _upload(types[i]), props: {'value': types[i].id}),
+                  onOpen: tracked('client_documents.doc_row_open', matches[i] == null ? null : () => _actions(types[i], matches[i]!)),
                 ),
               ],
             ],
@@ -228,7 +229,7 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
             child: HardButton(
               label: l.fdDocsUploadNext,
               loading: _busy[types[firstNeeded].id] ?? false,
-              onPressed: () => _upload(types[firstNeeded]),
+              onPressed: tracked('client_documents.docs_upload_next', () => _upload(types[firstNeeded])),
             ),
           ),
       ],
@@ -262,7 +263,7 @@ class _DocRow extends StatelessWidget {
       button: onOpen != null,
       label: '$name: $note',
       child: GestureDetector(
-        onTap: onOpen,
+        onTap: tracked('client_documents.doc_row_open', onOpen),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -298,7 +299,7 @@ class _DocRow extends StatelessWidget {
                   label: '${l.fdDocUpload}: $name',
                   excludeSemantics: true,
                   child: GestureDetector(
-                    onTap: busy ? null : onUpload,
+                    onTap: tracked('client_documents.doc_row_upload', busy ? null : onUpload),
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),

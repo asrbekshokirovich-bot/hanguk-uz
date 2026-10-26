@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../seoul_night_tokens.dart';
 import '../seoul_night_typography.dart';
 
@@ -105,7 +106,7 @@ class _LimeButtonState extends State<LimeButton> {
       enabled: enabled,
       label: widget.label,
       child: GestureDetector(
-        onTap: enabled ? widget.onPressed : null,
+        onTap: tracked('seoul_buttons.lime_button', enabled ? widget.onPressed : null),
         onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
         onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
@@ -200,7 +201,7 @@ class _SeoulOutlineButtonState extends State<SeoulOutlineButton> {
       enabled: enabled,
       label: widget.label,
       child: GestureDetector(
-        onTap: widget.onPressed,
+        onTap: tracked('seoul_buttons.seoul_outline_button', widget.onPressed),
         onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
         onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _pressed = false) : null,

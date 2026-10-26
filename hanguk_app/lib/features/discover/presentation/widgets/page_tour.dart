@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/analytics/app_events.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../data/board_tour.dart';
 
@@ -137,7 +138,7 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
             step: _steps[_step],
             hole: (gliding ? Rect.lerp(from, live, Curves.easeOutCubic.transform(_glide.value)) : live)?.inflate(6),
             showLabel: !_moving,
-            onTap: _onTap,
+            onTap: tracked('page_tour.tour_layer', _onTap),
           );
         },
       ),
@@ -321,7 +322,7 @@ class _TourLayer extends StatelessWidget {
         Positioned.fill(
           child: _Barrier(
             hole: hole,
-            onTap: onTap,
+            onTap: tracked('page_tour.tour_layer', onTap),
             child: CustomPaint(painter: _DimPainter(hole), size: Size.infinite),
           ),
         ),

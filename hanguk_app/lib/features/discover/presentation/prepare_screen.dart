@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/device_code.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients, SeoulColors, SeoulRadii;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -33,7 +35,7 @@ class PrepareScreen extends StatelessWidget {
       );
 
   void _openChat(BuildContext context) {
-    AppEvents.track('screen_view', screen: 'ai_chat');
+    AppEvents.overlayOpened('ai_chat');
     const corners = BorderRadius.vertical(top: Radius.circular(SeoulRadii.hero));
     showModalBottomSheet<void>(
       context: context,
@@ -48,7 +50,7 @@ class PrepareScreen extends StatelessWidget {
         ),
         child: const ClipRRect(borderRadius: corners, child: ChatTab()),
       ),
-    );
+    ).whenComplete(() => AppEvents.overlayClosed('ai_chat'));
   }
 
   @override
@@ -59,9 +61,12 @@ class PrepareScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
         children: [
-          Text(
-            '${l.fdPrepareEyebrow} ${l.fdPrepareTitle}',
-            style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.5),
+          // Seven taps on the title show the device code (test devices, S10).
+          DeviceCodeTaps(
+            child: Text(
+              '${l.fdPrepareEyebrow} ${l.fdPrepareTitle}',
+              style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.5),
+            ),
           ),
           const SizedBox(height: 14),
           _ToolCard(
@@ -71,7 +76,7 @@ class PrepareScreen extends StatelessWidget {
             title: l.fdPrepareStudyPlanTitle,
             body: l.fdPrepareStudyPlanBody,
             progress: 0,
-            onTap: () => signedIn ? _push(context, const StudyPlanBuilderScreen(), 'study_plan') : _signIn(context),
+            onTap: tracked('prepare.study_plan_title', () => signedIn ? _push(context, const StudyPlanBuilderScreen(), 'study_plan') : _signIn(context)),
           ),
           const SizedBox(height: 14),
           _ToolCard(
@@ -80,13 +85,13 @@ class PrepareScreen extends StatelessWidget {
             tag: l.fdPrepareNew,
             title: l.fdPrepareInterviewTitle,
             body: l.fdPrepareInterviewBody,
-            onTap: () => signedIn ? _push(context, const InterviewScreen(), 'interview') : _signIn(context),
+            onTap: tracked('prepare.interview_title', () => signedIn ? _push(context, const InterviewScreen(), 'interview') : _signIn(context)),
           ),
           const SizedBox(height: 14),
           _AskRow(
             title: l.fdPrepareAskTitle,
             body: l.fdPrepareAskBody,
-            onTap: () => signedIn ? _openChat(context) : _signIn(context),
+            onTap: tracked('prepare.ask_title', () => signedIn ? _openChat(context) : _signIn(context)),
           ),
           if (!signedIn) ...[
             const SizedBox(height: 14),
@@ -135,7 +140,7 @@ class _ToolCard extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('prepare.tool_card', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -197,7 +202,7 @@ class _AskRow extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('prepare.ask_row', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../core/feature_flags/uni_db_flag.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -125,7 +126,7 @@ class _EmptyState extends StatelessWidget {
             label: l10n.uniSpecificFallbackButton,
             icon: Icons.swap_horiz,
             height: SeoulSizes.minTapTarget,
-            onPressed: onFallbackToGeneral,
+            onPressed: tracked('university_specific_cta.empty_fallback_to_general', onFallbackToGeneral),
           ),
         ],
       ),

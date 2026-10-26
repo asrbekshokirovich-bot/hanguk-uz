@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -27,7 +28,7 @@ class UniversityChoicesEntry extends ConsumerWidget {
         button: true,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => context.push(kUniversityChoicesPath),
+          onTap: tracked('university_choices_entry.to_university_choices', () => context.push(kUniversityChoicesPath)),
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
             decoration: BoxDecoration(

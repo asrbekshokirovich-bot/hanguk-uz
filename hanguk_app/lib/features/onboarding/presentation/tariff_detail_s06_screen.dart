@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/eligibility_engine.dart';
 import '../onboarding_routes.dart';
@@ -186,7 +187,7 @@ class _TariffDetailScreenState extends ConsumerState<TariffDetailScreen> {
       // Header.
       Row(
         children: [
-          OnbBackTile(onTap: () => context.canPop() ? context.pop() : context.go(kTariffsPath)),
+          OnbBackTile(onTap: tracked('tariff_detail_s06.onb_back_tile', () => context.canPop() ? context.pop() : context.go(kTariffsPath))),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -245,7 +246,7 @@ class _TariffDetailScreenState extends ConsumerState<TariffDetailScreen> {
               _FaqItem(
                 faq: d.faq[i],
                 open: _openFaq == i,
-                onTap: () => setState(() => _openFaq = _openFaq == i ? null : i),
+                onTap: tracked('tariff_detail_s06.faq_item', () => setState(() => _openFaq = _openFaq == i ? null : i)),
               ),
           ], 8),
         ),
@@ -287,7 +288,7 @@ class _TariffDetailScreenState extends ConsumerState<TariffDetailScreen> {
               ),
               child: OnbPrimaryButton(
                 label: l.onbTariffCta,
-                onTap: () => showContactSheet(context, ref, openTelegramAfter: false),
+                onTap: tracked('tariff_detail_s06.tariff_cta', () => showContactSheet(context, ref, openTelegramAfter: false)),
               ),
             ),
           ),
@@ -453,7 +454,7 @@ class _FaqItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnbTap(
-      onTap: onTap,
+      onTap: tracked('tariff_detail_s06.faq_item', onTap),
       child: OnbCard(
         radius: 18,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),

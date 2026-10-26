@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/contact_codes.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../core/config/contact_links.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
@@ -34,12 +36,15 @@ String prettyUzPhone(String e164) {
 class SentScreen extends ConsumerWidget {
   const SentScreen({super.key});
 
-  Future<void> _telegram(WidgetRef ref, String? linkCode) async {
-    Uri uri = ContactLinks.telegramDirectUri;
+  Future<void> _telegram(BuildContext context, WidgetRef ref, String? linkCode) async {
+    final message = AppLocalizations.of(context)!.contactTelegramMessage;
+    Uri? uri;
     if (linkCode != null) {
       final bot = await ref.read(quizRepositoryProvider).botUsername();
       if (bot != null) uri = Uri.parse('https://t.me/$bot?start=L_$linkCode');
     }
+    // No lead code (or no bot): the consultant, with this phone's code.
+    uri ??= await ContactCodes.telegram(message, screen: 'sent');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -109,8 +114,8 @@ class SentScreen extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
                             child: _AgencyCard(
-                              onTelegram: () => _telegram(ref, sent?.linkCode),
-                              onCall: () => launchUrl(ContactLinks.phoneUri),
+                              onTelegram: tracked('sent.agency_card_telegram', () => _telegram(context, ref, sent?.linkCode)),
+                              onCall: tracked('sent.agency_card_call', () => launchUrl(ContactLinks.phoneUri)),
                             ),
                           ),
                           if (first != null || topik != null)
@@ -128,7 +133,7 @@ class SentScreen extends ConsumerWidget {
                                       body: docs == null
                                           ? shortUniversityName(first.university.displayName)
                                           : l.fdSentDocsBody(shortUniversityName(first.university.displayName), docs),
-                                      onTap: () => context.push(universityPath(first.university.institutionId)),
+                                      onTap: tracked('sent.docs_title', () => context.push(universityPath(first.university.institutionId)), props: {'institution_id': first.university.institutionId}),
                                     ),
                                   ],
                                   if (topik != null) ...[
@@ -137,7 +142,7 @@ class SentScreen extends ConsumerWidget {
                                       glyph: LucideIcons.languages,
                                       title: l.fdSentTopikTitle(topik.value),
                                       body: _capitalized(l.fdGainAdmission(topik.gain)),
-                                      onTap: () => ContactSheet.show(context),
+                                      onTap: tracked('sent.topik_title', () => ContactSheet.show(context)),
                                     ),
                                   ],
                                 ],
@@ -149,7 +154,7 @@ class SentScreen extends ConsumerWidget {
                             child: HardButton(
                               label: l.fdSentBack,
                               fill: FdColors.card,
-                              onPressed: () => context.go(kDiscoverPath),
+                              onPressed: tracked('sent.back', () => context.go(kDiscoverPath)),
                             ),
                           ),
                         ],
@@ -208,9 +213,9 @@ class _AgencyCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _ContactButton(glyph: LucideIcons.send, label: 'Telegram', onTap: onTelegram)),
+              Expanded(child: _ContactButton(glyph: LucideIcons.send, label: 'Telegram', onTap: tracked('sent.agency_card_telegram', onTelegram))),
               const SizedBox(width: 8),
-              Expanded(child: _ContactButton(glyph: LucideIcons.phone, label: l.fdSentCall, onTap: onCall)),
+              Expanded(child: _ContactButton(glyph: LucideIcons.phone, label: l.fdSentCall, onTap: tracked('sent.agency_card_call', onCall))),
             ],
           ),
         ],
@@ -231,7 +236,7 @@ class _ContactButton extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('sent.contact_button', onTap),
         child: Container(
           height: 42,
           decoration: BoxDecoration(
@@ -266,7 +271,7 @@ class _NextRow extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('sent.next_row', onTap),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(

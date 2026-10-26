@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../uni_db/presentation/widgets/university_specific_cta.dart';
@@ -111,20 +112,20 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                   label: l.interviewTypeGeneral,
                   ko: '일반',
                   selected: _sessionType == 'general',
-                  onTap: () => setState(() => _sessionType = 'general'),
+                  onTap: tracked('interview_setup.interview_type_general', () => setState(() => _sessionType = 'general')),
                 ),
                 SeoulFilterChip(
                   label: l.interviewTypeUniversitySpecific,
                   ko: '대학',
                   selected: _isUniSpecific,
-                  onTap: () =>
-                      setState(() => _sessionType = 'university_specific'),
+                  onTap: tracked('interview_setup.interview_type_university_specific', () =>
+                      setState(() => _sessionType = 'university_specific')),
                 ),
                 SeoulFilterChip(
                   label: l.interviewTypeVisa,
                   ko: '비자',
                   selected: _sessionType == 'visa',
-                  onTap: () => setState(() => _sessionType = 'visa'),
+                  onTap: tracked('interview_setup.interview_type_visa', () => setState(() => _sessionType = 'visa')),
                 ),
               ],
             ),
@@ -172,13 +173,13 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                   label: l.trackKorean,
                   ko: '한국어',
                   selected: _language == 'ko',
-                  onTap: () => setState(() => _language = 'ko'),
+                  onTap: tracked('interview_setup.track_korean', () => setState(() => _language = 'ko')),
                 ),
                 SeoulFilterChip(
                   label: l.trackEnglish,
                   ko: '영어',
                   selected: _language == 'en',
-                  onTap: () => setState(() => _language = 'en'),
+                  onTap: tracked('interview_setup.track_english', () => setState(() => _language = 'en')),
                 ),
               ],
             ),
@@ -195,17 +196,17 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
                 SeoulFilterChip(
                   label: l.personaFriendlyCaps,
                   selected: _persona == 'friendly',
-                  onTap: () => setState(() => _persona = 'friendly'),
+                  onTap: tracked('interview_setup.persona_friendly_caps', () => setState(() => _persona = 'friendly')),
                 ),
                 SeoulFilterChip(
                   label: l.personaStrictCaps,
                   selected: _persona == 'strict',
-                  onTap: () => setState(() => _persona = 'strict'),
+                  onTap: tracked('interview_setup.persona_strict_caps', () => setState(() => _persona = 'strict')),
                 ),
                 SeoulFilterChip(
                   label: l.personaImpatientCaps,
                   selected: _persona == 'impatient',
-                  onTap: () => setState(() => _persona = 'impatient'),
+                  onTap: tracked('interview_setup.persona_impatient_caps', () => setState(() => _persona = 'impatient')),
                 ),
               ],
             ),
@@ -315,7 +316,7 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
             label: l.startPracticeButton,
             icon: Icons.play_arrow,
             loading: state.isLoading,
-            onPressed: canStart ? _start : null,
+            onPressed: tracked('interview_setup.start_practice_button', canStart ? _start : null),
           ),
           if (!canStart)
             Padding(
@@ -331,7 +332,7 @@ class _InterviewSetupViewState extends ConsumerState<InterviewSetupView> {
           SeoulOutlineButton(
             label: l.interviewHistoryTitle,
             icon: Icons.history,
-            onPressed: widget.onHistoryTapped,
+            onPressed: tracked('interview_setup.view_history_tapped', widget.onHistoryTapped),
             trailing: Text('기록', style: SeoulType.hangulLabel),
           ),
         ],
@@ -366,7 +367,7 @@ class _SeoulToggle extends StatelessWidget {
       label: semanticLabel,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(!value),
+        onTap: tracked('interview_setup.toggle', () => onChanged(!value), props: {'value': !value}),
         child: SizedBox(
           width: 64,
           height: SeoulSizes.minTapTarget,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../seoul_night_tokens.dart';
 import '../seoul_night_typography.dart';
 
@@ -114,7 +115,7 @@ class _HeroCardState extends State<HeroCard> {
     if (widget.onTap == null) return card;
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: tracked('hero_card.hero_card', widget.onTap),
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),

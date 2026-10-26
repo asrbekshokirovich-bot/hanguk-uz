@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/ai_report_repository.dart';
@@ -176,7 +177,7 @@ class _AiReportSheetState extends ConsumerState<_AiReportSheet> {
             LimeButton(
               label: l10n.aiReportSubmit,
               loading: _sending,
-              onPressed: _sending ? null : _send,
+              onPressed: tracked('ai_report_sheet.ai_report_submit', _sending ? null : _send),
             ),
           ],
         ),

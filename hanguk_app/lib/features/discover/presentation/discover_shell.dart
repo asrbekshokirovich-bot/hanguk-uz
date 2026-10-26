@@ -30,6 +30,22 @@ class _DiscoverShellState extends State<DiscoverShell> {
   late int _tab = widget.tab.clamp(0, AppTab.count - 1);
   late final Set<int> _built = {AppTab.home, _tab};
 
+  /// The route this shell is shown under ('/guest', or a deep link's), so the
+  /// analytics name the screen "<route>#<tab>".
+  String _route = '/guest';
+  bool _told = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context)?.settings.name;
+    if (!_told || (route != null && route != _route)) {
+      _told = true;
+      _route = route ?? _route;
+      AppEvents.tabChanged(_route, _names[_tab], initial: true);
+    }
+  }
+
   @override
   void didUpdateWidget(DiscoverShell old) {
     super.didUpdateWidget(old);
@@ -40,7 +56,7 @@ class _DiscoverShellState extends State<DiscoverShell> {
 
   void _go(int tab) => setState(() {
     if (tab != _tab) {
-      AppEvents.track('tab_open', screen: 'guest', props: {'tab': _names[tab]});
+      AppEvents.tabChanged(_route, _names[tab]);
       // The code's cells in a tab left behind keep no keyboard up.
       FocusManager.instance.primaryFocus?.unfocus();
     }

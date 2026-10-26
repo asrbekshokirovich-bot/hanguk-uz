@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../seoul_night_tokens.dart';
 import '../seoul_night_typography.dart';
 
@@ -178,7 +179,7 @@ class SeoulFilterChip extends StatelessWidget {
       selected: selected,
       label: label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('seoul_chips.seoul_filter_chip', onTap),
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
           curve: SeoulMotion.smooth,

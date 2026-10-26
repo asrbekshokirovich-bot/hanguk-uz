@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -127,7 +128,7 @@ class FdTitleBar extends StatelessWidget {
           HardIconButton(
             glyph: LucideIcons.chevronLeft,
             semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-            onTap: () => context.canPop() ? context.pop() : context.go(kDiscoverPath),
+            onTap: tracked('fd_parts.to_discover', () => context.canPop() ? context.pop() : context.go(kDiscoverPath)),
           ),
           const SizedBox(width: 10),
           Expanded(child: title ?? const SizedBox.shrink()),

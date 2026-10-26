@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/quiz_controller.dart';
 import '../domain/eligibility_engine.dart';
@@ -110,7 +111,7 @@ class _ResultBody extends ConsumerWidget {
       Align(
         alignment: Alignment.centerLeft,
         child: OnbTap(
-          onTap: () => context.push(tariffDetailPath(r.tariff.code)),
+          onTap: tracked('result_s03.result_tariff_why', () => context.push(tariffDetailPath(r.tariff.code))),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
             child: Text(
@@ -126,12 +127,12 @@ class _ResultBody extends ConsumerWidget {
         children: [
           OnbPrimaryButton(
             label: l.onbResultCtaOperator,
-            onTap: () => showContactSheet(context, ref, openTelegramAfter: false),
+            onTap: tracked('result_s03.result_cta_operator', () => showContactSheet(context, ref, openTelegramAfter: false)),
           ),
           const SizedBox(height: 10),
           OnbOutlineButton(
             label: l.onbResultCtaTelegram,
-            onTap: () => showContactSheet(context, ref, openTelegramAfter: true),
+            onTap: tracked('result_s03.result_cta_telegram', () => showContactSheet(context, ref, openTelegramAfter: true)),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/quiz_controller.dart';
 import '../data/quiz_repository.dart';
@@ -56,7 +57,7 @@ class QuizScreen extends ConsumerWidget {
                   children: [
                     OnbTap(
                       label: l.onbQuizBack,
-                      onTap: () => _back(context, ref),
+                      onTap: tracked('quiz_s02.quiz_back', () => _back(context, ref)),
                       child: Container(
                         width: 44,
                         height: 44,
@@ -138,9 +139,9 @@ class QuizScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 OnbPrimaryButton(
                   label: l.onbQuizContinue,
-                  onPressed: a.isComplete(step)
+                  onPressed: tracked('quiz_s02.quiz_continue', a.isComplete(step)
                       ? () => _continue(context, ref)
-                      : null,
+                      : null),
                 ),
               ],
             ),
@@ -161,7 +162,7 @@ class QuizScreen extends ConsumerWidget {
         ref.read(quizProvider.notifier).update(change);
 
     _Option option(String label, bool selected, QuizAnswers Function(QuizAnswers) pick) =>
-        _Option(label: label, selected: selected, onTap: () => set(pick));
+        _Option(label: label, selected: selected, onTap: tracked('quiz_s02.option', () => set(pick)));
 
     switch (step) {
       case 1:
@@ -431,7 +432,7 @@ class _Option extends StatelessWidget {
     return OnbTap(
       label: label,
       selected: selected,
-      onTap: onTap,
+      onTap: tracked('quiz_s02.option', onTap),
       child: _OptionFrame(
         selected: selected,
         child: Padding(
@@ -479,7 +480,7 @@ class _AgeGrid extends StatelessWidget {
                       ? _AgeTile(
                           label: rows[r][c] == kQuizAges.last ? lastLabel : '${rows[r][c]}',
                           selected: selected == rows[r][c],
-                          onTap: () => onSelect(rows[r][c]),
+                          onTap: tracked('quiz_s02.age_grid_select', () => onSelect(rows[r][c]), props: {'value': rows[r][c]}),
                         )
                       : const SizedBox.shrink(),
                 ),
@@ -508,7 +509,7 @@ class _AgeTile extends StatelessWidget {
     return OnbTap(
       label: label,
       selected: selected,
-      onTap: onTap,
+      onTap: tracked('quiz_s02.age_tile', onTap),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,

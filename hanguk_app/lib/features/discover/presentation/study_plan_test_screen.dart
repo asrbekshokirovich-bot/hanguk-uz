@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -157,7 +158,7 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                 HardIconButton(
                   glyph: LucideIcons.chevronLeft,
                   semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: () => Navigator.of(context).maybePop(),
+                  onTap: tracked('study_plan_test.chevron_left', () => Navigator.of(context).maybePop()),
                 ),
                 const SizedBox(width: 10),
                 Expanded(child: Text(l.uaTestPlan, style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1.1))),
@@ -250,7 +251,7 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                         builder: (context, _) => HardButton(
                           label: l.sptSubmit,
                           loading: _sending,
-                          onPressed: _sending || !_hasAnswer ? null : _submit,
+                          onPressed: tracked('study_plan_test.spt_submit', _sending || !_hasAnswer ? null : _submit),
                         ),
                       ),
                     ],
@@ -336,7 +337,7 @@ class _ResultCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        HardButton(label: l.sptDone, onPressed: () => Navigator.of(context).maybePop()),
+        HardButton(label: l.sptDone, onPressed: tracked('study_plan_test.spt_done', () => Navigator.of(context).maybePop())),
       ],
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -228,7 +229,7 @@ class UniStackCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  _OddsPill(percent: percent, onTap: onAdmission),
+                  _OddsPill(percent: percent, onTap: tracked('uni_stack_card.admission', onAdmission)),
                 ],
               ),
             ),
@@ -384,7 +385,7 @@ class _OddsPill extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('uni_stack_card.odds_pill', onTap),
         behavior: HitTestBehavior.opaque,
         child: CustomPaint(
           painter: const DashedPillPainter(color: FdColors.navy, radius: 14),
