@@ -85,6 +85,14 @@ abstract final class AppEvents {
   /// This installation's id, once recording has started.
   static String? get installId => _sink?._installId;
 
+  /// "1.1.3 (2103)": the app's version and build, once recording has started.
+  static String? get appVersion {
+    final c = _sink?._context;
+    final v = c?['app_version'];
+    if (v == null) return null;
+    return '$v (${c?['app_build'] ?? '?'})';
+  }
+
   /// The code staff type into the CRM to mark this phone as a test device:
   /// the first 8 characters of the installation id, as "XXXX-XXXX".
   static String? get deviceCode {
