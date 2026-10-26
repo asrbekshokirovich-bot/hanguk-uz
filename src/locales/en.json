@@ -2603,5 +2603,44 @@
     "minutes": "{{m}} min {{s}} s",
     "noSteps": "Nothing in the last 30 days",
     "truncated": "Only the last 500 steps are shown"
+  },
+  "todayInApp": {
+    "title": "Today in the app",
+    "waiting": "App requests waiting for an answer",
+    "cameBack": "Leads back in the app today",
+    "offers": "Unanswered university offers",
+    "cols": {
+      "who": "Who",
+      "signal": "Signal",
+      "when": "When",
+      "queue": "Queue",
+      "to": "For"
+    },
+    "now": "NOW",
+    "today": "TODAY",
+    "targets": {
+      "operators": "All operators",
+      "boss": "The boss",
+      "owner": "Lead owner",
+      "documents": "Documents staff"
+    },
+    "signals": {
+      "requestForm": "Request from the app (form)",
+      "requestTelegram": "Request from the app (Telegram)",
+      "cameBack_one": "Back in the app after {{count}} day",
+      "cameBack_other": "Back in the app after {{count}} days",
+      "report": "Saw the report",
+      "picks_one": "{{count}} ♥",
+      "picks_other": "{{count}} ♥",
+      "offer": "No answer to a university offer for 48 hours"
+    },
+    "left": "{{value}} left",
+    "late": "{{value}} late",
+    "hoursMinutes": "{{h}} h {{m}} min",
+    "minutesAgo_one": "{{count}} minute ago",
+    "minutesAgo_other": "{{count}} minutes ago",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "empty": "No tasks for now"
   }
 }

@@ -2667,5 +2667,44 @@
     "minutes": "{{m}} daq {{s}} s",
     "noSteps": "Oxirgi 30 kunda harakat yo'q",
     "truncated": "Faqat oxirgi 500 qadam ko'rsatildi"
+  },
+  "todayInApp": {
+    "title": "Bugun ilovada",
+    "waiting": "Javob kutayotgan ilova murojaati",
+    "cameBack": "Bugun ilovaga qaytgan lidlar",
+    "offers": "Javobsiz universitet takliflari",
+    "cols": {
+      "who": "Kim",
+      "signal": "Signal",
+      "when": "Qachon",
+      "queue": "Navbat",
+      "to": "Kimga"
+    },
+    "now": "HOZIR",
+    "today": "BUGUN",
+    "targets": {
+      "operators": "Hamma operatorlar",
+      "boss": "Boshliq",
+      "owner": "Lid egasi",
+      "documents": "Hujjatlar xodimi"
+    },
+    "signals": {
+      "requestForm": "Ilovadan murojaat (forma)",
+      "requestTelegram": "Ilovadan murojaat (Telegram)",
+      "cameBack_one": "Ilovaga qaytdi, {{count}} kundan keyin",
+      "cameBack_other": "Ilovaga qaytdi, {{count}} kundan keyin",
+      "report": "Hisobotni ko'rdi",
+      "picks_one": "{{count}} ta ♥",
+      "picks_other": "{{count}} ta ♥",
+      "offer": "Universitet taklifiga 48 soat javob yo'q"
+    },
+    "left": "{{value}} qoldi",
+    "late": "{{value}} kechikdi",
+    "hoursMinutes": "{{h}} soat {{m}} daq",
+    "minutesAgo_one": "{{count}} daqiqa oldin",
+    "minutesAgo_other": "{{count}} daqiqa oldin",
+    "days_one": "{{count}} kun",
+    "days_other": "{{count}} kun",
+    "empty": "Hozircha vazifa yo'q"
   }
 }

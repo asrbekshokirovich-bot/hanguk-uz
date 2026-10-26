@@ -53,7 +53,7 @@ export const plan = {
 
   // tables
   tscroll: 'overflow-x-auto',
-  table: 'w-full min-w-[540px] border-collapse text-[14px]',
+  table: 'w-full min-w-[540px] border-collapse text-[14px] [&_tbody_tr:last-child_td]:border-b-0',
   th:
     'border-b border-[#D6DEEC] px-2.5 py-2 text-left align-bottom text-[12px] font-[650] text-[#5B6B85] ' +
     'dark:border-[#26336D] dark:text-[#9DA9CC]',
