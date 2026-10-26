@@ -76,6 +76,9 @@ interface IngestEvent {
   live?: boolean;
 }
 
+/** The app's contact code in a message ("HK-7Q2MXA"); see fn_contact_code_link. */
+const APP_CODE = /HK-[A-HJKMNP-Z2-9]{6}/i;
+
 // messages.message_type is CHECK-constrained to text | image | file | voice,
 // so richer Telegram kinds collapse into those four. The precise kind is kept
 // in metadata.media_type so the UI can still render it properly.
@@ -440,6 +443,23 @@ async function ingestOne(
       });
       linked = !!(identity.studentId || identity.leadId);
     }
+  }
+
+  // The app writes "HK-<code>" into the person's first message to the
+  // consultant (app analytics, stage 2), so the device that wrote it is tied
+  // to this lead — the app's path shows on the lead's card. The code ties the
+  // person only; it is not a source (S3).
+  if (
+    direction === "incoming" && chatType === "private" && identity.leadId &&
+    APP_CODE.test(ev.message.text ?? "")
+  ) {
+    const { data: install, error: codeErr } = await supabase.rpc("fn_contact_code_link", {
+      p_text: ev.message.text,
+      p_lead_id: identity.leadId,
+      p_via: "telegram_code",
+    });
+    if (codeErr) console.error("fn_contact_code_link failed:", codeErr.message);
+    else if (install) console.log(`app device ${install} tied to lead ${identity.leadId}`);
   }
 
   // Thread bookkeeping (atomic; preserves a manual student link).
