@@ -216,3 +216,6 @@ verify_jwt = false
 # calls itself (ai_search_take) and only reads the public catalogue.
 [functions.ai-university-search]
 verify_jwt = false
+
+[functions.app-journey-summary]
+verify_jwt = true
