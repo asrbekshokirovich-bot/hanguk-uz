@@ -42,6 +42,7 @@ vi.mock('../marketing', async (orig) => {
     useMarketing: () => ({ data: sample, prev: { ...sample, kpi: { ...sample.kpi, new_devices: 40 } }, loading: false, error: null, reload: () => {} }),
     useChannelNames: () => ({ instagram: 'Instagram', telegram: 'Telegram' }),
     useRetention: () => [{ week: '2026-10-12', devices: 20, d1: 5, d7: 8, d30: null }],
+    useSegmentOptions: () => ({ answers: { topik: [{ band: '0', devices: 2 }, { band: '2', devices: 4 }] }, regions: [] }),
   };
 });
 

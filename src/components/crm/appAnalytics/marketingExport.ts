@@ -1,4 +1,4 @@
-import { FUNNEL_STEPS, bandLabel, channelName, money, perOne, periodLabel, type Cohort, type Marketing } from './marketing';
+import { FUNNEL_STEPS, bandLabel, channelName, money, perOne, periodLabel, segSummary, type Cohort, type Marketing } from './marketing';
 
 /**
  * The Marketing panel to a file (S8: Excel and CSV). Excel: one sheet per
@@ -57,7 +57,11 @@ export async function exportXlsx(
     const sheets = [
       {
         sheet: t('marketing.sheets.kpi'),
-        data: [[bold(t('marketing.sheets.metric')), bold(period), bold(prevLabel)], ...kpiRows(data, prev, t)],
+        data: [
+          [bold(t('marketing.sheets.metric')), bold(period), bold(prevLabel)],
+          ...kpiRows(data, prev, t),
+          [t('marketing.seg.keys.title'), segSummary(data.seg ?? {}, names, t) || t('marketing.seg.everyone'), ''],
+        ],
         columns: [{ width: 40 }, { width: 14 }, { width: 14 }],
       },
       {
@@ -146,6 +150,7 @@ export function buildCsv(data: Marketing, names: Record<string, string>, t: T): 
   const rows: Cell[][] = [
     [t('marketing.sheets.metric'), periodLabel(data.from, data.to)],
     ...kpiRows(data, null, t).map((r) => r.slice(0, 2)),
+    [t('marketing.seg.keys.title'), segSummary(data.seg ?? {}, names, t) || t('marketing.seg.everyone')],
     [],
     [
       t('marketing.cols.channel'),
