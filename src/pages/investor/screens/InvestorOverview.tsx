@@ -24,6 +24,7 @@ import {
   useInvestorLeadSummary,
   useInvestorMonthly,
   useInvestorPayouts,
+  useInvestorPlanRevenue,
   useInvestorPosition,
 } from '@/hooks/useInvestor';
 import { useInvestorExport } from '@/hooks/useInvestorExport';
@@ -84,6 +85,15 @@ export default function InvestorOverview() {
   const leads = useInvestorLeadSummary(activeIntakeId);
   const applications = useInvestorApplications(activeIntakeId);
   const payouts = useInvestorPayouts();
+  const planRevenue = useInvestorPlanRevenue(activeIntakeId);
+
+  // The "No Risk" card: that tariff's money, one line per currency (it is
+  // billed in USD, but nothing here assumes so).
+  const noRisk = (planRevenue.data ?? [])
+    .filter((r) => r.plan === 'no_risk')
+    .sort((a, b) => a.currency.localeCompare(b.currency));
+  const noRiskHead = noRisk[0] ?? null;
+  const noRiskStudents = noRisk.reduce((n, r) => n + Number(r.students), 0);
 
   const identity = position.data?.[0] ?? null;
   const equity = identity?.equity_percent ?? null;
@@ -158,7 +168,7 @@ export default function InvestorOverview() {
       />
 
       {/* ---------------------------------------------------------- stat row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <InvestorCard className="flex flex-col p-5">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[13px] font-semibold text-muted-foreground">Season Revenue</span>
@@ -183,6 +193,42 @@ export default function InvestorOverview() {
           )}
           <div className="mt-auto pt-3">
             <Sparkline values={months.map((m) => Number(m.revenue))} tone="royal" />
+          </div>
+        </InvestorCard>
+
+        {/* No Risk tariff, as its own block (Asrbek, 2026-10-26). */}
+        <InvestorCard className="flex flex-col p-5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[13px] font-semibold text-muted-foreground">No Risk</span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-[30px] font-extrabold leading-none tracking-[-0.03em] text-foreground">
+              {noRiskHead
+                ? noRiskHead.currency === 'USD'
+                  ? usd(Number(noRiskHead.collected))
+                  : compact(Number(noRiskHead.collected))
+                : '—'}
+            </span>
+            {noRiskHead && noRiskHead.currency !== 'USD' && (
+              <span className="text-[14px] font-bold text-muted-foreground">{noRiskHead.currency}</span>
+            )}
+          </div>
+          <p className="mt-1.5 text-[12px] text-muted-foreground">
+            {noRiskHead
+              ? `${count(noRiskStudents)} student${noRiskStudents === 1 ? '' : 's'} paid · No Risk tariff`
+              : 'No No Risk payments this season'}
+          </p>
+          {noRisk.slice(1).map((r) => (
+            <p key={r.currency} className="mt-1 text-[12px] text-muted-foreground">
+              {moneyWithUnit(Number(r.collected), r.currency)} also collected
+            </p>
+          ))}
+          <div className="mt-auto pt-3 text-[12px] text-muted-foreground">
+            {noRisk.length > 0
+              ? `Outstanding ${noRisk
+                  .map((r) => moneyWithUnit(Number(r.outstanding), r.currency))
+                  .join(' · ')}`
+              : null}
           </div>
         </InvestorCard>
 

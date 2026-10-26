@@ -218,6 +218,31 @@ export function useInvestorPosition(intakeId: string | null) {
   });
 }
 
+export interface InvestorPlanRevenueRow {
+  intake_id: string;
+  plan: string;
+  currency: string;
+  students: number;
+  collected: number;
+  outstanding: number;
+}
+
+/** Money per tariff and currency (v_investor_plan_revenue). Feeds the
+ *  Overview "No Risk" card. Never summed across currencies. */
+export function useInvestorPlanRevenue(intakeId: string | null) {
+  return useQuery({
+    queryKey: [KEY, 'plan-revenue', intakeId],
+    enabled: !!intakeId,
+    queryFn: async (): Promise<InvestorPlanRevenueRow[]> => {
+      const { data, error } = await rel('v_investor_plan_revenue')
+        .select('*')
+        .eq('intake_id', intakeId);
+      if (error) throw error;
+      return (data ?? []) as InvestorPlanRevenueRow[];
+    },
+  });
+}
+
 export function useInvestorMonthly(intakeId: string | null) {
   return useQuery({
     queryKey: [KEY, 'monthly', intakeId],
