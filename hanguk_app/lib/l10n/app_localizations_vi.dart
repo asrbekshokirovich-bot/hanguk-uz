@@ -5619,4 +5619,17 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get leadConsent =>
       'Tư vấn viên sẽ xem các trường bạn đã chọn và câu trả lời bài kiểm tra của bạn, rồi tư vấn dựa trên đó.';
+
+  @override
+  String get guestPushTitle => 'Đừng bỏ lỡ hạn chót';
+
+  @override
+  String get guestPushBody =>
+      'Chúng tôi gửi thông báo về hạn nộp hồ sơ và học bổng mới nhé? Không cần số điện thoại.';
+
+  @override
+  String get guestPushYes => 'Có, gửi cho tôi';
+
+  @override
+  String get guestPushLater => 'Để sau';
 }

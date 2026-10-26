@@ -5450,4 +5450,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get leadConsent => '상담사가 선택하신 대학교와 테스트 답변을 보고 이를 바탕으로 상담해 드립니다.';
+
+  @override
+  String get guestPushTitle => '마감일을 놓치지 마세요';
+
+  @override
+  String get guestPushBody => '입학 마감일과 새 장학금 소식을 알림으로 보내드릴까요? 전화번호는 필요 없습니다.';
+
+  @override
+  String get guestPushYes => '네, 보내주세요';
+
+  @override
+  String get guestPushLater => '나중에';
 }

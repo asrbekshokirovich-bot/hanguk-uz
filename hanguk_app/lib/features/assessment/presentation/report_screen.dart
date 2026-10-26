@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -66,6 +69,19 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   void initState() {
     super.initState();
     AppEvents.track('report_view', props: {'universities': ref.read(assessmentProvider).universityIds.length});
+    // A guest is asked once, a moment after the report shows, whether we
+    // may send news on deadlines and scholarships (GuestPush, plan stage 5).
+    _pushAsk = Timer(const Duration(seconds: 3), () {
+      if (mounted) unawaited(GuestPush.maybeAsk(context));
+    });
+  }
+
+  Timer? _pushAsk;
+
+  @override
+  void dispose() {
+    _pushAsk?.cancel();
+    super.dispose();
   }
 
   String _shareText(AppLocalizations l, AssessmentOutcome o) => [

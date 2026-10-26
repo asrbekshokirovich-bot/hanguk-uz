@@ -1805,5 +1805,9 @@
   "leadHeardEvent": "Sự kiện",
   "leadHeardStore": "Play Market hoặc App Store",
   "leadHeardOther": "Khác",
-  "leadConsent": "Tư vấn viên sẽ xem các trường bạn đã chọn và câu trả lời bài kiểm tra của bạn, rồi tư vấn dựa trên đó."
+  "leadConsent": "Tư vấn viên sẽ xem các trường bạn đã chọn và câu trả lời bài kiểm tra của bạn, rồi tư vấn dựa trên đó.",
+  "guestPushTitle": "Đừng bỏ lỡ hạn chót",
+  "guestPushBody": "Chúng tôi gửi thông báo về hạn nộp hồ sơ và học bổng mới nhé? Không cần số điện thoại.",
+  "guestPushYes": "Có, gửi cho tôi",
+  "guestPushLater": "Để sau"
 }

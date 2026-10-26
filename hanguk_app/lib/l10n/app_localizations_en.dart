@@ -5646,4 +5646,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leadConsent =>
       'Your consultant will see the universities you chose and your test answers, and advise you on that basis.';
+
+  @override
+  String get guestPushTitle => 'Don\'t miss the deadlines';
+
+  @override
+  String get guestPushBody =>
+      'Shall we notify you about admission deadlines and new scholarships? No phone number needed.';
+
+  @override
+  String get guestPushYes => 'Yes, notify me';
+
+  @override
+  String get guestPushLater => 'Later';
 }
