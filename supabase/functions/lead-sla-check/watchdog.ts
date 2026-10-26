@@ -31,7 +31,7 @@ const MONTHS = [
   "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr",
 ];
 
-async function watchdogChats(supabase: Admin): Promise<string[]> {
+export async function watchdogChats(supabase: Admin): Promise<string[]> {
   const { data, error } = await supabase
     .from("lead_alert_recipients")
     .select("chat_id")

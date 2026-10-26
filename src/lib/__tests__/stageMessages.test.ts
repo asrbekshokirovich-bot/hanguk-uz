@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeLang, stageMessage } from '../../../supabase/functions/notify-student-stages/messages';
+import { normalizeLang, pushData, stageMessage } from '../../../supabase/functions/notify-student-stages/messages';
 
 describe('stage notification text', () => {
   it('speaks the phone language and falls back to Uzbek', () => {
@@ -27,5 +27,22 @@ describe('stage notification text', () => {
       body: 'Siz qabul qilindingiz: Kyungpook National University.',
     });
     expect(stageMessage('final_university', ['A'], 'uz').body).toBe('Konsultantingiz tavsiyasi: A. Ilovada tasdiqlang.');
+  });
+
+  it('reminds of an unanswered offer in every language, and opens the offer screen', () => {
+    expect(stageMessage('offer_reminder', ['A'], 'uz')).toEqual({
+      title: 'Javobingizni kutyapmiz',
+      body: "Konsultantingiz tanlagan universitet: A. Ilovada ko'rib, javob bering.",
+    });
+    expect(stageMessage('offer_reminder', ['A', 'B'], 'uz').body).toBe(
+      "Konsultantingiz tanlagan universitetlar: A va B. Ilovada ko'rib, javob bering.",
+    );
+    for (const lang of ['ru', 'en', 'ko', 'vi']) {
+      const m = stageMessage('offer_reminder', ['A'], lang);
+      expect(m.title.length).toBeGreaterThan(0);
+      expect(m.body).toContain('A');
+    }
+    expect(pushData('offer_reminder')).toEqual({ type: 'stage', kind: 'university_offered', campaign: 'offer_reminder' });
+    expect(pushData('documents_ready')).toEqual({ type: 'stage', kind: 'documents_ready' });
   });
 });

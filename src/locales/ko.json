@@ -2023,6 +2023,16 @@
     "revoked": "Application fee 권한이 해제되었습니다",
     "error": "권한을 저장할 수 없습니다"
   },
+  "appLink": {
+    "title": "Hanguk 앱",
+    "description": "상담사가 앱을 보냈습니다. 대학을 고르고 합격·비자 가능성을 확인하세요. 상담사가 선택을 보고 더 정확히 안내합니다.",
+    "open": "앱 열기",
+    "notOpened": "앱이 열리지 않았나요? 아래에서 설치하세요.",
+    "googlePlay": "Google Play에서 설치",
+    "appStore": "App Store에서 설치",
+    "iosAfterInstall": "설치 후 이 링크를 다시 여세요. 앱이 상담사와 연결해 줍니다.",
+    "web": "브라우저에서 열기"
+  },
   "investor": {
     "shell": {
       "investor": "투자자",

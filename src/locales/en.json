@@ -1069,7 +1069,8 @@
         "copyFailed": "Could not copy",
         "linkUnavailable": "Could not get the bot name — reopen later",
         "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}",
-        "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once."
+        "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once.",
+        "appInviteText": "Here is our app: {{link}}. Look through the universities and mark the 3 you like with ♥ — I'll see your choice and give you specific advice on those universities."
       },
       "app": {
         "title": "App: eligibility check",
@@ -2289,14 +2290,11 @@
     "lastSeen": "Last seen: {{date}}",
     "visits_one": "{{count}} visit",
     "visits_other": "{{count}} visits",
-    "saved_one": "{{count}} university saved",
-    "saved_other": "{{count}} universities saved",
     "showAll": "Show all ({{count}})",
     "showLess": "Show less",
     "unknownUniversity": "a university",
     "screens": {
-      "home": "Home",
-      "universities": "Universities",
+      "home": "App start",
       "search": "Search",
       "filter": "Filter",
       "results": "Results",
@@ -2317,14 +2315,23 @@
       "studyPlan": "Study Plan",
       "interview": "Interview practice",
       "aiChat": "Hanguk AI chat",
-      "qrScan": "QR scanner"
+      "qrScan": "QR scanner",
+      "guestHome": "Guest home",
+      "universityAssess": "University assessment",
+      "leadForm": "Consultant form",
+      "universityChoices": "University choices",
+      "interviewTest": "Interview test",
+      "studyPlanTest": "Study Plan test",
+      "walkaround": "360° campus",
+      "visa": "Will I get the visa?"
     },
     "tabs": {
       "universities": "Universities",
       "map": "360° map",
       "prepare": "Preparation",
       "application": "Application",
-      "documents": "Documents"
+      "documents": "Documents",
+      "home": "Assessment (round button)"
     },
     "channels": {
       "phone": "call",
@@ -2359,7 +2366,7 @@
       "assessment_start_other": "Started the chance assessment ({{count}} universities)",
       "report_view_one": "Viewed the report ({{count}} university)",
       "report_view_other": "Viewed the report ({{count}} universities)",
-      "lead_submit": "Sent a request: {{result}}",
+      "lead_submit": "Sent a consultant request: {{result}}",
       "sign_in": "Client-code sign-in: {{result}}",
       "qr_scan": "QR scanner: {{result}}",
       "study_plan_feedback": "Asked for feedback on Study Plan step {{step}}",
@@ -2369,7 +2376,9 @@
       "interview_leave": "Left interview practice ({{minutes}} min)",
       "document_upload": "Uploaded a document: {{type}}",
       "contact_tap": "Pressed a contact button: {{channel}}",
-      "language_set": "Chose language: {{language}}"
+      "language_set": "Chose language: {{language}}",
+      "assessment_start_visa": "Started the “Will I get the visa?” test",
+      "assessment_start_university": "Started the assessment: {{name}}"
     },
     "page": {
       "title": "App activity",
@@ -2380,20 +2389,25 @@
       "kpi": {
         "devices": "Active devices",
         "signedIn": "Signed-in clients",
-        "newDevices": "New installs",
-        "events": "Actions"
+        "newDevices": "Seen for the first time",
+        "events": "Actions",
+        "signedInSub": "{{people}} people · {{devices}} devices",
+        "demoNote_one": "of them {{count}} demo account",
+        "demoNote_other": "of them {{count}} demo accounts",
+        "newDevicesNote": "Tracking started on {{date}}; earlier installs are counted here too"
       },
-      "funnel": "From the app to a request (devices)",
+      "funnel": "From the app to a consultant request (devices)",
       "steps": {
         "app_open": "Opened the app",
-        "university_open": "Viewed a university",
-        "university_save": "Saved a university",
-        "assessment_start": "Started the assessment",
+        "university_open": "Opened a university page",
         "report_view": "Viewed the report",
-        "lead_submit": "Sent a request"
+        "lead_submit": "Sent a consultant request",
+        "active": "Pressed something",
+        "intent": "Picked ♥ or started an assessment",
+        "lead_form": "Opened the consultant form"
       },
       "screens": "Most opened screens",
-      "saved": "Most saved universities",
+      "saved": "Most picked universities (♥)",
       "daily": "Active devices per day",
       "actions": "All actions",
       "screen": "Screen",
@@ -2416,7 +2430,7 @@
         "search": "Search",
         "assessment_start": "Start the assessment",
         "report_view": "View the report",
-        "lead_submit": "Send a request",
+        "lead_submit": "Consultant request",
         "sign_in": "Sign in",
         "qr_scan": "QR scanner",
         "study_plan_feedback": "Study Plan feedback",
@@ -2427,8 +2441,17 @@
         "document_upload": "Upload a document",
         "contact_tap": "Contact",
         "language_set": "Choose language"
-      }
-    }
+      },
+      "funnelNote": "Each step counts the devices that reached it at least once in the period. The steps are not a sequence: the report can be reached without picking a university.",
+      "sections": "Sections (bottom menu)",
+      "section": "Section",
+      "screensNote": "Sections are in the table above; the app start is not counted here.",
+      "dailyNew": "new"
+    },
+    "emptyLead": "No device is linked to this lead yet. A device is linked when the lead sends the app's “Contact a consultant” form.",
+    "emptyStudent": "The student has not signed in to the app with their client code yet.",
+    "picked_one": "{{count}} university picked (♥)",
+    "picked_other": "{{count}} universities picked (♥)"
   },
   "applicationFeeAccess": {
     "title": "Separate permissions",
@@ -2438,6 +2461,532 @@
     "granted": "Application fee access granted",
     "revoked": "Application fee access removed",
     "error": "Could not save the permission"
+  },
+  "appAnalytics": {
+    "title": "App analytics",
+    "subtitle": "What happens in the student app: who opened it, what they saw and pressed, and whether they reached a request. Test devices are left out.",
+    "tabs": {
+      "overview": "Activity",
+      "quality": "Quality",
+      "settings": "Settings",
+      "people": "People",
+      "marketing": "Marketing",
+      "live": "Live",
+      "flow": "Flow",
+      "clients": "Clients' activity"
+    },
+    "quality": {
+      "refreshed": "Sessions and daily totals refreshed: {{time}}",
+      "neverRefreshed": "Sessions not built yet",
+      "devices": "Devices",
+      "testDevices": "{{count}} of them test devices (not counted)",
+      "namedTaps": "Named taps",
+      "timedScreens": "Screens timed",
+      "ofBuild": "build {{build}}",
+      "delay": "Delay (median)",
+      "delaySub": "90% within {{p90}}, 99% within {{p99}}",
+      "sec": "{{n}} s",
+      "min": "{{n}} min",
+      "hours": "{{n}} h",
+      "hourly": "Last 48 hours",
+      "hourlyNote": "Events reaching the server each hour. A gap is an hour nothing came from the app.",
+      "builds": "Builds",
+      "build": "Build",
+      "events": "Events",
+      "lastSeen": "Last",
+      "missing": "Events a new build stopped sending",
+      "missingNote": "Sent by the previous build on 3+ devices, by this one on none — usually a call lost in the code.",
+      "missingNone": "Nothing missing.",
+      "prevDevices": "Devices on the previous build",
+      "event": "Event",
+      "rejected": "Turned away and corrected",
+      "rejectedNote": "Events the server did not store, or stored changed. \"Retried\" — the app resent after a network drop; never stored twice.",
+      "reason": "Reason",
+      "reasons": {
+        "unknown_event": "Not in the registry",
+        "bad_name": "Bad name",
+        "bad_shape": "Bad shape",
+        "bad_time": "Bad time (server time used)",
+        "props_dropped": "Unlisted field dropped",
+        "props_too_big": "Too much data",
+        "insert_error": "Write error",
+        "rate_limited": "Too many (over 6000 an hour)",
+        "duplicate": "Retried (not stored again)"
+      },
+      "testByReason": "Test devices by reason",
+      "registry": "Event registry",
+      "registryNote": "The {{count}} events the app may send, and how many came in this period. Grey — none.",
+      "family": "Group",
+      "deprecated": "old",
+      "families": {
+        "lifecycle": "App",
+        "screen": "Screen",
+        "tap": "Tap",
+        "view": "View",
+        "university": "University",
+        "assessment": "Assessment",
+        "form": "Form",
+        "account": "Account",
+        "contact": "Contact",
+        "prepare": "Preparation",
+        "client": "Client",
+        "push": "Notification",
+        "quality": "Quality"
+      }
+    },
+    "settings": {
+      "title": "Test devices",
+      "howTo": "Staff, demo-account and development-build phones mark themselves. To mark another phone: in the app, tap the \"Tayyorgarlik\" title 7 times — the device code (XXXX-XXXX) appears; enter it here. Test devices are not counted.",
+      "code": "Device code",
+      "reason": "Reason",
+      "mark": "Mark as test",
+      "unmark": "Remove",
+      "list": "Marked devices: {{count}}",
+      "none": "No test devices yet.",
+      "device": "Device",
+      "markedBy": "Marked by",
+      "automatic": "itself (automatic)",
+      "someone": "staff",
+      "marked": "{{code}} marked as a test device",
+      "unmarked": "{{code}} counted again",
+      "short_code": "The code is short: 8 characters at least (XXXX-XXXX).",
+      "not_found": "No device with this code. Has the app been online at least once?",
+      "ambiguous": "This code fits {{count}} devices — enter more of it.",
+      "bad_reason": "Bad reason.",
+      "failed": "Could not save.",
+      "reasons": {
+        "manual": "Manual",
+        "staff": "Staff",
+        "demo": "Demo account",
+        "dev": "Development build"
+      }
+    },
+    "people": {
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "kinds": {
+        "all": "All",
+        "lead": "Leads",
+        "guest": "Guests",
+        "student": "Students"
+      },
+      "search": "Search by name",
+      "withTest": "Include test devices",
+      "empty": "Nobody in this period",
+      "cols": {
+        "who": "Who",
+        "source": "Found us via (own answer)",
+        "last": "Last visit",
+        "visits": "Visits",
+        "score": "App score",
+        "stage": "Got as far as"
+      },
+      "picks_one": "{{count}} ♥",
+      "picks_other": "{{count}} ♥",
+      "visa": "visa test: {{band}}",
+      "report": "report",
+      "request": "sent a request",
+      "test": "test",
+      "more": "{{shown}} of {{total}} shown"
+    }
+  },
+  "appLink": {
+    "title": "The Hanguk app",
+    "description": "Your consultant sent you the app: choose universities and see your admission and visa chances — your consultant sees your choices and advises you better.",
+    "open": "Open the app",
+    "notOpened": "The app did not open? Install it below.",
+    "googlePlay": "Get it on Google Play",
+    "appStore": "Download on the App Store",
+    "iosAfterInstall": "After installing, open this link again — the app connects you to your consultant.",
+    "web": "Open in the browser"
+  },
+  "appPerson": {
+    "title": "In the app",
+    "noDevice": "No device tied",
+    "sendLink": "Send the app link",
+    "openJourney": "Open the full path",
+    "linkCopied": "Message with the link copied — send it to the lead",
+    "rows": {
+      "activity": "Activity",
+      "source": "Source",
+      "forWhom": "For whom",
+      "picks": "Picks ♥",
+      "visa": "Visa test",
+      "report": "Report",
+      "tariff": "Matching tariff",
+      "starter": "Open with"
+    },
+    "today": "Today {{time}}",
+    "yesterday": "Yesterday {{time}}",
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "firstSource": "1st source: {{source}}",
+    "forWhom": {
+      "self": "For themselves",
+      "child": "For their child",
+      "relative": "For a relative"
+    },
+    "band": {
+      "high": "High",
+      "mid": "Medium",
+      "low": "Low"
+    },
+    "lowFactor": "weak point: {{what}}",
+    "low": {
+      "language": "language level ({{level}})",
+      "income": "documented income",
+      "deposit": "money in the bank",
+      "gap": "gap since studies",
+      "age": "age"
+    },
+    "noTopik": "no TOPIK",
+    "income": {
+      "yes": "finances: documented income",
+      "no": "finances: no documented income"
+    },
+    "reportSeen_one": "Seen, {{count}} time",
+    "reportSeen_other": "Seen, {{count}} times",
+    "reportNotSeen": "Not seen",
+    "tariffRule": "by the rule, the operator confirms",
+    "ties": {
+      "operatorLink": "operator's link",
+      "telegramCode": "Telegram code"
+    },
+    "sources": {
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "app": "App",
+      "call": "Call",
+      "manual": "Manual",
+      "learning_center": "Learning centre",
+      "Public Registration": "Website"
+    },
+    "kind": {
+      "lead": "Lead",
+      "student": "Student",
+      "guest": "Guest"
+    },
+    "journeyTitle": "Full path",
+    "ownSource": "Source (own answer): {{source}}",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "entryExit": "in: {{entry}} · out: {{exit}}",
+    "seconds": "{{s}} s",
+    "minutes": "{{m}} min {{s}} s",
+    "noSteps": "Nothing in the last 30 days",
+    "truncated": "Only the last 500 steps are shown"
+  },
+  "todayInApp": {
+    "title": "Today in the app",
+    "waiting": "App requests waiting for an answer",
+    "cameBack": "Leads back in the app today",
+    "offers": "Unanswered university offers",
+    "cols": {
+      "who": "Who",
+      "signal": "Signal",
+      "when": "When",
+      "queue": "Queue",
+      "to": "For"
+    },
+    "now": "NOW",
+    "today": "TODAY",
+    "targets": {
+      "operators": "All operators",
+      "boss": "The boss",
+      "owner": "Lead owner",
+      "documents": "Documents staff"
+    },
+    "signals": {
+      "requestForm": "Request from the app (form)",
+      "requestTelegram": "Request from the app (Telegram)",
+      "cameBack_one": "Back in the app after {{count}} day",
+      "cameBack_other": "Back in the app after {{count}} days",
+      "report": "Saw the report",
+      "picks_one": "{{count}} ♥",
+      "picks_other": "{{count}} ♥",
+      "offer": "No answer to a university offer for 48 hours"
+    },
+    "left": "{{value}} left",
+    "late": "{{value}} late",
+    "hoursMinutes": "{{h}} h {{m}} min",
+    "minutesAgo_one": "{{count}} minute ago",
+    "minutesAgo_other": "{{count}} minutes ago",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "empty": "No tasks for now"
+  },
+  "marketing": {
+    "title": "Marketing",
+    "periods": {
+      "today": "Today",
+      "7": "7 days",
+      "30": "30 days",
+      "90": "90 days",
+      "range": "Range"
+    },
+    "compareWith": "Compared with: {{period}}",
+    "excel": "Excel",
+    "kpi": {
+      "newActive": "New active devices",
+      "noTest": "without test devices",
+      "withTest": "with test devices",
+      "requests": "Requests from the app",
+      "requestsSub": "form {{form}} · Telegram with code {{tg}}",
+      "share": "share {{pct}}%",
+      "contracts": "App-involved contracts",
+      "contractsSub": "all contracts: {{n}}",
+      "requestsFormOnly": "Requests: form",
+      "requestsTelegramOnly": "Requests: Telegram with code",
+      "newLeads": "All new leads",
+      "allContracts": "All contracts",
+      "activeOnly": "Of them active (did something)"
+    },
+    "prev": "previous period: {{n}}",
+    "cols": {
+      "channel": "Channel (own answer)",
+      "newDevices": "New devices",
+      "active": "Active",
+      "requests": "Requests",
+      "contracts": "Contracts",
+      "spend": "Spend",
+      "perRequest": "Per request"
+    },
+    "unknown": "Unknown (no answer)",
+    "allChannels": "All channels",
+    "blocks": {
+      "funnel": "Funnel",
+      "demand": "Demand",
+      "stops": "Where people stop",
+      "return": "Return",
+      "spend": "Spend",
+      "test": "Test filter"
+    },
+    "funnelNote": "Devices first seen in the period; each step counts reaching it at least once.",
+    "steps": {
+      "opened": "Opened",
+      "active": "Active",
+      "university": "University",
+      "intent": "Intent (♥ or test)",
+      "report": "Report",
+      "request": "Request",
+      "talked": "Talked",
+      "contract": "Contract"
+    },
+    "demand": {
+      "field": "Field",
+      "regions": "City",
+      "degree": "Degree",
+      "topik": "TOPIK",
+      "type": "Type",
+      "answers": "Test answers (as ranges)",
+      "universities": "Most opened universities",
+      "university": "University",
+      "devices": "Devices",
+      "opens": "Opened",
+      "position": "List position",
+      "seen": "Saw the card"
+    },
+    "questions": {
+      "route": "Route",
+      "topik": "TOPIK",
+      "ielts": "IELTS",
+      "bank": "Money in the bank",
+      "income": "Parents' income",
+      "income_documented": "Documented income",
+      "age": "Age"
+    },
+    "bands": {
+      "none": "none",
+      "bank": "{{from}}–{{to}} mln won",
+      "bankMax": "30+ mln won",
+      "income0": "under $5k",
+      "income1": "$5–10k",
+      "income2": "$10–20k",
+      "income3": "$20k and more",
+      "yes": "yes",
+      "no": "no",
+      "route": {
+        "bachelor": "Bachelor's",
+        "master": "Master's",
+        "languageCourse": "Language course",
+        "college": "College"
+      },
+      "age17": "under 18",
+      "age18": "18–19",
+      "age20": "20–21",
+      "age22": "22–23",
+      "age24": "24–25",
+      "age26": "26–29",
+      "age30": "30 and over"
+    },
+    "stops": {
+      "language": "Visits that ended on the language screen: {{n}}",
+      "clientCode": "Devices that opened the client code screen and left without a code: {{left}} / {{seen}}",
+      "locked": "Guests who tapped a locked section: Preparation {{prepare}} · Application {{application}} · Documents {{documents}}",
+      "form": "Consultant form: opened {{opened}} → field error {{errors}} → sent {{sent}}",
+      "exitScreens": "Screen the visit ended on"
+    },
+    "return": {
+      "period": "Active in the period: {{active}} devices — new {{fresh}}, returning {{back}}",
+      "week": "Week first seen",
+      "devices": "Devices",
+      "d1": "Day 1",
+      "d7": "Within 7 days",
+      "d30": "Within 30 days"
+    },
+    "spend": {
+      "summary": "Spend in the period: {{total}} · per request: {{perRequest}} · per contract: {{perContract}}",
+      "note": "Weekly spend is typed in by channel; weeks overlapping the period count.",
+      "week": "Week",
+      "amount": "Amount",
+      "currency": "Currency",
+      "uzs": "UZS",
+      "comment": "Note",
+      "save": "Save",
+      "saved": "Saved",
+      "removed": "Removed",
+      "failed": "Could not save"
+    },
+    "test": {
+      "show": "Show test devices too",
+      "note": "Test devices: {{n}} — staff, demo and developer devices (marked in Settings). Left out by default."
+    },
+    "sheets": {
+      "kpi": "Numbers",
+      "channels": "Channels",
+      "metric": "Metric",
+      "step": "Step",
+      "what": "What",
+      "value": "Value",
+      "languageExits": "Visits ended on the language screen",
+      "clientCodeSeen": "Opened the client code screen",
+      "clientCodeLeft": "Left without a code",
+      "locked": "Locked section: {{tab}}",
+      "formOpened": "Form opened",
+      "formErrors": "Field error",
+      "formSent": "Form sent",
+      "exitScreen": "Ended on: {{screen}}"
+    },
+    "fileName": "App marketing",
+    "exportFailed": "Could not create the file",
+    "seg": {
+      "title": "Cut:",
+      "all": "all",
+      "clear": "Clear the cut",
+      "everyone": "everyone (no cut)",
+      "keys": {
+        "title": "Cut",
+        "who": "Guest/client",
+        "channel": "Channel",
+        "platform": "Platform",
+        "age": "New/returning",
+        "route": "Route",
+        "topik": "TOPIK",
+        "ielts": "IELTS",
+        "bank": "Budget (money in the bank)",
+        "income": "Finance (income)",
+        "income_documented": "Documented income",
+        "region": "Region",
+        "for_whom": "For whom"
+      },
+      "who": {
+        "guest": "Guest",
+        "client": "Client"
+      },
+      "age": {
+        "new": "New",
+        "returning": "Returning"
+      }
+    }
+  },
+  "live": {
+    "title": "Live",
+    "now_one": "device in the app now · known leads: {{leads}}",
+    "now_other": "devices in the app now · known leads: {{leads}}",
+    "empty": "Nothing in the last hour",
+    "report": "viewed the report",
+    "tab": "opened the {{tab}} tab",
+    "forms": {
+      "lead": "opened the consultant form",
+      "quiz_contact": "opened the call-back form",
+      "client_code": "opened the client code screen",
+      "survey": "opened a survey"
+    }
+  },
+  "flow": {
+    "pathsTitle": "Screen to screen",
+    "pathsNote": "The first 4 screens of each visit, step by step; the 6 most common per step, the rest as «Other». Red — the visit ended there. From app versions that record visits (1.1.2+).",
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "exit": "Left",
+    "other": "Other",
+    "noVisits": "No such visits in this period",
+    "funnelTitle": "A funnel from any steps",
+    "funnelNote": "Pick the steps (an event or a screen, 2–8): devices that did step 1 in the period, then step 2 after it, and so on.",
+    "screenStep": "Screen: {{screen}}",
+    "step": "Step {{n}}",
+    "removeStep": "Remove step {{n}}",
+    "addStep": "+ Add a step"
+  },
+  "clients": {
+    "offers": "Unanswered university offers",
+    "documents": "Documents not uploaded",
+    "inactive": "Not in the app for 7 days",
+    "student": "Student",
+    "university": "University",
+    "waiting": "Waiting",
+    "reminder": "Reminder (push)",
+    "lastInApp": "Last in the app",
+    "contract": "Contract",
+    "gaps": "Missing",
+    "lastUpload": "Last upload",
+    "rejected": "rejected",
+    "never": "never",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "offersNote": "Over 48 hours is red: the documents team gets a task and the student a reminder push by itself (once per offer).",
+    "noOffers": "No offer is waiting for an answer",
+    "noDocuments": "Everyone's documents are complete",
+    "noInactive": "Everyone opened the app in the last 7 days"
+  },
+  "guestPush": {
+    "title": "Push to guests",
+    "howTo_one": "Guests who left no phone but allowed notifications: {{count}}. Each phone gets its own language where written (else Uzbek); opens are counted per campaign.",
+    "howTo_other": "Guests who left no phone but allowed notifications: {{count}}. Each phone gets its own language where written (else Uzbek); opens are counted per campaign.",
+    "key": "Campaign key",
+    "keyPlaceholder": "Campaign key, latin: deadline-november",
+    "badKey": "Key: 2–40 characters — latin letters, digits, - or _",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Title (up to 80)",
+    "bodyLabel": "Text",
+    "bodyPlaceholder": "Text (up to 240)",
+    "moreLangs": "Other languages (ru, en, ko, vi)",
+    "lessLangs": "Uzbek only",
+    "check": "See who gets it",
+    "confirmTitle": "Send «{{campaign}}»?",
+    "confirmBody_one": "It goes to {{count}} phone.",
+    "confirmBody_other": "It goes to {{count}} phones.",
+    "cancel": "Cancel",
+    "send": "Send",
+    "sent": "Sent: reached {{delivered}} tokens on {{phones}} phones",
+    "none": "No campaign sent yet",
+    "cols": {
+      "campaign": "Campaign",
+      "text": "Text",
+      "delivered": "Reached / all",
+      "opened": "Opened",
+      "when": "When"
+    },
+    "errors": {
+      "failed": "Could not send",
+      "forbidden": "Only owner and admin send",
+      "campaign_exists": "A campaign with this key was already sent",
+      "bad_campaign": "The campaign key is wrong",
+      "uzbek_required": "An Uzbek title and text are required",
+      "too_long": "The text is too long"
+    }
   },
   "investor": {
     "shell": {
