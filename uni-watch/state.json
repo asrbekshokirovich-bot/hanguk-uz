@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-25T22:36:37+00:00",
+ "last_run": "2026-10-26T06:16:24+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -183,6 +183,7 @@
    "f4d19b2c0400c65f"
   ],
   "https://admission.sunlin.ac.kr/": [
+   "1dc2e0ede0d6a88b",
    "fbe18389ed07905f",
    "bf3fddb8a21a1a8c",
    "86558fafdec7e223",
@@ -439,6 +440,7 @@
    "1acb6321c83198cc"
   ],
   "https://iadmission.khu.ac.kr/": [
+   "3e0506b2aefe58aa",
    "98c8cc487f40ac83",
    "432b8d554a227f4c",
    "713626eff5c32941",
@@ -747,6 +749,7 @@
    "c22707e84842a7c7"
   ],
   "https://ipsi.deu.ac.kr/main.do": [
+   "f521e5eda04f89e7",
    "0ffc594d340a3375"
   ],
   "https://ipsi.dgau.ac.kr/": [
@@ -766,6 +769,7 @@
    "dd6b86f9beae1d44"
   ],
   "https://ipsi.dima.ac.kr/": [
+   "fe0900866dcc1386",
    "4548fedddf8b5754",
    "7aecdfa6272f7a1e",
    "6e7b4cc32739c7a9"
@@ -1123,7 +1127,9 @@
    "b29c9d6c0b9fd75f",
    "0e896564b336b72c"
   ],
-  "https://www.cnc.ac.kr/": [],
+  "https://www.cnc.ac.kr/": [
+   "9cf8d1122a623b11"
+  ],
   "https://www.cnsu.ac.kr/": [],
   "https://www.cnue.ac.kr/": [
    "ec981e2bf7308e95",
