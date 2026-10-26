@@ -13,7 +13,9 @@
 // at the next working 10:00 (fn_lead_sla_scan times from leads.sla_start_at).
 //
 // It also runs the owner's watchdogs (watchdog.ts): a new lead closed within
-// 30 seconds, and the 09:30 daily count.
+// 30 seconds, and the 09:30 daily count; and the app's HOZIR signal
+// (app_signals.ts): a request from the app nobody answered in 10 minutes. A
+// lead the SLA alerts on that came through the app says «📱 Ilova» on top.
 //
 // Called every minute by pg_cron (lead-sla-check-1min). Pass ?dry=1 to see
 // what would fire without marking anything or sending — safe to call by hand.
@@ -24,7 +26,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendAfterHoursReplies } from "./after_hours.ts";
-import { runWatchdogs } from "./watchdog.ts";
+import { runWatchdogs, watchdogChats } from "./watchdog.ts";
+import { sendAppSignalAlerts } from "./app_signals.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,19 +55,36 @@ interface OverdueLead {
   minutes_waiting: number;
 }
 
-/** Written for whoever is holding a phone: who, how to reach them, how late. */
-function composeAlert(l: OverdueLead): string {
+/** Written for whoever is holding a phone: who, how to reach them, how late;
+ *  «📱 Ilova» on top when the request came through the app. */
+function composeAlert(l: OverdueLead, fromApp = false): string {
   const name = l.full_name || "(ismsiz lid)";
   const phone = l.phone ? `\nTelefon: ${l.phone}` : "";
   const via = l.how_heard || l.source;
   const source = via ? `\nManba: ${via}` : "";
   return [
+    ...(fromApp ? [`📱 Ilova`] : []),
     `🔴 Yangi lidga ${l.minutes_waiting} daqiqadan beri aloqa chiqarilmagan!`,
     ``,
     name + phone + source,
     ``,
     `CRM → Aloqa → Yangi lid bo'limida ko'ring.`,
   ].join("\n");
+}
+
+/** Which of [leads] came through the app: the lead form (source 'app') or a
+ *  phone tied to them in the app (app_identity). */
+async function appLeads(supabase: ReturnType<typeof createClient>, leads: OverdueLead[]): Promise<Set<string>> {
+  const out = new Set(leads.filter((l) => l.source === "app").map((l) => l.id));
+  const rest = leads.filter((l) => !out.has(l.id)).map((l) => l.id);
+  if (!rest.length) return out;
+  const { data, error } = await supabase.from("app_identity").select("lead_id").in("lead_id", rest);
+  if (error) {
+    console.error("lead-sla-check: app_identity:", error.message);
+    return out;
+  }
+  for (const r of (data ?? []) as { lead_id: string }[]) out.add(r.lead_id);
+  return out;
 }
 
 /** The staff channel plus everyone who asked for the alerts in their own
@@ -128,9 +148,11 @@ serve(async (req) => {
     if (error) throw error;
 
     const overdue = (data ?? []) as OverdueLead[];
+    const fromApp = await appLeads(supabase, overdue);
+    const app = await sendAppSignalAlerts(supabase, dry, sendTelegram, () => recipients(supabase), () => watchdogChats(supabase));
 
     if (dry) {
-      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [], watchdogs });
+      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [], watchdogs, app_signals: app.alerts ?? [] });
     }
 
     const chats = overdue.length ? await recipients(supabase) : [];
@@ -140,7 +162,7 @@ serve(async (req) => {
 
     const alerted: string[] = [];
     for (const lead of overdue) {
-      const text = composeAlert(lead);
+      const text = composeAlert(lead, fromApp.has(lead.id));
       let delivered = false;
       for (const chat of chats) {
         if (await sendTelegram(chat, text)) delivered = true;
@@ -161,6 +183,8 @@ serve(async (req) => {
       after_hours_sent: afterHours.sent,
       quick_exits: watchdogs.quick_exits,
       daily_report_sent: watchdogs.report_sent,
+      app_signals_due: app.due,
+      app_signals_sent: app.sent,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

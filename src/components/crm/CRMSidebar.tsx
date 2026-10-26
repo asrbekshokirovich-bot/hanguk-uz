@@ -121,6 +121,7 @@ function buildGroups(
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
         { title: t('navigation.newLeads'), url: '/crm/new-leads', icon: BellRing, visible: true, highlight: true },
         { title: t('navigation.todayLeads'), url: '/crm/today-leads', icon: CalendarCheck, visible: true, highlight: true },
+        { title: 'Bugun ilovada', url: '/crm/today-in-app', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
         { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
       ],
