@@ -206,6 +206,11 @@ verify_jwt = false
 [functions.weekly-app-report]
 verify_jwt = false
 
+# The app's quality alarms → Telegram, hourly by pg_cron with the secret key
+# in `apikey`; the function checks the key itself.
+[functions.app-quality-alerts]
+verify_jwt = false
+
 # Telegram delivers updates here without a JWT; the function checks
 # X-Telegram-Bot-Api-Secret-Token against HR_BOT_WEBHOOK_SECRET itself.
 [functions.hr-bot]
