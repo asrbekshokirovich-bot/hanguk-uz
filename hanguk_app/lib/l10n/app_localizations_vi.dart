@@ -5571,4 +5571,65 @@ class AppLocalizationsVi extends AppLocalizations {
   String deviceCodeVersion(String version) {
     return 'Phiên bản $version';
   }
+
+  @override
+  String get leadForWhomQ => 'Cho ai?';
+
+  @override
+  String get leadForWhomSelf => 'Cho tôi';
+
+  @override
+  String get leadForWhomChild => 'Cho con tôi';
+
+  @override
+  String get leadForWhomRelative => 'Cho người thân';
+
+  @override
+  String get leadHowHeardQ => 'Bạn biết đến chúng tôi qua đâu?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return 'Từ ứng dụng · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => 'Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram';
+
+  @override
+  String get leadHeardFriend => 'Bạn bè hoặc người thân giới thiệu';
+
+  @override
+  String get leadHeardKoreaFriend => 'Người quen đang du học Hàn Quốc';
+
+  @override
+  String get leadHeardLearningCenter => 'Trung tâm đào tạo';
+
+  @override
+  String get leadHeardEvent => 'Sự kiện';
+
+  @override
+  String get leadHeardStore => 'Play Market hoặc App Store';
+
+  @override
+  String get leadHeardOther => 'Khác';
+
+  @override
+  String get leadConsent =>
+      'Tư vấn viên sẽ xem các trường bạn đã chọn và câu trả lời bài kiểm tra của bạn, rồi tư vấn dựa trên đó.';
+
+  @override
+  String get guestPushTitle => 'Đừng bỏ lỡ hạn chót';
+
+  @override
+  String get guestPushBody =>
+      'Chúng tôi gửi thông báo về hạn nộp hồ sơ và học bổng mới nhé? Không cần số điện thoại.';
+
+  @override
+  String get guestPushYes => 'Có, gửi cho tôi';
+
+  @override
+  String get guestPushLater => 'Để sau';
 }

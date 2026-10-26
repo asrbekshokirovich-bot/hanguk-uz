@@ -82,6 +82,9 @@ abstract final class AppEvents {
   /// shell route with its tab ("/guest#universities"), or an open sheet.
   static String? get screen => _surfaces.current ?? _surfaces.compute();
 
+  /// This installation's id, once recording has started.
+  static String? get installId => _sink?._installId;
+
   /// "1.1.3 (2103)": the app's version and build, once recording has started.
   static String? get appVersion {
     final c = _sink?._context;

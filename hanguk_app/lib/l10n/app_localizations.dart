@@ -10051,6 +10051,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version}'**
   String deviceCodeVersion(String version);
+
+  /// Lead form: who the consultation is for
+  ///
+  /// In en, this message translates to:
+  /// **'Who is it for?'**
+  String get leadForWhomQ;
+
+  /// Lead form, «Kim uchun?»: for me
+  ///
+  /// In en, this message translates to:
+  /// **'For me'**
+  String get leadForWhomSelf;
+
+  /// Lead form, «Kim uchun?»: for my child
+  ///
+  /// In en, this message translates to:
+  /// **'For my child'**
+  String get leadForWhomChild;
+
+  /// Lead form, «Kim uchun?»: for a relative
+  ///
+  /// In en, this message translates to:
+  /// **'For a relative'**
+  String get leadForWhomRelative;
+
+  /// Lead form: where the person found us (stored as the lead's how_heard)
+  ///
+  /// In en, this message translates to:
+  /// **'How did you find us?'**
+  String get leadHowHeardQ;
+
+  /// The text the app types into a Telegram message to the consultant, with this phone's short code that ties the chat to it (the marketing plan's example: «Ilovadan · A7K2»)
+  ///
+  /// In en, this message translates to:
+  /// **'From the app · {code}'**
+  String contactTelegramMessage(String code);
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: Instagram
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get leadHeardInstagram;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: Telegram
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram'**
+  String get leadHeardTelegram;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: a friend's or relative's recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'A friend\'s or relative\'s recommendation'**
+  String get leadHeardFriend;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: someone I know who studies in Korea
+  ///
+  /// In en, this message translates to:
+  /// **'Someone I know studying in Korea'**
+  String get leadHeardKoreaFriend;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: a learning centre
+  ///
+  /// In en, this message translates to:
+  /// **'Learning centre'**
+  String get leadHeardLearningCenter;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: an event
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get leadHeardEvent;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: found the app in Play Market or the App Store
+  ///
+  /// In en, this message translates to:
+  /// **'Play Market or App Store'**
+  String get leadHeardStore;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: somewhere else
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get leadHeardOther;
+
+  /// Lead form: the consent line (the marketing plan's text, approved by the owner, B4)
+  ///
+  /// In en, this message translates to:
+  /// **'Your consultant will see the universities you chose and your test answers, and advise you on that basis.'**
+  String get leadConsent;
+
+  /// Guest push permission sheet (app analytics plan, stage 5; B3): title
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t miss the deadlines'**
+  String get guestPushTitle;
+
+  /// Guest push permission sheet: what we would send; a guest leaves no phone number
+  ///
+  /// In en, this message translates to:
+  /// **'Shall we notify you about admission deadlines and new scholarships? No phone number needed.'**
+  String get guestPushBody;
+
+  /// Guest push permission sheet: yes (then the system asks)
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, notify me'**
+  String get guestPushYes;
+
+  /// Guest push permission sheet: not now
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get guestPushLater;
 }
 
 class _AppLocalizationsDelegate
