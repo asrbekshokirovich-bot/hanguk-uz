@@ -589,7 +589,10 @@ begin
              case when bool_or(e.event = 'app_open') then 'open' end,
              case when bool_or(e.event not in ('app_open', 'app_ready', 'screen_view', 'screen_leave', 'language_set',
                                                'session_start', 'app_background', 'app_resume', 'app_error',
-                                               'rpc_error', 'rpc_slow', 'card_view', 'push_received')) then 'active' end,
+                                               'rpc_error', 'rpc_slow', 'card_view', 'push_received', 'push_permission',
+                                               'rage_tap', 'sheet_close')
+                               -- a tap on nothing is not doing something (as app_events_summary counts)
+                               and not (e.event = 'tap' and e.element is null)) then 'active' end,
              case when bool_or(e.event = 'university_open') then 'uni_open' end,
              case when bool_or(e.event in ('slot_set', 'university_save')) then 'heart' end,
              case when bool_or(e.event in ('assessment_start', 'question_answer')
