@@ -582,18 +582,18 @@ export function useSendInvestorMessage() {
   });
 }
 
-/** Marks the staff side of an open thread as read. Updating read_at is the one
- *  update an investor session is allowed, and only on her own threads. */
+/** Marks the staff side of an open thread as read (mark_investor_thread_read). */
 export function useMarkThreadRead() {
   const qc = useQueryClient();
-  const { user } = useAuth();
   return useMutation({
     mutationFn: async (threadId: string) => {
-      const { error } = await rel('investor_messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('thread_id', threadId)
-        .is('read_at', null)
-        .neq('sender_user_id', user!.id);
+      // investor_messages has no UPDATE policy, so a direct update matched no
+      // rows and the unread pill never cleared. The RPC (migration
+      // 20261026190000_investor_desk.sql) checks she is on the thread and only
+      // touches messages the other side sent.
+      const { error } = await (supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+      }).rpc('mark_investor_thread_read', { p_thread_id: threadId });
       if (error) throw error;
     },
     onSuccess: () => {

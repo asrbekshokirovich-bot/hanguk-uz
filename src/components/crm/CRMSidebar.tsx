@@ -118,6 +118,8 @@ function buildGroups(
       visible: true,
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
+        // Investor writes to a staff member; that person answers here (owner also records payouts).
+        { title: t('crm.investorDesk.nav'), url: '/crm/investor-desk', icon: Briefcase, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
         { title: t('navigation.newLeads'), url: '/crm/new-leads', icon: BellRing, visible: true, highlight: true },
         { title: t('navigation.todayLeads'), url: '/crm/today-leads', icon: CalendarCheck, visible: true, highlight: true },
