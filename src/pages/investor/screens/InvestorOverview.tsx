@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Clock, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvestorScreenHeader } from '@/components/investor/InvestorScreen';
@@ -17,6 +18,7 @@ import {
   Sparkline,
   type ChartTone,
 } from '@/components/investor/InvestorCharts';
+import { intakeLabel, stageLabel } from '@/components/investor/investorLabels';
 import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
 import {
   useInvestorApplications,
@@ -82,7 +84,10 @@ const FUNNEL_TONES: Record<number, ChartTone> = {
 };
 
 export default function InvestorOverview() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { activeIntakeId, activeIntake, intakes } = useInvestorSeason();
+  const seasonName = intakeLabel(t, activeIntake);
   const exporter = useInvestorExport();
 
   const position = useInvestorPosition(activeIntakeId);
@@ -140,8 +145,8 @@ export default function InvestorOverview() {
   const bestMonth = useMemo(() => {
     if (months.length === 0) return '—';
     const best = months.reduce((a, b) => (Number(a.revenue) > Number(b.revenue) ? a : b));
-    return `${monthLabel(best.month)} · ${compact(Number(best.revenue))}`;
-  }, [months]);
+    return `${monthLabel(best.month, lang)} · ${compact(Number(best.revenue))}`;
+  }, [months, lang]);
 
   const marginPct =
     uzs && uzs.season_revenue > 0 ? (uzs.season_net_profit * 100) / uzs.season_revenue : null;
@@ -167,11 +172,15 @@ export default function InvestorOverview() {
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <InvestorScreenHeader
-        title={identity ? `${greeting()}, ${firstName(identity.full_name)}` : greeting()}
+        title={
+          identity
+            ? `${greeting(new Date(), lang)}, ${firstName(identity.full_name)}`
+            : greeting(new Date(), lang)
+        }
         subtitle={
           previous
-            ? `Comparing against ${previous.label}. Here is where your stake stands.`
-            : 'Here is where your stake stands.'
+            ? t('investor.overview.subtitleCompare', { season: intakeLabel(t, previous) })
+            : t('investor.overview.subtitle')
         }
         actions={
           <Button
@@ -185,7 +194,7 @@ export default function InvestorOverview() {
             ) : (
               <FileText className="h-4 w-4" />
             )}
-            Season Report
+            {t('investor.overview.seasonReport')}
           </Button>
         }
       />
@@ -194,7 +203,9 @@ export default function InvestorOverview() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <InvestorCard className="flex flex-col p-5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-semibold text-muted-foreground">Season Revenue</span>
+            <span className="text-[13px] font-semibold text-muted-foreground">
+              {t('investor.overview.seasonRevenue')}
+            </span>
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-[30px] font-extrabold leading-none tracking-[-0.03em] text-foreground">
@@ -204,13 +215,17 @@ export default function InvestorOverview() {
           </div>
           <p className="mt-1.5 text-[12px] text-muted-foreground">
             {activeIntake
-              ? `${activeIntake.label} · ${months.length} month${months.length === 1 ? '' : 's'} recorded`
+              ? t('investor.overview.monthsRecorded', { season: seasonName, count: months.length })
               : '—'}
           </p>
           {otherRows.length > 0 && (
             <p className="mt-1 text-[12px] text-muted-foreground">
               {otherRows
-                .map((r) => `${moneyWithUnit(r.season_revenue, r.currency)} also collected`)
+                .map((r) =>
+                  t('investor.overview.alsoCollected', {
+                    amount: moneyWithUnit(r.season_revenue, r.currency),
+                  }),
+                )
                 .join(' · ')}
             </p>
           )}
@@ -222,7 +237,9 @@ export default function InvestorOverview() {
         {/* No Risk tariff, as its own block (Asrbek, 2026-10-26). */}
         <InvestorCard className="flex flex-col p-5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-semibold text-muted-foreground">No Risk</span>
+            <span className="text-[13px] font-semibold text-muted-foreground">
+              {t('investor.lineItems.no_risk')}
+            </span>
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-[30px] font-extrabold leading-none tracking-[-0.03em] text-foreground">
@@ -238,26 +255,32 @@ export default function InvestorOverview() {
           </div>
           <p className="mt-1.5 text-[12px] text-muted-foreground">
             {noRiskHead
-              ? `${count(noRiskStudents)} student${noRiskStudents === 1 ? '' : 's'} paid · No Risk tariff`
-              : 'No No Risk payments this season'}
+              ? t('investor.overview.noRiskPaid', { count: noRiskStudents, n: count(noRiskStudents) })
+              : t('investor.overview.noRiskNone')}
           </p>
           {noRisk.slice(1).map((r) => (
             <p key={r.currency} className="mt-1 text-[12px] text-muted-foreground">
-              {moneyWithUnit(Number(r.collected), r.currency)} also collected
+              {t('investor.overview.alsoCollected', {
+                amount: moneyWithUnit(Number(r.collected), r.currency),
+              })}
             </p>
           ))}
           <div className="mt-auto pt-3 text-[12px] text-muted-foreground">
             {noRisk.length > 0
-              ? `Outstanding ${noRisk
-                  .map((r) => moneyWithUnit(Number(r.outstanding), r.currency))
-                  .join(' · ')}`
+              ? t('investor.overview.outstanding', {
+                  amounts: noRisk
+                    .map((r) => moneyWithUnit(Number(r.outstanding), r.currency))
+                    .join(' · '),
+                })
               : null}
           </div>
         </InvestorCard>
 
         <InvestorCard className="flex flex-col p-5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[13px] font-semibold text-muted-foreground">Net Profit</span>
+            <span className="text-[13px] font-semibold text-muted-foreground">
+              {t('investor.common.netProfit')}
+            </span>
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-[30px] font-extrabold leading-none tracking-[-0.03em] text-foreground">
@@ -266,12 +289,18 @@ export default function InvestorOverview() {
             <span className="text-[14px] font-bold text-muted-foreground">UZS</span>
           </div>
           <p className="mt-1.5 text-[12px] text-muted-foreground">
-            {marginPct != null ? `${percent(marginPct)} margin` : 'No revenue recorded yet'}
+            {marginPct != null
+              ? t('investor.common.margin', { pct: percent(marginPct) })
+              : t('investor.overview.noRevenueYet')}
           </p>
           {otherRows.length > 0 && (
             <p className="mt-1 text-[12px] text-muted-foreground">
               {otherRows
-                .map((r) => `${moneyWithUnit(r.season_net_profit, r.currency)} net`)
+                .map((r) =>
+                  t('investor.overview.netAmount', {
+                    amount: moneyWithUnit(r.season_net_profit, r.currency),
+                  }),
+                )
                 .join(' · ')}
             </p>
           )}
@@ -284,10 +313,12 @@ export default function InvestorOverview() {
         <InvestorCard className="flex flex-col border-transparent bg-primary p-5 text-primary-foreground shadow-blue">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[13px] font-semibold text-primary-foreground/75">
-              {equity != null ? `Your ${formatEquity(equity)}% Share` : 'Your Share'}
+              {equity != null
+                ? t('investor.common.yourShareN', { pct: formatEquity(equity) })
+                : t('investor.common.yourShare')}
             </span>
             <span className="inline-flex h-6 items-center rounded-pill bg-accent px-2.5 text-[12px] font-semibold text-accent-foreground">
-              Equity
+              {t('investor.overview.equity')}
             </span>
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
@@ -297,7 +328,7 @@ export default function InvestorOverview() {
             <span className="text-[14px] font-bold text-primary-foreground/70">UZS</span>
           </div>
           <p className="mt-1.5 text-[12px] text-primary-foreground/75">
-            Share of season net profit
+            {t('investor.overview.shareOfNet')}
           </p>
           {otherRows.length > 0 && (
             <p className="mt-1 text-[12px] text-primary-foreground/75">
@@ -305,7 +336,7 @@ export default function InvestorOverview() {
             </p>
           )}
           <div className="mt-auto border-t border-primary-foreground/15 pt-3 text-[12px] text-primary-foreground/75">
-            Distributed to date{' '}
+            {t('investor.overview.distributedToDate')}{' '}
             <Money className="ml-1 text-primary-foreground">
               {distributed > 0 ? `${compact(distributed)} UZS` : '—'}
             </Money>
@@ -313,22 +344,29 @@ export default function InvestorOverview() {
         </InvestorCard>
 
         <InvestorCard className="flex flex-col p-5">
-          <span className="text-[13px] font-semibold text-muted-foreground">Students Signed</span>
+          <span className="text-[13px] font-semibold text-muted-foreground">
+            {t('investor.overview.studentsSigned')}
+          </span>
           <div className="mt-2 text-[30px] font-extrabold leading-none tracking-[-0.03em] text-foreground">
             {signed != null ? count(signed) : '—'}
           </div>
           <p className="mt-1.5 text-[12px] text-muted-foreground">
             {leads.data
-              ? `From ${count(Number(leads.data.total_leads))} lead${Number(leads.data.total_leads) === 1 ? '' : 's'}${
+              ? `${t('investor.overview.fromLeads', {
+                  count: Number(leads.data.total_leads),
+                  n: count(Number(leads.data.total_leads)),
+                })}${
                   leads.data.conversion_pct != null
-                    ? ` · ${percent(Number(leads.data.conversion_pct), 1)} converted`
+                    ? ` · ${t('investor.overview.convertedPct', {
+                        pct: percent(Number(leads.data.conversion_pct), 1),
+                      })}`
                     : ''
                 }`
-              : 'Departures for Korea are not recorded in the CRM yet'}
+              : t('investor.overview.departuresNotRecorded')}
           </p>
           <div className="mt-auto pt-3 text-[12px] text-muted-foreground">
             {activeIntake?.starts_on && activeIntake?.ends_on
-              ? `${longDate(activeIntake.starts_on)} — ${longDate(activeIntake.ends_on)}`
+              ? `${longDate(activeIntake.starts_on, lang)} — ${longDate(activeIntake.ends_on, lang)}`
               : null}
           </div>
         </InvestorCard>
@@ -338,43 +376,46 @@ export default function InvestorOverview() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.7fr_1fr]">
         <InvestorCard className="flex flex-col">
           <CardHead
-            title="Revenue & Profit by Month"
-            subtitle={`${activeIntake?.label ?? 'Season'} · million UZS`}
+            title={t('investor.overview.byMonthTitle')}
+            subtitle={`${seasonName || t('investor.common.season')} · ${t('investor.common.millionUzs')}`}
             action={
               <ChartLegend
                 series={[
-                  { label: 'Revenue', tone: 'royal' },
-                  { label: 'Net profit', tone: 'lime' },
+                  { label: t('investor.common.revenue'), tone: 'royal' },
+                  { label: t('investor.common.netProfit'), tone: 'lime' },
                 ]}
               />
             }
           />
           {months.length === 0 ? (
-            <EmptyNote>No payments have been recorded for this season yet.</EmptyNote>
+            <EmptyNote>{t('investor.overview.noPayments')}</EmptyNote>
           ) : (
             <>
               <div className="px-5 pt-4">
                 <GroupedBars
                   groups={chartMonths.map((m) => ({
-                    label: monthLabel(m.month),
+                    label: monthLabel(m.month, lang),
                     values: [Number(m.revenue), Number(m.net)],
                   }))}
                   series={[
-                    { label: 'Revenue', tone: 'royal' },
-                    { label: 'Net profit', tone: 'lime' },
+                    { label: t('investor.common.revenue'), tone: 'royal' },
+                    { label: t('investor.common.netProfit'), tone: 'lime' },
                   ]}
                   formatValue={(n) => millions(n, 1)}
                 />
               </div>
               <div className="mt-4 grid grid-cols-1 gap-3 border-t border-soft-line px-5 py-4 sm:grid-cols-3">
-                <FooterStat label="Best month" value={bestMonth} />
+                <FooterStat label={t('investor.overview.bestMonth')} value={bestMonth} />
                 <FooterStat
-                  label="Avg. revenue / student"
+                  label={t('investor.overview.avgPerStudent')}
                   value={
                     avgPerStudent != null ? `${compact(avgPerStudent)} UZS` : '—'
                   }
                 />
-                <FooterStat label="Months recorded" value={count(months.length)} />
+                <FooterStat
+                  label={t('investor.overview.monthsRecordedLabel')}
+                  value={count(months.length)}
+                />
               </div>
             </>
           )}
@@ -382,12 +423,16 @@ export default function InvestorOverview() {
 
         <InvestorCard className="flex flex-col">
           <CardHead
-            title="Your Position"
-            subtitle={identity ? `Since ${longDate(identity.invested_at)}` : undefined}
+            title={t('investor.overview.yourPosition')}
+            subtitle={
+              identity
+                ? t('investor.overview.since', { date: longDate(identity.invested_at, lang) })
+                : undefined
+            }
           />
           <div className="mt-3">
             <MetricRow
-              label="Equity held"
+              label={t('investor.overview.equityHeld')}
               value={
                 <span className="text-[15px] font-bold text-foreground">
                   {equity != null ? `${formatEquity(equity)}%` : '—'}
@@ -395,11 +440,11 @@ export default function InvestorOverview() {
               }
             />
             <MetricRow
-              label="Invested"
+              label={t('investor.common.invested')}
               value={<Money className="text-[15px] font-bold">{usd(identity?.invested_amount_usd)}</Money>}
             />
             <MetricRow
-              label="Distributed to date"
+              label={t('investor.overview.distributedToDate')}
               value={
                 <Money className="text-[15px] font-bold">
                   {distributed > 0 ? `${compact(distributed)} UZS` : '—'}
@@ -407,14 +452,16 @@ export default function InvestorOverview() {
               }
             />
             <MetricRow
-              label={`Accruing (${quarterLabel()})`}
+              label={t('investor.common.accruing', { quarter: quarterLabel() })}
               value={
                 accruing ? (
                   <Money className="text-[15px] font-bold text-success">
                     +{compact(Number(accruing.amount_uzs))} UZS
                   </Money>
                 ) : (
-                  <span className="text-[13px] text-muted-foreground">No distribution scheduled</span>
+                  <span className="text-[13px] text-muted-foreground">
+                    {t('investor.overview.noDistributionScheduled')}
+                  </span>
                 )
               }
             />
@@ -427,17 +474,16 @@ export default function InvestorOverview() {
                 </span>
                 <div className="min-w-0">
                   <div className="text-[13px] font-semibold text-foreground">
-                    Next payout · {longDate(accruing.due_date)}
+                    {t('investor.overview.nextPayout', { date: longDate(accruing.due_date, lang) })}
                   </div>
                   <div className="text-[11px] text-muted-foreground">
-                    {accruing.period_label} distribution
+                    {t('investor.overview.periodDistribution', { period: accruing.period_label })}
                   </div>
                 </div>
               </div>
             ) : (
               <p className="rounded-md bg-muted p-3 text-[12px] text-muted-foreground">
-                No distributions have been recorded yet. They will appear here and in Finance as
-                soon as the finance team schedules one.
+                {t('investor.overview.noDistributions')}
               </p>
             )}
           </div>
@@ -448,10 +494,21 @@ export default function InvestorOverview() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.7fr_1fr]">
         <InvestorCard className="flex flex-col pb-5">
           <CardHead
-            title="Season Pipeline"
+            title={t('investor.overview.seasonPipeline')}
             subtitle={
               signed != null
-                ? `${leadTotal != null ? `${count(leadTotal)} leads · ` : ''}${count(signed)} signed · ${count(applications.data?.length ?? 0)} applications`
+                ? [
+                    leadTotal != null
+                      ? t('investor.overview.leadsN', { count: leadTotal, n: count(leadTotal) })
+                      : null,
+                    t('investor.overview.signedN', { count: signed, n: count(signed) }),
+                    t('investor.overview.applicationsN', {
+                      count: applications.data?.length ?? 0,
+                      n: count(applications.data?.length ?? 0),
+                    }),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
                 : undefined
             }
             action={
@@ -459,17 +516,17 @@ export default function InvestorOverview() {
                 to="/crm/investor/applications"
                 className="inline-flex items-center text-[13px] font-semibold text-primary hover:underline"
               >
-                All applications →
+                {t('investor.overview.allApplications')}
               </Link>
             }
           />
           <div className="px-5 pt-4">
             {(funnel.data ?? []).length === 0 ? (
-              <EmptyNote>No students have been signed to this season yet.</EmptyNote>
+              <EmptyNote>{t('investor.overview.noSigned')}</EmptyNote>
             ) : (
               <FunnelBars
                 rows={(funnel.data ?? []).map((r) => ({
-                  stage: r.stage,
+                  stage: stageLabel(t, r.stage_order, r.stage),
                   value: Number(r.student_count),
                   tone: FUNNEL_TONES[r.stage_order] ?? 'slate',
                 }))}
@@ -477,45 +534,56 @@ export default function InvestorOverview() {
             )}
           </div>
           <p className="mt-4 px-5 text-[11px] leading-relaxed text-muted-foreground">
-            Every stage counts students of this season with an active contract. Documents Ready,
-            Submitted and Offer Received follow the CRM application status; Visa Approved and
-            Departed are the dates set on the student&apos;s CRM profile.
+            {t('investor.overview.pipelineNote')}
           </p>
         </InvestorCard>
 
         <InvestorCard className="flex flex-col">
-          <CardHead title="Watchlist" subtitle="Things worth a question" />
+          <CardHead
+            title={t('investor.overview.watchlist')}
+            subtitle={t('investor.overview.watchlistSubtitle')}
+          />
           <div className="space-y-2 px-5 pt-4">
             {stuck.length > 0 && (
               <WatchRow
                 tone="danger"
-                title={`${count(stuck.length)} application${stuck.length === 1 ? '' : 's'} stuck ${stuck[0].days_since_movement ?? 0} days`}
-                detail={`${stuck[0].student_name} · ${stuck[0].university ?? 'University not set'}`}
+                title={t('investor.overview.stuck', {
+                  count: stuck.length,
+                  n: count(stuck.length),
+                  days: stuck[0].days_since_movement ?? 0,
+                })}
+                detail={`${stuck[0].student_name} · ${stuck[0].university ?? t('investor.common.universityNotSet')}`}
               />
             )}
             {withoutApplication > 0 && (
               <WatchRow
                 tone="warning"
-                title={`${count(withoutApplication)} signed student${withoutApplication === 1 ? '' : 's'} without an application`}
-                detail="Contract signed, no university application opened yet"
+                title={t('investor.overview.withoutApp', {
+                  count: withoutApplication,
+                  n: count(withoutApplication),
+                })}
+                detail={t('investor.overview.withoutAppDetail')}
               />
             )}
             {notSubmitted > 0 && (
               <WatchRow
                 tone="warning"
-                title={`${count(notSubmitted)} signed student${notSubmitted === 1 ? '' : 's'} not yet submitted`}
-                detail="Applications opened, none sent to a university yet"
+                title={t('investor.overview.notSubmitted', {
+                  count: notSubmitted,
+                  n: count(notSubmitted),
+                })}
+                detail={t('investor.overview.notSubmittedDetail')}
               />
             )}
             {showExpenseNote && (
               <WatchRow
                 tone="neutral"
-                title="No expenses booked against this season"
-                detail="Net profit currently equals revenue"
+                title={t('investor.overview.noExpenses')}
+                detail={t('investor.overview.noExpensesDetail')}
               />
             )}
             {!hasWatchRows && (
-              <EmptyNote className="px-0">Nothing needs your attention in this season.</EmptyNote>
+              <EmptyNote className="px-0">{t('investor.overview.nothingNeedsAttention')}</EmptyNote>
             )}
           </div>
           <div className="mt-auto p-5 pt-4">
@@ -523,7 +591,7 @@ export default function InvestorOverview() {
               to="/crm/investor/messages"
               className="text-[13px] font-semibold text-primary hover:underline"
             >
-              Ask the team about this →
+              {t('investor.common.askTeam')}
             </Link>
           </div>
         </InvestorCard>

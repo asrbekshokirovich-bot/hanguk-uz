@@ -51,48 +51,178 @@ export function usd(n: number | null | undefined): string {
   return `$${Math.round(Number(n)).toLocaleString('en-US')}`;
 }
 
-/** "2 hours ago", "3d ago" style. Written locally so no date library is added. */
-export function relativeTime(value: string | number | Date | null | undefined): string {
-  if (value == null) return '—';
-  const then = value instanceof Date ? value : new Date(value);
-  const seconds = Math.max(0, Math.round((Date.now() - then.getTime()) / 1000));
-  if (seconds < 60) return 'just now';
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
-  const weeks = Math.round(days / 7);
-  if (weeks < 5) return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
-  return then.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+/* ---------------------------------------------------------------------------
+ * Language.
+ *
+ * The portal follows the active i18n language (uz, ru, en, ko). These helpers
+ * stay pure: the caller passes `i18n.language`, and the default 'en' keeps the
+ * old English output for any caller that does not.
+ * ------------------------------------------------------------------------ */
+
+export type InvestorLang = 'uz' | 'ru' | 'en' | 'ko';
+
+/** 'uz-UZ', 'ru', 'en-US' ... -> one of the four portal languages. */
+export function investorLang(lang: string | null | undefined): InvestorLang {
+  const base = (lang ?? '').split('-')[0].toLowerCase();
+  return base === 'uz' || base === 'ru' || base === 'ko' ? base : 'en';
 }
 
+const DATE_LOCALE: Record<Exclude<InvestorLang, 'uz'>, string> = {
+  en: 'en-GB',
+  ru: 'ru-RU',
+  ko: 'ko-KR',
+};
+
+// Built in, because some browsers ship no Uzbek month names for 'uz-UZ'.
+const UZ_MONTHS = [
+  'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+  'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr',
+];
+const UZ_MONTHS_SHORT = [
+  'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn',
+  'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek',
+];
+
+function toDate(value: string | number | Date): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
+/** Russian plural form for n: one / few / many. */
+function ruForm(n: number, one: string, few: string, many: string): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+}
+
+type Unit = 'minute' | 'hour' | 'day' | 'week';
+
+const UZ_UNIT: Record<Unit, string> = { minute: 'daqiqa', hour: 'soat', day: 'kun', week: 'hafta' };
+const KO_UNIT: Record<Unit, string> = { minute: '분', hour: '시간', day: '일', week: '주' };
+const RU_UNIT: Record<Unit, [string, string, string]> = {
+  minute: ['минуту', 'минуты', 'минут'],
+  hour: ['час', 'часа', 'часов'],
+  day: ['день', 'дня', 'дней'],
+  week: ['неделю', 'недели', 'недель'],
+};
+
+function ago(n: number, unit: Unit, lang: InvestorLang): string {
+  switch (lang) {
+    case 'uz':
+      return `${n} ${UZ_UNIT[unit]} oldin`;
+    case 'ko':
+      return `${n}${KO_UNIT[unit]} 전`;
+    case 'ru':
+      return `${n} ${ruForm(n, ...RU_UNIT[unit])} назад`;
+    default:
+      return `${n} ${unit}${n === 1 ? '' : 's'} ago`;
+  }
+}
+
+const JUST_NOW: Record<InvestorLang, string> = {
+  uz: 'hozirgina',
+  ru: 'только что',
+  en: 'just now',
+  ko: '방금',
+};
+
+/** 14 Mar 2025 / 14 Mart 2025 - day, short or long month, optional year. */
+function formatDay(
+  d: Date,
+  lang: InvestorLang,
+  month: 'short' | 'long',
+  withYear: boolean,
+): string {
+  if (lang === 'uz') {
+    const name = (month === 'long' ? UZ_MONTHS : UZ_MONTHS_SHORT)[d.getMonth()];
+    return withYear ? `${d.getDate()} ${name} ${d.getFullYear()}` : `${d.getDate()} ${name}`;
+  }
+  return d.toLocaleDateString(DATE_LOCALE[lang], {
+    day: 'numeric',
+    month,
+    ...(withYear ? { year: 'numeric' as const } : {}),
+  });
+}
+
+/** "2 hours ago", "3d ago" style. Written locally so no date library is added. */
+export function relativeTime(
+  value: string | number | Date | null | undefined,
+  lang: string = 'en',
+): string {
+  if (value == null) return '—';
+  const l = investorLang(lang);
+  const then = toDate(value);
+  const seconds = Math.max(0, Math.round((Date.now() - then.getTime()) / 1000));
+  if (seconds < 60) return JUST_NOW[l];
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return ago(minutes, 'minute', l);
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return ago(hours, 'hour', l);
+  const days = Math.round(hours / 24);
+  if (days < 7) return ago(days, 'day', l);
+  const weeks = Math.round(days / 7);
+  if (weeks < 5) return ago(weeks, 'week', l);
+  return formatDay(then, l, 'short', true);
+}
+
+const SHORT_DAY: Record<InvestorLang, (n: number) => string> = {
+  uz: (n) => `${n} kun`,
+  ru: (n) => `${n} д`,
+  en: (n) => `${n}d`,
+  ko: (n) => `${n}일`,
+};
+const SHORT_WEEK: Record<InvestorLang, (n: number) => string> = {
+  uz: (n) => `${n} hafta`,
+  ru: (n) => `${n} нед`,
+  en: (n) => `${n}w`,
+  ko: (n) => `${n}주`,
+};
+
 /** Compact form for message and application lists: 09:24, 2h, 3d, 1w. */
-export function shortTime(value: string | number | Date | null | undefined): string {
+export function shortTime(
+  value: string | number | Date | null | undefined,
+  lang: string = 'en',
+): string {
   if (value == null) return '';
-  const then = value instanceof Date ? value : new Date(value);
+  const l = investorLang(lang);
+  const then = toDate(value);
   const minutes = Math.max(0, Math.round((Date.now() - then.getTime()) / 60000));
   if (minutes < 24 * 60) {
     return then.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   }
   const days = Math.round(minutes / (60 * 24));
-  if (days < 7) return `${days}d`;
-  return `${Math.round(days / 7)}w`;
+  if (days < 7) return SHORT_DAY[l](days);
+  return SHORT_WEEK[l](Math.round(days / 7));
 }
 
 /** 14 March 2025 */
-export function longDate(value: string | number | Date | null | undefined): string {
+export function longDate(
+  value: string | number | Date | null | undefined,
+  lang: string = 'en',
+): string {
   if (value == null) return '—';
-  const d = value instanceof Date ? value : new Date(value);
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  return formatDay(toDate(value), investorLang(lang), 'long', true);
 }
 
-export function greeting(now = new Date()): string {
+/** 14 March - the day header in a message thread. */
+export function dayMonth(value: string | number | Date, lang: string = 'en'): string {
+  return formatDay(toDate(value), investorLang(lang), 'long', false);
+}
+
+const GREETINGS: Record<InvestorLang, [string, string, string]> = {
+  uz: ['Xayrli tong', 'Xayrli kun', 'Xayrli kech'],
+  ru: ['Доброе утро', 'Добрый день', 'Добрый вечер'],
+  en: ['Good morning', 'Good afternoon', 'Good evening'],
+  ko: ['좋은 아침입니다', '좋은 오후입니다', '좋은 저녁입니다'],
+};
+
+export function greeting(now = new Date(), lang: string = 'en'): string {
+  const [morning, afternoon, evening] = GREETINGS[investorLang(lang)];
   const h = now.getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return morning;
+  if (h < 18) return afternoon;
+  return evening;
 }
 
 export function firstName(fullName: string | null | undefined): string {
@@ -157,10 +287,12 @@ export function humanizeLineItem(slug: string | null | undefined): string {
 }
 
 /** "Feb", for month buckets coming back as a date. */
-export function monthLabel(value: string | Date | null | undefined): string {
+export function monthLabel(value: string | Date | null | undefined, lang: string = 'en'): string {
   if (value == null) return '';
-  const d = value instanceof Date ? value : new Date(value);
-  return d.toLocaleDateString('en-GB', { month: 'short' });
+  const d = toDate(value);
+  const l = investorLang(lang);
+  if (l === 'uz') return UZ_MONTHS_SHORT[d.getMonth()];
+  return d.toLocaleDateString(DATE_LOCALE[l], { month: 'short' });
 }
 
 /** "Q3 2026" from a date, for grouping accruals. */
