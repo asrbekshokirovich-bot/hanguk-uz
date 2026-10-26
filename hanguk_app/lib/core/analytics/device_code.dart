@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../l10n/app_localizations.dart';
 import 'app_events.dart';
@@ -49,12 +48,7 @@ class _DeviceCodeTapsState extends State<DeviceCodeTaps> {
 /// The device code ("XXXX-XXXX") and the app's version, with a copy button.
 Future<void> showDeviceCode(BuildContext context) async {
   final code = AppEvents.deviceCode;
-  String? version;
-  try {
-    final info = await PackageInfo.fromPlatform();
-    version = '${info.version} (${info.buildNumber})';
-  } catch (_) {}
-  if (!context.mounted) return;
+  final version = AppEvents.appVersion;
   final l = AppLocalizations.of(context)!;
   AppEvents.track('device_code_view');
   await showDialog<void>(
