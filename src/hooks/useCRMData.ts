@@ -4,7 +4,8 @@ import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
-import { getPlanByValue, calculateFirstPaymentDueDate } from '@/hooks/useStudentPlan';
+import { getPlanByValue } from '@/hooks/useStudentPlan';
+import { isInitialPaymentOverdue, partialBalances, type CurrencyBalance } from '@/lib/paymentBalance';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -13,6 +14,8 @@ type StudentProfile = Tables<'profiles'> & {
   documents?: Tables<'documents'>[];
   paymentStatus?: string | null;
   initialPaymentOverdue?: boolean;
+  /** Part-paid balances per currency: "5000$ dan 1000$ to'langan, 4000$ qoldi". */
+  paymentBalances?: CurrencyBalance[];
   /**
    * This season is a free re-application, so nothing is owed for it.
    *
@@ -122,7 +125,7 @@ export function useCRMData() {
           activeIntakeId,
         ),
         applyIntake(
-          supabase.from('payments').select('student_id, status, payment_type, paid_amount').in('student_id', studentUserIds),
+          supabase.from('payments').select('student_id, status, payment_type, paid_amount, amount, currency').in('student_id', studentUserIds),
           activeIntakeId,
         ),
       ]);
@@ -174,40 +177,31 @@ export function useCRMData() {
         docsByStudent.set(doc.student_id, existing);
       }
 
-      // Compute initialPaymentOverdue per student
+      // Group payments by student once; the overdue flag and the balance line
+      // read the same rows.
+      const paymentsByStudent = new Map<string, typeof allPayments>();
+      for (const p of allPayments) {
+        const existing = paymentsByStudent.get(p.student_id) || [];
+        existing.push(p);
+        paymentsByStudent.set(p.student_id, existing);
+      }
+
+      // Compute initialPaymentOverdue per student. The rules live in
+      // src/lib/paymentBalance.ts (7 working days, part-paid amounts count).
       const initialOverdueByStudent = new Map<string, boolean>();
       for (const profile of memberProfiles) {
         const uid = profile.user_id;
-        // Nothing is owed for a free re-application, so nothing can be late.
-        // Without this the exempt student still turns red for missing a
-        // payment we are not asking them to make.
-        if (freeReapplicationIds.has(uid)) {
-          initialOverdueByStudent.set(uid, false);
-          continue;
-        }
-        if (!profile.contract_date || !profile.payment_plan) {
-          initialOverdueByStudent.set(uid, false);
-          continue;
-        }
-        const plan = getPlanByValue(profile.payment_plan);
-        if (!plan || plan.value === 'free') {
-          initialOverdueByStudent.set(uid, false);
-          continue;
-        }
-        const mode = profile.payment_mode || 'one_time';
-        const expectedInitial = mode === 'installment' ? plan.firstPayment : plan.priceOneTime;
-        const dueDate = calculateFirstPaymentDueDate(profile.contract_date);
-        const today = new Date().toISOString().split('T')[0];
-        if (today <= dueDate) {
-          initialOverdueByStudent.set(uid, false);
-          continue;
-        }
-        // Sum completed initial payments
-        const studentPayments = allPayments.filter(p => p.student_id === uid);
-        const paidInitial = studentPayments
-          .filter(p => p.status === 'completed' && ['first_payment', 'initial_deposit', 'full_payment'].includes(p.payment_type))
-          .reduce((sum, p) => sum + Number(p.paid_amount || 0), 0);
-        initialOverdueByStudent.set(uid, paidInitial < expectedInitial);
+        initialOverdueByStudent.set(
+          uid,
+          isInitialPaymentOverdue({
+            contractDate: profile.contract_date,
+            paymentPlan: profile.payment_plan,
+            paymentMode: profile.payment_mode,
+            payments: paymentsByStudent.get(uid) || [],
+            // Nothing is owed for a free re-application, so nothing can be late.
+            exempt: freeReapplicationIds.has(uid),
+          }),
+        );
       }
 
       // Combine
@@ -217,6 +211,7 @@ export function useCRMData() {
         documents: docsByStudent.get(profile.user_id) || [],
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
+        paymentBalances: partialBalances(paymentsByStudent.get(profile.user_id) || []),
         freeReapplication: freeReapplicationIds.has(profile.user_id),
         // Nothing is owed on a free plan or a free re-application, so those
         // count as paid.

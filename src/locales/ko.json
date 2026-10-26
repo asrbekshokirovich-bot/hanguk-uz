@@ -901,7 +901,30 @@
     "overdue": "연체",
     "invoice": "청구서",
     "receipt": "영수증",
-    "recordPayment": "결제 기록"
+    "recordPayment": "결제 기록",
+    "balanceLine": "{{total}} 중 {{paid}} 납부, {{left}} 남음",
+    "installment": {
+      "title": "분할 납부 추가",
+      "add": "분할 납부 추가",
+      "save": "저장",
+      "amount": "금액",
+      "paidOn": "납부일",
+      "method": "결제 수단",
+      "fee": "수수료",
+      "amountRequired": "금액을 입력하세요",
+      "dateRequired": "납부일을 입력하세요",
+      "saved": "저장되었습니다. 남은 금액: {{left}}",
+      "savedCompleted": "저장되었습니다. 전액 납부 완료",
+      "listTitle": "분할 납부 ({{count}})",
+      "none": "아직 납부 내역이 없습니다",
+      "addReceipt": "영수증 추가",
+      "receiptN": "영수증 {{n}}",
+      "noReceipt": "영수증 없음",
+      "receiptsSaved": "영수증이 저장되었습니다",
+      "hasAccount": "계정 있음",
+      "accountExists": "이 유형의 결제 계정이 이미 있습니다. 새 부채를 만들지 않고 기존 계정에 분할 납부로 추가하세요.",
+      "editPaidHint": "납부 금액은 {{count}}건의 분할 납부 합계입니다. 변경하려면 분할 납부를 추가하세요."
+    }
   },
   "tasks": {
     "title": "작업",

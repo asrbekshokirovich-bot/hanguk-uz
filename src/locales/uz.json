@@ -1235,7 +1235,30 @@
     "overdue": "Muddati o'tgan",
     "invoice": "Hisob-faktura",
     "receipt": "Kvitansiya",
-    "recordPayment": "To'lovni qayd qilish"
+    "recordPayment": "To'lovni qayd qilish",
+    "balanceLine": "{{total}} dan {{paid}} to'langan, {{left}} qoldi",
+    "installment": {
+      "title": "Bo'lak qo'shish",
+      "add": "Bo'lak qo'shish",
+      "save": "Bo'lakni saqlash",
+      "amount": "Summa",
+      "paidOn": "To'langan sana",
+      "method": "To'lov usuli",
+      "fee": "Komissiya",
+      "amountRequired": "Summani kiriting",
+      "dateRequired": "To'langan sanani kiriting",
+      "saved": "Bo'lak saqlandi. Qoldi: {{left}}",
+      "savedCompleted": "Bo'lak saqlandi. To'lov to'liq yopildi",
+      "listTitle": "Bo'laklar ({{count}})",
+      "none": "Hali bo'lak kiritilmagan",
+      "addReceipt": "Chek qo'shish",
+      "receiptN": "Chek {{n}}",
+      "noReceipt": "Chek yo'q",
+      "receiptsSaved": "Cheklar saqlandi",
+      "hasAccount": "hisob bor",
+      "accountExists": "Bu turdagi to'lov hisobi allaqachon bor. Yangi qarz ochilmaydi — pulni mavjud hisobga bo'lak qilib qo'shing.",
+      "editPaidHint": "To'langan summa {{count}} ta bo'lakdan yig'iladi. O'zgartirish uchun bo'lak qo'shing."
+    }
   },
   "tasks": {
     "title": "Vazifalar",

@@ -23,7 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { CreditCard, Calendar, DollarSign, Info, AlertCircle } from 'lucide-react';
-import { getPlanByValue, formatPlanAmount, calculateDueDate } from '@/hooks/useStudentPlan';
+import { getPlanByValue, formatPlanAmount, calculateDueDate, formatAmount } from '@/hooks/useStudentPlan';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
 import { distributeIncomeFromPayment } from '@/hooks/useIncomeDistribution';
 import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
@@ -31,6 +31,7 @@ import { createBonusForPayment } from '@/hooks/useStaffBonuses';
 import { calculateGatewayFee, getGatewayFeeRate, PAYMENT_METHODS_WITH_FEES } from '@/lib/paymentUtils';
 import { MultiReceiptUpload } from '@/components/payments/MultiReceiptUpload';
 import { DateField } from '@/components/ui/date-field';
+import { AddInstallmentDialog, type InstallmentTarget } from '@/components/crm/payments/AddInstallmentDialog';
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -39,8 +40,17 @@ interface AddPaymentDialogProps {
   studentPlan?: string | null;
   studentPaymentMode?: string | null;
   contractDate?: string | null;
-  existingPayments?: Array<{ payment_type: string; status: string }>;
+  existingPayments?: ExistingPayment[];
   onSuccess: () => void;
+}
+
+export interface ExistingPayment {
+  id?: string;
+  payment_type: string;
+  status: string;
+  amount?: number;
+  paid_amount?: number;
+  currency?: string;
 }
 
 const PAYMENT_TYPES = [
@@ -69,6 +79,8 @@ export function AddPaymentDialog({
   const { user } = useAuth();
   const { activeIntakeId } = useActiveIntake();
   const [loading, setLoading] = useState(false);
+  // Account a new transfer is being added to (opened from the notice below).
+  const [installmentTarget, setInstallmentTarget] = useState<InstallmentTarget | null>(null);
   const [fetchedPlan, setFetchedPlan] = useState<string | null>(null);
 
   // Fallback: fetch plan from database if prop not provided
@@ -115,12 +127,21 @@ export function AddPaymentDialog({
   const isInstallment = studentPaymentMode === 'installment';
   
   // Check which payments already exist
-  const hasInitialDeposit = existingPayments.some(p => p.payment_type === 'initial_deposit');
-  const hasRemainingPayment = existingPayments.some(p => p.payment_type === 'remaining_payment');
+  const live = existingPayments.filter(p => p.status !== 'refunded');
+  const hasInitialDeposit = live.some(p => p.payment_type === 'initial_deposit');
+  const hasRemainingPayment = live.some(p => p.payment_type === 'remaining_payment');
+  const isOpen = (p: ExistingPayment) =>
+    p.amount !== undefined && Number(p.paid_amount ?? 0) < Number(p.amount);
 
-  // Determine default payment type based on existing payments
+  // Determine default payment type based on existing payments. An account that
+  // is still being paid off comes first: the next transfer belongs on it, not
+  // on a new "other" account (that is how split payments became new debts).
   const getDefaultPaymentType = () => {
+    const openInitial = live.find(p => p.payment_type === 'initial_deposit' && isOpen(p));
+    if (openInitial) return 'initial_deposit';
     if (!hasInitialDeposit) return 'initial_deposit';
+    const openRemaining = live.find(p => p.payment_type === 'remaining_payment' && isOpen(p));
+    if (openRemaining) return 'remaining_payment';
     if (isInstallment && !hasRemainingPayment) return 'remaining_payment';
     return 'other';
   };
@@ -212,6 +233,8 @@ export function AddPaymentDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (existingForType) return;
 
     if (!formData.amount || Number(formData.amount) <= 0) {
       toast({
@@ -413,6 +436,13 @@ export function AddPaymentDialog({
 
   const expectedAmounts = getExpectedAmounts();
 
+  // The chosen type already has an account: the money goes onto it as a
+  // transfer. Opening a second account would record a second debt.
+  const existingForType =
+    formData.paymentType !== 'other'
+      ? live.find(p => p.payment_type === formData.paymentType && p.id)
+      : undefined;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
@@ -477,17 +507,10 @@ export function AddPaymentDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {PAYMENT_TYPES.map((type) => (
-                    <SelectItem 
-                      key={type.value} 
-                      value={type.value}
-                      disabled={
-                        (type.value === 'initial_deposit' && hasInitialDeposit) ||
-                        (type.value === 'remaining_payment' && hasRemainingPayment)
-                      }
-                    >
+                    <SelectItem key={type.value} value={type.value}>
                       {type.label}
-                      {type.value === 'initial_deposit' && hasInitialDeposit && ' (Done)'}
-                      {type.value === 'remaining_payment' && hasRemainingPayment && ' (Done)'}
+                      {type.value === 'initial_deposit' && hasInitialDeposit && ` (${t('payments.installment.hasAccount')})`}
+                      {type.value === 'remaining_payment' && hasRemainingPayment && ` (${t('payments.installment.hasAccount')})`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -514,6 +537,42 @@ export function AddPaymentDialog({
             </div>
           </div>
 
+          {existingForType ? (
+            <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <p className="text-sm font-medium">{t('payments.installment.accountExists')}</p>
+              {existingForType.amount !== undefined && existingForType.currency && (
+                <p className="text-sm text-muted-foreground">
+                  {t('payments.balanceLine', {
+                    total: formatAmount(Number(existingForType.amount), existingForType.currency),
+                    paid: formatAmount(Number(existingForType.paid_amount ?? 0), existingForType.currency),
+                    left: formatAmount(
+                      Math.max(Number(existingForType.amount) - Number(existingForType.paid_amount ?? 0), 0),
+                      existingForType.currency,
+                    ),
+                  })}
+                </p>
+              )}
+              <Button
+                type="button"
+                onClick={() =>
+                  setInstallmentTarget({
+                    id: existingForType.id as string,
+                    student_id: studentId,
+                    amount: Number(existingForType.amount ?? 0),
+                    paid_amount: Number(existingForType.paid_amount ?? 0),
+                    currency: existingForType.currency || formData.currency,
+                  })
+                }
+                disabled={
+                  existingForType.amount === undefined ||
+                  Number(existingForType.paid_amount ?? 0) >= Number(existingForType.amount)
+                }
+              >
+                {t('payments.installment.add')}
+              </Button>
+            </div>
+          ) : (
+          <>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="amount">
@@ -648,17 +707,31 @@ export function AddPaymentDialog({
             />
           </div>
 
+          </>
+          )}
+
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !!existingForType}>
               {loading ? t('common.loading') : 'Record Payment'}
             </Button>
           </div>
         </form>
         </div>
       </DialogContent>
+      <AddInstallmentDialog
+        open={!!installmentTarget}
+        onOpenChange={(o) => !o && setInstallmentTarget(null)}
+        payment={installmentTarget}
+        studentPlan={effectivePlan}
+        onSuccess={() => {
+          setInstallmentTarget(null);
+          onOpenChange(false);
+          onSuccess();
+        }}
+      />
     </Dialog>
   );
 }

@@ -3632,6 +3632,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_id: string
+          paid_on: string
           payment_method: string | null
           receipt_url: string | null
           receipt_urls: string[] | null
@@ -3645,6 +3646,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_id: string
+          paid_on?: string
           payment_method?: string | null
           receipt_url?: string | null
           receipt_urls?: string[] | null
@@ -3658,6 +3660,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_id?: string
+          paid_on?: string
           payment_method?: string | null
           receipt_url?: string | null
           receipt_urls?: string[] | null
@@ -7525,6 +7528,24 @@ export type Database = {
       }
     }
     Functions: {
+      record_payment_installment: {
+        Args: {
+          p_amount: number
+          p_gateway_fee?: number
+          p_method?: string
+          p_notes?: string
+          p_paid_on?: string
+          p_payment_id: string
+          p_receipt_urls?: string[]
+        }
+        Returns: {
+          is_completed: boolean
+          new_paid_amount: number
+          payment_amount: number
+          transaction_id: string
+          was_completed: boolean
+        }[]
+      }
       _rls_add_child_policies: {
         Args: { p_child: string; p_parent: string }
         Returns: undefined

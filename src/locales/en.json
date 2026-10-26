@@ -1166,7 +1166,30 @@
     "overdue": "Overdue",
     "invoice": "Invoice",
     "receipt": "Receipt",
-    "recordPayment": "Record Payment"
+    "recordPayment": "Record Payment",
+    "balanceLine": "{{paid}} of {{total}} paid, {{left}} left",
+    "installment": {
+      "title": "Add a transfer",
+      "add": "Add transfer",
+      "save": "Save transfer",
+      "amount": "Amount",
+      "paidOn": "Paid on",
+      "method": "Payment method",
+      "fee": "Fee",
+      "amountRequired": "Enter the amount",
+      "dateRequired": "Enter the date it was paid",
+      "saved": "Transfer saved. Left: {{left}}",
+      "savedCompleted": "Transfer saved. The payment is now paid in full",
+      "listTitle": "Transfers ({{count}})",
+      "none": "No transfers recorded yet",
+      "addReceipt": "Add receipt",
+      "receiptN": "Receipt {{n}}",
+      "noReceipt": "No receipt",
+      "receiptsSaved": "Receipts saved",
+      "hasAccount": "account exists",
+      "accountExists": "An account of this type already exists. No new debt is opened — add the money to it as a transfer.",
+      "editPaidHint": "The paid amount is the sum of {{count}} transfers. Add a transfer to change it."
+    }
   },
   "tasks": {
     "title": "Tasks",
