@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/map_analytics.dart';
@@ -221,7 +222,7 @@ class UniversityDetailSheet extends ConsumerWidget {
         LimeButton(
           label: l.virtualTourTitle,
           icon: Icons.threesixty,
-          onPressed: () {
+          onPressed: tracked('university_detail_sheet.virtual_tour_title', () {
             analytics.virtualTourOpen(university.id);
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -234,7 +235,7 @@ class UniversityDetailSheet extends ConsumerWidget {
                 ),
               ),
             );
-          },
+          }),
         ),
       );
     } else if (walkaroundUrl != null && walkaroundUrl.isNotEmpty) {
@@ -243,10 +244,10 @@ class UniversityDetailSheet extends ConsumerWidget {
         SeoulOutlineButton(
           label: l.virtualTourTitle,
           icon: Icons.open_in_new_rounded,
-          onPressed: () {
+          onPressed: tracked('university_detail_sheet.virtual_tour_title_2', () {
             analytics.virtualTourOpen(university.id, sceneId: 'external');
             _launchWebsite(externalTourUrl);
-          },
+          }),
         ),
       );
     }
@@ -262,12 +263,12 @@ class UniversityDetailSheet extends ConsumerWidget {
             ? SeoulOutlineButton(
                 label: l.virtualWalkaroundTitle,
                 icon: Icons.threesixty,
-                onPressed: openWalkaround,
+                onPressed: tracked('university_detail_sheet.virtual_walkaround_title', openWalkaround),
               )
             : LimeButton(
                 label: l.virtualWalkaroundTitle,
                 icon: Icons.threesixty,
-                onPressed: openWalkaround,
+                onPressed: tracked('university_detail_sheet.virtual_walkaround_title', openWalkaround),
               ),
       );
     }
@@ -282,10 +283,10 @@ class UniversityDetailSheet extends ConsumerWidget {
         SeoulOutlineButton(
           label: l.visitUniversityWebsite,
           icon: Icons.open_in_browser_rounded,
-          onPressed: () {
+          onPressed: tracked('university_detail_sheet.visit_university_website', () {
             analytics.universityWebsiteOpen(university.id, domain);
             _launchWebsite(domain);
-          },
+          }),
         ),
       );
     }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../entry/data/entry_store.dart';
@@ -294,7 +295,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
       OnbPrimaryButton(
         label: l.onbContactCta,
         loading: _sending,
-        onPressed: _sending ? null : _submit,
+        onPressed: tracked('contact_sheet_s04.contact_cta', _sending ? null : _submit),
       ),
       Text(
         l.onbContactHours,
@@ -425,7 +426,7 @@ class _TelegramToggle extends StatelessWidget {
       label: label,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(!value),
+        onTap: tracked('contact_sheet_s04.toggle', () => onChanged(!value), props: {'value': !value}),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 44),
           child: Row(
@@ -565,10 +566,10 @@ class _SuccessState extends State<_Success> {
             width: double.infinity,
             child: OnbOutlineButton(
               label: l.onbContactBackToResult,
-              onPressed: () {
+              onPressed: tracked('contact_sheet_s04.contact_back_to_result', () {
                 _leave?.cancel();
                 Navigator.of(context).pop();
-              },
+              }),
             ),
           ),
         ],

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -178,7 +179,7 @@ class _VirtualTourScreenState extends State<VirtualTourScreen> {
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: SeoulSizes.screenPadding,
-            child: _TourBackButton(onTap: () => Navigator.of(context).pop()),
+            child: _TourBackButton(onTap: tracked('virtual_tour.tour_back_button', () => Navigator.of(context).pop())),
           ),
 
           // Top-right name pill. Top-right, so it never lands under the
@@ -207,7 +208,7 @@ class _TourBackButton extends StatelessWidget {
       label: l?.a11yTooltipBack,
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('virtual_tour.tour_back_button', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           width: SeoulSizes.minTapTarget,

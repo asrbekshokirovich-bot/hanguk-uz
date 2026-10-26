@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/uni_db_providers.dart';
@@ -48,7 +49,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 _GlassCircleButton(
                   icon: Icons.arrow_back_rounded,
                   tooltip: l10n.a11yTooltipBack,
-                  onTap: () => Navigator.of(context).maybePop(),
+                  onTap: tracked('notification_settings.back', () => Navigator.of(context).maybePop()),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -270,7 +271,7 @@ class _ToggleRow extends StatelessWidget {
       enabled: enabled,
       label: title,
       child: GestureDetector(
-        onTap: enabled ? () => onChanged!(!value) : null,
+        onTap: tracked('notification_settings.toggle_row', enabled ? () => onChanged!(!value) : null, props: {'value': !value}),
         behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -329,7 +330,7 @@ class _SeoulToggle extends StatelessWidget {
       label: semanticLabel,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: enabled ? () => onChanged!(!value) : null,
+        onTap: tracked('notification_settings.toggle', enabled ? () => onChanged!(!value) : null, props: {'value': !value}),
         child: SizedBox(
           width: 64,
           height: SeoulSizes.minTapTarget,
@@ -400,7 +401,7 @@ class _GlassCircleButton extends StatelessWidget {
       child: Tooltip(
         message: tooltip,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('notification_settings.glass_circle_button', onTap),
           child: Container(
             width: SeoulSizes.minTapTarget,
             height: SeoulSizes.minTapTarget,
