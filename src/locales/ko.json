@@ -1922,5 +1922,14 @@
     "failed": "연결하지 못했습니다",
     "noIdentifierTitle": "연결할 대상이 없습니다",
     "noIdentifierBody": "이 대화에는 사용할 수 있는 식별자가 없습니다."
+  },
+  "applicationFeeAccess": {
+    "title": "개별 권한",
+    "label": "Application fee 섹션",
+    "hint": "역할 없이 Application fee 섹션만 엽니다: 조회 및 결제 추가.",
+    "viaRole": "이미 역할로 권한이 있습니다 (owner, admin 또는 document handler).",
+    "granted": "Application fee 권한이 부여되었습니다",
+    "revoked": "Application fee 권한이 해제되었습니다",
+    "error": "권한을 저장할 수 없습니다"
   }
 }

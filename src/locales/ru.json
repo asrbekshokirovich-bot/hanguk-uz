@@ -1990,5 +1990,14 @@
     "failed": "Не удалось привязать",
     "noIdentifierTitle": "Нечего привязывать",
     "noIdentifierBody": "У этого разговора нет пригодного идентификатора."
+  },
+  "applicationFeeAccess": {
+    "title": "Отдельные доступы",
+    "label": "Раздел Application fee",
+    "hint": "Открывает только раздел Application fee без выдачи роли: просмотр и добавление оплат.",
+    "viaRole": "Уже есть по роли (owner, admin или document handler).",
+    "granted": "Доступ к разделу Application fee выдан",
+    "revoked": "Доступ к разделу Application fee снят",
+    "error": "Не удалось сохранить доступ"
   }
 }

@@ -2338,5 +2338,14 @@
         "language_set": "Choose language"
       }
     }
+  },
+  "applicationFeeAccess": {
+    "title": "Separate permissions",
+    "label": "Application fee section",
+    "hint": "Opens only the Application fee section without a role: view and add payments.",
+    "viaRole": "Already has it through a role (owner, admin or document handler).",
+    "granted": "Application fee access granted",
+    "revoked": "Application fee access removed",
+    "error": "Could not save the permission"
   }
 }
