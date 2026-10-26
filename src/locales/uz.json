@@ -382,6 +382,32 @@
       "own": "O'zi",
       "parent": "Ota-ona",
       "other": "Boshqa"
+    },
+    "contractCancelledShort": "Bekor qilingan",
+    "contractCancel": {
+      "button": "Shartnomani bekor qilish",
+      "hint": "Talaba shartnomadan voz kechgan bo'lsa, shu yerdan bekor qiling. Qolgan qarz yopiladi, talaba ro'yxatda qoladi.",
+      "formHint": "Izoh majburiy. Talabaga qaytariladigan summani kiriting (qaytarilmasa bo'sh qoldiring).",
+      "note": "Izoh",
+      "notePlaceholder": "Nima uchun bekor qilinmoqda, kim bilan kelishildi…",
+      "refundAmount": "Qaytariladigan summa ({{currency}})",
+      "paidSoFar": "Shu mavsumda to'langan: {{amount}}",
+      "nothingPaid": "Bu mavsumda to'lov qilinmagan — qaytariladigan summa yo'q.",
+      "badAmount": "Summa noto'g'ri yozilgan",
+      "tooMuch": "{{currency}} da to'langandan ko'p qaytarib bo'lmaydi (ko'pi bilan {{max}})",
+      "confirmTitle": "Rostdan ham bekor qilmoqchimisiz?",
+      "confirmWithRefund": "Shartnoma bekor qilinadi, talabaga {{refund}} qaytarilgan deb yoziladi va qolgan qarz yopiladi.",
+      "confirmNoRefund": "Shartnoma bekor qilinadi, pul qaytarilmaydi va qolgan qarz yopiladi.",
+      "yes": "Ha, bekor qilish",
+      "no": "Yo'q",
+      "done": "Shartnoma bekor qilindi",
+      "cancelledTitle": "Shartnoma bekor qilingan",
+      "refunded": "Qaytarilgan",
+      "noRefund": "qaytarilmagan",
+      "restore": "Shartnomani tiklash",
+      "restoreTitle": "Shartnomani tiklaysizmi?",
+      "restoreHint": "To'lovlar bekor qilishdan oldingi holatiga qaytadi va talaba yana hisoblarga kiradi.",
+      "restored": "Shartnoma tiklandi"
     }
   },
   "leads": {

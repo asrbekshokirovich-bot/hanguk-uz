@@ -322,6 +322,32 @@
       "own": "본인",
       "parent": "부모",
       "other": "기타"
+    },
+    "contractCancelledShort": "계약 취소",
+    "contractCancel": {
+      "button": "계약 취소",
+      "hint": "학생이 계약을 포기한 경우 여기에서 취소하세요. 남은 미납금은 종료되고 학생은 목록에 남습니다.",
+      "formHint": "메모는 필수입니다. 학생에게 환불한 금액을 입력하세요(환불이 없으면 비워 두세요).",
+      "note": "메모",
+      "notePlaceholder": "취소 사유, 합의한 사람…",
+      "refundAmount": "환불 금액 ({{currency}})",
+      "paidSoFar": "이번 시즌 납부액: {{amount}}",
+      "nothingPaid": "이번 시즌 납부 내역이 없어 환불할 금액이 없습니다.",
+      "badAmount": "금액이 올바르지 않습니다",
+      "tooMuch": "{{currency}} 납부액보다 많이 환불할 수 없습니다 (최대 {{max}})",
+      "confirmTitle": "정말 계약을 취소하시겠습니까?",
+      "confirmWithRefund": "계약이 취소되고 {{refund}} 환불이 기록되며 남은 미납금이 종료됩니다.",
+      "confirmNoRefund": "환불 없이 계약이 취소되고 남은 미납금이 종료됩니다.",
+      "yes": "예, 취소합니다",
+      "no": "아니요",
+      "done": "계약이 취소되었습니다",
+      "cancelledTitle": "계약 취소됨",
+      "refunded": "환불액",
+      "noRefund": "환불 없음",
+      "restore": "계약 복원",
+      "restoreTitle": "계약을 복원하시겠습니까?",
+      "restoreHint": "납부 내역이 취소 이전 상태로 돌아가고 학생이 다시 집계에 포함됩니다.",
+      "restored": "계약이 복원되었습니다"
     }
   },
   "leads": {
