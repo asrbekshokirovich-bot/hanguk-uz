@@ -397,7 +397,7 @@ class _MapCard extends StatelessWidget {
         button: true,
         label: university.displayName,
         child: GestureDetector(
-          onTap: tracked('map.open360', () => context.push(universityPath(university.institutionId)), props: {'institution_id': university.institutionId}),
+          onTap: tracked('map.university_card', () => context.push(universityPath(university.institutionId)), props: {'institution_id': university.institutionId}),
           behavior: HitTestBehavior.opaque,
           child: Container(
             padding: const EdgeInsets.all(10),

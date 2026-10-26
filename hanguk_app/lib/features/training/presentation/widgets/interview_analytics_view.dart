@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../data/interview_repository.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -74,7 +75,7 @@ class _InterviewAnalyticsViewState
                   label: l.a11yTooltipBack,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: widget.onBackPressed,
+                    onTap: tracked('interview_analytics.view_back_pressed', widget.onBackPressed),
                     child: Container(
                       width: SeoulSizes.minTapTarget,
                       height: SeoulSizes.minTapTarget,
@@ -274,13 +275,13 @@ class _InterviewAnalyticsViewState
         // wiped it). Routes back through the setup view by transitioning
         // status: 'completed' -> 'idle' via resetForNewSession.
         if (widget.onDone case final done?)
-          LimeButton(label: l.sptDone, onPressed: done)
+          LimeButton(label: l.sptDone, onPressed: tracked('interview_analytics.spt_done', done))
         else
           LimeButton(
             label: l.startAnotherInterview,
             icon: Icons.refresh,
-            onPressed: () =>
-                ref.read(interviewProvider.notifier).resetForNewSession(),
+            onPressed: tracked('interview_analytics.start_another_interview', () =>
+                ref.read(interviewProvider.notifier).resetForNewSession()),
           ),
       ],
     );
@@ -681,7 +682,7 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
                     : l.a11yTooltipPlayRecording,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: canPlay
+                  onTap: tracked('interview_analytics.pause', canPlay
                       ? () {
                           if (_isPlaying) {
                             _audioPlayer.pause();
@@ -689,7 +690,7 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
                             _audioPlayer.play(UrlSource(_recordingUrl!));
                           }
                         }
-                      : null,
+                      : null),
                   child: Container(
                     width: 56,
                     height: 56,
@@ -793,7 +794,7 @@ class _InterviewReportAction extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: InkWell(
-        onTap: () => showAiReportSheet(
+        onTap: tracked('interview_analytics.show_ai_report_sheet', () => showAiReportSheet(
           context,
           surface: AiSurface.interview,
           reportedText: text,
@@ -801,7 +802,7 @@ class _InterviewReportAction extends StatelessWidget {
             if (vapiCallId != null) 'vapi_call_id': vapiCallId,
             'locale': Localizations.localeOf(context).languageCode,
           },
-        ),
+        )),
         borderRadius: BorderRadius.circular(SeoulRadii.control),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/survey_repository.dart';
@@ -116,13 +117,13 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: SeoulColors.textPrimary),
-          onPressed: () {
+          onPressed: tracked('survey_detail.to_surveys', () {
             if (Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
             } else {
               context.go('/surveys');
             }
-          },
+          }),
         ),
         title: Text(
           widget.surveyTitle ?? l.surveyTitleFallback,
@@ -154,13 +155,13 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
             SeoulOutlineButton(
               label: l.a11yTooltipBack,
               expand: false,
-              onPressed: () {
+              onPressed: tracked('survey_detail.back', () {
                 if (Navigator.of(context).canPop()) {
                   Navigator.of(context).pop();
                 } else {
                   context.go('/surveys');
                 }
-              },
+              }),
             ),
           ],
         ),
@@ -190,9 +191,9 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
               SeoulOutlineButton(
                 label: l.commonRetry,
                 expand: false,
-                onPressed: () => ref.invalidate(
+                onPressed: tracked('survey_detail.retry', () => ref.invalidate(
                   surveyQuestionsProvider(widget.surveyId),
-                ),
+                )),
               ),
             ],
           ),
@@ -247,7 +248,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
                   label: l.surveySubmit,
                   loading: _submitting,
                   onPressed:
-                      allAnswered ? () => _submit(questions) : null,
+                      tracked('survey_detail.survey_submit', allAnswered ? () => _submit(questions) : null),
                 ),
               );
             }
@@ -389,7 +390,7 @@ class _QuestionCard extends StatelessWidget {
             fillColor: isSelected
                 ? SeoulColors.lime.withValues(alpha: 0.08)
                 : null,
-            onTap: () => onChanged(option),
+            onTap: tracked('survey_detail.question_card_changed', () => onChanged(option)),
             child: Row(
               children: [
                 Icon(
@@ -430,7 +431,7 @@ class _QuestionCard extends StatelessWidget {
             fillColor: isSelected
                 ? SeoulColors.lime.withValues(alpha: 0.08)
                 : null,
-            onTap: () {
+            onTap: tracked('survey_detail.check_box', () {
               final next = List<String>.from(selected);
               if (isSelected) {
                 next.remove(option);
@@ -438,7 +439,7 @@ class _QuestionCard extends StatelessWidget {
                 next.add(option);
               }
               onChanged(next);
-            },
+            }),
             child: Row(
               children: [
                 Icon(
@@ -473,7 +474,7 @@ class _QuestionCard extends StatelessWidget {
         final star = i + 1;
         final isActive = star <= value;
         return GestureDetector(
-          onTap: () => onChanged(star),
+          onTap: tracked('survey_detail.question_card_changed', () => onChanged(star)),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Icon(
@@ -587,7 +588,7 @@ class _DateAnswerField extends StatelessWidget {
 
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      onTap: () async {
+      onTap: tracked('survey_detail.calendar_today', () async {
         final now = DateTime.now();
         final picked = await showDatePicker(
           context: context,
@@ -602,7 +603,7 @@ class _DateAnswerField extends StatelessWidget {
             '${picked.day.toString().padLeft(2, '0')}',
           );
         }
-      },
+      }),
       child: Row(
         children: [
           const Icon(

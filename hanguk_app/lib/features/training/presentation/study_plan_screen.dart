@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
@@ -110,7 +111,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           _GlassCircleButton(
             icon: Icons.arrow_back_rounded,
             tooltip: l.a11yTooltipBack,
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: tracked('study_plan.back', () => Navigator.of(context).maybePop()),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -131,14 +132,14 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                 minHeight: SeoulSizes.minTapTarget,
               ),
               icon: const Icon(Icons.history),
-              onPressed: () => Navigator.of(context).push(
+              onPressed: tracked('study_plan.past_drafts', () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => NavScaffold(
                     current: AppTab.prepare,
                     child: StudyPlanHistoryView(documentType: widget.documentType),
                   ),
                 ),
-              ),
+              )),
             ),
           if (state.currentSession != null) ...[
             // Audit U8: per-session settings menu — currently exposes
@@ -185,9 +186,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                 minHeight: SeoulSizes.minTapTarget,
               ),
               tooltip: l.a11yTooltipCloseSession,
-              onPressed: () => ref
+              onPressed: tracked('study_plan.close_session', () => ref
                   .read(studyPlanSessionProvider.notifier)
-                  .clearCurrentSession(widget.documentType),
+                  .clearCurrentSession(widget.documentType)),
             ),
           ],
         ],
@@ -223,7 +224,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
               LimeButton(
                 icon: Icons.add_rounded,
                 label: l.createNewSession,
-                onPressed: _showCreateSessionDialog,
+                onPressed: tracked('study_plan.create_new_session', _showCreateSessionDialog),
               ),
             ],
           ),
@@ -255,7 +256,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       blur: false,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
-      onTap: () {
+      onTap: tracked('study_plan.open_session', () {
         ref
             .read(studyPlanSessionProvider.notifier)
             .loadSession(widget.documentType, s.id)
@@ -264,7 +265,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                   .read(documentSessionProvider(widget.documentType))
                   .draftContent;
             });
-      },
+      }),
       child: Row(
         children: [
           HangulGlyphTile(
@@ -299,7 +300,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
             icon: Icons.delete_outline_rounded,
             tooltip: l.a11yTooltipDeleteSession,
             foreground: SeoulColors.dangerText,
-            onTap: () => _confirmDeleteSession(s),
+            onTap: tracked('study_plan.delete_session', () => _confirmDeleteSession(s)),
           ),
         ],
       ),
@@ -335,19 +336,19 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                   Expanded(
                     child: SeoulOutlineButton(
                       label: dl.cancel,
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: tracked('study_plan.cancel', () => Navigator.pop(context)),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _DangerButton(
                       label: dl.deleteLabel,
-                      onPressed: () {
+                      onPressed: tracked('study_plan.delete_label', () {
                         Navigator.pop(context);
                         ref
                             .read(studyPlanSessionProvider.notifier)
                             .deleteSession(widget.documentType, s.id);
-                      },
+                      }),
                     ),
                   ),
                 ],
@@ -432,13 +433,13 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
       selected: isActive,
       label: label,
       child: GestureDetector(
-        onTap: () {
+        onTap: tracked('study_plan.update_session_step', () {
           if (reached) {
             ref
                 .read(studyPlanSessionProvider.notifier)
                 .updateSessionStep(widget.documentType, step);
           }
-        },
+        }),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -557,9 +558,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
           const SizedBox(height: 28),
           LimeButton(
             label: AppLocalizations.of(context)!.readExamplesButton,
-            onPressed: () => ref
+            onPressed: tracked('study_plan.read_examples_button', () => ref
                 .read(studyPlanSessionProvider.notifier)
-                .updateSessionStep(widget.documentType, 2),
+                .updateSessionStep(widget.documentType, 2)),
           ),
         ],
       ),
@@ -721,9 +722,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
         const SizedBox(height: 28),
         LimeButton(
           label: l.startDraftingButton,
-          onPressed: () => ref
+          onPressed: tracked('study_plan.start_drafting_button', () => ref
               .read(studyPlanSessionProvider.notifier)
-              .updateSessionStep(widget.documentType, 3),
+              .updateSessionStep(widget.documentType, 3)),
         ),
       ],
     );
@@ -824,9 +825,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                                       ko: '영어',
                                       isSelected: selectedTrack == 'en',
                                       icon: Icons.language,
-                                      onTap: () => setDialogState(
+                                      onTap: tracked('study_plan.track_english', () => setDialogState(
                                         () => selectedTrack = 'en',
-                                      ),
+                                      )),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
@@ -836,9 +837,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                                       ko: '한국어',
                                       isSelected: selectedTrack == 'ko',
                                       icon: Icons.translate,
-                                      onTap: () => setDialogState(
+                                      onTap: tracked('study_plan.track_korean', () => setDialogState(
                                         () => selectedTrack = 'ko',
-                                      ),
+                                      )),
                                     ),
                                   ),
                                 ],
@@ -862,9 +863,9 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                           Expanded(
                             child: SeoulOutlineButton(
                               label: l.cancel,
-                              onPressed: dialogState.isLoading
+                              onPressed: tracked('study_plan.cancel_2', dialogState.isLoading
                                   ? null
-                                  : () => Navigator.pop(context),
+                                  : () => Navigator.pop(context)),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -873,7 +874,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                               label: l.createSession,
                               loading: dialogState.isLoading,
                               onPressed:
-                                  (selectedUniId == null ||
+                                  tracked('study_plan.create_session', (selectedUniId == null ||
                                       dialogState.isLoading)
                                   ? null
                                   : () async {
@@ -890,7 +891,7 @@ class _StudyPlanScreenState extends ConsumerState<StudyPlanScreen> {
                                       if (session != null && context.mounted) {
                                         Navigator.pop(context);
                                       }
-                                    },
+                                    }),
                             ),
                           ),
                         ],
@@ -956,7 +957,7 @@ class _TrackChip extends StatelessWidget {
       selected: isSelected,
       label: label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('study_plan.track_chip', onTap),
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
           curve: SeoulMotion.smooth,
@@ -1175,7 +1176,7 @@ I wish to explicitly state my intention to return to my home country immediately
                 expand: false,
                 height: SeoulSizes.minTapTarget,
                 radius: SeoulRadii.button,
-                onPressed: () {
+                onPressed: tracked('study_plan.copy_button', () {
                   Clipboard.setData(ClipboardData(text: _example)).then((_) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -1193,7 +1194,7 @@ I wish to explicitly state my intention to return to my home country immediately
                       );
                     }
                   });
-                },
+                }),
               ),
             ),
           ),
@@ -1226,7 +1227,7 @@ class _GlassCircleButton extends StatelessWidget {
       child: Tooltip(
         message: tooltip,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('study_plan.glass_circle_button', onTap),
           child: Container(
             width: SeoulSizes.minTapTarget,
             height: SeoulSizes.minTapTarget,
@@ -1325,7 +1326,7 @@ class _DangerButtonState extends State<_DangerButton> {
       enabled: enabled,
       label: widget.label,
       child: GestureDetector(
-        onTap: widget.onPressed,
+        onTap: tracked('study_plan.danger_button', widget.onPressed),
         onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
         onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _pressed = false) : null,

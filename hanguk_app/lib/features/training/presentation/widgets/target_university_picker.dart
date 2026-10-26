@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../applications/data/applications_repository.dart';
@@ -87,7 +88,7 @@ class TargetUniversityPicker extends ConsumerWidget {
           return _UniRow(
             uni: uni,
             selected: selectedId == uni.id,
-            onTap: () => onPick(uni.id, uni.name),
+            onTap: tracked('target_university_picker.uni_row', () => onPick(uni.id, uni.name)),
           );
         },
       ),
@@ -122,7 +123,7 @@ class _UniRow extends StatelessWidget {
       label: uni.name,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: tracked('target_university_picker.uni_row', onTap),
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
           curve: SeoulMotion.smooth,

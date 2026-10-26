@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/analytics/tracked.dart';
 import '../data/interview_repository.dart';
 
 import 'widgets/interview_setup_view.dart';
@@ -124,9 +125,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
             label: l.a11yTooltipBack,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: isCompleted && widget.initialTimeLimitSeconds != null
+              onTap: tracked('interview.arrow_back', isCompleted && widget.initialTimeLimitSeconds != null
                   ? _done
-                  : () => Navigator.of(context).maybePop(),
+                  : () => Navigator.of(context).maybePop()),
               child: Container(
                 width: SeoulSizes.minTapTarget,
                 height: SeoulSizes.minTapTarget,
@@ -187,14 +188,14 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         );
       }
       return InterviewSetupView(
-        onHistoryTapped: () {
+        onHistoryTapped: tracked('interview.setup_view_history_tapped', () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
             ),
           );
-        },
+        }),
       );
     } else if (state.status == 'completed') {
       // Analytics is the richer post-session view — overall + per-metric
@@ -212,14 +213,14 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
       // 'abandoned' (or anything unexpected): never remount the live-call
       // view against a dead session — return to setup instead.
       return InterviewSetupView(
-        onHistoryTapped: () {
+        onHistoryTapped: tracked('interview.setup_view_history_tapped', () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
             ),
           );
-        },
+        }),
       );
     }
   }
