@@ -2466,7 +2466,8 @@
       "quality": "Sifat",
       "settings": "Sozlamalar",
       "people": "Odamlar",
-      "marketing": "Marketing"
+      "marketing": "Marketing",
+      "live": "Jonli"
     },
     "quality": {
       "refreshed": "Sessiyalar va kunlik yig'indi yangilangan: {{time}}",
@@ -2862,5 +2863,19 @@
     },
     "fileName": "Ilova marketing",
     "exportFailed": "Fayl yaratib bo'lmadi"
+  },
+  "live": {
+    "title": "Jonli",
+    "now_one": "qurilma hozir ilovada · {{leads}} tasi tanilgan lid",
+    "now_other": "qurilma hozir ilovada · {{leads}} tasi tanilgan lid",
+    "empty": "Oxirgi soatda harakat yo'q",
+    "report": "hisobotni ko'rdi",
+    "tab": "{{tab}} bo'limini ochdi",
+    "forms": {
+      "lead": "konsultant formasini ochdi",
+      "quiz_contact": "qo'ng'iroq formasini ochdi",
+      "client_code": "mijoz kodi oynasini ochdi",
+      "survey": "so'rovnomani ochdi"
+    }
   }
 }

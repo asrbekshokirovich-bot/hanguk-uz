@@ -2402,7 +2402,8 @@
       "quality": "Quality",
       "settings": "Settings",
       "people": "People",
-      "marketing": "Marketing"
+      "marketing": "Marketing",
+      "live": "Live"
     },
     "quality": {
       "refreshed": "Sessions and daily totals refreshed: {{time}}",
@@ -2798,5 +2799,19 @@
     },
     "fileName": "App marketing",
     "exportFailed": "Could not create the file"
+  },
+  "live": {
+    "title": "Live",
+    "now_one": "device in the app now · known leads: {{leads}}",
+    "now_other": "devices in the app now · known leads: {{leads}}",
+    "empty": "Nothing in the last hour",
+    "report": "viewed the report",
+    "tab": "opened the {{tab}} tab",
+    "forms": {
+      "lead": "opened the consultant form",
+      "quiz_contact": "opened the call-back form",
+      "client_code": "opened the client code screen",
+      "survey": "opened a survey"
+    }
   }
 }

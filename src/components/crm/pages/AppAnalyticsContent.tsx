@@ -7,6 +7,7 @@ import { BASE, TABS, tabOf } from '@/components/crm/appAnalytics/helpers';
 const MarketingTab = lazy(() => import('@/components/crm/appAnalytics/MarketingTab'));
 const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const PeopleTab = lazy(() => import('@/components/crm/appAnalytics/PeopleTab'));
+const LiveTab = lazy(() => import('@/components/crm/appAnalytics/LiveTab'));
 const QualityTab = lazy(() => import('@/components/crm/appAnalytics/QualityTab'));
 const SettingsTab = lazy(() => import('@/components/crm/appAnalytics/SettingsTab'));
 
@@ -44,6 +45,9 @@ export default function AppAnalyticsContent() {
           </TabsContent>
           <TabsContent value="people">
             <PeopleTab />
+          </TabsContent>
+          <TabsContent value="live">
+            <LiveTab />
           </TabsContent>
           <TabsContent value="quality">
             <QualityTab />
