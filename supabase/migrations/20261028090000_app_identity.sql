@@ -16,7 +16,8 @@
 --   Google Play with it, or opened on the web), the code in a Telegram
 --   message, the bot's start button. app_installs.lead_id keeps the latest.
 -- * app_contact_codes: the short code the app writes into the text of a
---   Telegram message to the consultant ("HK-7Q2MXA"). The person sends it, the
+--   Telegram message to the consultant («Ilovadan · 7Q2MXA», as the plan's
+--   example has it; the bot's button sends "HK-7Q2MXA"). The person sends it, the
 --   chat becomes (or is) a lead, and the device that wrote it is tied to that
 --   lead. A code lives 30 days. The code only ties the person — it is not a
 --   source (S3).
@@ -228,8 +229,10 @@ $$;
 revoke all on function public.app_identity_claim(uuid, text, text) from public;
 grant execute on function public.app_identity_claim(uuid, text, text) to anon, authenticated;
 
--- A message with "HK-<code>" in it came from the device that made the code:
--- tie that device to [p_lead_id]. Returns the device, or null.
+-- A message with the app's code in it — after the middle dot of «Ilovadan ·
+-- 7Q2MXA» (in any of the app's languages) or as "HK-7Q2MXA" — came from the
+-- device that made the code: tie that device to [p_lead_id]. Returns the
+-- device, or null.
 create or replace function public.fn_contact_code_link(p_text text, p_lead_id uuid, p_via text default 'telegram_code')
 returns uuid
 language plpgsql
@@ -237,7 +240,7 @@ security definer
 set search_path to 'pg_catalog', 'public'
 as $$
 declare
-  v_match   text[] := regexp_match(upper(coalesce(p_text, '')), 'HK-([A-HJKMNP-Z2-9]{6})');
+  v_match   text[] := regexp_match(upper(coalesce(p_text, '')), '(?:HK-|·\s*)([A-HJKMNP-Z2-9]{6})(?![A-Z0-9])');
   v_via     text := case when p_via in ('telegram_code', 'bot_start') then p_via else 'telegram_code' end;
   v_install uuid;
 begin
