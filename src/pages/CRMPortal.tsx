@@ -49,7 +49,7 @@ const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/Unive
 const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/UniversitySelectionContent'));
 const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/OnlineApplicationContent'));
 const OfflineApplicationContent = lazy(() => import('@/components/crm/pages/OfflineApplicationContent'));
-const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
+const AppAnalyticsContent = lazy(() => import('@/components/crm/pages/AppAnalyticsContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
@@ -164,7 +164,9 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
     if (currentPath.startsWith('/crm/online-application')) return 'online-application';
     if (currentPath.startsWith('/crm/offline-application')) return 'offline-application';
-    if (currentPath.startsWith('/crm/app-activity')) return 'app-activity';
+    // "Ilova faolligi" became a tab of "Ilova analitikasi"; old links still open it.
+    if (currentPath.startsWith('/crm/app-activity')) return 'app-analytics';
+    if (currentPath.startsWith('/crm/app-analytics')) return 'app-analytics';
     if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
@@ -437,9 +439,10 @@ export default function CRMPortal() {
             />
           </SafeSuspense>
         );
-      case 'app-activity':
-        if (!isAdmin) return <AccessDenied />;
-        return <SafeSuspense><AppActivityContent /></SafeSuspense>;
+      case 'app-analytics':
+        // Every staff role (S6); investors never reach the CRM.
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return <SafeSuspense><AppAnalyticsContent /></SafeSuspense>;
       case 'online-application':
         if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
         return (

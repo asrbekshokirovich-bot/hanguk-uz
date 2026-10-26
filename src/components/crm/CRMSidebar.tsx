@@ -106,7 +106,7 @@ function buildGroups(
         { title: 'Universitet tanlash', url: '/crm/university-selection', icon: ListChecks, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Onlayn ariza', url: '/crm/online-application', icon: Send, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Oflayn ariza', url: '/crm/offline-application', icon: Package, visible: isAdmin || isDocumentHandler || isCallOperator },
-        { title: 'Ilova faolligi', url: '/crm/app-activity', icon: Smartphone, visible: isAdmin },
+        { title: 'Ilova analitikasi', url: '/crm/app-analytics', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler },
         { title: 'Application fee', url: '/crm/application-fees', icon: Receipt, visible: canSeeApplicationFees },
         { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isCallOperator || isDocumentHandler },
       ],
