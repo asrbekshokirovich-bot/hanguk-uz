@@ -82,6 +82,9 @@ abstract final class AppEvents {
   /// shell route with its tab ("/guest#universities"), or an open sheet.
   static String? get screen => _surfaces.current ?? _surfaces.compute();
 
+  /// This installation's id, once recording has started.
+  static String? get installId => _sink?._installId;
+
   /// The code staff type into the CRM to mark this phone as a test device:
   /// the first 8 characters of the installation id, as "XXXX-XXXX".
   static String? get deviceCode {

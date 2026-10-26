@@ -5600,4 +5600,8 @@ class AppLocalizationsUz extends AppLocalizations {
   String deviceCodeVersion(String version) {
     return 'Versiya $version';
   }
+
+  @override
+  String get linkWelcome =>
+      'Ilovani konsultantingiz yuborgan havola orqali ochdingiz — endi u tanlovlaringizni ko\'rib, aniqroq maslahat beradi.';
 }

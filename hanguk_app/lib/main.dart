@@ -9,6 +9,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/analytics/app_events.dart';
 import 'core/analytics/http_tracking.dart';
+import 'core/analytics/identity_links.dart';
+import 'core/analytics/link_welcome.dart';
 import 'core/analytics/tracked.dart';
 import 'core/money/fx_rates.dart';
 import 'core/router/app_router.dart';
@@ -80,6 +82,10 @@ Future<void> main() async {
   await AppEvents.start();
   AppEvents.installErrorHooks();
   AppEvents.track('app_open', props: {'signed_in': _signedIn(), 'cold': true});
+  // An operator's link the app was installed through (Android) or opened
+  // with (the web): tie this phone to the lead.
+  unawaited(IdentityLinks.checkInstallReferrer());
+  unawaited(IdentityLinks.checkWebLink());
 
   // Warm the Map tab's institutions query as soon as Supabase is ready,
   // instead of waiting for the user to open the tab. The Map screen also
@@ -156,8 +162,9 @@ class HangukApp extends ConsumerWidget {
         // Auto-update gate runs on launch + every foreground transition,
         // so updates aren't gated behind the login screen anymore.
         final wrapped = UpdateGate(child: child ?? const SizedBox.shrink());
-        // Every tap and scroll, for the analytics (AppEvents).
-        return AnalyticsRoot(child: wrapped);
+        // Every tap and scroll, for the analytics (AppEvents); and, once,
+        // word that an operator's link tied the phone to the consultant.
+        return AnalyticsRoot(child: LinkWelcome(child: wrapped));
       },
       // Audit L1/L3 closure 2026-05-10: full flutter_localizations wiring.
       // Non-English ARB files seeded with English placeholders + a

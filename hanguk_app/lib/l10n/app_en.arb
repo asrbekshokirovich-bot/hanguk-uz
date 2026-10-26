@@ -6921,5 +6921,9 @@
         "type": "String"
       }
     }
+  },
+  "linkWelcome": "You opened the app from your consultant's link — they can now see what you choose and advise you better.",
+  "@linkWelcome": {
+    "description": "Shown once after the app was opened from the link the person's consultant sent (hanguk.uz/l/<code>)"
   }
 }
