@@ -1002,18 +1002,7 @@
         "linkUnavailable": "Could not get the bot name — reopen later",
         "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}",
         "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once.",
-        "appLink": "App link",
-        "appInviteText": "Here is our app: {{link}}. Look through the universities and mark the 3 you like with ♥ — I'll see your choice and give you specific advice on those universities.",
-        "appTied": "App connected: {{date}} · {{via}}",
-        "appNotYet": "Not opened in the app yet",
-        "appVia": {
-          "form": "the app's form",
-          "link": "the link",
-          "referrer": "installed through the link",
-          "web": "the web app",
-          "telegram_code": "Telegram code",
-          "bot_start": "the bot"
-        }
+        "appInviteText": "Here is our app: {{link}}. Look through the universities and mark the 3 you like with ♥ — I'll see your choice and give you specific advice on those universities."
       },
       "app": {
         "title": "App: eligibility check",
@@ -2411,7 +2400,8 @@
     "tabs": {
       "overview": "Overview",
       "quality": "Quality",
-      "settings": "Settings"
+      "settings": "Settings",
+      "people": "People"
     },
     "quality": {
       "refreshed": "Sessions and daily totals refreshed: {{time}}",
@@ -2498,6 +2488,34 @@
         "demo": "Demo account",
         "dev": "Development build"
       }
+    },
+    "people": {
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "kinds": {
+        "all": "All",
+        "lead": "Leads",
+        "guest": "Guests",
+        "student": "Students"
+      },
+      "search": "Search by name",
+      "withTest": "Include test devices",
+      "empty": "Nobody in this period",
+      "cols": {
+        "who": "Who",
+        "source": "Found us via (own answer)",
+        "last": "Last visit",
+        "visits": "Visits",
+        "score": "App score",
+        "stage": "Got as far as"
+      },
+      "picks_one": "{{count}} ♥",
+      "picks_other": "{{count}} ♥",
+      "visa": "visa test: {{band}}",
+      "report": "report",
+      "request": "sent a request",
+      "test": "test",
+      "more": "{{shown}} of {{total}} shown"
     }
   },
   "appLink": {
@@ -2509,5 +2527,81 @@
     "appStore": "Download on the App Store",
     "iosAfterInstall": "After installing, open this link again — the app connects you to your consultant.",
     "web": "Open in the browser"
+  },
+  "appPerson": {
+    "title": "In the app",
+    "noDevice": "No device tied",
+    "sendLink": "Send the app link",
+    "openJourney": "Open the full path",
+    "linkCopied": "Message with the link copied — send it to the lead",
+    "rows": {
+      "activity": "Activity",
+      "source": "Source",
+      "forWhom": "For whom",
+      "picks": "Picks ♥",
+      "visa": "Visa test",
+      "report": "Report",
+      "tariff": "Matching tariff",
+      "starter": "Open with"
+    },
+    "today": "Today {{time}}",
+    "yesterday": "Yesterday {{time}}",
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "firstSource": "1st source: {{source}}",
+    "forWhom": {
+      "self": "For themselves",
+      "child": "For their child",
+      "relative": "For a relative"
+    },
+    "band": {
+      "high": "High",
+      "mid": "Medium",
+      "low": "Low"
+    },
+    "lowFactor": "weak point: {{what}}",
+    "low": {
+      "language": "language level ({{level}})",
+      "income": "documented income",
+      "deposit": "money in the bank",
+      "gap": "gap since studies",
+      "age": "age"
+    },
+    "noTopik": "no TOPIK",
+    "income": {
+      "yes": "finances: documented income",
+      "no": "finances: no documented income"
+    },
+    "reportSeen_one": "Seen, {{count}} time",
+    "reportSeen_other": "Seen, {{count}} times",
+    "reportNotSeen": "Not seen",
+    "tariffRule": "by the rule, the operator confirms",
+    "ties": {
+      "operatorLink": "operator's link",
+      "telegramCode": "Telegram code"
+    },
+    "sources": {
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "app": "App",
+      "call": "Call",
+      "manual": "Manual",
+      "learning_center": "Learning centre",
+      "Public Registration": "Website"
+    },
+    "kind": {
+      "lead": "Lead",
+      "student": "Student",
+      "guest": "Guest"
+    },
+    "journeyTitle": "Full path",
+    "ownSource": "Source (own answer): {{source}}",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "entryExit": "in: {{entry}} · out: {{exit}}",
+    "seconds": "{{s}} s",
+    "minutes": "{{m}} min {{s}} s",
+    "noSteps": "Nothing in the last 30 days",
+    "truncated": "Only the last 500 steps are shown"
   }
 }

@@ -1071,18 +1071,7 @@
         "linkUnavailable": "Bot nomini olib bo'lmadi — keyinroq qayta oching",
         "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}",
         "notFound": "Bu nik bilan yozishma topilmadi. Telegram ID raqamini kiriting — u darhol ulanadi.",
-        "appLink": "Ilova havolasi",
-        "appInviteText": "Mana ilovamiz: {{link}}. Universitetlarni ko'rib chiqing va yoqqan 3 tasini ♥ bilan belgilang — men tanlovingizni ko'rib, shu universitetlar bo'yicha aniq maslahat beraman.",
-        "appTied": "Ilova bog'langan: {{date}} · {{via}}",
-        "appNotYet": "Hali ilova orqali ochilmagan",
-        "appVia": {
-          "form": "ilovadagi forma",
-          "link": "havola",
-          "referrer": "havola orqali o'rnatildi",
-          "web": "veb ilova",
-          "telegram_code": "Telegram kodi",
-          "bot_start": "bot"
-        }
+        "appInviteText": "Mana ilovamiz: {{link}}. Universitetlarni ko'rib chiqing va yoqqan 3 tasini ♥ bilan belgilang — men tanlovingizni ko'rib, shu universitetlar bo'yicha aniq maslahat beraman."
       },
       "app": {
         "title": "Ilova: imkoniyat testi",
@@ -2475,7 +2464,8 @@
     "tabs": {
       "overview": "Umumiy",
       "quality": "Sifat",
-      "settings": "Sozlamalar"
+      "settings": "Sozlamalar",
+      "people": "Odamlar"
     },
     "quality": {
       "refreshed": "Sessiyalar va kunlik yig'indi yangilangan: {{time}}",
@@ -2562,6 +2552,34 @@
         "demo": "Demo akkaunt",
         "dev": "Dasturchi build'i"
       }
+    },
+    "people": {
+      "days_one": "{{count}} kun",
+      "days_other": "{{count}} kun",
+      "kinds": {
+        "all": "Hammasi",
+        "lead": "Lidlar",
+        "guest": "Mehmonlar",
+        "student": "Talabalar"
+      },
+      "search": "Ism bo'yicha qidirish",
+      "withTest": "Test qurilmalar ham",
+      "empty": "Bu davrda hech kim yo'q",
+      "cols": {
+        "who": "Kim",
+        "source": "Qayerdan topgan (o'zi aytgan)",
+        "last": "Oxirgi tashrif",
+        "visits": "Tashriflar",
+        "score": "Ilova balli",
+        "stage": "Qayergacha yetdi"
+      },
+      "picks_one": "{{count}} ta ♥",
+      "picks_other": "{{count}} ta ♥",
+      "visa": "viza testi: {{band}}",
+      "report": "hisobot",
+      "request": "so'rov yubordi",
+      "test": "test",
+      "more": "{{total}} tadan {{shown}} tasi ko'rsatildi"
     }
   },
   "appLink": {
@@ -2573,5 +2591,81 @@
     "appStore": "App Store'dan o'rnatish",
     "iosAfterInstall": "O'rnatgandan keyin shu havolani qayta oching — ilova sizni konsultantingizga bog'laydi.",
     "web": "Brauzerda ochish"
+  },
+  "appPerson": {
+    "title": "Ilovada",
+    "noDevice": "Bog'langan qurilma yo'q",
+    "sendLink": "Ilova havolasini yuborish",
+    "openJourney": "To'liq yo'lni ochish",
+    "linkCopied": "Xabar havola bilan nusxalandi — lidga yuboring",
+    "rows": {
+      "activity": "Faollik",
+      "source": "Manba",
+      "forWhom": "Kim uchun",
+      "picks": "Tanlovlari ♥",
+      "visa": "Viza testi",
+      "report": "Hisobot",
+      "tariff": "Mos tarif",
+      "starter": "Gapni boshlash"
+    },
+    "today": "Bugun {{time}}",
+    "yesterday": "Kecha {{time}}",
+    "visits_one": "{{count}} tashrif",
+    "visits_other": "{{count}} tashrif",
+    "firstSource": "1-manba: {{source}}",
+    "forWhom": {
+      "self": "O'zi uchun",
+      "child": "Farzandi uchun",
+      "relative": "Qarindoshi uchun"
+    },
+    "band": {
+      "high": "Yuqori",
+      "mid": "O'rta",
+      "low": "Past"
+    },
+    "lowFactor": "past omil: {{what}}",
+    "low": {
+      "language": "til darajasi ({{level}})",
+      "income": "rasmiy daromad",
+      "deposit": "bankdagi pul",
+      "gap": "o'qishdan keyingi tanaffus",
+      "age": "yosh"
+    },
+    "noTopik": "TOPIK yo'q",
+    "income": {
+      "yes": "moliya: rasmiy daromad bor",
+      "no": "moliya: rasmiy daromad yo'q"
+    },
+    "reportSeen_one": "Ko'rdi, {{count}} marta",
+    "reportSeen_other": "Ko'rdi, {{count}} marta",
+    "reportNotSeen": "Ko'rmadi",
+    "tariffRule": "qoida bo'yicha, operator tasdiqlaydi",
+    "ties": {
+      "operatorLink": "operator havolasi",
+      "telegramCode": "Telegram kodi"
+    },
+    "sources": {
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "app": "Ilova",
+      "call": "Qo'ng'iroq",
+      "manual": "Qo'lda",
+      "learning_center": "O'quv markaz",
+      "Public Registration": "Sayt"
+    },
+    "kind": {
+      "lead": "Lid",
+      "student": "Talaba",
+      "guest": "Mehmon"
+    },
+    "journeyTitle": "To'liq yo'l",
+    "ownSource": "Manba (o'zi aytgan): {{source}}",
+    "sessions_one": "{{count}} sessiya",
+    "sessions_other": "{{count}} sessiya",
+    "entryExit": "kirish: {{entry}} · chiqish: {{exit}}",
+    "seconds": "{{s}} s",
+    "minutes": "{{m}} daq {{s}} s",
+    "noSteps": "Oxirgi 30 kunda harakat yo'q",
+    "truncated": "Faqat oxirgi 500 qadam ko'rsatildi"
   }
 }
