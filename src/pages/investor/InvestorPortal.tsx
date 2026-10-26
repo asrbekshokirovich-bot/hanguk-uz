@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Bell } from 'lucide-react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +19,7 @@ import InvestorMessages from './screens/InvestorMessages';
 const HOME = '/crm/investor/overview';
 
 function InvestorShell() {
+  const { t, i18n } = useTranslation();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,7 +33,7 @@ function InvestorShell() {
     identity?.full_name ||
     (user.user_metadata?.full_name as string | undefined) ||
     user.email?.split('@')[0] ||
-    'Investor';
+    t('investor.shell.investor');
 
   return (
     <SidebarProvider
@@ -55,7 +57,9 @@ function InvestorShell() {
                 Hanguk Consulting
               </div>
               <div className="truncate text-[12px] text-muted-foreground">
-                Investor view · updated {relativeTime(updatedAt || Date.now())}
+                {t('investor.shell.viewUpdated', {
+                  time: relativeTime(updatedAt || Date.now(), i18n.language),
+                })}
               </div>
             </div>
 
@@ -66,7 +70,9 @@ function InvestorShell() {
                 type="button"
                 onClick={() => navigate('/crm/investor/messages')}
                 aria-label={
-                  unreadCount > 0 ? `${unreadCount} unread messages` : 'No unread messages'
+                  unreadCount > 0
+                    ? t('investor.shell.unread', { count: unreadCount })
+                    : t('investor.shell.noUnread')
                 }
                 className="relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >

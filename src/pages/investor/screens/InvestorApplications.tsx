@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Download, Loader2, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { InvestorScreenHeader } from '@/components/investor/InvestorScreen';
 import {
@@ -15,6 +16,12 @@ import {
   type PillTone,
 } from '@/components/investor/InvestorPrimitives';
 import { ProgressBar, ToneRule, type ChartTone } from '@/components/investor/InvestorCharts';
+import {
+  applicationStatusLabel,
+  degreeLabel,
+  planLabel,
+  stageLabel,
+} from '@/components/investor/investorLabels';
 import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
 import {
   useInvestorApplications,
@@ -22,7 +29,7 @@ import {
   type InvestorApplicationRow,
 } from '@/hooks/useInvestor';
 import { useInvestorExport } from '@/hooks/useInvestorExport';
-import { count, humanizeLineItem, percent, relativeTime } from '@/lib/investorFormat';
+import { count, percent, relativeTime } from '@/lib/investorFormat';
 import { FINAL_STATUSES, STUCK_DAYS, isSubmitted, stuckApplications } from '@/lib/investorPipeline';
 
 /* ---------------------------------------------------------------------------
@@ -61,6 +68,7 @@ const STATUS_TONE: Record<string, PillTone> = {
 
 
 export default function InvestorApplications() {
+  const { t } = useTranslation();
   const { activeIntakeId } = useInvestorSeason();
   const exporter = useInvestorExport();
   const applications = useInvestorApplications(activeIntakeId);
@@ -73,11 +81,11 @@ export default function InvestorApplications() {
   const universities = useMemo(() => {
     const map = new Map<string, number>();
     for (const a of rows) {
-      const key = a.university ?? 'University not set';
+      const key = a.university ?? t('investor.common.universityNotSet');
       map.set(key, (map.get(key) ?? 0) + 1);
     }
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
-  }, [rows]);
+  }, [rows, t]);
 
   const stuck = stuckApplications(rows);
   const visible = filter === 'stuck' ? stuck : rows;
@@ -95,11 +103,20 @@ export default function InvestorApplications() {
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <InvestorScreenHeader
-        title="Applications"
+        title={t('investor.nav.applications')}
         subtitle={
           rows.length === 0
-            ? 'No applications have been opened for this season yet.'
-            : `${count(submitted.length)} application${submitted.length === 1 ? '' : 's'} submitted to ${count(uniqueUniversities)} Korean universit${uniqueUniversities === 1 ? 'y' : 'ies'} this season.`
+            ? t('investor.applications.noneOpened')
+            : t('investor.applications.subtitle', {
+                apps: t('investor.applications.appsSubmitted', {
+                  count: submitted.length,
+                  n: count(submitted.length),
+                }),
+                unis: t('investor.applications.koreanUnis', {
+                  count: uniqueUniversities,
+                  n: count(uniqueUniversities),
+                }),
+              })
         }
         actions={
           <Button
@@ -113,7 +130,7 @@ export default function InvestorApplications() {
             ) : (
               <Download className="h-4 w-4" />
             )}
-            Export List
+            {t('investor.applications.exportList')}
           </Button>
         }
       />
@@ -128,10 +145,12 @@ export default function InvestorApplications() {
                 {count(Number(stage.student_count))}
               </div>
               <div className="mt-1.5 text-[12px] font-semibold text-muted-foreground">
-                {stage.stage}
+                {stageLabel(t, stage.stage_order, stage.stage)}
               </div>
               {UNTRACKED_STAGES.has(stage.stage) && (
-                <div className="mt-1 text-[11px] text-muted-foreground">Not recorded yet</div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  {t('investor.applications.notRecordedYet')}
+                </div>
               )}
             </div>
             <div className="mt-auto">
@@ -146,8 +165,8 @@ export default function InvestorApplications() {
         {/* -------------------------------------------------- recent movement */}
         <InvestorCard className="overflow-hidden">
           <CardHead
-            title="Recent Movement"
-            subtitle="Latest status changes across the season"
+            title={t('investor.applications.recentMovement')}
+            subtitle={t('investor.applications.recentMovementSubtitle')}
             action={
               <div className="inline-flex rounded-md bg-muted p-1">
                 {(['all', 'stuck'] as const).map((key) => (
@@ -161,7 +180,7 @@ export default function InvestorApplications() {
                         : 'text-muted-foreground'
                     }`}
                   >
-                    {key}
+                    {t(`investor.applications.filter.${key}`)}
                   </button>
                 ))}
               </div>
@@ -171,15 +190,15 @@ export default function InvestorApplications() {
           {visible.length === 0 ? (
             <EmptyNote>
               {filter === 'stuck'
-                ? 'Nothing has stalled. Every application has moved in the last two weeks.'
-                : 'No applications have been opened for this season yet.'}
+                ? t('investor.applications.nothingStalled')
+                : t('investor.applications.noneOpened')}
             </EmptyNote>
           ) : (
             <div className="mt-4 px-5">
               <div className="grid grid-cols-[1.3fr_1.4fr_118px] gap-3 border-b border-border pb-2">
-                <TableHeadCell>Student</TableHeadCell>
-                <TableHeadCell>University / Level</TableHeadCell>
-                <TableHeadCell className="text-right">Stage</TableHeadCell>
+                <TableHeadCell>{t('investor.applications.student')}</TableHeadCell>
+                <TableHeadCell>{t('investor.applications.universityLevel')}</TableHeadCell>
+                <TableHeadCell className="text-right">{t('investor.applications.stage')}</TableHeadCell>
               </div>
               {visible.map((a) => (
                 <ApplicationRow key={a.application_id} row={a} />
@@ -190,16 +209,19 @@ export default function InvestorApplications() {
           <div className="mt-4 flex items-center gap-2 border-t border-border bg-soft-surface px-5 py-3">
             <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <p className="text-[12px] text-muted-foreground">
-              Passports, transcripts and personal documents are not available in the investor view.
+              {t('investor.applications.docsNote')}
             </p>
           </div>
         </InvestorCard>
 
         <div className="space-y-4">
           <InvestorCard>
-            <CardHead title="Where They Applied" subtitle="Applications by university" />
+            <CardHead
+              title={t('investor.applications.whereApplied')}
+              subtitle={t('investor.applications.byUniversity')}
+            />
             {universities.length === 0 ? (
-              <EmptyNote>No applications yet.</EmptyNote>
+              <EmptyNote>{t('investor.applications.noAppsYet')}</EmptyNote>
             ) : (
               <div className="mt-4 space-y-3 px-5 pb-5">
                 {universities.slice(0, 7).map(([name, n], i) => (
@@ -222,7 +244,10 @@ export default function InvestorApplications() {
                 {universities.length > 7 && (
                   <div className="flex items-baseline justify-between gap-3 border-t border-soft-line pt-3">
                     <span className="text-[13px] text-muted-foreground">
-                      {count(universities.length - 7)} other universities
+                      {t('investor.applications.otherUnis', {
+                        count: universities.length - 7,
+                        n: count(universities.length - 7),
+                      })}
                     </span>
                     <Money className="text-muted-foreground">
                       {count(universities.slice(7).reduce((s, [, n]) => s + n, 0))}
@@ -230,19 +255,18 @@ export default function InvestorApplications() {
                   </div>
                 )}
                 <p className="pt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  Acceptance rates need an offer decision on each application, which the CRM does
-                  not record yet.
+                  {t('investor.applications.acceptanceNote')}
                 </p>
               </div>
             )}
           </InvestorCard>
 
           <InvestorCard>
-            <CardHead title="Season Health" />
+            <CardHead title={t('investor.applications.seasonHealth')} />
             <div className="mt-3">
               <MetricRow
-                label="Submitted"
-                hint="of all applications opened"
+                label={t('investor.applications.submitted')}
+                hint={t('investor.applications.ofAllOpened')}
                 value={
                   rows.length > 0 ? (
                     <Money className="text-[15px] font-bold">
@@ -254,18 +278,18 @@ export default function InvestorApplications() {
                 }
               />
               <MetricRow
-                label="Acceptance rate"
-                hint="needs an offer decision per application"
+                label={t('investor.applications.acceptanceRate')}
+                hint={t('investor.applications.needsOffer')}
                 value={<NotTracked />}
               />
               <MetricRow
-                label="Visa approval rate"
-                hint="needs a visa stage per application"
+                label={t('investor.applications.visaRate')}
+                hint={t('investor.applications.needsVisa')}
                 value={<NotTracked />}
               />
               <MetricRow
-                label="Applications with no movement"
-                hint={`Nothing touched in ${STUCK_DAYS} days`}
+                label={t('investor.applications.noMovement')}
+                hint={t('investor.applications.nothingTouched', { days: STUCK_DAYS })}
                 value={
                   <Money
                     className={`text-[15px] font-bold ${stuck.length > 0 ? 'text-destructive' : ''}`}
@@ -283,6 +307,7 @@ export default function InvestorApplications() {
 }
 
 function ApplicationRow({ row }: { row: InvestorApplicationRow }) {
+  const { t, i18n } = useTranslation();
   const days = row.days_since_movement ?? 0;
   const isStuck = days >= STUCK_DAYS && !FINAL_STATUSES.has(row.status);
 
@@ -292,14 +317,14 @@ function ApplicationRow({ row }: { row: InvestorApplicationRow }) {
         <InitialsAvatar name={row.student_name ?? '—'} size={30} />
         <div className="min-w-0">
           <div className="truncate text-[13px] font-semibold text-foreground">
-            {row.student_name ?? 'Name not set'}
+            {row.student_name ?? t('investor.applications.nameNotSet')}
           </div>
           <div
             className={`truncate text-[11px] ${isStuck ? 'font-semibold text-destructive' : 'text-muted-foreground'}`}
           >
             {isStuck
-              ? `No movement · ${days}d`
-              : [row.plan ? humanizeLineItem(row.plan) : null, relativeTime(row.updated_at)]
+              ? t('investor.applications.noMovementDays', { days })
+              : [planLabel(t, row.plan), relativeTime(row.updated_at, i18n.language)]
                   .filter(Boolean)
                   .join(' · ')}
           </div>
@@ -307,15 +332,15 @@ function ApplicationRow({ row }: { row: InvestorApplicationRow }) {
       </div>
       <div className="min-w-0">
         <div className="truncate text-[13px] text-foreground">
-          {row.university ?? 'University not set'}
+          {row.university ?? t('investor.common.universityNotSet')}
         </div>
         <div className="truncate text-[11px] text-muted-foreground">
-          {row.program ? humanizeLineItem(row.program) : 'Level not set'}
+          {row.program ? degreeLabel(t, row.program) : t('investor.applications.levelNotSet')}
         </div>
       </div>
       <div className="flex justify-end">
         <StatusPill tone={isStuck ? 'danger' : (STATUS_TONE[row.status] ?? 'neutral')}>
-          {isStuck ? 'Stuck' : humanizeLineItem(row.status)}
+          {isStuck ? t('investor.applications.filter.stuck') : applicationStatusLabel(t, row.status)}
         </StatusPill>
       </div>
     </div>
