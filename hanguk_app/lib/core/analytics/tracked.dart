@@ -54,6 +54,30 @@ T trackedLong<T extends VoidCallback?>(String element, T fn, {Map<String, Object
   return wrapped is T ? wrapped as T : fn;
 }
 
+/// A form's field: `field_focus` when the person steps into it (the field's
+/// text is never recorded). [form] and [field] are stable names: 'lead',
+/// 'phone'.
+class TrackedField extends StatelessWidget {
+  const TrackedField({super.key, required this.form, required this.field, required this.child});
+
+  final String form;
+  final String field;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      includeSemantics: false,
+      onFocusChange: (has) {
+        if (has) AppEvents.track('field_focus', props: {'form': form, 'field': field});
+      },
+      child: child,
+    );
+  }
+}
+
 /// Sits over the whole app (MaterialApp.builder): every tap anywhere is
 /// recorded with where on the screen it landed (a fraction of the width and
 /// height), named by a [tracked] callback when one runs for it; and how far

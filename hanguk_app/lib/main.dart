@@ -9,8 +9,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/analytics/app_events.dart';
 import 'core/analytics/http_tracking.dart';
+import 'core/analytics/identity_links.dart';
 import 'core/analytics/tracked.dart';
 import 'core/money/fx_rates.dart';
+import 'core/push/guest_push.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
 import 'features/auth/data/auth_repository.dart';
@@ -80,6 +82,10 @@ Future<void> main() async {
   await AppEvents.start();
   AppEvents.installErrorHooks();
   AppEvents.track('app_open', props: {'signed_in': _signedIn(), 'cold': true});
+  // An operator's link the app was installed through (Android) or opened
+  // with (the web): tie this phone to the lead.
+  unawaited(IdentityLinks.checkInstallReferrer());
+  unawaited(IdentityLinks.checkWebLink());
 
   // Warm the Map tab's institutions query as soon as Supabase is ready,
   // instead of waiting for the user to open the tab. The Map screen also
@@ -145,6 +151,8 @@ class HangukApp extends ConsumerWidget {
         .setTokenSource(
           () => fcmTokenSource(languageCode: locale?.languageCode),
         );
+    // A guest who allowed pushes keeps a current token in the app's language.
+    unawaited(GuestPush.refresh(locale?.languageCode));
 
     return MaterialApp.router(
       title: 'Hanguk Student App',

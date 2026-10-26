@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
@@ -121,12 +122,12 @@ class OnboardingWelcomeScreen extends ConsumerWidget {
                     _StartBlock(
                       label: l.onbWelcomeCta,
                       minutes: operatorReplyMinutes,
-                      onPressed: () => _startQuiz(context, ref),
+                      onPressed: tracked('welcome_s01.welcome_cta', () => _startQuiz(context, ref)),
                     ),
                     const SizedBox(height: 8),
                     OnbTap(
                       label: l.onbWelcomeCatalog,
-                      onTap: () => context.push('/guest'),
+                      onTap: tracked('welcome_s01.welcome_catalog', () => context.push('/guest')),
                       child: Container(
                         height: 52,
                         alignment: Alignment.center,
@@ -146,7 +147,7 @@ class OnboardingWelcomeScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     OnbTap(
                       label: l.onbWelcomeClientCode,
-                      onTap: () => context.push('/login', extra: {'magic_code': true}),
+                      onTap: tracked('welcome_s01.welcome_client_code', () => context.push('/login', extra: {'magic_code': true})),
                       child: SizedBox(
                         height: 44,
                         child: Row(
@@ -265,7 +266,7 @@ class _LanguageSwitch extends StatelessWidget {
             OnbTap(
               label: kEntryLanguageNames[code],
               selected: code == selected,
-              onTap: () => onSelect(code),
+              onTap: tracked('welcome_s01.language_switch_select', () => onSelect(code), props: {'value': code}),
               child: Container(
                 height: 30,
                 constraints: const BoxConstraints(minWidth: 38),
@@ -393,7 +394,7 @@ class _PhotoDeckState extends State<_PhotoDeck> {
               child: _DeckCard(
                 spot: spot,
                 asset: kWelcomePhotoAssets.isEmpty ? null : kWelcomePhotoAssets[k],
-                onTap: _next,
+                onTap: tracked('welcome_s01.deck_card', _next),
               ),
             ),
         ],
@@ -434,7 +435,7 @@ class _DeckCard extends StatelessWidget {
             duration: const Duration(milliseconds: 500),
             curve: Curves.ease,
             child: GestureDetector(
-              onTap: onTap,
+              onTap: tracked('welcome_s01.deck_card', onTap),
               child: Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF132A4D),
@@ -573,7 +574,7 @@ class _StartBlockState extends ConsumerState<_StartBlock> {
           ],
           OnbTap(
             label: widget.label,
-            onTap: widget.onPressed,
+            onTap: tracked('welcome_s01.start_block', widget.onPressed),
             child: Container(
               height: 56,
               alignment: Alignment.center,

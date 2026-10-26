@@ -72,6 +72,8 @@ abstract final class AppEvents {
     _taps.clear();
     _recent.clear();
     _rageAt = null;
+    _cardContext = null;
+    _lastCard = null;
     _settleScheduled = false;
     _errors = 0;
   }
@@ -79,6 +81,17 @@ abstract final class AppEvents {
   /// The screen the person is on: a route pattern ("/university/:id"), a
   /// shell route with its tab ("/guest#universities"), or an open sheet.
   static String? get screen => _surfaces.current ?? _surfaces.compute();
+
+  /// This installation's id, once recording has started.
+  static String? get installId => _sink?._installId;
+
+  /// "1.1.3 (2103)": the app's version and build, once recording has started.
+  static String? get appVersion {
+    final c = _sink?._context;
+    final v = c?['app_version'];
+    if (v == null) return null;
+    return '$v (${c?['app_build'] ?? '?'})';
+  }
 
   /// The code staff type into the CRM to mark this phone as a test device:
   /// the first 8 characters of the installation id, as "XXXX-XXXX".
@@ -121,6 +134,15 @@ abstract final class AppEvents {
   };
 
   static String _short(String s) => s.length > 60 ? s.substring(0, 60) : s;
+
+  /// Text someone typed (a search), fit for the analytics: lower case, single
+  /// spaces, at most [max] characters — or null when it may hold contact
+  /// details (an @, or five digits or more: a phone number).
+  static String? cleanText(String text, {int max = 80}) {
+    final t = text.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    if (t.isEmpty || t.contains('@') || RegExp(r'\d').allMatches(t).length >= 5) return null;
+    return t.length > max ? t.substring(0, max) : t;
+  }
 
   /// The app's interface language, sent with every batch.
   static void setLanguage(String? code) => _language = code;
@@ -232,7 +254,8 @@ abstract final class AppEvents {
       at: at,
       screen: screen,
       time: DateTime.now(),
-    );
+    )..props = _cardContext;
+    _cardContext = null;
     _taps.add(tap);
     scheduleMicrotask(() => _commitTap(tap));
     _rage(tap);
@@ -253,6 +276,30 @@ abstract final class AppEvents {
     t
       ..element = element
       ..props = {...?t.props, ...?props};
+  }
+
+  // ── Cards (SeenList) ─────────────────────────────────────────────────────
+
+  static Map<String, Object?>? _cardContext;
+  static (String, String, int, DateTime)? _lastCard;
+
+  /// A finger left a university's card at [position] in [list]: the tap it
+  /// ends carries them, and the university's page knows it came from there.
+  static void cardTapped(String institutionId, String list, int position) {
+    _cardContext = {'institution_id': institutionId, 'list': list, 'position': position};
+    _lastCard = (institutionId, list, position, DateTime.now());
+    // Not a tap after all (a drag): forget it after this pointer's events.
+    scheduleMicrotask(() => _cardContext = null);
+  }
+
+  /// Where the university [institutionId] was opened from — `from` (the
+  /// list) and `position` — when its card was just tapped; empty otherwise.
+  static Map<String, Object?> cardOrigin(String institutionId) {
+    final last = _lastCard;
+    if (last == null || last.$1 != institutionId || DateTime.now().difference(last.$4) > const Duration(seconds: 10)) {
+      return const {};
+    }
+    return {'from': last.$2, 'position': last.$3};
   }
 
   /// A [tracked] long-press callback ran.

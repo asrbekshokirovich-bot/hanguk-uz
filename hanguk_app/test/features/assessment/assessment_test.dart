@@ -142,6 +142,44 @@ void main() {
     });
   });
 
+  group('visaHints: the old quiz\'s tariff and weak point', () {
+    final catalog = [uni('a', topik: 3)];
+    final need = requiredBank(StudyRoute.bachelor, catalog);
+    VisaHints hints(AssessmentInput i) => visaHints(i, catalog: catalog, requiredBankKrw: need, now: DateTime(2026, 10, 26));
+
+    test('TOPIK 2 for a bachelor\'s, income documented, money in the bank: language, Premium', () {
+      final h = hints(AssessmentInput(topik: 2, incomeDocumented: true, bankKrw: need));
+      expect(h.low, 'language');
+      expect(h.tariff, Tariff.premium);
+      expect(h.formalIncome, isTrue);
+    });
+
+    test('TOPIK 1 and nothing in the bank: Hanbox', () {
+      final h = hints(const AssessmentInput(topik: 1, incomeDocumented: true));
+      expect(h.low, 'language');
+      expect(h.tariff, Tariff.hanbox);
+    });
+
+    test('the language met, money short and no income papers: NO RISK, the income first', () {
+      final h = hints(const AssessmentInput(topik: 3, bankKrw: 1000000));
+      expect(h.low, 'income');
+      expect(h.tariff, Tariff.noRisk);
+    });
+
+    test('nothing against: no weak point', () {
+      final h = hints(AssessmentInput(topik: 4, incomeDocumented: true, bankKrw: need));
+      expect(h.low, isNull);
+      expect(h.tariff, Tariff.premium);
+    });
+
+    test('the result the CRM reads carries the tariff (leads.tariff_interest)', () {
+      final r = assess(AssessmentInput(topik: 2, incomeDocumented: true, bankKrw: need, universityIds: const ['a']), catalog: catalog)
+          .toResult();
+      expect(r['tariff'], 'premium');
+      expect(r['low'], 'language');
+    });
+  });
+
   test('segmentsOf follows the design\'s thresholds', () {
     expect([10, 25, 44, 45, 64, 65, 81, 82].map(segmentsOf), [1, 2, 2, 3, 3, 4, 4, 5]);
   });

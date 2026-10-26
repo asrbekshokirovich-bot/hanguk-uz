@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -32,10 +35,53 @@ class ReportScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportScreenState extends ConsumerState<ReportScreen> {
+  bool _resultSent = false;
+
+  /// What the report showed, for the analytics: the visa's band and each
+  /// university's chance, as tens of percent (S5: ranges, not figures); with
+  /// the visa, what the lead's card shows — the weak point, the TOPIK level,
+  /// whether the income is documented, the tariff (VisaHints).
+  void _sendResult(AssessmentOutcome o) {
+    if (_resultSent) return;
+    _resultSent = true;
+    final h = o.hints;
+    AppEvents.track('assessment_result', props: {
+      'kind': 'visa',
+      'band': o.band.name,
+      'score_bucket': o.visaPercent ~/ 10 * 10,
+      if (h != null) ...{
+        'low': h.low,
+        'topik': ref.read(assessmentProvider).topikCounted,
+        'income': h.formalIncome ? 'yes' : 'no',
+        'tariff': h.tariff.code,
+      },
+    });
+    for (final c in o.chances) {
+      AppEvents.track('assessment_result', props: {
+        'kind': 'admission',
+        'institution_id': c.university.institutionId,
+        'score_bucket': c.percent ~/ 10 * 10,
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     AppEvents.track('report_view', props: {'universities': ref.read(assessmentProvider).universityIds.length});
+    // A guest is asked once, a moment after the report shows, whether we
+    // may send news on deadlines and scholarships (GuestPush, plan stage 5).
+    _pushAsk = Timer(const Duration(seconds: 3), () {
+      if (mounted) unawaited(GuestPush.maybeAsk(context));
+    });
+  }
+
+  Timer? _pushAsk;
+
+  @override
+  void dispose() {
+    _pushAsk?.cancel();
+    super.dispose();
   }
 
   String _shareText(AppLocalizations l, AssessmentOutcome o) => [
@@ -55,6 +101,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         body: FdPage(solid: FdColors.blue, child: Center(child: CircularProgressIndicator(color: FdColors.lime))),
       );
     }
+    _sendResult(outcome);
     final best = outcome.chances.isEmpty
         ? null
         : outcome.chances.reduce((a, b) => b.percent > a.percent ? b : a);

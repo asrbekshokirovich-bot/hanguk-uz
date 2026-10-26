@@ -5,6 +5,7 @@ import 'package:vapi/vapi.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import '../../../../core/analytics/app_events.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -812,7 +813,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
               child: Row(
                 children: [
-                  HardIconButton(glyph: LucideIcons.x, semanticLabel: l.endInterview, onTap: _endFromUser),
+                  HardIconButton(glyph: LucideIcons.x, semanticLabel: l.endInterview, onTap: tracked('interview_active.end_interview', _endFromUser)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -899,7 +900,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                 muted: _muted,
                 enabled: _isCallActive && _call != null,
                 label: _muted ? l.fdInterviewUnmute : l.fdInterviewMute,
-                onTap: _toggleMute,
+                onTap: tracked('interview_active.mic_button', _toggleMute),
               ),
             ),
             // A labelled End button under the mic (owner, 2026-10-22: the X
@@ -910,7 +911,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               child: HardButton(
                 label: state.isLoading ? l.sptChecking : l.endInterview,
                 loading: state.isLoading,
-                onPressed: _didEndSession ? null : _endFromUser,
+                onPressed: tracked('interview_active.spt_checking', _didEndSession ? null : _endFromUser),
               ),
             ),
             Padding(
@@ -1151,7 +1152,7 @@ class _MicButton extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: enabled ? onTap : null,
+        onTap: tracked('interview_active.mic_button', enabled ? onTap : null),
         behavior: HitTestBehavior.opaque,
         child: Opacity(
           opacity: enabled ? 1 : 0.5,

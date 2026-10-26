@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton, HardShadowBox;
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -245,7 +246,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                       HardIconButton(
                         glyph: LucideIcons.chevronLeft,
                         semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                        onTap: _leave,
+                        onTap: tracked('study_plan_builder.leave', _leave),
                       ),
                       const SizedBox(width: 10),
                       Text(l.fdPlanTitle, style: fdText(18, FontWeight.w800, FdColors.onPage, letterSpacing: -0.36)),
@@ -267,13 +268,13 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                       ? const Center(child: CircularProgressIndicator(color: FdColors.navy))
                       : _failed
                       ? _Failed(
-                          onRetry: () {
+                          onRetry: tracked('study_plan_builder.failed_retry', () {
                             setState(() {
                               _opening = true;
                               _failed = false;
                             });
                             _open();
-                          },
+                          }),
                         )
                       : _body(l),
                 ),
@@ -313,7 +314,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                               : (i == _step ? _controller.text : _parts[i]).trim().length >= kPlanMinChars
                               ? _ChipState.done
                               : _ChipState.ahead,
-                          onTap: () => _go(i),
+                          onTap: tracked('study_plan_builder.step_chip', () => _go(i)),
                         ),
                       ),
                     ],
@@ -396,14 +397,14 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
               _MicButton(
                 listening: _listening,
                 label: _listening ? l.fdPlanDictateStop : l.fdPlanDictate,
-                onTap: _busy ? null : _toggleDictation,
+                onTap: tracked('study_plan_builder.mic_button', _busy ? null : _toggleDictation),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: HardButton(
                   label: _busy ? l.fdPlanFeedbackBusy : l.fdPlanFeedback,
                   loading: _busy,
-                  onPressed: _busy ? null : _feedback,
+                  onPressed: tracked('study_plan_builder.plan_feedback_busy', _busy ? null : _feedback),
                   leading: const Lucide(LucideIcons.sparkles, size: 16, color: FdColors.onLime),
                 ),
               ),
@@ -430,7 +431,7 @@ class _MicButton extends StatelessWidget {
     label: label,
     excludeSemantics: true,
     child: GestureDetector(
-      onTap: onTap,
+      onTap: tracked('study_plan_builder.mic_button', onTap),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 52,
@@ -468,7 +469,7 @@ class _StepChip extends StatelessWidget {
       button: true,
       selected: state == _ChipState.active,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('study_plan_builder.step_chip', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 44,
@@ -586,7 +587,7 @@ class _Failed extends StatelessWidget {
               selected: false,
               height: 44,
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              onTap: onRetry,
+              onTap: tracked('study_plan_builder.failed_retry', onRetry),
             ),
           ],
         ),
@@ -674,7 +675,7 @@ class _FeedbackSheet extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(16, 4, 16, MediaQuery.paddingOf(context).bottom + 16),
               child: HardButton(
                 label: last ? l.fdPlanClose : l.fdPlanNext,
-                onPressed: () => Navigator.of(context).pop(!last),
+                onPressed: tracked('study_plan_builder.plan_close', () => Navigator.of(context).pop(!last)),
               ),
             ),
           ],

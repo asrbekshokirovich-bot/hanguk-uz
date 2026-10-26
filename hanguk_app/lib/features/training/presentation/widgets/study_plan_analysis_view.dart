@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/study_plan_repository.dart';
@@ -58,9 +59,9 @@ class StudyPlanAnalysisView extends ConsumerWidget {
               _AnalysisFailure(
                 message: message,
                 retryLabel: l.analysisRetryButton,
-                onRetry: () => ref
+                onRetry: tracked('study_plan_analysis.analysis_failure_retry', () => ref
                     .read(studyPlanSessionProvider.notifier)
-                    .analyzeCurrentDraft(documentType),
+                    .analyzeCurrentDraft(documentType)),
               )
             else
               Center(
@@ -102,9 +103,9 @@ class StudyPlanAnalysisView extends ConsumerWidget {
           const SizedBox(height: 16),
           LimeButton(
             label: l.returnToDrafting,
-            onPressed: () => ref
+            onPressed: tracked('study_plan_analysis.return_to_drafting', () => ref
                 .read(studyPlanSessionProvider.notifier)
-                .updateSessionStep(documentType, 3),
+                .updateSessionStep(documentType, 3)),
           ),
         ],
       ),
@@ -264,7 +265,7 @@ class _AnalysisFailure extends StatelessWidget {
           SeoulOutlineButton(
             label: retryLabel,
             expand: false,
-            onPressed: onRetry,
+            onPressed: tracked('study_plan_analysis.analysis_failure_retry', onRetry),
           ),
         ],
       ),

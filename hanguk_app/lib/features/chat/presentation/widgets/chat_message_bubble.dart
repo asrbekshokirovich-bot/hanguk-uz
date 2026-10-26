@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../moderation/data/ai_report_repository.dart';
@@ -116,7 +117,7 @@ class _ReportAction extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 4, left: 4),
       child: InkWell(
-        onTap: () => showAiReportSheet(
+        onTap: tracked('chat_message_bubble.show_ai_report_sheet', () => showAiReportSheet(
           context,
           surface: AiSurface.chat,
           reportedText: text,
@@ -124,7 +125,7 @@ class _ReportAction extends StatelessWidget {
             if (messageId != null) 'message_id': messageId,
             'locale': Localizations.localeOf(context).languageCode,
           },
-        ),
+        )),
         borderRadius: BorderRadius.circular(SeoulRadii.control),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),

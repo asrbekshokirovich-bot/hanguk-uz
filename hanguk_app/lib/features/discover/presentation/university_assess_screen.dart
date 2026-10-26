@@ -124,6 +124,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
         _started = true;
         AppEvents.track('assessment_start', props: {'kind': 'university', 'institution_id': u.institutionId});
       }
+      trackAnswers('university', input, next);
       ref.read(assessmentProvider.notifier).set(next);
     }
 

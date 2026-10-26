@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/seen.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
@@ -58,27 +59,34 @@ class ChosenScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
-                children: [
-                  Text(
-                    chosen.isEmpty ? l.fdChosenEmpty : l.fdPickedHint(chosen.length),
-                    style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.4),
-                  ),
-                  const SizedBox(height: 8),
-                  for (var i = 0; i < chosen.length; i++) ...[
-                    const SizedBox(height: 8),
-                    _Row(
-                      rank: i + 1,
-                      university: chosen[i],
-                      percent: book.admission(chosen[i]),
-                      onTap: tracked('chosen.row', () => context.push(universityPath(chosen[i].institutionId)), props: {'institution_id': chosen[i].institutionId}),
-                      onRemove: tracked('chosen.row_remove', () => ref.read(slotsProvider.notifier).remove(chosen[i].institutionId), props: {'institution_id': chosen[i].institutionId}),
+              child: SeenList(
+                name: 'chosen',
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+                  children: [
+                    Text(
+                      chosen.isEmpty ? l.fdChosenEmpty : l.fdPickedHint(chosen.length),
+                      style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.4),
                     ),
+                    const SizedBox(height: 8),
+                    for (var i = 0; i < chosen.length; i++) ...[
+                      const SizedBox(height: 8),
+                      Seen(
+                        id: chosen[i].institutionId,
+                        position: i + 1,
+                        child: _Row(
+                          rank: i + 1,
+                          university: chosen[i],
+                          percent: book.admission(chosen[i]),
+                          onTap: tracked('chosen.row', () => context.push(universityPath(chosen[i].institutionId)), props: {'institution_id': chosen[i].institutionId}),
+                          onRemove: tracked('chosen.row_remove', () => ref.read(slotsProvider.notifier).remove(chosen[i].institutionId), props: {'institution_id': chosen[i].institutionId}),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    _VisaCard(visa: book.visa, consultant: book.visaConsultant),
                   ],
-                  const SizedBox(height: 12),
-                  _VisaCard(visa: book.visa, consultant: book.visaConsultant),
-                ],
+                ),
               ),
             ),
             if (chosen.isNotEmpty)

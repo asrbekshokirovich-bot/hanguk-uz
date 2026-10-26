@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/catalog_compare_provider.dart';
@@ -59,7 +60,7 @@ class CatalogCompareTray extends ConsumerWidget {
                   button: true,
                   enabled: ready,
                   child: GestureDetector(
-                    onTap: ready ? () => CatalogCompareScreen.open(context, isGuest: isGuest) : null,
+                    onTap: tracked('catalog_compare_tray.compare_tray_cta', ready ? () => CatalogCompareScreen.open(context, isGuest: isGuest) : null),
                     behavior: HitTestBehavior.opaque,
                     child: Opacity(
                       opacity: ready ? 1 : 0.4,

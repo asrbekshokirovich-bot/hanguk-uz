@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../discover/presentation/visa_screen.dart';
 import '../../discover/presentation/prepare_screen.dart';
@@ -69,7 +70,7 @@ class _ClientShellState extends State<ClientShell> {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(signedIn: true),
       AppTab.home => VisaScreen(embedded: true, active: _tab == AppTab.home),
-      AppTab.application => JourneyScreen(onBrowse: () => _go(AppTab.universities)),
+      AppTab.application => JourneyScreen(onBrowse: tracked('client_shell.journey_screen_browse', () => _go(AppTab.universities))),
       _ => const ClientDocumentsScreen(),
     };
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../applications/data/applications_repository.dart';
@@ -100,9 +101,9 @@ class NotificationsScreen extends ConsumerWidget {
             _Header(
               title: l.homeNotifications,
               showMarkRead: pushNotifications.any((n) => !n.read),
-              onMarkAllRead: () {
+              onMarkAllRead: tracked('notifications.home_notifications_mark_all_read', () {
                 ref.read(notificationStoreProvider.notifier).markAllRead();
-              },
+              }),
             ),
             Expanded(
               child: loading
@@ -132,7 +133,7 @@ class NotificationsScreen extends ConsumerWidget {
                           for (final n in pushNotifications) ...[
                             _PushNotificationCard(
                               item: n,
-                              onTap: () => _openNotification(context, ref, n),
+                              onTap: tracked('notifications.push_notification_card', () => _openNotification(context, ref, n)),
                             ),
                             const SizedBox(height: 10),
                           ],
@@ -153,11 +154,11 @@ class NotificationsScreen extends ConsumerWidget {
                               title: t.localizedName(l),
                               chipLabel: l.notifToUpload,
                               chipTone: StatusTone.warning,
-                              onTap: () => _openSection(
+                              onTap: tracked('notifications.reminder_upload', () => _openSection(
                                 ref,
                                 context,
                                 SeoulSection.documents,
-                              ),
+                              )),
                             ),
                             const SizedBox(height: 10),
                           ],
@@ -181,11 +182,11 @@ class NotificationsScreen extends ConsumerWidget {
                                 l,
                               ),
                               chipLabel: null,
-                              onTap: () => _openSection(
+                              onTap: tracked('notifications.reminder_application', () => _openSection(
                                 ref,
                                 context,
                                 SeoulSection.applications,
-                              ),
+                              )),
                             ),
                             const SizedBox(height: 10),
                           ],
@@ -229,7 +230,7 @@ class _Header extends StatelessWidget {
             button: true,
             label: MaterialLocalizations.of(context).backButtonTooltip,
             child: GestureDetector(
-              onTap: () => context.pop(),
+              onTap: tracked('notifications.back', () => context.pop()),
               child: Container(
                 width: SeoulSizes.minTapTarget,
                 height: SeoulSizes.minTapTarget,
@@ -253,7 +254,7 @@ class _Header extends StatelessWidget {
           ),
           if (showMarkRead)
             GestureDetector(
-              onTap: onMarkAllRead,
+              onTap: tracked('notifications.header_mark_all_read', onMarkAllRead),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -332,7 +333,7 @@ class _PushNotificationCard extends StatelessWidget {
     return GlassCard(
       blur: false,
       padding: const EdgeInsets.all(14),
-      onTap: onTap,
+      onTap: tracked('notifications.push_notification_card', onTap),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -431,7 +432,7 @@ class _ReminderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      onTap: onTap,
+      onTap: tracked('notifications.reminder_card', onTap),
       blur: false,
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       child: Row(

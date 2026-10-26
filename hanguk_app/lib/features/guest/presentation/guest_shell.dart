@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart' show SignInLogoTile, cssBlur, cssLinearGradient;
@@ -78,7 +79,7 @@ class _GuestShellState extends ConsumerState<GuestShell> {
   /// The header pill opens the contact sheet — Telegram channel, a direct
   /// message, Instagram and the phone — with the magic-code login kept as its
   /// last row so the conversion path is not lost.
-  void _contact() => ContactSheet.show(context, onJoin: _join);
+  void _contact() => ContactSheet.show(context, onJoin: tracked('guest_shell.contact_sheet_join', _join));
 
   /// The 한 tile exits guest mode entirely (spec §3b).
   void _exit() => context.go('/welcome');
@@ -98,20 +99,20 @@ class _GuestShellState extends ConsumerState<GuestShell> {
       ko: '탐색',
       glyph: '탐',
       active: _section == GuestSection.explore,
-      onTap: () => _go(GuestSection.explore),
+      onTap: tracked('guest_shell.guest_nav_explore', () => _go(GuestSection.explore)),
     ),
     HanOrbItem(
       label: l.navMap,
       ko: '지도',
       glyph: '도',
       active: _section == GuestSection.map,
-      onTap: () => _go(GuestSection.map),
+      onTap: tracked('guest_shell.nav_map', () => _go(GuestSection.map)),
     ),
     // The conversion item. `active` is deliberately false: it paints the
     // tile lime, but it also sets Semantics(selected: true), which announces
     // "Join Hanguk" to a screen reader as the section you are currently in.
     // The header pill already carries the lime emphasis.
-    HanOrbItem(label: l.guestJoinCta, ko: '가입', glyph: '가', onTap: _join),
+    HanOrbItem(label: l.guestJoinCta, ko: '가입', glyph: '가', onTap: tracked('guest_shell.guest_join_cta', _join)),
   ];
 
   Widget _header(AppLocalizations l) {
@@ -124,7 +125,7 @@ class _GuestShellState extends ConsumerState<GuestShell> {
             button: true,
             label: MaterialLocalizations.of(context).backButtonTooltip,
             child: GestureDetector(
-              onTap: _exit,
+              onTap: tracked('guest_shell.exit', _exit),
               // The brand logo — the Welcome screen's tile, without its halo,
               // as tall as the text beside it ("Mehmon rejimi" down to "탐색").
               child: const SignInLogoTile(
@@ -175,7 +176,7 @@ class _GuestShellState extends ConsumerState<GuestShell> {
           // Short on purpose: "Join Hanguk" was ellipsised to "Hangukk…" in
           // the width the header can spare, and the pill no longer goes to
           // the login anyway — it opens the contact sheet.
-          _JoinPill(label: l.guestContactCta, ko: '문의', onTap: _contact),
+          _JoinPill(label: l.guestContactCta, ko: '문의', onTap: tracked('guest_shell.guest_contact_cta', _contact)),
         ],
       ),
     );
@@ -289,7 +290,7 @@ class _JoinPill extends StatelessWidget {
       button: true,
       label: label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('guest_shell.join_pill', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 39,
