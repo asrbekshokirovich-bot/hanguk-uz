@@ -10,7 +10,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/analytics/app_events.dart';
 import 'core/analytics/http_tracking.dart';
 import 'core/analytics/identity_links.dart';
-import 'core/analytics/link_welcome.dart';
 import 'core/analytics/tracked.dart';
 import 'core/money/fx_rates.dart';
 import 'core/router/app_router.dart';
@@ -162,9 +161,8 @@ class HangukApp extends ConsumerWidget {
         // Auto-update gate runs on launch + every foreground transition,
         // so updates aren't gated behind the login screen anymore.
         final wrapped = UpdateGate(child: child ?? const SizedBox.shrink());
-        // Every tap and scroll, for the analytics (AppEvents); and, once,
-        // word that an operator's link tied the phone to the consultant.
-        return AnalyticsRoot(child: LinkWelcome(child: wrapped));
+        // Every tap and scroll, for the analytics (AppEvents).
+        return AnalyticsRoot(child: wrapped);
       },
       // Audit L1/L3 closure 2026-05-10: full flutter_localizations wiring.
       // Non-English ARB files seeded with English placeholders + a

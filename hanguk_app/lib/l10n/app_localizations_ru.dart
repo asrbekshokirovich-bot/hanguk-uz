@@ -5599,8 +5599,4 @@ class AppLocalizationsRu extends AppLocalizations {
   String deviceCodeVersion(String version) {
     return 'Версия $version';
   }
-
-  @override
-  String get linkWelcome =>
-      'Вы открыли приложение по ссылке консультанта — теперь он видит ваш выбор и сможет точнее помочь.';
 }

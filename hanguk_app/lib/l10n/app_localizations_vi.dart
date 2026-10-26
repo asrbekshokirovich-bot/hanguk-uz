@@ -5571,8 +5571,4 @@ class AppLocalizationsVi extends AppLocalizations {
   String deviceCodeVersion(String version) {
     return 'Phiên bản $version';
   }
-
-  @override
-  String get linkWelcome =>
-      'Bạn đã mở ứng dụng từ liên kết của tư vấn viên — giờ họ có thể xem lựa chọn của bạn và tư vấn chính xác hơn.';
 }

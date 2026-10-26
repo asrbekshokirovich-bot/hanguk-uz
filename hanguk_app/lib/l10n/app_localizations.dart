@@ -10051,12 +10051,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version}'**
   String deviceCodeVersion(String version);
-
-  /// Shown once after the app was opened from the link the person's consultant sent (hanguk.uz/l/<code>)
-  ///
-  /// In en, this message translates to:
-  /// **'You opened the app from your consultant\'s link — they can now see what you choose and advise you better.'**
-  String get linkWelcome;
 }
 
 class _AppLocalizationsDelegate
