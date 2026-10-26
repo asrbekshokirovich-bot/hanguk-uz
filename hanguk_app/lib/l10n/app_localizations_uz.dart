@@ -5601,8 +5601,6 @@ class AppLocalizationsUz extends AppLocalizations {
     return 'Versiya $version';
   }
 
-
-
   @override
   String get leadForWhomQ => 'Kim uchun?';
 
@@ -5614,8 +5612,6 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get leadForWhomRelative => 'Qarindoshim uchun';
-
-
 
   @override
   String get leadHowHeardQ => 'Bizni qayerdan topdingiz?';

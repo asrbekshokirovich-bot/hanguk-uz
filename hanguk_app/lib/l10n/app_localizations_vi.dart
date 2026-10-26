@@ -5572,8 +5572,6 @@ class AppLocalizationsVi extends AppLocalizations {
     return 'Phiên bản $version';
   }
 
-
-
   @override
   String get leadForWhomQ => 'Cho ai?';
 
@@ -5585,8 +5583,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get leadForWhomRelative => 'Cho người thân';
-
-
 
   @override
   String get leadHowHeardQ => 'Bạn biết đến chúng tôi qua đâu?';

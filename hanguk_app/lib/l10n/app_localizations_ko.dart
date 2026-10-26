@@ -5404,8 +5404,6 @@ class AppLocalizationsKo extends AppLocalizations {
     return '버전 $version';
   }
 
-
-
   @override
   String get leadForWhomQ => '누구를 위한 상담인가요?';
 
@@ -5417,8 +5415,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get leadForWhomRelative => '친척';
-
-
 
   @override
   String get leadHowHeardQ => '저희를 어떻게 알게 되셨나요?';
