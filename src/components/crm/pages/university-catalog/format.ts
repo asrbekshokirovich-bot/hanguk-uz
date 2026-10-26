@@ -84,10 +84,19 @@ export interface DisplayName {
   secondary: string | null;
 }
 
-/** Kartada: yuqorida inglizcha nom, pastida koreyscha (yoki teskarisi). */
+/**
+ * Kartada: yuqorida inglizcha nom, pastida koreyscha (yoki teskarisi).
+ *
+ * Nom institutions jadvalidan olinadi. Excel yo'riqnomasidagi univ_nomi_en /
+ * univ_nomi_kr xodim qo'lda yozgan matn: magistratura fayllarida u
+ * "… — Graduate School", "(Graduate School)", "… 일반대학원" kabi qo'shimcha
+ * bilan keladi va eng yangi yo'riqnoma magistratura bo'lsa, universitet nomi
+ * shunday ko'rinib qolardi. Excel nomi faqat institutions'da nom yo'q bo'lsa
+ * zaxira sifatida ishlatiladi.
+ */
 export function displayName(entry: CatalogEntry): DisplayName {
-  const en = entry.latest?.univ_nomi_en?.trim() || entry.institution.name_en?.trim() || '';
-  const ko = entry.latest?.univ_nomi_kr?.trim() || entry.institution.name_ko?.trim() || '';
+  const en = entry.institution.name_en?.trim() || entry.latest?.univ_nomi_en?.trim() || '';
+  const ko = entry.institution.name_ko?.trim() || entry.latest?.univ_nomi_kr?.trim() || '';
   if (en && ko) return { primary: en, secondary: ko };
   return { primary: en || ko || '—', secondary: null };
 }

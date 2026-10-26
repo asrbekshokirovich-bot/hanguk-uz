@@ -185,9 +185,15 @@ class CatalogUniversity {
   /// An official HANGUK partner.
   bool get isPartner => guidelines.any((g) => g.isPartner == true);
 
-  /// English name as staff wrote it in the Excel, then the catalogue's.
+  /// The university's catalogue name (institutions), then the Excel's.
+  ///
+  /// The Excel name is free text staff typed per guideline; graduate-school
+  /// files carry "— Graduate School", "(Graduate School)", "일반대학원" and the
+  /// like, which showed as the university's name whenever that guideline was
+  /// the one picked. It is only a fallback for a university the catalogue has
+  /// no name for.
   String get displayName =>
-      _firstNonEmpty([primary.univNameEn, primary.nameEn, primary.univNameKr, primary.nameKo]) ??
+      _firstNonEmpty([primary.nameEn, primary.univNameEn, primary.nameKo, primary.univNameKr]) ??
       '';
 
   String? get nameKo => _firstNonEmpty([primary.nameKo, primary.univNameKr]);

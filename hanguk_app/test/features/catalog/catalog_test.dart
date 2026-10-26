@@ -61,6 +61,24 @@ List<CatalogUniversity> _catalogue() => groupCatalogRows([
 ]);
 
 void main() {
+  group('CatalogUniversity.displayName', () {
+    test('shows the catalogue name, not the Excel\'s graduate-school suffix', () {
+      final row = _row('g1', 'u1', name: 'Daegu Haany University', nameKo: '대구한의대학교', degree: 'magistratura')
+        ..['univ_nomi_en'] = 'Daegu Haany University — Graduate School'
+        ..['univ_nomi_kr'] = '대구한의대학교 일반대학원';
+      final u = groupCatalogRows([row]).single;
+      expect(u.displayName, 'Daegu Haany University');
+      expect(u.nameKo, '대구한의대학교');
+    });
+
+    test('falls back to the Excel name when the catalogue has none', () {
+      final row = _row('g1', 'u1', name: 'Alpha University')
+        ..['name_en'] = null
+        ..['univ_nomi_en'] = 'Alpha Univ.';
+      expect(groupCatalogRows([row]).single.displayName, 'Alpha Univ.');
+    });
+  });
+
   group('groupCatalogRows', () {
     test('one entry per university, every degree kept', () {
       final all = _catalogue();
