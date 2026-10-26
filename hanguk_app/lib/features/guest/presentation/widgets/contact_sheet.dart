@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/analytics/contact_codes.dart';
 import '../../../../core/analytics/tracked.dart';
 import '../../../../core/config/contact_links.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
@@ -35,6 +36,19 @@ class ContactSheet extends StatelessWidget {
       messenger.showSnackBar(
         SnackBar(content: Text(l.guestContactLaunchFailed)),
       );
+    }
+  }
+
+  /// The consultant's Telegram, the message typed in with this phone's code
+  /// (ContactCodes): the chat is then tied to the phone.
+  Future<void> _openTelegram(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context)!;
+    Navigator.of(context).pop();
+    final uri = await ContactCodes.telegram(l.contactTelegramMessage);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      messenger.showSnackBar(SnackBar(content: Text(l.guestContactLaunchFailed)));
     }
   }
 
@@ -98,7 +112,7 @@ class ContactSheet extends StatelessWidget {
                 glyph: '톡',
                 label: l.guestContactTelegramDirect,
                 value: l.guestContactTelegramDirectHint,
-                onTap: tracked('contact_sheet.guest_contact_telegram_direct', () => _open(context, ContactLinks.telegramDirectUri)),
+                onTap: tracked('contact_sheet.guest_contact_telegram_direct', () => _openTelegram(context)),
               ),
               _ContactRow(
                 glyph: '인',
