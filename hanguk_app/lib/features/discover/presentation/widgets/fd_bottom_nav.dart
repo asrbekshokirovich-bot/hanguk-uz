@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 
@@ -44,7 +45,7 @@ class FdBottomNav extends StatelessWidget {
     final inset = MediaQuery.paddingOf(context).bottom;
     final split = hasCenter ? items.length ~/ 2 : items.length;
     Widget tab(int i) => Expanded(
-      child: _Tab(item: items[i], selected: i == current, onTap: () => onSelect(i)),
+      child: _Tab(item: items[i], selected: i == current, onTap: tracked('fd_bottom_nav.select', () => onSelect(i), props: {'value': i})),
     );
     final bar = DecoratedBox(
       decoration: const BoxDecoration(
@@ -118,7 +119,7 @@ class FdNavOrb extends StatelessWidget {
       label: '$label $value',
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('fd_bottom_nav.fd_nav_orb', onTap),
         child: Container(
           width: 62,
           height: 62,
@@ -158,7 +159,7 @@ class _Tab extends StatelessWidget {
       label: item.label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('fd_bottom_nav.tab', onTap),
         behavior: HitTestBehavior.opaque,
         child: Stack(
           clipBehavior: Clip.none,

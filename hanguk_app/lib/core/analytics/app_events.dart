@@ -72,6 +72,8 @@ abstract final class AppEvents {
     _taps.clear();
     _recent.clear();
     _rageAt = null;
+    _cardContext = null;
+    _lastCard = null;
     _settleScheduled = false;
     _errors = 0;
   }
@@ -79,6 +81,17 @@ abstract final class AppEvents {
   /// The screen the person is on: a route pattern ("/university/:id"), a
   /// shell route with its tab ("/guest#universities"), or an open sheet.
   static String? get screen => _surfaces.current ?? _surfaces.compute();
+
+  /// This installation's id, once recording has started.
+  static String? get installId => _sink?._installId;
+
+  /// "1.1.3 (2103)": the app's version and build, once recording has started.
+  static String? get appVersion {
+    final c = _sink?._context;
+    final v = c?['app_version'];
+    if (v == null) return null;
+    return '$v (${c?['app_build'] ?? '?'})';
+  }
 
   /// The code staff type into the CRM to mark this phone as a test device:
   /// the first 8 characters of the installation id, as "XXXX-XXXX".
@@ -100,8 +113,35 @@ abstract final class AppEvents {
     int? durationMs,
   }) {
     final s = screen ?? AppEvents.screen;
-    debugOnTrack?.call(TrackedEvent(event, screen: s, element: element, props: props, durationMs: durationMs));
-    _sink?.add(event, screen: s, element: element, props: props, durationMs: durationMs);
+    final p = props == null ? null : _clean(props);
+    debugOnTrack?.call(TrackedEvent(event, screen: s, element: element, props: p, durationMs: durationMs));
+    _sink?.add(event, screen: s, element: element, props: p, durationMs: durationMs);
+  }
+
+  /// Props as JSON can carry them: text, numbers and true/false as they are,
+  /// an enum by its name, anything else as short text. Nulls are dropped.
+  static Map<String, Object?> _clean(Map<String, Object?> props) => {
+    for (final e in props.entries)
+      if (e.value != null)
+        e.key: switch (e.value) {
+          final String v => v.length > 120 ? v.substring(0, 120) : v,
+          final num v => v.isFinite ? v : null,
+          final bool v => v,
+          final Enum v => v.name,
+          final Object v => _short(v.toString()),
+          null => null,
+        },
+  };
+
+  static String _short(String s) => s.length > 60 ? s.substring(0, 60) : s;
+
+  /// Text someone typed (a search), fit for the analytics: lower case, single
+  /// spaces, at most [max] characters — or null when it may hold contact
+  /// details (an @, or five digits or more: a phone number).
+  static String? cleanText(String text, {int max = 80}) {
+    final t = text.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    if (t.isEmpty || t.contains('@') || RegExp(r'\d').allMatches(t).length >= 5) return null;
+    return t.length > max ? t.substring(0, max) : t;
   }
 
   /// The app's interface language, sent with every batch.
@@ -214,25 +254,52 @@ abstract final class AppEvents {
       at: at,
       screen: screen,
       time: DateTime.now(),
-    );
+    )..props = _cardContext;
+    _cardContext = null;
     _taps.add(tap);
     scheduleMicrotask(() => _commitTap(tap));
     _rage(tap);
   }
 
-  /// A [tracked] callback ran: names the tap the root listener just saw, or
-  /// records a tap without position (a keyboard, a screen reader, a delayed
-  /// recognizer).
+  /// A [tracked] callback ran: names the tap the root listener just saw.
+  /// Without one (a keyboard, a screen reader, a recognizer that fires late)
+  /// the tap is recorded without a position. When wrapped callbacks call one
+  /// another in one press, the last — the outer, more specific — name wins.
   static void tap(String element, {Map<String, Object?>? props}) {
-    final pending = _taps.where((t) => t.element == null).toList();
-    if (pending.isNotEmpty) {
-      final t = pending.last
-        ..element = element
-        ..props = props;
-      _commitTap(t);
-    } else {
-      track('tap', element: element, props: props);
+    var t = _taps.isEmpty ? null : _taps.last;
+    if (t == null) {
+      final pending = _PendingTap(screen: screen, time: DateTime.now());
+      _taps.add(pending);
+      scheduleMicrotask(() => _commitTap(pending));
+      t = pending;
     }
+    t
+      ..element = element
+      ..props = {...?t.props, ...?props};
+  }
+
+  // ── Cards (SeenList) ─────────────────────────────────────────────────────
+
+  static Map<String, Object?>? _cardContext;
+  static (String, String, int, DateTime)? _lastCard;
+
+  /// A finger left a university's card at [position] in [list]: the tap it
+  /// ends carries them, and the university's page knows it came from there.
+  static void cardTapped(String institutionId, String list, int position) {
+    _cardContext = {'institution_id': institutionId, 'list': list, 'position': position};
+    _lastCard = (institutionId, list, position, DateTime.now());
+    // Not a tap after all (a drag): forget it after this pointer's events.
+    scheduleMicrotask(() => _cardContext = null);
+  }
+
+  /// Where the university [institutionId] was opened from — `from` (the
+  /// list) and `position` — when its card was just tapped; empty otherwise.
+  static Map<String, Object?> cardOrigin(String institutionId) {
+    final last = _lastCard;
+    if (last == null || last.$1 != institutionId || DateTime.now().difference(last.$4) > const Duration(seconds: 10)) {
+      return const {};
+    }
+    return {'from': last.$2, 'position': last.$3};
   }
 
   /// A [tracked] long-press callback ran.
@@ -241,7 +308,7 @@ abstract final class AppEvents {
 
   static void _commitTap(_PendingTap t) {
     if (!_taps.remove(t)) return;
-    track('tap', screen: t.screen, element: t.element, props: {'x': t.x, 'y': t.y, ...?t.props});
+    track('tap', screen: t.screen, element: t.element, props: {'x': ?t.x, 'y': ?t.y, ...?t.props});
   }
 
   static final List<_PendingTap> _recent = [];
@@ -252,7 +319,9 @@ abstract final class AppEvents {
   static void _rage(_PendingTap t) {
     _recent.add(t);
     _recent.removeWhere((r) => t.time.difference(r.time).inMilliseconds > 1000);
-    final near = _recent.where((r) => (r.at - t.at).distance < 40).length;
+    final at = t.at;
+    if (at == null) return;
+    final near = _recent.where((r) => r.at != null && (r.at! - at).distance < 40).length;
     final last = _rageAt;
     if (near >= 3 && (last == null || t.time.difference(last).inMilliseconds > 1000)) {
       _rageAt = t.time;
@@ -316,11 +385,11 @@ abstract final class AppEvents {
 }
 
 class _PendingTap {
-  _PendingTap({required this.x, required this.y, required this.at, required this.screen, required this.time});
+  _PendingTap({this.x, this.y, this.at, required this.screen, required this.time});
 
-  final double x;
-  final double y;
-  final Offset at;
+  final double? x;
+  final double? y;
+  final Offset? at;
   final String? screen;
   final DateTime time;
   String? element;

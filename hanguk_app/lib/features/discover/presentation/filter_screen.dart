@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -52,7 +53,7 @@ class FilterScreen extends ConsumerWidget {
     void back() => context.canPop() ? context.pop() : context.go(kDiscoverPath);
 
     Widget link(String text, VoidCallback? onTap) => GestureDetector(
-      onTap: onTap,
+      onTap: tracked('filter.link', onTap),
       behavior: HitTestBehavior.opaque,
       child: Text(text, style: fdText(12, FontWeight.w800, onTap == null ? FdColors.pageMuted : FdColors.lime)),
     );
@@ -71,7 +72,7 @@ class FilterScreen extends ConsumerWidget {
                 HardIconButton(
                   glyph: LucideIcons.chevronLeft,
                   semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: back,
+                  onTap: tracked('filter.back', back),
                 ),
                 const SizedBox(width: 10),
                 Text(l.fltTitle, style: fdText(18, FontWeight.w800, FdColors.onPage, letterSpacing: -0.36)),
@@ -88,7 +89,10 @@ class FilterScreen extends ConsumerWidget {
               children: [
                 FdSectionLabel(
                   l.fdSectionField,
-                  trailing: link(l.fltAllFields, f.field == null ? null : () => set(f.copyWith(field: () => null))),
+                  trailing: link(
+                    l.fltAllFields,
+                    tracked('filter.all_fields', f.field == null ? null : () => set(f.copyWith(field: () => null))),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _Grid(
@@ -104,7 +108,11 @@ class FilterScreen extends ConsumerWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         selected: f.field == t.key,
-                        onTap: () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
+                        onTap: tracked(
+                          'filter.field',
+                          () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
+                          props: {'value': t.key},
+                        ),
                       ),
                     HardChoice(
                       label: l.fdOther,
@@ -114,14 +122,17 @@ class FilterScreen extends ConsumerWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       selected: false,
-                      onTap: () => context.push(kDiscoverSearchPath),
+                      onTap: tracked('filter.other', () => context.push(kDiscoverSearchPath)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 FdSectionLabel(
                   l.fdSectionCityMap,
-                  trailing: link(l.fdAllRegions, f.regions.isEmpty ? null : () => set(f.copyWith(regions: const {}))),
+                  trailing: link(
+                    l.fdAllRegions,
+                    tracked('filter.all_regions', f.regions.isEmpty ? null : () => set(f.copyWith(regions: const {}))),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 RegionMap(
@@ -176,7 +187,7 @@ class FilterScreen extends ConsumerWidget {
                       HardChoice(
                         label: label,
                         selected: f.type == value,
-                        onTap: () => set(f.copyWith(type: () => value)),
+                        onTap: tracked('filter.type', () => set(f.copyWith(type: () => value)), props: {'value': value ?? 'any'}),
                       ),
                   ],
                 ),
@@ -190,7 +201,7 @@ class FilterScreen extends ConsumerWidget {
                       HardChoice(
                         label: label,
                         selected: f.onePercent == value,
-                        onTap: () => set(f.copyWith(onePercent: value)),
+                        onTap: tracked('filter.one_percent', () => set(f.copyWith(onePercent: value)), props: {'value': value}),
                       ),
                   ],
                 ),
@@ -216,7 +227,7 @@ class FilterScreen extends ConsumerWidget {
           ),
           FdBottomBar(
             aboveNav: true,
-            child: HardButton(label: l.fdShowUniversities(results.length), onPressed: back),
+            child: HardButton(label: l.fdShowUniversities(results.length), onPressed: tracked('filter.show_universities', back)),
           ),
         ],
       ),

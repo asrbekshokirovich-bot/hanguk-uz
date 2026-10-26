@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/chat_repository.dart';
@@ -161,7 +162,7 @@ class _ChatTabState extends ConsumerState<ChatTab> {
                   const SizedBox(width: 12),
                   _SendButton(
                     tooltip: l.a11yTooltipSendMessage,
-                    onPressed: chatState.isLoading ? null : _handleSend,
+                    onPressed: tracked('chat_tab.send_message', chatState.isLoading ? null : _handleSend),
                   ),
                 ],
               ),
@@ -209,9 +210,9 @@ class _ChatTabState extends ConsumerState<ChatTab> {
                   minWidth: SeoulSizes.minTapTarget,
                   minHeight: SeoulSizes.minTapTarget,
                 ),
-                onPressed: () {
+                onPressed: tracked('chat_tab.clear_chat', () {
                   ref.read(chatProvider.notifier).clearChat();
-                },
+                }),
               ),
             ],
           ),
@@ -272,7 +273,7 @@ class _SendButtonState extends State<_SendButton> {
       child: Tooltip(
         message: widget.tooltip,
         child: GestureDetector(
-          onTap: widget.onPressed,
+          onTap: tracked('chat_tab.send_button', widget.onPressed),
           onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
           onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
           onTapCancel: enabled ? () => setState(() => _pressed = false) : null,

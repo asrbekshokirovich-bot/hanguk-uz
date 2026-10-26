@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -71,7 +72,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
   @override
   void initState() {
     super.initState();
-    AppEvents.track('university_open', props: {'institution_id': widget.institutionId});
+    AppEvents.track('university_open', props: {
+      'institution_id': widget.institutionId,
+      ...AppEvents.cardOrigin(widget.institutionId),
+    });
   }
 
   @override
@@ -101,7 +105,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                               radius: 12,
                               iconSize: 18,
                               semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                              onTap: () => _back(context),
+                              onTap: tracked('university.back', () => _back(context)),
                             ),
                             const Spacer(),
                             Center(child: Text(l.uniDbLoadFailed, style: fdText(14, FontWeight.w600, FdColors.onPage))),
@@ -110,7 +114,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                               child: SeoulOutlineButton(
                                 label: l.commonRetry,
                                 expand: false,
-                                onPressed: () => ref.invalidate(catalogProvider),
+                                onPressed: tracked('university.retry', () => ref.invalidate(catalogProvider)),
                               ),
                             ),
                             const Spacer(),
@@ -214,7 +218,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                 HardIconButton(
                   glyph: LucideIcons.chevronLeft,
                   semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: () => _back(context),
+                  onTap: tracked('university.back', () => _back(context)),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -261,11 +265,11 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                             child: HardChoice(
                               label: label,
                               selected: degree == id,
-                              onTap: () => setState(() {
+                              onTap: tracked('university.set_degree', () => setState(() {
                                 _degree = id;
                                 _open = 0;
                                 _expanded.clear();
-                              }),
+                              })),
                             ),
                           ),
                         ],
@@ -322,7 +326,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                   child: _AskCard(
                     key: keys[2],
                     percent: ref.watch(assessmentTouchedProvider) || book.testsOf(u).any ? admission : null,
-                    onStart: () => context.push(universityAssessPath(u.institutionId)),
+                    onStart: tracked('university.ask_card_start', () => context.push(universityAssessPath(u.institutionId)), props: {'institution_id': u.institutionId}),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -335,7 +339,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
             child: HardButton(
               label: slot >= 0 ? l.fdUniInPick(picked) : l.fdUniAddPick(picked),
               fill: slot >= 0 ? FdColors.card : FdColors.lime,
-              onPressed: pick,
+              onPressed: tracked('university.pick', pick, props: {'institution_id': u.institutionId}),
             ),
           ),
         ],
@@ -362,7 +366,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
           SeoulOutlineButton(
             label: l.commonRetry,
             expand: false,
-            onPressed: () => ref.invalidate(catalogDetailProvider(g.id)),
+            onPressed: tracked('university.retry_2', () => ref.invalidate(catalogDetailProvider(g.id))),
           ),
         ],
       );
@@ -381,8 +385,8 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
             price: groups[i].minFee == null ? null : money(groups[i].minFee!, g.currency, locale: l.localeName),
             open: _open == i,
             expanded: _expanded.contains(i),
-            onTap: () => setState(() => _open = _open == i ? null : i),
-            onExpand: () => setState(() => _expanded.add(i)),
+            onTap: tracked('university.faculty_card', () => setState(() => _open = _open == i ? null : i)),
+            onExpand: tracked('university.faculty_card_expand', () => setState(() => _expanded.add(i))),
           ),
         ],
       ],
@@ -676,7 +680,7 @@ class _FacultyCard extends StatelessWidget {
             button: true,
             expanded: open,
             child: GestureDetector(
-              onTap: onTap,
+              onTap: tracked('university.faculty_card', onTap),
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
@@ -717,7 +721,7 @@ class _FacultyCard extends StatelessWidget {
                     Semantics(
                       button: true,
                       child: GestureDetector(
-                        onTap: onExpand,
+                        onTap: tracked('university.faculty_card_expand', onExpand),
                         behavior: HitTestBehavior.opaque,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 8),
@@ -1011,7 +1015,7 @@ class _AskCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(l.uaAskBody, style: fdText(12, FontWeight.w500, const Color(0xFFC9D3F5), height: 1.45)),
           const SizedBox(height: 16),
-          HardButton(label: l.uaAskStart, onPressed: onStart),
+          HardButton(label: l.uaAskStart, onPressed: tracked('university.ask_card_start', onStart)),
         ],
       ),
     );

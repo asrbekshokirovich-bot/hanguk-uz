@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/hard_slider.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -46,7 +47,7 @@ class GrantBox extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w800,
               selected: v == value,
-              onTap: () => onTap(v),
+              onTap: tracked('grant_box.choice', () => onTap(v), props: {'value': v}),
             ),
           ),
         ],
@@ -69,14 +70,14 @@ class GrantBox extends StatelessWidget {
           const SizedBox(height: 8),
           test('TOPIK'),
           const SizedBox(height: 6),
-          row([for (var t = 0; t <= 6; t++) (t, t == 0 ? '—' : '$t')], topik, onTopik),
+          row([for (var t = 0; t <= 6; t++) (t, t == 0 ? '—' : '$t')], topik, trackedValue('grant_box.topik', onTopik)!),
           const SizedBox(height: 10),
           test('IELTS'),
           const SizedBox(height: 6),
           row(
             [for (final b in _ieltsBands) (b, b == 0 ? '—' : (b == 7.5 ? '7.5+' : b.toStringAsFixed(1)))],
             band,
-            onIelts,
+            trackedValue('grant_box.ielts', onIelts)!,
           ),
           const SizedBox(height: 14),
           Row(

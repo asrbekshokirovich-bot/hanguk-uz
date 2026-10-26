@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -47,7 +48,7 @@ class JourneyDetail extends ConsumerWidget {
                 excludeSemantics: true,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: onBack,
+                  onTap: tracked('journey_detail.back', onBack),
                   child: Container(
                     width: 44,
                     height: 44,
@@ -103,7 +104,7 @@ class JourneyDetail extends ConsumerWidget {
               if (progress.needsStudyPlan)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
-                  child: _StudyPlanBar(onSign: () => openStudyPlan(context, ref)),
+                  child: _StudyPlanBar(onSign: tracked('journey_detail.study_plan_bar_sign', () => openStudyPlan(context, ref))),
                 ),
             ],
           ),
@@ -473,7 +474,7 @@ class _StudyPlanBar extends StatelessWidget {
             label: l.ajSign,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: onSign,
+              onTap: tracked('journey_detail.study_plan_bar_sign', onSign),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(color: FdColors.ink, borderRadius: BorderRadius.circular(999)),

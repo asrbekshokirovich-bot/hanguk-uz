@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -65,8 +66,8 @@ class SavedScreen extends ConsumerWidget {
                           for (final u in saved)
                             _SavedRow(
                               university: u,
-                              onOpen: () => context.push(universityPath(u.institutionId)),
-                              onUnsave: () => ref.read(savedUniversitiesProvider.notifier).remove(u.institutionId),
+                              onOpen: tracked('saved.row_open', () => context.push(universityPath(u.institutionId)), props: {'institution_id': u.institutionId}),
+                              onUnsave: tracked('saved.row_unsave', () => ref.read(savedUniversitiesProvider.notifier).remove(u.institutionId), props: {'institution_id': u.institutionId}),
                             ),
                         ],
                         if (saved.length >= 2)
@@ -74,7 +75,7 @@ class SavedScreen extends ConsumerWidget {
                             padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
                             child: _CompareCard(
                               title: saved.length >= 3 ? l.fdSavedCompareThree : l.fdSavedCompareTwo,
-                              onTap: () => context.push(kDiscoverComparePath, extra: firstThree),
+                              onTap: tracked('saved.compare_card', () => context.push(kDiscoverComparePath, extra: firstThree)),
                             ),
                           ),
                       ],
@@ -83,7 +84,7 @@ class SavedScreen extends ConsumerWidget {
                   if (saved.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-                      child: HardButton(label: l.fdChosenAdmission, onPressed: () => openAssessmentFor(context, ref, firstThree)),
+                      child: HardButton(label: l.fdChosenAdmission, onPressed: tracked('saved.chosen_admission', () => openAssessmentFor(context, ref, firstThree))),
                     ),
                 ],
               ),
@@ -114,7 +115,7 @@ class _SavedRow extends StatelessWidget {
             child: Semantics(
               button: true,
               child: GestureDetector(
-                onTap: onOpen,
+                onTap: tracked('saved.row_open', onOpen),
                 behavior: HitTestBehavior.opaque,
                 child: Row(
                   children: [
@@ -141,7 +142,7 @@ class _SavedRow extends StatelessWidget {
             label: l.fdUnsave,
             excludeSemantics: true,
             child: GestureDetector(
-              onTap: onUnsave,
+              onTap: tracked('saved.row_unsave', onUnsave),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 width: 38,
@@ -175,7 +176,7 @@ class _CompareCard extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('saved.compare_card', onTap),
         behavior: HitTestBehavior.opaque,
         child: CustomPaint(
           foregroundPainter: const DashedPillPainter(color: FdColors.ink, radius: 16),

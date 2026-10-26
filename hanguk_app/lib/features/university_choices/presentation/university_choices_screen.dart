@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -39,7 +40,7 @@ class UniversityChoicesScreen extends ConsumerWidget {
                     HardIconButton(
                       glyph: LucideIcons.chevronLeft,
                       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                      onTap: () => context.canPop() ? context.pop() : context.go('/'),
+                      onTap: tracked('university_choices.to_home', () => context.canPop() ? context.pop() : context.go('/')),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -64,7 +65,7 @@ class UniversityChoicesScreen extends ConsumerWidget {
                       selected: false,
                       height: 44,
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      onTap: () => ref.invalidate(myUniversityChoicesProvider),
+                      onTap: tracked('university_choices.retry', () => ref.invalidate(myUniversityChoicesProvider)),
                     ),
                   ),
                   data: (choices) {
@@ -299,7 +300,7 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
                     selected: false,
                     height: 48,
                     fontSize: 12,
-                    onTap: _sending ? null : _askForChange,
+                    onTap: tracked('university_choices.uc_request_change', _sending ? null : _askForChange),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -307,7 +308,7 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
                   child: HardButton(
                     label: l.ucAccept,
                     loading: _sending,
-                    onPressed: _sending ? null : () => _answer(accept: true),
+                    onPressed: tracked('university_choices.uc_accept', _sending ? null : () => _answer(accept: true)),
                   ),
                 ),
               ],
@@ -327,7 +328,7 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
                 children: [
                   Text(l.ucFinalRecommended, style: fdText(12, FontWeight.w800, FdColors.ink)),
                   const SizedBox(height: 10),
-                  HardButton(label: l.ucFinalGo, loading: _sending, onPressed: _sending ? null : _confirmFinal),
+                  HardButton(label: l.ucFinalGo, loading: _sending, onPressed: tracked('university_choices.uc_final_go', _sending ? null : _confirmFinal)),
                 ],
               ),
             ),
@@ -431,7 +432,7 @@ class _ChangeRequestSheetState extends State<ChangeRequestSheet> {
                 label: entry.value,
                 selected: _reason == entry.key,
                 height: 44,
-                onTap: () => setState(() => _reason = entry.key),
+                onTap: tracked('university_choices.set_reason', () => setState(() => _reason = entry.key)),
               ),
               const SizedBox(height: 8),
             ],
@@ -455,9 +456,9 @@ class _ChangeRequestSheetState extends State<ChangeRequestSheet> {
             const SizedBox(height: 8),
             HardButton(
               label: l.ucChangeSend,
-              onPressed: _reason == null
+              onPressed: tracked('university_choices.uc_change_send', _reason == null
                   ? null
-                  : () => Navigator.of(context).pop((reason: _reason!, note: _note.text.trim())),
+                  : () => Navigator.of(context).pop((reason: _reason!, note: _note.text.trim()))),
             ),
           ],
         ),

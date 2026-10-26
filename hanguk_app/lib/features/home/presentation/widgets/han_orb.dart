@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -164,7 +165,7 @@ class _HanOrbState extends State<HanOrb> with TickerProviderStateMixin {
               child: FadeTransition(
                 opacity: _dial,
                 child: GestureDetector(
-                  onTap: _close,
+                  onTap: tracked('han_orb.close', _close),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: const ColoredBox(
@@ -206,7 +207,7 @@ class _HanOrbState extends State<HanOrb> with TickerProviderStateMixin {
                           controller: _dial,
                           // Bottom item leads; the stagger walks up the column.
                           order: widget.items.length - 1 - i,
-                          onTap: () => _select(widget.items[i]),
+                          onTap: tracked('han_orb.dial_row', () => _select(widget.items[i])),
                         ),
                     ],
                   ),
@@ -224,7 +225,7 @@ class _HanOrbState extends State<HanOrb> with TickerProviderStateMixin {
             open: _open,
             pulse: _pulse,
             dial: _dial,
-            onTap: _toggle,
+            onTap: tracked('han_orb.orb_button', _toggle),
             tooltip: widget.tooltip,
           ),
         ),
@@ -255,7 +256,7 @@ class _OrbButton extends StatelessWidget {
       expanded: open,
       label: tooltip ?? AppLocalizations.of(context)?.a11yMenu ?? 'Menu',
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('han_orb.orb_button', onTap),
         child: SizedBox(
           width: SeoulSizes.orbSize + 24,
           height: SeoulSizes.orbSize + 24,
@@ -434,7 +435,7 @@ class _DialRow extends StatelessWidget {
           selected: item.active,
           label: item.label,
           child: GestureDetector(
-            onTap: onTap,
+            onTap: tracked('han_orb.dial_row', onTap),
             behavior: HitTestBehavior.opaque,
             // The pill already carries the label; without this a screen
             // reader would read the English title, then the decorative

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
@@ -99,7 +100,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       ref.watch(entryProvider).languageCode ??
                       Localizations.localeOf(context).languageCode,
                   label: l10n.entryLanguageLabel,
-                  onPressed: () => showLanguageSheet(context, ref),
+                  onPressed: tracked('welcome.entry_language_label', () => showLanguageSheet(context, ref)),
                 ),
               ),
             ],
@@ -185,7 +186,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
           // The one lime action on this screen: the guest catalogue.
           _ExploreButton(
             label: l10n.welcomeExploreCta,
-            onPressed: _openGuestExplorer,
+            onPressed: tracked('welcome.explore_cta', _openGuestExplorer),
           ),
           const SizedBox(height: 12),
           // The guest caption under the explore button (spec §3.1).
@@ -213,7 +214,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
         // Target is unchanged: the Magic Code portal.
         _GlassButton(
           label: l10n.welcomeMagicCodeCta,
-          onPressed: () => context.push('/login', extra: {'magic_code': true}),
+          onPressed: tracked('welcome.magic_code_cta', () => context.push('/login', extra: {'magic_code': true})),
         ),
       ],
     );
@@ -236,7 +237,7 @@ class _LanguageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _Pressable(
       label: '$label: ${kEntryLanguageNames[code] ?? code}',
-      onPressed: onPressed,
+      onPressed: tracked('welcome.language_button', onPressed),
       child: Container(
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -304,12 +305,12 @@ class _PressableState extends State<_Pressable> {
       button: true,
       label: widget.label,
       excludeSemantics: true,
-      onTap: widget.onPressed,
+      onTap: tracked('welcome.pressable', widget.onPressed),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: widget.onPressed,
+          onTap: tracked('welcome.pressable', widget.onPressed),
           onTapDown: (_) => _set(true),
           onTapUp: (_) => _set(false),
           onTapCancel: () => _set(false),
@@ -553,7 +554,7 @@ class _ExploreButtonState extends State<_ExploreButton>
 
     return _Pressable(
       label: widget.label,
-      onPressed: widget.onPressed,
+      onPressed: tracked('welcome.explore_button', widget.onPressed),
       child: Stack(clipBehavior: Clip.none, children: [glow, button]),
     );
   }
@@ -625,7 +626,7 @@ class _GlassButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return _Pressable(
       label: label,
-      onPressed: onPressed,
+      onPressed: tracked('welcome.glass_button', onPressed),
       child: Container(
         constraints: const BoxConstraints(minHeight: 52),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

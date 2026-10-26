@@ -136,4 +136,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // Google Play's install referrer: the operator's link an install came
+    // through (MainActivity, IdentityLinks.checkInstallReferrer).
+    implementation("com.android.installreferrer:installreferrer:2.2")
 }

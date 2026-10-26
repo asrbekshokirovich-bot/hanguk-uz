@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 
@@ -192,7 +193,7 @@ class OnbTap extends StatelessWidget {
       label: label,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: tracked('s01_s04_ui.onb_tap', onTap),
         child: child,
       ),
     );
@@ -219,7 +220,7 @@ class OnbPrimaryButton extends StatelessWidget {
     final on = onPressed != null || loading;
     return OnbTap(
       label: label,
-      onTap: loading ? null : onPressed,
+      onTap: tracked('s01_s04_ui.onb_primary_button', loading ? null : onPressed),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
@@ -272,7 +273,7 @@ class OnbOutlineButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnbTap(
       label: label,
-      onTap: onPressed,
+      onTap: tracked('s01_s04_ui.onb_outline_button', onPressed),
       child: Container(
         height: 52,
         alignment: Alignment.center,

@@ -1,0 +1,3306 @@
+{
+ "account.back": {
+  "key": "accountBackTooltip",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "account.cancel": {
+  "key": "cancel",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Bekor qilish",
+  "en": "Cancel",
+  "ru": "Отмена",
+  "ko": "취소"
+ },
+ "account.danger_button": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "account.delete_account": {
+  "key": "accountDeleteAccount",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Hisobni o'chirish",
+  "en": "Delete account",
+  "ru": "Удалить аккаунт",
+  "ko": "계정 삭제"
+ },
+ "account.delete_dialog_confirm": {
+  "key": "accountDeleteDialogConfirm",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Butunlay o'chirish",
+  "en": "Delete forever",
+  "ru": "Удалить навсегда",
+  "ko": "영구 삭제"
+ },
+ "account.entry_language_label": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "account.glass_circle_button": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "account.home_notifications": {
+  "key": "homeNotifications",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Bildirishnomalar",
+  "en": "Notifications",
+  "ru": "Уведомления",
+  "ko": "알림"
+ },
+ "account.legal_link": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "account.ok": {
+  "key": "ok",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "OK",
+  "en": "OK",
+  "ru": "ОК",
+  "ko": "확인"
+ },
+ "account.personal_statement_card_title": {
+  "key": "personalStatementCardTitle",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Personal Statement",
+  "en": "Personal Statement",
+  "ru": "Мотивационное письмо",
+  "ko": "자기소개서"
+ },
+ "account.preparing_export": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "account.privacy_policy": {
+  "key": "accountPrivacyPolicy",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Maxfiylik siyosati",
+  "en": "Privacy Policy",
+  "ru": "Политика конфиденциальности",
+  "ko": "개인정보처리방침"
+ },
+ "account.signing_out": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "account.surveys_title": {
+  "key": "surveysTitle",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "So‘rovnomalar",
+  "en": "Surveys",
+  "ru": "Опросы",
+  "ko": "설문조사"
+ },
+ "account.terms_of_service": {
+  "key": "accountTermsOfService",
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": "Foydalanish shartlari",
+  "en": "Terms of Service",
+  "ru": "Условия использования",
+  "ko": "이용약관"
+ },
+ "account.to_admin_review": {
+  "key": null,
+  "file": "features/account/presentation/account_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "admin_review.admin_accept": {
+  "key": "adminAccept",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Qabul qilish",
+  "en": "Accept",
+  "ru": "Принять",
+  "ko": "승인"
+ },
+ "admin_review.admin_edit_accept": {
+  "key": "adminEditAccept",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Tahrirlab qabul qilish",
+  "en": "Edit & accept",
+  "ru": "Исправить и принять",
+  "ko": "수정 후 승인"
+ },
+ "admin_review.admin_open_source": {
+  "key": "adminOpenSource",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Manba sahifasini ochish (koreyscha)",
+  "en": "Open source page (Korean)",
+  "ru": "Открыть источник (на корейском)",
+  "ko": "원문 페이지 열기"
+ },
+ "admin_review.admin_refresh": {
+  "key": "adminRefresh",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Yangilash",
+  "en": "Refresh",
+  "ru": "Обновить",
+  "ko": "새로고침"
+ },
+ "admin_review.admin_reject": {
+  "key": "adminReject",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Rad etish",
+  "en": "Reject",
+  "ru": "Отклонить",
+  "ko": "반려"
+ },
+ "admin_review.admin_reject_2": {
+  "key": "adminReject",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Rad etish",
+  "en": "Reject",
+  "ru": "Отклонить",
+  "ko": "반려"
+ },
+ "admin_review.admin_save_accept": {
+  "key": "adminSaveAccept",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Saqlab qabul qilish",
+  "en": "Save & accept",
+  "ru": "Сохранить и принять",
+  "ko": "저장 후 승인"
+ },
+ "admin_review.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "admin_review.cancel": {
+  "key": "cancel",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Bekor qilish",
+  "en": "Cancel",
+  "ru": "Отмена",
+  "ko": "취소"
+ },
+ "admin_review.danger_button": {
+  "key": null,
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "admin_review.detail_pane_back": {
+  "key": "adminBackToQueue",
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": "Navbatga qaytish",
+  "en": "Back to queue",
+  "ru": "Назад к очереди",
+  "ko": "대기열로 돌아가기"
+ },
+ "admin_review.glass_circle_button": {
+  "key": null,
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "admin_review.queue_list_select": {
+  "key": null,
+  "file": "features/uni_db/presentation/admin_review_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "advanced_drafting_workspace.fix_chip": {
+  "key": null,
+  "file": "features/training/presentation/widgets/advanced_drafting_workspace.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "advanced_drafting_workspace.ghost_accept_button": {
+  "key": null,
+  "file": "features/training/presentation/widgets/advanced_drafting_workspace.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "advanced_drafting_workspace.ghost_dismiss": {
+  "key": "ghostDismiss",
+  "file": "features/training/presentation/widgets/advanced_drafting_workspace.dart",
+  "uz": "Taklifni yopish",
+  "en": "Dismiss suggestion",
+  "ru": "Скрыть подсказку",
+  "ko": "제안 닫기"
+ },
+ "advanced_drafting_workspace.ghost_suggestion_bar_accept": {
+  "key": "ghostAccept",
+  "file": "features/training/presentation/widgets/advanced_drafting_workspace.dart",
+  "uz": "Qabul qilish",
+  "en": "Accept",
+  "ru": "Принять",
+  "ko": "사용"
+ },
+ "advanced_drafting_workspace.grammar_replace_with": {
+  "key": "grammarReplaceWith",
+  "file": "features/training/presentation/widgets/advanced_drafting_workspace.dart",
+  "uz": "\"…\" o'rniga \"…\" yozing",
+  "en": "Replace \"…\" with \"…\"",
+  "ru": "Заменить «…» на «…»",
+  "ko": "\"…\"을(를) \"…\"(으)로 교체"
+ },
+ "advanced_drafting_workspace.workspace_analyze_button": {
+  "key": "workspaceAnalyzeButton",
+  "file": "features/training/presentation/widgets/advanced_drafting_workspace.dart",
+  "uz": "Tahlil",
+  "en": "Analyze",
+  "ru": "Анализ",
+  "ko": "분석"
+ },
+ "ai_report_sheet.ai_report_submit": {
+  "key": "aiReportSubmit",
+  "file": "features/moderation/presentation/ai_report_sheet.dart",
+  "uz": "Shikoyatni yuborish",
+  "en": "Send report",
+  "ru": "Отправить жалобу",
+  "ko": "신고 보내기"
+ },
+ "app_nav.nav_assess": {
+  "key": "fdNavAssess",
+  "file": "features/discover/presentation/widgets/app_nav.dart",
+  "uz": "BAHOLASH",
+  "en": "ASSESS",
+  "ru": "ОЦЕНКА",
+  "ko": "평가"
+ },
+ "app_router.back": {
+  "key": "a11yTooltipBack",
+  "file": "core/router/app_router.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "application_tracker.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/uni_db/presentation/application_tracker_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "application_tracker.glass_circle_button": {
+  "key": null,
+  "file": "features/uni_db/presentation/application_tracker_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "assess.pill": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/assess_parts.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "assess_parts.assess_section_toggle": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/assess_parts.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.catalog_card": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.catalog_card_2": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.catalog_filter_title": {
+  "key": "catalogFilterTitle",
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": "Filtr",
+  "en": "Filter",
+  "ru": "Фильтр",
+  "ko": "필터"
+ },
+ "catalog_browser.compare_chip": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.filter_button": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.guest_university_block": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.retry": {
+  "key": "commonRetry",
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "catalog_browser.search_result_row": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_browser.search_result_row_2": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_browser.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.columns_add": {
+  "key": "compareAddSlot",
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": "Universitet tanlang",
+  "en": "Choose a university",
+  "ru": "Выберите университет",
+  "ko": "대학을 선택하세요"
+ },
+ "catalog_compare.columns_remove": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.contact_bar": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.contact_sheet_join": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.empty_column": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.guest_contact_cta": {
+  "key": "guestContactCta",
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": "Bog'lanish",
+  "en": "Contact us",
+  "ru": "Связаться",
+  "ko": "문의하기"
+ },
+ "catalog_compare.header_back": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.header_toggle_diff": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare.university_column_remove": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_compare_tray.compare_tray_cta": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_compare_tray.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.bottom_bar_contact": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.circle_button": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.contact_sheet_join": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.faculty_row": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.header_back": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.pick": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_detail.retry": {
+  "key": "commonRetry",
+  "file": "features/catalog/presentation/catalog_detail_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "catalog_filter.back": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_filter.catalog_apply": {
+  "key": "catalogApply",
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": "… ta universitetni ko'rsatish",
+  "en": "Show … universities",
+  "ru": "Показать университеты: …",
+  "ko": "대학 …곳 보기"
+ },
+ "catalog_filter.city_tile": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_filter.city_tile_2": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_filter.clear": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_filter.preset_chip": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_filter.segment": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "catalog_filter.tile": {
+  "key": null,
+  "file": "features/catalog/presentation/catalog_filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "chance_cards.boost_row": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/chance_cards.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "chance_cards.chance_card": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/chance_cards.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "chat_message_bubble.show_ai_report_sheet": {
+  "key": null,
+  "file": "features/chat/presentation/widgets/chat_message_bubble.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "chat_tab.clear_chat": {
+  "key": "a11yTooltipClearChat",
+  "file": "features/chat/presentation/chat_tab.dart",
+  "uz": "Chat tarixini tozalash",
+  "en": "Clear chat history",
+  "ru": "Очистить историю чата",
+  "ko": "채팅 기록 지우기"
+ },
+ "chat_tab.send_button": {
+  "key": null,
+  "file": "features/chat/presentation/chat_tab.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "chat_tab.send_message": {
+  "key": "a11yTooltipSendMessage",
+  "file": "features/chat/presentation/chat_tab.dart",
+  "uz": "Xabar yuborish",
+  "en": "Send message",
+  "ru": "Отправить сообщение",
+  "ko": "메시지 보내기"
+ },
+ "chosen.picked_cta": {
+  "key": "fdPickedCta",
+  "file": "features/discover/presentation/chosen_screen.dart",
+  "uz": "Koreaga keta olamanmi? →",
+  "en": "Can I go to Korea? →",
+  "ru": "Смогу ли я поехать в Корею? →",
+  "ko": "한국에 갈 수 있을까요? →"
+ },
+ "chosen.row": {
+  "key": null,
+  "file": "features/discover/presentation/chosen_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "chosen.row_remove": {
+  "key": "fdPickedRemove",
+  "file": "features/discover/presentation/chosen_screen.dart",
+  "uz": "Olib tashlash",
+  "en": "Remove",
+  "ru": "Убрать",
+  "ko": "제거"
+ },
+ "client_code.back": {
+  "key": null,
+  "file": "features/auth/presentation/client_code_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_code.banner_telegram": {
+  "key": "fdCodeTelegram",
+  "file": "features/auth/presentation/client_code_screen.dart",
+  "uz": "Telegramda admin bilan yozishish",
+  "en": "Message the admin on Telegram",
+  "ru": "Написать админу в Telegram",
+  "ko": "텔레그램으로 관리자에게 문의"
+ },
+ "client_code.key": {
+  "key": null,
+  "file": "features/auth/presentation/client_code_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_code.keypad_key": {
+  "key": null,
+  "file": "features/auth/presentation/client_code_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_code.sms_card_paste": {
+  "key": null,
+  "file": "features/auth/presentation/client_code_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_code.welcome_explore_cta": {
+  "key": "welcomeExploreCta",
+  "file": "features/auth/presentation/client_code_screen.dart",
+  "uz": "Universitetlarni ko‘rish",
+  "en": "Explore Universities",
+  "ru": "Смотреть университеты",
+  "ko": "대학 둘러보기"
+ },
+ "client_documents.doc_remove": {
+  "key": "fdDocRemove",
+  "file": "features/client/presentation/client_documents_screen.dart",
+  "uz": "O'chirish",
+  "en": "Remove",
+  "ru": "Удалить",
+  "ko": "삭제"
+ },
+ "client_documents.doc_row_open": {
+  "key": null,
+  "file": "features/client/presentation/client_documents_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_documents.doc_row_upload": {
+  "key": null,
+  "file": "features/client/presentation/client_documents_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_documents.doc_view": {
+  "key": "fdDocView",
+  "file": "features/client/presentation/client_documents_screen.dart",
+  "uz": "Ko'rish",
+  "en": "View",
+  "ru": "Открыть",
+  "ko": "보기"
+ },
+ "client_documents.docs_upload_next": {
+  "key": "fdDocsUploadNext",
+  "file": "features/client/presentation/client_documents_screen.dart",
+  "uz": "Keyingi hujjatni yuklash",
+  "en": "Upload the next document",
+  "ru": "Загрузить следующий документ",
+  "ko": "다음 서류 업로드"
+ },
+ "client_documents.retry": {
+  "key": "commonRetry",
+  "file": "features/client/presentation/client_documents_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "client_parts.account": {
+  "key": "accountTooltip",
+  "file": "features/client/presentation/widgets/client_parts.dart",
+  "uz": "Hisob",
+  "en": "Account",
+  "ru": "Аккаунт",
+  "ko": "계정"
+ },
+ "client_parts.consultant_write": {
+  "key": null,
+  "file": "features/client/presentation/widgets/client_parts.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "client_parts.sent_call": {
+  "key": "fdSentCall",
+  "file": "features/client/presentation/widgets/client_parts.dart",
+  "uz": "Qo'ng'iroq",
+  "en": "Call",
+  "ru": "Позвонить",
+  "ko": "전화"
+ },
+ "client_shell.journey_screen_browse": {
+  "key": null,
+  "file": "features/client/presentation/client_shell.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "compare.column_admission": {
+  "key": null,
+  "file": "features/discover/presentation/compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "compare.column_open": {
+  "key": null,
+  "file": "features/discover/presentation/compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "compare.uni_cta": {
+  "key": "fdUniCta",
+  "file": "features/discover/presentation/compare_screen.dart",
+  "uz": "Koreaga keta olamanmi o'zi?",
+  "en": "Can I really go to Korea?",
+  "ru": "Смогу ли я уехать в Корею?",
+  "ko": "나는 정말 한국에 갈 수 있을까?"
+ },
+ "contact_sheet.contact_row": {
+  "key": null,
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "contact_sheet.guest_contact_call": {
+  "key": "guestContactCall",
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": "Qo'ng'iroq qilish",
+  "en": "Call us",
+  "ru": "Позвонить",
+  "ko": "전화하기"
+ },
+ "contact_sheet.guest_contact_instagram": {
+  "key": "guestContactInstagram",
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": "Instagram",
+  "en": "Instagram",
+  "ru": "Instagram",
+  "ko": "인스타그램"
+ },
+ "contact_sheet.guest_contact_telegram_channel": {
+  "key": "guestContactTelegramChannel",
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": "Telegram kanal",
+  "en": "Telegram channel",
+  "ru": "Telegram-канал",
+  "ko": "텔레그램 채널"
+ },
+ "contact_sheet.guest_contact_telegram_direct": {
+  "key": "guestContactTelegramDirect",
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": "Telegramda yozish",
+  "en": "Message us on Telegram",
+  "ru": "Написать в Telegram",
+  "ko": "텔레그램으로 문의"
+ },
+ "contact_sheet.guest_join_cta": {
+  "key": "guestJoinCta",
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": "Hangukka qo‘shilish",
+  "en": "Join Hanguk",
+  "ru": "Вступить в Hanguk",
+  "ko": "Hanguk 가입"
+ },
+ "contact_sheet.join": {
+  "key": null,
+  "file": "features/guest/presentation/widgets/contact_sheet.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "contact_sheet_s04.contact_back_to_result": {
+  "key": "onbContactBackToResult",
+  "file": "features/onboarding/presentation/contact_sheet_s04.dart",
+  "uz": "Natijaga qaytish",
+  "en": "Back to the result",
+  "ru": "Вернуться к результату",
+  "ko": "결과로 돌아가기"
+ },
+ "contact_sheet_s04.contact_cta": {
+  "key": "onbContactCta",
+  "file": "features/onboarding/presentation/contact_sheet_s04.dart",
+  "uz": "Operator qo'ng'iroq qilsin",
+  "en": "Have an operator call me",
+  "ru": "Пусть оператор позвонит",
+  "ko": "상담원 전화 요청"
+ },
+ "contact_sheet_s04.toggle": {
+  "key": null,
+  "file": "features/onboarding/presentation/contact_sheet_s04.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.catalog_banner": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.catalog_filter_title": {
+  "key": "catalogFilterTitle",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "Filtr",
+  "en": "Filter",
+  "ru": "Фильтр",
+  "ko": "필터"
+ },
+ "discover.chevron": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.chevron_2": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.client_code_pill": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.deck": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.retry": {
+  "key": "commonRetry",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "discover.round_button": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.round_button_badge_tap": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.save": {
+  "key": "fdSave",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "Saqlash",
+  "en": "Save",
+  "ru": "Сохранить",
+  "ko": "저장"
+ },
+ "discover.save_badge_tap": {
+  "key": "fdSave",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "Saqlash",
+  "en": "Save",
+  "ru": "Сохранить",
+  "ko": "저장"
+ },
+ "discover.search_field": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.search_hint": {
+  "key": "fdSearchHint",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "Universitet qidiring",
+  "en": "Search universities",
+  "ru": "Поиск университета",
+  "ko": "대학 검색"
+ },
+ "discover.skip": {
+  "key": "fdSkip",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "O'tkazib yuborish",
+  "en": "Skip",
+  "ru": "Пропустить",
+  "ko": "건너뛰기"
+ },
+ "discover.uni_stack_card_admission": {
+  "key": null,
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "discover.welcome_client_code": {
+  "key": "onbWelcomeClientCode",
+  "file": "features/discover/presentation/discover_screen.dart",
+  "uz": "Mijoz kodim bor",
+  "en": "I have a client code",
+  "ru": "У меня есть код клиента",
+  "ko": "고객 코드가 있어요"
+ },
+ "duel.card": {
+  "key": "fdDuelPick",
+  "file": "features/discover/presentation/duel_screen.dart",
+  "uz": "Shuni tanlash",
+  "en": "Pick this one",
+  "ru": "Выбрать этот",
+  "ko": "이곳 선택"
+ },
+ "duel.pick_a": {
+  "key": null,
+  "file": "features/discover/presentation/duel_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "duel.pick_b": {
+  "key": null,
+  "file": "features/discover/presentation/duel_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "duel.slot": {
+  "key": null,
+  "file": "features/discover/presentation/duel_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "empty_state.empty_cta": {
+  "key": null,
+  "file": "design_system/adaptive/empty_state.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "entry_fields.entry_link": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/entry_fields.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "entry_fields.set_hidden": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/entry_fields.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "entry_fields.visibility": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/entry_fields.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_bottom_nav.fd_nav_orb": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/fd_bottom_nav.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_bottom_nav.select": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/fd_bottom_nav.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_bottom_nav.tab": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/fd_bottom_nav.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_kit.fd_primary_button": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/fd_kit.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_kit.fd_segments_select": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/fd_kit.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_kit.hard_choice": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/fd_kit.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_kit.hard_icon_button": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/fd_kit.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "fd_parts.to_discover": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/fd_parts.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.all_fields": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.all_regions": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.back": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.field": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.link": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.one_percent": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter.other": {
+  "key": "fdOther",
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": "Boshqa",
+  "en": "Other",
+  "ru": "Другое",
+  "ko": "기타"
+ },
+ "filter.show_universities": {
+  "key": "fdShowUniversities",
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": "… ta universitetni ko'rish →",
+  "en": "Show … universities →",
+  "ru": "Показать … университетов →",
+  "ko": "대학 …곳 보기 →"
+ },
+ "filter.type": {
+  "key": null,
+  "file": "features/discover/presentation/filter_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.grant_none": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.hard_choice": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.no": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.no_2": {
+  "key": "fdNo",
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": "Yo'q",
+  "en": "No",
+  "ru": "Нет",
+  "ko": "아니요"
+ },
+ "filter_board.other": {
+  "key": "fdOther",
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": "Boshqa",
+  "en": "Other",
+  "ru": "Другое",
+  "ko": "기타"
+ },
+ "filter_board.set": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.set_2": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.set_3": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.set_profile": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.set_profile_2": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.show_universities": {
+  "key": "fdShowUniversities",
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": "… ta universitetni ko'rish →",
+  "en": "Show … universities →",
+  "ru": "Показать … университетов →",
+  "ko": "대학 …곳 보기 →"
+ },
+ "filter_board.strip_card": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.to_discover": {
+  "key": null,
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "filter_board.yes": {
+  "key": "fdYes",
+  "file": "features/discover/presentation/filter_board_screen.dart",
+  "uz": "Ha",
+  "en": "Yes",
+  "ru": "Да",
+  "ko": "예"
+ },
+ "glass_card.glass_card": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/glass_card.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "grant_box.choice": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/grant_box.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "grant_box.ielts": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/grant_box.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "grant_box.topik": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/grant_box.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "guest_map.retry": {
+  "key": "commonRetry",
+  "file": "features/guest/presentation/guest_map_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "guest_shell.contact_sheet_join": {
+  "key": null,
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "guest_shell.exit": {
+  "key": null,
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "guest_shell.guest_contact_cta": {
+  "key": "guestContactCta",
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": "Bog'lanish",
+  "en": "Contact us",
+  "ru": "Связаться",
+  "ko": "문의하기"
+ },
+ "guest_shell.guest_join_cta": {
+  "key": "guestJoinCta",
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": "Hangukka qo‘shilish",
+  "en": "Join Hanguk",
+  "ru": "Вступить в Hanguk",
+  "ko": "Hanguk 가입"
+ },
+ "guest_shell.guest_nav_explore": {
+  "key": "guestNavExplore",
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": "Kashf etish",
+  "en": "Explore",
+  "ru": "Обзор",
+  "ko": "탐색"
+ },
+ "guest_shell.join_pill": {
+  "key": null,
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "guest_shell.nav_map": {
+  "key": "navMap",
+  "file": "features/guest/presentation/guest_shell.dart",
+  "uz": "Xarita",
+  "en": "Map",
+  "ru": "Карта",
+  "ko": "지도"
+ },
+ "han_orb.close": {
+  "key": null,
+  "file": "features/home/presentation/widgets/han_orb.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "han_orb.dial_row": {
+  "key": null,
+  "file": "features/home/presentation/widgets/han_orb.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "han_orb.orb_button": {
+  "key": null,
+  "file": "features/home/presentation/widgets/han_orb.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "hard_shadow.hard_button": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/hard_shadow.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "hero_card.hero_card": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/hero_card.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "institution_compare.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/uni_db/presentation/institution_compare_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "institution_compare.glass_circle_button": {
+  "key": null,
+  "file": "features/uni_db/presentation/institution_compare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "institution_detail.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/uni_db/presentation/institution_detail_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "institution_detail.glass_circle_button": {
+  "key": null,
+  "file": "features/uni_db/presentation/institution_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "institution_detail.uni_db_open_guide_pdf": {
+  "key": "uniDbOpenGuidePdf",
+  "file": "features/uni_db/presentation/institution_detail_screen.dart",
+  "uz": "Qabul yo'riqnomasi PDF-ini ochish",
+  "en": "Open admission guide PDF",
+  "ru": "Открыть PDF-руководство по приёму",
+  "ko": "모집요강 PDF 열기"
+ },
+ "interview.arrow_back": {
+  "key": "a11yTooltipBack",
+  "file": "features/training/presentation/interview_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "interview.setup_view_history_tapped": {
+  "key": null,
+  "file": "features/training/presentation/interview_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_active.end_interview": {
+  "key": "endInterview",
+  "file": "features/training/presentation/widgets/interview_active_view.dart",
+  "uz": "Suhbatni tugatish",
+  "en": "End Interview",
+  "ru": "Завершить собеседование",
+  "ko": "면접 종료"
+ },
+ "interview_active.mic_button": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_active_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_active.spt_checking": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_active_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_analytics.pause": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_analytics_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_analytics.show_ai_report_sheet": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_analytics_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_analytics.spt_done": {
+  "key": "sptDone",
+  "file": "features/training/presentation/widgets/interview_analytics_view.dart",
+  "uz": "Tayyor",
+  "en": "Done",
+  "ru": "Готово",
+  "ko": "완료"
+ },
+ "interview_analytics.start_another_interview": {
+  "key": "startAnotherInterview",
+  "file": "features/training/presentation/widgets/interview_analytics_view.dart",
+  "uz": "Yangi suhbatni boshlash",
+  "en": "Start another interview",
+  "ru": "Начать новое собеседование",
+  "ko": "다른 면접 시작"
+ },
+ "interview_analytics.view_back_pressed": {
+  "key": "a11yTooltipBack",
+  "file": "features/training/presentation/widgets/interview_analytics_view.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "interview_history.analytics_back": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_history_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_history.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/training/presentation/widgets/interview_history_view.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "interview_history.cancel": {
+  "key": "cancel",
+  "file": "features/training/presentation/widgets/interview_history_view.dart",
+  "uz": "Bekor qilish",
+  "en": "Cancel",
+  "ru": "Отмена",
+  "ko": "취소"
+ },
+ "interview_history.delete_label": {
+  "key": "deleteLabel",
+  "file": "features/training/presentation/widgets/interview_history_view.dart",
+  "uz": "O'chirish",
+  "en": "Delete",
+  "ru": "Удалить",
+  "ko": "삭제"
+ },
+ "interview_history.delete_session": {
+  "key": "deleteSessionTooltip",
+  "file": "features/training/presentation/widgets/interview_history_view.dart",
+  "uz": "Sessiyani o'chirish",
+  "en": "Delete session",
+  "ru": "Удалить сессию",
+  "ko": "세션 삭제"
+ },
+ "interview_history.open_session": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_history_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_setup.interview_type_general": {
+  "key": "interviewTypeGeneral",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Umumiy tanishtiruv",
+  "en": "General Introduction",
+  "ru": "Общее знакомство",
+  "ko": "일반 자기소개"
+ },
+ "interview_setup.interview_type_university_specific": {
+  "key": "interviewTypeUniversitySpecific",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Universitetga moslangan",
+  "en": "University Specific",
+  "ru": "Для конкретного университета",
+  "ko": "대학 맞춤형"
+ },
+ "interview_setup.interview_type_visa": {
+  "key": "interviewTypeVisa",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Viza / Elchixona suhbati",
+  "en": "Visa / Embassy Check",
+  "ru": "Виза / посольство",
+  "ko": "비자 / 대사관 점검"
+ },
+ "interview_setup.persona_friendly_caps": {
+  "key": "personaFriendlyCaps",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Do'stona qabul xodimi",
+  "en": "Friendly Admissions Officer",
+  "ru": "Доброжелательный сотрудник приёмной комиссии",
+  "ko": "친절한 입학사정관"
+ },
+ "interview_setup.persona_impatient_caps": {
+  "key": "personaImpatientCaps",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Sabri yo'q viza xodimi",
+  "en": "Impatient Visa Officer",
+  "ru": "Нетерпеливый визовый офицер",
+  "ko": "성격 급한 비자 담당관"
+ },
+ "interview_setup.persona_strict_caps": {
+  "key": "personaStrictCaps",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Qattiqqo'l professor",
+  "en": "Strict Professor",
+  "ru": "Строгий профессор",
+  "ko": "엄격한 교수"
+ },
+ "interview_setup.start_practice_button": {
+  "key": "startPracticeButton",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Mashqni boshlash",
+  "en": "Start Practice",
+  "ru": "Начать тренировку",
+  "ko": "연습 시작"
+ },
+ "interview_setup.toggle": {
+  "key": null,
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "interview_setup.track_english": {
+  "key": "trackEnglish",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Inglizcha",
+  "en": "English",
+  "ru": "Английский",
+  "ko": "영어"
+ },
+ "interview_setup.track_korean": {
+  "key": "trackKorean",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Koreyscha",
+  "en": "Korean",
+  "ru": "Корейский",
+  "ko": "한국어"
+ },
+ "interview_setup.view_history_tapped": {
+  "key": "interviewHistoryTitle",
+  "file": "features/training/presentation/widgets/interview_setup_view.dart",
+  "uz": "Suhbatlar tarixi",
+  "en": "Interview History",
+  "ru": "История собеседований",
+  "ko": "면접 기록"
+ },
+ "journey.account": {
+  "key": "accountTooltip",
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": "Hisob",
+  "en": "Account",
+  "ru": "Аккаунт",
+  "ko": "계정"
+ },
+ "journey.card_open": {
+  "key": "ajOpenUniversity",
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": "… — batafsil",
+  "en": "Open …",
+  "ru": "Открыть …",
+  "ko": "… 열기"
+ },
+ "journey.detail_back": {
+  "key": null,
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "journey.empty_browse": {
+  "key": "fdJourneyBrowse",
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": "Universitetlarni ko'rish",
+  "en": "Browse universities",
+  "ru": "Смотреть университеты",
+  "ko": "대학 둘러보기"
+ },
+ "journey.list_open": {
+  "key": null,
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "journey.retry": {
+  "key": "commonRetry",
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "journey.screen_browse": {
+  "key": null,
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "journey.sign_button": {
+  "key": "ajSign",
+  "file": "features/client/presentation/journey_screen.dart",
+  "uz": "Imzolash",
+  "en": "Sign",
+  "ru": "Подписать",
+  "ko": "서명하기"
+ },
+ "journey_detail.back": {
+  "key": "ajBack",
+  "file": "features/client/presentation/journey_detail.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "journey_detail.study_plan_bar_sign": {
+  "key": "ajSign",
+  "file": "features/client/presentation/journey_detail.dart",
+  "uz": "Imzolash",
+  "en": "Sign",
+  "ru": "Подписать",
+  "ko": "서명하기"
+ },
+ "language.confirm": {
+  "key": null,
+  "file": "features/entry/presentation/language_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "language_cards.language_card": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/language_cards.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "language_cards.selected": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/language_cards.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "language_options.language_row": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/language_options.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "language_options.selected": {
+  "key": null,
+  "file": "features/entry/presentation/widgets/language_options.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "lead.back": {
+  "key": null,
+  "file": "features/assessment/presentation/lead_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "lead.report_send": {
+  "key": "fdReportSend",
+  "file": "features/assessment/presentation/lead_screen.dart",
+  "uz": "Yuborish",
+  "en": "Send",
+  "ru": "Отправить",
+  "ko": "보내기"
+ },
+ "map.pin": {
+  "key": "fdMapPin",
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": "…: … ta universitet",
+  "en": "…: … universities",
+  "ru": "…: университетов …",
+  "ko": "…: 대학 …곳"
+ },
+ "map.rotate3d": {
+  "key": "fdMapOpen360",
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": "360° ko'rinish",
+  "en": "Open the 360° view",
+  "ru": "Открыть обзор 360°",
+  "ko": "360° 보기"
+ },
+ "map.to_discover_filter": {
+  "key": null,
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "map.university_card": {
+  "key": null,
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "map.zoom_button": {
+  "key": null,
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "map.zoom_in": {
+  "key": "fdMapZoomIn",
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": "Kattalashtirish",
+  "en": "Zoom in",
+  "ru": "Приблизить",
+  "ko": "확대"
+ },
+ "map.zoom_out": {
+  "key": "fdMapZoomOut",
+  "file": "features/discover/presentation/map_screen.dart",
+  "uz": "Kichiklashtirish",
+  "en": "Zoom out",
+  "ru": "Отдалить",
+  "ko": "축소"
+ },
+ "notification_settings.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/uni_db/presentation/notification_settings_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "notification_settings.glass_circle_button": {
+  "key": null,
+  "file": "features/uni_db/presentation/notification_settings_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notification_settings.toggle": {
+  "key": null,
+  "file": "features/uni_db/presentation/notification_settings_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notification_settings.toggle_row": {
+  "key": null,
+  "file": "features/uni_db/presentation/notification_settings_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notifications.back": {
+  "key": null,
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notifications.header_mark_all_read": {
+  "key": null,
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notifications.home_notifications_mark_all_read": {
+  "key": "homeNotifications",
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": "Bildirishnomalar",
+  "en": "Notifications",
+  "ru": "Уведомления",
+  "ko": "알림"
+ },
+ "notifications.push_notification_card": {
+  "key": null,
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notifications.reminder_application": {
+  "key": null,
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notifications.reminder_card": {
+  "key": null,
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "notifications.reminder_upload": {
+  "key": null,
+  "file": "features/home/presentation/notifications_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "page_tour.tour_layer": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/page_tour.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "prepare.ask_row": {
+  "key": null,
+  "file": "features/discover/presentation/prepare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "prepare.ask_title": {
+  "key": "fdPrepareAskTitle",
+  "file": "features/discover/presentation/prepare_screen.dart",
+  "uz": "Hanguk AI ga savol bering",
+  "en": "Ask Hanguk AI",
+  "ru": "Спросите Hanguk AI",
+  "ko": "Hanguk AI에게 질문하기"
+ },
+ "prepare.interview_title": {
+  "key": "fdPrepareInterviewTitle",
+  "file": "features/discover/presentation/prepare_screen.dart",
+  "uz": "Suhbatga tayyorgarlik",
+  "en": "Interview practice",
+  "ru": "Подготовка к собеседованию",
+  "ko": "면접 준비"
+ },
+ "prepare.study_plan_title": {
+  "key": "fdPrepareStudyPlanTitle",
+  "file": "features/discover/presentation/prepare_screen.dart",
+  "uz": "Study Plan tayyorlash",
+  "en": "Write your Study Plan",
+  "ru": "Учебный план",
+  "ko": "학업계획서 작성"
+ },
+ "prepare.tool_card": {
+  "key": null,
+  "file": "features/discover/presentation/prepare_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "qr_scan.back": {
+  "key": null,
+  "file": "features/auth/presentation/qr_scan_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "quiz_s02.age_grid_select": {
+  "key": null,
+  "file": "features/onboarding/presentation/quiz_s02_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "quiz_s02.age_tile": {
+  "key": null,
+  "file": "features/onboarding/presentation/quiz_s02_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "quiz_s02.option": {
+  "key": null,
+  "file": "features/onboarding/presentation/quiz_s02_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "quiz_s02.quiz_back": {
+  "key": "onbQuizBack",
+  "file": "features/onboarding/presentation/quiz_s02_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "quiz_s02.quiz_continue": {
+  "key": "onbQuizContinue",
+  "file": "features/onboarding/presentation/quiz_s02_screen.dart",
+  "uz": "Davom etish",
+  "en": "Continue",
+  "ru": "Продолжить",
+  "ko": "계속"
+ },
+ "region_map.toggle": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/region_map.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "report.back": {
+  "key": null,
+  "file": "features/assessment/presentation/report_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "report.cta": {
+  "key": "fdReportCta",
+  "file": "features/assessment/presentation/report_screen.dart",
+  "uz": "Bepul qo'ng'iroq olish →",
+  "en": "Get a free call →",
+  "ru": "Получить бесплатный звонок →",
+  "ko": "무료 전화 상담 받기 →"
+ },
+ "report.share": {
+  "key": "fdShare",
+  "file": "features/assessment/presentation/report_screen.dart",
+  "uz": "Ulashish",
+  "en": "Share",
+  "ru": "Поделиться",
+  "ko": "공유"
+ },
+ "result_s03.result_cta_operator": {
+  "key": "onbResultCtaOperator",
+  "file": "features/onboarding/presentation/result_s03_screen.dart",
+  "uz": "Bepul konsultatsiya",
+  "en": "Free consultation",
+  "ru": "Бесплатная консультация",
+  "ko": "무료 상담"
+ },
+ "result_s03.result_cta_telegram": {
+  "key": "onbResultCtaTelegram",
+  "file": "features/onboarding/presentation/result_s03_screen.dart",
+  "uz": "Telegram'da davom etish",
+  "en": "Continue in Telegram",
+  "ru": "Продолжить в Telegram",
+  "ko": "텔레그램에서 계속하기"
+ },
+ "result_s03.result_tariff_why": {
+  "key": null,
+  "file": "features/onboarding/presentation/result_s03_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "result_tariff_ui.onb_back_tile": {
+  "key": null,
+  "file": "features/onboarding/presentation/result_tariff_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "result_tariff_ui.onb_outline_button": {
+  "key": null,
+  "file": "features/onboarding/presentation/result_tariff_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "result_tariff_ui.onb_primary_button": {
+  "key": null,
+  "file": "features/onboarding/presentation/result_tariff_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "result_tariff_ui.onb_tap": {
+  "key": null,
+  "file": "features/onboarding/presentation/result_tariff_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "results.best_three_banner": {
+  "key": null,
+  "file": "features/discover/presentation/results_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "results.catalog_filter_title": {
+  "key": "catalogFilterTitle",
+  "file": "features/discover/presentation/results_screen.dart",
+  "uz": "Filtr",
+  "en": "Filter",
+  "ru": "Фильтр",
+  "ko": "필터"
+ },
+ "results.draggable_row_open": {
+  "key": null,
+  "file": "features/discover/presentation/results_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "results.draggable_row_toggle": {
+  "key": null,
+  "file": "features/discover/presentation/results_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "results.to_discover": {
+  "key": null,
+  "file": "features/discover/presentation/results_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "results.to_discover_search": {
+  "key": "fdSearchHint",
+  "file": "features/discover/presentation/results_screen.dart",
+  "uz": "Universitet qidiring",
+  "en": "Search universities",
+  "ru": "Поиск университета",
+  "ko": "대학 검색"
+ },
+ "s01_s04_ui.onb_outline_button": {
+  "key": null,
+  "file": "features/onboarding/presentation/s01_s04_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "s01_s04_ui.onb_primary_button": {
+  "key": null,
+  "file": "features/onboarding/presentation/s01_s04_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "s01_s04_ui.onb_tap": {
+  "key": null,
+  "file": "features/onboarding/presentation/s01_s04_ui.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "saved.chosen_admission": {
+  "key": "fdChosenAdmission",
+  "file": "features/discover/presentation/saved_screen.dart",
+  "uz": "Shu univerlarga kira olamanmi o'zi?",
+  "en": "Can I get into these?",
+  "ru": "Смогу ли я поступить сюда?",
+  "ko": "이 대학들에 갈 수 있을까?"
+ },
+ "saved.compare_card": {
+  "key": null,
+  "file": "features/discover/presentation/saved_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "saved.row_open": {
+  "key": null,
+  "file": "features/discover/presentation/saved_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "saved.row_unsave": {
+  "key": "fdUnsave",
+  "file": "features/discover/presentation/saved_screen.dart",
+  "uz": "Saqlanganlardan olib tashlash",
+  "en": "Remove from saved",
+  "ru": "Убрать из сохранённых",
+  "ko": "저장 취소"
+ },
+ "search.back": {
+  "key": null,
+  "file": "features/discover/presentation/search_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "search.city_tile": {
+  "key": null,
+  "file": "features/discover/presentation/search_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "search.clear": {
+  "key": null,
+  "file": "features/discover/presentation/search_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "search.recent_chip": {
+  "key": null,
+  "file": "features/discover/presentation/search_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "search.result_row": {
+  "key": null,
+  "file": "features/discover/presentation/search_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "sent.agency_card_call": {
+  "key": "fdSentCall",
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": "Qo'ng'iroq",
+  "en": "Call",
+  "ru": "Позвонить",
+  "ko": "전화"
+ },
+ "sent.agency_card_telegram": {
+  "key": null,
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "sent.back": {
+  "key": "fdSentBack",
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": "Universitetlarga qaytish",
+  "en": "Back to universities",
+  "ru": "К университетам",
+  "ko": "대학 목록으로"
+ },
+ "sent.contact_button": {
+  "key": null,
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "sent.docs_title": {
+  "key": "fdSentDocsTitle",
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": "Hujjatlar ro'yxati",
+  "en": "Document list",
+  "ru": "Список документов",
+  "ko": "서류 목록"
+ },
+ "sent.next_row": {
+  "key": null,
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "sent.topik_title": {
+  "key": "fdSentTopikTitle",
+  "file": "features/assessment/presentation/sent_screen.dart",
+  "uz": "TOPIK … ga tayyorlanish",
+  "en": "Prepare for TOPIK …",
+  "ru": "Подготовка к TOPIK …",
+  "ko": "TOPIK …급 준비"
+ },
+ "seoul_buttons.lime_button": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/seoul_buttons.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "seoul_buttons.seoul_outline_button": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/seoul_buttons.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "seoul_chips.seoul_filter_chip": {
+  "key": null,
+  "file": "design_system/seoul_night/widgets/seoul_chips.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "study_plan.cancel": {
+  "key": "cancel",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Bekor qilish",
+  "en": "Cancel",
+  "ru": "Отмена",
+  "ko": "취소"
+ },
+ "study_plan.cancel_2": {
+  "key": "cancel",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Bekor qilish",
+  "en": "Cancel",
+  "ru": "Отмена",
+  "ko": "취소"
+ },
+ "study_plan.close_session": {
+  "key": "a11yTooltipCloseSession",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Sessiyani yopish",
+  "en": "Close session",
+  "ru": "Закрыть сессию",
+  "ko": "세션 닫기"
+ },
+ "study_plan.copy_button": {
+  "key": "copyButton",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Nusxa olish",
+  "en": "Copy",
+  "ru": "Копировать",
+  "ko": "복사"
+ },
+ "study_plan.create_new_session": {
+  "key": "createNewSession",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Yangi sessiya yaratish",
+  "en": "Create New Session",
+  "ru": "Создать новую сессию",
+  "ko": "새 세션 만들기"
+ },
+ "study_plan.create_session": {
+  "key": "createSession",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Sessiya yaratish",
+  "en": "Create Session",
+  "ru": "Создать сессию",
+  "ko": "세션 만들기"
+ },
+ "study_plan.danger_button": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan.delete_label": {
+  "key": "deleteLabel",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "O'chirish",
+  "en": "Delete",
+  "ru": "Удалить",
+  "ko": "삭제"
+ },
+ "study_plan.delete_session": {
+  "key": "a11yTooltipDeleteSession",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Sessiyani o'chirish",
+  "en": "Delete session",
+  "ru": "Удалить сессию",
+  "ko": "세션 삭제"
+ },
+ "study_plan.glass_circle_button": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan.open_session": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan.past_drafts": {
+  "key": "pastDraftsTooltip",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Avvalgi qoralamalar",
+  "en": "Past drafts",
+  "ru": "Прошлые черновики",
+  "ko": "이전 초안"
+ },
+ "study_plan.read_examples_button": {
+  "key": "readExamplesButton",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Namunalarni ko'rish",
+  "en": "Read Examples",
+  "ru": "Смотреть примеры",
+  "ko": "예시 보기"
+ },
+ "study_plan.start_drafting_button": {
+  "key": "startDraftingButton",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Yozishni boshlash",
+  "en": "Start Drafting",
+  "ru": "Начать писать",
+  "ko": "초안 작성 시작"
+ },
+ "study_plan.track_chip": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan.track_english": {
+  "key": "trackEnglish",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Inglizcha",
+  "en": "English",
+  "ru": "Английский",
+  "ko": "영어"
+ },
+ "study_plan.track_korean": {
+  "key": "trackKorean",
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": "Koreyscha",
+  "en": "Korean",
+  "ru": "Корейский",
+  "ko": "한국어"
+ },
+ "study_plan.update_session_step": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_analysis.analysis_failure_retry": {
+  "key": null,
+  "file": "features/training/presentation/widgets/study_plan_analysis_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_analysis.return_to_drafting": {
+  "key": "returnToDrafting",
+  "file": "features/training/presentation/widgets/study_plan_analysis_view.dart",
+  "uz": "Qoralamaga qaytish",
+  "en": "Return to Drafting",
+  "ru": "Вернуться к черновику",
+  "ko": "초안으로 돌아가기"
+ },
+ "study_plan_builder.failed_retry": {
+  "key": "commonRetry",
+  "file": "features/training/presentation/study_plan_builder_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "study_plan_builder.leave": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_builder_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_builder.mic_button": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_builder_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_builder.plan_close": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_builder_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_builder.plan_feedback_busy": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_builder_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_builder.step_chip": {
+  "key": null,
+  "file": "features/training/presentation/study_plan_builder_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_history.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/training/presentation/widgets/study_plan_history_view.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "study_plan_history.glass_circle_button": {
+  "key": null,
+  "file": "features/training/presentation/widgets/study_plan_history_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_history.load_session": {
+  "key": null,
+  "file": "features/training/presentation/widgets/study_plan_history_view.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_test.chevron_left": {
+  "key": null,
+  "file": "features/discover/presentation/study_plan_test_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "study_plan_test.spt_done": {
+  "key": "sptDone",
+  "file": "features/discover/presentation/study_plan_test_screen.dart",
+  "uz": "Tayyor",
+  "en": "Done",
+  "ru": "Готово",
+  "ko": "완료"
+ },
+ "study_plan_test.spt_submit": {
+  "key": "sptSubmit",
+  "file": "features/discover/presentation/study_plan_test_screen.dart",
+  "uz": "Tekshirishga yuborish",
+  "en": "Send for checking",
+  "ru": "Отправить на проверку",
+  "ko": "제출하기"
+ },
+ "survey_detail.back": {
+  "key": "a11yTooltipBack",
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "survey_detail.calendar_today": {
+  "key": null,
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "survey_detail.check_box": {
+  "key": null,
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "survey_detail.question_card_changed": {
+  "key": null,
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "survey_detail.retry": {
+  "key": "commonRetry",
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "survey_detail.survey_submit": {
+  "key": "surveySubmit",
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": "Yuborish",
+  "en": "Submit",
+  "ru": "Отправить",
+  "ko": "제출"
+ },
+ "survey_detail.to_surveys": {
+  "key": null,
+  "file": "features/surveys/presentation/survey_detail_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "surveys.open_survey": {
+  "key": null,
+  "file": "features/surveys/presentation/surveys_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "surveys.retry": {
+  "key": "commonRetry",
+  "file": "features/surveys/presentation/surveys_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "surveys.to_home": {
+  "key": null,
+  "file": "features/surveys/presentation/surveys_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "target_university_picker.uni_row": {
+  "key": null,
+  "file": "features/training/presentation/widgets/target_university_picker.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "tariff_detail_s06.faq_item": {
+  "key": null,
+  "file": "features/onboarding/presentation/tariff_detail_s06_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "tariff_detail_s06.onb_back_tile": {
+  "key": null,
+  "file": "features/onboarding/presentation/tariff_detail_s06_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "tariff_detail_s06.tariff_cta": {
+  "key": "onbTariffCta",
+  "file": "features/onboarding/presentation/tariff_detail_s06_screen.dart",
+  "uz": "Shu tarif bo'yicha maslahat",
+  "en": "Get advice on this tariff",
+  "ru": "Консультация по этому тарифу",
+  "ko": "이 요금제 상담받기"
+ },
+ "tariffs_s05.onb_back_tile": {
+  "key": null,
+  "file": "features/onboarding/presentation/tariffs_s05_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "tariffs_s05.tariff_more": {
+  "key": "onbTariffMore",
+  "file": "features/onboarding/presentation/tariffs_s05_screen.dart",
+  "uz": "Batafsil →",
+  "en": "Details →",
+  "ru": "Подробнее →",
+  "ko": "자세히 →"
+ },
+ "uni_stack_card.admission": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/uni_stack_card.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "uni_stack_card.odds_pill": {
+  "key": null,
+  "file": "features/discover/presentation/widgets/uni_stack_card.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "universities.card": {
+  "key": null,
+  "file": "features/discover/presentation/universities_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "universities.card_pick": {
+  "key": "fdUniAddPick",
+  "file": "features/discover/presentation/universities_screen.dart",
+  "uz": "♥ Tanlovga qo'shish · …/3",
+  "en": "♥ Add to my picks · …/3",
+  "ru": "♥ В мой выбор · …/3",
+  "ko": "♥ 내 선택에 추가 · …/3"
+ },
+ "universities.to_discover_filter": {
+  "key": "fltTitle",
+  "file": "features/discover/presentation/universities_screen.dart",
+  "uz": "Filtr",
+  "en": "Filter",
+  "ru": "Фильтр",
+  "ko": "필터"
+ },
+ "university.ask_card_start": {
+  "key": "uaAskStart",
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": "Baholashni boshlash →",
+  "en": "Start the assessment →",
+  "ru": "Начать оценку →",
+  "ko": "평가 시작 →"
+ },
+ "university.back": {
+  "key": null,
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university.faculty_card": {
+  "key": null,
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university.faculty_card_expand": {
+  "key": null,
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university.pick": {
+  "key": null,
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university.retry": {
+  "key": "commonRetry",
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "university.retry_2": {
+  "key": "commonRetry",
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "university.set_degree": {
+  "key": null,
+  "file": "features/discover/presentation/university_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.assess_section_toggle": {
+  "key": null,
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.boost_row": {
+  "key": null,
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.lang_en": {
+  "key": null,
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.lang_ko": {
+  "key": null,
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.test_row_start": {
+  "key": null,
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.to_home": {
+  "key": null,
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_assess.ua_test_plan_start": {
+  "key": "uaTestPlan",
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": "Study Plan testi",
+  "en": "Study Plan test",
+  "ru": "Тест Study Plan",
+  "ko": "학업계획서 테스트"
+ },
+ "university_assess.ua_test_talk_start": {
+  "key": "uaTestTalk",
+  "file": "features/discover/presentation/university_assess_screen.dart",
+  "uz": "Suhbat testi",
+  "en": "Interview test",
+  "ru": "Тестовое собеседование",
+  "ko": "면접 테스트"
+ },
+ "university_choices.retry": {
+  "key": "commonRetry",
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "university_choices.set_reason": {
+  "key": null,
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_choices.to_home": {
+  "key": null,
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_choices.uc_accept": {
+  "key": "ucAccept",
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": "Roziman",
+  "en": "I agree",
+  "ru": "Согласен",
+  "ko": "동의합니다"
+ },
+ "university_choices.uc_change_send": {
+  "key": "ucChangeSend",
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": "Konsultantga yuborish",
+  "en": "Send to consultant",
+  "ru": "Отправить консультанту",
+  "ko": "상담사에게 보내기"
+ },
+ "university_choices.uc_final_go": {
+  "key": "ucFinalGo",
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": "Shu universitetga boraman",
+  "en": "I'll go to this university",
+  "ru": "Поеду в этот университет",
+  "ko": "이 대학으로 가겠습니다"
+ },
+ "university_choices.uc_request_change": {
+  "key": "ucRequestChange",
+  "file": "features/university_choices/presentation/university_choices_screen.dart",
+  "uz": "O'zgartirish so'rayman",
+  "en": "Ask for a change",
+  "ru": "Попросить замену",
+  "ko": "변경 요청"
+ },
+ "university_choices_entry.to_university_choices": {
+  "key": null,
+  "file": "features/university_choices/presentation/university_choices_entry.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "university_detail_sheet.virtual_tour_title": {
+  "key": "virtualTourTitle",
+  "file": "features/map/presentation/widgets/university_detail_sheet.dart",
+  "uz": "Virtual sayohat",
+  "en": "Virtual Tour",
+  "ru": "Виртуальный тур",
+  "ko": "가상 투어"
+ },
+ "university_detail_sheet.virtual_tour_title_2": {
+  "key": "virtualTourTitle",
+  "file": "features/map/presentation/widgets/university_detail_sheet.dart",
+  "uz": "Virtual sayohat",
+  "en": "Virtual Tour",
+  "ru": "Виртуальный тур",
+  "ko": "가상 투어"
+ },
+ "university_detail_sheet.virtual_walkaround_title": {
+  "key": "virtualWalkaroundTitle",
+  "file": "features/map/presentation/widgets/university_detail_sheet.dart",
+  "uz": "Virtual sayr",
+  "en": "Virtual Walkaround",
+  "ru": "Виртуальная прогулка",
+  "ko": "가상 캠퍼스 둘러보기"
+ },
+ "university_detail_sheet.visit_university_website": {
+  "key": "visitUniversityWebsite",
+  "file": "features/map/presentation/widgets/university_detail_sheet.dart",
+  "uz": "Universitet veb-saytiga o'tish",
+  "en": "Visit University Website",
+  "ru": "Перейти на сайт университета",
+  "ko": "대학 웹사이트 방문"
+ },
+ "university_roadview.glass_back_button": {
+  "key": "a11yTooltipBack",
+  "file": "features/map/presentation/widgets/university_roadview_screen.dart",
+  "uz": "Orqaga",
+  "en": "Back",
+  "ru": "Назад",
+  "ko": "뒤로"
+ },
+ "university_specific_cta.empty_fallback_to_general": {
+  "key": "uniSpecificFallbackButton",
+  "file": "features/uni_db/presentation/widgets/university_specific_cta.dart",
+  "uz": "Umumiy suhbatni sinab ko'ring",
+  "en": "Try a general interview instead",
+  "ru": "Пройти общее интервью",
+  "ko": "일반 면접으로 진행하기"
+ },
+ "update_dialog.ok": {
+  "key": "ok",
+  "file": "features/updater/presentation/update_dialog.dart",
+  "uz": "OK",
+  "en": "OK",
+  "ru": "ОК",
+  "ko": "확인"
+ },
+ "update_dialog.retry": {
+  "key": "commonRetry",
+  "file": "features/updater/presentation/update_dialog.dart",
+  "uz": "Qayta urinish",
+  "en": "Retry",
+  "ru": "Повторить",
+  "ko": "다시 시도"
+ },
+ "update_dialog.update_later": {
+  "key": "updateLater",
+  "file": "features/updater/presentation/update_dialog.dart",
+  "uz": "Keyinroq",
+  "en": "Later",
+  "ru": "Позже",
+  "ko": "나중에"
+ },
+ "update_dialog.update_now": {
+  "key": "updateNow",
+  "file": "features/updater/presentation/update_dialog.dart",
+  "uz": "Hozir yangilash",
+  "en": "Update Now",
+  "ru": "Обновить сейчас",
+  "ko": "지금 업데이트"
+ },
+ "virtual_tour.tour_back_button": {
+  "key": null,
+  "file": "features/map/presentation/widgets/virtual_tour_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "visa.assess_section_toggle": {
+  "key": null,
+  "file": "features/discover/presentation/visa_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "visa.catalog_filter_clear": {
+  "key": "catalogFilterClear",
+  "file": "features/discover/presentation/visa_screen.dart",
+  "uz": "Tozalash",
+  "en": "Clear",
+  "ru": "Сбросить",
+  "ko": "초기화"
+ },
+ "visa.clear_button": {
+  "key": null,
+  "file": "features/discover/presentation/visa_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "visa.play_button": {
+  "key": null,
+  "file": "features/discover/presentation/visa_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "visa.report": {
+  "key": "vzReport",
+  "file": "features/discover/presentation/visa_screen.dart",
+  "uz": "Hisobotni ko'rish →",
+  "en": "See the report →",
+  "ru": "Посмотреть отчёт →",
+  "ko": "보고서 보기 →"
+ },
+ "visa.tour_replay": {
+  "key": "vzTourReplay",
+  "file": "features/discover/presentation/visa_screen.dart",
+  "uz": "Yo'riqnomani qayta ko'rish",
+  "en": "Watch the guide again",
+  "ru": "Посмотреть подсказки снова",
+  "ko": "가이드 다시 보기"
+ },
+ "welcome.entry_language_label": {
+  "key": "entryLanguageLabel",
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": "Til",
+  "en": "Language",
+  "ru": "Язык",
+  "ko": "언어"
+ },
+ "welcome.explore_button": {
+  "key": null,
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome.explore_cta": {
+  "key": "welcomeExploreCta",
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": "Universitetlarni ko‘rish",
+  "en": "Explore Universities",
+  "ru": "Смотреть университеты",
+  "ko": "대학 둘러보기"
+ },
+ "welcome.glass_button": {
+  "key": null,
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome.language_button": {
+  "key": null,
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome.magic_code_cta": {
+  "key": "welcomeMagicCodeCta",
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": "Menda sehrli kod bor",
+  "en": "I have a magic code",
+  "ru": "У меня есть магический код",
+  "ko": "매직 코드가 있어요"
+ },
+ "welcome.pressable": {
+  "key": null,
+  "file": "features/home/presentation/welcome_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome_s01.deck_card": {
+  "key": null,
+  "file": "features/onboarding/presentation/welcome_s01_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome_s01.language_switch_select": {
+  "key": null,
+  "file": "features/onboarding/presentation/welcome_s01_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome_s01.start_block": {
+  "key": null,
+  "file": "features/onboarding/presentation/welcome_s01_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "welcome_s01.welcome_catalog": {
+  "key": "onbWelcomeCatalog",
+  "file": "features/onboarding/presentation/welcome_s01_screen.dart",
+  "uz": "Universitetlarni ko'rish",
+  "en": "Browse universities",
+  "ru": "Смотреть университеты",
+  "ko": "대학교 둘러보기"
+ },
+ "welcome_s01.welcome_client_code": {
+  "key": "onbWelcomeClientCode",
+  "file": "features/onboarding/presentation/welcome_s01_screen.dart",
+  "uz": "Mijoz kodim bor",
+  "en": "I have a client code",
+  "ru": "У меня есть код клиента",
+  "ko": "고객 코드가 있어요"
+ },
+ "welcome_s01.welcome_cta": {
+  "key": "onbWelcomeCta",
+  "file": "features/onboarding/presentation/welcome_s01_screen.dart",
+  "uz": "Imkoniyatimni bilish",
+  "en": "Check my chances",
+  "ru": "Узнать мои шансы",
+  "ko": "내 가능성 확인하기"
+ }
+}

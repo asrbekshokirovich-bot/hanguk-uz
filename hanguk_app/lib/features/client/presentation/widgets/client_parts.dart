@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/analytics/app_events.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../core/config/contact_links.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -49,7 +50,7 @@ class ClientHeader extends StatelessWidget {
           HardIconButton(
             glyph: LucideIcons.userRound,
             semanticLabel: l.accountTooltip,
-            onTap: () => context.push('/account'),
+            onTap: tracked('client_parts.account', () => context.push('/account')),
           ),
         ],
       ),
@@ -119,10 +120,10 @@ class ConsultantRow extends StatelessWidget {
           const SizedBox(width: 10),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
+            onTap: tracked('client_parts.consultant_write', () {
               AppEvents.track('contact_tap', screen: 'application', props: {'channel': 'telegram'});
               _open(ContactLinks.telegramDirectUri);
-            },
+            }),
             child: Semantics(
               button: true,
               label: 'Telegram',
@@ -145,10 +146,10 @@ class ConsultantRow extends StatelessWidget {
             size: 40,
             radius: 20,
             iconSize: 16,
-            onTap: () {
+            onTap: tracked('client_parts.sent_call', () {
               AppEvents.track('contact_tap', screen: 'application', props: {'channel': 'phone'});
               _open(ContactLinks.phoneUri);
-            },
+            }),
           ),
         ],
       ),

@@ -95,6 +95,11 @@ void main() {
     final starts = tracked.where((e) => e.$1 == 'assessment_start').toList();
     expect(starts, hasLength(1));
     expect(starts.single.$2?['kind'], 'visa');
+    // The answer itself: the question and the option.
+    final answers = tracked.where((e) => e.$1 == 'question_answer').toList();
+    expect(answers.map((e) => e.$2), [
+      {'form': 'visa', 'q': 'sponsor', 'band': 1},
+    ]);
     await t.tap(find.text(l.catalogFilterClear));
     await settle(t);
     expect(c.read(assessmentProvider).sponsor, before.sponsor);

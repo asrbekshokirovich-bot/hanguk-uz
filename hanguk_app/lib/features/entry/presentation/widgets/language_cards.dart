@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../data/entry_store.dart';
 
@@ -37,7 +38,7 @@ class LanguageCards extends StatelessWidget {
             name: kEntryLanguageNames[code]!,
             caption: _captions[code] ?? '',
             selected: code == selected,
-            onTap: () => onSelected(code),
+            onTap: tracked('language_cards.selected', () => onSelected(code), props: {'value': code}),
           ),
           if (code != kEntryLanguages.last) const SizedBox(height: 14),
         ],
@@ -73,7 +74,7 @@ class _LanguageCard extends StatelessWidget {
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: tracked('language_cards.language_card', onTap),
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
           curve: Curves.easeOut,

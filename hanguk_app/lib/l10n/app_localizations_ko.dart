@@ -5388,4 +5388,78 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => '1%만';
+
+  @override
+  String get deviceCodeTitle => '기기 코드';
+
+  @override
+  String get deviceCodeBody =>
+      '직원이 CRM(Ilova analitikasi → Sozlamalar)에 이 코드를 입력해 이 휴대폰을 테스트 기기로 표시합니다.';
+
+  @override
+  String get deviceCodeNone => '코드가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return '버전 $version';
+  }
+
+  @override
+  String get leadForWhomQ => '누구를 위한 상담인가요?';
+
+  @override
+  String get leadForWhomSelf => '본인';
+
+  @override
+  String get leadForWhomChild => '자녀';
+
+  @override
+  String get leadForWhomRelative => '친척';
+
+  @override
+  String get leadHowHeardQ => '저희를 어떻게 알게 되셨나요?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return '앱에서 · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => '인스타그램';
+
+  @override
+  String get leadHeardTelegram => '텔레그램';
+
+  @override
+  String get leadHeardFriend => '친구나 친척의 추천';
+
+  @override
+  String get leadHeardKoreaFriend => '한국에서 공부하는 지인';
+
+  @override
+  String get leadHeardLearningCenter => '학원';
+
+  @override
+  String get leadHeardEvent => '행사';
+
+  @override
+  String get leadHeardStore => 'Play Market 또는 App Store';
+
+  @override
+  String get leadHeardOther => '기타';
+
+  @override
+  String get leadConsent => '상담사가 선택하신 대학교와 테스트 답변을 보고 이를 바탕으로 상담해 드립니다.';
+
+  @override
+  String get guestPushTitle => '마감일을 놓치지 마세요';
+
+  @override
+  String get guestPushBody => '입학 마감일과 새 장학금 소식을 알림으로 보내드릴까요? 전화번호는 필요 없습니다.';
+
+  @override
+  String get guestPushYes => '네, 보내주세요';
+
+  @override
+  String get guestPushLater => '나중에';
 }

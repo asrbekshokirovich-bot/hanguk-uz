@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -154,7 +155,7 @@ class FilterBoardScreen extends ConsumerWidget {
                   HardIconButton(
                     glyph: LucideIcons.chevronLeft,
                     semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                    onTap: () => context.canPop() ? context.pop() : context.go(kDiscoverPath),
+                    onTap: tracked('filter_board.to_discover', () => context.canPop() ? context.pop() : context.go(kDiscoverPath)),
                   ),
                   const SizedBox(width: 10),
                 ],
@@ -171,7 +172,7 @@ class FilterBoardScreen extends ConsumerWidget {
                 Semantics(
                   button: true,
                   child: GestureDetector(
-                    onTap: () => set(f.cleared()),
+                    onTap: tracked('filter_board.set', () => set(f.cleared())),
                     behavior: HitTestBehavior.opaque,
                     child: Container(
                       height: 34,
@@ -249,7 +250,7 @@ class FilterBoardScreen extends ConsumerWidget {
                                   university: results[i],
                                   guideline: guidelineFor(results[i], f) ?? results[i].primary,
                                   percent: book.admission(results[i]),
-                                  onTap: () => context.push(universityPath(results[i].institutionId)),
+                                  onTap: tracked('filter_board.strip_card', () => context.push(universityPath(results[i].institutionId)), props: {'institution_id': results[i].institutionId}),
                                 ),
                               ),
                       ),
@@ -275,7 +276,7 @@ class FilterBoardScreen extends ConsumerWidget {
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             selected: f.field == t.key,
-                            onTap: () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
+                            onTap: tracked('filter_board.set_2', () => set(f.copyWith(field: () => f.field == t.key ? null : t.key))),
                           ),
                         HardChoice(
                           label: l.fdOther,
@@ -285,7 +286,7 @@ class FilterBoardScreen extends ConsumerWidget {
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           selected: false,
-                          onTap: () => context.push(kDiscoverSearchPath),
+                          onTap: tracked('filter_board.other', () => context.push(kDiscoverSearchPath)),
                         ),
                       ],
                     ),
@@ -312,11 +313,11 @@ class FilterBoardScreen extends ConsumerWidget {
                               fontSize: 13,
                               padding: const EdgeInsets.symmetric(horizontal: 13),
                               selected: f.regions.contains(r),
-                              onTap: () {
+                              onTap: tracked('filter_board.hard_choice', () {
                                 final next = {...f.regions};
                                 next.contains(r) ? next.remove(r) : next.add(r);
                                 set(f.copyWith(regions: next));
-                              },
+                              }),
                             ),
                           ),
                       ],
@@ -343,14 +344,14 @@ class FilterBoardScreen extends ConsumerWidget {
                             child: HardChoice(
                               label: label,
                               selected: profile.route == route,
-                              onTap: () {
+                              onTap: tracked('filter_board.set_profile', () {
                                 setProfile(profile.copyWith(route: route));
                                 set(f.copyWith(degree: switch (route) {
                                   StudyRoute.bachelor => CatalogDegree.bachelor,
                                   StudyRoute.master => CatalogDegree.master,
                                   _ => CatalogDegree.all,
                                 }));
-                              },
+                              }),
                             ),
                           ),
                         ],
@@ -377,10 +378,10 @@ class FilterBoardScreen extends ConsumerWidget {
                               radius: 10,
                               fontWeight: FontWeight.w800,
                               selected: profile.topik == t,
-                              onTap: () {
+                              onTap: tracked('filter_board.set_profile_2', () {
                                 setProfile(profile.copyWith(topik: t));
                                 set(f.copyWith(topik: () => t == 0 ? null : '$t'));
-                              },
+                              }),
                             ),
                           ),
                         ],
@@ -408,10 +409,10 @@ class FilterBoardScreen extends ConsumerWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             selected: f.ielts == v,
-                            onTap: () {
+                            onTap: tracked('filter_board.no', () {
                               setProfile(profile.copyWith(ielts: v ?? 0));
                               set(f.copyWith(ielts: () => v));
-                            },
+                            }),
                           ),
                       ],
                     ),
@@ -464,7 +465,7 @@ class FilterBoardScreen extends ConsumerWidget {
                           ('private', l.catalogTypePrivateShort),
                           (null, l.fdAny),
                         ])
-                          HardChoice(label: label, selected: f.type == value, onTap: () => set(f.copyWith(type: () => value))),
+                          HardChoice(label: label, selected: f.type == value, onTap: tracked('filter_board.set_3', () => set(f.copyWith(type: () => value)))),
                       ],
                     ),
                   ],
@@ -485,7 +486,7 @@ class FilterBoardScreen extends ConsumerWidget {
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                               selected: f.grant == value,
-                              onTap: () => set(f.copyWith(grant: () => value)),
+                              onTap: tracked('filter_board.grant_none', () => set(f.copyWith(grant: () => value))),
                             ),
                           ),
                         ],
@@ -527,7 +528,7 @@ class FilterBoardScreen extends ConsumerWidget {
                       child: HardChoice(
                         label: l.fdNo,
                         selected: !profile.visaRefused,
-                        onTap: () => setProfile(profile.copyWith(visaRefused: false)),
+                        onTap: tracked('filter_board.no_2', () => setProfile(profile.copyWith(visaRefused: false))),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -535,7 +536,7 @@ class FilterBoardScreen extends ConsumerWidget {
                       child: HardChoice(
                         label: l.fdYes,
                         selected: profile.visaRefused,
-                        onTap: () => setProfile(profile.copyWith(visaRefused: true)),
+                        onTap: tracked('filter_board.yes', () => setProfile(profile.copyWith(visaRefused: true))),
                       ),
                     ),
                   ],
@@ -549,7 +550,7 @@ class FilterBoardScreen extends ConsumerWidget {
             child: HardButton(
               key: tour.button,
               label: l.fdShowUniversities(results.length),
-              onPressed: results.isEmpty
+              onPressed: tracked('filter_board.show_universities', results.isEmpty
                   ? null
                   : () {
                       AppEvents.track(
@@ -571,7 +572,7 @@ class FilterBoardScreen extends ConsumerWidget {
                       } else {
                         context.push(kDiscoverResultsPath);
                       }
-                    },
+                    }),
             ),
           ),
         ],
@@ -755,7 +756,7 @@ class _StripCard extends StatelessWidget {
       button: true,
       label: university.displayName,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('filter_board.strip_card', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           width: 98,

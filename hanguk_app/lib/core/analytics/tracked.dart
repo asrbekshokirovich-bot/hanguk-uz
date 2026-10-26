@@ -4,18 +4,28 @@ import 'package:flutter/widgets.dart';
 import 'app_events.dart';
 
 /// [fn] that first records a `tap` on [element] — the name the CRM shows for
-/// what was pressed ("uni_card.heart", "visa.q.route"). Null stays null, so a
-/// disabled button stays disabled.
+/// what was pressed ("universities.card", "lead.report_send"). Null stays
+/// null, so a disabled button stays disabled; a non-null callback stays
+/// non-null, so it fits a required `VoidCallback` too.
 ///
-/// Names are `<where>.<what>` in lower_snake_case, stable across languages:
-/// never the button's text. [props] carries what the tap was about (a
-/// university id, the value chosen) — no typed text, no personal data.
-VoidCallback? tracked(String element, VoidCallback? fn, {Map<String, Object?>? props}) {
-  if (fn == null) return null;
-  return () {
+/// Names are `<screen file>.<what>` in lower_snake_case, stable across
+/// languages: never the button's text. [props] carries what the tap was about
+/// (a university id, the value chosen) — no typed text, no personal data.
+///
+/// One press names one tap: when a wrapped callback calls another (a card's
+/// own `onTap: tracked('card', onTap)` running the screen's
+/// `tracked('universities.card', …)`), the outer, more specific name wins.
+T tracked<T extends VoidCallback?>(String element, T fn, {Map<String, Object?>? props}) {
+  final f = fn;
+  if (f == null) return fn;
+  final call = f as VoidCallback;
+  final VoidCallback wrapped = () {
     AppEvents.tap(element, props: props);
-    fn();
+    call();
   };
+  // A callback typed more narrowly (one that returns a Future) is left as
+  // it is rather than broken.
+  return wrapped is T ? wrapped as T : fn;
 }
 
 /// [tracked] for callbacks that take the chosen value; [props] builds the
@@ -33,12 +43,39 @@ ValueChanged<T>? trackedValue<T>(
 }
 
 /// [tracked] for long presses.
-VoidCallback? trackedLong(String element, VoidCallback? fn, {Map<String, Object?>? props}) {
-  if (fn == null) return null;
-  return () {
+T trackedLong<T extends VoidCallback?>(String element, T fn, {Map<String, Object?>? props}) {
+  final f = fn;
+  if (f == null) return fn;
+  final call = f as VoidCallback;
+  final VoidCallback wrapped = () {
     AppEvents.longPress(element, props: props);
-    fn();
+    call();
   };
+  return wrapped is T ? wrapped as T : fn;
+}
+
+/// A form's field: `field_focus` when the person steps into it (the field's
+/// text is never recorded). [form] and [field] are stable names: 'lead',
+/// 'phone'.
+class TrackedField extends StatelessWidget {
+  const TrackedField({super.key, required this.form, required this.field, required this.child});
+
+  final String form;
+  final String field;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      canRequestFocus: false,
+      skipTraversal: true,
+      includeSemantics: false,
+      onFocusChange: (has) {
+        if (has) AppEvents.track('field_focus', props: {'form': form, 'field': field});
+      },
+      child: child,
+    );
+  }
 }
 
 /// Sits over the whole app (MaterialApp.builder): every tap anywhere is
