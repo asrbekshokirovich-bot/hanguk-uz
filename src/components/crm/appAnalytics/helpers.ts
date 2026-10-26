@@ -1,6 +1,6 @@
 import type { QualityData } from './api';
 
-export const TABS = ['marketing', 'flow', 'overview', 'people', 'live', 'quality', 'settings'] as const;
+export const TABS = ['marketing', 'flow', 'overview', 'people', 'live', 'clients', 'quality', 'settings'] as const;
 export type Tab = (typeof TABS)[number];
 export const BASE = '/crm/app-analytics';
 
