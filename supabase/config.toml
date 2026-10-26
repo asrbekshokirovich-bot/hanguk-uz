@@ -200,6 +200,22 @@ verify_jwt = false
 [functions.lead-sla-check]
 verify_jwt = false
 
+# The Monday 09:30 app report → Telegram, called by pg_cron with the secret key
+# in `apikey`. verify_jwt is off so the cron caller isn't blocked at the
+# gateway; the function checks the key itself.
+[functions.weekly-app-report]
+verify_jwt = false
+
+# The app's quality alarms → Telegram, hourly by pg_cron with the secret key
+# in `apikey`; the function checks the key itself.
+[functions.app-quality-alerts]
+verify_jwt = false
+
+# A push campaign to guests from the CRM, with the staff member's JWT (owner
+# and admin; the function checks the role).
+[functions.send-guest-push]
+verify_jwt = true
+
 # Telegram delivers updates here without a JWT; the function checks
 # X-Telegram-Bot-Api-Secret-Token against HR_BOT_WEBHOOK_SECRET itself.
 [functions.hr-bot]

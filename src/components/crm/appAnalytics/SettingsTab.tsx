@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { deviceCode, markTestDevice, TEST_REASONS, unmarkTestDevice, useTestDevices, type TestReason } from './api';
+import GuestPushBlock from './GuestPushBlock';
 
 /**
  * "Sozlamalar": test devices (S10). Phones that are staff's, demo accounts' or
  * development builds mark themselves; any other is marked here with the code
  * the app shows. Their visits are left out of every analytics page unless a
- * page is asked to include them.
+ * page is asked to include them. Below, push campaigns to guests (B3).
  */
 export default function SettingsTab() {
   const { t } = useTranslation();
@@ -144,6 +145,7 @@ export default function SettingsTab() {
           </div>
         )}
       </section>
+      <GuestPushBlock />
     </div>
   );
 }
