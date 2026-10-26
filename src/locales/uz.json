@@ -2946,5 +2946,42 @@
     "noOffers": "Javob kutayotgan taklif yo'q",
     "noDocuments": "Hammasining hujjatlari to'liq",
     "noInactive": "Hamma 7 kun ichida ilovaga kirgan"
+  },
+  "guestPush": {
+    "title": "Mehmonlarga push",
+    "howTo_one": "Ilovada telefon qoldirmagan, lekin bildirishnomaga ruxsat bergan mehmonlar: {{count}}. Har telefonga o'z tilidagi matn boradi (yozilmagan bo'lsa — o'zbekcha); bosilganlar kampaniya bo'yicha sanaladi.",
+    "howTo_other": "Ilovada telefon qoldirmagan, lekin bildirishnomaga ruxsat bergan mehmonlar: {{count}}. Har telefonga o'z tilidagi matn boradi (yozilmagan bo'lsa — o'zbekcha); bosilganlar kampaniya bo'yicha sanaladi.",
+    "key": "Kampaniya kodi",
+    "keyPlaceholder": "Kampaniya kodi, lotincha: muddat-noyabr",
+    "badKey": "Kod: 2–40 belgi — lotin harf, raqam, - yoki _",
+    "titleLabel": "Sarlavha",
+    "titlePlaceholder": "Sarlavha (80 belgigacha)",
+    "bodyLabel": "Matn",
+    "bodyPlaceholder": "Matn (240 belgigacha)",
+    "moreLangs": "Boshqa tillar (ru, en, ko, vi)",
+    "lessLangs": "Faqat o'zbekcha",
+    "check": "Kimga borishini ko'rish",
+    "confirmTitle": "«{{campaign}}» yuborilsinmi?",
+    "confirmBody_one": "{{count}} ta telefonga boradi.",
+    "confirmBody_other": "{{count}} ta telefonga boradi.",
+    "cancel": "Bekor qilish",
+    "send": "Yuborish",
+    "sent": "Yuborildi: {{phones}} telefondan {{delivered}} ta tokenga yetdi",
+    "none": "Hali kampaniya yuborilmagan",
+    "cols": {
+      "campaign": "Kampaniya",
+      "text": "Matn",
+      "delivered": "Yetdi / jami",
+      "opened": "Bosildi",
+      "when": "Qachon"
+    },
+    "errors": {
+      "failed": "Yuborib bo'lmadi",
+      "forbidden": "Faqat owner va admin yuboradi",
+      "campaign_exists": "Bu kod bilan kampaniya allaqachon yuborilgan",
+      "bad_campaign": "Kampaniya kodi noto'g'ri",
+      "uzbek_required": "O'zbekcha sarlavha va matn kerak",
+      "too_long": "Matn juda uzun"
+    }
   }
 }

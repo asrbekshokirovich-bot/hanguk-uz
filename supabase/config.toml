@@ -211,6 +211,11 @@ verify_jwt = false
 [functions.app-quality-alerts]
 verify_jwt = false
 
+# A push campaign to guests from the CRM, with the staff member's JWT (owner
+# and admin; the function checks the role).
+[functions.send-guest-push]
+verify_jwt = true
+
 # Telegram delivers updates here without a JWT; the function checks
 # X-Telegram-Bot-Api-Secret-Token against HR_BOT_WEBHOOK_SECRET itself.
 [functions.hr-bot]

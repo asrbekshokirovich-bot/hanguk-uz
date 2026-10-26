@@ -2882,5 +2882,42 @@
     "noOffers": "No offer is waiting for an answer",
     "noDocuments": "Everyone's documents are complete",
     "noInactive": "Everyone opened the app in the last 7 days"
+  },
+  "guestPush": {
+    "title": "Push to guests",
+    "howTo_one": "Guests who left no phone but allowed notifications: {{count}}. Each phone gets its own language where written (else Uzbek); opens are counted per campaign.",
+    "howTo_other": "Guests who left no phone but allowed notifications: {{count}}. Each phone gets its own language where written (else Uzbek); opens are counted per campaign.",
+    "key": "Campaign key",
+    "keyPlaceholder": "Campaign key, latin: deadline-november",
+    "badKey": "Key: 2–40 characters — latin letters, digits, - or _",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Title (up to 80)",
+    "bodyLabel": "Text",
+    "bodyPlaceholder": "Text (up to 240)",
+    "moreLangs": "Other languages (ru, en, ko, vi)",
+    "lessLangs": "Uzbek only",
+    "check": "See who gets it",
+    "confirmTitle": "Send «{{campaign}}»?",
+    "confirmBody_one": "It goes to {{count}} phone.",
+    "confirmBody_other": "It goes to {{count}} phones.",
+    "cancel": "Cancel",
+    "send": "Send",
+    "sent": "Sent: reached {{delivered}} tokens on {{phones}} phones",
+    "none": "No campaign sent yet",
+    "cols": {
+      "campaign": "Campaign",
+      "text": "Text",
+      "delivered": "Reached / all",
+      "opened": "Opened",
+      "when": "When"
+    },
+    "errors": {
+      "failed": "Could not send",
+      "forbidden": "Only owner and admin send",
+      "campaign_exists": "A campaign with this key was already sent",
+      "bad_campaign": "The campaign key is wrong",
+      "uzbek_required": "An Uzbek title and text are required",
+      "too_long": "The text is too long"
+    }
   }
 }
