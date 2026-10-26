@@ -47,6 +47,8 @@ export interface Marketing {
   from: string;
   to: string;
   include_test: boolean;
+  /** The cut the numbers are for ({} — everyone). */
+  seg?: Segment;
   kpi: MarketingKpi;
   channels: ChannelRow[];
   /** 'all' and each channel → the eight steps. */
@@ -82,6 +84,21 @@ export interface Cohort {
   d1: number | null;
   d7: number | null;
   d30: number | null;
+}
+
+/** The cuts (S4, «hamma kesimlar»), in the row's order. */
+export const SEG_KEYS = [
+  'who', 'channel', 'platform', 'age', 'route', 'topik', 'ielts', 'bank', 'income', 'income_documented', 'region', 'for_whom',
+] as const;
+export type SegKey = (typeof SEG_KEYS)[number];
+export type Segment = Partial<Record<SegKey, string>>;
+
+/** The cuts that are the person's own test answers (question_answer). */
+export const ANSWER_SEGS = ['route', 'topik', 'ielts', 'bank', 'income', 'income_documented'] as const;
+
+export interface SegmentOptions {
+  answers: Partial<Record<string, { band: string; devices: number }[]>>;
+  regions: { value: string; devices: number }[];
 }
 
 /** The funnel's eight steps (S2), in order. */
@@ -136,20 +153,29 @@ function call<T>(fn: string, args: Record<string, unknown>): Promise<{ data: T |
   }));
 }
 
-/** The period and the one before it. */
-export function useMarketing(from: string, to: string, prevFrom: string, prevTo: string, includeTest: boolean) {
+/** The period and the one before it, for the cut [seg]. */
+export function useMarketing(
+  from: string,
+  to: string,
+  prevFrom: string,
+  prevTo: string,
+  includeTest: boolean,
+  seg: Segment = {},
+) {
   const [data, setData] = useState<Marketing | null>(null);
   const [prev, setPrev] = useState<Marketing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const segKey = JSON.stringify(seg);
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
+    const p_seg = JSON.parse(segKey) as Segment;
     Promise.all([
-      call<Marketing>('analytics_marketing', { p_from: from, p_to: to, p_include_test: includeTest }),
-      call<Marketing>('analytics_marketing', { p_from: prevFrom, p_to: prevTo, p_include_test: includeTest }),
+      call<Marketing>('analytics_marketing', { p_from: from, p_to: to, p_include_test: includeTest, p_seg }),
+      call<Marketing>('analytics_marketing', { p_from: prevFrom, p_to: prevTo, p_include_test: includeTest, p_seg }),
     ]).then(([a, b]) => {
       if (!alive) return;
       setError(a.error ?? b.error);
@@ -160,17 +186,33 @@ export function useMarketing(from: string, to: string, prevFrom: string, prevTo:
     return () => {
       alive = false;
     };
-  }, [from, to, prevFrom, prevTo, includeTest, tick]);
+  }, [from, to, prevFrom, prevTo, includeTest, segKey, tick]);
 
   return { data, prev, loading, error, reload: useCallback(() => setTick((n) => n + 1), []) };
 }
 
-export function useRetention(includeTest: boolean) {
+export function useRetention(includeTest: boolean, seg: Segment = {}) {
   const [data, setData] = useState<Cohort[] | null>(null);
+  const segKey = JSON.stringify(seg);
   useEffect(() => {
     let alive = true;
-    void call<Cohort[]>('analytics_retention', { p_weeks: 8, p_include_test: includeTest }).then((r) => {
+    void call<Cohort[]>('analytics_retention', { p_weeks: 8, p_include_test: includeTest, p_seg: JSON.parse(segKey) }).then((r) => {
       if (alive) setData(r.data ?? []);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [includeTest, segKey]);
+  return data;
+}
+
+/** What the cuts can be: the answers seen and the cities on tied cards. */
+export function useSegmentOptions(includeTest: boolean) {
+  const [data, setData] = useState<SegmentOptions>({ answers: {}, regions: [] });
+  useEffect(() => {
+    let alive = true;
+    void call<SegmentOptions>('analytics_segment_options', { p_include_test: includeTest }).then((r) => {
+      if (alive && r.data) setData({ answers: r.data.answers ?? {}, regions: r.data.regions ?? [] });
     });
     return () => {
       alive = false;
@@ -257,4 +299,39 @@ export function bandLabel(q: string, band: string, t: T): string {
     default:
       return band;
   }
+}
+
+const PLATFORMS: Record<string, string> = { android: 'Android', ios: 'iOS', web: 'Web' };
+
+/** One cut's value as the person reads it: «Instagram», «TOPIK 2», «Mehmon». */
+export function segValueLabel(key: SegKey, value: string, names: Record<string, string>, t: T): string {
+  switch (key) {
+    case 'who':
+    case 'age':
+      return t(`marketing.seg.${key}.${value}`, { defaultValue: value });
+    case 'channel':
+      return channelName(value, names, t);
+    case 'platform':
+      return PLATFORMS[value] ?? value;
+    case 'for_whom':
+      return t(`appPerson.forWhom.${value}`, { defaultValue: value });
+    case 'region':
+      return value;
+    default:
+      return bandLabel(key, value, t);
+  }
+}
+
+/** «Kanal: Instagram», «TOPIK 2» (not «TOPIK: TOPIK 2»). */
+export function segText(key: SegKey, value: string, names: Record<string, string>, t: T): string {
+  const label = t(`marketing.seg.keys.${key}`);
+  const v = segValueLabel(key, value, names, t);
+  return v.startsWith(`${label} `) ? v : `${label}: ${v}`;
+}
+
+/** «Kanal: Instagram · Platforma: Android»; '' for everyone. */
+export function segSummary(seg: Segment, names: Record<string, string>, t: T): string {
+  return SEG_KEYS.filter((k) => seg[k])
+    .map((k) => segText(k, seg[k] as string, names, t))
+    .join(' · ');
 }
