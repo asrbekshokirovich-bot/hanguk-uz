@@ -5556,4 +5556,19 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => 'Chỉ top 1%';
+
+  @override
+  String get deviceCodeTitle => 'Mã thiết bị';
+
+  @override
+  String get deviceCodeBody =>
+      'Nhân viên nhập mã này vào CRM (Ilova analitikasi → Sozlamalar) để đánh dấu điện thoại là thiết bị thử nghiệm.';
+
+  @override
+  String get deviceCodeNone => 'Mã chưa sẵn sàng: hãy thử lại sau giây lát.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Phiên bản $version';
+  }
 }

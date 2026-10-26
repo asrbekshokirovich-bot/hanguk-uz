@@ -1786,5 +1786,9 @@
   "ugNone": "Hướng dẫn của trường không có học bổng TOPIK / IELTS",
   "ugYours": "CỦA BẠN",
   "fltOnePercent": "Trường top 1%",
-  "fltOnePercentOnly": "Chỉ top 1%"
+  "fltOnePercentOnly": "Chỉ top 1%",
+  "deviceCodeTitle": "Mã thiết bị",
+  "deviceCodeBody": "Nhân viên nhập mã này vào CRM (Ilova analitikasi → Sozlamalar) để đánh dấu điện thoại là thiết bị thử nghiệm.",
+  "deviceCodeNone": "Mã chưa sẵn sàng: hãy thử lại sau giây lát.",
+  "deviceCodeVersion": "Phiên bản {version}"
 }

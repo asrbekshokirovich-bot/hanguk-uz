@@ -1786,5 +1786,9 @@
   "ugNone": "Bu universitet qo'llanmasida TOPIK / IELTS granti yo'q",
   "ugYours": "SIZGA",
   "fltOnePercent": "1% universitetlar",
-  "fltOnePercentOnly": "Faqat 1%"
+  "fltOnePercentOnly": "Faqat 1%",
+  "deviceCodeTitle": "Qurilma kodi",
+  "deviceCodeBody": "Xodim bu kodni CRM'da (Ilova analitikasi → Sozlamalar) kiritib, telefonni test qurilma deb belgilaydi.",
+  "deviceCodeNone": "Kod hali tayyor emas: birozdan keyin qayta urinib ko'ring.",
+  "deviceCodeVersion": "Versiya {version}"
 }

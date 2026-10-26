@@ -6900,5 +6900,26 @@
   "fltOnePercentOnly": "Only the 1%",
   "@fltOnePercentOnly": {
     "description": "Filtr: Hanguk's top 1% university list"
+  },
+  "deviceCodeTitle": "Device code",
+  "@deviceCodeTitle": {
+    "description": "Hidden staff dialog (7 taps on the Tayyorgarlik title): the code that marks this phone as a test device in the CRM"
+  },
+  "deviceCodeBody": "Staff enter this code in the CRM (Ilova analitikasi → Sozlamalar) to mark this phone as a test device.",
+  "@deviceCodeBody": {
+    "description": "Hidden staff dialog: what the device code is for"
+  },
+  "deviceCodeNone": "The code is not ready yet: try again in a moment.",
+  "@deviceCodeNone": {
+    "description": "Hidden staff dialog: the code is not known yet"
+  },
+  "deviceCodeVersion": "Version {version}",
+  "@deviceCodeVersion": {
+    "description": "Hidden staff dialog: the app's version and build",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -5582,4 +5582,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => 'Only the 1%';
+
+  @override
+  String get deviceCodeTitle => 'Device code';
+
+  @override
+  String get deviceCodeBody =>
+      'Staff enter this code in the CRM (Ilova analitikasi → Sozlamalar) to mark this phone as a test device.';
+
+  @override
+  String get deviceCodeNone =>
+      'The code is not ready yet: try again in a moment.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Version $version';
+  }
 }

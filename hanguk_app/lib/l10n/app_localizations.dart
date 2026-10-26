@@ -10027,6 +10027,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only the 1%'**
   String get fltOnePercentOnly;
+
+  /// Hidden staff dialog (7 taps on the Tayyorgarlik title): the code that marks this phone as a test device in the CRM
+  ///
+  /// In en, this message translates to:
+  /// **'Device code'**
+  String get deviceCodeTitle;
+
+  /// Hidden staff dialog: what the device code is for
+  ///
+  /// In en, this message translates to:
+  /// **'Staff enter this code in the CRM (Ilova analitikasi → Sozlamalar) to mark this phone as a test device.'**
+  String get deviceCodeBody;
+
+  /// Hidden staff dialog: the code is not known yet
+  ///
+  /// In en, this message translates to:
+  /// **'The code is not ready yet: try again in a moment.'**
+  String get deviceCodeNone;
+
+  /// Hidden staff dialog: the app's version and build
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String deviceCodeVersion(String version);
 }
 
 class _AppLocalizationsDelegate

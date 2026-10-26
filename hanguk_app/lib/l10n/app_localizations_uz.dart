@@ -5584,4 +5584,20 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => 'Faqat 1%';
+
+  @override
+  String get deviceCodeTitle => 'Qurilma kodi';
+
+  @override
+  String get deviceCodeBody =>
+      'Xodim bu kodni CRM\'da (Ilova analitikasi → Sozlamalar) kiritib, telefonni test qurilma deb belgilaydi.';
+
+  @override
+  String get deviceCodeNone =>
+      'Kod hali tayyor emas: birozdan keyin qayta urinib ko\'ring.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Versiya $version';
+  }
 }

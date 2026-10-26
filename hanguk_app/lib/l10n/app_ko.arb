@@ -1786,5 +1786,9 @@
   "ugNone": "이 대학 모집요강에 TOPIK / IELTS 장학금이 없습니다",
   "ugYours": "내 장학금",
   "fltOnePercent": "상위 1% 대학",
-  "fltOnePercentOnly": "1%만"
+  "fltOnePercentOnly": "1%만",
+  "deviceCodeTitle": "기기 코드",
+  "deviceCodeBody": "직원이 CRM(Ilova analitikasi → Sozlamalar)에 이 코드를 입력해 이 휴대폰을 테스트 기기로 표시합니다.",
+  "deviceCodeNone": "코드가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.",
+  "deviceCodeVersion": "버전 {version}"
 }

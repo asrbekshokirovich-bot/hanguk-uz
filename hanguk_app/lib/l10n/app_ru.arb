@@ -1786,5 +1786,9 @@
   "ugNone": "В руководстве этого университета нет гранта за TOPIK / IELTS",
   "ugYours": "ВАШ",
   "fltOnePercent": "Университеты топ-1%",
-  "fltOnePercentOnly": "Только 1%"
+  "fltOnePercentOnly": "Только 1%",
+  "deviceCodeTitle": "Код устройства",
+  "deviceCodeBody": "Сотрудник вводит этот код в CRM (Ilova analitikasi → Sozlamalar), чтобы отметить телефон как тестовый.",
+  "deviceCodeNone": "Код ещё не готов: попробуйте чуть позже.",
+  "deviceCodeVersion": "Версия {version}"
 }

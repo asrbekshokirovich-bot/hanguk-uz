@@ -5388,4 +5388,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => '1%만';
+
+  @override
+  String get deviceCodeTitle => '기기 코드';
+
+  @override
+  String get deviceCodeBody =>
+      '직원이 CRM(Ilova analitikasi → Sozlamalar)에 이 코드를 입력해 이 휴대폰을 테스트 기기로 표시합니다.';
+
+  @override
+  String get deviceCodeNone => '코드가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return '버전 $version';
+  }
 }
