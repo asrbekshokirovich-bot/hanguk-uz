@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { hasApplicationFeeRole } from '@/lib/applicationFeeAccess';
 
 // application_fee_access is not in the generated Database types yet
-// (migration 20261026120000_application_fee_access.sql).
+// (migration 20261026120100_application_fee_access.sql).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const accessTable = () => (supabase as unknown as { from: (n: string) => any }).from('application_fee_access');
 

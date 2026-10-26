@@ -38,7 +38,7 @@ export function useUserRole() {
       // generated types yet either. Nor is document_approvers (migration
       // 20261014120000_document_approvers.sql), which names who besides the
       // owners approves documents. Nor is application_fee_access (migration
-      // 20261026120000_application_fee_access.sql), which opens "Application fee"
+      // 20261026120100_application_fee_access.sql), which opens "Application fee"
       // to named staff without the document_handler role.
       const [
         { data, error },
