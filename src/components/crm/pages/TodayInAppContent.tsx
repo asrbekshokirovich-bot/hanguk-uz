@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { plan } from '@/components/crm/appAnalytics/planUi';
 import { useTodayInApp, signalText, signalWhen, timerText, type TodayRow } from '@/components/crm/appAnalytics/today';
+import { studentPath } from '@/components/crm/appAnalytics/clients';
 
 /**
  * «Bugun ilovada» — the marketing plan's operator list (2026-10-22), as its
@@ -26,7 +27,7 @@ export default function TodayInAppContent() {
 
   const open = (r: TodayRow) => {
     if (r.lead_id) navigate(`/crm/leads/${r.lead_id}`);
-    else navigate('/crm/students');
+    else navigate(r.user_id ? studentPath(r.user_id) : '/crm/students');
   };
 
   const timer = data?.waiting && data.waiting_due_at ? timerText(data.waiting_due_at, now, t) : null;

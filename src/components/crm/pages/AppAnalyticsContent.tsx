@@ -9,6 +9,7 @@ const FlowTab = lazy(() => import('@/components/crm/appAnalytics/FlowTab'));
 const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const PeopleTab = lazy(() => import('@/components/crm/appAnalytics/PeopleTab'));
 const LiveTab = lazy(() => import('@/components/crm/appAnalytics/LiveTab'));
+const ClientsTab = lazy(() => import('@/components/crm/appAnalytics/ClientsTab'));
 const QualityTab = lazy(() => import('@/components/crm/appAnalytics/QualityTab'));
 const SettingsTab = lazy(() => import('@/components/crm/appAnalytics/SettingsTab'));
 
@@ -52,6 +53,9 @@ export default function AppAnalyticsContent() {
           </TabsContent>
           <TabsContent value="live">
             <LiveTab />
+          </TabsContent>
+          <TabsContent value="clients">
+            <ClientsTab />
           </TabsContent>
           <TabsContent value="quality">
             <QualityTab />
