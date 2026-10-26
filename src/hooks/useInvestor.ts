@@ -131,6 +131,8 @@ export interface InvestorApplicationRow {
   submitted_at: string | null;
   updated_at: string | null;
   days_since_movement: number | null;
+  /** Added by migration 20261026180000 so screens can count students. */
+  student_id: string | null;
 }
 
 export interface InvestorStaffRow {
@@ -214,6 +216,34 @@ export function useInvestorPosition(intakeId: string | null) {
         .eq('intake_id', intakeId);
       if (error) throw error;
       return (data ?? []) as InvestorPositionRow[];
+    },
+  });
+}
+
+export interface InvestorPlanRevenueRow {
+  intake_id: string;
+  plan: string;
+  currency: string;
+  students: number;
+  collected: number;
+  outstanding: number;
+  /** Money from students whose contract is not cancelled (migration 20261026200000). */
+  active_collected: number;
+  active_students: number;
+}
+
+/** Money per tariff and currency (v_investor_plan_revenue). Feeds the
+ *  Overview "No Risk" card. Never summed across currencies. */
+export function useInvestorPlanRevenue(intakeId: string | null) {
+  return useQuery({
+    queryKey: [KEY, 'plan-revenue', intakeId],
+    enabled: !!intakeId,
+    queryFn: async (): Promise<InvestorPlanRevenueRow[]> => {
+      const { data, error } = await rel('v_investor_plan_revenue')
+        .select('*')
+        .eq('intake_id', intakeId);
+      if (error) throw error;
+      return (data ?? []) as InvestorPlanRevenueRow[];
     },
   });
 }
@@ -555,18 +585,18 @@ export function useSendInvestorMessage() {
   });
 }
 
-/** Marks the staff side of an open thread as read. Updating read_at is the one
- *  update an investor session is allowed, and only on her own threads. */
+/** Marks the staff side of an open thread as read (mark_investor_thread_read). */
 export function useMarkThreadRead() {
   const qc = useQueryClient();
-  const { user } = useAuth();
   return useMutation({
     mutationFn: async (threadId: string) => {
-      const { error } = await rel('investor_messages')
-        .update({ read_at: new Date().toISOString() })
-        .eq('thread_id', threadId)
-        .is('read_at', null)
-        .neq('sender_user_id', user!.id);
+      // investor_messages has no UPDATE policy, so a direct update matched no
+      // rows and the unread pill never cleared. The RPC (migration
+      // 20261026190000_investor_desk.sql) checks she is on the thread and only
+      // touches messages the other side sent.
+      const { error } = await (supabase as unknown as {
+        rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }>;
+      }).rpc('mark_investor_thread_read', { p_thread_id: threadId });
       if (error) throw error;
     },
     onSuccess: () => {

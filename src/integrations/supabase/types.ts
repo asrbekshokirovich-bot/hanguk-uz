@@ -5154,6 +5154,9 @@ export type Database = {
       }
       student_intakes: {
         Row: {
+          contract_cancel_note: string | null
+          contract_cancelled_at: string | null
+          contract_cancelled_by: string | null
           created_at: string
           discount_percent: number
           docs_ready: boolean
@@ -5161,8 +5164,13 @@ export type Database = {
           intake_id: string
           is_free_reapplication: boolean
           student_id: string
+          visa_approved_at: string | null
+          departed_at: string | null
         }
         Insert: {
+          contract_cancel_note?: string | null
+          contract_cancelled_at?: string | null
+          contract_cancelled_by?: string | null
           created_at?: string
           discount_percent?: number
           docs_ready?: boolean
@@ -5170,8 +5178,13 @@ export type Database = {
           intake_id: string
           is_free_reapplication?: boolean
           student_id: string
+          visa_approved_at?: string | null
+          departed_at?: string | null
         }
         Update: {
+          contract_cancel_note?: string | null
+          contract_cancelled_at?: string | null
+          contract_cancelled_by?: string | null
           created_at?: string
           discount_percent?: number
           docs_ready?: boolean
@@ -5179,6 +5192,8 @@ export type Database = {
           intake_id?: string
           is_free_reapplication?: boolean
           student_id?: string
+          visa_approved_at?: string | null
+          departed_at?: string | null
         }
         Relationships: [
           {

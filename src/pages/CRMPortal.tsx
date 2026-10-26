@@ -72,6 +72,7 @@ const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapConten
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
+const InvestorDeskContent = lazy(() => import('@/components/crm/pages/InvestorDeskContent'));
 const LearningCentersContent = lazy(() => import('@/components/crm/pages/LearningCentersContent'));
 const ApplicationFeeContent = lazy(() => import('@/components/crm/pages/ApplicationFeeContent'));
 
@@ -202,6 +203,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     if (currentPath.startsWith('/crm/admin/institutions')) return 'institutions';
     if (currentPath.startsWith('/crm/surveys')) return 'surveys';
+    if (currentPath.startsWith('/crm/investor-desk')) return 'investor-desk';
     if (currentPath.startsWith('/crm/learning-centers')) return 'learning-centers';
     return 'dashboard';
   };
@@ -517,6 +519,8 @@ export default function CRMPortal() {
         return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
       case 'surveys':
         return <SafeSuspense><SurveysContent /></SafeSuspense>;
+      case 'investor-desk':
+        return <SafeSuspense><InvestorDeskContent /></SafeSuspense>;
       case 'learning-centers':
         if (!isCallOperator) return <AccessDenied />;
         return <SafeSuspense><LearningCentersContent /></SafeSuspense>;
