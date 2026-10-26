@@ -95,7 +95,14 @@ export function StudentFinanceList({
   const selectedStudentPayments = selectedStudent 
     ? payments
         .filter(p => p.student_id === selectedStudent.user_id)
-        .map(p => ({ payment_type: p.payment_type, status: p.status }))
+        .map(p => ({
+          id: p.id,
+          payment_type: p.payment_type,
+          status: p.status,
+          amount: Number(p.amount),
+          paid_amount: Number(p.paid_amount),
+          currency: p.currency,
+        }))
     : [];
 
   return (

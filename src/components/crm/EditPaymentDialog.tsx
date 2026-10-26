@@ -74,7 +74,12 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
     notes: '',
   });
 
-  const tx = payment?.transactions?.[0];
+  // With several transfers (bo'laklar) the paid amount is their sum: it is
+  // changed by adding a transfer, never by typing over the first one. Only an
+  // account with at most one transfer keeps the old single-transfer editing.
+  const txCount = payment?.transactions?.length ?? 0;
+  const multiTransfer = txCount > 1;
+  const tx = txCount === 1 ? payment?.transactions?.[0] : undefined;
 
   useEffect(() => {
     if (open && payment) {
@@ -83,7 +88,9 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
         listAmount: payment.list_amount == null ? '' : String(payment.list_amount),
         paidAmount: String(payment.paid_amount ?? ''),
         paymentMethod: payment.transactions?.[0]?.payment_method || 'cash',
-        gatewayFee: String(payment.transactions?.[0]?.gateway_fee ?? 0),
+        gatewayFee: String(
+          (payment.transactions ?? []).reduce((sum, row) => sum + Number(row.gateway_fee || 0), 0),
+        ),
         notes: payment.notes || '',
       });
     }
@@ -115,9 +122,13 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
         .update({
           amount: total,
           list_amount: listTotal > 0 ? listTotal : null,
-          paid_amount: paid,
+          ...(multiTransfer
+            ? {}
+            : {
+                paid_amount: paid,
+                paid_at: paid > 0 ? payment.paid_at ?? new Date().toISOString() : null,
+              }),
           notes: form.notes || null,
-          paid_at: paid > 0 ? payment.paid_at ?? new Date().toISOString() : null,
         })
         .eq('id', payment.id);
       if (payErr) throw payErr;
@@ -192,6 +203,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
               <Input
                 id="edit-paid"
                 type="number"
+                disabled={multiTransfer}
                 value={form.paidAmount}
                 onChange={(e) =>
                   setForm({ ...form, paidAmount: e.target.value, gatewayFee: feeFor(e.target.value, form.paymentMethod) })
@@ -200,6 +212,13 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
             </div>
           </div>
 
+          {multiTransfer && (
+            <p className="text-xs text-muted-foreground">
+              {t('payments.installment.editPaidHint', { count: txCount })}
+            </p>
+          )}
+
+          {!multiTransfer && (
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>To'lov turi</Label>
@@ -229,6 +248,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
               />
             </div>
           </div>
+          )}
 
           <div className="rounded-lg bg-success/10 p-3">
             <p className="text-sm text-muted-foreground">Sof daromad (siz olasiz):</p>
