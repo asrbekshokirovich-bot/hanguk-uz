@@ -101,6 +101,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         _started = true;
         AppEvents.track('assessment_start', props: {'kind': 'visa', 'universities': chosen.length});
       }
+      trackAnswers('visa', input, next);
       ref.read(assessmentProvider.notifier).set(next);
     }
 

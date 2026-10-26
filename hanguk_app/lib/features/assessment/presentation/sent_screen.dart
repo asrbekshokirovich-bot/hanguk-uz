@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/contact_codes.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../core/config/contact_links.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -35,12 +36,15 @@ String prettyUzPhone(String e164) {
 class SentScreen extends ConsumerWidget {
   const SentScreen({super.key});
 
-  Future<void> _telegram(WidgetRef ref, String? linkCode) async {
-    Uri uri = ContactLinks.telegramDirectUri;
+  Future<void> _telegram(BuildContext context, WidgetRef ref, String? linkCode) async {
+    final message = AppLocalizations.of(context)!.contactTelegramMessage;
+    Uri? uri;
     if (linkCode != null) {
       final bot = await ref.read(quizRepositoryProvider).botUsername();
       if (bot != null) uri = Uri.parse('https://t.me/$bot?start=L_$linkCode');
     }
+    // No lead code (or no bot): the consultant, with this phone's code.
+    uri ??= await ContactCodes.telegram(message, screen: 'sent');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -110,7 +114,7 @@ class SentScreen extends ConsumerWidget {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
                             child: _AgencyCard(
-                              onTelegram: tracked('sent.agency_card_telegram', () => _telegram(ref, sent?.linkCode)),
+                              onTelegram: tracked('sent.agency_card_telegram', () => _telegram(context, ref, sent?.linkCode)),
                               onCall: tracked('sent.agency_card_call', () => launchUrl(ContactLinks.phoneUri)),
                             ),
                           ),

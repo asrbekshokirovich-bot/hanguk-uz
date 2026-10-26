@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
@@ -106,6 +107,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
   @override
   void initState() {
     super.initState();
+    AppEvents.track('form_open', props: {'form': 'quiz_contact'});
     // The number given last time, so the form is filled in.
     final saved = ref.read(entryProvider).phone;
     if (saved != null) {
@@ -124,8 +126,12 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
     final l = AppLocalizations.of(context)!;
     final name = _name.text.trim();
     final digits = UzPhoneFormatter.digitsOf(_phone.text);
-    if (name.isEmpty) return setState(() => _error = _Error.name);
+    if (name.isEmpty) {
+      AppEvents.track('field_error', props: {'form': 'quiz_contact', 'field': 'name', 'code': 'empty'});
+      return setState(() => _error = _Error.name);
+    }
     if (digits.length != kUzNationalDigits) {
+      AppEvents.track('field_error', props: {'form': 'quiz_contact', 'field': 'phone', 'code': digits.isEmpty ? 'empty' : 'short'});
       return setState(() => _error = _Error.phone);
     }
     final r = ref.read(eligibilityResultProvider).value;
@@ -144,6 +150,11 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
       answers: answers.toJson(),
       result: resultPayload(r, answers, planText: planText(l, answers, r)),
     );
+    // The quiz's request is a lead like the assessment's: counted the same
+    // way, and this phone tied to it.
+    AppEvents.track('lead_submit', props: {'status': res.status.name});
+    AppEvents.track('form_submit', props: {'form': 'quiz_contact', 'result': res.status.name});
+    if (res.status == QuizSubmitStatus.ok) AppEvents.linkLead(res.linkCode);
     if (!mounted) return;
     setState(() => _sending = false);
 
@@ -237,7 +248,10 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
       _Field(
         label: l.onbContactName,
         error: _error == _Error.name ? l.onbContactNameError : null,
-        child: TextField(
+        child: TrackedField(
+          form: 'quiz_contact',
+          field: 'name',
+          child: TextField(
           controller: _name,
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.next,
@@ -252,6 +266,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
             if (_error == _Error.name) setState(() => _error = null);
           },
         ),
+        ),
       ),
       _Field(
         label: l.onbContactPhone,
@@ -264,7 +279,10 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: TextField(
+              child: TrackedField(
+                form: 'quiz_contact',
+                field: 'phone',
+                child: TextField(
                 controller: _phone,
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
@@ -280,6 +298,7 @@ class _ContactSheetState extends ConsumerState<_ContactSheet> {
                   if (_error == _Error.phone) setState(() => _error = null);
                 },
                 onSubmitted: (_) => _sending ? null : _submit(),
+              ),
               ),
             ),
           ],

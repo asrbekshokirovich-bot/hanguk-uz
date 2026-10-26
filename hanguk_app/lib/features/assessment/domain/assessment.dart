@@ -124,6 +124,51 @@ class AssessmentInput {
   /// The TOPIK level the documents can show.
   int get topikCounted => topikFresh ? topik : 0;
 
+  /// Each answer as the analytics record it (`question_answer`): the option
+  /// picked where the question has options; for the figures a range, never
+  /// the figure itself — the school average to the half point below, the age
+  /// as the start of its range, the money in the bank as the 5 million won
+  /// below it (30 for 30 million and more).
+  Map<String, Object> answerBands() => {
+    'route': route.name,
+    'education': education,
+    'gpa': (gpa * 2).floor() / 2,
+    'gap_years': gapYears,
+    'age': switch (age) {
+      < 18 => 17,
+      < 20 => 18,
+      < 22 => 20,
+      < 24 => 22,
+      < 26 => 24,
+      < 30 => 26,
+      _ => 30,
+    },
+    'topik': topik,
+    'topik_fresh': topikFresh,
+    'ielts': ielts,
+    'bank': (bankKrw ~/ 5000000 * 5).clamp(0, 30),
+    'income': income,
+    'income_documented': incomeDocumented,
+    'sponsor': sponsor,
+    'relation_doc': relationDoc,
+    'income_stability': incomeStability,
+    'property': property,
+    'car': car,
+    'business': business,
+    'visa_refused': visaRefused,
+    'korea_before': koreaBefore,
+    'illegal_relatives': illegalRelatives,
+    'legal_relatives': legalRelatives,
+    'experience': experience,
+    'olympiad': olympiad,
+    'motivation': motivation,
+    'recommendation': recommendation,
+    'portfolio': portfolio,
+    'activity': activity,
+    'study_plan': studyPlan,
+    'interview_prep': interviewPrep,
+  };
+
   AssessmentInput copyWith({
     int? topik,
     double? gpa,
@@ -281,6 +326,7 @@ class AssessmentOutcome {
     required this.requiredBankKrw,
     required this.chances,
     required this.fixes,
+    this.hints,
   });
 
   /// "HA" / "BALKI" / "HOZIRCHA YO'Q", from the same rules as the old quiz.
@@ -294,6 +340,10 @@ class AssessmentOutcome {
   final int requiredBankKrw;
   final List<AdmissionChance> chances;
   final List<AssessmentFix> fixes;
+
+  /// The tariff and the weak point the consultant sees on the lead's card,
+  /// by the old quiz's rules ([visaHints]).
+  final VisaHints? hints;
 
   int get openCount => chances.where((c) => c.open).length;
 
@@ -309,8 +359,67 @@ class AssessmentOutcome {
     'fixes': [
       for (final f in fixes) {'kind': f.kind.name, 'value': f.value, 'gain': f.gain},
     ],
+    // `leads.tariff_interest` (app_quiz_submit reads 'tariff').
+    if (hints case final h?) ...{'tariff': h.tariff.code, 'low': h.low},
   };
 }
+
+/// What the lead's card shows about the visa answers (the CRM's «Ilovada»
+/// block, marketing plan of 2026-10-22): «Mos tarif» and the «past omil» of
+/// «Viza testi», by the old «Viza imkoniyatim» quiz's rules — the owner's
+/// choice of 2026-10-26 — so the same answers give the same tariff there and
+/// here.
+@immutable
+class VisaHints {
+  const VisaHints({required this.tariff, required this.low, required this.formalIncome});
+
+  final Tariff tariff;
+
+  /// The first thing the old rules count against the person, in their
+  /// order: 'language', 'income', 'deposit', 'gap', 'age'; null for none.
+  final String? low;
+
+  /// Whether the parents' income is documented («rasmiy daromad»).
+  final bool formalIncome;
+}
+
+/// [input] as the old quiz's answers, through [evaluateEligibility].
+VisaHints visaHints(
+  AssessmentInput input, {
+  required List<CatalogUniversity> catalog,
+  required int requiredBankKrw,
+  EligibilityRules rules = const EligibilityRules(),
+  DateTime? now,
+}) {
+  final today = now ?? DateTime.now();
+  final ielts = input.ielts;
+  final answers = QuizAnswers(
+    route: input.route,
+    age: input.age,
+    gradYear: today.year - input.gapYears,
+    korean: input.koreanLevel,
+    english: ielts >= 6.5
+        ? EnglishLevel.ielts65plus
+        : ielts >= 6.0
+        ? EnglishLevel.ielts60
+        : ielts >= 5.5
+        ? EnglishLevel.ielts55
+        : EnglishLevel.none,
+    formalIncome: input.incomeDocumented,
+    kdb: input.kdbDeposit(requiredBankKrw),
+  );
+  final r = evaluateEligibility(answers, catalog: catalog, rules: rules, now: today);
+  final weak = r.factors.where((f) => !f.positive).map((f) => _lowOf(f.kind)).firstOrNull;
+  return VisaHints(tariff: r.tariff, low: weak, formalIncome: input.incomeDocumented);
+}
+
+String _lowOf(FactorKind k) => switch (k) {
+  FactorKind.incomeNo => 'income',
+  FactorKind.kdbByIntake || FactorKind.kdbNo => 'deposit',
+  FactorKind.gradGapLong => 'gap',
+  FactorKind.ageHigh => 'age',
+  _ => 'language',
+};
 
 /// An admission chance at or above this counts as open.
 const int kOpenPercent = 60;
@@ -389,6 +498,7 @@ AssessmentOutcome assess(
     requiredBankKrw: requiredKrw,
     chances: chances,
     fixes: fixes,
+    hints: visaHints(input, catalog: catalog, requiredBankKrw: requiredKrw, rules: rules, now: now),
   );
 }
 
