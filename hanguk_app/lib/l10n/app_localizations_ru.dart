@@ -5601,9 +5601,6 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
 
-  @override
-  String get contactTelegramMessage =>
-      'Здравствуйте! Пишу из приложения Hanguk.';
 
   @override
   String get leadForWhomQ => 'Для кого?';
@@ -5617,40 +5614,41 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get leadForWhomRelative => 'Для родственника';
 
-  @override
-  String get leadForWhomFriend => 'Для друга';
 
-  @override
-  String get leadForWhomOther => 'Другое';
 
   @override
   String get leadHowHeardQ => 'Как вы нас нашли?';
 
   @override
-  String get leadHeardAds => 'Реклама в соцсетях';
+  String contactTelegramMessage(String code) {
+    return 'Из приложения · $code';
+  }
 
   @override
-  String get leadHeardInstagram => 'Страница в Instagram';
+  String get leadHeardInstagram => 'Instagram';
 
   @override
-  String get leadHeardTelegram => 'Telegram-канал';
+  String get leadHeardTelegram => 'Telegram';
 
   @override
-  String get leadHeardFriend => 'Рекомендация друга или знакомого';
+  String get leadHeardFriend => 'Рекомендация друга или родственника';
 
   @override
-  String get leadHeardEvent => 'Мероприятие или выставка';
+  String get leadHeardKoreaFriend => 'Знакомый, который учится в Корее';
 
   @override
-  String get leadHeardGoogle => 'Поиск Google';
+  String get leadHeardLearningCenter => 'Учебный центр';
 
   @override
-  String get leadHeardYoutube => 'YouTube / TikTok';
+  String get leadHeardEvent => 'Мероприятие';
+
+  @override
+  String get leadHeardStore => 'Play Market или App Store';
 
   @override
   String get leadHeardOther => 'Другое';
 
   @override
   String get leadConsent =>
-      'Нажимая «Отправить», вы соглашаетесь, что ваше имя, телефон и выбор в приложении будут использованы, чтобы консультант связался с вами и дал совет.';
+      'Консультант увидит выбранные вами университеты и ответы на тест и на их основе даст совет.';
 }

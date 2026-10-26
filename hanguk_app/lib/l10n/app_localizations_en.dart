@@ -5600,9 +5600,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
 
-  @override
-  String get contactTelegramMessage =>
-      'Hello! I\'m writing from the Hanguk app.';
 
   @override
   String get leadForWhomQ => 'Who is it for?';
@@ -5616,40 +5613,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leadForWhomRelative => 'For a relative';
 
-  @override
-  String get leadForWhomFriend => 'For a friend';
 
-  @override
-  String get leadForWhomOther => 'Other';
 
   @override
   String get leadHowHeardQ => 'How did you find us?';
 
   @override
-  String get leadHeardAds => 'An ad on social media';
+  String contactTelegramMessage(String code) {
+    return 'From the app · $code';
+  }
 
   @override
-  String get leadHeardInstagram => 'Our Instagram page';
+  String get leadHeardInstagram => 'Instagram';
 
   @override
-  String get leadHeardTelegram => 'Our Telegram channel';
+  String get leadHeardTelegram => 'Telegram';
 
   @override
-  String get leadHeardFriend => 'A friend\'s recommendation';
+  String get leadHeardFriend => 'A friend\'s or relative\'s recommendation';
 
   @override
-  String get leadHeardEvent => 'An event or fair';
+  String get leadHeardKoreaFriend => 'Someone I know studying in Korea';
 
   @override
-  String get leadHeardGoogle => 'Google search';
+  String get leadHeardLearningCenter => 'Learning centre';
 
   @override
-  String get leadHeardYoutube => 'YouTube / TikTok';
+  String get leadHeardEvent => 'Event';
+
+  @override
+  String get leadHeardStore => 'Play Market or App Store';
 
   @override
   String get leadHeardOther => 'Other';
 
   @override
   String get leadConsent =>
-      'By pressing «Send» you agree that your name, phone and your choices in the app are used for a consultant to contact and advise you.';
+      'Your consultant will see the universities you chose and your test answers, and advise you on that basis.';
 }

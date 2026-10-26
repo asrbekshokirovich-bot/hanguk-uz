@@ -5602,9 +5602,6 @@ class AppLocalizationsUz extends AppLocalizations {
   }
 
 
-  @override
-  String get contactTelegramMessage =>
-      'Assalomu alaykum! Hanguk ilovasidan yozyapman.';
 
   @override
   String get leadForWhomQ => 'Kim uchun?';
@@ -5618,40 +5615,41 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get leadForWhomRelative => 'Qarindoshim uchun';
 
-  @override
-  String get leadForWhomFriend => 'Do\'stim uchun';
 
-  @override
-  String get leadForWhomOther => 'Boshqa';
 
   @override
   String get leadHowHeardQ => 'Bizni qayerdan topdingiz?';
 
   @override
-  String get leadHeardAds => 'Ijtimoiy tarmoqdagi reklama';
+  String contactTelegramMessage(String code) {
+    return 'Ilovadan · $code';
+  }
 
   @override
-  String get leadHeardInstagram => 'Instagram sahifasi';
+  String get leadHeardInstagram => 'Instagram';
 
   @override
-  String get leadHeardTelegram => 'Telegram kanali';
+  String get leadHeardTelegram => 'Telegram';
 
   @override
-  String get leadHeardFriend => 'Do\'st yoki tanish tavsiyasi';
+  String get leadHeardFriend => 'Do\'st yoki qarindosh tavsiyasi';
 
   @override
-  String get leadHeardEvent => 'Tadbir yoki ko\'rgazma';
+  String get leadHeardKoreaFriend => 'Koreyada o\'qiyotgan tanish';
 
   @override
-  String get leadHeardGoogle => 'Google qidiruv';
+  String get leadHeardLearningCenter => 'O\'quv markazi';
 
   @override
-  String get leadHeardYoutube => 'YouTube / TikTok';
+  String get leadHeardEvent => 'Tadbir';
+
+  @override
+  String get leadHeardStore => 'Play Market yoki App Store';
 
   @override
   String get leadHeardOther => 'Boshqa';
 
   @override
   String get leadConsent =>
-      '«Yuborish»ni bosib, ismingiz, telefoningiz va ilovadagi tanlovlaringiz konsultant siz bilan bog\'lanishi va maslahat berishi uchun ishlatilishiga rozilik bildirasiz.';
+      'Konsultant tanlagan universitetlaringizni va test javoblaringizni ko\'radi va shu asosda maslahat beradi.';
 }

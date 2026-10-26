@@ -5573,8 +5573,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
 
-  @override
-  String get contactTelegramMessage => 'Xin chào! Tôi nhắn từ ứng dụng Hanguk.';
 
   @override
   String get leadForWhomQ => 'Cho ai?';
@@ -5588,40 +5586,41 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get leadForWhomRelative => 'Cho người thân';
 
-  @override
-  String get leadForWhomFriend => 'Cho bạn bè';
 
-  @override
-  String get leadForWhomOther => 'Khác';
 
   @override
   String get leadHowHeardQ => 'Bạn biết đến chúng tôi qua đâu?';
 
   @override
-  String get leadHeardAds => 'Quảng cáo trên mạng xã hội';
+  String contactTelegramMessage(String code) {
+    return 'Từ ứng dụng · $code';
+  }
 
   @override
-  String get leadHeardInstagram => 'Trang Instagram';
+  String get leadHeardInstagram => 'Instagram';
 
   @override
-  String get leadHeardTelegram => 'Kênh Telegram';
+  String get leadHeardTelegram => 'Telegram';
 
   @override
-  String get leadHeardFriend => 'Bạn bè giới thiệu';
+  String get leadHeardFriend => 'Bạn bè hoặc người thân giới thiệu';
 
   @override
-  String get leadHeardEvent => 'Sự kiện hoặc hội chợ';
+  String get leadHeardKoreaFriend => 'Người quen đang du học Hàn Quốc';
 
   @override
-  String get leadHeardGoogle => 'Tìm kiếm Google';
+  String get leadHeardLearningCenter => 'Trung tâm đào tạo';
 
   @override
-  String get leadHeardYoutube => 'YouTube / TikTok';
+  String get leadHeardEvent => 'Sự kiện';
+
+  @override
+  String get leadHeardStore => 'Play Market hoặc App Store';
 
   @override
   String get leadHeardOther => 'Khác';
 
   @override
   String get leadConsent =>
-      'Khi nhấn «Gửi», bạn đồng ý để tên, số điện thoại và các lựa chọn của bạn trong ứng dụng được dùng để tư vấn viên liên hệ và tư vấn cho bạn.';
+      'Tư vấn viên sẽ xem các trường bạn đã chọn và câu trả lời bài kiểm tra của bạn, rồi tư vấn dựa trên đó.';
 }

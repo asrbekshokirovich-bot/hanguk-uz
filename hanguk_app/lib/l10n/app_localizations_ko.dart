@@ -5405,8 +5405,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
 
-  @override
-  String get contactTelegramMessage => '안녕하세요! Hanguk 앱에서 문의드립니다.';
 
   @override
   String get leadForWhomQ => '누구를 위한 상담인가요?';
@@ -5420,40 +5418,40 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get leadForWhomRelative => '친척';
 
-  @override
-  String get leadForWhomFriend => '친구';
 
-  @override
-  String get leadForWhomOther => '기타';
 
   @override
   String get leadHowHeardQ => '저희를 어떻게 알게 되셨나요?';
 
   @override
-  String get leadHeardAds => 'SNS 광고';
+  String contactTelegramMessage(String code) {
+    return '앱에서 · $code';
+  }
 
   @override
-  String get leadHeardInstagram => '인스타그램 페이지';
+  String get leadHeardInstagram => '인스타그램';
 
   @override
-  String get leadHeardTelegram => '텔레그램 채널';
+  String get leadHeardTelegram => '텔레그램';
 
   @override
-  String get leadHeardFriend => '지인 추천';
+  String get leadHeardFriend => '친구나 친척의 추천';
 
   @override
-  String get leadHeardEvent => '행사·박람회';
+  String get leadHeardKoreaFriend => '한국에서 공부하는 지인';
 
   @override
-  String get leadHeardGoogle => '구글 검색';
+  String get leadHeardLearningCenter => '학원';
 
   @override
-  String get leadHeardYoutube => 'YouTube / TikTok';
+  String get leadHeardEvent => '행사';
+
+  @override
+  String get leadHeardStore => 'Play Market 또는 App Store';
 
   @override
   String get leadHeardOther => '기타';
 
   @override
-  String get leadConsent =>
-      '«보내기»를 누르면 상담사가 연락하고 안내할 수 있도록 이름, 전화번호와 앱에서의 선택 정보가 사용되는 데 동의하게 됩니다.';
+  String get leadConsent => '상담사가 선택하신 대학교와 테스트 답변을 보고 이를 바탕으로 상담해 드립니다.';
 }

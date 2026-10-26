@@ -10053,11 +10053,6 @@ abstract class AppLocalizations {
   String deviceCodeVersion(String version);
 
 
-  /// The text the app types into a Telegram message to the consultant; the app adds a short code after it (HK-…) that ties the chat to this phone
-  ///
-  /// In en, this message translates to:
-  /// **'Hello! I\'m writing from the Hanguk app.'**
-  String get contactTelegramMessage;
 
   /// Lead form: who the consultation is for
   ///
@@ -10083,17 +10078,7 @@ abstract class AppLocalizations {
   /// **'For a relative'**
   String get leadForWhomRelative;
 
-  /// Lead form, «Kim uchun?»: for a friend
-  ///
-  /// In en, this message translates to:
-  /// **'For a friend'**
-  String get leadForWhomFriend;
 
-  /// Lead form, «Kim uchun?»: someone else
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get leadForWhomOther;
 
   /// Lead form: where the person found us (stored as the lead's how_heard)
   ///
@@ -10101,58 +10086,64 @@ abstract class AppLocalizations {
   /// **'How did you find us?'**
   String get leadHowHeardQ;
 
-  /// Lead form, how_heard: an ad on social media
+  /// The text the app types into a Telegram message to the consultant, with this phone's short code that ties the chat to it (the marketing plan's example: «Ilovadan · A7K2»)
   ///
   /// In en, this message translates to:
-  /// **'An ad on social media'**
-  String get leadHeardAds;
+  /// **'From the app · {code}'**
+  String contactTelegramMessage(String code);
 
-  /// Lead form, how_heard: our Instagram page
+  /// Lead form, «Bizni qayerdan topdingiz?»: Instagram
   ///
   /// In en, this message translates to:
-  /// **'Our Instagram page'**
+  /// **'Instagram'**
   String get leadHeardInstagram;
 
-  /// Lead form, how_heard: our Telegram channel
+  /// Lead form, «Bizni qayerdan topdingiz?»: Telegram
   ///
   /// In en, this message translates to:
-  /// **'Our Telegram channel'**
+  /// **'Telegram'**
   String get leadHeardTelegram;
 
-  /// Lead form, how_heard: a friend's recommendation
+  /// Lead form, «Bizni qayerdan topdingiz?»: a friend's or relative's recommendation
   ///
   /// In en, this message translates to:
-  /// **'A friend\'s recommendation'**
+  /// **'A friend\'s or relative\'s recommendation'**
   String get leadHeardFriend;
 
-  /// Lead form, how_heard: an event or fair
+  /// Lead form, «Bizni qayerdan topdingiz?»: someone I know who studies in Korea
   ///
   /// In en, this message translates to:
-  /// **'An event or fair'**
+  /// **'Someone I know studying in Korea'**
+  String get leadHeardKoreaFriend;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: a learning centre
+  ///
+  /// In en, this message translates to:
+  /// **'Learning centre'**
+  String get leadHeardLearningCenter;
+
+  /// Lead form, «Bizni qayerdan topdingiz?»: an event
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
   String get leadHeardEvent;
 
-  /// Lead form, how_heard: Google search
+  /// Lead form, «Bizni qayerdan topdingiz?»: found the app in Play Market or the App Store
   ///
   /// In en, this message translates to:
-  /// **'Google search'**
-  String get leadHeardGoogle;
+  /// **'Play Market or App Store'**
+  String get leadHeardStore;
 
-  /// Lead form, how_heard: YouTube or TikTok
-  ///
-  /// In en, this message translates to:
-  /// **'YouTube / TikTok'**
-  String get leadHeardYoutube;
-
-  /// Lead form, how_heard: somewhere else
+  /// Lead form, «Bizni qayerdan topdingiz?»: somewhere else
   ///
   /// In en, this message translates to:
   /// **'Other'**
   String get leadHeardOther;
 
-  /// Lead form: the consent line under the questions (text approved by the owner, B4)
+  /// Lead form: the consent line (the marketing plan's text, approved by the owner, B4)
   ///
   /// In en, this message translates to:
-  /// **'By pressing «Send» you agree that your name, phone and your choices in the app are used for a consultant to contact and advise you.'**
+  /// **'Your consultant will see the universities you chose and your test answers, and advise you on that basis.'**
   String get leadConsent;
 }
 
