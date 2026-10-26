@@ -270,7 +270,7 @@ export function LeadChannelLinks({ lead, overview, onLink }: LeadChannelLinksPro
   // The app (stage 2): the operator decides whom to send it to (B2); opening
   // it ties the phone to this lead, and the card then shows the app path.
   const appLink = lead.link_code ? operatorLink(lead.link_code) : null;
-  const appInvite = appLink ? t('leads.profile.links.appInviteText', { name: firstName, link: appLink }) : '';
+  const appInvite = appLink ? t('leads.profile.links.appInviteText', { link: appLink }) : '';
   const appTie = useAppTie(lead.id);
 
   const copy = async (what: 'link' | 'text') => {

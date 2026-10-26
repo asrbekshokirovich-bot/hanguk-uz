@@ -1072,7 +1072,7 @@
         "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}",
         "notFound": "Bu nik bilan yozishma topilmadi. Telegram ID raqamini kiriting — u darhol ulanadi.",
         "appLink": "Ilova havolasi",
-        "appInviteText": "Assalomu alaykum, {{name}}! Hanguk ilovasini shu havola orqali oching: {{link}} — unda universitet tanlaysiz, kirish va viza ehtimolingizni ko'rasiz, men esa tanlovlaringizni ko'rib, aniqroq maslahat beraman.",
+        "appInviteText": "Mana ilovamiz: {{link}}. Universitetlarni ko'rib chiqing va yoqqan 3 tasini ♥ bilan belgilang — men tanlovingizni ko'rib, shu universitetlar bo'yicha aniq maslahat beraman.",
         "appTied": "Ilova bog'langan: {{date}} · {{via}}",
         "appNotYet": "Hali ilova orqali ochilmagan",
         "appVia": {

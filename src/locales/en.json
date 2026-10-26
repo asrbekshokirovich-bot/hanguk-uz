@@ -1003,7 +1003,7 @@
         "inviteText": "Hello {{name}}! To continue on Telegram about your documents and questions, tap this link: {{link}}",
         "notFound": "No chat found for this username. Enter the Telegram numeric ID — it links at once.",
         "appLink": "App link",
-        "appInviteText": "Hello {{name}}! Open the Hanguk app with this link: {{link}} — choose universities and see your admission and visa chances; I'll see your choices and advise you better.",
+        "appInviteText": "Here is our app: {{link}}. Look through the universities and mark the 3 you like with ♥ — I'll see your choice and give you specific advice on those universities.",
         "appTied": "App connected: {{date}} · {{via}}",
         "appNotYet": "Not opened in the app yet",
         "appVia": {
