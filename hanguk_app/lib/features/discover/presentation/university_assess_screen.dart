@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -48,6 +49,9 @@ class UniversityAssessScreen extends ConsumerStatefulWidget {
 
 class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen> {
   final Set<int> _closed = {};
+
+  /// `assessment_start` goes once per visit, with the first answer changed.
+  bool _started = false;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +118,13 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     final input = ref.watch(assessmentProvider);
     final book = ref.watch(chanceBookProvider);
     final tests = book.testsOf(u);
-    void set(AssessmentInput next) => ref.read(assessmentProvider.notifier).set(next);
+    void set(AssessmentInput next) {
+      if (!_started) {
+        _started = true;
+        AppEvents.track('assessment_start', props: {'kind': 'university', 'institution_id': u.institutionId});
+      }
+      ref.read(assessmentProvider.notifier).set(next);
+    }
 
     // What an answer does to this university's admission: against the
     // answer that changes nothing (its "Yo'q", a 3.5 certificate, bachelor).

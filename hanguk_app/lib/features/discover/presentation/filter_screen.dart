@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -60,6 +62,8 @@ class FilterScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Zero-size: lives as long as the screen, to send filter_apply on leaving.
+          _FilterUsage(filter: f, results: results.length),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 2, 18, 0),
             child: Row(
@@ -218,6 +222,61 @@ class FilterScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// What a `filter_apply` event says about [f]: the same fields the old filter
+/// board sent, so the CRM reads both alike. [results] is how many
+/// universities the choices left.
+@visibleForTesting
+Map<String, Object?> filterEventProps(CatalogFilter f, int? results) => {
+  'field': f.field,
+  'regions': f.regions.isEmpty ? null : (f.regions.toList()..sort()).join(','),
+  'degree': f.degree,
+  'topik': f.topik,
+  'type': f.type,
+  'ielts': f.ielts,
+  'grant': f.grant,
+  'max_price': f.maxPrice,
+  'one_percent': f.onePercent ? true : null,
+  'results': results,
+};
+
+/// Sends `filter_apply` once, when the visitor leaves the Filtr screen — by
+/// "N ta universitetni ko'rsatish", the back arrow or the system back alike —
+/// and only if the choices changed while it was open. The screen applies each
+/// choice at once, so there is no "apply" press to hang the event on.
+class _FilterUsage extends StatefulWidget {
+  const _FilterUsage({required this.filter, required this.results});
+
+  final CatalogFilter filter;
+  final int results;
+
+  @override
+  State<_FilterUsage> createState() => _FilterUsageState();
+}
+
+class _FilterUsageState extends State<_FilterUsage> {
+  late final Map<String, Object?> _initial = filterEventProps(widget.filter, null);
+  late CatalogFilter _filter = widget.filter;
+  late int _results = widget.results;
+
+  @override
+  void didUpdateWidget(_FilterUsage old) {
+    super.didUpdateWidget(old);
+    _filter = widget.filter;
+    _results = widget.results;
+  }
+
+  @override
+  void dispose() {
+    if (!mapEquals(filterEventProps(_filter, null), _initial)) {
+      AppEvents.track('filter_apply', screen: '/guest/filter', props: filterEventProps(_filter, _results));
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 /// "24  MOS UNIVERSITETLAR · 24 TADAN" over a lime bar of segments.

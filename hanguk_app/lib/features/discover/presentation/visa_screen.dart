@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -46,6 +47,9 @@ class VisaScreen extends ConsumerStatefulWidget {
 
 class _VisaScreenState extends ConsumerState<VisaScreen> {
   final Set<int> _closed = {};
+
+  /// `assessment_start` goes once per visit, with the first answer changed.
+  bool _started = false;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +95,13 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         : all.where((u) => picked.contains(u.institutionId)).toList();
     final chosen = all.where((u) => picked.contains(u.institutionId)).toList();
     final need = requiredBank(input.route, chosen, rules: rules);
-    void set(AssessmentInput next) => ref.read(assessmentProvider.notifier).set(next);
+    void set(AssessmentInput next) {
+      if (!_started) {
+        _started = true;
+        AppEvents.track('assessment_start', props: {'kind': 'visa', 'universities': chosen.length});
+      }
+      ref.read(assessmentProvider.notifier).set(next);
+    }
 
     int visa(AssessmentInput i) => visaScore(i, requiredBankKrw: need);
     // Admission: the best of the picked universities (or of the board's).

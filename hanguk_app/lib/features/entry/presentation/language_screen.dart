@@ -45,7 +45,8 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
     if (code == null || _saving) return;
     setState(() => _saving = true);
     // The router moves on to sign-up once the language is stored.
-    await ref.read(entryProvider.notifier).setLanguage(code);
+    final device = Localizations.localeOf(context).languageCode;
+    await ref.read(entryProvider.notifier).setLanguage(code, source: 'first_run', deviceDefault: code == device);
   }
 
   static const TextStyle _titleStyle = TextStyle(

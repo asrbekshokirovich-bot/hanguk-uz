@@ -29,9 +29,15 @@ abstract final class AppEvents {
     await sink.init();
   }
 
+  /// Tests only: sees every tracked event, whether recording has started or not.
+  @visibleForTesting
+  static void Function(String event, String? screen, Map<String, Object?>? props)? debugOnTrack;
+
   /// Records [event] (lower_snake_case) on [screen] with [props].
-  static void track(String event, {String? screen, Map<String, Object?>? props}) =>
-      _sink?.add(event, screen: screen, props: props);
+  static void track(String event, {String? screen, Map<String, Object?>? props}) {
+    debugOnTrack?.call(event, screen, props);
+    _sink?.add(event, screen: screen, props: props);
+  }
 
   /// Ties this installation to the lead the guest just created; [linkCode] is
   /// what `app_quiz_submit` returned.
