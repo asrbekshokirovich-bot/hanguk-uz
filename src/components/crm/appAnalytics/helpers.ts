@@ -1,13 +1,17 @@
 import type { QualityData } from './api';
 
-export const TABS = ['overview', 'people', 'quality', 'settings'] as const;
+export const TABS = ['marketing', 'flow', 'overview', 'people', 'live', 'clients', 'quality', 'settings'] as const;
 export type Tab = (typeof TABS)[number];
 export const BASE = '/crm/app-analytics';
 
-/** /crm/app-analytics/<tab>; the old /crm/app-activity opens the overview. */
+/**
+ * /crm/app-analytics opens the marketing panel; /crm/app-analytics/<tab> the
+ * others; the old /crm/app-activity, the activity page it was.
+ */
 export function tabOf(path: string): Tab {
+  if (path.startsWith('/crm/app-activity')) return 'overview';
   const rest = path.startsWith(BASE) ? path.slice(BASE.length).replace(/^\//, '').split('/')[0] : '';
-  return (TABS as readonly string[]).includes(rest) ? (rest as Tab) : 'overview';
+  return (TABS as readonly string[]).includes(rest) ? (rest as Tab) : 'marketing';
 }
 
 /** Share as a whole percent; null when there is nothing to divide. */

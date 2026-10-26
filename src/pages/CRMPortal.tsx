@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
@@ -126,6 +126,19 @@ export default function CRMPortal() {
   const loading = studentsLoading || paymentsLoading;
 
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
+
+  // /crm/students?student=<user id> opens that student (links from the app
+  // analytics: «Bugun ilovada», «Mijozlar faolligi»).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const studentParam = searchParams.get('student');
+  useEffect(() => {
+    if (!studentParam || !location.pathname.startsWith('/crm/students') || !students.length) return;
+    const found = students.find((s) => s.user_id === studentParam);
+    if (found) setSelectedStudent(found as StudentProfile);
+    const next = new URLSearchParams(searchParams);
+    next.delete('student');
+    setSearchParams(next, { replace: true });
+  }, [studentParam, students, location.pathname, searchParams, setSearchParams]);
 
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
   const sidebarGroups = useSidebarGroups(

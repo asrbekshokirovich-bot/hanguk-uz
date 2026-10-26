@@ -919,6 +919,30 @@
   "ru": null,
   "ko": null
  },
+ "device_code.close": {
+  "key": "ok",
+  "file": "core/analytics/device_code.dart",
+  "uz": "OK",
+  "en": "OK",
+  "ru": "ОК",
+  "ko": "확인"
+ },
+ "device_code.copy": {
+  "key": "copyButton",
+  "file": "core/analytics/device_code.dart",
+  "uz": "Nusxa olish",
+  "en": "Copy",
+  "ru": "Копировать",
+  "ko": "복사"
+ },
+ "device_code.title": {
+  "key": null,
+  "file": "core/analytics/device_code.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
  "discover.catalog_banner": {
   "key": null,
   "file": "features/discover/presentation/discover_screen.dart",
@@ -1399,6 +1423,22 @@
   "ru": "Повторить",
   "ko": "다시 시도"
  },
+ "guest_push.later": {
+  "key": "guestPushLater",
+  "file": "core/push/guest_push.dart",
+  "uz": "Keyinroq",
+  "en": "Later",
+  "ru": "Позже",
+  "ko": "나중에"
+ },
+ "guest_push.yes": {
+  "key": "guestPushYes",
+  "file": "core/push/guest_push.dart",
+  "uz": "Ha, yuboring",
+  "en": "Yes, notify me",
+  "ru": "Да, присылайте",
+  "ko": "네, 보내주세요"
+ },
  "guest_shell.contact_sheet_join": {
   "key": null,
   "file": "features/guest/presentation/guest_shell.dart",
@@ -1872,6 +1912,22 @@
   "ko": null
  },
  "lead.back": {
+  "key": null,
+  "file": "features/assessment/presentation/lead_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "lead.for_whom": {
+  "key": null,
+  "file": "features/assessment/presentation/lead_screen.dart",
+  "uz": null,
+  "en": null,
+  "ru": null,
+  "ko": null
+ },
+ "lead.how_heard": {
   "key": null,
   "file": "features/assessment/presentation/lead_screen.dart",
   "uz": null,
