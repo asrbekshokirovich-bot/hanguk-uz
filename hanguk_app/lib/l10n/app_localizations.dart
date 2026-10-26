@@ -10141,6 +10141,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your consultant will see the universities you chose and your test answers, and advise you on that basis.'**
   String get leadConsent;
+
+  /// Guest push permission sheet (app analytics plan, stage 5; B3): title
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t miss the deadlines'**
+  String get guestPushTitle;
+
+  /// Guest push permission sheet: what we would send; a guest leaves no phone number
+  ///
+  /// In en, this message translates to:
+  /// **'Shall we notify you about admission deadlines and new scholarships? No phone number needed.'**
+  String get guestPushBody;
+
+  /// Guest push permission sheet: yes (then the system asks)
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, notify me'**
+  String get guestPushYes;
+
+  /// Guest push permission sheet: not now
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get guestPushLater;
 }
 
 class _AppLocalizationsDelegate

@@ -5648,4 +5648,17 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get leadConsent =>
       'Konsultant tanlagan universitetlaringizni va test javoblaringizni ko\'radi va shu asosda maslahat beradi.';
+
+  @override
+  String get guestPushTitle => 'Muddatlarni o\'tkazib yubormang';
+
+  @override
+  String get guestPushBody =>
+      'Qabul muddatlari va yangi grantlar haqida bildirishnoma yuboraylikmi? Telefon raqamingiz kerak emas.';
+
+  @override
+  String get guestPushYes => 'Ha, yuboring';
+
+  @override
+  String get guestPushLater => 'Keyinroq';
 }
