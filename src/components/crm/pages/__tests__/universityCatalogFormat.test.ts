@@ -160,6 +160,23 @@ describe('cityLabel va displayName', () => {
     });
   });
 
+  it('Excel‘dagi magistratura qo‘shimchasi emas, universitet nomi ko‘rinadi', () => {
+    const e = entry();
+    e.latest = { ...e.latest!, univ_nomi_en: 'Jeonbuk National University — Graduate School', univ_nomi_kr: '전북대학교 일반대학원' };
+    expect(displayName(e)).toEqual({
+      primary: 'Jeonbuk National University',
+      secondary: '전북대학교',
+    });
+  });
+
+  it('institutions‘da nom bo‘lmasa Excel nomi zaxira bo‘ladi', () => {
+    const e = entry();
+    e.institution.name_en = null;
+    e.institution.name_ko = null;
+    e.latest = { ...e.latest!, univ_nomi_en: 'Jeonbuk National Univ.', univ_nomi_kr: null };
+    expect(displayName(e)).toEqual({ primary: 'Jeonbuk National Univ.', secondary: null });
+  });
+
   it('inglizcha nom yo‘q bo‘lsa koreyschasini asosiy qiladi', () => {
     const e = entry({ guidelines: [], latest: null });
     e.institution.name_en = null;
