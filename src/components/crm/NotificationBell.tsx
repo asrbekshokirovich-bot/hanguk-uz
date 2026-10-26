@@ -17,12 +17,14 @@ const contextTypeIcons: Record<string, React.ReactNode> = {
   task_comment: <ListTodo className="h-3 w-3" />,
   message: <MessageSquare className="h-3 w-3" />,
   room_chat: <Users className="h-3 w-3" />,
+  investor_message: <MessageSquare className="h-3 w-3" />,
 };
 
 const contextTypeLabels: Record<string, string> = {
   task_comment: 'Task',
   message: 'Message',
   room_chat: 'Room',
+  investor_message: 'Investor',
 };
 
 export function NotificationBell() {
@@ -41,6 +43,9 @@ export function NotificationBell() {
         break;
       case 'message':
         navigate(`/crm?page=messages&thread=${mention.context_id}`);
+        break;
+      case 'investor_message':
+        navigate(`/crm/investor-desk?thread=${mention.context_id}`);
         break;
       case 'room_chat':
         // Room chat navigation would depend on how rooms are structured
