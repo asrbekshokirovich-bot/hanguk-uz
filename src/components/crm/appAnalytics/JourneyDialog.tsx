@@ -1,20 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { describeEvent, screenLabel } from '@/components/crm/appActivity/describe';
-import type { AppEvent } from '@/components/crm/appActivity/useAppActivity';
-import elements from '@/components/crm/appActivity/appElements.json';
+import { screenLabel } from '@/components/crm/appActivity/describe';
 import { plan } from './planUi';
+import { STEP_ICON, duration, useStepDescriber } from './steps';
 import {
   PLATFORM_LABEL,
   channelLabel,
   groupBySession,
-  institutionNames,
-  useEventNames,
   useJourney,
   whenLabel,
-  type JourneyStep,
   type Person,
 } from './person';
 
@@ -25,45 +21,6 @@ interface JourneyDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type ElementInfo = { uz: string | null };
-const ELEMENTS = elements as Record<string, ElementInfo>;
-
-/** Events the CRM already words well (appActivity.events). */
-const DESCRIBED = new Set([
-  'screen_view', 'tab_open', 'university_open', 'university_save', 'university_unsave', 'university_skip',
-  'slot_remove', 'slot_set', 'duel_pick', 'filter_apply', 'assessment_start', 'report_view', 'lead_submit',
-  'sign_in', 'qr_scan', 'interview_start', 'interview_end', 'interview_leave', 'study_plan_feedback',
-  'dictation_start', 'document_upload', 'contact_tap', 'language_set', 'search', 'app_open',
-]);
-
-const ICON: Record<string, string> = {
-  app_open: '→',
-  app_resume: '→',
-  screen_leave: '▣',
-  slot_set: '♥',
-  slot_remove: '♡',
-  form_open: '✎',
-  field_focus: '✎',
-  field_error: '✎',
-  form_submit: '✎',
-  question_answer: '✎',
-  lead_submit: '✎',
-  app_background: '×',
-};
-
-/** "41 s", "1 daq 12 s", "6 daq 40 s". */
-function duration(seconds: number | null | undefined, t: (k: string, o?: Record<string, unknown>) => string): string {
-  if (seconds == null || seconds < 0) return '';
-  const s = Math.round(seconds);
-  if (s < 60) return t('appPerson.seconds', { s });
-  return t('appPerson.minutes', { m: Math.floor(s / 60), s: s % 60 });
-}
-
-function elementLabel(name: string | null): string {
-  if (!name) return '';
-  return ELEMENTS[name]?.uz ?? name.replace(/[._]/g, ' ');
-}
-
 /**
  * «To'liq yo'l»: the person's visits over the last 30 days, newest first, each
  * with its steps — screens with the time spent on them, what was pressed,
@@ -72,49 +29,8 @@ function elementLabel(name: string | null): string {
 export default function JourneyDialog({ leadId, person, open, onOpenChange }: JourneyDialogProps) {
   const { t } = useTranslation();
   const { data, loading, error } = useJourney(leadId, open);
-  const registry = useEventNames();
-  const [unis, setUnis] = useState<Record<string, string>>({});
-
-  // The universities the steps mention, by name.
-  useEffect(() => {
-    if (!data) return;
-    const ids = new Set<string>();
-    for (const s of data.steps) {
-      for (const k of ['institution_id', 'other_id']) {
-        const v = s.props?.[k];
-        if (typeof v === 'string' && v) ids.add(v);
-      }
-    }
-    if (!ids.size) return;
-    let alive = true;
-    void institutionNames([...ids]).then((names) => {
-      if (alive) setUnis(names);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [data]);
-
+  const describe = useStepDescriber(data?.steps, t);
   const groups = useMemo(() => (data ? groupBySession(data.sessions, data.steps) : []), [data]);
-
-  const describe = (s: JourneyStep): string => {
-    const event: AppEvent = {
-      id: 0,
-      install_id: '',
-      user_id: null,
-      event: s.event,
-      screen: s.screen,
-      props: s.props ?? {},
-      occurred_at: s.at,
-    };
-    if (DESCRIBED.has(s.event)) return describeEvent(event, t, unis);
-    const base = registry[s.event] ?? s.event;
-    if (s.event === 'tap' || s.event === 'long_press') return `${base}: ${elementLabel(s.element)}`;
-    if (s.event === 'screen_leave') return screenLabel(s.screen, t) || base;
-    const form = typeof s.props?.form === 'string' ? ` · ${s.props.form}` : '';
-    const what = typeof s.props?.q === 'string' ? ` · ${s.props.q}` : typeof s.props?.field === 'string' ? ` · ${s.props.field}` : '';
-    return `${base}${form}${what}`;
-  };
 
   const channel = person ? channelLabel(person.contact_channel, person.lead_source, t) : null;
 
@@ -170,7 +86,7 @@ export default function JourneyDialog({ leadId, person, open, onOpenChange }: Jo
                         {new Date(s.at).toLocaleTimeString('en-GB')}
                       </span>
                       <span aria-hidden className="text-center">
-                        {ICON[s.event] ?? '·'}
+                        {STEP_ICON[s.event] ?? '·'}
                       </span>
                       <span className="min-w-0">{describe(s)}</span>
                       <span className={cn('whitespace-nowrap tabular-nums', plan.muted)}>

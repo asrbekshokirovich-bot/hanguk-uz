@@ -76,6 +76,16 @@ export const plan = {
     'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#FCEDCF] px-[9px] py-[5px] text-[12px] ' +
     'font-[650] leading-none text-[#8A5200] dark:bg-[#33260C] dark:text-[#F3BA4E]',
 
+  // «Jonli»: the green dot, the big number, the feed
+  liveN: 'flex items-baseline gap-2',
+  dot: 'mr-1.5 inline-block h-2 w-2 rounded-full bg-[#11733A] dark:bg-[#5CD18B]',
+  liveValue: 'text-[30px] font-extrabold leading-none tracking-[-0.02em]',
+  feed: 'm-0 grid list-none p-0 text-[13px]',
+  feedRow:
+    'grid grid-cols-[3.6rem_minmax(0,1fr)] gap-2 border-t border-[#E7ECF4] py-1.5 first:border-t-0 ' +
+    'dark:border-[#1B275B]',
+  feedTime: 'font-mono text-[12px] font-medium text-[#5B6B85] dark:text-[#9DA9CC]',
+
   // blocks under the Marketing table
   grid3: 'grid grid-cols-3 gap-3 max-[820px]:grid-cols-1',
   tile:
