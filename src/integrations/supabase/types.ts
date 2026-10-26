@@ -5164,6 +5164,8 @@ export type Database = {
           intake_id: string
           is_free_reapplication: boolean
           student_id: string
+          visa_approved_at: string | null
+          departed_at: string | null
         }
         Insert: {
           contract_cancel_note?: string | null
@@ -5176,6 +5178,8 @@ export type Database = {
           intake_id: string
           is_free_reapplication?: boolean
           student_id: string
+          visa_approved_at?: string | null
+          departed_at?: string | null
         }
         Update: {
           contract_cancel_note?: string | null
@@ -5188,6 +5192,8 @@ export type Database = {
           intake_id?: string
           is_free_reapplication?: boolean
           student_id?: string
+          visa_approved_at?: string | null
+          departed_at?: string | null
         }
         Relationships: [
           {

@@ -29,6 +29,11 @@ import {
 } from '@/hooks/useInvestor';
 import { useInvestorExport } from '@/hooks/useInvestorExport';
 import {
+  stuckApplications,
+  studentsNotSubmitted,
+  studentsWithoutApplication,
+} from '@/lib/investorPipeline';
+import {
   HEADLINE_CURRENCY,
   compact,
   count,
@@ -131,15 +136,18 @@ export default function InvestorOverview() {
     .reduce((sum, p) => sum + Number(p.amount_uzs), 0);
   const accruing = (payouts.data ?? []).find((p) => p.status !== 'paid') ?? null;
 
-  const stuck = (applications.data ?? [])
-    .filter((a) => (a.days_since_movement ?? 0) >= 14)
-    .sort((a, b) => (b.days_since_movement ?? 0) - (a.days_since_movement ?? 0));
-  const unsubmitted = (applications.data ?? []).filter((a) => !a.submitted_at);
+  // Open applications only: a "completed" one (visa applied) is finished, not
+  // stuck. Cancelled contracts are already out of the view.
+  const stuck = stuckApplications(applications.data ?? []);
+  // Students, not applications: one student can hold several.
+  const notSubmitted = studentsNotSubmitted(applications.data ?? []);
+  const withoutApplication = studentsWithoutApplication(signed, applications.data ?? []);
 
   // Track what the Watchlist actually rendered, so the empty state fires when
   // no row qualifies rather than only when the season has no revenue.
   const showExpenseNote = !!uzs && uzs.season_expenses === 0 && uzs.season_revenue > 0;
-  const hasWatchRows = stuck.length > 0 || unsubmitted.length > 0 || showExpenseNote;
+  const hasWatchRows =
+    stuck.length > 0 || notSubmitted > 0 || withoutApplication > 0 || showExpenseNote;
 
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4">
@@ -433,7 +441,7 @@ export default function InvestorOverview() {
             }
             action={
               <Link
-                to="/crm/investor/leads"
+                to="/crm/investor/applications"
                 className="inline-flex items-center text-[13px] font-semibold text-primary hover:underline"
               >
                 All applications →
@@ -454,8 +462,9 @@ export default function InvestorOverview() {
             )}
           </div>
           <p className="mt-4 px-5 text-[11px] leading-relaxed text-muted-foreground">
-            Leads and Signed are recorded in the CRM today. Documents Ready, Submitted, Offer
-            Received, Visa Approved and Departed read zero until the team starts recording them.
+            Every stage counts students of this season with an active contract. Documents Ready,
+            Submitted and Offer Received follow the CRM application status; Visa Approved and
+            Departed are the dates set on the student&apos;s CRM profile.
           </p>
         </InvestorCard>
 
@@ -469,11 +478,18 @@ export default function InvestorOverview() {
                 detail={`${stuck[0].student_name} · ${stuck[0].university ?? 'University not set'}`}
               />
             )}
-            {unsubmitted.length > 0 && (
+            {withoutApplication > 0 && (
               <WatchRow
                 tone="warning"
-                title={`${count(unsubmitted.length)} application${unsubmitted.length === 1 ? '' : 's'} not yet submitted`}
-                detail="Signed students without a submission on file"
+                title={`${count(withoutApplication)} signed student${withoutApplication === 1 ? '' : 's'} without an application`}
+                detail="Contract signed, no university application opened yet"
+              />
+            )}
+            {notSubmitted > 0 && (
+              <WatchRow
+                tone="warning"
+                title={`${count(notSubmitted)} signed student${notSubmitted === 1 ? '' : 's'} not yet submitted`}
+                detail="Applications opened, none sent to a university yet"
               />
             )}
             {showExpenseNote && (

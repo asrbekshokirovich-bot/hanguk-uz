@@ -408,6 +408,13 @@
       "restoreTitle": "Shartnomani tiklaysizmi?",
       "restoreHint": "To'lovlar bekor qilishdan oldingi holatiga qaytadi va talaba yana hisoblarga kiradi.",
       "restored": "Shartnoma tiklandi"
+    },
+    "visaDeparture": {
+      "title": "Viza va jo'nab ketish",
+      "visaApproved": "Viza tasdiqlangan sana",
+      "departed": "Koreyaga jo'nab ketgan sana",
+      "hint": "Shu mavsum uchun. Investor sahifasidagi «Visa Approved» va «Departed» bosqichlari shu sanalardan hisoblanadi.",
+      "saved": "Saqlandi"
     }
   },
   "leads": {

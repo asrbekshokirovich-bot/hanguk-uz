@@ -131,6 +131,8 @@ export interface InvestorApplicationRow {
   submitted_at: string | null;
   updated_at: string | null;
   days_since_movement: number | null;
+  /** Added by migration 20261026180000 so screens can count students. */
+  student_id: string | null;
 }
 
 export interface InvestorStaffRow {

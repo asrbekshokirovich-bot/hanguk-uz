@@ -23,6 +23,7 @@ import {
 } from '@/hooks/useInvestor';
 import { useInvestorExport } from '@/hooks/useInvestorExport';
 import { count, humanizeLineItem, percent, relativeTime } from '@/lib/investorFormat';
+import { FINAL_STATUSES, STUCK_DAYS, isSubmitted, stuckApplications } from '@/lib/investorPipeline';
 
 /* ---------------------------------------------------------------------------
  * SCREENS.md 3 - Applications.
@@ -31,11 +32,10 @@ import { count, humanizeLineItem, percent, relativeTime } from '@/lib/investorFo
  * no passport number, no document, no contact detail - and the card footer says
  * so out loud rather than leaving her to wonder what is being withheld.
  *
- * The funnel keeps all six stages from the design. Documents Ready, Offer
- * Received and Visa Approved have no column behind them in `applications` yet,
- * so they read zero and the caption explains why. Showing the full shape means
- * the pipeline she sees today is the same pipeline she will see once the team
- * starts recording those stages.
+ * The funnel keeps all six stages from the design. Since migration
+ * 20261026180000 every stage is counted from real CRM data: application
+ * statuses for Documents Ready / Submitted / Offer Received, and the
+ * student_intakes visa_approved_at / departed_at dates for the last two.
  * ------------------------------------------------------------------------ */
 
 // Keyed by stage_order, not by position: the funnel view added a stage 0
@@ -49,7 +49,8 @@ const FUNNEL_TONES: Record<number, ChartTone> = {
   5: 'lime',
   6: 'success',
 };
-const UNTRACKED_STAGES = new Set(['Documents Ready', 'Offer Received', 'Visa Approved']);
+// Every stage is recorded since migration 20261026180000.
+const UNTRACKED_STAGES = new Set<string>();
 
 const STATUS_TONE: Record<string, PillTone> = {
   completed: 'success',
@@ -58,7 +59,6 @@ const STATUS_TONE: Record<string, PillTone> = {
   rejected: 'danger',
 };
 
-const STUCK_DAYS = 14;
 
 export default function InvestorApplications() {
   const { activeIntakeId } = useInvestorSeason();
@@ -68,7 +68,8 @@ export default function InvestorApplications() {
   const [filter, setFilter] = useState<'all' | 'stuck'>('all');
 
   const rows = applications.data ?? [];
-  const submitted = rows.filter((a) => a.submitted_at);
+  // By CRM status: submitted_at is filled inconsistently.
+  const submitted = rows.filter((a) => isSubmitted(a.status));
   const universities = useMemo(() => {
     const map = new Map<string, number>();
     for (const a of rows) {
@@ -78,7 +79,7 @@ export default function InvestorApplications() {
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
   }, [rows]);
 
-  const stuck = rows.filter((a) => (a.days_since_movement ?? 0) >= STUCK_DAYS);
+  const stuck = stuckApplications(rows);
   const visible = filter === 'stuck' ? stuck : rows;
 
   // Counted across the submitted set only, because that is what the subtitle
@@ -283,7 +284,7 @@ export default function InvestorApplications() {
 
 function ApplicationRow({ row }: { row: InvestorApplicationRow }) {
   const days = row.days_since_movement ?? 0;
-  const isStuck = days >= STUCK_DAYS;
+  const isStuck = days >= STUCK_DAYS && !FINAL_STATUSES.has(row.status);
 
   return (
     <div className="grid grid-cols-[1.3fr_1.4fr_118px] items-center gap-3 border-b border-soft-line py-3 last:border-b-0">

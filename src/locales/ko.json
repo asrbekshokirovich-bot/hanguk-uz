@@ -348,6 +348,13 @@
       "restoreTitle": "계약을 복원하시겠습니까?",
       "restoreHint": "납부 내역이 취소 이전 상태로 돌아가고 학생이 다시 집계에 포함됩니다.",
       "restored": "계약이 복원되었습니다"
+    },
+    "visaDeparture": {
+      "title": "비자 및 출국",
+      "visaApproved": "비자 승인일",
+      "departed": "한국 출국일",
+      "hint": "이번 시즌 기준입니다. 투자자 페이지의 Visa Approved, Departed 단계는 이 날짜로 집계됩니다.",
+      "saved": "저장되었습니다"
     }
   },
   "leads": {

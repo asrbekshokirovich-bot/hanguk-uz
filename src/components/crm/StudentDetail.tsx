@@ -77,6 +77,7 @@ import {
 import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { ContractCancelSection } from './ContractCancelSection';
+import { VisaDepartureCard } from './VisaDepartureCard';
 import { AddPaymentDialog } from './AddPaymentDialog';
 import { EditPaymentDialog } from './EditPaymentDialog';
 import { AddInstallmentDialog } from './payments/AddInstallmentDialog';
@@ -1358,6 +1359,8 @@ export function StudentDetail({
 
             {/* Status Tab */}
             <TabsContent value="status" className="space-y-4 mt-6">
+              {/* Viza tasdiqlandi / Jo'nab ketdi — feed the investor pipeline. */}
+              <VisaDepartureCard studentId={student.user_id} intakeId={activeIntakeId} />
               {!latestApp ? (
                 <Card>
                   <CardContent className="py-8 text-center space-y-3">
