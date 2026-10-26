@@ -85,7 +85,7 @@ insert into public.app_event_types (event, family, description_uz, props, status
   ('page_tour',         'screen',    'Ekran yo''riqnomasi',                    '{page,action,step}', 'active', '1.1.0'),
   ('board_tour',        'screen',    'Filtr yo''riqnomasi (eski)',             '{action,step}', 'deprecated', '1.0.33'),
   -- taps
-  ('tap',               'tap',       'Bosdi',                                  '{x,y,institution_id,value,index,tab,kind,step,target,on}', 'active', '1.1.2'),
+  ('tap',               'tap',       'Bosdi',                                  '{x,y,institution_id,value,index,tab,kind,step,target,on,list,position}', 'active', '1.1.2'),
   ('long_press',        'tap',       'Bosib turdi',                            '{x,y,institution_id,value,index}', 'active', '1.1.2'),
   ('rage_tap',          'tap',       'Bir joyni tez-tez bosdi',                '{x,y,count}', 'active', '1.1.2'),
   -- what was seen
