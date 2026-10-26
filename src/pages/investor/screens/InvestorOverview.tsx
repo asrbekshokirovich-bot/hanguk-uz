@@ -28,6 +28,7 @@ import {
   useInvestorPosition,
 } from '@/hooks/useInvestor';
 import { useInvestorExport } from '@/hooks/useInvestorExport';
+import { fillSeasonMonths } from '@/lib/seasonMonths';
 import {
   stuckApplications,
   studentsNotSubmitted,
@@ -100,6 +101,15 @@ export default function InvestorOverview() {
   const noRiskHead = noRisk[0] ?? null;
   const noRiskStudents = noRisk.reduce((n, r) => n + Number(r.students), 0);
 
+  // This season's UZS money from active contracts, per active student who paid
+  // it. Cancelled contracts are left out of both sides.
+  const avgPerStudent = useMemo(() => {
+    const rows = (planRevenue.data ?? []).filter((r) => r.currency === HEADLINE_CURRENCY);
+    const money = rows.reduce((n, r) => n + Number(r.active_collected ?? 0), 0);
+    const people = rows.reduce((n, r) => n + Number(r.active_students ?? 0), 0);
+    return people > 0 ? money / people : null;
+  }, [planRevenue.data]);
+
   const identity = position.data?.[0] ?? null;
   const equity = identity?.equity_percent ?? null;
 
@@ -109,6 +119,11 @@ export default function InvestorOverview() {
   const months = useMemo(
     () => inCurrency(monthly.data, HEADLINE_CURRENCY),
     [monthly.data],
+  );
+  // The chart shows every month of the season so far, quiet ones as zero.
+  const chartMonths = useMemo(
+    () => fillSeasonMonths(months, activeIntake?.starts_on, activeIntake?.ends_on),
+    [months, activeIntake?.starts_on, activeIntake?.ends_on],
   );
 
   // The season immediately before this one, and only if it is inside her
@@ -292,7 +307,7 @@ export default function InvestorOverview() {
           <div className="mt-auto border-t border-primary-foreground/15 pt-3 text-[12px] text-primary-foreground/75">
             Distributed to date{' '}
             <Money className="ml-1 text-primary-foreground">
-              {distributed > 0 ? compact(distributed) : '0'}
+              {distributed > 0 ? `${compact(distributed)} UZS` : '—'}
             </Money>
           </div>
         </InvestorCard>
@@ -340,7 +355,7 @@ export default function InvestorOverview() {
             <>
               <div className="px-5 pt-4">
                 <GroupedBars
-                  groups={months.map((m) => ({
+                  groups={chartMonths.map((m) => ({
                     label: monthLabel(m.month),
                     values: [Number(m.revenue), Number(m.net)],
                   }))}
@@ -356,7 +371,7 @@ export default function InvestorOverview() {
                 <FooterStat
                   label="Avg. revenue / student"
                   value={
-                    signed && signed > 0 && uzs ? `${compact(uzs.season_revenue / signed)} UZS` : '—'
+                    avgPerStudent != null ? `${compact(avgPerStudent)} UZS` : '—'
                   }
                 />
                 <FooterStat label="Months recorded" value={count(months.length)} />

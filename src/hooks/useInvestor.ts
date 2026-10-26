@@ -227,6 +227,9 @@ export interface InvestorPlanRevenueRow {
   students: number;
   collected: number;
   outstanding: number;
+  /** Money from students whose contract is not cancelled (migration 20261026200000). */
+  active_collected: number;
+  active_students: number;
 }
 
 /** Money per tariff and currency (v_investor_plan_revenue). Feeds the
