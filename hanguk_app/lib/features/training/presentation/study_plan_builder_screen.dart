@@ -346,7 +346,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                         const SizedBox(height: 10),
                         Text(hints[_step], style: fdText(12, FontWeight.w400, FdColors.muted, height: 1.45)),
                         const SizedBox(height: 10),
-                        _Field(controller: _controller, hint: l.fdPlanHintField, onChanged: () => setState(() {})),
+                        StudyPlanField(controller: _controller, hint: l.fdPlanHintField, onChanged: () => setState(() {})),
                         if (_listening) ...[
                           const SizedBox(height: 8),
                           Semantics(
@@ -498,10 +498,15 @@ class _StepChip extends StatelessWidget {
   }
 }
 
-/// The text box: a 132px-high panel on the page's colour with the count in
-/// its corner.
-class _Field extends StatelessWidget {
-  const _Field({required this.controller, required this.hint, required this.onChanged});
+/// The text box: a 132px-high white card with the count in its corner.
+///
+/// White, not the page's colour: the text is [FdColors.ink], and since the
+/// page went dark blue (#432) ink on the page was dark-on-dark — students
+/// typed their plan and saw nothing. The field must stay a light surface for
+/// as long as its text is ink (guarded by `text_contrast_test.dart`).
+/// Public only so that test can pump it on its own.
+class StudyPlanField extends StatelessWidget {
+  const StudyPlanField({super.key, required this.controller, required this.hint, required this.onChanged});
 
   final TextEditingController controller;
   final String hint;
@@ -512,7 +517,7 @@ class _Field extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(minHeight: 132),
       decoration: BoxDecoration(
-        color: FdColors.page,
+        color: FdColors.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: FdColors.ink, width: 1.5),
       ),

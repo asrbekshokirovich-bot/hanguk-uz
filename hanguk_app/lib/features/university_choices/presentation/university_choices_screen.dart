@@ -442,6 +442,10 @@ class _ChangeRequestSheetState extends State<ChangeRequestSheet> {
               controller: _note,
               maxLines: 3,
               maxLength: 500,
+              // The field is white, so its text must say ink: left unstyled it
+              // took the app theme's white body text and was invisible.
+              style: fdText(14, FontWeight.w500, FdColors.ink, height: 1.4),
+              cursorColor: FdColors.ink,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,

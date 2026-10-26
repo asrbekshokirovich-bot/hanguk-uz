@@ -125,7 +125,7 @@ class _CameraError extends StatelessWidget {
     child: Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Text(text, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.ink, height: 1.4)),
+        child: Text(text, textAlign: TextAlign.center, style: fdText(14, FontWeight.w700, FdColors.onPage, height: 1.4)),
       ),
     ),
   );
