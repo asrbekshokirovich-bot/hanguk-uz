@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/catalog_filters.dart';
@@ -53,7 +54,7 @@ class CatalogFilterScreen extends ConsumerWidget {
                       button: true,
                       label: MaterialLocalizations.of(context).closeButtonTooltip,
                       child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: tracked('catalog_filter.back', () => Navigator.of(context).pop()),
                         child: Container(
                           width: 44,
                           height: 44,
@@ -71,7 +72,7 @@ class CatalogFilterScreen extends ConsumerWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => set(f.cleared()),
+                      onTap: tracked('catalog_filter.clear', () => set(f.cleared())),
                       behavior: HitTestBehavior.opaque,
                       child: SizedBox(
                         height: 44,
@@ -103,18 +104,18 @@ class CatalogFilterScreen extends ConsumerWidget {
                           ko: '전체',
                           name: l.filterAll,
                           selected: f.cities.isEmpty,
-                          onTap: () => set(f.copyWith(cities: const {})),
+                          onTap: tracked('catalog_filter.city_tile', () => set(f.copyWith(cities: const {}))),
                         ),
                         for (final c in cities)
                           _CityTile(
                             ko: c.ko,
                             name: c.name,
                             selected: f.cities.contains(c.name),
-                            onTap: () {
+                            onTap: tracked('catalog_filter.city_tile_2', () {
                               final next = {...f.cities};
                               if (!next.remove(c.name)) next.add(c.name);
                               set(f.copyWith(cities: next));
-                            },
+                            }),
                           ),
                       ],
                     ),
@@ -135,7 +136,7 @@ class CatalogFilterScreen extends ConsumerWidget {
                               child: _Segment(
                                 label: label,
                                 selected: f.degree == id,
-                                onTap: () => set(f.copyWith(degree: id)),
+                                onTap: tracked('catalog_filter.segment', () => set(f.copyWith(degree: id))),
                               ),
                             ),
                         ],
@@ -153,7 +154,7 @@ class CatalogFilterScreen extends ConsumerWidget {
                               height: 44,
                               radius: 12,
                               selected: f.ielts == _ieltsOptions[i],
-                              onTap: () => set(f.copyWith(ielts: () => _ieltsOptions[i])),
+                              onTap: tracked('catalog_filter.tile', () => set(f.copyWith(ielts: () => _ieltsOptions[i]))),
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Text(
@@ -245,7 +246,7 @@ class CatalogFilterScreen extends ConsumerWidget {
                           _PresetChip(
                             label: p.label(l),
                             selected: f.minPrice == p.lo && f.maxPrice == p.hi,
-                            onTap: () => set(f.copyWith(minPrice: () => p.lo, maxPrice: () => p.hi)),
+                            onTap: tracked('catalog_filter.preset_chip', () => set(f.copyWith(minPrice: () => p.lo, maxPrice: () => p.hi))),
                           ),
                       ],
                     ),
@@ -266,7 +267,7 @@ class CatalogFilterScreen extends ConsumerWidget {
               ),
               child: SafeArea(
                 top: false,
-                child: LimeButton(label: l.catalogApply(count), onPressed: () => Navigator.of(context).pop()),
+                child: LimeButton(label: l.catalogApply(count), onPressed: tracked('catalog_filter.catalog_apply', () => Navigator.of(context).pop())),
               ),
             ),
           ),
@@ -374,7 +375,7 @@ class _Tile extends StatelessWidget {
       button: true,
       selected: selected,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_filter.tile', onTap),
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
@@ -408,7 +409,7 @@ class _CityTile extends StatelessWidget {
       height: 60,
       radius: 16,
       selected: selected,
-      onTap: onTap,
+      onTap: tracked('catalog_filter.city_tile', onTap),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -453,7 +454,7 @@ class _Segment extends StatelessWidget {
       button: true,
       selected: selected,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_filter.segment', onTap),
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
@@ -524,7 +525,7 @@ class _PresetChip extends StatelessWidget {
       button: true,
       selected: selected,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_filter.preset_chip', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 32,

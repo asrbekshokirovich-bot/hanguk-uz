@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/university.dart';
@@ -197,7 +198,7 @@ class _UniversityRoadviewScreenState extends State<UniversityRoadviewScreen> {
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: SeoulSizes.screenPadding,
-            child: _GlassBackButton(onTap: () => Navigator.of(context).pop()),
+            child: _GlassBackButton(onTap: tracked('university_roadview.glass_back_button', () => Navigator.of(context).pop())),
           ),
 
           // Label overlay (top-right pill). Top-right, so it never lands
@@ -231,7 +232,7 @@ class _GlassBackButton extends StatelessWidget {
       label: l.a11yTooltipBack,
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('university_roadview.glass_back_button', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           width: SeoulSizes.minTapTarget,

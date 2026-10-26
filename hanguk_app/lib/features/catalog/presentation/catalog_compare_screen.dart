@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
@@ -116,7 +117,7 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
     final router = GoRouter.maybeOf(context);
     ContactSheet.show(
       context,
-      onJoin: widget.isGuest && router != null ? () => router.push('/login', extra: {'magic_code': true}) : null,
+      onJoin: tracked('catalog_compare.contact_sheet_join', widget.isGuest && router != null ? () => router.push('/login', extra: {'magic_code': true}) : null),
     );
   }
 
@@ -164,14 +165,14 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
                   SizedBox(height: inset.top),
                   _Header(
                     onlyDiff: _onlyDiff,
-                    onBack: () => Navigator.of(context).pop(),
-                    onToggleDiff: () => setState(() => _onlyDiff = !_onlyDiff),
+                    onBack: tracked('catalog_compare.header_back', () => Navigator.of(context).pop()),
+                    onToggleDiff: tracked('catalog_compare.header_toggle_diff', () => setState(() => _onlyDiff = !_onlyDiff)),
                   ),
                   if (all != null) ...[
                     _Columns(
                       picks: picks,
                       onRemove: (id) => ref.read(catalogCompareProvider.notifier).remove(id),
-                      onAdd: () => Navigator.of(context).pop(),
+                      onAdd: tracked('catalog_compare.columns_add', () => Navigator.of(context).pop()),
                     ),
                     Expanded(
                       child: SingleChildScrollView(
@@ -213,7 +214,7 @@ class _CatalogCompareScreenState extends ConsumerState<CatalogCompareScreen> {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: _ContactBar(label: l.guestContactCta, bottomInset: inset.bottom, onTap: _contact),
+                  child: _ContactBar(label: l.guestContactCta, bottomInset: inset.bottom, onTap: tracked('catalog_compare.guest_contact_cta', _contact)),
                 ),
             ],
           ),
@@ -312,7 +313,7 @@ class _Header extends StatelessWidget {
             button: true,
             label: MaterialLocalizations.of(context).backButtonTooltip,
             child: GestureDetector(
-              onTap: onBack,
+              onTap: tracked('catalog_compare.header_back', onBack),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 width: 38,
@@ -342,7 +343,7 @@ class _Header extends StatelessWidget {
             button: true,
             toggled: onlyDiff,
             child: GestureDetector(
-              onTap: onToggleDiff,
+              onTap: tracked('catalog_compare.header_toggle_diff', onToggleDiff),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 height: 30,
@@ -383,10 +384,10 @@ class _Columns extends StatelessWidget {
         _UniversityColumn(
           university: picks[i].university,
           index: i,
-          onRemove: () => onRemove(picks[i].university.institutionId),
+          onRemove: tracked('catalog_compare.columns_remove', () => onRemove(picks[i].university.institutionId), props: {'value': picks[i].university.institutionId}),
         ),
       for (var i = picks.length; i < CatalogCompareState.maxSlots; i++)
-        _EmptyColumn(label: l.compareAddSlot, onTap: onAdd),
+        _EmptyColumn(label: l.compareAddSlot, onTap: tracked('catalog_compare.columns_add', onAdd)),
     ];
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -465,7 +466,7 @@ class _UniversityColumn extends StatelessWidget {
                     button: true,
                     label: MaterialLocalizations.of(context).deleteButtonTooltip,
                     child: GestureDetector(
-                      onTap: onRemove,
+                      onTap: tracked('catalog_compare.university_column_remove', onRemove),
                       behavior: HitTestBehavior.opaque,
                       child: Container(
                         width: 24,
@@ -546,7 +547,7 @@ class _EmptyColumn extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_compare.empty_column', onTap),
         behavior: HitTestBehavior.opaque,
         child: CustomPaint(
           painter: const _DashedBorderPainter(),
@@ -763,7 +764,7 @@ class _ContactBar extends StatelessWidget {
         child: Semantics(
           button: true,
           child: GestureDetector(
-            onTap: onTap,
+            onTap: tracked('catalog_compare.contact_bar', onTap),
             behavior: HitTestBehavior.opaque,
             child: Container(
               height: 44,

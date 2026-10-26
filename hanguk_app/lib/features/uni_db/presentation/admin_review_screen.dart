@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/admin_review_providers.dart';
@@ -60,7 +61,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             trailing: _GlassCircleButton(
               icon: Icons.refresh_rounded,
               tooltip: l.adminRefresh,
-              onTap: _busy ? null : () => ref.invalidate(reviewQueueProvider),
+              onTap: tracked('admin_review.admin_refresh', _busy ? null : () => ref.invalidate(reviewQueueProvider)),
             ),
           ),
           Expanded(
@@ -109,7 +110,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                       return _DetailPane(
                         item: _selected!,
                         busy: _busy,
-                        onBack: () => setState(() => _selected = null),
+                        onBack: tracked('admin_review.detail_pane_back', () => setState(() => _selected = null)),
                         onAccept: _onAccept,
                         onEditAccept: _onEditAccept,
                         onReject: _onReject,
@@ -238,7 +239,7 @@ class _Header extends StatelessWidget {
           _GlassCircleButton(
             icon: Icons.arrow_back_rounded,
             tooltip: AppLocalizations.of(context)!.a11yTooltipBack,
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: tracked('admin_review.back', () => Navigator.of(context).maybePop()),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -284,7 +285,7 @@ class _QueueList extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           fillColor: isSelected ? SeoulColors.limeFill : null,
           borderColor: isSelected ? SeoulColors.lime : null,
-          onTap: () => onSelect(item),
+          onTap: tracked('admin_review.queue_list_select', () => onSelect(item)),
           child: Row(
             children: [
               _PriorityBadge(priority: item.priority, overdue: item.isOverdue),
@@ -397,7 +398,7 @@ class _DetailPane extends StatelessWidget {
                 _GlassCircleButton(
                   icon: Icons.arrow_back_rounded,
                   tooltip: l.adminBackToQueue,
-                  onTap: onBack!,
+                  onTap: tracked('admin_review.detail_pane_back', onBack!),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -439,7 +440,7 @@ class _DetailPane extends StatelessWidget {
                 label: l.adminOpenSource,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
-                onPressed: () => _launchPdf(context, item.sourceUrlKo!),
+                onPressed: tracked('admin_review.admin_open_source', () => _launchPdf(context, item.sourceUrlKo!)),
               ),
             ),
           const SizedBox(height: 12),
@@ -470,19 +471,19 @@ class _DetailPane extends StatelessWidget {
                 label: l.adminReject,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
-                onPressed: busy ? null : () => _confirmReject(context),
+                onPressed: tracked('admin_review.admin_reject', busy ? null : () => _confirmReject(context)),
               ),
               SeoulOutlineButton(
                 label: l.adminEditAccept,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
-                onPressed: busy ? null : () => _editAccept(context),
+                onPressed: tracked('admin_review.admin_edit_accept', busy ? null : () => _editAccept(context)),
               ),
               LimeButton(
                 label: l.adminAccept,
                 expand: false,
                 height: SeoulSizes.minTapTarget,
-                onPressed: busy ? null : () => onAccept(item),
+                onPressed: tracked('admin_review.admin_accept', busy ? null : () => onAccept(item)),
               ),
             ],
           ),
@@ -698,13 +699,13 @@ class _EditPayloadDialogState extends State<_EditPayloadDialog> {
                   label: l.cancel,
                   expand: false,
                   height: SeoulSizes.minTapTarget,
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: tracked('admin_review.cancel', () => Navigator.of(context).pop()),
                 ),
                 LimeButton(
                   label: l.adminSaveAccept,
                   expand: false,
                   height: SeoulSizes.minTapTarget,
-                  onPressed: _submit,
+                  onPressed: tracked('admin_review.admin_save_accept', _submit),
                 ),
               ],
             ),
@@ -794,17 +795,17 @@ class _RejectReasonDialogState extends State<_RejectReasonDialog> {
                   label: l.cancel,
                   expand: false,
                   height: SeoulSizes.minTapTarget,
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: tracked('admin_review.cancel', () => Navigator.of(context).pop()),
                 ),
                 const SizedBox(width: 8),
                 _DangerButton(
                   label: l.adminReject,
-                  onPressed: () => Navigator.of(context).pop((
+                  onPressed: tracked('admin_review.admin_reject_2', () => Navigator.of(context).pop((
                     reason: _reason,
                     detail: _detail.text.trim().isEmpty
                         ? null
                         : _detail.text.trim(),
-                  )),
+                  ))),
                 ),
               ],
             ),
@@ -838,7 +839,7 @@ class _DangerButtonState extends State<_DangerButton> {
       enabled: enabled,
       label: widget.label,
       child: GestureDetector(
-        onTap: widget.onPressed,
+        onTap: tracked('admin_review.danger_button', widget.onPressed),
         onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
         onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
@@ -888,7 +889,7 @@ class _GlassCircleButton extends StatelessWidget {
       child: Tooltip(
         message: tooltip,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('admin_review.glass_circle_button', onTap),
           child: AnimatedOpacity(
             opacity: enabled ? 1.0 : 0.45,
             duration: SeoulMotion.fast,

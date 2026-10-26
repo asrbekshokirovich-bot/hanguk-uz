@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/device_code.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients, SeoulColors, SeoulRadii;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -60,9 +61,12 @@ class PrepareScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
         children: [
-          Text(
-            '${l.fdPrepareEyebrow} ${l.fdPrepareTitle}',
-            style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.5),
+          // Seven taps on the title show the device code (test devices, S10).
+          DeviceCodeTaps(
+            child: Text(
+              '${l.fdPrepareEyebrow} ${l.fdPrepareTitle}',
+              style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.5),
+            ),
           ),
           const SizedBox(height: 14),
           _ToolCard(

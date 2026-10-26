@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/uni_db_providers.dart';
@@ -38,7 +39,7 @@ class ApplicationTrackerScreen extends ConsumerWidget {
                 _GlassCircleButton(
                   icon: Icons.arrow_back_rounded,
                   tooltip: l.a11yTooltipBack,
-                  onTap: () => Navigator.of(context).maybePop(),
+                  onTap: tracked('application_tracker.back', () => Navigator.of(context).maybePop()),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -314,7 +315,7 @@ class _GlassCircleButton extends StatelessWidget {
       child: Tooltip(
         message: tooltip,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('application_tracker.glass_circle_button', onTap),
           child: Container(
             width: SeoulSizes.minTapTarget,
             height: SeoulSizes.minTapTarget,

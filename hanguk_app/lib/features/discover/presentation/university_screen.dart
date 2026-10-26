@@ -72,7 +72,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
   @override
   void initState() {
     super.initState();
-    AppEvents.track('university_open', props: {'institution_id': widget.institutionId});
+    AppEvents.track('university_open', props: {
+      'institution_id': widget.institutionId,
+      ...AppEvents.cardOrigin(widget.institutionId),
+    });
   }
 
   @override

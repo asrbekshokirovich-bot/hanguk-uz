@@ -1,6 +1,8 @@
 package com.hanguk.studentapp.hanguk_app
 
 import android.view.WindowManager
+import com.android.installreferrer.api.InstallReferrerClient
+import com.android.installreferrer.api.InstallReferrerStateListener
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -10,6 +12,9 @@ class MainActivity : FlutterActivity() {
     private companion object {
         // Must match ScreenAwake in lib/core/platform/screen_awake.dart.
         const val SCREEN_AWAKE_CHANNEL = "com.hanguk.studentapp/screen_awake"
+
+        // Must match IdentityLinks in lib/core/analytics/identity_links.dart.
+        const val INSTALL_REFERRER_CHANNEL = "com.hanguk.studentapp/install_referrer"
     }
 
     /**
@@ -47,6 +52,59 @@ class MainActivity : FlutterActivity() {
                 }
                 else -> result.notImplemented()
             }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            INSTALL_REFERRER_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "get") {
+                readInstallReferrer { referrer -> result.success(referrer) }
+            } else {
+                result.notImplemented()
+            }
+        }
+    }
+
+    /**
+     * What Google Play kept from the link the app was installed through
+     * ("l=<code>&…" for an operator's hanguk.uz/l/<code>), or null: not
+     * installed from Play, Play too old, or the service did not answer.
+     * [done] is called once, on the UI thread.
+     */
+    private fun readInstallReferrer(done: (String?) -> Unit) {
+        val client = InstallReferrerClient.newBuilder(this).build()
+        var answered = false
+        fun answer(referrer: String?) {
+            if (answered) return
+            answered = true
+            try {
+                client.endConnection()
+            } catch (e: Exception) {
+            }
+            runOnUiThread { done(referrer) }
+        }
+        try {
+            client.startConnection(object : InstallReferrerStateListener {
+                override fun onInstallReferrerSetupFinished(responseCode: Int) {
+                    val referrer = if (responseCode == InstallReferrerClient.InstallReferrerResponse.OK) {
+                        try {
+                            client.installReferrer.installReferrer
+                        } catch (e: Exception) {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                    answer(referrer)
+                }
+
+                override fun onInstallReferrerServiceDisconnected() {
+                    answer(null)
+                }
+            })
+        } catch (e: Exception) {
+            answer(null)
         }
     }
 
