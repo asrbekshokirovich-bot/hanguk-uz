@@ -98,7 +98,17 @@ export default function CRMPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, canSeeFinance, canApproveDocuments, loading: roleLoading } = useUserRole();
+  const {
+    isStaff,
+    isOwner,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    canSeeFinance,
+    canApproveDocuments,
+    canSeeApplicationFees,
+    loading: roleLoading,
+  } = useUserRole();
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
@@ -117,7 +127,16 @@ export default function CRMPortal() {
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
 
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
-  const sidebarGroups = useSidebarGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
+  const sidebarGroups = useSidebarGroups(
+    canSeeFinance,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    t,
+    currentLang,
+    canReviewUniDb,
+    canSeeApplicationFees,
+  );
 
   // Determine current view from URL
   const currentPath = location.pathname;
@@ -436,7 +455,7 @@ export default function CRMPortal() {
           </SafeSuspense>
         );
       case 'application-fees':
-        if (!isDocumentHandler) return <AccessDenied />;
+        if (!canSeeApplicationFees) return <AccessDenied />;
         return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;
       case 'institutions':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
@@ -505,6 +524,7 @@ export default function CRMPortal() {
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
             canReviewUniDb={canReviewUniDb}
+            canSeeApplicationFees={canSeeApplicationFees}
             user={user}
             onSignOut={handleSignOut}
           />

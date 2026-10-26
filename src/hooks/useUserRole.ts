@@ -15,6 +15,7 @@ export function useUserRole() {
   const [isLearningCenter, setIsLearningCenter] = useState(false);
   const [hasFinanceAccess, setHasFinanceAccess] = useState(false);
   const [isDocumentApprover, setIsDocumentApprover] = useState(false);
+  const [hasApplicationFeeAccess, setHasApplicationFeeAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export function useUserRole() {
         setIsLearningCenter(false);
         setHasFinanceAccess(false);
         setIsDocumentApprover(false);
+        setHasApplicationFeeAccess(false);
         setLoading(false);
         return;
       }
@@ -35,8 +37,16 @@ export function useUserRole() {
       // (migration 20260930180000_finance_access.sql); it is not in the
       // generated types yet either. Nor is document_approvers (migration
       // 20261014120000_document_approvers.sql), which names who besides the
-      // owners approves documents.
-      const [{ data, error }, { data: center }, { data: finance }, { data: approver }] = await Promise.all([
+      // owners approves documents. Nor is application_fee_access (migration
+      // 20261026120000_application_fee_access.sql), which opens "Application fee"
+      // to named staff without the document_handler role.
+      const [
+        { data, error },
+        { data: center },
+        { data: finance },
+        { data: approver },
+        { data: feeAccess },
+      ] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', user.id),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
@@ -57,6 +67,12 @@ export function useUserRole() {
           .select('user_id')
           .eq('user_id', user.id)
           .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as unknown as { from: (n: string) => any })
+          .from('application_fee_access')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
       ]);
 
       if (!error && data) {
@@ -65,6 +81,7 @@ export function useUserRole() {
       setIsLearningCenter(Boolean(center));
       setHasFinanceAccess(Boolean(finance));
       setIsDocumentApprover(Boolean(approver));
+      setHasApplicationFeeAccess(Boolean(feeAccess));
       setLoading(false);
     };
 
@@ -95,6 +112,10 @@ export function useUserRole() {
   // Approving documents, and uploading/replacing/deleting a student's file from
   // the CRM: every owner, plus whoever document_approvers names.
   const canApproveDocuments = isOwner || isDocumentApprover;
+  // The "Application fee" section: owner, admin and document handler (the
+  // roles can_edit_application_fees() admits), plus whoever
+  // application_fee_access names. Must match has_application_fee_access().
+  const canSeeApplicationFees = isDocumentHandler || hasApplicationFeeAccess;
 
   return {
     roles,
@@ -110,5 +131,6 @@ export function useUserRole() {
     isLearningCenter,
     canSeeFinance,
     canApproveDocuments,
+    canSeeApplicationFees,
   };
 }
