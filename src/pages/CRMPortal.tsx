@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
@@ -50,6 +50,7 @@ const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/Uni
 const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/OnlineApplicationContent'));
 const OfflineApplicationContent = lazy(() => import('@/components/crm/pages/OfflineApplicationContent'));
 const AppAnalyticsContent = lazy(() => import('@/components/crm/pages/AppAnalyticsContent'));
+const TodayInAppContent = lazy(() => import('@/components/crm/pages/TodayInAppContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
@@ -126,6 +127,19 @@ export default function CRMPortal() {
 
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
 
+  // /crm/students?student=<user id> opens that student (links from the app
+  // analytics: «Bugun ilovada», «Mijozlar faolligi»).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const studentParam = searchParams.get('student');
+  useEffect(() => {
+    if (!studentParam || !location.pathname.startsWith('/crm/students') || !students.length) return;
+    const found = students.find((s) => s.user_id === studentParam);
+    if (found) setSelectedStudent(found as StudentProfile);
+    const next = new URLSearchParams(searchParams);
+    next.delete('student');
+    setSearchParams(next, { replace: true });
+  }, [studentParam, students, location.pathname, searchParams, setSearchParams]);
+
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
   const sidebarGroups = useSidebarGroups(
     canSeeFinance,
@@ -173,6 +187,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/calls')) return 'calls';
     if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
     if (currentPath.startsWith('/crm/today-leads')) return 'today-leads';
+    if (currentPath.startsWith('/crm/today-in-app')) return 'today-in-app';
     // The profile check must come first: '/crm/leads/<id>' also starts with
     // '/crm/leads', and the list would otherwise swallow every detail URL.
     if (leadProfileId) return 'lead-profile';
@@ -474,6 +489,10 @@ export default function CRMPortal() {
         return <SafeSuspense><LeadsContent key="new-leads" view="new" /></SafeSuspense>;
       case 'today-leads':
         return <SafeSuspense><LeadsContent key="today-leads" view="today" /></SafeSuspense>;
+      case 'today-in-app':
+        // The operators' list from the app's signals; every staff role (S6).
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return <SafeSuspense><TodayInAppContent /></SafeSuspense>;
       case 'lead-profile':
         return (
           <SafeSuspense>

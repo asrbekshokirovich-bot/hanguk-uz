@@ -7,11 +7,12 @@ import { coverageOf, share, tabOf } from '../helpers';
 import type { QualityData } from '../api';
 
 describe('app analytics', () => {
-  it('opens the tab the address names; the old address opens the overview', () => {
-    expect(tabOf('/crm/app-analytics')).toBe('overview');
+  it('opens the tab the address names: marketing first; the old address opens the activity page', () => {
+    expect(tabOf('/crm/app-analytics')).toBe('marketing');
+    expect(tabOf('/crm/app-analytics/overview')).toBe('overview');
     expect(tabOf('/crm/app-analytics/quality')).toBe('quality');
     expect(tabOf('/crm/app-analytics/settings')).toBe('settings');
-    expect(tabOf('/crm/app-analytics/nothing')).toBe('overview');
+    expect(tabOf('/crm/app-analytics/nothing')).toBe('marketing');
     expect(tabOf('/crm/app-activity')).toBe('overview');
   });
 
