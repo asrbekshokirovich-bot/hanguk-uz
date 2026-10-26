@@ -110,20 +110,41 @@ serve(async (req) => {
       });
     }
 
-    const { data: userRole } = await supabase
+    const { user_ids, title, body, data: notifData } = await req.json();
+
+    // A staff member can hold more than one role, so read them all.
+    const { data: userRoles } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", user.id)
-      .single();
+      .eq("user_id", user.id);
+    const isStaffSender = (userRoles ?? []).some((r) => STAFF_ROLES.includes(r.role));
 
-    if (!userRole || !STAFF_ROLES.includes(userRole.role)) {
+    // Named staff (survey_send_access, e.g. Omina) may send SURVEY notifications
+    // only — not arbitrary pushes. Migration 20261026160000_survey_send_access.sql.
+    let isSurveySender = false;
+    if (!isStaffSender && notifData?.type === "survey") {
+      const { data: access } = await supabase
+        .from("survey_send_access")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      isSurveySender = !!access;
+    }
+
+    if (!isStaffSender && !isSurveySender) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { user_ids, title, body, data: notifData } = await req.json();
+    // A survey sender must name recipients: an empty list means "everyone".
+    if (isSurveySender && !(Array.isArray(user_ids) && user_ids.length > 0)) {
+      return new Response(JSON.stringify({ error: "user_ids required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!title || !body) {
       return new Response(
