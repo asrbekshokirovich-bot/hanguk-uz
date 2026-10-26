@@ -10052,8 +10052,6 @@ abstract class AppLocalizations {
   /// **'Version {version}'**
   String deviceCodeVersion(String version);
 
-
-
   /// Lead form: who the consultation is for
   ///
   /// In en, this message translates to:
@@ -10077,8 +10075,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For a relative'**
   String get leadForWhomRelative;
-
-
 
   /// Lead form: where the person found us (stored as the lead's how_heard)
   ///

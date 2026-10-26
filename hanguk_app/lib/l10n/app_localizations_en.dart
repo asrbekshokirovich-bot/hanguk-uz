@@ -5599,8 +5599,6 @@ class AppLocalizationsEn extends AppLocalizations {
     return 'Version $version';
   }
 
-
-
   @override
   String get leadForWhomQ => 'Who is it for?';
 
@@ -5612,8 +5610,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leadForWhomRelative => 'For a relative';
-
-
 
   @override
   String get leadHowHeardQ => 'How did you find us?';

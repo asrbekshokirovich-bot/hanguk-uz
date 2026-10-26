@@ -5600,8 +5600,6 @@ class AppLocalizationsRu extends AppLocalizations {
     return 'Версия $version';
   }
 
-
-
   @override
   String get leadForWhomQ => 'Для кого?';
 
@@ -5613,8 +5611,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get leadForWhomRelative => 'Для родственника';
-
-
 
   @override
   String get leadHowHeardQ => 'Как вы нас нашли?';
