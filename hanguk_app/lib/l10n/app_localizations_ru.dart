@@ -5647,4 +5647,17 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get leadConsent =>
       'Консультант увидит выбранные вами университеты и ответы на тест и на их основе даст совет.';
+
+  @override
+  String get guestPushTitle => 'Не пропустите сроки';
+
+  @override
+  String get guestPushBody =>
+      'Присылать уведомления о сроках приёма и новых грантах? Номер телефона не нужен.';
+
+  @override
+  String get guestPushYes => 'Да, присылайте';
+
+  @override
+  String get guestPushLater => 'Позже';
 }

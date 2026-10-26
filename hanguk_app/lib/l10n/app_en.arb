@@ -6986,5 +6986,21 @@
   "leadConsent": "Your consultant will see the universities you chose and your test answers, and advise you on that basis.",
   "@leadConsent": {
     "description": "Lead form: the consent line (the marketing plan's text, approved by the owner, B4)"
+  },
+  "guestPushTitle": "Don't miss the deadlines",
+  "@guestPushTitle": {
+    "description": "Guest push permission sheet (app analytics plan, stage 5; B3): title"
+  },
+  "guestPushBody": "Shall we notify you about admission deadlines and new scholarships? No phone number needed.",
+  "@guestPushBody": {
+    "description": "Guest push permission sheet: what we would send; a guest leaves no phone number"
+  },
+  "guestPushYes": "Yes, notify me",
+  "@guestPushYes": {
+    "description": "Guest push permission sheet: yes (then the system asks)"
+  },
+  "guestPushLater": "Later",
+  "@guestPushLater": {
+    "description": "Guest push permission sheet: not now"
   }
 }

@@ -1805,5 +1805,9 @@
   "leadHeardEvent": "Tadbir",
   "leadHeardStore": "Play Market yoki App Store",
   "leadHeardOther": "Boshqa",
-  "leadConsent": "Konsultant tanlagan universitetlaringizni va test javoblaringizni ko'radi va shu asosda maslahat beradi."
+  "leadConsent": "Konsultant tanlagan universitetlaringizni va test javoblaringizni ko'radi va shu asosda maslahat beradi.",
+  "guestPushTitle": "Muddatlarni o'tkazib yubormang",
+  "guestPushBody": "Qabul muddatlari va yangi grantlar haqida bildirishnoma yuboraylikmi? Telefon raqamingiz kerak emas.",
+  "guestPushYes": "Ha, yuboring",
+  "guestPushLater": "Keyinroq"
 }
