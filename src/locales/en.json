@@ -361,6 +361,13 @@
       "restoreTitle": "Restore the contract?",
       "restoreHint": "Payments go back to how they were before the cancellation and the student is counted again.",
       "restored": "Contract restored"
+    },
+    "visaDeparture": {
+      "title": "Visa and departure",
+      "visaApproved": "Visa approved on",
+      "departed": "Left for Korea on",
+      "hint": "For this season. The investor page's Visa Approved and Departed stages are counted from these dates.",
+      "saved": "Saved"
     }
   },
   "leads": {
