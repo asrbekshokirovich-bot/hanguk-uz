@@ -14,6 +14,10 @@ export const plan = {
     'flex items-center justify-between gap-2.5 bg-[#0A1440] px-3.5 py-2.5 text-[12.5px] font-semibold ' +
     'text-[#F3F6FD] dark:bg-[#0E1A55]',
   body: 'grid gap-3 px-4 py-3.5',
+  /** The lime badge on the bar (the plan's «NAMUNA» / period tag). */
+  badge:
+    'whitespace-nowrap rounded-[5px] bg-[#D4E94C] px-[7px] py-1 font-mono text-[11px] font-bold leading-none ' +
+    'tracking-[0.06em] text-[#16203A]',
 
   // «Ilovada»: label / value rows
   kv:
@@ -59,7 +63,8 @@ export const plan = {
     'dark:border-[#26336D] dark:text-[#9DA9CC]',
   td: 'border-b border-[#E7ECF4] px-2.5 py-[9px] align-top dark:border-[#1B275B]',
   num: 'whitespace-nowrap text-right tabular-nums',
-  rowDim: 'text-[#5B6B85] dark:text-[#9DA9CC]',
+  rowDim:
+    'text-[#5B6B85] dark:text-[#9DA9CC] [&>td:first-child]:text-[#34435E] dark:[&>td:first-child]:text-[#C9D2E9]',
   rowUnknown: 'bg-[#FBE3E4] dark:bg-[#3A1521]',
   bad: 'text-[#B4232E] dark:text-[#FF8C92]',
 

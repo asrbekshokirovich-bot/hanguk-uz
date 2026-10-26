@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BASE, TABS, tabOf } from '@/components/crm/appAnalytics/helpers';
 
+const MarketingTab = lazy(() => import('@/components/crm/appAnalytics/MarketingTab'));
 const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const PeopleTab = lazy(() => import('@/components/crm/appAnalytics/PeopleTab'));
 const QualityTab = lazy(() => import('@/components/crm/appAnalytics/QualityTab'));
@@ -26,7 +27,7 @@ export default function AppAnalyticsContent() {
         <h1 className="text-xl font-bold text-foreground">{t('appAnalytics.title')}</h1>
         <p className="text-[12.5px] text-muted-foreground">{t('appAnalytics.subtitle')}</p>
       </header>
-      <Tabs value={tab} onValueChange={(v) => navigate(v === 'overview' ? BASE : `${BASE}/${v}`)}>
+      <Tabs value={tab} onValueChange={(v) => navigate(v === 'marketing' ? BASE : `${BASE}/${v}`)}>
         <TabsList>
           {TABS.map((k) => (
             <TabsTrigger key={k} value={k}>
@@ -35,6 +36,9 @@ export default function AppAnalyticsContent() {
           ))}
         </TabsList>
         <Suspense fallback={<p className="p-4 text-[13px] text-muted-foreground">{t('appActivity.loading')}</p>}>
+          <TabsContent value="marketing">
+            <MarketingTab />
+          </TabsContent>
           <TabsContent value="overview">
             <AppActivityContent embedded />
           </TabsContent>
