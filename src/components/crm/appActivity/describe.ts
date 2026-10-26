@@ -39,6 +39,9 @@ const SCREENS: Record<string, string> = {
   qr_scan: 'qrScan',
 };
 
+/** The app's screens by route (for picking a screen as a funnel step). */
+export const SCREEN_ROUTES = Object.keys(SCREENS).filter((k) => k.startsWith('/'));
+
 export function screenLabel(screen: string | null | undefined, t: T): string {
   if (!screen) return '';
   const key = SCREENS[screen];

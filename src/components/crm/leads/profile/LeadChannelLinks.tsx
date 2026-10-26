@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Check, Copy, Link2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { operatorLink } from '@/lib/appLink';
 import { cn } from '@/lib/utils';
 import { CHANNEL_STYLE } from './channelStyle';
 import type { ChannelOverview, LeadRecord, LinkResult } from './useLeadProfile';
@@ -31,76 +30,6 @@ function fetchBotUsername(): Promise<string | null> {
       .catch(() => null);
   }
   return botUsernamePromise;
-}
-
-/** How the lead's phone was last tied to the app (app_identity), if it was. */
-interface AppTie {
-  via: string;
-  created_at: string;
-}
-
-function useAppTie(leadId: string): AppTie | null {
-  const [tie, setTie] = useState<AppTie | null>(null);
-  useEffect(() => {
-    let alive = true;
-    // app_identity is newer than types.ts (migration 20261028090000_app_identity).
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as unknown as { from: (t: string) => any })
-      .from('app_identity')
-      .select('via, created_at')
-      .eq('lead_id', leadId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .then(({ data }: { data: AppTie[] | null }) => {
-        if (alive) setTie(data?.[0] ?? null);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [leadId]);
-  return tie;
-}
-
-/** A copyable link with its ready-made message: the bot's, or the app's. */
-function LinkRow({ label, link, invite, status }: { label: string; link: string; invite: string; status?: React.ReactNode }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState<'link' | 'text' | null>(null);
-  const copy = async (what: 'link' | 'text') => {
-    try {
-      await navigator.clipboard.writeText(what === 'link' ? link : invite);
-      setCopied(what);
-      window.setTimeout(() => setCopied(null), 1800);
-    } catch {
-      toast.error(t('leads.profile.links.copyFailed'));
-    }
-  };
-  return (
-    <div className="py-2.5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="w-[150px] shrink-0 text-[13px] font-semibold text-foreground">{label}</div>
-        <code className="min-w-0 flex-1 truncate rounded-md bg-muted px-2.5 py-1.5 text-[12px] text-foreground">{link}</code>
-        <div className="flex shrink-0 gap-1.5">
-          <button
-            type="button"
-            onClick={() => void copy('link')}
-            className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-[12px] font-semibold text-muted-foreground hover:bg-muted"
-          >
-            {copied === 'link' ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
-            {t('leads.profile.links.copyLink')}
-          </button>
-          <button
-            type="button"
-            onClick={() => void copy('text')}
-            className="flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-[12px] font-semibold text-primary-foreground hover:opacity-90"
-          >
-            {copied === 'text' ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
-            {t('leads.profile.links.copyText')}
-          </button>
-        </div>
-      </div>
-      {status && <div className="mt-1 text-[11.5px] sm:ml-[158px]">{status}</div>}
-    </div>
-  );
 }
 
 function displayHandle(value: string | null): string {
@@ -267,11 +196,6 @@ export function LeadChannelLinks({ lead, overview, onLink }: LeadChannelLinksPro
   const link = bot && lead.link_code ? `https://t.me/${bot}?start=L_${lead.link_code}` : null;
   const firstName = (lead.full_name ?? '').trim().split(/\s+/)[0] ?? '';
   const invite = link ? t('leads.profile.links.inviteText', { name: firstName, link }) : '';
-  // The app (stage 2): the operator decides whom to send it to (B2); opening
-  // it ties the phone to this lead, and the card then shows the app path.
-  const appLink = lead.link_code ? operatorLink(lead.link_code) : null;
-  const appInvite = appLink ? t('leads.profile.links.appInviteText', { link: appLink }) : '';
-  const appTie = useAppTie(lead.id);
 
   const copy = async (what: 'link' | 'text') => {
     try {
@@ -336,26 +260,6 @@ export function LeadChannelLinks({ lead, overview, onLink }: LeadChannelLinksPro
             <span className="text-[12px] text-muted-foreground">{t('leads.profile.links.linkUnavailable')}</span>
           )}
         </div>
-
-        {appLink && (
-          <LinkRow
-            label={t('leads.profile.links.appLink')}
-            link={appLink}
-            invite={appInvite}
-            status={
-              appTie ? (
-                <span className="font-semibold text-emerald-600">
-                  {t('leads.profile.links.appTied', {
-                    date: new Date(appTie.created_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
-                    via: t(`leads.profile.links.appVia.${appTie.via}`, { defaultValue: appTie.via }),
-                  })}
-                </span>
-              ) : (
-                <span className="text-muted-foreground">{t('leads.profile.links.appNotYet')}</span>
-              )
-            }
-          />
-        )}
       </div>
     </section>
   );
