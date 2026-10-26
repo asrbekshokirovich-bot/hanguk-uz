@@ -45,7 +45,8 @@ import {
   Lightbulb,
   Search,
   GraduationCap,
-  Wallet
+  Wallet,
+  Ban,
 } from 'lucide-react';
 import {
   Dialog,
@@ -75,6 +76,7 @@ import {
 } from '@/components/ui/sheet';
 import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
+import { ContractCancelSection } from './ContractCancelSection';
 import { AddPaymentDialog } from './AddPaymentDialog';
 import { EditPaymentDialog } from './EditPaymentDialog';
 import { AddInstallmentDialog } from './payments/AddInstallmentDialog';
@@ -104,6 +106,8 @@ type StudentProfile = Tables<'profiles'> & {
     university?: Tables<'universities'>;
   })[];
   documents?: Tables<'documents'>[];
+  /** Contract cancelled in the active season — computed by useCRMData. */
+  contractCancelled?: boolean;
 };
 
 interface StudentDetailProps {
@@ -1014,6 +1018,12 @@ export function StudentDetail({
                         {student.full_name || t('common.name')}
                       </SheetTitle>
                       {heroPlan && <Badge variant={heroPlan.tone}>{heroPlan.label}</Badge>}
+                      {student.contractCancelled && (
+                        <Badge variant="destructive" className="gap-1">
+                          <Ban className="h-3 w-3" />
+                          {t('crm.contractCancelledShort')}
+                        </Badge>
+                      )}
                       {heroIsVip && (
                         <Badge variant="warning" className="gap-1">
                           <Crown className="h-3 w-3" />
@@ -1337,6 +1347,13 @@ export function StudentDetail({
                   )}
                 </section>
               </div>
+
+              {/* Shartnomani bekor qilish / tiklash — at the bottom of the profile. */}
+              <ContractCancelSection
+                studentId={student.user_id}
+                intakeId={activeIntakeId}
+                onChanged={onRefresh}
+              />
             </TabsContent>
 
             {/* Status Tab */}

@@ -335,6 +335,32 @@
       "own": "Own",
       "parent": "Parent",
       "other": "Other"
+    },
+    "contractCancelledShort": "Cancelled",
+    "contractCancel": {
+      "button": "Cancel contract",
+      "hint": "If the student has withdrawn from the contract, cancel it here. The remaining debt is closed and the student stays in the list.",
+      "formHint": "A note is required. Enter the amount refunded to the student (leave empty if none).",
+      "note": "Note",
+      "notePlaceholder": "Why it is cancelled, who agreed…",
+      "refundAmount": "Refund amount ({{currency}})",
+      "paidSoFar": "Paid this season: {{amount}}",
+      "nothingPaid": "Nothing was paid this season — nothing to refund.",
+      "badAmount": "The amount is not a valid number",
+      "tooMuch": "Cannot refund more than was paid in {{currency}} (at most {{max}})",
+      "confirmTitle": "Do you really want to cancel the contract?",
+      "confirmWithRefund": "The contract will be cancelled, a refund of {{refund}} recorded and the remaining debt closed.",
+      "confirmNoRefund": "The contract will be cancelled with no refund and the remaining debt closed.",
+      "yes": "Yes, cancel",
+      "no": "No",
+      "done": "Contract cancelled",
+      "cancelledTitle": "Contract cancelled",
+      "refunded": "Refunded",
+      "noRefund": "no refund",
+      "restore": "Restore contract",
+      "restoreTitle": "Restore the contract?",
+      "restoreHint": "Payments go back to how they were before the cancellation and the student is counted again.",
+      "restored": "Contract restored"
     }
   },
   "leads": {

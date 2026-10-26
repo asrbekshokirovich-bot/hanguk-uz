@@ -5154,6 +5154,9 @@ export type Database = {
       }
       student_intakes: {
         Row: {
+          contract_cancel_note: string | null
+          contract_cancelled_at: string | null
+          contract_cancelled_by: string | null
           created_at: string
           discount_percent: number
           docs_ready: boolean
@@ -5163,6 +5166,9 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          contract_cancel_note?: string | null
+          contract_cancelled_at?: string | null
+          contract_cancelled_by?: string | null
           created_at?: string
           discount_percent?: number
           docs_ready?: boolean
@@ -5172,6 +5178,9 @@ export type Database = {
           student_id: string
         }
         Update: {
+          contract_cancel_note?: string | null
+          contract_cancelled_at?: string | null
+          contract_cancelled_by?: string | null
           created_at?: string
           discount_percent?: number
           docs_ready?: boolean
