@@ -76,8 +76,9 @@ interface IngestEvent {
   live?: boolean;
 }
 
-/** The app's contact code in a message ("HK-7Q2MXA"); see fn_contact_code_link. */
-const APP_CODE = /HK-[A-HJKMNP-Z2-9]{6}/i;
+/** The app's contact code in a message — «Ilovadan · 7Q2MXA» (any of the
+ *  app's languages) or "HK-7Q2MXA"; see fn_contact_code_link. */
+const APP_CODE = /(?:HK-|·\s*)[A-HJKMNP-Z2-9]{6}(?![A-Z0-9])/i;
 
 // messages.message_type is CHECK-constrained to text | image | file | voice,
 // so richer Telegram kinds collapse into those four. The precise kind is kept
@@ -445,10 +446,10 @@ async function ingestOne(
     }
   }
 
-  // The app writes "HK-<code>" into the person's first message to the
-  // consultant (app analytics, stage 2), so the device that wrote it is tied
-  // to this lead — the app's path shows on the lead's card. The code ties the
-  // person only; it is not a source (S3).
+  // The app writes its code («Ilovadan · <code>») into the person's first
+  // message to the consultant (app analytics, stage 2), so the device that
+  // wrote it is tied to this lead — the app's path shows on the lead's card.
+  // The code ties the person only; it is not a source (S3).
   if (
     direction === "incoming" && chatType === "private" && identity.leadId &&
     APP_CODE.test(ev.message.text ?? "")
