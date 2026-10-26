@@ -12,7 +12,7 @@ const PERIODS = [7, 30, 90];
  * screens people opened, and the universities they put a ♥ on
  * (app_events_summary).
  */
-export default function AppActivityContent() {
+export default function AppActivityContent({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const [days, setDays] = useState(7);
   const { data, loading, error } = useAppEventsSummary(days);
@@ -21,12 +21,14 @@ export default function AppActivityContent() {
   const maxDaily = Math.max(1, ...(data?.daily.map((d) => d.devices) ?? [1]));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4 p-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{t('appActivity.page.title')}</h1>
-          <p className="text-[12.5px] text-muted-foreground">{t('appActivity.page.subtitle')}</p>
-        </div>
+    <div className={cn('space-y-4', !embedded && 'mx-auto max-w-5xl p-4')}>
+      <header className={cn('flex flex-wrap items-center gap-3', embedded ? 'justify-end' : 'justify-between')}>
+        {!embedded && (
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{t('appActivity.page.title')}</h1>
+            <p className="text-[12.5px] text-muted-foreground">{t('appActivity.page.subtitle')}</p>
+          </div>
+        )}
         <div className="flex gap-1" role="group" aria-label={t('appActivity.page.period')}>
           {PERIODS.map((p) => (
             <button

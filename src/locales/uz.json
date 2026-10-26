@@ -1070,7 +1070,8 @@
         "copyFailed": "Nusxalab bo'lmadi",
         "linkUnavailable": "Bot nomini olib bo'lmadi — keyinroq qayta oching",
         "inviteText": "Assalomu alaykum, {{name}}! Hujjatlaringiz va savollaringiz bo'yicha Telegramda davom etish uchun shu havolani bosing: {{link}}",
-        "notFound": "Bu nik bilan yozishma topilmadi. Telegram ID raqamini kiriting — u darhol ulanadi."
+        "notFound": "Bu nik bilan yozishma topilmadi. Telegram ID raqamini kiriting — u darhol ulanadi.",
+        "appInviteText": "Mana ilovamiz: {{link}}. Universitetlarni ko'rib chiqing va yoqqan 3 tasini ♥ bilan belgilang — men tanlovingizni ko'rib, shu universitetlar bo'yicha aniq maslahat beraman."
       },
       "app": {
         "title": "Ilova: imkoniyat testi",
@@ -2456,5 +2457,531 @@
     "granted": "Application fee bo'limiga ruxsat berildi",
     "revoked": "Application fee bo'limiga ruxsat olib tashlandi",
     "error": "Ruxsatni saqlab bo'lmadi"
+  },
+  "appAnalytics": {
+    "title": "Ilova analitikasi",
+    "subtitle": "Talabalar ilovasida nima qilinayotgani: kim ochdi, nimani ko'rdi, nimani bosdi va murojaatgacha yetdimi. Test qurilmalari hisobga olinmaydi.",
+    "tabs": {
+      "overview": "Faollik",
+      "quality": "Sifat",
+      "settings": "Sozlamalar",
+      "people": "Odamlar",
+      "marketing": "Marketing",
+      "live": "Jonli",
+      "flow": "Oqim",
+      "clients": "Mijozlar faolligi"
+    },
+    "quality": {
+      "refreshed": "Sessiyalar va kunlik yig'indi yangilangan: {{time}}",
+      "neverRefreshed": "Sessiyalar hali yig'ilmagan",
+      "devices": "Qurilmalar",
+      "testDevices": "{{count}} tasi test qurilma (hisoblarga kirmaydi)",
+      "namedTaps": "Nomli bosishlar",
+      "timedScreens": "Vaqti o'lchangan ekranlar",
+      "ofBuild": "{{build}}-build",
+      "delay": "Kechikish (median)",
+      "delaySub": "90% — {{p90}} gacha, 99% — {{p99}} gacha",
+      "sec": "{{n}} s",
+      "min": "{{n}} daq",
+      "hours": "{{n}} soat",
+      "hourly": "Oxirgi 48 soat",
+      "hourlyNote": "Har soatda serverga kelgan hodisalar. Bo'shliq — ilovadan hech narsa kelmagan soat.",
+      "builds": "Versiyalar",
+      "build": "Build",
+      "events": "Hodisalar",
+      "lastSeen": "Oxirgi",
+      "missing": "Yangi versiyada yo'qolgan hodisalar",
+      "missingNote": "Oldingi build kamida 3 qurilmada yuborgan, yangisi bittasida ham yubormagan hodisa — odatda kodda tushib qolgan yozuv.",
+      "missingNone": "Yo'qolgan hodisa yo'q.",
+      "prevDevices": "Oldingi buildda qurilma",
+      "event": "Hodisa",
+      "rejected": "Rad etilgan va tuzatilganlar",
+      "rejectedNote": "Server saqlamagan yoki o'zgartirib saqlagan hodisalar. «Qayta yuborilgan» — ilova internet uzilganda qayta yuborgan, bazada ikki marta yozilmagan.",
+      "reason": "Sabab",
+      "reasons": {
+        "unknown_event": "Reestrda yo'q hodisa",
+        "bad_name": "Noto'g'ri nom",
+        "bad_shape": "Noto'g'ri shakl",
+        "bad_time": "Vaqt noto'g'ri (server vaqti qo'yildi)",
+        "props_dropped": "Ruxsatsiz maydon olib tashlandi",
+        "props_too_big": "Ma'lumot juda katta",
+        "insert_error": "Yozishda xato",
+        "rate_limited": "Juda ko'p (soatiga 6000 dan ortiq)",
+        "duplicate": "Qayta yuborilgan (saqlanmadi)"
+      },
+      "testByReason": "Test qurilmalar sababi bo'yicha",
+      "registry": "Hodisalar reestri",
+      "registryNote": "Ilova yuborishi mumkin bo'lgan {{count}} ta hodisa va tanlangan davrda kelgani. Kulrang — kelmagan.",
+      "family": "Guruh",
+      "deprecated": "eski",
+      "families": {
+        "lifecycle": "Ilova",
+        "screen": "Ekran",
+        "tap": "Bosish",
+        "view": "Ko'rish",
+        "university": "Universitet",
+        "assessment": "Baholash",
+        "form": "Forma",
+        "account": "Akkaunt",
+        "contact": "Aloqa",
+        "prepare": "Tayyorgarlik",
+        "client": "Mijoz",
+        "push": "Bildirishnoma",
+        "quality": "Sifat"
+      }
+    },
+    "settings": {
+      "title": "Test qurilmalar",
+      "howTo": "Xodim, demo akkaunt va dasturchi build'i qurilmalari o'zini o'zi belgilaydi. Boshqa telefonni belgilash: ilovada «Tayyorgarlik» sarlavhasini 7 marta bosing — «Qurilma kodi» (XXXX-XXXX) chiqadi; shu kodni kiriting. Test qurilmalar hisoblarga kirmaydi.",
+      "code": "Qurilma kodi",
+      "reason": "Sabab",
+      "mark": "Test deb belgilash",
+      "unmark": "Olib tashlash",
+      "list": "Belgilangan qurilmalar: {{count}}",
+      "none": "Hali test qurilma yo'q.",
+      "device": "Qurilma",
+      "markedBy": "Kim belgiladi",
+      "automatic": "o'zi (avtomatik)",
+      "someone": "xodim",
+      "marked": "{{code}} test qurilma deb belgilandi",
+      "unmarked": "{{code}} oddiy qurilmaga qaytarildi",
+      "short_code": "Kod qisqa: kamida 8 belgi kerak (XXXX-XXXX).",
+      "not_found": "Bunday kodli qurilma topilmadi. Ilova kamida bir marta internetga ulanganmi?",
+      "ambiguous": "Bu kod {{count}} ta qurilmaga to'g'ri keladi — to'liqroq kiriting.",
+      "bad_reason": "Sabab noto'g'ri.",
+      "failed": "Saqlab bo'lmadi.",
+      "reasons": {
+        "manual": "Qo'lda",
+        "staff": "Xodim",
+        "demo": "Demo akkaunt",
+        "dev": "Dasturchi build'i"
+      }
+    },
+    "people": {
+      "days_one": "{{count}} kun",
+      "days_other": "{{count}} kun",
+      "kinds": {
+        "all": "Hammasi",
+        "lead": "Lidlar",
+        "guest": "Mehmonlar",
+        "student": "Talabalar"
+      },
+      "search": "Ism bo'yicha qidirish",
+      "withTest": "Test qurilmalar ham",
+      "empty": "Bu davrda hech kim yo'q",
+      "cols": {
+        "who": "Kim",
+        "source": "Qayerdan topgan (o'zi aytgan)",
+        "last": "Oxirgi tashrif",
+        "visits": "Tashriflar",
+        "score": "Ilova balli",
+        "stage": "Qayergacha yetdi"
+      },
+      "picks_one": "{{count}} ta ♥",
+      "picks_other": "{{count}} ta ♥",
+      "visa": "viza testi: {{band}}",
+      "report": "hisobot",
+      "request": "so'rov yubordi",
+      "test": "test",
+      "more": "{{total}} tadan {{shown}} tasi ko'rsatildi"
+    }
+  },
+  "appLink": {
+    "title": "Hanguk ilovasi",
+    "description": "Konsultantingiz sizga ilovani yubordi: unda universitet tanlaysiz, kirish va viza ehtimolingizni ko'rasiz — konsultant esa tanlovlaringizni ko'rib, aniqroq maslahat beradi.",
+    "open": "Ilovani ochish",
+    "notOpened": "Ilova ochilmadimi? Uni quyidan o'rnating.",
+    "googlePlay": "Google Play'dan o'rnatish",
+    "appStore": "App Store'dan o'rnatish",
+    "iosAfterInstall": "O'rnatgandan keyin shu havolani qayta oching — ilova sizni konsultantingizga bog'laydi.",
+    "web": "Brauzerda ochish"
+  },
+  "appPerson": {
+    "title": "Ilovada",
+    "noDevice": "Bog'langan qurilma yo'q",
+    "sendLink": "Ilova havolasini yuborish",
+    "openJourney": "To'liq yo'lni ochish",
+    "linkCopied": "Xabar havola bilan nusxalandi — lidga yuboring",
+    "rows": {
+      "activity": "Faollik",
+      "source": "Manba",
+      "forWhom": "Kim uchun",
+      "picks": "Tanlovlari ♥",
+      "visa": "Viza testi",
+      "report": "Hisobot",
+      "tariff": "Mos tarif",
+      "starter": "Gapni boshlash"
+    },
+    "today": "Bugun {{time}}",
+    "yesterday": "Kecha {{time}}",
+    "visits_one": "{{count}} tashrif",
+    "visits_other": "{{count}} tashrif",
+    "firstSource": "1-manba: {{source}}",
+    "forWhom": {
+      "self": "O'zi uchun",
+      "child": "Farzandi uchun",
+      "relative": "Qarindoshi uchun"
+    },
+    "band": {
+      "high": "Yuqori",
+      "mid": "O'rta",
+      "low": "Past"
+    },
+    "lowFactor": "past omil: {{what}}",
+    "low": {
+      "language": "til darajasi ({{level}})",
+      "income": "rasmiy daromad",
+      "deposit": "bankdagi pul",
+      "gap": "o'qishdan keyingi tanaffus",
+      "age": "yosh"
+    },
+    "noTopik": "TOPIK yo'q",
+    "income": {
+      "yes": "moliya: rasmiy daromad bor",
+      "no": "moliya: rasmiy daromad yo'q"
+    },
+    "reportSeen_one": "Ko'rdi, {{count}} marta",
+    "reportSeen_other": "Ko'rdi, {{count}} marta",
+    "reportNotSeen": "Ko'rmadi",
+    "tariffRule": "qoida bo'yicha, operator tasdiqlaydi",
+    "ties": {
+      "operatorLink": "operator havolasi",
+      "telegramCode": "Telegram kodi"
+    },
+    "sources": {
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "app": "Ilova",
+      "call": "Qo'ng'iroq",
+      "manual": "Qo'lda",
+      "learning_center": "O'quv markaz",
+      "Public Registration": "Sayt"
+    },
+    "kind": {
+      "lead": "Lid",
+      "student": "Talaba",
+      "guest": "Mehmon"
+    },
+    "journeyTitle": "To'liq yo'l",
+    "ownSource": "Manba (o'zi aytgan): {{source}}",
+    "sessions_one": "{{count}} sessiya",
+    "sessions_other": "{{count}} sessiya",
+    "entryExit": "kirish: {{entry}} · chiqish: {{exit}}",
+    "seconds": "{{s}} s",
+    "minutes": "{{m}} daq {{s}} s",
+    "noSteps": "Oxirgi 30 kunda harakat yo'q",
+    "truncated": "Faqat oxirgi 500 qadam ko'rsatildi"
+  },
+  "todayInApp": {
+    "title": "Bugun ilovada",
+    "waiting": "Javob kutayotgan ilova murojaati",
+    "cameBack": "Bugun ilovaga qaytgan lidlar",
+    "offers": "Javobsiz universitet takliflari",
+    "cols": {
+      "who": "Kim",
+      "signal": "Signal",
+      "when": "Qachon",
+      "queue": "Navbat",
+      "to": "Kimga"
+    },
+    "now": "HOZIR",
+    "today": "BUGUN",
+    "targets": {
+      "operators": "Hamma operatorlar",
+      "boss": "Boshliq",
+      "owner": "Lid egasi",
+      "documents": "Hujjatlar xodimi"
+    },
+    "signals": {
+      "requestForm": "Ilovadan murojaat (forma)",
+      "requestTelegram": "Ilovadan murojaat (Telegram)",
+      "cameBack_one": "Ilovaga qaytdi, {{count}} kundan keyin",
+      "cameBack_other": "Ilovaga qaytdi, {{count}} kundan keyin",
+      "report": "Hisobotni ko'rdi",
+      "picks_one": "{{count}} ta ♥",
+      "picks_other": "{{count}} ta ♥",
+      "offer": "Universitet taklifiga 48 soat javob yo'q"
+    },
+    "left": "{{value}} qoldi",
+    "late": "{{value}} kechikdi",
+    "hoursMinutes": "{{h}} soat {{m}} daq",
+    "minutesAgo_one": "{{count}} daqiqa oldin",
+    "minutesAgo_other": "{{count}} daqiqa oldin",
+    "days_one": "{{count}} kun",
+    "days_other": "{{count}} kun",
+    "empty": "Hozircha vazifa yo'q"
+  },
+  "marketing": {
+    "title": "Marketing",
+    "periods": {
+      "today": "Bugun",
+      "7": "7 kun",
+      "30": "30 kun",
+      "90": "90 kun",
+      "range": "Oraliq"
+    },
+    "compareWith": "Solishtirish: {{period}}",
+    "excel": "Excel",
+    "kpi": {
+      "newActive": "Yangi faol qurilmalar",
+      "noTest": "test qurilmalarsiz",
+      "withTest": "test qurilmalar bilan",
+      "requests": "Ilovadan murojaat",
+      "requestsSub": "forma {{form}} · kodli Telegram {{tg}}",
+      "share": "ulushi {{pct}}%",
+      "contracts": "Ilova ishtirokidagi shartnoma",
+      "contractsSub": "jami shartnoma: {{n}}",
+      "requestsFormOnly": "Murojaat: forma",
+      "requestsTelegramOnly": "Murojaat: kodli Telegram",
+      "newLeads": "Barcha yangi lidlar",
+      "allContracts": "Jami shartnoma",
+      "activeOnly": "Ulardan faol (biror ish qilgan)"
+    },
+    "prev": "oldingi davr: {{n}}",
+    "cols": {
+      "channel": "Kanal (o'zi aytgan)",
+      "newDevices": "Yangi qurilma",
+      "active": "Faol",
+      "requests": "Murojaat",
+      "contracts": "Shartnoma",
+      "spend": "Xarajat",
+      "perRequest": "1 murojaat"
+    },
+    "unknown": "Noma'lum (javobsiz)",
+    "allChannels": "Hamma kanallar",
+    "blocks": {
+      "funnel": "Voronka",
+      "demand": "Talab",
+      "stops": "To'xtash joylari",
+      "return": "Qaytish",
+      "spend": "Xarajat",
+      "test": "Test filtri"
+    },
+    "funnelNote": "Davrda birinchi marta ko'rilgan qurilmalar; har qadam — kamida bir marta yetgani.",
+    "steps": {
+      "opened": "Ochdi",
+      "active": "Faol",
+      "university": "Universitet",
+      "intent": "Niyat (♥ yoki test)",
+      "report": "Hisobot",
+      "request": "Murojaat",
+      "talked": "Gaplashildi",
+      "contract": "Shartnoma"
+    },
+    "demand": {
+      "field": "Yo'nalish",
+      "regions": "Shahar",
+      "degree": "Daraja",
+      "topik": "TOPIK",
+      "type": "Turi",
+      "answers": "Test javoblari (oraliq bilan)",
+      "universities": "Eng ko'p ochilgan universitetlar",
+      "university": "Universitet",
+      "devices": "Qurilma",
+      "opens": "Ochildi",
+      "position": "Ro'yxatdagi o'rni",
+      "seen": "Kartasini ko'rgan"
+    },
+    "questions": {
+      "route": "Yo'nalish turi",
+      "topik": "TOPIK",
+      "ielts": "IELTS",
+      "bank": "Bankdagi pul",
+      "income": "Ota-ona daromadi",
+      "income_documented": "Rasmiy daromad",
+      "age": "Yosh"
+    },
+    "bands": {
+      "none": "yo'q",
+      "bank": "{{from}}–{{to}} mln won",
+      "bankMax": "30+ mln won",
+      "income0": "$5 ming gacha",
+      "income1": "$5–10 ming",
+      "income2": "$10–20 ming",
+      "income3": "$20 ming va ko'p",
+      "yes": "bor",
+      "no": "yo'q",
+      "route": {
+        "bachelor": "Bakalavr",
+        "master": "Magistr",
+        "languageCourse": "Til kursi",
+        "college": "Kollej"
+      },
+      "age17": "18 gacha",
+      "age18": "18–19",
+      "age20": "20–21",
+      "age22": "22–23",
+      "age24": "24–25",
+      "age26": "26–29",
+      "age30": "30 va katta"
+    },
+    "stops": {
+      "language": "Til tanlash ekranida tugagan sessiyalar: {{n}}",
+      "clientCode": "Mijoz kodi ekranini ochib, kodsiz chiqqan qurilmalar: {{left}} / {{seen}}",
+      "locked": "Yopiq bo'limni bosgan mehmonlar: Tayyorgarlik {{prepare}} · Ariza {{application}} · Hujjatlar {{documents}}",
+      "form": "Konsultant formasi: ochdi {{opened}} → maydonda xato {{errors}} → yubordi {{sent}}",
+      "exitScreens": "Sessiya qaysi ekranda tugadi"
+    },
+    "return": {
+      "period": "Davrda faol: {{active}} qurilma — yangi {{fresh}}, qaytgan {{back}}",
+      "week": "Birinchi ko'rilgan hafta",
+      "devices": "Qurilma",
+      "d1": "1-kun",
+      "d7": "7 kun ichida",
+      "d30": "30 kun ichida"
+    },
+    "spend": {
+      "summary": "Davrdagi xarajat: {{total}} · 1 murojaat: {{perRequest}} · 1 shartnoma: {{perContract}}",
+      "note": "Haftalik xarajat kanal bo'yicha qo'lda kiritiladi; davr bilan kesishgan haftalar hisoblanadi.",
+      "week": "Hafta",
+      "amount": "Summa",
+      "currency": "Valyuta",
+      "uzs": "so'm",
+      "comment": "Izoh",
+      "save": "Saqlash",
+      "saved": "Saqlandi",
+      "removed": "O'chirildi",
+      "failed": "Saqlab bo'lmadi"
+    },
+    "test": {
+      "show": "Test qurilmalarni ham ko'rsatish",
+      "note": "Test qurilmalar: {{n}} ta — xodim, demo va dasturchi qurilmalari (Sozlamalar varag'ida belgilanadi). Standart holatda hisobga olinmaydi."
+    },
+    "sheets": {
+      "kpi": "Raqamlar",
+      "channels": "Kanallar",
+      "metric": "Ko'rsatkich",
+      "step": "Qadam",
+      "what": "Nima",
+      "value": "Qiymat",
+      "languageExits": "Til ekranida tugagan sessiyalar",
+      "clientCodeSeen": "Mijoz kodi ekranini ochganlar",
+      "clientCodeLeft": "Kodsiz chiqqanlar",
+      "locked": "Yopiq bo'lim: {{tab}}",
+      "formOpened": "Forma ochildi",
+      "formErrors": "Maydonda xato",
+      "formSent": "Forma yuborildi",
+      "exitScreen": "Tugagan ekran: {{screen}}"
+    },
+    "fileName": "Ilova marketing",
+    "exportFailed": "Fayl yaratib bo'lmadi",
+    "seg": {
+      "title": "Kesim:",
+      "all": "hammasi",
+      "clear": "Kesimni tozalash",
+      "everyone": "hammasi (kesimsiz)",
+      "keys": {
+        "title": "Kesim",
+        "who": "Mehmon/mijoz",
+        "channel": "Kanal",
+        "platform": "Platforma",
+        "age": "Yangi/qaytgan",
+        "route": "Yo'nalish",
+        "topik": "TOPIK",
+        "ielts": "IELTS",
+        "bank": "Byudjet (bankdagi pul)",
+        "income": "Moliya (daromad)",
+        "income_documented": "Rasmiy daromad",
+        "region": "Viloyat",
+        "for_whom": "Kim uchun"
+      },
+      "who": {
+        "guest": "Mehmon",
+        "client": "Mijoz"
+      },
+      "age": {
+        "new": "Yangi",
+        "returning": "Qaytgan"
+      }
+    }
+  },
+  "live": {
+    "title": "Jonli",
+    "now_one": "qurilma hozir ilovada · {{leads}} tasi tanilgan lid",
+    "now_other": "qurilma hozir ilovada · {{leads}} tasi tanilgan lid",
+    "empty": "Oxirgi soatda harakat yo'q",
+    "report": "hisobotni ko'rdi",
+    "tab": "{{tab}} bo'limini ochdi",
+    "forms": {
+      "lead": "konsultant formasini ochdi",
+      "quiz_contact": "qo'ng'iroq formasini ochdi",
+      "client_code": "mijoz kodi oynasini ochdi",
+      "survey": "so'rovnomani ochdi"
+    }
+  },
+  "flow": {
+    "pathsTitle": "Ekrandan ekranga",
+    "pathsNote": "Har tashrifning birinchi 4 ta ekrani, qadamma-qadam; har qadamda eng ko'p 6 tasi, qolgani «Boshqa». Qizil — tashrif shu yerda tugagan. Sessiyani yozadigan versiyalardan (1.1.2+).",
+    "visits_one": "{{count}} tashrif",
+    "visits_other": "{{count}} tashrif",
+    "exit": "Chiqdi",
+    "other": "Boshqa",
+    "noVisits": "Bu davrda bunday tashrif yo'q",
+    "funnelTitle": "Istalgan qadamlardan voronka",
+    "funnelNote": "Qadamlarni tanlang (hodisa yoki ekran, 2–8 ta): davrda 1-qadamni qilgan qurilmalar, keyin undan keyin 2-qadamni qilganlar va hokazo.",
+    "screenStep": "Ekran: {{screen}}",
+    "step": "{{n}}-qadam",
+    "removeStep": "{{n}}-qadamni olib tashlash",
+    "addStep": "+ Qadam qo'shish"
+  },
+  "clients": {
+    "offers": "Javobsiz universitet takliflari",
+    "documents": "Yuklanmagan hujjatlar",
+    "inactive": "7 kundan beri ilovaga kirmaganlar",
+    "student": "Talaba",
+    "university": "Universitet",
+    "waiting": "Kutmoqda",
+    "reminder": "Eslatma (push)",
+    "lastInApp": "Ilovada oxirgi",
+    "contract": "Shartnoma",
+    "gaps": "Yetishmaydi",
+    "lastUpload": "Oxirgi yuklash",
+    "rejected": "rad etilgan",
+    "never": "hech qachon",
+    "hours_one": "{{count}} soat",
+    "hours_other": "{{count}} soat",
+    "days_one": "{{count}} kun",
+    "days_other": "{{count}} kun",
+    "offersNote": "48 soatdan oshgani qizil: hujjatlar xodimiga vazifa tushadi, talabaga eslatma push o'zi ketadi (har taklifga bir marta).",
+    "noOffers": "Javob kutayotgan taklif yo'q",
+    "noDocuments": "Hammasining hujjatlari to'liq",
+    "noInactive": "Hamma 7 kun ichida ilovaga kirgan"
+  },
+  "guestPush": {
+    "title": "Mehmonlarga push",
+    "howTo_one": "Ilovada telefon qoldirmagan, lekin bildirishnomaga ruxsat bergan mehmonlar: {{count}}. Har telefonga o'z tilidagi matn boradi (yozilmagan bo'lsa — o'zbekcha); bosilganlar kampaniya bo'yicha sanaladi.",
+    "howTo_other": "Ilovada telefon qoldirmagan, lekin bildirishnomaga ruxsat bergan mehmonlar: {{count}}. Har telefonga o'z tilidagi matn boradi (yozilmagan bo'lsa — o'zbekcha); bosilganlar kampaniya bo'yicha sanaladi.",
+    "key": "Kampaniya kodi",
+    "keyPlaceholder": "Kampaniya kodi, lotincha: muddat-noyabr",
+    "badKey": "Kod: 2–40 belgi — lotin harf, raqam, - yoki _",
+    "titleLabel": "Sarlavha",
+    "titlePlaceholder": "Sarlavha (80 belgigacha)",
+    "bodyLabel": "Matn",
+    "bodyPlaceholder": "Matn (240 belgigacha)",
+    "moreLangs": "Boshqa tillar (ru, en, ko, vi)",
+    "lessLangs": "Faqat o'zbekcha",
+    "check": "Kimga borishini ko'rish",
+    "confirmTitle": "«{{campaign}}» yuborilsinmi?",
+    "confirmBody_one": "{{count}} ta telefonga boradi.",
+    "confirmBody_other": "{{count}} ta telefonga boradi.",
+    "cancel": "Bekor qilish",
+    "send": "Yuborish",
+    "sent": "Yuborildi: {{phones}} telefondan {{delivered}} ta tokenga yetdi",
+    "none": "Hali kampaniya yuborilmagan",
+    "cols": {
+      "campaign": "Kampaniya",
+      "text": "Matn",
+      "delivered": "Yetdi / jami",
+      "opened": "Bosildi",
+      "when": "Qachon"
+    },
+    "errors": {
+      "failed": "Yuborib bo'lmadi",
+      "forbidden": "Faqat owner va admin yuboradi",
+      "campaign_exists": "Bu kod bilan kampaniya allaqachon yuborilgan",
+      "bad_campaign": "Kampaniya kodi noto'g'ri",
+      "uzbek_required": "O'zbekcha sarlavha va matn kerak",
+      "too_long": "Matn juda uzun"
+    }
   }
 }
