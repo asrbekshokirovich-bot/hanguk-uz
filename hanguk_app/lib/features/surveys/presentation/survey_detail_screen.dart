@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -47,6 +48,12 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
   bool _submitting = false;
   bool _submitted = false;
 
+  @override
+  void initState() {
+    super.initState();
+    AppEvents.track('form_open', props: {'form': 'survey'});
+  }
+
   bool _isAnswered(SurveyQuestion q) =>
       _answers.containsKey(q.id) ? _hasValue(_answers[q.id]) : q.hasAnswer;
 
@@ -64,6 +71,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
 
   Future<void> _submit(List<SurveyQuestion> questions) async {
     if (questions.any((q) => q.isRequired && !_isAnswered(q))) {
+      AppEvents.track('field_error', props: {'form': 'survey', 'field': 'required', 'code': 'missing'});
       _warn(AppLocalizations.of(context)!.surveyAnswerAllRequired);
       return;
     }
@@ -81,6 +89,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
           answer: entry.value,
         );
       }
+      AppEvents.track('form_submit', props: {'form': 'survey', 'result': 'ok'});
       ref.invalidate(activeSurveysProvider);
       ref.invalidate(surveyQuestionsProvider(widget.surveyId));
       if (mounted) {
@@ -90,6 +99,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
         });
       }
     } catch (_) {
+      AppEvents.track('form_submit', props: {'form': 'survey', 'result': 'error'});
       if (mounted) {
         setState(() => _submitting = false);
         ScaffoldMessenger.of(context).showSnackBar(

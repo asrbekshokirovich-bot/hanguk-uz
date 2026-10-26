@@ -32,6 +32,23 @@ class ReportScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportScreenState extends ConsumerState<ReportScreen> {
+  bool _resultSent = false;
+
+  /// What the report showed, for the analytics: the visa's band and each
+  /// university's chance, as tens of percent (S5: ranges, not figures).
+  void _sendResult(AssessmentOutcome o) {
+    if (_resultSent) return;
+    _resultSent = true;
+    AppEvents.track('assessment_result', props: {'kind': 'visa', 'band': o.band.name, 'score_bucket': o.visaPercent ~/ 10 * 10});
+    for (final c in o.chances) {
+      AppEvents.track('assessment_result', props: {
+        'kind': 'admission',
+        'institution_id': c.university.institutionId,
+        'score_bucket': c.percent ~/ 10 * 10,
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +72,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         body: FdPage(solid: FdColors.blue, child: Center(child: CircularProgressIndicator(color: FdColors.lime))),
       );
     }
+    _sendResult(outcome);
     final best = outcome.chances.isEmpty
         ? null
         : outcome.chances.reduce((a, b) => b.percent > a.percent ? b : a);

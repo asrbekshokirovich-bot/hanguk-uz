@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/app_events.dart';
 import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -8,6 +9,18 @@ import '../../../assessment/domain/assessment.dart';
 
 /// The parts the assessment pages share: the university's ("Baholash") and
 /// "Vizam chiqadimi?".
+
+/// Records `question_answer` for each answer [after] changes from [before]:
+/// the question, and the answer as a range (see
+/// [AssessmentInput.answerBands]). [form] is 'visa' or 'university'.
+void trackAnswers(String form, AssessmentInput before, AssessmentInput after) {
+  final was = before.answerBands();
+  for (final e in after.answerBands().entries) {
+    if (was[e.key] != e.value) {
+      AppEvents.track('question_answer', props: {'form': form, 'q': e.key, 'band': e.value});
+    }
+  }
+}
 
 /// The answers as pills, the picked one lime.
 Widget assessPills<T>(List<(T, String)> options, T value, ValueChanged<T> onPick) => Wrap(

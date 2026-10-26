@@ -36,6 +36,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   @override
   void initState() {
     super.initState();
+    AppEvents.track('form_open', props: {'form': 'lead'});
     final saved = ref.read(entryProvider).phone;
     if (saved != null) _phone.text = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(saved));
   }
@@ -53,8 +54,14 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     if (outcome == null) return;
     final name = _name.text.trim();
     final digits = UzPhoneFormatter.digitsOf(_phone.text);
-    if (name.isEmpty) return setState(() => _error = l.fdReportNameError);
-    if (digits.length != kUzNationalDigits) return setState(() => _error = l.fdReportPhoneError);
+    if (name.isEmpty) {
+      AppEvents.track('field_error', props: {'form': 'lead', 'field': 'name', 'code': 'empty'});
+      return setState(() => _error = l.fdReportNameError);
+    }
+    if (digits.length != kUzNationalDigits) {
+      AppEvents.track('field_error', props: {'form': 'lead', 'field': 'phone', 'code': digits.isEmpty ? 'empty' : 'short'});
+      return setState(() => _error = l.fdReportPhoneError);
+    }
     FocusScope.of(context).unfocus();
     setState(() {
       _sending = true;
@@ -68,6 +75,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
       result: outcome.toResult(),
     );
     AppEvents.track('lead_submit', props: {'status': res.status.name});
+    AppEvents.track('form_submit', props: {'form': 'lead', 'result': res.status.name});
     if (res.status == QuizSubmitStatus.ok) AppEvents.linkLead(res.linkCode);
     if (!mounted) return;
     setState(() => _sending = false);
@@ -127,19 +135,27 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                   children: [
                     Text(l.fdLeadSub(jobs), style: fdText(15, FontWeight.w400, FdColors.pageMuted, height: 1.45)),
                     const SizedBox(height: 14),
-                    _Field(
-                      controller: _name,
-                      hint: l.fdReportName,
-                      keyboard: TextInputType.name,
-                      capitalization: TextCapitalization.words,
+                    TrackedField(
+                      form: 'lead',
+                      field: 'name',
+                      child: _Field(
+                        controller: _name,
+                        hint: l.fdReportName,
+                        keyboard: TextInputType.name,
+                        capitalization: TextCapitalization.words,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _Field(
-                      controller: _phone,
-                      hint: '90 ··· ·· ··',
-                      prefix: '+998',
-                      keyboard: TextInputType.phone,
-                      formatters: [UzPhoneFormatter()],
+                    TrackedField(
+                      form: 'lead',
+                      field: 'phone',
+                      child: _Field(
+                        controller: _phone,
+                        hint: '90 ··· ·· ··',
+                        prefix: '+998',
+                        keyboard: TextInputType.phone,
+                        formatters: [UzPhoneFormatter()],
+                      ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 10),

@@ -58,6 +58,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
   @override
   void initState() {
     super.initState();
+    AppEvents.track('form_open', props: {'form': 'client_code'});
     RememberedCode.read().then((code) {
       if (mounted && code != null) setState(() => _remembered = code);
     });
@@ -90,6 +91,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     final l = AppLocalizations.of(context)!;
     if (_loading) return;
     if (_code.length < 6) {
+      AppEvents.track('field_error', props: {'form': 'client_code', 'field': 'code', 'code': 'short'});
       setState(() => _error = l.loginErrorInvalidAccessCode);
       return;
     }
@@ -117,6 +119,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
       _retryNotice = null;
     });
     AppEvents.track('sign_in', props: {'result': result.error?.name ?? 'ok'});
+    AppEvents.track('form_submit', props: {'form': 'client_code', 'result': result.error?.name ?? 'ok'});
     if (result.error case final error?) {
       setState(() => _error = authErrorMessage(l, error));
       if (result.transient) setState(() => _offerGuest = true);

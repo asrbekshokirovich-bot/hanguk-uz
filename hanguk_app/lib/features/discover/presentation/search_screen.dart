@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/seen.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -32,6 +33,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   late final TextEditingController _text = TextEditingController(text: ref.read(catalogFilterProvider).query);
   final FocusNode _focus = FocusNode();
 
+  /// The last search reported, and how many universities the current one shows.
+  String? _sent;
+  int _results = 0;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +45,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   void dispose() {
+    _report();
     _text.dispose();
     _focus.dispose();
     super.dispose();
@@ -53,7 +59,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     setState(() {});
   }
 
+  /// The search for the analytics: what was looked for — cleaned, see
+  /// [AppEvents.cleanText] — and how many universities it showed. Once per
+  /// search: on submit, on opening a result or on leaving.
+  void _report() {
+    final q = _text.text.trim();
+    if (q.isEmpty || q == _sent) return;
+    _sent = q;
+    AppEvents.track('search', props: {'chars': q.length, 'q': AppEvents.cleanText(q), 'results': _results});
+  }
+
   void _open(String institutionId) {
+    _report();
     ref.read(recentSearchesProvider.notifier).add(_text.text);
     context.push(universityPath(institutionId));
   }
@@ -67,6 +84,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final recent = ref.watch(recentSearchesProvider);
     final searching = filter.query.trim().length >= kAiSearchMinLength;
     final rows = searching ? catalogSearchRows(all, filter, ai) : const <CatalogSearchRow>[];
+    _results = rows.length;
     final cities = catalogCities(all).take(4).toList();
 
     return Scaffold(
@@ -94,90 +112,100 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(child: _Field(controller: _text, focus: _focus, hint: l.fdSearchHint, onChanged: _set, onSubmit: (q) {
-                          // The words are not sent, only that a search was made.
-                          AppEvents.track('search', props: {'chars': q.trim().length});
+                          _report();
                           ref.read(recentSearchesProvider.notifier).add(q);
                         })),
                   ],
                 ),
               ),
               Expanded(
-                child: ListView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: const EdgeInsets.only(bottom: 24),
-                  children: [
-                    if (recent.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(l.fdRecentSearches, style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: [for (final r in recent) _RecentChip(label: r, onTap: tracked('search.recent_chip', () => _set(r)))],
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (searching) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 14, 18, 6),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(13, FontWeight.w800, FdColors.onPage))),
-                            if (ai.loading) ...[
-                              const SizedBox.square(
-                                dimension: 11,
-                                child: CircularProgressIndicator(strokeWidth: 1.6, color: FdColors.lime),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(l.catalogAiSearching, style: fdText(11, FontWeight.w700, FdColors.lime)),
-                            ] else
-                              Text(l.fdCountTa(rows.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
-                          ],
-                        ),
-                      ),
-                      const ColoredBox(color: FdColors.pageRule, child: SizedBox(height: 1.5)),
-                      if (rows.isEmpty && !ai.loading)
+                child: SeenList(
+                  name: 'search',
+                  child: ListView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.only(bottom: 24),
+                    children: [
+                      if (recent.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 18),
-                          child: Text(l.catalogEmptyTitle, textAlign: TextAlign.center, style: SeoulType.bodySecondary),
+                          padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l.fdRecentSearches, style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [for (final r in recent) _RecentChip(label: r, onTap: tracked('search.recent_chip', () => _set(r)))],
+                              ),
+                            ],
+                          ),
                         ),
-                      for (final r in rows)
-                        SearchResultRow(row: r, reason: catalogSearchReason(l, r), onTap: tracked('search.result_row', () => _open(r.university.institutionId), props: {'institution_id': r.university.institutionId})),
-                    ],
-                    if (cities.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(l.fdPopularCities, style: fdText(13, FontWeight.w800, FdColors.onPage)),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                for (var i = 0; i < 4; i++) ...[
-                                  if (i > 0) const SizedBox(width: 6),
-                                  Expanded(
-                                    child: i < cities.length
-                                        ? _CityTile(
-                                            name: cities[i].name,
-                                            count: l.fdCountTa(cities[i].count),
-                                            onTap: tracked('search.city_tile', () => _set(cities[i].name)),
-                                          )
-                                        : const SizedBox.shrink(),
-                                  ),
-                                ],
-                              ],
+                      if (searching) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(18, 14, 18, 6),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(child: Text(l.catalogAiResultsTitle, style: fdText(13, FontWeight.w800, FdColors.onPage))),
+                              if (ai.loading) ...[
+                                const SizedBox.square(
+                                  dimension: 11,
+                                  child: CircularProgressIndicator(strokeWidth: 1.6, color: FdColors.lime),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(l.catalogAiSearching, style: fdText(11, FontWeight.w700, FdColors.lime)),
+                              ] else
+                                Text(l.fdCountTa(rows.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
+                            ],
+                          ),
+                        ),
+                        const ColoredBox(color: FdColors.pageRule, child: SizedBox(height: 1.5)),
+                        if (rows.isEmpty && !ai.loading)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 18),
+                            child: Text(l.catalogEmptyTitle, textAlign: TextAlign.center, style: SeoulType.bodySecondary),
+                          ),
+                        for (final (i, r) in rows.indexed)
+                          Seen(
+                            id: r.university.institutionId,
+                            position: i + 1,
+                            child: SearchResultRow(
+                              row: r,
+                              reason: catalogSearchReason(l, r),
+                              onTap: tracked('search.result_row', () => _open(r.university.institutionId), props: {'institution_id': r.university.institutionId}),
                             ),
-                          ],
+                          ),
+                      ],
+                      if (cities.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(l.fdPopularCities, style: fdText(13, FontWeight.w800, FdColors.onPage)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  for (var i = 0; i < 4; i++) ...[
+                                    if (i > 0) const SizedBox(width: 6),
+                                    Expanded(
+                                      child: i < cities.length
+                                          ? _CityTile(
+                                              name: cities[i].name,
+                                              count: l.fdCountTa(cities[i].count),
+                                              onTap: tracked('search.city_tile', () => _set(cities[i].name)),
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

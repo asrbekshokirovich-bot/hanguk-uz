@@ -124,6 +124,51 @@ class AssessmentInput {
   /// The TOPIK level the documents can show.
   int get topikCounted => topikFresh ? topik : 0;
 
+  /// Each answer as the analytics record it (`question_answer`): the option
+  /// picked where the question has options; for the figures a range, never
+  /// the figure itself — the school average to the half point below, the age
+  /// as the start of its range, the money in the bank as the 5 million won
+  /// below it (30 for 30 million and more).
+  Map<String, Object> answerBands() => {
+    'route': route.name,
+    'education': education,
+    'gpa': (gpa * 2).floor() / 2,
+    'gap_years': gapYears,
+    'age': switch (age) {
+      < 18 => 17,
+      < 20 => 18,
+      < 22 => 20,
+      < 24 => 22,
+      < 26 => 24,
+      < 30 => 26,
+      _ => 30,
+    },
+    'topik': topik,
+    'topik_fresh': topikFresh,
+    'ielts': ielts,
+    'bank': (bankKrw ~/ 5000000 * 5).clamp(0, 30),
+    'income': income,
+    'income_documented': incomeDocumented,
+    'sponsor': sponsor,
+    'relation_doc': relationDoc,
+    'income_stability': incomeStability,
+    'property': property,
+    'car': car,
+    'business': business,
+    'visa_refused': visaRefused,
+    'korea_before': koreaBefore,
+    'illegal_relatives': illegalRelatives,
+    'legal_relatives': legalRelatives,
+    'experience': experience,
+    'olympiad': olympiad,
+    'motivation': motivation,
+    'recommendation': recommendation,
+    'portfolio': portfolio,
+    'activity': activity,
+    'study_plan': studyPlan,
+    'interview_prep': interviewPrep,
+  };
+
   AssessmentInput copyWith({
     int? topik,
     double? gpa,
