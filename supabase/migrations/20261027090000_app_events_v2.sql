@@ -847,9 +847,13 @@ begin
   dev as (
     select install_id,
            bool_or(event = 'app_open') as opened,
+           -- Did something: anything but opening, looking and what the app does by
+           -- itself; a tap on nothing (no element) is not doing something.
            bool_or(event not in ('app_open', 'app_ready', 'screen_view', 'screen_leave', 'language_set',
                                  'session_start', 'app_background', 'app_resume', 'app_error',
-                                 'rpc_error', 'rpc_slow', 'card_view', 'push_received')) as active,
+                                 'rpc_error', 'rpc_slow', 'card_view', 'push_received', 'push_permission',
+                                 'rage_tap', 'sheet_close')
+                   and not (event = 'tap' and element is null)) as active,
            bool_or(event = 'university_open') as uni,
            bool_or(event in ('slot_set', 'university_save', 'assessment_start', 'question_answer')
                    or (event = 'screen_view' and screen in ('/university/:id/assess', '/assess'))) as intent,
@@ -860,17 +864,26 @@ begin
       from ev
      group by install_id
   ),
+  -- The five places of the bottom nav. Apps from 1.1.2 (events with an id)
+  -- name the place in the screen ("/guest#home"): every visit, the first
+  -- one included. Older apps sent tab_open on a switch only, and the
+  -- landing place as the bare shell route.
   sec as (
+    select split_part(screen, '#', 2) as section, install_id
+      from ev
+     where event_id is not null and event = 'screen_view' and screen like '%#%'
+    union all
     select case
              when event = 'tab_open' then coalesce(nullif(props ->> 'tab', ''), '?')
              when screen = '/guest' then 'home'
              else 'application'
-           end as section,
+           end,
            install_id
       from ev
-     where event = 'tab_open'
-        or (event = 'screen_view' and screen = '/guest')
-        or (event = 'screen_view' and screen = '/' and user_id is not null)
+     where event_id is null
+       and (event = 'tab_open'
+            or (event = 'screen_view' and screen = '/guest')
+            or (event = 'screen_view' and screen = '/' and user_id is not null))
   ),
   picked as (
     select props ->> 'institution_id' as iid, install_id
@@ -900,6 +913,7 @@ begin
         from (select screen, count(*) n, count(distinct install_id) d
                 from ev
                where event = 'screen_view' and screen is not null and screen not in ('/', '/guest')
+                 and screen not like '%#%'
                group by screen order by count(*) desc limit 20) s
     ), '[]'::jsonb),
     'sections', coalesce((
