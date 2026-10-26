@@ -79,7 +79,7 @@ void main() {
   testWidgets('answers move the dial; Tozalash puts them back', (t) async {
     stored['visa_tour_seen_v1'] = '1';
     final tracked = <(String, Map<String, Object?>?)>[];
-    AppEvents.debugOnTrack = (event, screen, props) => tracked.add((event, props));
+    AppEvents.debugOnTrack = (e) => tracked.add((e.event, e.props));
     addTearDown(() => AppEvents.debugOnTrack = null);
     final (l, c) = await pump(t);
     expect(find.text(l.vzTourGauge), findsNothing);

@@ -1,12 +1,120 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_app/core/analytics/app_events.dart';
+import 'package:hanguk_app/core/analytics/http_tracking.dart';
+import 'package:hanguk_app/core/analytics/tracked.dart';
 
 void main() {
-  test('before start, tracking is a no-op', () {
+  final seen = <TrackedEvent>[];
+  setUp(() {
+    seen.clear();
+    AppEvents.debugReset();
+    AppEvents.debugOnTrack = seen.add;
+  });
+  tearDown(() => AppEvents.debugOnTrack = null);
+
+  Iterable<TrackedEvent> named(String event) => seen.where((e) => e.event == event);
+
+  test('before start, nothing is sent and nothing throws', () {
     AppEvents.track('screen_view', screen: '/guest', props: {'tab': 'map'});
     AppEvents.linkLead('abc');
     AppEvents.flush();
+    expect(AppEvents.deviceCode, isNull);
+  });
+
+  testWidgets('a shell route and its tab are one screen; switching tabs times the one left', (t) async {
+    await t.pumpWidget(const SizedBox());
+    AppEvents.routeChanged('/guest');
+    AppEvents.tabChanged('/guest', 'home', initial: true);
+    await t.pump();
+    expect(named('screen_view').map((e) => e.screen), ['/guest#home']);
+    expect(named('tab_open'), isEmpty);
+
+    await t.pump(const Duration(seconds: 2));
+    AppEvents.tabChanged('/guest', 'universities');
+    await t.pump();
+    expect(named('tab_open').single.props, {'tab': 'universities'});
+    final leave = named('screen_leave').single;
+    expect(leave.screen, '/guest#home');
+    expect(leave.durationMs, isNotNull);
+    expect(named('screen_view').last.screen, '/guest#universities');
+    expect(named('screen_view').last.props, {'from': '/guest#home'});
+
+    // A route over the shell, and back: the shell keeps its tab.
+    AppEvents.routeChanged('/university/:id');
+    await t.pump();
+    AppEvents.routeChanged('/guest');
+    await t.pump();
+    expect(named('screen_view').map((e) => e.screen).toList(),
+        ['/guest#home', '/guest#universities', '/university/:id', '/guest#universities']);
+  });
+
+  testWidgets('a sheet is a screen of its own while open', (t) async {
+    await t.pumpWidget(const SizedBox());
+    AppEvents.routeChanged('/guest');
+    await t.pump();
+    AppEvents.overlayOpened('ai_chat');
+    expect(AppEvents.screen, 'ai_chat');
+    AppEvents.overlayClosed('ai_chat');
+    expect(AppEvents.screen, '/guest');
+    expect(named('screen_view').map((e) => e.screen).toList(), ['/guest', 'ai_chat', '/guest']);
+  });
+
+  testWidgets('a tap is named by the tracked callback that runs for it, with where it landed', (t) async {
+    var pressed = 0;
+    await t.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => AnalyticsRoot(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: GestureDetector(
+              onTap: tracked('test.button', () => pressed++, props: {'value': 'x'}),
+              child: const SizedBox(width: 100, height: 100, child: Text('press')),
+            ),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.text('press'));
+    await t.pump();
+    expect(pressed, 1);
+    final tap = named('tap').single;
+    expect(tap.element, 'test.button');
+    expect(tap.props?['value'], 'x');
+    expect(tap.props?['x'], isA<double>());
+    expect(tap.props?['y'], isA<double>());
+
+    // A tap on nothing is kept too, unnamed.
+    await t.tapAt(const Offset(5, 5));
+    await t.pump();
+    expect(named('tap').length, 2);
+    expect(named('tap').last.element, isNull);
+  });
+
+  testWidgets('three quick taps on the same spot are a rage tap', (t) async {
+    await t.pumpWidget(MaterialApp(builder: (context, child) => AnalyticsRoot(child: child!), home: const Scaffold()));
+    for (var i = 0; i < 3; i++) {
+      await t.tapAt(const Offset(200, 300));
+      await t.pump(const Duration(milliseconds: 100));
+    }
+    await t.pump();
+    expect(named('rage_tap').single.props?['count'], 3);
+    expect(named('tap').length, 3);
+  });
+
+  test('a disabled button stays disabled', () {
+    expect(tracked('x', null), isNull);
+    expect(trackedValue<int>('x', null), isNull);
+  });
+
+  test('backend calls are named without ids or queries', () {
+    String? n(String url) => TrackingHttpClient.callName(Uri.parse(url));
+    expect(n('https://x.supabase.co/rest/v1/rpc/app_quiz_submit'), 'rpc:app_quiz_submit');
+    expect(n('https://x.supabase.co/rest/v1/institutions?select=*&id=eq.5'), 'db:institutions');
+    expect(n('https://x.supabase.co/functions/v1/interview-feedback'), 'fn:interview-feedback');
+    expect(n('https://x.supabase.co/auth/v1/token?grant_type=password'), 'auth:token');
+    expect(n('https://x.supabase.co/storage/v1/object/documents/a/b.pdf'), 'storage');
+    expect(n('https://cbu.uz/json'), isNull);
   });
 
   testWidgets('the navigator observer sees named and unnamed routes without error', (t) async {
@@ -20,5 +128,6 @@ void main() {
     key.currentState!.pop();
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
+    expect(named('screen_view').map((e) => e.screen), contains('qr_scan'));
   });
 }

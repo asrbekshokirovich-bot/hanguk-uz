@@ -95,6 +95,7 @@ class EntryNotifier extends Notifier<EntryState> {
     if (state.languageCode != code || source == 'first_run') {
       AppEvents.track('language_set', props: {'language': code, 'source': source, 'device_default': deviceDefault});
     }
+    AppEvents.setLanguage(code);
     state = state.copyWith(languageCode: code);
     await EntryStore.saveLanguage(code);
   }

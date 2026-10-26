@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/analytics/app_events.dart';
+import 'core/analytics/http_tracking.dart';
+import 'core/analytics/tracked.dart';
 import 'core/money/fx_rates.dart';
 import 'core/router/app_router.dart';
 import 'design_system/theme/app_theme.dart';
@@ -28,6 +30,7 @@ Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> main() async {
+  AppEvents.launching();
   WidgetsFlutterBinding.ensureInitialized();
 
   // Crash reporting (P1 #15 from store_readiness audit). DSN supplied
@@ -62,6 +65,8 @@ Future<void> main() async {
 
   try {
     await Supabase.initialize(
+      // Calls to the backend that fail or are slow go to the analytics.
+      httpClient: TrackingHttpClient(),
       url: 'https://lysjdtyanhdfphqyijsr.supabase.co',
       anonKey:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs',
@@ -71,8 +76,10 @@ Future<void> main() async {
   }
 
   // Usage events (what is opened and pressed; see AppEvents).
+  AppEvents.setLanguage(EntryStore.initial.languageCode);
   await AppEvents.start();
-  AppEvents.track('app_open', props: {'signed_in': _signedIn()});
+  AppEvents.installErrorHooks();
+  AppEvents.track('app_open', props: {'signed_in': _signedIn(), 'cold': true});
 
   // Warm the Map tab's institutions query as soon as Supabase is ready,
   // instead of waiting for the user to open the tab. The Map screen also
@@ -101,6 +108,7 @@ Future<void> main() async {
   runApp(
     UncontrolledProviderScope(container: container, child: const HangukApp()),
   );
+  WidgetsBinding.instance.addPostFrameCallback((_) => AppEvents.ready());
   unawaited(FxRates.refreshAndRebuild());
 }
 
@@ -148,7 +156,8 @@ class HangukApp extends ConsumerWidget {
         // Auto-update gate runs on launch + every foreground transition,
         // so updates aren't gated behind the login screen anymore.
         final wrapped = UpdateGate(child: child ?? const SizedBox.shrink());
-        return wrapped;
+        // Every tap and scroll, for the analytics (AppEvents).
+        return AnalyticsRoot(child: wrapped);
       },
       // Audit L1/L3 closure 2026-05-10: full flutter_localizations wiring.
       // Non-English ARB files seeded with English placeholders + a

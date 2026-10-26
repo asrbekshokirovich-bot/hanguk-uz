@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../entry/data/entry_store.dart';
 import 'push_token_bootstrap.dart';
 
@@ -21,6 +22,10 @@ Future<String> _pushLanguage(String? languageCode) async {
   return kEntryLanguages.contains(device) ? device : 'uz';
 }
 
+/// The answer last recorded, so asking again with the same answer is not
+/// counted twice.
+AuthorizationStatus? _lastPermission;
+
 /// Reads the device's FCM token for [PushTokenBootstrap].
 ///
 /// [languageCode] is the language chosen in the app; `main.dart` passes it on
@@ -33,6 +38,10 @@ Future<PlatformTokenInfo?> fcmTokenSource({String? languageCode}) async {
     badge: true,
     sound: true,
   );
+  if (settings.authorizationStatus != _lastPermission) {
+    _lastPermission = settings.authorizationStatus;
+    AppEvents.track('push_permission', props: {'result': settings.authorizationStatus.name, 'source': 'client'});
+  }
 
   if (settings.authorizationStatus == AuthorizationStatus.denied) {
     return null;

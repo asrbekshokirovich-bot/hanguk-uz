@@ -33,7 +33,7 @@ class PrepareScreen extends StatelessWidget {
       );
 
   void _openChat(BuildContext context) {
-    AppEvents.track('screen_view', screen: 'ai_chat');
+    AppEvents.overlayOpened('ai_chat');
     const corners = BorderRadius.vertical(top: Radius.circular(SeoulRadii.hero));
     showModalBottomSheet<void>(
       context: context,
@@ -48,7 +48,7 @@ class PrepareScreen extends StatelessWidget {
         ),
         child: const ClipRRect(borderRadius: corners, child: ChatTab()),
       ),
-    );
+    ).whenComplete(() => AppEvents.overlayClosed('ai_chat'));
   }
 
   @override
