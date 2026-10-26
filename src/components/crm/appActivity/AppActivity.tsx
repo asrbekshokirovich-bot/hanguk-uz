@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Smartphone } from 'lucide-react';
-import { describeEvent, sessionsOf } from './describe';
+import { describeEvent, pickedUniversities, sessionsOf } from './describe';
 import { useAppActivity, type AppActivity as Activity } from './useAppActivity';
 
 interface AppActivityProps {
@@ -48,7 +48,13 @@ export function AppActivity({ leadId, userId }: AppActivityProps) {
       ) : error ? (
         <p className="mt-2 text-[12.5px] text-destructive">{t('appActivity.error')}</p>
       ) : !data || data.events.length === 0 ? (
-        <p className="mt-2 text-[12.5px] text-muted-foreground">{t('appActivity.empty')}</p>
+        <p className="mt-2 text-[12.5px] text-muted-foreground">
+          {leadId && (!data || data.installs.length === 0)
+            ? t('appActivity.emptyLead')
+            : userId && !leadId
+              ? t('appActivity.emptyStudent')
+              : t('appActivity.empty')}
+        </p>
       ) : (
         <ActivityBody data={data} />
       )}
@@ -61,9 +67,7 @@ function ActivityBody({ data }: { data: Activity }) {
   const [all, setAll] = useState(false);
   const visits = sessionsOf(data.events);
   const shown = all ? visits : visits.slice(0, VISITS_SHOWN);
-  const saved = new Set(
-    data.events.filter((e) => e.event === 'university_save').map((e) => String(e.props?.institution_id ?? '')),
-  );
+  const picked = pickedUniversities(data.events);
   const platforms = [...new Set(data.installs.map((i) => i.platform).filter(Boolean))].join(', ');
 
   return (
@@ -73,7 +77,7 @@ function ActivityBody({ data }: { data: Activity }) {
           {t('appActivity.visits', { count: visits.length })}
         </span>
         <span className="rounded-full border border-border px-2.5 py-0.5 font-semibold text-foreground">
-          {t('appActivity.saved', { count: saved.size })}
+          {t('appActivity.picked', { count: picked.length })}
         </span>
         {platforms && (
           <span className="rounded-full border border-border px-2.5 py-0.5 text-muted-foreground">{platforms}</span>

@@ -8,8 +8,9 @@ const PERIODS = [7, 30, 90];
 
 /**
  * "Ilova faolligi": how the student app is used — devices, the path from
- * opening the app to sending a request, the most opened screens and the most
- * saved universities (app_events_summary).
+ * opening the app to a consultant request, the bottom-nav sections and the
+ * screens people opened, and the universities they put a ♥ on
+ * (app_events_summary).
  */
 export default function AppActivityContent() {
   const { t } = useTranslation();
@@ -51,30 +52,41 @@ export default function AppActivityContent() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {(
-              [
-                ['devices', data.devices],
-                ['signedIn', data.signed_in_devices],
-                ['newDevices', data.new_devices],
-                ['events', data.events],
-              ] as const
-            ).map(([key, value]) => (
-              <div key={key} className="rounded-lg border border-border bg-card px-4 py-3">
-                <p className="text-[12px] font-semibold text-muted-foreground">{t(`appActivity.page.kpi.${key}`)}</p>
-                <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value.toLocaleString()}</p>
-              </div>
-            ))}
+            <Kpi label={t('appActivity.page.kpi.devices')} value={data.devices} />
+            <Kpi
+              label={t('appActivity.page.kpi.signedIn')}
+              value={data.people ?? data.signed_in_devices}
+              sub={[
+                data.people !== undefined
+                  ? t('appActivity.page.kpi.signedInSub', { people: data.people, devices: data.signed_in_devices })
+                  : null,
+                data.demo_people ? t('appActivity.page.kpi.demoNote', { count: data.demo_people }) : null,
+              ]}
+            />
+            <Kpi
+              label={t('appActivity.page.kpi.newDevices')}
+              value={data.new_devices}
+              sub={[
+                data.tracking_since
+                  ? t('appActivity.page.kpi.newDevicesNote', {
+                      date: new Date(data.tracking_since).toLocaleDateString([], { day: 'numeric', month: 'long' }),
+                    })
+                  : null,
+              ]}
+            />
+            <Kpi label={t('appActivity.page.kpi.events')} value={data.events} />
           </div>
 
           <section className="rounded-lg border border-border bg-card px-4 py-3">
             <h2 className="text-[13px] font-bold text-foreground">{t('appActivity.page.funnel')}</h2>
+            <p className="mt-0.5 text-[11.5px] text-muted-foreground">{t('appActivity.page.funnelNote')}</p>
             <ol className="mt-2 space-y-2">
               {data.funnel.map((f) => {
                 const pct = opened ? Math.round((f.devices / opened) * 100) : 0;
                 return (
                   <li key={f.event}>
                     <div className="flex justify-between text-[12.5px]">
-                      <span className="text-foreground">{t(`appActivity.page.steps.${f.event}`)}</span>
+                      <span className="text-foreground">{t(`appActivity.page.steps.${f.event}`, { defaultValue: f.event })}</span>
                       <span className="tabular-nums text-muted-foreground">
                         {f.devices.toLocaleString()} · {pct}%
                       </span>
@@ -90,18 +102,23 @@ export default function AppActivityContent() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <section className="rounded-lg border border-border bg-card px-4 py-3">
-              <h2 className="text-[13px] font-bold text-foreground">{t('appActivity.page.screens')}</h2>
+              <h2 className="text-[13px] font-bold text-foreground">{t('appActivity.page.sections')}</h2>
               <Table
                 empty={t('appActivity.empty')}
-                rows={data.by_screen.map((s) => ({ key: s.screen, label: screenLabel(s.screen, t), devices: s.devices, n: s.n }))}
-                head={[t('appActivity.page.screen'), t('appActivity.page.devices'), t('appActivity.page.times')]}
+                rows={(data.sections ?? []).map((s) => ({
+                  key: s.section,
+                  label: t(`appActivity.tabs.${s.section}`, { defaultValue: s.section }),
+                  devices: s.devices,
+                  n: s.n,
+                }))}
+                head={[t('appActivity.page.section'), t('appActivity.page.devices'), t('appActivity.page.times')]}
               />
             </section>
             <section className="rounded-lg border border-border bg-card px-4 py-3">
               <h2 className="text-[13px] font-bold text-foreground">{t('appActivity.page.saved')}</h2>
               <Table
                 empty={t('appActivity.empty')}
-                rows={data.top_saved.map((u) => ({
+                rows={(data.top_picked ?? data.top_saved).map((u) => ({
                   key: u.institution_id,
                   label: u.name ?? t('appActivity.unknownUniversity'),
                   devices: u.devices,
@@ -110,6 +127,16 @@ export default function AppActivityContent() {
               />
             </section>
           </div>
+
+          <section className="rounded-lg border border-border bg-card px-4 py-3">
+            <h2 className="text-[13px] font-bold text-foreground">{t('appActivity.page.screens')}</h2>
+            <p className="mt-0.5 text-[11.5px] text-muted-foreground">{t('appActivity.page.screensNote')}</p>
+            <Table
+              empty={t('appActivity.empty')}
+              rows={data.by_screen.map((s) => ({ key: s.screen, label: screenLabel(s.screen, t), devices: s.devices, n: s.n }))}
+              head={[t('appActivity.page.screen'), t('appActivity.page.devices'), t('appActivity.page.times')]}
+            />
+          </section>
 
           <section className="rounded-lg border border-border bg-card px-4 py-3">
             <h2 className="text-[13px] font-bold text-foreground">{t('appActivity.page.daily')}</h2>
@@ -123,7 +150,7 @@ export default function AppActivityContent() {
                     <div
                       className="w-full rounded-t bg-primary"
                       style={{ height: `${Math.max(4, (d.devices / maxDaily) * 88)}px` }}
-                      title={`${d.day}: ${d.devices}`}
+                      title={`${d.day}: ${d.devices}${d.new ? ` · ${t('appActivity.page.dailyNew')} ${d.new}` : ''}`}
                     />
                     <span className="text-[10px] text-muted-foreground">{d.day.slice(5)}</span>
                   </div>
@@ -147,6 +174,21 @@ export default function AppActivityContent() {
           </section>
         </>
       )}
+    </div>
+  );
+}
+
+function Kpi({ label, value, sub = [] }: { label: string; value: number; sub?: (string | null)[] }) {
+  const lines = sub.filter((x): x is string => !!x);
+  return (
+    <div className="rounded-lg border border-border bg-card px-4 py-3">
+      <p className="text-[12px] font-semibold text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value.toLocaleString()}</p>
+      {lines.map((line) => (
+        <p key={line} className="text-[11px] leading-snug text-muted-foreground">
+          {line}
+        </p>
+      ))}
     </div>
   );
 }

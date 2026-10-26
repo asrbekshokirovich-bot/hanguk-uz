@@ -2221,14 +2221,11 @@
     "lastSeen": "Last seen: {{date}}",
     "visits_one": "{{count}} visit",
     "visits_other": "{{count}} visits",
-    "saved_one": "{{count}} university saved",
-    "saved_other": "{{count}} universities saved",
     "showAll": "Show all ({{count}})",
     "showLess": "Show less",
     "unknownUniversity": "a university",
     "screens": {
-      "home": "Home",
-      "universities": "Universities",
+      "home": "App start",
       "search": "Search",
       "filter": "Filter",
       "results": "Results",
@@ -2249,14 +2246,23 @@
       "studyPlan": "Study Plan",
       "interview": "Interview practice",
       "aiChat": "Hanguk AI chat",
-      "qrScan": "QR scanner"
+      "qrScan": "QR scanner",
+      "guestHome": "Guest home",
+      "universityAssess": "University assessment",
+      "leadForm": "Consultant form",
+      "universityChoices": "University choices",
+      "interviewTest": "Interview test",
+      "studyPlanTest": "Study Plan test",
+      "walkaround": "360° campus",
+      "visa": "Will I get the visa?"
     },
     "tabs": {
       "universities": "Universities",
       "map": "360° map",
       "prepare": "Preparation",
       "application": "Application",
-      "documents": "Documents"
+      "documents": "Documents",
+      "home": "Assessment (round button)"
     },
     "channels": {
       "phone": "call",
@@ -2291,7 +2297,7 @@
       "assessment_start_other": "Started the chance assessment ({{count}} universities)",
       "report_view_one": "Viewed the report ({{count}} university)",
       "report_view_other": "Viewed the report ({{count}} universities)",
-      "lead_submit": "Sent a request: {{result}}",
+      "lead_submit": "Sent a consultant request: {{result}}",
       "sign_in": "Client-code sign-in: {{result}}",
       "qr_scan": "QR scanner: {{result}}",
       "study_plan_feedback": "Asked for feedback on Study Plan step {{step}}",
@@ -2301,7 +2307,9 @@
       "interview_leave": "Left interview practice ({{minutes}} min)",
       "document_upload": "Uploaded a document: {{type}}",
       "contact_tap": "Pressed a contact button: {{channel}}",
-      "language_set": "Chose language: {{language}}"
+      "language_set": "Chose language: {{language}}",
+      "assessment_start_visa": "Started the “Will I get the visa?” test",
+      "assessment_start_university": "Started the assessment: {{name}}"
     },
     "page": {
       "title": "App activity",
@@ -2312,20 +2320,25 @@
       "kpi": {
         "devices": "Active devices",
         "signedIn": "Signed-in clients",
-        "newDevices": "New installs",
-        "events": "Actions"
+        "newDevices": "Seen for the first time",
+        "events": "Actions",
+        "signedInSub": "{{people}} people · {{devices}} devices",
+        "demoNote_one": "of them {{count}} demo account",
+        "demoNote_other": "of them {{count}} demo accounts",
+        "newDevicesNote": "Tracking started on {{date}}; earlier installs are counted here too"
       },
-      "funnel": "From the app to a request (devices)",
+      "funnel": "From the app to a consultant request (devices)",
       "steps": {
         "app_open": "Opened the app",
-        "university_open": "Viewed a university",
-        "university_save": "Saved a university",
-        "assessment_start": "Started the assessment",
+        "university_open": "Opened a university page",
         "report_view": "Viewed the report",
-        "lead_submit": "Sent a request"
+        "lead_submit": "Sent a consultant request",
+        "active": "Pressed something",
+        "intent": "Picked ♥ or started an assessment",
+        "lead_form": "Opened the consultant form"
       },
       "screens": "Most opened screens",
-      "saved": "Most saved universities",
+      "saved": "Most picked universities (♥)",
       "daily": "Active devices per day",
       "actions": "All actions",
       "screen": "Screen",
@@ -2348,7 +2361,7 @@
         "search": "Search",
         "assessment_start": "Start the assessment",
         "report_view": "View the report",
-        "lead_submit": "Send a request",
+        "lead_submit": "Consultant request",
         "sign_in": "Sign in",
         "qr_scan": "QR scanner",
         "study_plan_feedback": "Study Plan feedback",
@@ -2359,8 +2372,17 @@
         "document_upload": "Upload a document",
         "contact_tap": "Contact",
         "language_set": "Choose language"
-      }
-    }
+      },
+      "funnelNote": "Each step counts the devices that reached it at least once in the period. The steps are not a sequence: the report can be reached without picking a university.",
+      "sections": "Sections (bottom menu)",
+      "section": "Section",
+      "screensNote": "Sections are in the table above; the app start is not counted here.",
+      "dailyNew": "new"
+    },
+    "emptyLead": "No device is linked to this lead yet. A device is linked when the lead sends the app's “Contact a consultant” form.",
+    "emptyStudent": "The student has not signed in to the app with their client code yet.",
+    "picked_one": "{{count}} university picked (♥)",
+    "picked_other": "{{count}} universities picked (♥)"
   },
   "applicationFeeAccess": {
     "title": "Separate permissions",

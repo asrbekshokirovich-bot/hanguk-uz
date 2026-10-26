@@ -4,8 +4,11 @@ type T = (key: string, opts?: Record<string, unknown>) => string;
 
 /** The app's route patterns and screen names → a key under appActivity.screens. */
 const SCREENS: Record<string, string> = {
+  // Every launch passes through '/' before the language and sign-in checks
+  // redirect; for a signed-in student it is the Ariza shell.
   '/': 'home',
-  '/guest': 'universities',
+  // The guest shell opens on the round button's home ("Vizam chiqadimi?").
+  '/guest': 'guestHome',
   '/guest/search': 'search',
   '/guest/filter': 'filter',
   '/guest/results': 'results',
@@ -14,8 +17,11 @@ const SCREENS: Record<string, string> = {
   '/guest/compare': 'compare',
   '/guest/saved': 'saved',
   '/university/:id': 'university',
+  '/university/:id/assess': 'universityAssess',
+  '/visa': 'visa',
   '/assess': 'assessment',
   '/assess/report': 'report',
+  '/assess/lead': 'leadForm',
   '/assess/sent': 'sent',
   '/language': 'language',
   '/login': 'login',
@@ -23,8 +29,12 @@ const SCREENS: Record<string, string> = {
   '/account': 'account',
   '/notifications': 'notifications',
   '/surveys': 'surveys',
+  '/university-choices': 'universityChoices',
+  '/walkaround/:institutionId': 'walkaround',
   study_plan: 'studyPlan',
+  study_plan_test: 'studyPlanTest',
   interview: 'interview',
+  interview_test: 'interviewTest',
   ai_chat: 'aiChat',
   qr_scan: 'qrScan',
 };
@@ -72,6 +82,10 @@ export function describeEvent(e: AppEvent, t: T, names: Record<string, string>):
       return t('appActivity.events.filter_apply', { filters: parts.join(', ') || '—', results: str(p.results) ?? '?' });
     }
     case 'assessment_start':
+      // From 1.1.2 the app says which assessment: the visa test or one university's.
+      if (p.kind === 'visa') return t('appActivity.events.assessment_start_visa');
+      if (p.kind === 'university') return t('appActivity.events.assessment_start_university', { name: uni() });
+      return t('appActivity.events.assessment_start', { count: Number(p.universities ?? 0) });
     case 'report_view':
       return t(`appActivity.events.${e.event}`, { count: Number(p.universities ?? 0) });
     case 'lead_submit':
@@ -105,6 +119,17 @@ export function describeEvent(e: AppEvent, t: T, names: Record<string, string>):
     default:
       return t(`appActivity.events.${e.event}`, { defaultValue: e.event });
   }
+}
+
+/** The universities this person put a ♥ on (slot_set; university_save in older versions). */
+export function pickedUniversities(events: AppEvent[]): string[] {
+  const ids = new Set<string>();
+  for (const e of events) {
+    if (e.event !== 'slot_set' && e.event !== 'university_save') continue;
+    const id = str(e.props?.institution_id);
+    if (id) ids.add(id);
+  }
+  return [...ids];
 }
 
 /** Events split into visits: a gap of more than 30 minutes starts a new one. */

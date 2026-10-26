@@ -2285,14 +2285,11 @@
     "lastSeen": "Oxirgi marta: {{date}}",
     "visits_one": "{{count}} ta tashrif",
     "visits_other": "{{count}} ta tashrif",
-    "saved_one": "{{count}} ta universitet saqlangan",
-    "saved_other": "{{count}} ta universitet saqlangan",
     "showAll": "Hammasini ko'rsatish ({{count}})",
     "showLess": "Kamroq ko'rsatish",
     "unknownUniversity": "universitet",
     "screens": {
-      "home": "Bosh sahifa",
-      "universities": "Universitetlar",
+      "home": "Ilova ochilishi",
       "search": "Qidiruv",
       "filter": "Filtr",
       "results": "Natijalar",
@@ -2313,14 +2310,23 @@
       "studyPlan": "Study Plan",
       "interview": "Suhbat mashqi",
       "aiChat": "Hanguk AI chat",
-      "qrScan": "QR skaner"
+      "qrScan": "QR skaner",
+      "guestHome": "Mehmon bosh oynasi",
+      "universityAssess": "Universitet bo'yicha baholash",
+      "leadForm": "Konsultant formasi",
+      "universityChoices": "Universitet tanlovi",
+      "interviewTest": "Suhbat testi",
+      "studyPlanTest": "Study Plan testi",
+      "walkaround": "360° kampus",
+      "visa": "Vizam chiqadimi?"
     },
     "tabs": {
       "universities": "Universitetlar",
       "map": "360° xarita",
       "prepare": "Tayyorgarlik",
       "application": "Ariza",
-      "documents": "Hujjatlar"
+      "documents": "Hujjatlar",
+      "home": "Baholash (markaziy tugma)"
     },
     "channels": {
       "phone": "qo'ng'iroq",
@@ -2355,7 +2361,7 @@
       "assessment_start_other": "Imkoniyat baholashni boshladi ({{count}} ta universitet)",
       "report_view_one": "Hisobotni ko'rdi ({{count}} ta universitet)",
       "report_view_other": "Hisobotni ko'rdi ({{count}} ta universitet)",
-      "lead_submit": "Ariza yubordi: {{result}}",
+      "lead_submit": "Konsultantga so'rov yubordi: {{result}}",
       "sign_in": "Mijoz kodi bilan kirdi: {{result}}",
       "qr_scan": "QR skaner: {{result}}",
       "study_plan_feedback": "Study Plan {{step}}-bosqichiga fikr so'radi",
@@ -2365,7 +2371,9 @@
       "interview_leave": "Suhbat mashqidan chiqib ketdi ({{minutes}} daq)",
       "document_upload": "Hujjat yukladi: {{type}}",
       "contact_tap": "Bog'lanish tugmasini bosdi: {{channel}}",
-      "language_set": "Tilni tanladi: {{language}}"
+      "language_set": "Tilni tanladi: {{language}}",
+      "assessment_start_visa": "«Vizam chiqadimi?» testini boshladi",
+      "assessment_start_university": "Baholashni boshladi: {{name}}"
     },
     "page": {
       "title": "Ilova faolligi",
@@ -2376,20 +2384,25 @@
       "kpi": {
         "devices": "Faol qurilmalar",
         "signedIn": "Kirgan mijozlar",
-        "newDevices": "Yangi o'rnatishlar",
-        "events": "Harakatlar"
+        "newDevices": "Birinchi marta ko'rilgan",
+        "events": "Harakatlar",
+        "signedInSub": "{{people}} kishi · {{devices}} qurilma",
+        "demoNote_one": "shundan {{count}} ta demo akkaunt",
+        "demoNote_other": "shundan {{count}} ta demo akkaunt",
+        "newDevicesNote": "Kuzatuv {{date}} dan boshlangan; avval o'rnatganlar ham shu yerda"
       },
-      "funnel": "Ilovadan arizagacha (qurilmalar)",
+      "funnel": "Ilovadan konsultant so'rovigacha (qurilmalar)",
       "steps": {
         "app_open": "Ilovani ochdi",
-        "university_open": "Universitetni ko'rdi",
-        "university_save": "Universitet saqladi",
-        "assessment_start": "Baholashni boshladi",
+        "university_open": "Universitet sahifasini ochdi",
         "report_view": "Hisobotni ko'rdi",
-        "lead_submit": "Ariza yubordi"
+        "lead_submit": "Konsultantga so'rov yubordi",
+        "active": "Biror narsani bosdi",
+        "intent": "♥ tanladi yoki baholashni boshladi",
+        "lead_form": "Konsultant formasini ochdi"
       },
       "screens": "Eng ko'p ochilgan ekranlar",
-      "saved": "Eng ko'p saqlangan universitetlar",
+      "saved": "Eng ko'p tanlangan universitetlar (♥)",
       "daily": "Kunlik faol qurilmalar",
       "actions": "Barcha harakatlar",
       "screen": "Ekran",
@@ -2412,7 +2425,7 @@
         "search": "Qidiruv",
         "assessment_start": "Baholashni boshlash",
         "report_view": "Hisobot ko'rish",
-        "lead_submit": "Ariza yuborish",
+        "lead_submit": "Konsultantga so'rov",
         "sign_in": "Kirish",
         "qr_scan": "QR skaner",
         "study_plan_feedback": "Study Plan fikri",
@@ -2423,8 +2436,17 @@
         "document_upload": "Hujjat yuklash",
         "contact_tap": "Bog'lanish",
         "language_set": "Til tanlash"
-      }
-    }
+      },
+      "funnelNote": "Har qadam — davr ichida shu qadamga kamida bir marta yetgan qurilmalar. Qadamlar ketma-ket emas: hisobotga universitet tanlamasdan ham o'tish mumkin.",
+      "sections": "Bo'limlar (pastki menyu)",
+      "section": "Bo'lim",
+      "screensNote": "Bo'limlar yuqoridagi jadvalda; ilovaning ochilishi bu yerda sanalmaydi.",
+      "dailyNew": "yangi"
+    },
+    "emptyLead": "Bu lidga hali hech qaysi qurilma bog'lanmagan. Qurilma lid ilovadagi «Konsultant bog'lansin» formasini yuborganda bog'lanadi.",
+    "emptyStudent": "Talaba ilovaga hali mijoz kodi bilan kirmagan.",
+    "picked_one": "{{count}} ta universitet tanlangan (♥)",
+    "picked_other": "{{count}} ta universitet tanlangan (♥)"
   },
   "applicationFeeAccess": {
     "title": "Alohida ruxsatlar",
