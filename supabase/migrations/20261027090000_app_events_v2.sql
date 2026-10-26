@@ -410,6 +410,12 @@ begin
     end;
   end loop;
 
+  -- Retries the unique event id caught: not stored again, counted here so
+  -- the quality page shows the app retrying (a bad network) — never stored twice.
+  if v_dup > 0 then
+    v_notes := v_notes || jsonb_build_object('duplicate|', v_dup);
+  end if;
+
   if v_notes <> '{}'::jsonb then
     insert into public.app_events_rejected as r (day, reason, event, app_build, n)
     select v_day, split_part(k, '|', 1), split_part(k, '|', 2), coalesce(v_build, 0), v::int
@@ -787,6 +793,20 @@ begin
                 from public.app_events_rejected
                where day >= (v_from at time zone 'Asia/Tashkent')::date
                group by 1, 2, 3) r
+    ), '[]'::jsonb),
+    -- Stage 1's bar: taps named (≥ 95%), screens timed.
+    'coverage', coalesce((
+      select jsonb_agg(c.x order by c.build desc)
+        from (select build,
+                     jsonb_build_object(
+                       'build', build,
+                       'taps', count(*) filter (where event = 'tap'),
+                       'named_taps', count(*) filter (where event = 'tap' and element is not null),
+                       'screen_views', count(*) filter (where event = 'screen_view'),
+                       'timed_leaves', count(*) filter (where event = 'screen_leave' and duration_ms is not null)) as x
+                from ev
+               where build is not null and event in ('tap', 'screen_view', 'screen_leave')
+               group by build) c
     ), '[]'::jsonb),
     'devices', (select count(distinct install_id) from ev),
     'test_devices', (select count(distinct ev.install_id) from ev join public.app_installs i using (install_id)
