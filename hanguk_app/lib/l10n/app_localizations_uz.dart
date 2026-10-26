@@ -5584,4 +5584,81 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => 'Faqat 1%';
+
+  @override
+  String get deviceCodeTitle => 'Qurilma kodi';
+
+  @override
+  String get deviceCodeBody =>
+      'Xodim bu kodni CRM\'da (Ilova analitikasi → Sozlamalar) kiritib, telefonni test qurilma deb belgilaydi.';
+
+  @override
+  String get deviceCodeNone =>
+      'Kod hali tayyor emas: birozdan keyin qayta urinib ko\'ring.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Versiya $version';
+  }
+
+  @override
+  String get leadForWhomQ => 'Kim uchun?';
+
+  @override
+  String get leadForWhomSelf => 'O\'zim uchun';
+
+  @override
+  String get leadForWhomChild => 'Farzandim uchun';
+
+  @override
+  String get leadForWhomRelative => 'Qarindoshim uchun';
+
+  @override
+  String get leadHowHeardQ => 'Bizni qayerdan topdingiz?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return 'Ilovadan · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => 'Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram';
+
+  @override
+  String get leadHeardFriend => 'Do\'st yoki qarindosh tavsiyasi';
+
+  @override
+  String get leadHeardKoreaFriend => 'Koreyada o\'qiyotgan tanish';
+
+  @override
+  String get leadHeardLearningCenter => 'O\'quv markazi';
+
+  @override
+  String get leadHeardEvent => 'Tadbir';
+
+  @override
+  String get leadHeardStore => 'Play Market yoki App Store';
+
+  @override
+  String get leadHeardOther => 'Boshqa';
+
+  @override
+  String get leadConsent =>
+      'Konsultant tanlagan universitetlaringizni va test javoblaringizni ko\'radi va shu asosda maslahat beradi.';
+
+  @override
+  String get guestPushTitle => 'Muddatlarni o\'tkazib yubormang';
+
+  @override
+  String get guestPushBody =>
+      'Qabul muddatlari va yangi grantlar haqida bildirishnoma yuboraylikmi? Telefon raqamingiz kerak emas.';
+
+  @override
+  String get guestPushYes => 'Ha, yuboring';
+
+  @override
+  String get guestPushLater => 'Keyinroq';
 }

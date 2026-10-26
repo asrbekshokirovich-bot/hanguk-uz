@@ -5582,4 +5582,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => 'Only the 1%';
+
+  @override
+  String get deviceCodeTitle => 'Device code';
+
+  @override
+  String get deviceCodeBody =>
+      'Staff enter this code in the CRM (Ilova analitikasi → Sozlamalar) to mark this phone as a test device.';
+
+  @override
+  String get deviceCodeNone =>
+      'The code is not ready yet: try again in a moment.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get leadForWhomQ => 'Who is it for?';
+
+  @override
+  String get leadForWhomSelf => 'For me';
+
+  @override
+  String get leadForWhomChild => 'For my child';
+
+  @override
+  String get leadForWhomRelative => 'For a relative';
+
+  @override
+  String get leadHowHeardQ => 'How did you find us?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return 'From the app · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => 'Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram';
+
+  @override
+  String get leadHeardFriend => 'A friend\'s or relative\'s recommendation';
+
+  @override
+  String get leadHeardKoreaFriend => 'Someone I know studying in Korea';
+
+  @override
+  String get leadHeardLearningCenter => 'Learning centre';
+
+  @override
+  String get leadHeardEvent => 'Event';
+
+  @override
+  String get leadHeardStore => 'Play Market or App Store';
+
+  @override
+  String get leadHeardOther => 'Other';
+
+  @override
+  String get leadConsent =>
+      'Your consultant will see the universities you chose and your test answers, and advise you on that basis.';
+
+  @override
+  String get guestPushTitle => 'Don\'t miss the deadlines';
+
+  @override
+  String get guestPushBody =>
+      'Shall we notify you about admission deadlines and new scholarships? No phone number needed.';
+
+  @override
+  String get guestPushYes => 'Yes, notify me';
+
+  @override
+  String get guestPushLater => 'Later';
 }
