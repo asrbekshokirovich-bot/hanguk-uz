@@ -19,6 +19,10 @@
 --   within 7 and within 30 days.
 -- * analytics_segment_options(test): what the cuts can be — the answers the
 --   app has seen, the cities on tied cards.
+-- * analytics_paths(from, to, test, seg): «Oqim» — the first screens of each
+--   visit, step by step, for a Sankey (plan v2: ekrandan ekranga yo'llar).
+-- * analytics_funnel_custom(from, to, steps, test, seg): a funnel from any
+--   steps (events or screens) in order (plan v2: istalgan qadamlardan voronka).
 -- * analytics_live(minutes): who is in the app right now and what they do
 --   («Jonli»: devices now, how many of them are known leads, the last hour's steps).
 -- * analytics_spend_set / analytics_spend_list.
@@ -180,6 +184,35 @@ $$;
 revoke all on function public.fn_app_in_segment(uuid, uuid, text, text, timestamptz, uuid, jsonb, timestamptz, timestamptz)
   from public, anon, authenticated;
 
+-- The devices the panel counts: test devices aside unless asked, in the cut
+-- (p_t0..p_t1 is the period the cut's «new or returning» and answers refer to),
+-- each with its channel and the lead card it belongs to (its own, or its
+-- student's).
+create or replace function public.fn_app_devices(p_include_test boolean, p_seg jsonb, p_t0 timestamptz, p_t1 timestamptz)
+returns table (install_id uuid, first_seen_at timestamptz, lead_id uuid, user_id uuid, platform text, channel text, lead_key uuid)
+language sql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+  with d as (
+    select i.install_id, i.first_seen_at, i.lead_id, i.user_id, i.platform,
+           public.fn_app_install_channel(i.lead_id, i.user_id) as channel,
+           coalesce(i.lead_id, (select l.id from public.leads l
+                                 where i.user_id is not null and l.converted_to_student_id = i.user_id
+                                 order by l.created_at limit 1)) as lead_key
+      from public.app_installs i
+     where p_include_test or i.test_reason is null
+  )
+  select d.install_id, d.first_seen_at, d.lead_id, d.user_id, d.platform, d.channel, d.lead_key
+    from d
+   where public.fn_app_segment(p_seg) = '{}'::jsonb
+      or public.fn_app_in_segment(d.install_id, d.user_id, d.platform, d.channel, d.first_seen_at, d.lead_key,
+                                  public.fn_app_segment(p_seg), p_t0, p_t1);
+$$;
+
+revoke all on function public.fn_app_devices(boolean, jsonb, timestamptz, timestamptz) from public, anon, authenticated;
+
 -- What each cut can be: the answers seen (with how many devices gave them)
 -- and the cities on cards tied to a device. Test devices aside unless asked.
 create or replace function public.analytics_segment_options(p_include_test boolean default false)
@@ -243,20 +276,8 @@ begin
     raise exception 'bad period' using errcode = '22023';
   end if;
 
-  with dev0 as (
-    select i.install_id, i.first_seen_at, i.lead_id, i.user_id, i.platform,
-           public.fn_app_install_channel(i.lead_id, i.user_id) as channel,
-           coalesce(i.lead_id, (select l.id from public.leads l
-                                 where i.user_id is not null and l.converted_to_student_id = i.user_id
-                                 order by l.created_at limit 1)) as lead_key
-      from public.app_installs i
-     where p_include_test or i.test_reason is null
-  ),
-  dev as (
-    select d.* from dev0 d
-     where v_all
-        or public.fn_app_in_segment(d.install_id, d.user_id, d.platform, d.channel, d.first_seen_at, d.lead_key,
-                                    v_seg, v_t0, v_t1)
+  with dev as (
+    select d.* from public.fn_app_devices(p_include_test, v_seg, v_t0, v_t1) d
   ),
   days as (
     select d.install_id, d.milestones
@@ -499,20 +520,11 @@ begin
     raise exception 'forbidden' using errcode = '42501';
   end if;
   with dev as (
-    select i.install_id, (i.first_seen_at at time zone 'Asia/Tashkent')::date as day0
-      from public.app_installs i
-     where (p_include_test or i.test_reason is null)
-       and i.first_seen_at >= (date_trunc('week', v_today::timestamp)
+    select d.install_id, (d.first_seen_at at time zone 'Asia/Tashkent')::date as day0
+      from public.fn_app_devices(p_include_test, v_seg, null, now()) d
+     where d.first_seen_at >= (date_trunc('week', v_today::timestamp)
                                - make_interval(weeks => greatest(1, least(coalesce(p_weeks, 8), 26)) - 1))
                               at time zone 'Asia/Tashkent'
-       and (v_seg = '{}'::jsonb
-            or public.fn_app_in_segment(
-                 i.install_id, i.user_id, i.platform, public.fn_app_install_channel(i.lead_id, i.user_id),
-                 i.first_seen_at,
-                 coalesce(i.lead_id, (select l.id from public.leads l
-                                       where i.user_id is not null and l.converted_to_student_id = i.user_id
-                                       order by l.created_at limit 1)),
-                 v_seg, null, now()))
   ),
   back as (
     select dev.install_id, dev.day0,
@@ -539,6 +551,154 @@ $$;
 
 revoke all on function public.analytics_retention(int, boolean, jsonb) from public, anon;
 grant execute on function public.analytics_retention(int, boolean, jsonb) to authenticated, service_role;
+
+-- «Oqim»: each visit's first [p_depth] screens (a screen repeated in a row
+-- counts once), step by step; per step the [p_top] most common screens and
+-- '__other__' for the rest; links from each step to the next, '__exit__'
+-- where the visit ended there. Visits from app versions that send a
+-- session (1.1.2+).
+create or replace function public.analytics_paths(
+  p_from date, p_to date, p_include_test boolean default false, p_seg jsonb default '{}'::jsonb,
+  p_depth int default 4, p_top int default 6)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+declare
+  v_t0    timestamptz := p_from::timestamp at time zone 'Asia/Tashkent';
+  v_t1    timestamptz := (p_to + 1)::timestamp at time zone 'Asia/Tashkent';
+  v_depth int := greatest(2, least(coalesce(p_depth, 4), 6));
+  v_top   int := greatest(3, least(coalesce(p_top, 6), 12));
+  v_out   jsonb;
+begin
+  if not (public.app_events_staff_can_read() or auth.role() = 'service_role') then
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+  if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 400 then
+    raise exception 'bad period' using errcode = '22023';
+  end if;
+  with dev as (
+    select d.install_id from public.fn_app_devices(p_include_test, public.fn_app_segment(p_seg), v_t0, v_t1) d
+  ),
+  sv as (
+    select e.session_id, e.screen, e.occurred_at, coalesce(e.seq, 0) as seq
+      from public.app_events e
+      join dev on dev.install_id = e.install_id
+     where e.event = 'screen_view' and e.session_id is not null and e.screen is not null
+       and e.occurred_at >= v_t0 and e.occurred_at < v_t1
+  ),
+  ordered as (
+    select s.session_id, s.screen,
+           lag(s.screen) over (partition by s.session_id order by s.occurred_at, s.seq) as prev,
+           row_number() over (partition by s.session_id order by s.occurred_at, s.seq) as rn
+      from sv s
+  ),
+  steps as (
+    select o.session_id, o.screen, row_number() over (partition by o.session_id order by o.rn) as step
+      from ordered o
+     where o.prev is distinct from o.screen
+  ),
+  firstn as (
+    select st.session_id, st.screen, st.step from steps st where st.step <= v_depth
+  ),
+  top as (
+    select x.step, x.screen
+      from (select f.step, f.screen, row_number() over (partition by f.step order by count(*) desc, f.screen) as r
+              from firstn f group by f.step, f.screen) x
+     where x.r <= v_top
+  ),
+  named as (
+    select f.session_id, f.step, case when t.screen is null then '__other__' else f.screen end as screen
+      from firstn f
+      left join top t on t.step = f.step and t.screen = f.screen
+  ),
+  nodes as (
+    select n.step, n.screen, count(*) as sessions from named n group by n.step, n.screen
+  ),
+  links as (
+    select a.step, a.screen as src, coalesce(b.screen, '__exit__') as dst, count(*) as sessions
+      from named a
+      left join named b on b.session_id = a.session_id and b.step = a.step + 1
+     where a.step < v_depth
+     group by a.step, a.screen, coalesce(b.screen, '__exit__')
+  )
+  select jsonb_build_object(
+    'from', p_from, 'to', p_to, 'depth', v_depth,
+    'sessions', (select count(distinct f.session_id) from firstn f),
+    'nodes', coalesce((select jsonb_agg(jsonb_build_object('step', n.step, 'screen', n.screen, 'sessions', n.sessions)
+                                        order by n.step, n.sessions desc, n.screen) from nodes n), '[]'::jsonb),
+    'links', coalesce((select jsonb_agg(jsonb_build_object('step', l.step, 'from', l.src, 'to', l.dst, 'sessions', l.sessions)
+                                        order by l.step, l.sessions desc, l.src, l.dst) from links l), '[]'::jsonb))
+    into v_out;
+  return v_out;
+end;
+$$;
+
+revoke all on function public.analytics_paths(date, date, boolean, jsonb, int, int) from public, anon;
+grant execute on function public.analytics_paths(date, date, boolean, jsonb, int, int) to authenticated, service_role;
+
+-- A funnel from any steps, in order: how many devices did step 1 in the
+-- period, then step 2 after it, and so on. A step is an event name
+-- ('report_view') or a screen ('screen:/assess/report'). 2 to 8 steps.
+create or replace function public.analytics_funnel_custom(
+  p_from date, p_to date, p_steps text[], p_include_test boolean default false, p_seg jsonb default '{}'::jsonb)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+declare
+  v_t0  timestamptz := p_from::timestamp at time zone 'Asia/Tashkent';
+  v_t1  timestamptz := (p_to + 1)::timestamp at time zone 'Asia/Tashkent';
+  v_n   int := coalesce(array_length(p_steps, 1), 0);
+  v_out jsonb;
+begin
+  if not (public.app_events_staff_can_read() or auth.role() = 'service_role') then
+    raise exception 'forbidden' using errcode = '42501';
+  end if;
+  if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 400 then
+    raise exception 'bad period' using errcode = '22023';
+  end if;
+  if v_n < 2 or v_n > 8 or exists (select 1 from unnest(p_steps) x where coalesce(btrim(x), '') = '') then
+    raise exception 'bad steps' using errcode = '22023';
+  end if;
+  with recursive dev as (
+    select d.install_id from public.fn_app_devices(p_include_test, public.fn_app_segment(p_seg), v_t0, v_t1) d
+  ),
+  ev as (
+    select e.install_id, e.occurred_at,
+           case when e.event = 'screen_view' then 'screen:' || e.screen else e.event end as k
+      from public.app_events e
+      join dev on dev.install_id = e.install_id
+     where e.occurred_at >= v_t0 and e.occurred_at < v_t1
+       and (e.event = any (p_steps) or (e.event = 'screen_view' and ('screen:' || e.screen) = any (p_steps)))
+  ),
+  reach (step, install_id, t) as (
+    select 1, ev.install_id, min(ev.occurred_at) from ev where ev.k = p_steps[1] group by ev.install_id
+    union all
+    select r.step + 1, r.install_id, nx.t
+      from reach r
+      cross join lateral (select min(e2.occurred_at) as t
+                            from ev e2
+                           where e2.install_id = r.install_id and e2.k = p_steps[r.step + 1]
+                             and e2.occurred_at > r.t) nx
+     where r.step < v_n and nx.t is not null
+  )
+  select jsonb_build_object(
+    'from', p_from, 'to', p_to,
+    'steps', (select jsonb_agg(jsonb_build_object('key', p_steps[i], 'devices',
+                                                  (select count(*) from reach r where r.step = i)) order by i)
+                from generate_series(1, v_n) i))
+    into v_out;
+  return v_out;
+end;
+$$;
+
+revoke all on function public.analytics_funnel_custom(date, date, text[], boolean, jsonb) from public, anon;
+grant execute on function public.analytics_funnel_custom(date, date, text[], boolean, jsonb) to authenticated, service_role;
 
 -- «Jonli»: devices in the app in the last [p_minutes], how many are known
 -- people, and the latest steps with who did them. Test devices aside.
