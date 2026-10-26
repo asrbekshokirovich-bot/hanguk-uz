@@ -12,6 +12,7 @@ import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../discover/presentation/discover_routes.dart';
+import '../../discover/presentation/widgets/assess_parts.dart';
 import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/widgets/entry_fields.dart';
 import '../../onboarding/data/quiz_repository.dart';
@@ -32,6 +33,22 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   final _phone = TextEditingController();
   bool _sending = false;
   String? _error;
+
+  /// «Kim uchun?» and «Bizni qayerdan topdingiz?» (how_heard keys, see
+  /// lead_how_heard): optional; the person's own answer is the lead's source.
+  String? _forWhom;
+  String? _heard;
+
+  void _answer(String q, String? value) {
+    setState(() {
+      if (q == 'for_whom') {
+        _forWhom = value;
+      } else {
+        _heard = value;
+      }
+    });
+    AppEvents.track('question_answer', props: {'form': 'lead', 'q': q, 'band': value});
+  }
 
   @override
   void initState() {
@@ -71,7 +88,11 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     final res = await ref.read(quizRepositoryProvider).submit(
       phoneE164: uzE164(digits),
       name: name,
-      answers: input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
+      answers: {
+        ...input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
+        'how_heard': ?_heard,
+        'for_whom': ?_forWhom,
+      },
       result: outcome.toResult(),
     );
     AppEvents.track('lead_submit', props: {'status': res.status.name});
@@ -161,6 +182,39 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                       const SizedBox(height: 10),
                       Text(_error!, style: fdText(13, FontWeight.w700, const Color(0xFFFF9B9B))),
                     ],
+                    const SizedBox(height: 18),
+                    _Question(
+                      label: l.leadForWhomQ,
+                      child: assessPills<String?>(
+                        [
+                          ('self', l.leadForWhomSelf),
+                          ('child', l.leadForWhomChild),
+                          ('relative', l.leadForWhomRelative),
+                          ('friend', l.leadForWhomFriend),
+                          ('other', l.leadForWhomOther),
+                        ],
+                        _forWhom,
+                        trackedValue<String?>('lead.for_whom', (v) => _answer('for_whom', v))!,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _Question(
+                      label: l.leadHowHeardQ,
+                      child: assessPills<String?>(
+                        [
+                          ('ads', l.leadHeardAds),
+                          ('instagram', l.leadHeardInstagram),
+                          ('telegram', l.leadHeardTelegram),
+                          ('friend', l.leadHeardFriend),
+                          ('event', l.leadHeardEvent),
+                          ('google', l.leadHeardGoogle),
+                          ('youtube_tiktok', l.leadHeardYoutube),
+                          ('other', l.leadHeardOther),
+                        ],
+                        _heard,
+                        trackedValue<String?>('lead.how_heard', (v) => _answer('how_heard', v))!,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     _CodeHint(
                       child: Text.rich(
@@ -174,6 +228,8 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                         style: fdText(13, FontWeight.w700, FdColors.blue, height: 1.5),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Text(l.leadConsent, style: fdText(12, FontWeight.w600, FdColors.pageMuted, height: 1.45)),
                   ],
                 ),
               ),
@@ -184,6 +240,26 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A question of the form: its label, the answers under it.
+class _Question extends StatelessWidget {
+  const _Question({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: fdText(14, FontWeight.w800, FdColors.onPage)),
+        const SizedBox(height: 8),
+        child,
+      ],
     );
   }
 }

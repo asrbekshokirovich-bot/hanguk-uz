@@ -5575,4 +5575,56 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get linkWelcome =>
       'Bạn đã mở ứng dụng từ liên kết của tư vấn viên — giờ họ có thể xem lựa chọn của bạn và tư vấn chính xác hơn.';
+
+  @override
+  String get contactTelegramMessage => 'Xin chào! Tôi nhắn từ ứng dụng Hanguk.';
+
+  @override
+  String get leadForWhomQ => 'Cho ai?';
+
+  @override
+  String get leadForWhomSelf => 'Cho tôi';
+
+  @override
+  String get leadForWhomChild => 'Cho con tôi';
+
+  @override
+  String get leadForWhomRelative => 'Cho người thân';
+
+  @override
+  String get leadForWhomFriend => 'Cho bạn bè';
+
+  @override
+  String get leadForWhomOther => 'Khác';
+
+  @override
+  String get leadHowHeardQ => 'Bạn biết đến chúng tôi qua đâu?';
+
+  @override
+  String get leadHeardAds => 'Quảng cáo trên mạng xã hội';
+
+  @override
+  String get leadHeardInstagram => 'Trang Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Kênh Telegram';
+
+  @override
+  String get leadHeardFriend => 'Bạn bè giới thiệu';
+
+  @override
+  String get leadHeardEvent => 'Sự kiện hoặc hội chợ';
+
+  @override
+  String get leadHeardGoogle => 'Tìm kiếm Google';
+
+  @override
+  String get leadHeardYoutube => 'YouTube / TikTok';
+
+  @override
+  String get leadHeardOther => 'Khác';
+
+  @override
+  String get leadConsent =>
+      'Khi nhấn «Gửi», bạn đồng ý để tên, số điện thoại và các lựa chọn của bạn trong ứng dụng được dùng để tư vấn viên liên hệ và tư vấn cho bạn.';
 }

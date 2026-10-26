@@ -5603,4 +5603,57 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get linkWelcome =>
       'Вы открыли приложение по ссылке консультанта — теперь он видит ваш выбор и сможет точнее помочь.';
+
+  @override
+  String get contactTelegramMessage =>
+      'Здравствуйте! Пишу из приложения Hanguk.';
+
+  @override
+  String get leadForWhomQ => 'Для кого?';
+
+  @override
+  String get leadForWhomSelf => 'Для себя';
+
+  @override
+  String get leadForWhomChild => 'Для ребёнка';
+
+  @override
+  String get leadForWhomRelative => 'Для родственника';
+
+  @override
+  String get leadForWhomFriend => 'Для друга';
+
+  @override
+  String get leadForWhomOther => 'Другое';
+
+  @override
+  String get leadHowHeardQ => 'Как вы нас нашли?';
+
+  @override
+  String get leadHeardAds => 'Реклама в соцсетях';
+
+  @override
+  String get leadHeardInstagram => 'Страница в Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram-канал';
+
+  @override
+  String get leadHeardFriend => 'Рекомендация друга или знакомого';
+
+  @override
+  String get leadHeardEvent => 'Мероприятие или выставка';
+
+  @override
+  String get leadHeardGoogle => 'Поиск Google';
+
+  @override
+  String get leadHeardYoutube => 'YouTube / TikTok';
+
+  @override
+  String get leadHeardOther => 'Другое';
+
+  @override
+  String get leadConsent =>
+      'Нажимая «Отправить», вы соглашаетесь, что ваше имя, телефон и выбор в приложении будут использованы, чтобы консультант связался с вами и дал совет.';
 }

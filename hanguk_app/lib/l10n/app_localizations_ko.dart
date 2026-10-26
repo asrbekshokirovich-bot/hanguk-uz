@@ -5407,4 +5407,56 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get linkWelcome =>
       '상담사가 보낸 링크로 앱을 열었습니다. 이제 상담사가 선택을 보고 더 정확히 안내할 수 있습니다.';
+
+  @override
+  String get contactTelegramMessage => '안녕하세요! Hanguk 앱에서 문의드립니다.';
+
+  @override
+  String get leadForWhomQ => '누구를 위한 상담인가요?';
+
+  @override
+  String get leadForWhomSelf => '본인';
+
+  @override
+  String get leadForWhomChild => '자녀';
+
+  @override
+  String get leadForWhomRelative => '친척';
+
+  @override
+  String get leadForWhomFriend => '친구';
+
+  @override
+  String get leadForWhomOther => '기타';
+
+  @override
+  String get leadHowHeardQ => '저희를 어떻게 알게 되셨나요?';
+
+  @override
+  String get leadHeardAds => 'SNS 광고';
+
+  @override
+  String get leadHeardInstagram => '인스타그램 페이지';
+
+  @override
+  String get leadHeardTelegram => '텔레그램 채널';
+
+  @override
+  String get leadHeardFriend => '지인 추천';
+
+  @override
+  String get leadHeardEvent => '행사·박람회';
+
+  @override
+  String get leadHeardGoogle => '구글 검색';
+
+  @override
+  String get leadHeardYoutube => 'YouTube / TikTok';
+
+  @override
+  String get leadHeardOther => '기타';
+
+  @override
+  String get leadConsent =>
+      '«보내기»를 누르면 상담사가 연락하고 안내할 수 있도록 이름, 전화번호와 앱에서의 선택 정보가 사용되는 데 동의하게 됩니다.';
 }

@@ -5602,4 +5602,57 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get linkWelcome =>
       'You opened the app from your consultant\'s link — they can now see what you choose and advise you better.';
+
+  @override
+  String get contactTelegramMessage =>
+      'Hello! I\'m writing from the Hanguk app.';
+
+  @override
+  String get leadForWhomQ => 'Who is it for?';
+
+  @override
+  String get leadForWhomSelf => 'For me';
+
+  @override
+  String get leadForWhomChild => 'For my child';
+
+  @override
+  String get leadForWhomRelative => 'For a relative';
+
+  @override
+  String get leadForWhomFriend => 'For a friend';
+
+  @override
+  String get leadForWhomOther => 'Other';
+
+  @override
+  String get leadHowHeardQ => 'How did you find us?';
+
+  @override
+  String get leadHeardAds => 'An ad on social media';
+
+  @override
+  String get leadHeardInstagram => 'Our Instagram page';
+
+  @override
+  String get leadHeardTelegram => 'Our Telegram channel';
+
+  @override
+  String get leadHeardFriend => 'A friend\'s recommendation';
+
+  @override
+  String get leadHeardEvent => 'An event or fair';
+
+  @override
+  String get leadHeardGoogle => 'Google search';
+
+  @override
+  String get leadHeardYoutube => 'YouTube / TikTok';
+
+  @override
+  String get leadHeardOther => 'Other';
+
+  @override
+  String get leadConsent =>
+      'By pressing «Send» you agree that your name, phone and your choices in the app are used for a consultant to contact and advise you.';
 }

@@ -5604,4 +5604,57 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get linkWelcome =>
       'Ilovani konsultantingiz yuborgan havola orqali ochdingiz — endi u tanlovlaringizni ko\'rib, aniqroq maslahat beradi.';
+
+  @override
+  String get contactTelegramMessage =>
+      'Assalomu alaykum! Hanguk ilovasidan yozyapman.';
+
+  @override
+  String get leadForWhomQ => 'Kim uchun?';
+
+  @override
+  String get leadForWhomSelf => 'O\'zim uchun';
+
+  @override
+  String get leadForWhomChild => 'Farzandim uchun';
+
+  @override
+  String get leadForWhomRelative => 'Qarindoshim uchun';
+
+  @override
+  String get leadForWhomFriend => 'Do\'stim uchun';
+
+  @override
+  String get leadForWhomOther => 'Boshqa';
+
+  @override
+  String get leadHowHeardQ => 'Bizni qayerdan topdingiz?';
+
+  @override
+  String get leadHeardAds => 'Ijtimoiy tarmoqdagi reklama';
+
+  @override
+  String get leadHeardInstagram => 'Instagram sahifasi';
+
+  @override
+  String get leadHeardTelegram => 'Telegram kanali';
+
+  @override
+  String get leadHeardFriend => 'Do\'st yoki tanish tavsiyasi';
+
+  @override
+  String get leadHeardEvent => 'Tadbir yoki ko\'rgazma';
+
+  @override
+  String get leadHeardGoogle => 'Google qidiruv';
+
+  @override
+  String get leadHeardYoutube => 'YouTube / TikTok';
+
+  @override
+  String get leadHeardOther => 'Boshqa';
+
+  @override
+  String get leadConsent =>
+      '«Yuborish»ni bosib, ismingiz, telefoningiz va ilovadagi tanlovlaringiz konsultant siz bilan bog\'lanishi va maslahat berishi uchun ishlatilishiga rozilik bildirasiz.';
 }

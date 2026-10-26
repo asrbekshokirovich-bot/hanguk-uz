@@ -1791,5 +1791,22 @@
   "deviceCodeBody": "Nhân viên nhập mã này vào CRM (Ilova analitikasi → Sozlamalar) để đánh dấu điện thoại là thiết bị thử nghiệm.",
   "deviceCodeNone": "Mã chưa sẵn sàng: hãy thử lại sau giây lát.",
   "deviceCodeVersion": "Phiên bản {version}",
-  "linkWelcome": "Bạn đã mở ứng dụng từ liên kết của tư vấn viên — giờ họ có thể xem lựa chọn của bạn và tư vấn chính xác hơn."
+  "linkWelcome": "Bạn đã mở ứng dụng từ liên kết của tư vấn viên — giờ họ có thể xem lựa chọn của bạn và tư vấn chính xác hơn.",
+  "contactTelegramMessage": "Xin chào! Tôi nhắn từ ứng dụng Hanguk.",
+  "leadForWhomQ": "Cho ai?",
+  "leadForWhomSelf": "Cho tôi",
+  "leadForWhomChild": "Cho con tôi",
+  "leadForWhomRelative": "Cho người thân",
+  "leadForWhomFriend": "Cho bạn bè",
+  "leadForWhomOther": "Khác",
+  "leadHowHeardQ": "Bạn biết đến chúng tôi qua đâu?",
+  "leadHeardAds": "Quảng cáo trên mạng xã hội",
+  "leadHeardInstagram": "Trang Instagram",
+  "leadHeardTelegram": "Kênh Telegram",
+  "leadHeardFriend": "Bạn bè giới thiệu",
+  "leadHeardEvent": "Sự kiện hoặc hội chợ",
+  "leadHeardGoogle": "Tìm kiếm Google",
+  "leadHeardYoutube": "YouTube / TikTok",
+  "leadHeardOther": "Khác",
+  "leadConsent": "Khi nhấn «Gửi», bạn đồng ý để tên, số điện thoại và các lựa chọn của bạn trong ứng dụng được dùng để tư vấn viên liên hệ và tư vấn cho bạn."
 }

@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/contact_codes.dart';
 import '../../../core/analytics/tracked.dart';
-import '../../../core/config/contact_links.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -145,9 +145,11 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
     _changed();
   }
 
+  /// The consultant's Telegram, the message typed in with this phone's code
+  /// (ContactCodes), so the chat is tied to the phone.
   Future<void> _telegram() async {
-    AppEvents.track('contact_tap', screen: 'client_code', props: {'channel': 'telegram'});
-    await launchUrl(ContactLinks.telegramDirectUri, mode: LaunchMode.externalApplication);
+    final uri = await ContactCodes.telegram(AppLocalizations.of(context)!.contactTelegramMessage, screen: 'client_code');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override

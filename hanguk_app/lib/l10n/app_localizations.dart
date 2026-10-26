@@ -10057,6 +10057,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You opened the app from your consultant\'s link — they can now see what you choose and advise you better.'**
   String get linkWelcome;
+
+  /// The text the app types into a Telegram message to the consultant; the app adds a short code after it (HK-…) that ties the chat to this phone
+  ///
+  /// In en, this message translates to:
+  /// **'Hello! I\'m writing from the Hanguk app.'**
+  String get contactTelegramMessage;
+
+  /// Lead form: who the consultation is for
+  ///
+  /// In en, this message translates to:
+  /// **'Who is it for?'**
+  String get leadForWhomQ;
+
+  /// Lead form, «Kim uchun?»: for me
+  ///
+  /// In en, this message translates to:
+  /// **'For me'**
+  String get leadForWhomSelf;
+
+  /// Lead form, «Kim uchun?»: for my child
+  ///
+  /// In en, this message translates to:
+  /// **'For my child'**
+  String get leadForWhomChild;
+
+  /// Lead form, «Kim uchun?»: for a relative
+  ///
+  /// In en, this message translates to:
+  /// **'For a relative'**
+  String get leadForWhomRelative;
+
+  /// Lead form, «Kim uchun?»: for a friend
+  ///
+  /// In en, this message translates to:
+  /// **'For a friend'**
+  String get leadForWhomFriend;
+
+  /// Lead form, «Kim uchun?»: someone else
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get leadForWhomOther;
+
+  /// Lead form: where the person found us (stored as the lead's how_heard)
+  ///
+  /// In en, this message translates to:
+  /// **'How did you find us?'**
+  String get leadHowHeardQ;
+
+  /// Lead form, how_heard: an ad on social media
+  ///
+  /// In en, this message translates to:
+  /// **'An ad on social media'**
+  String get leadHeardAds;
+
+  /// Lead form, how_heard: our Instagram page
+  ///
+  /// In en, this message translates to:
+  /// **'Our Instagram page'**
+  String get leadHeardInstagram;
+
+  /// Lead form, how_heard: our Telegram channel
+  ///
+  /// In en, this message translates to:
+  /// **'Our Telegram channel'**
+  String get leadHeardTelegram;
+
+  /// Lead form, how_heard: a friend's recommendation
+  ///
+  /// In en, this message translates to:
+  /// **'A friend\'s recommendation'**
+  String get leadHeardFriend;
+
+  /// Lead form, how_heard: an event or fair
+  ///
+  /// In en, this message translates to:
+  /// **'An event or fair'**
+  String get leadHeardEvent;
+
+  /// Lead form, how_heard: Google search
+  ///
+  /// In en, this message translates to:
+  /// **'Google search'**
+  String get leadHeardGoogle;
+
+  /// Lead form, how_heard: YouTube or TikTok
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube / TikTok'**
+  String get leadHeardYoutube;
+
+  /// Lead form, how_heard: somewhere else
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get leadHeardOther;
+
+  /// Lead form: the consent line under the questions (text approved by the owner, B4)
+  ///
+  /// In en, this message translates to:
+  /// **'By pressing «Send» you agree that your name, phone and your choices in the app are used for a consultant to contact and advise you.'**
+  String get leadConsent;
 }
 
 class _AppLocalizationsDelegate

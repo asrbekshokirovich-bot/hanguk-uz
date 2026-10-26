@@ -6925,5 +6925,73 @@
   "linkWelcome": "You opened the app from your consultant's link — they can now see what you choose and advise you better.",
   "@linkWelcome": {
     "description": "Shown once after the app was opened from the link the person's consultant sent (hanguk.uz/l/<code>)"
+  },
+  "contactTelegramMessage": "Hello! I'm writing from the Hanguk app.",
+  "@contactTelegramMessage": {
+    "description": "The text the app types into a Telegram message to the consultant; the app adds a short code after it (HK-…) that ties the chat to this phone"
+  },
+  "leadForWhomQ": "Who is it for?",
+  "@leadForWhomQ": {
+    "description": "Lead form: who the consultation is for"
+  },
+  "leadForWhomSelf": "For me",
+  "@leadForWhomSelf": {
+    "description": "Lead form, «Kim uchun?»: for me"
+  },
+  "leadForWhomChild": "For my child",
+  "@leadForWhomChild": {
+    "description": "Lead form, «Kim uchun?»: for my child"
+  },
+  "leadForWhomRelative": "For a relative",
+  "@leadForWhomRelative": {
+    "description": "Lead form, «Kim uchun?»: for a relative"
+  },
+  "leadForWhomFriend": "For a friend",
+  "@leadForWhomFriend": {
+    "description": "Lead form, «Kim uchun?»: for a friend"
+  },
+  "leadForWhomOther": "Other",
+  "@leadForWhomOther": {
+    "description": "Lead form, «Kim uchun?»: someone else"
+  },
+  "leadHowHeardQ": "How did you find us?",
+  "@leadHowHeardQ": {
+    "description": "Lead form: where the person found us (stored as the lead's how_heard)"
+  },
+  "leadHeardAds": "An ad on social media",
+  "@leadHeardAds": {
+    "description": "Lead form, how_heard: an ad on social media"
+  },
+  "leadHeardInstagram": "Our Instagram page",
+  "@leadHeardInstagram": {
+    "description": "Lead form, how_heard: our Instagram page"
+  },
+  "leadHeardTelegram": "Our Telegram channel",
+  "@leadHeardTelegram": {
+    "description": "Lead form, how_heard: our Telegram channel"
+  },
+  "leadHeardFriend": "A friend's recommendation",
+  "@leadHeardFriend": {
+    "description": "Lead form, how_heard: a friend's recommendation"
+  },
+  "leadHeardEvent": "An event or fair",
+  "@leadHeardEvent": {
+    "description": "Lead form, how_heard: an event or fair"
+  },
+  "leadHeardGoogle": "Google search",
+  "@leadHeardGoogle": {
+    "description": "Lead form, how_heard: Google search"
+  },
+  "leadHeardYoutube": "YouTube / TikTok",
+  "@leadHeardYoutube": {
+    "description": "Lead form, how_heard: YouTube or TikTok"
+  },
+  "leadHeardOther": "Other",
+  "@leadHeardOther": {
+    "description": "Lead form, how_heard: somewhere else"
+  },
+  "leadConsent": "By pressing «Send» you agree that your name, phone and your choices in the app are used for a consultant to contact and advise you.",
+  "@leadConsent": {
+    "description": "Lead form: the consent line under the questions (text approved by the owner, B4)"
   }
 }
