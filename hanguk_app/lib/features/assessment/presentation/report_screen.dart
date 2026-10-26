@@ -35,11 +35,24 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   bool _resultSent = false;
 
   /// What the report showed, for the analytics: the visa's band and each
-  /// university's chance, as tens of percent (S5: ranges, not figures).
+  /// university's chance, as tens of percent (S5: ranges, not figures); with
+  /// the visa, what the lead's card shows — the weak point, the TOPIK level,
+  /// whether the income is documented, the tariff (VisaHints).
   void _sendResult(AssessmentOutcome o) {
     if (_resultSent) return;
     _resultSent = true;
-    AppEvents.track('assessment_result', props: {'kind': 'visa', 'band': o.band.name, 'score_bucket': o.visaPercent ~/ 10 * 10});
+    final h = o.hints;
+    AppEvents.track('assessment_result', props: {
+      'kind': 'visa',
+      'band': o.band.name,
+      'score_bucket': o.visaPercent ~/ 10 * 10,
+      if (h != null) ...{
+        'low': h.low,
+        'topik': ref.read(assessmentProvider).topikCounted,
+        'income': h.formalIncome ? 'yes' : 'no',
+        'tariff': h.tariff.code,
+      },
+    });
     for (final c in o.chances) {
       AppEvents.track('assessment_result', props: {
         'kind': 'admission',
