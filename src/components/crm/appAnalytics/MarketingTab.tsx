@@ -30,9 +30,9 @@ import {
 } from './marketing';
 import { exportCsv, exportXlsx } from './marketingExport';
 import Segments from './Segments';
+import PeriodControls from './PeriodControls';
 
 type T = (k: string, o?: Record<string, unknown>) => string;
-const PERIODS: PeriodKey[] = ['today', '7', '30', '90', 'range'];
 
 /**
  * «CRM · Ilova analitikasi · Marketing» — the marketing plan's panel
@@ -61,29 +61,14 @@ export default function MarketingTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex rounded-md border border-border p-0.5">
-          {PERIODS.map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setPeriod(k)}
-              className={cn(
-                'rounded px-2.5 py-1 text-[12.5px] font-semibold',
-                period === k ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
-              )}
-            >
-              {t(`marketing.periods.${k}`)}
-            </button>
-          ))}
-        </div>
-        {period === 'range' && (
-          <div className="flex items-center gap-1.5">
-            <Input type="date" value={range.from} max={today} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} className="h-8 w-[150px] text-[13px]" />
-            <span className="text-muted-foreground">–</span>
-            <Input type="date" value={range.to} max={today} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} className="h-8 w-[150px] text-[13px]" />
-          </div>
-        )}
-        <span className="text-[12px] text-muted-foreground">{t('marketing.compareWith', { period: periodLabel(p.prevFrom, p.prevTo) })}</span>
+        <PeriodControls
+          period={period}
+          onPeriod={setPeriod}
+          range={range}
+          onRange={setRange}
+          today={today}
+          compare={{ from: p.prevFrom, to: p.prevTo }}
+        />
         <div className="ml-auto flex gap-1.5">
           <button type="button" className={plan.btn} disabled={!data} onClick={() => data && void exportXlsx(data, prev, names, cohorts ?? [], t)}>
             {t('marketing.excel')}

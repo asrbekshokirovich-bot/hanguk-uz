@@ -2466,7 +2466,8 @@
       "quality": "Sifat",
       "settings": "Sozlamalar",
       "people": "Odamlar",
-      "marketing": "Marketing"
+      "marketing": "Marketing",
+      "flow": "Oqim"
     },
     "quality": {
       "refreshed": "Sessiyalar va kunlik yig'indi yangilangan: {{time}}",
@@ -2891,5 +2892,20 @@
         "returning": "Qaytgan"
       }
     }
+  },
+  "flow": {
+    "pathsTitle": "Ekrandan ekranga",
+    "pathsNote": "Har tashrifning birinchi 4 ta ekrani, qadamma-qadam; har qadamda eng ko'p 6 tasi, qolgani «Boshqa». Qizil — tashrif shu yerda tugagan. Sessiyani yozadigan versiyalardan (1.1.2+).",
+    "visits_one": "{{count}} tashrif",
+    "visits_other": "{{count}} tashrif",
+    "exit": "Chiqdi",
+    "other": "Boshqa",
+    "noVisits": "Bu davrda bunday tashrif yo'q",
+    "funnelTitle": "Istalgan qadamlardan voronka",
+    "funnelNote": "Qadamlarni tanlang (hodisa yoki ekran, 2–8 ta): davrda 1-qadamni qilgan qurilmalar, keyin undan keyin 2-qadamni qilganlar va hokazo.",
+    "screenStep": "Ekran: {{screen}}",
+    "step": "{{n}}-qadam",
+    "removeStep": "{{n}}-qadamni olib tashlash",
+    "addStep": "+ Qadam qo'shish"
   }
 }

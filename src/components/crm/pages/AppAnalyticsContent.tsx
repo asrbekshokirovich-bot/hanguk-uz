@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BASE, TABS, tabOf } from '@/components/crm/appAnalytics/helpers';
 
 const MarketingTab = lazy(() => import('@/components/crm/appAnalytics/MarketingTab'));
+const FlowTab = lazy(() => import('@/components/crm/appAnalytics/FlowTab'));
 const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
 const PeopleTab = lazy(() => import('@/components/crm/appAnalytics/PeopleTab'));
 const QualityTab = lazy(() => import('@/components/crm/appAnalytics/QualityTab'));
@@ -38,6 +39,9 @@ export default function AppAnalyticsContent() {
         <Suspense fallback={<p className="p-4 text-[13px] text-muted-foreground">{t('appActivity.loading')}</p>}>
           <TabsContent value="marketing">
             <MarketingTab />
+          </TabsContent>
+          <TabsContent value="flow">
+            <FlowTab />
           </TabsContent>
           <TabsContent value="overview">
             <AppActivityContent embedded />

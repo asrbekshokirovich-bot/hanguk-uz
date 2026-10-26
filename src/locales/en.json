@@ -2402,7 +2402,8 @@
       "quality": "Quality",
       "settings": "Settings",
       "people": "People",
-      "marketing": "Marketing"
+      "marketing": "Marketing",
+      "flow": "Flow"
     },
     "quality": {
       "refreshed": "Sessions and daily totals refreshed: {{time}}",
@@ -2827,5 +2828,20 @@
         "returning": "Returning"
       }
     }
+  },
+  "flow": {
+    "pathsTitle": "Screen to screen",
+    "pathsNote": "The first 4 screens of each visit, step by step; the 6 most common per step, the rest as «Other». Red — the visit ended there. From app versions that record visits (1.1.2+).",
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "exit": "Left",
+    "other": "Other",
+    "noVisits": "No such visits in this period",
+    "funnelTitle": "A funnel from any steps",
+    "funnelNote": "Pick the steps (an event or a screen, 2–8): devices that did step 1 in the period, then step 2 after it, and so on.",
+    "screenStep": "Screen: {{screen}}",
+    "step": "Step {{n}}",
+    "removeStep": "Remove step {{n}}",
+    "addStep": "+ Add a step"
   }
 }
