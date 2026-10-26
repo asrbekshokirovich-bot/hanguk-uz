@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -46,6 +48,9 @@ class VisaScreen extends ConsumerStatefulWidget {
 
 class _VisaScreenState extends ConsumerState<VisaScreen> {
   final Set<int> _closed = {};
+
+  /// `assessment_start` goes once per visit, with the first answer changed.
+  bool _started = false;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +96,14 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         : all.where((u) => picked.contains(u.institutionId)).toList();
     final chosen = all.where((u) => picked.contains(u.institutionId)).toList();
     final need = requiredBank(input.route, chosen, rules: rules);
-    void set(AssessmentInput next) => ref.read(assessmentProvider.notifier).set(next);
+    void set(AssessmentInput next) {
+      if (!_started) {
+        _started = true;
+        AppEvents.track('assessment_start', props: {'kind': 'visa', 'universities': chosen.length});
+      }
+      trackAnswers('visa', input, next);
+      ref.read(assessmentProvider.notifier).set(next);
+    }
 
     int visa(AssessmentInput i) => visaScore(i, requiredBankKrw: need);
     // Admission: the best of the picked universities (or of the board's).
@@ -123,7 +135,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
           title: title,
           trailing: total == 0 ? null : AssessImpact(visa: total),
           open: !_closed.contains(id),
-          onToggle: () => setState(() => _closed.contains(id) ? _closed.remove(id) : _closed.add(id)),
+          onToggle: tracked('visa.assess_section_toggle', () => setState(() => _closed.contains(id) ? _closed.remove(id) : _closed.add(id))),
           children: [
             for (final q in questions) ...[
               AssessQuestionHead(label: q.label, impact: impact(q.neutral)),
@@ -368,16 +380,16 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
               ),
               _ClearButton(
                 label: l.catalogFilterClear,
-                onTap: () => ref
+                onTap: tracked('visa.catalog_filter_clear', () => ref
                     .read(assessmentProvider.notifier)
-                    .set(AssessmentInput(universityIds: input.universityIds, bankKrw: input.bankKrw)),
+                    .set(AssessmentInput(universityIds: input.universityIds, bankKrw: input.bankKrw))),
               ),
               const SizedBox(width: 8),
               KeyedSubtree(
                 key: keys[6],
                 child: Builder(
                   builder: (context) =>
-                      _PlayButton(label: l.vzTourReplay, onTap: () => PageTourScope.maybeReplayOf(context)?.call()),
+                      _PlayButton(label: l.vzTourReplay, onTap: tracked('visa.tour_replay', () => PageTourScope.maybeReplayOf(context)?.call())),
                 ),
               ),
             ],
@@ -414,12 +426,12 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
           aboveNav: true,
           child: HardButton(
             label: l.vzReport,
-            onPressed: () {
+            onPressed: tracked('visa.report', () {
               final picks = ref.read(slotsProvider).whereType<String>().toList();
               final ids = picks.isNotEmpty ? picks : [for (final u in pool.take(3)) u.institutionId];
               ref.read(assessmentProvider.notifier).useUniversities(ids);
               context.push(kAssessmentReportPath);
-            },
+            }),
           ),
         ),
       ],
@@ -442,7 +454,7 @@ class _ClearButton extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     button: true,
     child: GestureDetector(
-      onTap: onTap,
+      onTap: tracked('visa.clear_button', onTap),
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 34,
@@ -472,7 +484,7 @@ class _PlayButton extends StatelessWidget {
     label: label,
     excludeSemantics: true,
     child: GestureDetector(
-      onTap: onTap,
+      onTap: tracked('visa.play_button', onTap),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 34,

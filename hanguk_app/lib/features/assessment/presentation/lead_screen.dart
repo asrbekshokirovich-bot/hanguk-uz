@@ -6,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../discover/presentation/discover_routes.dart';
+import '../../discover/presentation/widgets/assess_parts.dart';
 import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/widgets/entry_fields.dart';
 import '../../onboarding/data/quiz_repository.dart';
@@ -32,9 +34,26 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   bool _sending = false;
   String? _error;
 
+  /// «Kim uchun?» and «Bizni qayerdan topdingiz?» (how_heard keys, see
+  /// lead_how_heard): optional; the person's own answer is the lead's source.
+  String? _forWhom;
+  String? _heard;
+
+  void _answer(String q, String? value) {
+    setState(() {
+      if (q == 'for_whom') {
+        _forWhom = value;
+      } else {
+        _heard = value;
+      }
+    });
+    AppEvents.track('question_answer', props: {'form': 'lead', 'q': q, 'band': value});
+  }
+
   @override
   void initState() {
     super.initState();
+    AppEvents.track('form_open', props: {'form': 'lead'});
     final saved = ref.read(entryProvider).phone;
     if (saved != null) _phone.text = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(saved));
   }
@@ -52,8 +71,14 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     if (outcome == null) return;
     final name = _name.text.trim();
     final digits = UzPhoneFormatter.digitsOf(_phone.text);
-    if (name.isEmpty) return setState(() => _error = l.fdReportNameError);
-    if (digits.length != kUzNationalDigits) return setState(() => _error = l.fdReportPhoneError);
+    if (name.isEmpty) {
+      AppEvents.track('field_error', props: {'form': 'lead', 'field': 'name', 'code': 'empty'});
+      return setState(() => _error = l.fdReportNameError);
+    }
+    if (digits.length != kUzNationalDigits) {
+      AppEvents.track('field_error', props: {'form': 'lead', 'field': 'phone', 'code': digits.isEmpty ? 'empty' : 'short'});
+      return setState(() => _error = l.fdReportPhoneError);
+    }
     FocusScope.of(context).unfocus();
     setState(() {
       _sending = true;
@@ -63,10 +88,15 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     final res = await ref.read(quizRepositoryProvider).submit(
       phoneE164: uzE164(digits),
       name: name,
-      answers: input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
+      answers: {
+        ...input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
+        'how_heard': ?_heard,
+        'for_whom': ?_forWhom,
+      },
       result: outcome.toResult(),
     );
     AppEvents.track('lead_submit', props: {'status': res.status.name});
+    AppEvents.track('form_submit', props: {'form': 'lead', 'result': res.status.name});
     if (res.status == QuizSubmitStatus.ok) AppEvents.linkLead(res.linkCode);
     if (!mounted) return;
     setState(() => _sending = false);
@@ -106,7 +136,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                       glyph: LucideIcons.chevronLeft,
                       size: 38,
                       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                      onTap: () => context.pop(),
+                      onTap: tracked('lead.back', () => context.pop()),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -126,24 +156,63 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                   children: [
                     Text(l.fdLeadSub(jobs), style: fdText(15, FontWeight.w400, FdColors.pageMuted, height: 1.45)),
                     const SizedBox(height: 14),
-                    _Field(
-                      controller: _name,
-                      hint: l.fdReportName,
-                      keyboard: TextInputType.name,
-                      capitalization: TextCapitalization.words,
+                    TrackedField(
+                      form: 'lead',
+                      field: 'name',
+                      child: _Field(
+                        controller: _name,
+                        hint: l.fdReportName,
+                        keyboard: TextInputType.name,
+                        capitalization: TextCapitalization.words,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _Field(
-                      controller: _phone,
-                      hint: '90 ··· ·· ··',
-                      prefix: '+998',
-                      keyboard: TextInputType.phone,
-                      formatters: [UzPhoneFormatter()],
+                    TrackedField(
+                      form: 'lead',
+                      field: 'phone',
+                      child: _Field(
+                        controller: _phone,
+                        hint: '90 ··· ·· ··',
+                        prefix: '+998',
+                        keyboard: TextInputType.phone,
+                        formatters: [UzPhoneFormatter()],
+                      ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 10),
                       Text(_error!, style: fdText(13, FontWeight.w700, const Color(0xFFFF9B9B))),
                     ],
+                    const SizedBox(height: 18),
+                    _Question(
+                      label: l.leadForWhomQ,
+                      child: assessPills<String?>(
+                        [
+                          ('self', l.leadForWhomSelf),
+                          ('child', l.leadForWhomChild),
+                          ('relative', l.leadForWhomRelative),
+                        ],
+                        _forWhom,
+                        trackedValue<String?>('lead.for_whom', (v) => _answer('for_whom', v))!,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _Question(
+                      label: l.leadHowHeardQ,
+                      child: assessPills<String?>(
+                        [
+                          ('instagram', l.leadHeardInstagram),
+                          ('telegram', l.leadHeardTelegram),
+                          ('friend', l.leadHeardFriend),
+                          ('korea_friend', l.leadHeardKoreaFriend),
+                          ('learning_center', l.leadHeardLearningCenter),
+                          ('event', l.leadHeardEvent),
+                          ('store', l.leadHeardStore),
+                          ('other', l.leadHeardOther),
+                        ],
+                        _heard,
+                        trackedValue<String?>('lead.how_heard', (v) => _answer('how_heard', v))!,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     _CodeHint(
                       child: Text.rich(
@@ -157,16 +226,38 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                         style: fdText(13, FontWeight.w700, FdColors.blue, height: 1.5),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Text(l.leadConsent, style: fdText(12, FontWeight.w600, FdColors.pageMuted, height: 1.45)),
                   ],
                 ),
               ),
               FdBottomBar(
-                child: HardButton(label: l.fdReportSend, loading: _sending, onPressed: _submit),
+                child: HardButton(label: l.fdReportSend, loading: _sending, onPressed: tracked('lead.report_send', _submit)),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A question of the form: its label, the answers under it.
+class _Question extends StatelessWidget {
+  const _Question({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: fdText(14, FontWeight.w800, FdColors.onPage)),
+        const SizedBox(height: 8),
+        child,
+      ],
     );
   }
 }

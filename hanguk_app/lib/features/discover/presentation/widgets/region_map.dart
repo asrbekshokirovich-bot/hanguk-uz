@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../catalog/data/catalog_filters.dart';
@@ -120,7 +121,7 @@ class _RegionMapState extends State<RegionMap> {
                           fontSize: 12,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           selected: widget.selected.contains(r),
-                          onTap: () => widget.onToggle(r),
+                          onTap: tracked('region_map.toggle', () => widget.onToggle(r), props: {'value': r}),
                         ),
                       ),
                   ],

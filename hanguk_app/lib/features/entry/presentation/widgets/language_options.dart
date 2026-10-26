@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../data/entry_store.dart';
@@ -26,7 +27,7 @@ class LanguageOptions extends StatelessWidget {
             code: code,
             name: kEntryLanguageNames[code]!,
             selected: code == selected,
-            onTap: () => onSelected(code),
+            onTap: tracked('language_options.selected', () => onSelected(code), props: {'value': code}),
           ),
           if (code != kEntryLanguages.last) const SizedBox(height: 10),
         ],
@@ -59,7 +60,7 @@ class _LanguageRow extends StatelessWidget {
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: tracked('language_options.language_row', onTap),
         child: AnimatedContainer(
           duration: SeoulMotion.base,
           curve: SeoulMotion.smooth,

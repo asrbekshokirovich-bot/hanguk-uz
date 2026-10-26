@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -50,7 +53,7 @@ class FilterScreen extends ConsumerWidget {
     void back() => context.canPop() ? context.pop() : context.go(kDiscoverPath);
 
     Widget link(String text, VoidCallback? onTap) => GestureDetector(
-      onTap: onTap,
+      onTap: tracked('filter.link', onTap),
       behavior: HitTestBehavior.opaque,
       child: Text(text, style: fdText(12, FontWeight.w800, onTap == null ? FdColors.pageMuted : FdColors.lime)),
     );
@@ -60,6 +63,8 @@ class FilterScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Zero-size: lives as long as the screen, to send filter_apply on leaving.
+          _FilterUsage(filter: f, results: results.length),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 2, 18, 0),
             child: Row(
@@ -67,7 +72,7 @@ class FilterScreen extends ConsumerWidget {
                 HardIconButton(
                   glyph: LucideIcons.chevronLeft,
                   semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: back,
+                  onTap: tracked('filter.back', back),
                 ),
                 const SizedBox(width: 10),
                 Text(l.fltTitle, style: fdText(18, FontWeight.w800, FdColors.onPage, letterSpacing: -0.36)),
@@ -84,7 +89,10 @@ class FilterScreen extends ConsumerWidget {
               children: [
                 FdSectionLabel(
                   l.fdSectionField,
-                  trailing: link(l.fltAllFields, f.field == null ? null : () => set(f.copyWith(field: () => null))),
+                  trailing: link(
+                    l.fltAllFields,
+                    tracked('filter.all_fields', f.field == null ? null : () => set(f.copyWith(field: () => null))),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _Grid(
@@ -100,7 +108,11 @@ class FilterScreen extends ConsumerWidget {
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         selected: f.field == t.key,
-                        onTap: () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
+                        onTap: tracked(
+                          'filter.field',
+                          () => set(f.copyWith(field: () => f.field == t.key ? null : t.key)),
+                          props: {'value': t.key},
+                        ),
                       ),
                     HardChoice(
                       label: l.fdOther,
@@ -110,14 +122,17 @@ class FilterScreen extends ConsumerWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       selected: false,
-                      onTap: () => context.push(kDiscoverSearchPath),
+                      onTap: tracked('filter.other', () => context.push(kDiscoverSearchPath)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 FdSectionLabel(
                   l.fdSectionCityMap,
-                  trailing: link(l.fdAllRegions, f.regions.isEmpty ? null : () => set(f.copyWith(regions: const {}))),
+                  trailing: link(
+                    l.fdAllRegions,
+                    tracked('filter.all_regions', f.regions.isEmpty ? null : () => set(f.copyWith(regions: const {}))),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 RegionMap(
@@ -172,7 +187,7 @@ class FilterScreen extends ConsumerWidget {
                       HardChoice(
                         label: label,
                         selected: f.type == value,
-                        onTap: () => set(f.copyWith(type: () => value)),
+                        onTap: tracked('filter.type', () => set(f.copyWith(type: () => value)), props: {'value': value ?? 'any'}),
                       ),
                   ],
                 ),
@@ -186,7 +201,7 @@ class FilterScreen extends ConsumerWidget {
                       HardChoice(
                         label: label,
                         selected: f.onePercent == value,
-                        onTap: () => set(f.copyWith(onePercent: value)),
+                        onTap: tracked('filter.one_percent', () => set(f.copyWith(onePercent: value)), props: {'value': value}),
                       ),
                   ],
                 ),
@@ -212,12 +227,67 @@ class FilterScreen extends ConsumerWidget {
           ),
           FdBottomBar(
             aboveNav: true,
-            child: HardButton(label: l.fdShowUniversities(results.length), onPressed: back),
+            child: HardButton(label: l.fdShowUniversities(results.length), onPressed: tracked('filter.show_universities', back)),
           ),
         ],
       ),
     );
   }
+}
+
+/// What a `filter_apply` event says about [f]: the same fields the old filter
+/// board sent, so the CRM reads both alike. [results] is how many
+/// universities the choices left.
+@visibleForTesting
+Map<String, Object?> filterEventProps(CatalogFilter f, int? results) => {
+  'field': f.field,
+  'regions': f.regions.isEmpty ? null : (f.regions.toList()..sort()).join(','),
+  'degree': f.degree,
+  'topik': f.topik,
+  'type': f.type,
+  'ielts': f.ielts,
+  'grant': f.grant,
+  'max_price': f.maxPrice,
+  'one_percent': f.onePercent ? true : null,
+  'results': results,
+};
+
+/// Sends `filter_apply` once, when the visitor leaves the Filtr screen — by
+/// "N ta universitetni ko'rsatish", the back arrow or the system back alike —
+/// and only if the choices changed while it was open. The screen applies each
+/// choice at once, so there is no "apply" press to hang the event on.
+class _FilterUsage extends StatefulWidget {
+  const _FilterUsage({required this.filter, required this.results});
+
+  final CatalogFilter filter;
+  final int results;
+
+  @override
+  State<_FilterUsage> createState() => _FilterUsageState();
+}
+
+class _FilterUsageState extends State<_FilterUsage> {
+  late final Map<String, Object?> _initial = filterEventProps(widget.filter, null);
+  late CatalogFilter _filter = widget.filter;
+  late int _results = widget.results;
+
+  @override
+  void didUpdateWidget(_FilterUsage old) {
+    super.didUpdateWidget(old);
+    _filter = widget.filter;
+    _results = widget.results;
+  }
+
+  @override
+  void dispose() {
+    if (!mapEquals(filterEventProps(_filter, null), _initial)) {
+      AppEvents.track('filter_apply', screen: '/guest/filter', props: filterEventProps(_filter, _results));
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 /// "24  MOS UNIVERSITETLAR · 24 TADAN" over a lime bar of segments.

@@ -5584,4 +5584,80 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fltOnePercentOnly => 'Только 1%';
+
+  @override
+  String get deviceCodeTitle => 'Код устройства';
+
+  @override
+  String get deviceCodeBody =>
+      'Сотрудник вводит этот код в CRM (Ilova analitikasi → Sozlamalar), чтобы отметить телефон как тестовый.';
+
+  @override
+  String get deviceCodeNone => 'Код ещё не готов: попробуйте чуть позже.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Версия $version';
+  }
+
+  @override
+  String get leadForWhomQ => 'Для кого?';
+
+  @override
+  String get leadForWhomSelf => 'Для себя';
+
+  @override
+  String get leadForWhomChild => 'Для ребёнка';
+
+  @override
+  String get leadForWhomRelative => 'Для родственника';
+
+  @override
+  String get leadHowHeardQ => 'Как вы нас нашли?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return 'Из приложения · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => 'Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram';
+
+  @override
+  String get leadHeardFriend => 'Рекомендация друга или родственника';
+
+  @override
+  String get leadHeardKoreaFriend => 'Знакомый, который учится в Корее';
+
+  @override
+  String get leadHeardLearningCenter => 'Учебный центр';
+
+  @override
+  String get leadHeardEvent => 'Мероприятие';
+
+  @override
+  String get leadHeardStore => 'Play Market или App Store';
+
+  @override
+  String get leadHeardOther => 'Другое';
+
+  @override
+  String get leadConsent =>
+      'Консультант увидит выбранные вами университеты и ответы на тест и на их основе даст совет.';
+
+  @override
+  String get guestPushTitle => 'Не пропустите сроки';
+
+  @override
+  String get guestPushBody =>
+      'Присылать уведомления о сроках приёма и новых грантах? Номер телефона не нужен.';
+
+  @override
+  String get guestPushYes => 'Да, присылайте';
+
+  @override
+  String get guestPushLater => 'Позже';
 }

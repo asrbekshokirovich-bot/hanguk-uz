@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -49,6 +51,9 @@ class UniversityAssessScreen extends ConsumerStatefulWidget {
 class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen> {
   final Set<int> _closed = {};
 
+  /// `assessment_start` goes once per visit, with the first answer changed.
+  bool _started = false;
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -70,7 +75,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
                     HardIconButton(
                       glyph: LucideIcons.chevronLeft,
                       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                      onTap: () => context.canPop() ? context.pop() : context.go('/'),
+                      onTap: tracked('university_assess.to_home', () => context.canPop() ? context.pop() : context.go('/')),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -114,7 +119,14 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     final input = ref.watch(assessmentProvider);
     final book = ref.watch(chanceBookProvider);
     final tests = book.testsOf(u);
-    void set(AssessmentInput next) => ref.read(assessmentProvider.notifier).set(next);
+    void set(AssessmentInput next) {
+      if (!_started) {
+        _started = true;
+        AppEvents.track('assessment_start', props: {'kind': 'university', 'institution_id': u.institutionId});
+      }
+      trackAnswers('university', input, next);
+      ref.read(assessmentProvider.notifier).set(next);
+    }
 
     // What an answer does to this university's admission: against the
     // answer that changes nothing (its "Yo'q", a 3.5 certificate, bachelor).
@@ -129,7 +141,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
         title: title,
         trailing: total == 0 ? null : AssessImpact(admission: total),
         open: !_closed.contains(id),
-        onToggle: () => setState(() => _closed.contains(id) ? _closed.remove(id) : _closed.add(id)),
+        onToggle: tracked('university_assess.assess_section_toggle', () => setState(() => _closed.contains(id) ? _closed.remove(id) : _closed.add(id))),
         children: [
           for (final q in questions) ...[
             AssessQuestionHead(
@@ -300,7 +312,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
               meta: l.uaTestMeta(u.displayName, kStudyPlanTestQuestions, kStudyPlanTestMinutes),
               score: tests.studyPlanAttempts > 0 ? tests.studyPlan : null,
               taken: tests.studyPlanAttempts > 0,
-              onStart: () => _start(context, l, u, interview: false),
+              onStart: tracked('university_assess.ua_test_plan_start', () => _start(context, l, u, interview: false)),
             ),
             const SizedBox(height: 8),
             _TestRow(
@@ -309,7 +321,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
               meta: l.uaTestMeta(u.displayName, kInterviewTestQuestions, kInterviewTestMinutes),
               score: tests.interviewAttempts > 0 ? tests.interview : null,
               taken: tests.interviewAttempts > 0,
-              onStart: () => _start(context, l, u, interview: true),
+              onStart: tracked('university_assess.ua_test_talk_start', () => _start(context, l, u, interview: true)),
             ),
             const SizedBox(height: 4),
           ],
@@ -334,7 +346,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
           Text(l.uaWays, style: fdText(11, FontWeight.w800, FdColors.pageMuted)),
           const SizedBox(height: 6),
           for (final w in ways) ...[
-            BoostRow(label: w.$1, gain: l.uaImpactUp(w.$2), onTap: w.$3),
+            BoostRow(label: w.$1, gain: l.uaImpactUp(w.$2), onTap: tracked('university_assess.boost_row', w.$3)),
             const SizedBox(height: 6),
           ],
         ],
@@ -421,9 +433,9 @@ Future<String?> _pickInterviewLanguage(BuildContext context, AppLocalizations l)
           children: [
             Text(l.languageLabel, style: fdText(16, FontWeight.w800, FdColors.ink)),
             const SizedBox(height: 14),
-            HardButton(label: '한국어', onPressed: () => Navigator.of(ctx).pop('ko')),
+            HardButton(label: '한국어', onPressed: tracked('university_assess.lang_ko', () => Navigator.of(ctx).pop('ko'))),
             const SizedBox(height: 10),
-            HardButton(label: 'English', onPressed: () => Navigator.of(ctx).pop('en')),
+            HardButton(label: 'English', onPressed: tracked('university_assess.lang_en', () => Navigator.of(ctx).pop('en'))),
           ],
         ),
       ),
@@ -456,7 +468,7 @@ class _TestRow extends StatelessWidget {
     return Semantics(
       button: !taken,
       child: GestureDetector(
-        onTap: taken ? null : onStart,
+        onTap: tracked('university_assess.test_row_start', taken ? null : onStart),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),

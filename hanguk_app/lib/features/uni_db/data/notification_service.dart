@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../core/router/app_router.dart';
 import '../../entry/data/entry_store.dart';
 import '../../university_choices/presentation/university_choices_screen.dart';
@@ -103,9 +104,17 @@ Future<void> initNotificationService({ProviderContainer? container}) async {
 
 AppLifecycleListener? _lifecycleListener;
 
+/// What a push says about itself, for the analytics: its type ('survey',
+/// 'stage', …) and the campaign the CRM sent it under. Nothing else.
+Map<String, Object?> _pushProps(Map<String, dynamic> data) => {
+  'type': data['type'] is String ? data['type'] : null,
+  'campaign': data['campaign'] is String ? data['campaign'] : null,
+};
+
 void _handleForegroundMessage(RemoteMessage message) {
   final notification = message.notification;
   if (notification == null) return;
+  AppEvents.track('push_received', props: _pushProps(message.data));
 
   // Save to local history.
   _persistNotification(notification.title, notification.body, message.data);
@@ -155,6 +164,7 @@ String? notificationRoute(Map<String, dynamic> data) {
 }
 
 void _openFromData(Map<String, dynamic> data) {
+  AppEvents.track('push_opened', props: _pushProps(data));
   final container = _container;
   if (container == null) return;
 

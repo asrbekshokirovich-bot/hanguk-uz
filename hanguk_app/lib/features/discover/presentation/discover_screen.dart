@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -74,7 +75,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 SeoulOutlineButton(
                   label: l.commonRetry,
                   expand: false,
-                  onPressed: () => ref.invalidate(catalogProvider),
+                  onPressed: tracked('discover.retry', () => ref.invalidate(catalogProvider)),
                 ),
               ],
             ),
@@ -103,7 +104,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
                         child: Row(
                           children: [
-                            Expanded(child: _SearchField(hint: l.fdSearchHint, onTap: () => context.push(kDiscoverSearchPath))),
+                            Expanded(child: _SearchField(hint: l.fdSearchHint, onTap: tracked('discover.search_hint', () => context.push(kDiscoverSearchPath)))),
                             const SizedBox(width: 8),
                             HardIconButton(
                               glyph: LucideIcons.slidersHorizontal,
@@ -114,7 +115,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               fill: FdColors.navy,
                               iconColor: Colors.white,
                               shadow: 3,
-                              onTap: () => context.push(kDiscoverFilterPath),
+                              onTap: tracked('discover.catalog_filter_title', () => context.push(kDiscoverFilterPath)),
                             ),
                           ],
                         ),
@@ -138,10 +139,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               position: i + 1,
                               isVisiting: c.institutionId == kGuestUniversityId,
                               percent: touched ? admissionPercent(input, c.primary, rules: rules) : null,
-                              onAdmission: () => context.push(kAssessmentPath, extra: c.institutionId),
+                              onAdmission: tracked('discover.uni_stack_card_admission', () => context.push(kAssessmentPath, extra: c.institutionId), props: {'institution_id': c.institutionId}),
                             );
                           },
-                          onTap: () => context.push(universityPath(u.institutionId)),
+                          onTap: tracked('discover.deck', () => context.push(universityPath(u.institutionId)), props: {'institution_id': u.institutionId}),
                           onSkip: () {
                             AppEvents.track('university_skip', props: {'institution_id': u.institutionId});
                             _advance(deck.length);
@@ -165,7 +166,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               fill: FdColors.card,
                               glyph: LucideIcons.x,
                               iconColor: FdColors.ink,
-                              onTap: () => _deck.currentState?.fling(right: false),
+                              onTap: tracked('discover.skip', () => _deck.currentState?.fling(right: false)),
                             ),
                             const SizedBox(width: 24),
                             SizedBox(
@@ -184,8 +185,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               iconColor: FdColors.onLime,
                               badge: saved.isEmpty ? null : '${saved.length}',
                               badgeLabel: l.fdSavedTitle,
-                              onBadgeTap: () => context.push(kDiscoverSavedPath),
-                              onTap: () => _deck.currentState?.fling(right: true),
+                              onBadgeTap: tracked('discover.save_badge_tap', () => context.push(kDiscoverSavedPath)),
+                              onTap: tracked('discover.save', () => _deck.currentState?.fling(right: true)),
                             ),
                           ],
                         ),
@@ -194,7 +195,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
                         child: _CatalogBanner(
                           count: deck.length,
-                          onTap: () => context.push(kDiscoverFilterPath),
+                          onTap: tracked('discover.catalog_banner', () => context.push(kDiscoverFilterPath)),
                         ),
                       ),
                       const Spacer(),
@@ -203,7 +204,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           child: _ClientCodePill(
                             label: l.onbWelcomeClientCode,
-                            onTap: () => context.push('/login', extra: const {'magic_code': true}),
+                            onTap: tracked('discover.welcome_client_code', () => context.push('/login', extra: const {'magic_code': true})),
                           ),
                         ),
                       ),
@@ -259,7 +260,7 @@ class _SearchField extends StatelessWidget {
       label: hint,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('discover.search_field', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 48,
@@ -523,12 +524,12 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
               Positioned(
                 left: -17,
                 top: 170,
-                child: _Chevron(glyph: LucideIcons.chevronLeft, label: widget.previousLabel, onTap: back),
+                child: _Chevron(glyph: LucideIcons.chevronLeft, label: widget.previousLabel, onTap: tracked('discover.chevron', back)),
               ),
               Positioned(
                 right: -17,
                 top: 170,
-                child: _Chevron(glyph: LucideIcons.chevronRight, label: widget.nextLabel, onTap: () => fling(right: false)),
+                child: _Chevron(glyph: LucideIcons.chevronRight, label: widget.nextLabel, onTap: tracked('discover.chevron_2', () => fling(right: false))),
               ),
               _layer(_third, const _BlankCard()),
               _layer(
@@ -540,7 +541,7 @@ class _DeckState extends State<_Deck> with TickerProviderStateMixin {
               _layer(
                 _front,
                 GestureDetector(
-                  onTap: _busy ? null : widget.onTap,
+                  onTap: tracked('discover.deck', _busy ? null : widget.onTap),
                   onHorizontalDragStart: (_) {
                     _settle.stop();
                     _touched();
@@ -686,7 +687,7 @@ class _Chevron extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('discover.chevron', onTap),
         behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: const EdgeInsets.all(2),
@@ -726,7 +727,7 @@ class _RoundButton extends StatelessWidget {
       button: true,
       label: semanticLabel,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('discover.round_button', onTap),
         behavior: HitTestBehavior.opaque,
         child: SizedBox.square(
           dimension: 62,
@@ -753,7 +754,7 @@ class _RoundButton extends StatelessWidget {
                     value: badge,
                     excludeSemantics: true,
                     child: GestureDetector(
-                      onTap: onBadgeTap,
+                      onTap: tracked('discover.round_button_badge_tap', onBadgeTap),
                       behavior: HitTestBehavior.opaque,
                       // A bigger target than the 22px badge it draws.
                       child: Padding(
@@ -793,7 +794,7 @@ class _CatalogBanner extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('discover.catalog_banner', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 11, 12, 11),
@@ -888,7 +889,7 @@ class _ClientCodePill extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('discover.client_code_pill', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 34,

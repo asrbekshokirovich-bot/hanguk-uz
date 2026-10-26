@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 
+import '../../core/analytics/tracked.dart';
 import '../../design_system/seoul_night/seoul_night.dart';
 import '../analytics/app_events.dart';
+import '../analytics/identity_links.dart';
 import '../../l10n/app_localizations.dart';
 import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
@@ -311,7 +315,7 @@ class _RouteMissingShell extends StatelessWidget {
               SeoulOutlineButton(
                 label: l.a11yTooltipBack,
                 expand: false,
-                onPressed: () {
+                onPressed: tracked('app_router.back', () {
                   if (nav.canPop()) {
                     nav.pop();
                   } else {
@@ -320,7 +324,7 @@ class _RouteMissingShell extends StatelessWidget {
                     // visitor.
                     context.go('/');
                   }
-                },
+                }),
               ),
             ],
           ),
@@ -413,6 +417,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._universityChoiceRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
+      // An operator's link; the redirect above leaves it at once.
+      GoRoute(path: '/l/:code', builder: (context, state) => const SizedBox.shrink()),
       // Seoul Night design-system gallery. Debug builds only — the flag is
       // kDebugMode, so the route simply doesn't exist in a release binary.
       if (kSeoulGalleryEnabled)
@@ -422,12 +428,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
     ],
     refreshListenable: gate,
-    redirect: (context, state) => resolveAppRedirect(
-      loc: state.uri.toString(),
-      isLoading: gate.isLoading,
-      isAuthenticated: gate.isAuthenticated,
-      hasLanguage: hasLanguage,
-    ),
+    redirect: (context, state) {
+      // An operator's link (hanguk.uz/l/<code>, opened as
+      // hanguk://open/l/<code>): tie this phone to the lead, then carry on
+      // as from the home.
+      final link = IdentityLinks.codeFromPath(state.uri.path);
+      if (link != null) {
+        unawaited(IdentityLinks.claim(link, 'link'));
+        return resolveAppRedirect(
+              loc: '/',
+              isLoading: gate.isLoading,
+              isAuthenticated: gate.isAuthenticated,
+              hasLanguage: hasLanguage,
+            ) ??
+            '/';
+      }
+      return resolveAppRedirect(
+        loc: state.uri.toString(),
+        isLoading: gate.isLoading,
+        isAuthenticated: gate.isAuthenticated,
+        hasLanguage: hasLanguage,
+      );
+    },
   );
   return router;
 });

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/core/analytics/app_events.dart';
 import 'package:hanguk_app/features/assessment/data/assessment_controller.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
 import 'package:hanguk_app/features/discover/presentation/visa_screen.dart';
@@ -77,6 +78,9 @@ void main() {
 
   testWidgets('answers move the dial; Tozalash puts them back', (t) async {
     stored['visa_tour_seen_v1'] = '1';
+    final tracked = <(String, Map<String, Object?>?)>[];
+    AppEvents.debugOnTrack = (e) => tracked.add((e.event, e.props));
+    addTearDown(() => AppEvents.debugOnTrack = null);
     final (l, c) = await pump(t);
     expect(find.text(l.vzTourGauge), findsNothing);
     final before = c.read(assessmentProvider);
@@ -87,6 +91,15 @@ void main() {
     await settle(t);
     expect(c.read(assessmentProvider).sponsor, 1);
     expect(find.text(l.uaVisaUp(4)), findsWidgets);
+    // The first answer of the visit starts the assessment, once.
+    final starts = tracked.where((e) => e.$1 == 'assessment_start').toList();
+    expect(starts, hasLength(1));
+    expect(starts.single.$2?['kind'], 'visa');
+    // The answer itself: the question and the option.
+    final answers = tracked.where((e) => e.$1 == 'question_answer').toList();
+    expect(answers.map((e) => e.$2), [
+      {'form': 'visa', 'q': 'sponsor', 'band': 1},
+    ]);
     await t.tap(find.text(l.catalogFilterClear));
     await settle(t);
     expect(c.read(assessmentProvider).sponsor, before.sponsor);

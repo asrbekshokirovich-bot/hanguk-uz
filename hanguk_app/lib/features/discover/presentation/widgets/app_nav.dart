@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -120,7 +121,7 @@ class AppNavOrb extends ConsumerWidget {
       value: best == null ? '?%' : '$best%',
       label: l.fdNavAssess,
       active: current == AppTab.home,
-      onTap: onTap ?? () => openAppTab(context, ref, AppTab.home, onLocal: onLocal),
+      onTap: tracked('app_nav.nav_assess', onTap ?? () => openAppTab(context, ref, AppTab.home, onLocal: onLocal)),
     );
   }
 }

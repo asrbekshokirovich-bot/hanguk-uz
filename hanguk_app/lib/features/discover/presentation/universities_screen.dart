@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/seen.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -151,7 +153,7 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                   label: l.fltTitle,
                   excludeSemantics: true,
                   child: GestureDetector(
-                    onTap: () => context.push(kDiscoverFilterPath),
+                    onTap: tracked('universities.to_discover_filter', () => context.push(kDiscoverFilterPath)),
                     behavior: HitTestBehavior.opaque,
                     child: Container(
                       width: 46,
@@ -185,25 +187,32 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                       ),
                     ),
                   )
-                : GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(18, 2, 18, 12),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      mainAxisExtent: 222,
+                : SeenList(
+                    name: 'universities',
+                    child: GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(18, 2, 18, 12),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        mainAxisExtent: 222,
+                      ),
+                      itemCount: list.length,
+                      itemBuilder: (context, i) {
+                        final u = list[i];
+                        return Seen(
+                          id: u.institutionId,
+                          position: i + 1,
+                          child: _Card(
+                            university: u,
+                            guideline: guidelineFor(u, f) ?? u.primary,
+                            picked: slots.contains(u.institutionId),
+                            onTap: tracked('universities.card', () => context.push(universityPath(u.institutionId)), props: {'institution_id': u.institutionId}),
+                            onPick: tracked('universities.card_pick', () => pick(u), props: {'institution_id': u.institutionId}),
+                          ),
+                        );
+                      },
                     ),
-                    itemCount: list.length,
-                    itemBuilder: (context, i) {
-                      final u = list[i];
-                      return _Card(
-                        university: u,
-                        guideline: guidelineFor(u, f) ?? u.primary,
-                        picked: slots.contains(u.institutionId),
-                        onTap: () => context.push(universityPath(u.institutionId)),
-                        onPick: () => pick(u),
-                      );
-                    },
                   ),
           ),
           Padding(
@@ -254,7 +263,7 @@ class _Card extends StatelessWidget {
       button: true,
       label: university.displayName,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('universities.card', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.all(7),
@@ -328,7 +337,7 @@ class _Card extends StatelessWidget {
                           label: l.fdUniAddPick(0),
                           excludeSemantics: true,
                           child: GestureDetector(
-                            onTap: onPick,
+                            onTap: tracked('universities.card_pick', onPick),
                             behavior: HitTestBehavior.opaque,
                             child: Container(
                               width: 30,

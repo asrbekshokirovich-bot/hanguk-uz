@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -138,7 +139,7 @@ class _DuelScreenState extends ConsumerState<DuelScreen> {
                         guideline: a == null ? null : guidelineFor(a, f) ?? a.primary,
                         wins: d?.winsA ?? 0,
                         fromRight: false,
-                        onTap: () => _pick(true),
+                        onTap: tracked('duel.pick_a', () => _pick(true)),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
@@ -168,7 +169,7 @@ class _DuelScreenState extends ConsumerState<DuelScreen> {
                         guideline: b == null ? null : guidelineFor(b, f) ?? b.primary,
                         wins: d?.winsB ?? 0,
                         fromRight: true,
-                        onTap: () => _pick(false),
+                        onTap: tracked('duel.pick_b', () => _pick(false)),
                       ),
                       const Spacer(),
                       Padding(
@@ -224,7 +225,7 @@ class _Slot extends StatelessWidget {
       ),
       child: u == null
           ? const SizedBox(key: ValueKey('none'), height: 200)
-          : _DuelCard(key: ValueKey(u.institutionId), university: u, guideline: guideline!, wins: wins, onTap: onTap),
+          : _DuelCard(key: ValueKey(u.institutionId), university: u, guideline: guideline!, wins: wins, onTap: tracked('duel.slot', onTap)),
     );
   }
 }
@@ -252,7 +253,7 @@ class _DuelCard extends StatelessWidget {
       label: u.displayName,
       hint: l.fdDuelPick,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('duel.card', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           clipBehavior: Clip.antiAlias,

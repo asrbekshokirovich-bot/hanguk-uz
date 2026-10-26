@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
@@ -62,7 +63,7 @@ class CatalogBrowser extends ConsumerWidget {
                 SeoulOutlineButton(
                   label: l.commonRetry,
                   expand: false,
-                  onPressed: () => ref.invalidate(catalogProvider),
+                  onPressed: tracked('catalog_browser.retry', () => ref.invalidate(catalogProvider)),
                 ),
               ],
             ),
@@ -104,7 +105,7 @@ class CatalogBrowser extends ConsumerWidget {
                         _FilterButton(
                           count: filter.activeCount,
                           tooltip: l.catalogFilterTitle,
-                          onTap: () => CatalogFilterScreen.open(context),
+                          onTap: tracked('catalog_browser.catalog_filter_title', () => CatalogFilterScreen.open(context)),
                         ),
                       ],
                     ),
@@ -125,7 +126,7 @@ class CatalogBrowser extends ConsumerWidget {
                           label: compare.active
                               ? l.catalogCompareChipCount(compare.ids.length)
                               : l.catalogCompareChip,
-                          onTap: compare.active ? compareNotifier.exit : compareNotifier.enter,
+                          onTap: tracked('catalog_browser.compare_chip', compare.active ? compareNotifier.exit : compareNotifier.enter),
                         ),
                         for (final c in _filterChips(l, all, filter)) ...[
                           const SizedBox(width: 8),
@@ -143,12 +144,12 @@ class CatalogBrowser extends ConsumerWidget {
                 child: _GuestUniversityBlock(
                   university: guest,
                   guideline: guidelineFor(guest, filter) ?? guest.primary,
-                  onTap: () => CatalogDetailScreen.open(
+                  onTap: tracked('catalog_browser.guest_university_block', () => CatalogDetailScreen.open(
                     context,
                     university: guest,
                     degree: filter.degree,
                     isGuest: isGuest,
-                  ),
+                  )),
                 ),
               ),
             if (searching)
@@ -208,15 +209,15 @@ class CatalogBrowser extends ConsumerWidget {
                       compareMode: compare.active,
                       selected: compare.active && compare.contains(id),
                       compareFull: compare.full,
-                      onTap: compare.active
+                      onTap: tracked('catalog_browser.search_result_row', compare.active
                           ? () => compareNotifier.toggle(id)
                           : () => CatalogDetailScreen.open(
                               context,
                               university: row.university,
                               degree: filter.degree,
                               isGuest: isGuest,
-                            ),
-                      onLongPress: () => compareNotifier.startWith(id),
+                            )),
+                      onLongPress: trackedLong('catalog_browser.search_result_row_2', () => compareNotifier.startWith(id)),
                     );
                   },
                   childCount: rows.length,
@@ -239,15 +240,15 @@ class CatalogBrowser extends ConsumerWidget {
                           compareMode: compare.active,
                           selected: compare.active && compare.contains(id),
                           compareFull: compare.full,
-                          onTap: compare.active
+                          onTap: tracked('catalog_browser.catalog_card', compare.active
                               ? () => compareNotifier.toggle(id)
                               : () => CatalogDetailScreen.open(
                                   context,
                                   university: list[i],
                                   degree: filter.degree,
                                   isGuest: isGuest,
-                                ),
-                          onLongPress: () => compareNotifier.startWith(id),
+                                )),
+                          onLongPress: trackedLong('catalog_browser.catalog_card_2', () => compareNotifier.startWith(id)),
                         );
                       }
                       return Padding(
@@ -416,7 +417,7 @@ class _FilterButton extends StatelessWidget {
       button: true,
       label: tooltip,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_browser.filter_button', onTap),
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
           width: 42,
@@ -504,7 +505,7 @@ class _CompareChip extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_browser.compare_chip', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 26,
@@ -590,7 +591,7 @@ class _GuestUniversityBlock extends StatelessWidget {
             button: true,
             child: GestureDetector(
               key: const Key('catalog-guest-university'),
-              onTap: onTap,
+              onTap: tracked('catalog_browser.guest_university_block', onTap),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 padding: const EdgeInsets.all(7),
@@ -1155,8 +1156,8 @@ class _SearchResultRow extends StatelessWidget {
       button: true,
       selected: compareMode ? selected : null,
       child: GestureDetector(
-        onTap: onTap,
-        onLongPress: onLongPress,
+        onTap: tracked('catalog_browser.search_result_row', onTap),
+        onLongPress: trackedLong('catalog_browser.search_result_row', onLongPress),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 12),
