@@ -5599,9 +5599,6 @@ class AppLocalizationsEn extends AppLocalizations {
     return 'Version $version';
   }
 
-  @override
-  String get linkWelcome =>
-      'You opened the app from your consultant\'s link — they can now see what you choose and advise you better.';
 
   @override
   String get contactTelegramMessage =>

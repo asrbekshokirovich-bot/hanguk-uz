@@ -5601,9 +5601,6 @@ class AppLocalizationsUz extends AppLocalizations {
     return 'Versiya $version';
   }
 
-  @override
-  String get linkWelcome =>
-      'Ilovani konsultantingiz yuborgan havola orqali ochdingiz — endi u tanlovlaringizni ko\'rib, aniqroq maslahat beradi.';
 
   @override
   String get contactTelegramMessage =>

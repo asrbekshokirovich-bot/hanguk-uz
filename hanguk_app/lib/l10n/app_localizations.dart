@@ -10052,11 +10052,6 @@ abstract class AppLocalizations {
   /// **'Version {version}'**
   String deviceCodeVersion(String version);
 
-  /// Shown once after the app was opened from the link the person's consultant sent (hanguk.uz/l/<code>)
-  ///
-  /// In en, this message translates to:
-  /// **'You opened the app from your consultant\'s link — they can now see what you choose and advise you better.'**
-  String get linkWelcome;
 
   /// The text the app types into a Telegram message to the consultant; the app adds a short code after it (HK-…) that ties the chat to this phone
   ///

@@ -5404,9 +5404,6 @@ class AppLocalizationsKo extends AppLocalizations {
     return '버전 $version';
   }
 
-  @override
-  String get linkWelcome =>
-      '상담사가 보낸 링크로 앱을 열었습니다. 이제 상담사가 선택을 보고 더 정확히 안내할 수 있습니다.';
 
   @override
   String get contactTelegramMessage => '안녕하세요! Hanguk 앱에서 문의드립니다.';

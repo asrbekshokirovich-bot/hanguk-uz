@@ -22,10 +22,6 @@ abstract final class IdentityLinks {
   /// Must match MainActivity.kt.
   static const _referrer = MethodChannel('com.hanguk.studentapp/install_referrer');
 
-  /// True once a link tied this phone to a lead and the person has not been
-  /// told yet ([LinkWelcome] tells them, once).
-  static final ValueNotifier<bool> justLinked = ValueNotifier(false);
-
   static final Set<String> _inFlight = {};
 
   /// [raw] as a lead's link code, or null when it cannot be one.
@@ -73,7 +69,6 @@ abstract final class IdentityLinks {
       AppEvents.track('link_open', props: {'via': via, 'result': status});
       if (status == 'ok') {
         await _storage.write(key: _claimedKey, value: [...done, code].join(','));
-        justLinked.value = true;
       }
     } finally {
       _inFlight.remove(code);

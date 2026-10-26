@@ -28,8 +28,7 @@ void main() {
   });
 
   test('a claim before recording starts does nothing and does not throw', () async {
-    await IdentityLinks.claim('abc1234567', 'link');
-    expect(IdentityLinks.justLinked.value, isFalse);
+    await expectLater(IdentityLinks.claim('abc1234567', 'link'), completes);
   });
 
   test('the home a link leads to: the guest home, or the language first', () {

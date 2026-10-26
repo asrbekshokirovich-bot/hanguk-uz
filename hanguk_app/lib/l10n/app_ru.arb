@@ -1791,7 +1791,6 @@
   "deviceCodeBody": "Сотрудник вводит этот код в CRM (Ilova analitikasi → Sozlamalar), чтобы отметить телефон как тестовый.",
   "deviceCodeNone": "Код ещё не готов: попробуйте чуть позже.",
   "deviceCodeVersion": "Версия {version}",
-  "linkWelcome": "Вы открыли приложение по ссылке консультанта — теперь он видит ваш выбор и сможет точнее помочь.",
   "contactTelegramMessage": "Здравствуйте! Пишу из приложения Hanguk.",
   "leadForWhomQ": "Для кого?",
   "leadForWhomSelf": "Для себя",

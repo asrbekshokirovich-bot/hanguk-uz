@@ -5572,9 +5572,6 @@ class AppLocalizationsVi extends AppLocalizations {
     return 'Phiên bản $version';
   }
 
-  @override
-  String get linkWelcome =>
-      'Bạn đã mở ứng dụng từ liên kết của tư vấn viên — giờ họ có thể xem lựa chọn của bạn và tư vấn chính xác hơn.';
 
   @override
   String get contactTelegramMessage => 'Xin chào! Tôi nhắn từ ứng dụng Hanguk.';

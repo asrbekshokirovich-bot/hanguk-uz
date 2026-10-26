@@ -6922,10 +6922,6 @@
       }
     }
   },
-  "linkWelcome": "You opened the app from your consultant's link — they can now see what you choose and advise you better.",
-  "@linkWelcome": {
-    "description": "Shown once after the app was opened from the link the person's consultant sent (hanguk.uz/l/<code>)"
-  },
   "contactTelegramMessage": "Hello! I'm writing from the Hanguk app.",
   "@contactTelegramMessage": {
     "description": "The text the app types into a Telegram message to the consultant; the app adds a short code after it (HK-…) that ties the chat to this phone"
