@@ -2487,5 +2487,15 @@
         "dev": "Development build"
       }
     }
+  },
+  "appLink": {
+    "title": "The Hanguk app",
+    "description": "Your consultant sent you the app: choose universities and see your admission and visa chances — your consultant sees your choices and advises you better.",
+    "open": "Open the app",
+    "notOpened": "The app did not open? Install it below.",
+    "googlePlay": "Get it on Google Play",
+    "appStore": "Download on the App Store",
+    "iosAfterInstall": "After installing, open this link again — the app connects you to your consultant.",
+    "web": "Open in the browser"
   }
 }

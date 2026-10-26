@@ -2551,5 +2551,15 @@
         "dev": "Dasturchi build'i"
       }
     }
+  },
+  "appLink": {
+    "title": "Hanguk ilovasi",
+    "description": "Konsultantingiz sizga ilovani yubordi: unda universitet tanlaysiz, kirish va viza ehtimolingizni ko'rasiz — konsultant esa tanlovlaringizni ko'rib, aniqroq maslahat beradi.",
+    "open": "Ilovani ochish",
+    "notOpened": "Ilova ochilmadimi? Uni quyidan o'rnating.",
+    "googlePlay": "Google Play'dan o'rnatish",
+    "appStore": "App Store'dan o'rnatish",
+    "iosAfterInstall": "O'rnatgandan keyin shu havolani qayta oching — ilova sizni konsultantingizga bog'laydi.",
+    "web": "Brauzerda ochish"
   }
 }
