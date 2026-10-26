@@ -8,7 +8,8 @@ export type StageKind =
   | "online_submitted"
   | "offline_sent"
   | "admission_accepted"
-  | "final_university";
+  | "final_university"
+  | "offer_reminder";
 
 export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
 
@@ -92,7 +93,30 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     ko: (n) => ({ title: "최종 대학", body: `상담사 추천: ${list(n, "ko")}. 앱에서 확인해 주세요.` }),
     vi: (n) => ({ title: "Trường cuối cùng", body: `Tư vấn viên đề xuất ${list(n, "vi")}. Hãy xác nhận trong ứng dụng.` }),
   },
+  // 4-signal (the app analytics plan): an offer the student has not answered
+  // for 48 hours. Once per offer.
+  offer_reminder: {
+    uz: (n) => ({
+      title: "Javobingizni kutyapmiz",
+      body: `Konsultantingiz tanlagan universitet${n.length > 1 ? "lar" : ""}: ${list(n, "uz")}. Ilovada ko'rib, javob bering.`,
+    }),
+    ru: (n) => ({ title: "Ждём вашего ответа", body: `Консультант подобрал для вас: ${list(n, "ru")}. Посмотрите в приложении и ответьте.` }),
+    en: (n) => ({ title: "Waiting for your answer", body: `Your consultant picked ${list(n, "en")} for you. Take a look in the app and answer.` }),
+    ko: (n) => ({ title: "답변을 기다리고 있습니다", body: `상담사가 추천한 대학: ${list(n, "ko")}. 앱에서 확인하고 답변해 주세요.` }),
+    vi: (n) => ({ title: "Chúng tôi đang chờ bạn trả lời", body: `Tư vấn viên đã chọn ${list(n, "vi")} cho bạn. Hãy xem trong ứng dụng và trả lời.` }),
+  },
 };
+
+/**
+ * The kind the app is told: a reminder opens the same screen as the offer
+ * did (the app routes by kind), and says it is the reminder as its campaign
+ * — push_opened records it.
+ */
+export function pushData(kind: StageKind): Record<string, string> {
+  return kind === "offer_reminder"
+    ? { type: "stage", kind: "university_offered", campaign: "offer_reminder" }
+    : { type: "stage", kind };
+}
 
 export function normalizeLang(raw: string | null | undefined): Lang {
   const l = (raw ?? "").toLowerCase().slice(0, 2);

@@ -636,6 +636,25 @@ Siz Hanguk Consulting bilan Telegram orqali bog'landingiz. Savollaringizni shu y
       }
     }
 
+    // --- /start A_<code>: the app's Telegram button, through the bot -------
+    // The app's contact code (app analytics, stage 2): the device that made
+    // it is tied to this chat's lead, then the person is greeted as on any
+    // /start below. The code ties the person only; it is not a source (S3).
+    if (typeof message.text === "string") {
+      const app = message.text.trim().match(/^\/start\s+A_([A-HJKMNP-Z2-9]{6})$/i);
+      if (app) {
+        const lead = await upsertLead(supabase, chatId, { full_name: fromName });
+        if (lead?.id) {
+          const { error: codeErr } = await supabase.rpc("fn_contact_code_link", {
+            p_text: `HK-${app[1]}`,
+            p_lead_id: lead.id,
+            p_via: "bot_start",
+          });
+          if (codeErr) console.error("fn_contact_code_link failed:", codeErr.message);
+        }
+      }
+    }
+
     // --- /start: greeting + degree buttons -------------------------------
     if (typeof message.text === "string" && message.text.trim().toLowerCase().startsWith("/start")) {
       await upsertLead(supabase, chatId, { full_name: fromName });

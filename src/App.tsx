@@ -28,6 +28,7 @@ import UniversityStaffPortal from "./pages/UniversityStaffPortal";
 import LearningCenterPortal from "./pages/LearningCenterPortal";
 import NotFound from "./pages/NotFound";
 import SystemMap from "./pages/SystemMap";
+import AppLink from "./pages/AppLink";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,8 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/install" element={<Install />} />
+                    {/* The operator's link to the student app (app analytics, stage 2). */}
+                    <Route path="/l/:code" element={<AppLink />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/privacy-policy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />

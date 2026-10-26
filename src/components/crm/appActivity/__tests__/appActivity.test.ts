@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 import { createInstance } from 'i18next';
 import uz from '@/locales/uz.json';
-import { describeEvent, screenLabel, sessionsOf } from '../describe';
+import { describeEvent, pickedUniversities, screenLabel, sessionsOf } from '../describe';
 import { institutionIds, type AppEvent } from '../useAppActivity';
 
 const i18n = createInstance();
@@ -39,6 +39,37 @@ describe('app activity', () => {
       "Bo'limga o'tdi: 360° xarita",
     );
     expect(describeEvent(ev('brand_new_event', '2026-10-14T10:00:00Z'), t, names)).toBe('brand_new_event');
+  });
+
+  it('names the shells and the screens added after 14 Oct', () => {
+    expect(screenLabel('/', t)).toBe('Ilova ochilishi');
+    expect(screenLabel('/guest', t)).toBe('Mehmon bosh oynasi');
+    expect(screenLabel('/assess/lead', t)).toBe('Konsultant formasi');
+    expect(screenLabel('/university/:id/assess', t)).toBe("Universitet bo'yicha baholash");
+  });
+
+  it('tells the two assessments apart (new versions send kind)', () => {
+    const names = { u1: 'Hongik University' };
+    expect(describeEvent(ev('assessment_start', '2026-10-27T10:00:00Z', { kind: 'visa' }), t, names)).toBe(
+      '«Vizam chiqadimi?» testini boshladi',
+    );
+    expect(
+      describeEvent(ev('assessment_start', '2026-10-27T10:00:00Z', { kind: 'university', institution_id: 'u1' }), t, names),
+    ).toBe('Baholashni boshladi: Hongik University');
+    expect(describeEvent(ev('lead_submit', '2026-10-27T10:00:00Z', { status: 'ok' }), t, names)).toBe(
+      "Konsultantga so'rov yubordi: muvaffaqiyatli",
+    );
+  });
+
+  it('counts the universities picked with ♥ (slot_set, and university_save of old versions)', () => {
+    expect(
+      pickedUniversities([
+        ev('slot_set', '2026-10-27T09:00:00Z', { institution_id: 'a', slot: 1 }),
+        ev('slot_set', '2026-10-27T09:01:00Z', { institution_id: 'a', slot: 2 }),
+        ev('university_save', '2026-10-15T09:00:00Z', { institution_id: 'b' }),
+        ev('university_open', '2026-10-27T09:00:00Z', { institution_id: 'c' }),
+      ]).sort(),
+    ).toEqual(['a', 'b']);
   });
 
   it('splits events into visits at a 30-minute gap, newest first', () => {

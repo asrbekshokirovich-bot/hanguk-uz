@@ -387,7 +387,7 @@ function seasonReportPdf(b: Bundle): Uint8Array {
   }
 
   footNote(doc, [
-    'Documents Ready, Offer Received and Visa Approved are not recorded in the CRM yet and read zero.',
+    'Every stage counts students of the season with an active contract; Visa Approved and Departed come from the dates on the CRM student profile.',
     'Read-only investor export. Student documents and personal files are not included.',
   ]);
   return doc.build();
@@ -502,7 +502,7 @@ function applicationsXlsx(b: Bundle): Uint8Array {
     {
       name: 'Pipeline',
       notes: [
-        'Documents Ready, Offer Received and Visa Approved are not recorded in the CRM yet and read zero.',
+        'Every stage counts students of the season with an active contract; Visa Approved and Departed come from the dates on the CRM student profile.',
       ],
       columns: [
         { header: 'Stage', width: 24 },

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Download, FileSpreadsheet, Info, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InvestorScreenHeader } from '@/components/investor/InvestorScreen';
@@ -12,6 +13,12 @@ import {
   TableHeadCell,
   type PillTone,
 } from '@/components/investor/InvestorPrimitives';
+import {
+  intakeLabel,
+  lineItemLabel,
+  payoutStatusLabel,
+  staffRoleLabel,
+} from '@/components/investor/investorLabels';
 import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
 import {
   useInvestorMonthly,
@@ -26,7 +33,6 @@ import {
   HEADLINE_CURRENCY,
   compact,
   formatEquity,
-  humanizeLineItem,
   inCurrency,
   longDate,
   millions,
@@ -56,7 +62,10 @@ const PAYOUT_TONE: Record<string, PillTone> = {
 };
 
 export default function InvestorFinance() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { activeIntake, activeIntakeId } = useInvestorSeason();
+  const seasonName = intakeLabel(t, activeIntake);
   const exporter = useInvestorExport();
 
   const position = useInvestorPosition(activeIntakeId);
@@ -96,14 +105,16 @@ export default function InvestorFinance() {
 
   const seasonRange =
     activeIntake?.starts_on && activeIntake?.ends_on
-      ? `${monthLabel(activeIntake.starts_on)} – ${monthLabel(activeIntake.ends_on)}`
+      ? `${monthLabel(activeIntake.starts_on, lang)} – ${monthLabel(activeIntake.ends_on, lang)}`
       : null;
 
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <InvestorScreenHeader
-        title="Finance"
-        subtitle={`Full profit & loss for the ${activeIntake?.label ?? 'season'}, and every distribution paid to you.`}
+        title={t('investor.nav.finance')}
+        subtitle={t('investor.finance.subtitle', {
+          season: seasonName || t('investor.common.seasonLower'),
+        })}
         actions={
           <>
             <Button
@@ -129,7 +140,7 @@ export default function InvestorFinance() {
               ) : (
                 <Download className="h-4 w-4" />
               )}
-              Export P&amp;L (PDF)
+              {t('investor.finance.exportPdf')}
             </Button>
           </>
         }
@@ -140,19 +151,27 @@ export default function InvestorFinance() {
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <KpiTile
-              label="Revenue"
+              label={t('investor.common.revenue')}
               value={compact(revenueTotal)}
               hint="UZS · 100%"
             />
             <KpiTile
-              label="Expenses"
+              label={t('investor.common.expenses')}
               value={compact(expenseTotal)}
-              hint={expensePct != null ? `UZS · ${percent(expensePct)} of revenue` : 'UZS'}
+              hint={
+                expensePct != null
+                  ? `UZS · ${t('investor.finance.ofRevenue', { pct: percent(expensePct) })}`
+                  : 'UZS'
+              }
             />
             <KpiTile
-              label="Net Profit"
+              label={t('investor.common.netProfit')}
               value={compact(netTotal)}
-              hint={marginPct != null ? `UZS · ${percent(marginPct)} margin` : 'UZS'}
+              hint={
+                marginPct != null
+                  ? `UZS · ${t('investor.common.margin', { pct: percent(marginPct) })}`
+                  : 'UZS'
+              }
               valueClassName={
                 netTotal > 0 ? 'text-success' : netTotal < 0 ? 'text-destructive' : undefined
               }
@@ -161,32 +180,34 @@ export default function InvestorFinance() {
 
           <InvestorCard>
             <CardHead
-              title={'Profit & Loss'}
-              subtitle={[activeIntake?.label, seasonRange, 'million UZS']
+              title={t('investor.finance.pnl')}
+              subtitle={[seasonName, seasonRange, t('investor.common.millionUzs')]
                 .filter(Boolean)
                 .join(' · ')}
             />
             {lines.length === 0 ? (
-              <EmptyNote>No payments or expenses have been booked to this season yet.</EmptyNote>
+              <EmptyNote>{t('investor.finance.noBooked')}</EmptyNote>
             ) : (
               <div className="mt-4 px-5 pb-5">
                 <PnlSection
-                  heading="Revenue"
+                  heading={t('investor.common.revenue')}
                   rows={revenueLines}
                   total={revenueTotal}
-                  totalLabel="Total Revenue"
+                  totalLabel={t('investor.finance.totalRevenue')}
                   totalPct={revenueTotal > 0 ? 100 : null}
                 />
                 <PnlSection
-                  heading="Operating expenses"
+                  heading={t('investor.finance.operatingExpenses')}
                   rows={expenseLines}
                   total={expenseTotal}
-                  totalLabel="Total Expenses"
+                  totalLabel={t('investor.finance.totalExpenses')}
                   totalPct={expensePct}
-                  emptyNote="No operating expenses have been booked to this season."
+                  emptyNote={t('investor.finance.noOpex')}
                 />
                 <div className="mt-4 flex items-center justify-between gap-4 rounded-md bg-tint-blue p-4">
-                  <span className="text-[15px] font-bold text-primary">Net Profit</span>
+                  <span className="text-[15px] font-bold text-primary">
+                    {t('investor.common.netProfit')}
+                  </span>
                   <div className="flex items-baseline gap-4">
                     <Money className="text-[17px] font-extrabold text-primary">
                       {millions(netTotal, 1)}
@@ -198,11 +219,15 @@ export default function InvestorFinance() {
                 </div>
                 {otherPositions.length > 0 && (
                   <p className="mt-3 text-[12px] text-muted-foreground">
-                    This season also carries{' '}
-                    {otherPositions
-                      .map((r) => `${moneyWithUnit(r.season_revenue, r.currency)} of revenue`)
-                      .join(' and ')}
-                    . Currencies are reported separately — no exchange rate is held in the system.
+                    {t('investor.finance.otherCurrencies', {
+                      list: otherPositions
+                        .map((r) =>
+                          t('investor.finance.ofRevenueAmount', {
+                            amount: moneyWithUnit(r.season_revenue, r.currency),
+                          }),
+                        )
+                        .join(t('investor.finance.and')),
+                    })}
                   </p>
                 )}
               </div>
@@ -210,17 +235,20 @@ export default function InvestorFinance() {
           </InvestorCard>
 
           <InvestorCard>
-            <CardHead title="Month by Month" subtitle="million UZS" />
+            <CardHead
+              title={t('investor.finance.monthByMonth')}
+              subtitle={t('investor.common.millionUzs')}
+            />
             {months.length === 0 ? (
-              <EmptyNote>No months have closed for this season yet.</EmptyNote>
+              <EmptyNote>{t('investor.finance.noMonths')}</EmptyNote>
             ) : (
               <div className="mt-4 px-5 pb-5">
                 <div className="grid grid-cols-[1fr_90px_90px_90px_70px] gap-2 border-b border-border pb-2">
-                  <TableHeadCell>Month</TableHeadCell>
-                  <TableHeadCell className="text-right">Revenue</TableHeadCell>
-                  <TableHeadCell className="text-right">Expenses</TableHeadCell>
-                  <TableHeadCell className="text-right">Profit</TableHeadCell>
-                  <TableHeadCell className="text-right">Margin</TableHeadCell>
+                  <TableHeadCell>{t('investor.finance.month')}</TableHeadCell>
+                  <TableHeadCell className="text-right">{t('investor.common.revenue')}</TableHeadCell>
+                  <TableHeadCell className="text-right">{t('investor.common.expenses')}</TableHeadCell>
+                  <TableHeadCell className="text-right">{t('investor.finance.profit')}</TableHeadCell>
+                  <TableHeadCell className="text-right">{t('investor.finance.marginCol')}</TableHeadCell>
                 </div>
                 {months.map((m) => (
                   <div
@@ -228,7 +256,7 @@ export default function InvestorFinance() {
                     className="grid grid-cols-[1fr_90px_90px_90px_70px] items-center gap-2 border-b border-soft-line py-2.5 last:border-b-0"
                   >
                     <div className="text-[13px] font-medium text-foreground">
-                      {monthLabel(m.month)}
+                      {monthLabel(m.month, lang)}
                     </div>
                     <Money className="text-right">{millions(Number(m.revenue), 1)}</Money>
                     <Money className="text-right">{millions(Number(m.expenses), 1)}</Money>
@@ -248,7 +276,9 @@ export default function InvestorFinance() {
           <InvestorCard className="border-transparent bg-primary p-[22px] text-primary-foreground shadow-blue">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[13px] font-semibold text-primary-foreground/75">
-                {equity != null ? `Your ${formatEquity(equity)}% Share` : 'Your Share'}
+                {equity != null
+                  ? t('investor.common.yourShareN', { pct: formatEquity(equity) })
+                  : t('investor.common.yourShare')}
               </span>
               {identity && (
                 <span className="inline-flex h-6 items-center rounded-pill bg-accent px-2.5 text-[12px] font-semibold text-accent-foreground">
@@ -257,7 +287,7 @@ export default function InvestorFinance() {
               )}
             </div>
             <p className="mt-3 text-[13px] text-primary-foreground/75">
-              Share of this season&apos;s net profit
+              {t('investor.finance.shareOfThisSeason')}
             </p>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-[34px] font-extrabold leading-none tracking-[-0.03em]">
@@ -272,26 +302,32 @@ export default function InvestorFinance() {
             )}
             <div className="mt-5 space-y-2.5 border-t border-primary-foreground/15 pt-4 text-[13px]">
               <ShareRow
-                label="Paid out so far"
+                label={t('investor.finance.paidOutSoFar')}
                 value={totalDistributed > 0 ? `${compact(totalDistributed)} UZS` : '—'}
               />
               <ShareRow
-                label={`Accruing (${quarterLabel()})`}
+                label={t('investor.common.accruing', { quarter: quarterLabel() })}
                 value={accruing ? `${compact(Number(accruing.amount_uzs))} UZS` : '—'}
               />
               <ShareRow
-                label={identity ? `Invested ${longDate(identity.invested_at)}` : 'Invested'}
+                label={
+                  identity
+                    ? t('investor.finance.investedOn', { date: longDate(identity.invested_at, lang) })
+                    : t('investor.common.invested')
+                }
                 value={usd(identity?.invested_amount_usd)}
               />
             </div>
           </InvestorCard>
 
           <InvestorCard>
-            <CardHead title="Payout History" subtitle="Quarterly distributions" />
+            <CardHead
+              title={t('investor.finance.payoutHistory')}
+              subtitle={t('investor.finance.quarterly')}
+            />
             {(payouts.data ?? []).length === 0 ? (
               <EmptyNote>
-                No distributions have been recorded yet. Each one will appear here with its date and
-                amount as soon as it is scheduled.
+                {t('investor.finance.noPayouts')}
               </EmptyNote>
             ) : (
               <>
@@ -307,16 +343,16 @@ export default function InvestorFinance() {
                         </div>
                         <div className="mt-0.5 text-[11px] text-muted-foreground">
                           {p.paid_at
-                            ? `Paid ${longDate(p.paid_at)}`
+                            ? t('investor.finance.paidOn', { date: longDate(p.paid_at, lang) })
                             : p.due_date
-                              ? `Due ${longDate(p.due_date)}`
-                              : 'Date not set'}
+                              ? t('investor.finance.dueOn', { date: longDate(p.due_date, lang) })
+                              : t('investor.finance.dateNotSet')}
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-3">
                         <Money>{compact(Number(p.amount_uzs))}</Money>
                         <StatusPill tone={PAYOUT_TONE[p.status] ?? 'neutral'}>
-                          {humanizeLineItem(p.status)}
+                          {payoutStatusLabel(t, p.status)}
                         </StatusPill>
                       </div>
                     </div>
@@ -324,7 +360,7 @@ export default function InvestorFinance() {
                 </div>
                 <div className="m-5 mt-4 flex items-center justify-between rounded-md bg-muted px-4 py-3">
                   <span className="text-[13px] font-semibold text-foreground">
-                    Total distributed
+                    {t('investor.finance.totalDistributed')}
                   </span>
                   <Money className="text-[14px] font-bold">
                     {compact(totalDistributed)} UZS
@@ -338,16 +374,21 @@ export default function InvestorFinance() {
             <div className="flex gap-3">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-info" />
               <p className="text-[12px] leading-relaxed text-muted-foreground">
-                Figures are closed monthly by{' '}
-                {financeLead
-                  ? `${financeLead.full_name}, ${humanizeLineItem(financeLead.role)},`
-                  : 'the finance team'}{' '}
-                and locked after review. Anything unclear —{' '}
+                {t('investor.finance.closedNote', {
+                  who: financeLead
+                    ? t('investor.finance.closedBy', {
+                        name: financeLead.full_name,
+                        role: staffRoleLabel(t, financeLead.role),
+                      })
+                    : t('investor.finance.financeTeam'),
+                })}{' '}
                 <Link
                   to="/crm/investor/messages"
                   className="font-semibold text-primary hover:underline"
                 >
-                  {financeLead ? `message ${financeLead.full_name.split(' ')[0]} directly` : 'message the team directly'}
+                  {financeLead
+                    ? t('investor.finance.messageName', { name: financeLead.full_name.split(' ')[0] })
+                    : t('investor.finance.messageTeam')}
                 </Link>
                 .
               </p>
@@ -413,22 +454,23 @@ function PnlSection({
   totalPct: number | null;
   emptyNote?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-5 last:mb-0">
       <div className="grid grid-cols-[1fr_100px_74px] gap-2 border-b border-border pb-2">
         <TableHeadCell>{heading}</TableHeadCell>
-        <TableHeadCell className="text-right">Amount</TableHeadCell>
-        <TableHeadCell className="text-right">% Rev</TableHeadCell>
+        <TableHeadCell className="text-right">{t('investor.finance.amount')}</TableHeadCell>
+        <TableHeadCell className="text-right">{t('investor.finance.pctRev')}</TableHeadCell>
       </div>
       {rows.length === 0 ? (
-        <p className="py-4 text-[13px] text-muted-foreground">{emptyNote ?? 'Nothing recorded.'}</p>
+        <p className="py-4 text-[13px] text-muted-foreground">{emptyNote ?? t('investor.finance.nothingRecorded')}</p>
       ) : (
         rows.map((l) => (
           <div
             key={`${l.side}-${l.line_item}`}
             className="grid grid-cols-[1fr_100px_74px] items-center gap-2 border-b border-soft-line py-2.5"
           >
-            <div className="text-[13px] text-foreground">{humanizeLineItem(l.line_item)}</div>
+            <div className="text-[13px] text-foreground">{lineItemLabel(t, l.line_item)}</div>
             <Money className="text-right">{millions(Number(l.amount), 1)}</Money>
             <Money className="text-right text-muted-foreground">
               {l.pct_of_revenue != null ? percent(Number(l.pct_of_revenue)) : '—'}

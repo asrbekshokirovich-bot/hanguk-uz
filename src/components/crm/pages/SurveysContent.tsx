@@ -109,6 +109,17 @@ export default function SurveysContent() {
   // Call operators only read surveys and results; the database refuses them
   // every write, so the write buttons are not shown to them.
   const { isDocumentHandler: canManage } = useUserRole();
+  // Sending a survey notification is wider than managing surveys: staff named
+  // in survey_send_access (Omina) may send, not create or delete. The database
+  // decides (can_send_surveys, migration 20261026160000_survey_send_access.sql).
+  const [canSendListed, setCanSendListed] = useState(false);
+  useEffect(() => {
+    (supabase as unknown as { rpc: (fn: string) => Promise<{ data: unknown }> })
+      .rpc('can_send_surveys')
+      .then(({ data }) => setCanSendListed(data === true))
+      .catch(() => setCanSendListed(false));
+  }, []);
+  const canSend = canManage || canSendListed;
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -638,7 +649,7 @@ export default function SurveysContent() {
                       >
                         <Link2 className="h-4 w-4" />
                       </Button>
-                      {canManage && (
+                      {canSend && (
                         <Button
                           variant="ghost"
                           size="sm"

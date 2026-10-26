@@ -16,6 +16,8 @@ type StudentProfile = Tables<'profiles'> & {
   initialPaymentOverdue?: boolean;
   /** Part-paid balances per currency: "5000$ dan 1000$ to'langan, 4000$ qoldi". */
   paymentBalances?: CurrencyBalance[];
+  /** Contract cancelled in the active season (student_intakes.contract_cancelled_at). */
+  contractCancelled?: boolean;
   /**
    * This season is a free re-application, so nothing is owed for it.
    *
@@ -56,7 +58,7 @@ export function useCRMData() {
       // where a role that can't read `documents` (e.g. call_operator) saw fewer.
       const { data: memberships, error: membershipError } = await supabase
         .from('student_intakes')
-        .select('student_id, is_free_reapplication, docs_ready')
+        .select('student_id, is_free_reapplication, docs_ready, contract_cancelled_at')
         .eq('intake_id', activeIntakeId);
 
       if (membershipError) {
@@ -71,6 +73,11 @@ export function useCRMData() {
       // rather than on the profile.
       const freeReapplicationIds = new Set(
         (memberships ?? []).filter((m) => m.is_free_reapplication).map((m) => m.student_id),
+      );
+      // Contract cancelled this season (migration 20261026150000): still listed,
+      // with a red badge, but nothing is owed and nothing can be late.
+      const cancelledIds = new Set(
+        (memberships ?? []).filter((m) => m.contract_cancelled_at).map((m) => m.student_id),
       );
       const docsReadyIds = new Set(
         (memberships ?? []).filter((m) => m.docs_ready).map((m) => m.student_id),
@@ -199,7 +206,7 @@ export function useCRMData() {
             paymentMode: profile.payment_mode,
             payments: paymentsByStudent.get(uid) || [],
             // Nothing is owed for a free re-application, so nothing can be late.
-            exempt: freeReapplicationIds.has(uid),
+            exempt: freeReapplicationIds.has(uid) || cancelledIds.has(uid),
           }),
         );
       }
@@ -211,7 +218,10 @@ export function useCRMData() {
         documents: docsByStudent.get(profile.user_id) || [],
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
-        paymentBalances: partialBalances(paymentsByStudent.get(profile.user_id) || []),
+        paymentBalances: cancelledIds.has(profile.user_id)
+          ? []
+          : partialBalances(paymentsByStudent.get(profile.user_id) || []),
+        contractCancelled: cancelledIds.has(profile.user_id),
         freeReapplication: freeReapplicationIds.has(profile.user_id),
         // Nothing is owed on a free plan or a free re-application, so those
         // count as paid.
