@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../seoul_night_tokens.dart';
 import '../seoul_night_typography.dart';
 
@@ -103,7 +104,7 @@ class _HardButtonState extends State<HardButton> {
         onTapDown: _enabled ? (_) => setState(() => _down = true) : null,
         onTapCancel: () => setState(() => _down = false),
         onTapUp: (_) => setState(() => _down = false),
-        onTap: _enabled ? widget.onPressed : null,
+        onTap: tracked('hard_shadow.hard_button', _enabled ? widget.onPressed : null),
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
           curve: Curves.easeOut,

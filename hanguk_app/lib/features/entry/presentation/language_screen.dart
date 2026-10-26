@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../data/entry_store.dart';
@@ -171,7 +172,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
                                 child: HardButton(
                                   label: _continue[_selected ?? 'uz']!,
                                   loading: _saving,
-                                  onPressed: _confirm,
+                                  onPressed: tracked('language.confirm', _confirm),
                                   trailing: const Icon(
                                     Icons.arrow_forward_rounded,
                                     size: 20,

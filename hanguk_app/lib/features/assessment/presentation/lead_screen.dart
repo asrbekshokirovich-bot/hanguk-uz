@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -106,7 +107,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                       glyph: LucideIcons.chevronLeft,
                       size: 38,
                       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                      onTap: () => context.pop(),
+                      onTap: tracked('lead.back', () => context.pop()),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -161,7 +162,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                 ),
               ),
               FdBottomBar(
-                child: HardButton(label: l.fdReportSend, loading: _sending, onPressed: _submit),
+                child: HardButton(label: l.fdReportSend, loading: _sending, onPressed: tracked('lead.report_send', _submit)),
               ),
             ],
           ),

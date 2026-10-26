@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../l10n/app_localizations.dart';
@@ -73,8 +74,8 @@ class CompareScreen extends ConsumerWidget {
                                   university: unis[i],
                                   deadline: windows[unis[i].primary.id],
                                   percent: touched ? admissionPercent(input, unis[i].primary, rules: rules) : null,
-                                  onOpen: () => context.push(universityPath(unis[i].institutionId)),
-                                  onAdmission: () => openAssessmentFor(context, ref, ids),
+                                  onOpen: tracked('compare.column_open', () => context.push(universityPath(unis[i].institutionId)), props: {'institution_id': unis[i].institutionId}),
+                                  onAdmission: tracked('compare.column_admission', () => openAssessmentFor(context, ref, ids)),
                                 ),
                               ),
                             ],
@@ -84,7 +85,7 @@ class CompareScreen extends ConsumerWidget {
                     ),
                   ),
                   if (unis.isNotEmpty)
-                    FdBottomBar(child: HardButton(label: l.fdUniCta, onPressed: () => openAssessmentFor(context, ref, ids))),
+                    FdBottomBar(child: HardButton(label: l.fdUniCta, onPressed: tracked('compare.uni_cta', () => openAssessmentFor(context, ref, ids)))),
                 ],
               ),
             ],
@@ -136,7 +137,7 @@ class _Column extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onOpen,
+        onTap: tracked('compare.column_open', onOpen),
         behavior: HitTestBehavior.opaque,
         child: Container(
           clipBehavior: Clip.antiAlias,
@@ -210,7 +211,7 @@ class _Column extends StatelessWidget {
                         child: Semantics(
                           button: true,
                           child: GestureDetector(
-                            onTap: onAdmission,
+                            onTap: tracked('compare.column_admission', onAdmission),
                             behavior: HitTestBehavior.opaque,
                             child: CustomPaint(
                               painter: const DashedPillPainter(color: FdColors.navy),

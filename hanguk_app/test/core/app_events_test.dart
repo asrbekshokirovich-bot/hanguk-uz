@@ -102,9 +102,45 @@ void main() {
     expect(named('tap').length, 3);
   });
 
-  test('a disabled button stays disabled', () {
+  test('a disabled button stays disabled; an enabled one stays non-null', () {
     expect(tracked('x', null), isNull);
     expect(trackedValue<int>('x', null), isNull);
+    final VoidCallback required = tracked('x', () {});
+    expect(required, isNotNull);
+  });
+
+  testWidgets('a wrapped callback calling another names one tap: the outer name', (t) async {
+    void inner() {}
+    final VoidCallback leaf = tracked('fd_kit.hard_button', tracked('lead.report_send', inner));
+    await t.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => AnalyticsRoot(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: GestureDetector(onTap: leaf, child: const SizedBox(width: 80, height: 80, child: Text('send'))),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.text('send'));
+    await t.pump();
+    final taps = named('tap').toList();
+    expect(taps, hasLength(1));
+    expect(taps.single.element, 'lead.report_send');
+    expect(taps.single.props?['x'], isA<double>());
+  });
+
+  test('a tracked callback run without a finger (keyboard, screen reader) is one tap without a position', () async {
+    tracked<VoidCallback>('lead.report_send', () {}, props: {'institution_id': 'u1'})();
+    await Future<void>.delayed(Duration.zero);
+    final tap = named('tap').single;
+    expect(tap.element, 'lead.report_send');
+    expect(tap.props, {'institution_id': 'u1'});
+  });
+
+  test('props are kept as JSON can carry them', () {
+    AppEvents.track('tap', props: {'value': AxisDirection.up, 'n': 3, 'ok': true, 'gone': null, 'obj': const Duration(seconds: 1)});
+    expect(seen.single.props, {'value': 'up', 'n': 3, 'ok': true, 'obj': '0:00:01.000000'});
   });
 
   test('backend calls are named without ids or queries', () {

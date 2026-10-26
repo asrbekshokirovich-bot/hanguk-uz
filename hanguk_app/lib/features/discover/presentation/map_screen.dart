@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -152,7 +153,7 @@ class _KoreaMapScreenState extends ConsumerState<KoreaMapScreen> {
                             top: p.y / 100 * h,
                             child: FractionalTranslation(
                               translation: const Offset(-.5, -1),
-                              child: _Pin(pin: p, selected: p == selected, onTap: () => _select(p.label)),
+                              child: _Pin(pin: p, selected: p == selected, onTap: tracked('map.pin', () => _select(p.label))),
                             ),
                           ),
                       ],
@@ -175,9 +176,9 @@ class _KoreaMapScreenState extends ConsumerState<KoreaMapScreen> {
                   top: 10,
                   child: Column(
                     children: [
-                      _ZoomButton(glyph: LucideIcons.plus, label: l.fdMapZoomIn, onTap: () => _zoom(1.5)),
+                      _ZoomButton(glyph: LucideIcons.plus, label: l.fdMapZoomIn, onTap: tracked('map.zoom_in', () => _zoom(1.5))),
                       const SizedBox(height: 6),
-                      _ZoomButton(glyph: LucideIcons.minus, label: l.fdMapZoomOut, onTap: () => _zoom(1 / 1.5)),
+                      _ZoomButton(glyph: LucideIcons.minus, label: l.fdMapZoomOut, onTap: tracked('map.zoom_out', () => _zoom(1 / 1.5))),
                     ],
                   ),
                 ),
@@ -237,7 +238,7 @@ class _KoreaMapScreenState extends ConsumerState<KoreaMapScreen> {
                 Semantics(
                   button: true,
                   child: GestureDetector(
-                    onTap: () => context.push(kDiscoverFilterPath),
+                    onTap: tracked('map.to_discover_filter', () => context.push(kDiscoverFilterPath)),
                     behavior: HitTestBehavior.opaque,
                     child: Container(
                       height: 34,
@@ -313,7 +314,7 @@ class _Pin extends StatelessWidget {
       label: l.fdMapPin(pin.label, pin.count),
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('map.pin', onTap),
         behavior: HitTestBehavior.opaque,
         child: Padding(
           padding: const EdgeInsets.all(6),
@@ -375,7 +376,7 @@ class _ZoomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      HardIconButton(glyph: glyph, semanticLabel: label, size: 34, radius: 10, iconSize: 16, onTap: onTap);
+      HardIconButton(glyph: glyph, semanticLabel: label, size: 34, radius: 10, iconSize: 16, onTap: tracked('map.zoom_button', onTap));
 }
 
 /// The selected university: photo, name, "city · fee · TOPIK", and the lime
@@ -396,7 +397,7 @@ class _MapCard extends StatelessWidget {
         button: true,
         label: university.displayName,
         child: GestureDetector(
-          onTap: () => context.push(universityPath(university.institutionId)),
+          onTap: tracked('map.open360', () => context.push(universityPath(university.institutionId)), props: {'institution_id': university.institutionId}),
           behavior: HitTestBehavior.opaque,
           child: Container(
             padding: const EdgeInsets.all(10),
@@ -438,7 +439,7 @@ class _MapCard extends StatelessWidget {
                       label: l.fdMapOpen360,
                       excludeSemantics: true,
                       child: GestureDetector(
-                        onTap: () => context.push('/walkaround/${university.institutionId}'),
+                        onTap: tracked('map.rotate3d', () => context.push('/walkaround/${university.institutionId}'), props: {'institution_id': university.institutionId}),
                         behavior: HitTestBehavior.opaque,
                         child: Container(
                           height: 36,

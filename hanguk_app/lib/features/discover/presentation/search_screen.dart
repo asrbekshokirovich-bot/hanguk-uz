@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -89,7 +90,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       radius: 14,
                       iconSize: 18,
                       shadow: 3,
-                      onTap: () => context.pop(),
+                      onTap: tracked('search.back', () => context.pop()),
                     ),
                     const SizedBox(width: 8),
                     Expanded(child: _Field(controller: _text, focus: _focus, hint: l.fdSearchHint, onChanged: _set, onSubmit: (q) {
@@ -116,7 +117,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             Wrap(
                               spacing: 6,
                               runSpacing: 6,
-                              children: [for (final r in recent) _RecentChip(label: r, onTap: () => _set(r))],
+                              children: [for (final r in recent) _RecentChip(label: r, onTap: tracked('search.recent_chip', () => _set(r)))],
                             ),
                           ],
                         ),
@@ -147,7 +148,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           child: Text(l.catalogEmptyTitle, textAlign: TextAlign.center, style: SeoulType.bodySecondary),
                         ),
                       for (final r in rows)
-                        SearchResultRow(row: r, reason: catalogSearchReason(l, r), onTap: () => _open(r.university.institutionId)),
+                        SearchResultRow(row: r, reason: catalogSearchReason(l, r), onTap: tracked('search.result_row', () => _open(r.university.institutionId), props: {'institution_id': r.university.institutionId})),
                     ],
                     if (cities.isNotEmpty)
                       Padding(
@@ -166,7 +167,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                         ? _CityTile(
                                             name: cities[i].name,
                                             count: l.fdCountTa(cities[i].count),
-                                            onTap: () => _set(cities[i].name),
+                                            onTap: tracked('search.city_tile', () => _set(cities[i].name)),
                                           )
                                         : const SizedBox.shrink(),
                                   ),
@@ -247,10 +248,10 @@ class _Field extends StatelessWidget {
                     label: MaterialLocalizations.of(context).deleteButtonTooltip,
                     excludeSemantics: true,
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: tracked('search.clear', () {
                         controller.clear();
                         onChanged('');
-                      },
+                      }),
                       child: Container(
                         width: 20,
                         height: 20,
@@ -278,7 +279,7 @@ class _RecentChip extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('search.recent_chip', onTap),
         child: Container(
           height: 30,
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -327,7 +328,7 @@ class SearchResultRow extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('search.result_row', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -414,7 +415,7 @@ class _CityTile extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('search.city_tile', onTap),
         child: Container(
           height: 44,
           decoration: BoxDecoration(

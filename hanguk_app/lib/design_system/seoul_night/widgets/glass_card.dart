@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../seoul_night_tokens.dart';
 
 /// A frosted surface: translucent fill, hairline border, soft shadow and a
@@ -88,7 +89,7 @@ class _GlassCardState extends State<GlassCard> {
     if (widget.onTap == null) return card;
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: tracked('glass_card.glass_card', widget.onTap),
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),

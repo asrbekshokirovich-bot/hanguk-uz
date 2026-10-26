@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -22,7 +23,7 @@ Widget assessPills<T>(List<(T, String)> options, T value, ValueChanged<T> onPick
           radius: 999,
           fontSize: 13,
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          onTap: () => onPick(v),
+          onTap: tracked('assess.pill', () => onPick(v), props: {'value': v}),
         ),
       ),
   ],
@@ -123,7 +124,7 @@ class AssessSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         GestureDetector(
-          onTap: onToggle,
+          onTap: tracked('assess_parts.assess_section_toggle', onToggle),
           behavior: HitTestBehavior.opaque,
           child: Row(
             children: [

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 
+import '../../core/analytics/tracked.dart';
 import '../../design_system/seoul_night/seoul_night.dart';
 import '../analytics/app_events.dart';
 import '../../l10n/app_localizations.dart';
@@ -311,7 +312,7 @@ class _RouteMissingShell extends StatelessWidget {
               SeoulOutlineButton(
                 label: l.a11yTooltipBack,
                 expand: false,
-                onPressed: () {
+                onPressed: tracked('app_router.back', () {
                   if (nav.canPop()) {
                     nav.pop();
                   } else {
@@ -320,7 +321,7 @@ class _RouteMissingShell extends StatelessWidget {
                     // visitor.
                     context.go('/');
                   }
-                },
+                }),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../seoul_night_tokens.dart';
 import '../seoul_night_typography.dart';
 import 'hard_shadow.dart';
@@ -195,7 +196,7 @@ class HardIconButton extends StatelessWidget {
       label: semanticLabel,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('fd_kit.hard_icon_button', onTap),
         behavior: HitTestBehavior.opaque,
         child: SizedBox.square(
           dimension: size,
@@ -255,7 +256,7 @@ class HardChoice extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('fd_kit.hard_choice', onTap),
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
@@ -351,7 +352,7 @@ class FdPrimaryButton extends StatelessWidget {
   final bool loading;
 
   @override
-  Widget build(BuildContext context) => HardButton(label: label, onPressed: onPressed, loading: loading);
+  Widget build(BuildContext context) => HardButton(label: label, onPressed: tracked('fd_kit.fd_primary_button', onPressed), loading: loading);
 }
 
 /// A 1.5px dashed pill outline (`border: 1.5px dashed`).
@@ -413,7 +414,7 @@ class FdSegments extends StatelessWidget {
                 label: labels[i],
                 excludeSemantics: true,
                 child: GestureDetector(
-                  onTap: () => onSelect(i),
+                  onTap: tracked('fd_kit.fd_segments_select', () => onSelect(i), props: {'value': i}),
                   behavior: HitTestBehavior.opaque,
                   child: AnimatedContainer(
                     duration: SeoulMotion.fast,

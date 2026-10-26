@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../core/config/contact_links.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -163,7 +164,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
                 HardIconButton(
                   glyph: LucideIcons.chevronLeft,
                   semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: _back,
+                  onTap: tracked('client_code.back', _back),
                 ),
                 const SizedBox(width: 10),
               ],
@@ -178,7 +179,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          _Banner(onTelegram: _telegram),
+          _Banner(onTelegram: tracked('client_code.banner_telegram', _telegram)),
           const SizedBox(height: 18),
           Text(l.fdCodeSms(l.fdCodeEight), style: fdText(12, FontWeight.w500, FdColors.pageMuted, height: 1.4)),
           const SizedBox(height: 12),
@@ -196,7 +197,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
           ),
           if (remembered != null) ...[
             const SizedBox(height: 14),
-            _SmsCard(code: remembered, onPaste: _paste),
+            _SmsCard(code: remembered, onPaste: tracked('client_code.sms_card_paste', _paste)),
             const SizedBox(height: 12),
             _Keypad(code: remembered, onKey: _key),
           ],
@@ -216,7 +217,7 @@ class _ClientCodeScreenState extends ConsumerState<ClientCodeScreen> {
               label: l.welcomeExploreCta,
               selected: false,
               height: 44,
-              onTap: () => context.go(kDiscoverPath),
+              onTap: tracked('client_code.welcome_explore_cta', () => context.go(kDiscoverPath)),
             ),
           ],
         ],
@@ -294,7 +295,7 @@ class _Banner extends StatelessWidget {
           const SizedBox(height: 12),
           HardButton(
             label: l.fdCodeTelegram,
-            onPressed: onTelegram,
+            onPressed: tracked('client_code.banner_telegram', onTelegram),
             leading: const Lucide(LucideIcons.send, size: 16, color: FdColors.onLime),
           ),
         ],
@@ -317,7 +318,7 @@ class _SmsCard extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onPaste,
+        onTap: tracked('client_code.sms_card_paste', onPaste),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
@@ -397,7 +398,7 @@ class _Keypad extends StatelessWidget {
               for (var i = 0; i < 3; i++) ...[
                 if (i > 0) const SizedBox(width: 8),
                 Expanded(
-                  child: i < row.length ? _Key(char: row[i], onTap: () => onKey(row[i])) : const SizedBox(height: 44),
+                  child: i < row.length ? _Key(char: row[i], onTap: tracked('client_code.keypad_key', () => onKey(row[i]), props: {'value': row[i]})) : const SizedBox(height: 44),
                 ),
               ],
             ],
@@ -420,7 +421,7 @@ class _Key extends StatelessWidget {
     label: char ?? MaterialLocalizations.of(context).deleteButtonTooltip,
     excludeSemantics: true,
     child: GestureDetector(
-      onTap: onTap,
+      onTap: tracked('client_code.key', onTap),
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 44,

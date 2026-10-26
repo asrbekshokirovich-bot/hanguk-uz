@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -151,7 +152,7 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                   label: l.fltTitle,
                   excludeSemantics: true,
                   child: GestureDetector(
-                    onTap: () => context.push(kDiscoverFilterPath),
+                    onTap: tracked('universities.to_discover_filter', () => context.push(kDiscoverFilterPath)),
                     behavior: HitTestBehavior.opaque,
                     child: Container(
                       width: 46,
@@ -200,8 +201,8 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                         university: u,
                         guideline: guidelineFor(u, f) ?? u.primary,
                         picked: slots.contains(u.institutionId),
-                        onTap: () => context.push(universityPath(u.institutionId)),
-                        onPick: () => pick(u),
+                        onTap: tracked('universities.card', () => context.push(universityPath(u.institutionId)), props: {'institution_id': u.institutionId}),
+                        onPick: tracked('universities.card_pick', () => pick(u), props: {'institution_id': u.institutionId}),
                       );
                     },
                   ),
@@ -254,7 +255,7 @@ class _Card extends StatelessWidget {
       button: true,
       label: university.displayName,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('universities.card', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.all(7),
@@ -328,7 +329,7 @@ class _Card extends StatelessWidget {
                           label: l.fdUniAddPick(0),
                           excludeSemantics: true,
                           child: GestureDetector(
-                            onTap: onPick,
+                            onTap: tracked('universities.card_pick', onPick),
                             behavior: HitTestBehavior.opaque,
                             child: Container(
                               width: 30,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -74,13 +75,13 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     HardIconButton(
                       glyph: LucideIcons.chevronLeft,
                       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                      onTap: () => context.pop(),
+                      onTap: tracked('report.back', () => context.pop()),
                     ),
                     const Spacer(),
                     HardIconButton(
                       glyph: LucideIcons.share2,
                       semanticLabel: l.fdShare,
-                      onTap: () => Share.share(_shareText(l, outcome)),
+                      onTap: tracked('report.share', () => Share.share(_shareText(l, outcome))),
                     ),
                   ],
                 ),
@@ -119,7 +120,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 child: HardButton(
                   label: l.fdReportCta,
                   shadow: _kBlueShadow,
-                  onPressed: () => context.push(kAssessmentLeadPath),
+                  onPressed: tracked('report.cta', () => context.push(kAssessmentLeadPath)),
                 ),
               ),
             ],

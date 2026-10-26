@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -76,7 +77,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
                       HardIconButton(
                         glyph: LucideIcons.x,
                         semanticLabel: MaterialLocalizations.of(context).closeButtonTooltip,
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: tracked('qr_scan.back', () => Navigator.of(context).pop()),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
