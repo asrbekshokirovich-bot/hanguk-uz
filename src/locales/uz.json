@@ -2468,7 +2468,8 @@
       "people": "Odamlar",
       "marketing": "Marketing",
       "live": "Jonli",
-      "flow": "Oqim"
+      "flow": "Oqim",
+      "clients": "Mijozlar faolligi"
     },
     "quality": {
       "refreshed": "Sessiyalar va kunlik yig'indi yangilangan: {{time}}",
@@ -2922,5 +2923,28 @@
     "step": "{{n}}-qadam",
     "removeStep": "{{n}}-qadamni olib tashlash",
     "addStep": "+ Qadam qo'shish"
+  },
+  "clients": {
+    "offers": "Javobsiz universitet takliflari",
+    "documents": "Yuklanmagan hujjatlar",
+    "inactive": "7 kundan beri ilovaga kirmaganlar",
+    "student": "Talaba",
+    "university": "Universitet",
+    "waiting": "Kutmoqda",
+    "reminder": "Eslatma (push)",
+    "lastInApp": "Ilovada oxirgi",
+    "contract": "Shartnoma",
+    "gaps": "Yetishmaydi",
+    "lastUpload": "Oxirgi yuklash",
+    "rejected": "rad etilgan",
+    "never": "hech qachon",
+    "hours_one": "{{count}} soat",
+    "hours_other": "{{count}} soat",
+    "days_one": "{{count}} kun",
+    "days_other": "{{count}} kun",
+    "offersNote": "48 soatdan oshgani qizil: hujjatlar xodimiga vazifa tushadi, talabaga eslatma push o'zi ketadi (har taklifga bir marta).",
+    "noOffers": "Javob kutayotgan taklif yo'q",
+    "noDocuments": "Hammasining hujjatlari to'liq",
+    "noInactive": "Hamma 7 kun ichida ilovaga kirgan"
   }
 }

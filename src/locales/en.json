@@ -2404,7 +2404,8 @@
       "people": "People",
       "marketing": "Marketing",
       "live": "Live",
-      "flow": "Flow"
+      "flow": "Flow",
+      "clients": "Clients' activity"
     },
     "quality": {
       "refreshed": "Sessions and daily totals refreshed: {{time}}",
@@ -2858,5 +2859,28 @@
     "step": "Step {{n}}",
     "removeStep": "Remove step {{n}}",
     "addStep": "+ Add a step"
+  },
+  "clients": {
+    "offers": "Unanswered university offers",
+    "documents": "Documents not uploaded",
+    "inactive": "Not in the app for 7 days",
+    "student": "Student",
+    "university": "University",
+    "waiting": "Waiting",
+    "reminder": "Reminder (push)",
+    "lastInApp": "Last in the app",
+    "contract": "Contract",
+    "gaps": "Missing",
+    "lastUpload": "Last upload",
+    "rejected": "rejected",
+    "never": "never",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "offersNote": "Over 48 hours is red: the documents team gets a task and the student a reminder push by itself (once per offer).",
+    "noOffers": "No offer is waiting for an answer",
+    "noDocuments": "Everyone's documents are complete",
+    "noInactive": "Everyone opened the app in the last 7 days"
   }
 }
