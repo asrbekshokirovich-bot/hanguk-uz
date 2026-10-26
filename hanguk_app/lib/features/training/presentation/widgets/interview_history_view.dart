@@ -199,7 +199,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
                 child: InterviewAnalyticsView(
                 overrideSessionId: session['id'],
                 overrideVapiCallId: session['vapi_call_id'] as String?,
-                onBackPressed: () => Navigator.pop(context),
+                onBackPressed: tracked('interview_history.analytics_back', () => Navigator.pop(context)),
                 ),
               ),
             ),
@@ -214,12 +214,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
             ),
           );
         }
-      })Note,
-              ),
-            ),
-          );
-        }
-      },
+      }),
       child: Row(
         children: [
           Container(
