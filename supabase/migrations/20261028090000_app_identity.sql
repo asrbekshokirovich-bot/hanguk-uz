@@ -2,12 +2,15 @@
 -- says they found us (decisions S3, B2, B4 of 2026-10-22).
 --
 -- * lead_how_heard (+ lead_how_heard_aliases, fn_how_heard_key): «Bizni
---   qayerdan topdingiz?» — the CRM's own options (src/components/crm/leads/
---   intake/options.ts) as a dictionary with stable keys, and the spellings
---   older forms left in leads.how_heard mapped onto them. The analytics count
---   channels by the person's own answer only (S3); a guest who never answered
---   stays "unknown".
--- * leads.for_whom: «Kim uchun?» — self, child, relative, friend, other.
+--   qayerdan topdingiz?» — the eight answers of the marketing plan's form
+--   (2026-10-22: Instagram · Telegram · Do'st yoki qarindosh tavsiyasi ·
+--   Koreyada o'qiyotgan tanish · O'quv markazi · Tadbir · Play Market yoki
+--   App Store · Boshqa) with stable keys, and what the CRM's intake form
+--   (src/components/crm/leads/intake/options.ts) and older forms left in
+--   leads.how_heard mapped onto them. The analytics count channels by the
+--   person's own answer only (S3) and show these eight rows plus "unknown"; a
+--   guest who never answered stays "unknown".
+-- * leads.for_whom: «Kim uchun?» — self, child, relative (the plan's S4).
 -- * app_identity: each time a device is tied to a person, and how — the lead
 --   form, an operator's link (opened with the app installed, installed from
 --   Google Play with it, or opened on the web), the code in a Telegram
@@ -36,18 +39,17 @@ create table if not exists public.lead_how_heard (
 );
 
 comment on table public.lead_how_heard is
-  '«Bizni qayerdan topdingiz?» options: label_uz is what leads.how_heard stores (the CRM''s wording).';
+  '«Bizni qayerdan topdingiz?» answers: label_uz is what the app''s form stores in leads.how_heard; lead_how_heard_aliases maps the CRM''s own wording.';
 
 insert into public.lead_how_heard (key, label_uz, sort, in_app) values
-  ('ads',             'Ijtimoiy tarmoq reklamasi',   1, true),
-  ('instagram',       'Instagram sahifasi',          2, true),
-  ('telegram',        'Telegram kanali',             3, true),
-  ('friend',          'Do‘sti / tanishi tavsiyasi',  4, true),
-  ('event',           'Tadbir yoki ko‘rgazma',       5, true),
-  ('google',          'Google qidiruv',              6, true),
-  ('youtube_tiktok',  'YouTube / TikTok',            7, true),
-  ('other',           'Boshqa',                      8, true),
-  ('learning_center', 'O‘quv markaz',                9, false)
+  ('instagram',       'Instagram',                       1, true),
+  ('telegram',        'Telegram',                        2, true),
+  ('friend',          'Do''st yoki qarindosh tavsiyasi', 3, true),
+  ('korea_friend',    'Koreyada o''qiyotgan tanish',     4, true),
+  ('learning_center', 'O''quv markazi',                  5, true),
+  ('event',           'Tadbir',                          6, true),
+  ('store',           'Play Market yoki App Store',      7, true),
+  ('other',           'Boshqa',                          8, true)
 on conflict (key) do update
    set label_uz = excluded.label_uz, sort = excluded.sort, in_app = excluded.in_app;
 
@@ -56,15 +58,26 @@ create table if not exists public.lead_how_heard_aliases (
   key text not null references public.lead_how_heard (key)
 );
 
--- What older forms (the add-lead wizard, the bot) left in leads.how_heard.
+-- What the CRM's intake form and older forms (the add-lead wizard, the bot)
+-- leave in leads.how_heard. «Ijtimoiy tarmoq reklamasi» is the Instagram
+-- adverts (2026-10-26: 533 of its 542 leads came through Instagram); Google and
+-- YouTube / TikTok have no row of their own, so they count as «Boshqa».
 insert into public.lead_how_heard_aliases (raw, key) values
-  ('social_media',    'ads'),
-  ('advertisement',   'ads'),
-  ('friend_referral', 'friend'),
-  ('search_engine',   'google'),
-  ('event',           'event'),
-  ('other',           'other'),
-  ('Telegram bot',    'telegram')
+  ('Ijtimoiy tarmoq reklamasi',  'instagram'),
+  ('Instagram sahifasi',         'instagram'),
+  ('Telegram kanali',            'telegram'),
+  ('Telegram bot',               'telegram'),
+  ('Do‘sti / tanishi tavsiyasi', 'friend'),
+  ('Tadbir yoki ko‘rgazma',      'event'),
+  ('O‘quv markaz',               'learning_center'),
+  ('Google qidiruv',             'other'),
+  ('YouTube / TikTok',           'other'),
+  ('social_media',               'instagram'),
+  ('advertisement',              'instagram'),
+  ('friend_referral',            'friend'),
+  ('search_engine',              'other'),
+  ('event',                      'event'),
+  ('other',                      'other')
 on conflict (raw) do update set key = excluded.key;
 
 -- The option a how_heard value means; null when the person never answered.
@@ -93,9 +106,9 @@ create policy lead_how_heard_aliases_read on public.lead_how_heard_aliases for s
 -- 2. «Kim uchun?» ---------------------------------------------------------------------
 alter table public.leads
   add column if not exists for_whom text
-    check (for_whom is null or for_whom in ('self', 'child', 'relative', 'friend', 'other'));
+    check (for_whom is null or for_whom in ('self', 'child', 'relative'));
 
-comment on column public.leads.for_whom is '«Kim uchun?»: self, child, relative, friend, other (the person''s own answer).';
+comment on column public.leads.for_whom is '«Kim uchun?»: self, child, relative (the person''s own answer).';
 
 -- 3. Device ↔ person ----------------------------------------------------------------
 create table if not exists public.app_identity (
@@ -355,7 +368,7 @@ begin
   if v_age is not null and (v_age < 10 or v_age > 99) then v_age := null; end if;
   -- «Bizni qayerdan topdingiz?» and «Kim uchun?», when the form asked them.
   select h.label_uz into v_heard from public.lead_how_heard h where h.key = p_answers ->> 'how_heard' and h.in_app;
-  v_for := case when p_answers ->> 'for_whom' in ('self', 'child', 'relative', 'friend', 'other')
+  v_for := case when p_answers ->> 'for_whom' in ('self', 'child', 'relative')
                 then p_answers ->> 'for_whom' end;
 
   v_note := 'Ilovada imkoniyat testi: '
