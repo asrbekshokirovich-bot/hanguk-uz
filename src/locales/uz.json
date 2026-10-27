@@ -3146,7 +3146,7 @@
       "applicationsN_other": "{{n}} ta ariza",
       "allApplications": "Barcha arizalar →",
       "noSigned": "Bu mavsumda hali shartnoma imzolagan talaba yo'q.",
-      "pipelineNote": "Har bir bosqichda bu mavsumning faol shartnomasi bor talabalari sanaladi. «Hujjatlar tayyor», «Topshirildi» va «Taklif olindi» CRM'dagi ariza holatiga asoslanadi; «Viza tasdiqlandi» va «Jo'nab ketdi» — talabaning CRM profilida belgilangan sanalar.",
+      "pipelineNote": "Har bir bosqichda bu mavsumning faol shartnomasi bor talabalari sanaladi. Hisob CRM'dagi Arizalar taxtasi bilan bir xil: «Hujjatlar tayyor» — hujjat paketi 8/8 tasdiqlangan yoki «hujjat tayyor» belgisi qo'yilgan; «Topshirildi» — kamida bitta universitetga onlayn yoki oflayn topshirilgan; «Taklif olindi» — universitet natijasi kiritilgan; «Viza tasdiqlandi» va «Jo'nab ketdi» — talabaning CRM profilida belgilangan.",
       "watchlist": "Kuzatuv ro'yxati",
       "watchlistSubtitle": "Savol berishga arziydigan holatlar",
       "stuck_one": "{{n}} ta ariza {{days}} kundan beri to'xtab qolgan",
