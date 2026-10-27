@@ -115,6 +115,14 @@ jobs:
           # Added on 2026-10-19: `translate-document` was compared against the
           # live v73 and its code moved into _shared/certified-translation.ts
           # unchanged; `auto-translate-documents` is new and uses the same core.
+          # Added on 2026-10-27: `app-journey-summary`, `weekly-app-report`,
+          # `app-quality-alerts` and `send-guest-push` are new (the app
+          # analytics plan) and deployed from here, so the repo copy is the
+          # current one.
+          # Verified on 2026-10-27: `notify-student-stages` live version 2 was
+          # read out of production — index.ts matched this repo's copy before
+          # the offer_reminder kind (2ad3f2bb) line for line, messages.ts had
+          # the same seven kinds and texts — so the repo copy is the newer code.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -137,6 +145,11 @@ jobs:
             ai-university-search
             translate-document
             auto-translate-documents
+            notify-student-stages
+            app-journey-summary
+            weekly-app-report
+            app-quality-alerts
+            send-guest-push
           "
 
           for fn in $FUNCTIONS; do
