@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { embedContent001 } from "../_shared/gemini.ts";
 import { CLARIFY_GUIDE, QUERY_TOOL, runReadOnlyQuery, getAiSchema } from "./analytics.ts";
+import { chatCompletion, LimitReachedError, limitMessage } from "./llm.ts";
 
 // Hanguk AI — retrieval-augmented assistant.
 // Answers questions about a student from their REAL data: call summaries
@@ -15,7 +16,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 // ---- small language + entity helpers (no backslash-heavy regex) ------------
 function isUzbek(message: string): boolean {
@@ -85,9 +85,9 @@ function fmtDate(d: string | null | undefined): string {
 async function getStudentBundle(supabase: any, userId: string) {
   const [profile, apps, docs, pays, analyses, msgs, tasks] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-    supabase.from("applications").select("status, decision, notes, university:universities(name_en)").eq("student_id", userId).order("created_at", { ascending: false }),
+    supabase.from("student_university_submissions").select("online_submitted_at, offline_sent_at, interview_at, result, final_at, visa_status, institution:institutions(name_en, name_ko)").eq("student_id", userId),
     supabase.from("documents").select("name, status, notes").eq("student_id", userId).order("created_at", { ascending: false }),
-    supabase.from("payments").select("payment_type, amount, paid_amount, status, due_date").eq("student_id", userId),
+    supabase.from("payments").select("payment_type, amount, paid_amount, currency, status, due_date").eq("student_id", userId).neq("status", "refunded"),
     supabase.from("call_analyses").select("summary_uz, summary_en, intent, sentiment, action_items, follow_up_needed, created_at").eq("student_id", userId).order("created_at", { ascending: false }).limit(8),
     supabase.from("messages").select("content, direction, created_at").eq("student_id", userId).order("created_at", { ascending: false }).limit(40),
     supabase.from("tasks").select("title, status, priority, due_date").eq("student_id", userId).neq("status", "completed").limit(10),
@@ -225,12 +225,34 @@ function formatBundle(b: any, opts: { staff: boolean }): string {
       : `Language proficiency: not set on profile — check DOCUMENT CONTENTS below for a TOPIK/IELTS certificate.`,
   );
   if (b.apps.length) {
-    lines.push("Applications: " + b.apps.map((a: any) => `${a.university?.name_en || "University"} (${a.status}${a.decision ? "/" + a.decision : ""})`).join("; "));
+    // student_university_submissions — the same rows as the CRM Onlayn / Oflayn ariza pages.
+    lines.push("Universities: " + b.apps.map((a: any) => {
+      const steps = [
+        a.online_submitted_at ? `online ${fmtDate(a.online_submitted_at)}` : "not submitted online",
+        a.offline_sent_at ? `originals posted ${fmtDate(a.offline_sent_at)}` : "",
+        a.interview_at ? `interview ${fmtDate(a.interview_at)}` : "",
+        a.result ? `result: ${a.result}` : "",
+        a.final_at ? "final choice" : "",
+        a.visa_status ? `visa: ${a.visa_status}` : "",
+      ].filter(Boolean).join(", ");
+      return `${a.institution?.name_en || a.institution?.name_ko || "University"} (${steps})`;
+    }).join("; "));
+  } else {
+    lines.push("Universities: none chosen yet.");
   }
   if (opts.staff && b.pays.length) {
-    const total = b.pays.reduce((s: number, x: any) => s + Number(x.amount || 0), 0);
-    const paid = b.pays.reduce((s: number, x: any) => s + Number(x.paid_amount || 0), 0);
-    lines.push(`Payments: paid $${paid} of $${total} (remaining $${total - paid}).`);
+    // One line per currency: UZS and USD are never added together.
+    const byCur = new Map<string, { total: number; paid: number }>();
+    for (const x of b.pays) {
+      const cur = x.currency || "UZS";
+      const t = byCur.get(cur) ?? { total: 0, paid: 0 };
+      t.total += Number(x.amount || 0);
+      t.paid += Number(x.paid_amount || 0);
+      byCur.set(cur, t);
+    }
+    lines.push("Payments: " + [...byCur.entries()]
+      .map(([cur, t]) => `${t.paid} ${cur} of ${t.total} ${cur} paid, ${t.total - t.paid} ${cur} left`)
+      .join("; ") + ".");
   }
   if (b.docs.length) {
     const pending = b.docs.filter((d: any) => d.status === "uploaded").length;
@@ -420,7 +442,6 @@ ${CLARIFY_GUIDE}
 // handed only counts. The tool loop runs NON-STREAMING (the OpenAI-compat shim
 // is reliable for non-streaming tool calls; streaming+tools is the buggy combo),
 // then the final answer is streamed back in the same SSE shape the client parses.
-const GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 const AGENT_TOOLS = [
   { type: "function", function: { name: "get_stats", description: "Quick CRM counts: students, leads, documents (total/pending/approved), overdue payments, open tasks, new leads.", parameters: { type: "object", properties: {} } } },
@@ -430,6 +451,8 @@ const AGENT_TOOLS = [
   { type: "function", function: { name: "list_leads", description: "List/filter the leads pipeline.", parameters: { type: "object", properties: { query: { type: "string", description: "name or phone substring" }, status: { type: "string", description: "new | contacted | qualified | converted | lost" }, source: { type: "string", description: "manual | telegram | instagram | call | ai_detected" }, exam_type: { type: "string", description: "TOPIK | IELTS | none" }, city: { type: "string" }, interest_level: { type: "string", description: "low | medium | high" }, from_exam_date: { type: "string", description: "ISO date" }, to_exam_date: { type: "string", description: "ISO date" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
   { type: "function", function: { name: "list_students", description: "List/search students (non-staff users) by name/phone/city.", parameters: { type: "object", properties: { query: { type: "string" }, city: { type: "string" }, limit: { type: "integer" }, offset: { type: "integer" } } } } },
   { type: "function", function: { name: "search_students", description: "Fuzzy, ranked student lookup by name or pasted phone number. Use to resolve a person mentioned by name to their student_id.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
+  { type: "function", function: { name: "get_student_card", description: "EVERYTHING about one student, exactly as the CRM shows it: seasons with contract status (active / cancelled), Arizalar board stage, tariff, payments per currency ('X to'langan, Z qoldi'), the 8-document application pack (which are approved / under review / missing), chosen universities with online/offline submission, interview, result, final choice and visa, open tasks, last call summaries. Call this after search_students for ANY question about a named student.", parameters: { type: "object", properties: { student_id: { type: "string", description: "the student's user_id from search_students" } }, required: ["student_id"] } } },
+  { type: "function", function: { name: "season_pipeline", description: "The CRM Arizalar board for a season: number of active students, cancelled contracts, and each stage (Yangi, Hujjat tayyor, Onlayn ariza, Oflayn ariza, Suhbat, Natija, Viza…) with the students' names. Use for 'how many students have documents ready / submitted / got results' and similar season questions. Defaults to the current season.", parameters: { type: "object", properties: { intake_id: { type: "string", description: "optional intake id; omit for the current season" } } } } },
   { type: "function", function: { name: "search_communications", description: "Hybrid (semantic + keyword) search across Telegram chats, call summaries/transcripts and documents. Use for 'what did we discuss about X' / 'who asked about X' / topical questions. Returns the most relevant snippets with the student they belong to.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" }, student_id: { type: "string", description: "optional: restrict to one student's user_id" } }, required: ["query"] } } },
 ];
 
@@ -487,6 +510,8 @@ async function callAgentTool(client: any, name: string, rawArgs: string | undefi
     case "list_leads": return rpc("ai_list_leads", { p_query: a.query ?? null, p_status: a.status ?? null, p_source: a.source ?? null, p_exam_type: a.exam_type ?? null, p_city: a.city ?? null, p_interest_level: a.interest_level ?? null, p_from_exam_date: a.from_exam_date ?? null, p_to_exam_date: a.to_exam_date ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
     case "list_students": return rpc("ai_list_students", { p_query: a.query ?? null, p_city: a.city ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
     case "search_students": return rpc("search_students", { p_query: a.query ?? "", p_limit: a.limit ?? 6 });
+    case "get_student_card": return rpc("ai_student_card", { p_student_id: a.student_id ?? null });
+    case "season_pipeline": return rpc("ai_season_pipeline", { p_intake_id: a.intake_id ?? null });
     case "search_communications": return searchCommunicationsHybrid(client, a.query ?? "", a.limit ?? 12, a.student_id ?? null);
     case "query_database": return runReadOnlyQuery(a.sql);
     default: return { error: `unknown tool: ${name}` };
@@ -506,15 +531,17 @@ statement, no semicolon):
 ${schema}
 
 Notes:
-- There is NO explicit "accepted" field. \`applications.decision\` is usually
-  empty and \`applications.status\` holds mixed values — so if asked about
-  admissions outcomes, FIRST run \`select status, count(*) from applications
-  group by 1 order by 2 desc\` to see the real values, then ASK the user (see the
-  multiple-choice rule) which status counts as accepted, then compute.
-- Join keys: applications.student_id → students.user_id; payments.student_id →
-  students.user_id; applications.institution_id → institutions.id (or use the
-  built-in university_name). Money: sum(paid_amount) = collected, sum(amount -
-  paid_amount) = outstanding.`
+- \`applications\` is LEGACY (staff stopped using it on 2026-10-15) — never use it
+  for stages, submissions or admissions.
+- Seasons and contracts: \`student_seasons\` (contract_active, board_stage =
+  new | docs_ready | online | offline | interview | result | visa_process |
+  visa_waiting | visa_received, is_demo). Always filter contract_active and
+  not is_demo unless asked about cancelled contracts.
+- Universities, submissions, results, visas: \`university_submissions\`
+  (result = accepted | rejected | null).
+- Join keys: student_id → students.user_id; institution_id → institutions.id.
+  Money: never add different currencies; group by currency.
+  sum(paid_amount) = collected, sum(amount - paid_amount) = outstanding.`
     : "";
   return `# Hanguk AI — CRM assistant for staff (agentic)
 ${langLine(language)}
@@ -528,7 +555,10 @@ You answer questions by CALLING TOOLS to fetch real CRM data, then summarising t
 - ALWAYS call a tool to get data. NEVER invent rows, names, phone numbers, counts, statuses or dates.
 - "documents pending review" = documents with status 'uploaded' → call list_documents(status:"uploaded").
 - "overdue payments" → list_payments(overdue_only:true). "open tasks" → list_tasks(status:"todo" or "in_progress").
-- To answer about a person mentioned by name, first call search_students (or list_leads with query) to resolve them, then fetch their details.
+- To answer about a person mentioned by name, first call search_students (or list_leads with query) to resolve them, then call get_student_card and answer from it.
+- Season / stage questions ("nechta talabaning hujjati tayyor", "kimlar topshirdi") → season_pipeline. Its numbers are the CRM Arizalar board numbers.
+- Write numbers, dates, names and amounts EXACTLY as the tools return them. Show money per currency, e.g. "2000 USD / 4000 USD to'langan, 2000 USD qoldi".
+- If a field is empty or missing, say it is not recorded in the CRM ("CRM'da kiritilmagan"). Never guess.
 - Present results as a clear numbered list including each person's NAME (and phone). State the total: "Showing N of M".
 - If a tool returns 0 rows (or {total:0}), say so plainly — do not fabricate. If a tool returns {error: ...}, report that you couldn't fetch it.
 - Answer ONLY from values present in tool results. Cite dates from the data. Be concise.${analytics}
@@ -577,12 +607,13 @@ async function runStaffAgent(
 
   let finalText = "";
   for (let i = 0; i < 6; i++) {
-    const resp = await fetch(GEMINI_OPENAI_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gemini-2.5-flash", messages, tools, tool_choice: "auto", stream: false }),
-    });
-    if (!resp.ok) throw new Error(`agent gateway ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+    let resp: Response;
+    try {
+      ({ response: resp } = await chatCompletion({ messages, tools, tool_choice: "auto", stream: false }));
+    } catch (e) {
+      if (e instanceof LimitReachedError) return streamTextAsSSE(limitMessage(language));
+      throw e;
+    }
     const data = await resp.json();
     const msg = data.choices?.[0]?.message;
     if (!msg) throw new Error("agent: no message in response");
@@ -591,7 +622,7 @@ async function runStaffAgent(
       messages.push(msg);
       for (const tc of msg.tool_calls) {
         const result = await callAgentTool(userClient, tc.function?.name, tc.function?.arguments);
-        messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 12000) });
+        messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 8000) });
       }
       continue;
     }
@@ -614,7 +645,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Missing required fields: message, user_id, user_type" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const language = isUzbek(message) ? "uz" : requestedLang;
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -672,17 +702,12 @@ serve(async (req) => {
       { role: "user", content: message },
     ];
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gemini-2.5-flash", messages, stream: true }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+    let response: Response;
+    try {
+      ({ response } = await chatCompletion({ messages, stream: true }));
+    } catch (e) {
+      if (e instanceof LimitReachedError) return streamTextAsSSE(limitMessage(language));
+      throw e;
     }
 
     // Pipe the SSE through, accumulating the full text to save afterwards.
