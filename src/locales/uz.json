@@ -1979,7 +1979,33 @@
     "active": "Faol",
     "pending": "Kutilmoqda",
     "unread": "O'qilmagan",
-    "total": "Jami"
+    "total": "Jami",
+    "submittedApps": "Topshirilgan arizalar",
+    "admitted": "Qabul qilindi",
+    "trendNote": "Universitetga topshirilgan arizalar, oxirgi 6 oy",
+    "byStage": "Bosqichlar bo'yicha talabalar",
+    "studentsCount": "{{count}} ta faol talaba",
+    "noOpenTasks": "Ochiq vazifalar yo'q",
+    "noStudents": "Bu mavsumda faol talaba yo'q",
+    "stage": {
+      "new": "Yangi",
+      "docs_ready": "Hujjat tayyor",
+      "online": "Onlayn ariza",
+      "offline": "Oflayn ariza",
+      "interview": "Suhbat",
+      "result": "Natija",
+      "visa_process": "Viza jarayonlari",
+      "visa_waiting": "Viza natijasini kutyapti",
+      "visa_received": "Viza oldi"
+    },
+    "activity": {
+      "contract": "Shartnoma imzolandi",
+      "online": "Onlayn topshirildi",
+      "offline": "Oflayn hujjatlar yuborildi",
+      "interview": "Suhbat belgilandi",
+      "accepted": "Universitetga qabul qilindi",
+      "rejected": "Universitet rad etdi"
+    }
   },
   "landing": {
     "getStarted": "Boshlash",

@@ -18,18 +18,20 @@ import {
 import {
   Users,
   GraduationCap,
-  FileText,
-  Phone,
-  MessageSquare,
   ClipboardList,
-  DollarSign,
   Trophy,
   Plus,
+  FileSignature,
+  Send,
+  CalendarClock,
+  XCircle,
   Clock,
   ChevronRight,
   CalendarRange,
 } from 'lucide-react';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { PIPELINE_LABELS, type PipelineStage } from '@/lib/applicationPipeline';
+import type { ActivityKind } from '@/lib/dashboardStats';
 import { UzbekistanRegionalMap } from '@/components/crm/UzbekistanRegionalMap';
 import { IntakeBanner } from '@/components/crm/IntakeBanner';
 import { useActiveIntake } from '@/contexts/IntakeContext';
@@ -77,39 +79,36 @@ export function CRMDashboard(_props: CRMDashboardProps) {
   const seasonLabel = season ? t(`intake.season.${season}`) : '';
   const goManage = () => navigate('/crm/intakes');
 
-  // Humanised stage labels + chart palette for the "by stage" donut.
-  const stageMeta: Record<string, { label: string; color: string }> = {
-    pending: { label: t('status.pending', { defaultValue: 'Pending' }), color: 'hsl(var(--chart-5))' },
-    submitted: { label: t('status.submitted', { defaultValue: 'Submitted' }), color: 'hsl(var(--chart-3))' },
-    in_review: { label: t('status.inReview', { defaultValue: 'In review' }), color: 'hsl(var(--chart-1))' },
-    completed: { label: t('status.completed', { defaultValue: 'Accepted' }), color: 'hsl(var(--success))' },
-    rejected: { label: t('status.rejected', { defaultValue: 'Rejected' }), color: 'hsl(var(--destructive))' },
+  // Board columns (src/lib/applicationPipeline.ts) + chart palette for the donut.
+  const STAGE_COLOR: Record<PipelineStage, string> = {
+    new: 'hsl(var(--chart-5))',
+    docs_ready: 'hsl(var(--info))',
+    online: 'hsl(var(--chart-1))',
+    offline: 'hsl(var(--accent))',
+    interview: 'hsl(var(--warning))',
+    result: 'hsl(var(--success))',
+    visa_process: 'hsl(var(--primary))',
+    visa_waiting: 'hsl(var(--chart-3))',
+    visa_received: 'hsl(var(--chart-4))',
   };
 
+  const stageLabel = (stage: PipelineStage) =>
+    t(`dashboard.stage.${stage}`, { defaultValue: PIPELINE_LABELS[stage] });
+
   const statCards = [
-    { label: t('navigation.students'), value: stats.totalStudents, icon: Users, tone: 'primary' },
-    { label: t('dashboard.activeApps', { defaultValue: 'Active applications' }), value: stats.activeApplications, icon: GraduationCap, tone: 'info' },
-    { label: t('dashboard.acceptances', { defaultValue: 'Acceptances' }), value: stats.completedApplications, icon: Trophy, tone: 'success' },
-    { label: t('dashboard.pendingTasks', { defaultValue: 'Pending tasks' }), value: stats.pendingTasks, icon: ClipboardList, tone: 'warning' },
+    { label: t('navigation.students'), value: stats.students, icon: Users, tone: 'primary' },
+    { label: t('dashboard.submittedApps'), value: stats.submittedApplications, icon: GraduationCap, tone: 'info' },
+    { label: t('dashboard.admitted'), value: stats.admittedApplications, icon: Trophy, tone: 'success' },
+    { label: t('dashboard.pendingTasks'), value: stats.openTasks, icon: ClipboardList, tone: 'warning' },
   ];
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'application':
-        return <GraduationCap className="h-4 w-4" />;
-      case 'document':
-        return <FileText className="h-4 w-4" />;
-      case 'payment':
-        return <DollarSign className="h-4 w-4" />;
-      case 'message':
-        return <MessageSquare className="h-4 w-4" />;
-      case 'call':
-        return <Phone className="h-4 w-4" />;
-      case 'task':
-        return <ClipboardList className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
+  const ACTIVITY_ICON: Record<ActivityKind, typeof Clock> = {
+    contract: FileSignature,
+    online: GraduationCap,
+    offline: Send,
+    interview: CalendarClock,
+    accepted: Trophy,
+    rejected: XCircle,
   };
 
   if (loading) {
@@ -129,17 +128,14 @@ export function CRMDashboard(_props: CRMDashboardProps) {
     );
   }
 
-  const totalStaged = stats.applicationsByStatus.reduce((sum, s) => sum + s.count, 0);
-  const months = stats.applicationsByMonth;
+  const months = stats.byMonth;
 
   const isEmptyIntake =
-    stats.totalStudents === 0 &&
-    stats.activeApplications === 0 &&
-    stats.completedApplications === 0 &&
-    stats.pendingTasks === 0 &&
+    stats.students === 0 &&
+    stats.submittedApplications === 0 &&
+    stats.openTasks === 0 &&
     stats.pendingDocuments === 0 &&
-    stats.pendingPayments === 0 &&
-    stats.applicationsByStatus.length === 0;
+    stats.pendingPayments === 0;
 
   if (isEmptyIntake) {
     return (
@@ -203,7 +199,7 @@ export function CRMDashboard(_props: CRMDashboardProps) {
         <Card className="p-5">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-foreground">{t('dashboard.applicationsTrend')}</h2>
-            <p className="text-sm text-muted-foreground">{t('dashboard.lastMonths', { defaultValue: 'Last 6 months' })}</p>
+            <p className="text-sm text-muted-foreground">{t('dashboard.trendNote')}</p>
           </div>
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -223,34 +219,40 @@ export function CRMDashboard(_props: CRMDashboardProps) {
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold text-foreground">{t('dashboard.applicationsByStatus')}</h2>
-          <p className="text-sm text-muted-foreground">
-            {totalStaged} {t('dashboard.activeApps', { defaultValue: 'Active applications' }).toLowerCase()}
-          </p>
-          {stats.applicationsByStatus.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">{t('dashboard.noData', { defaultValue: 'No data yet' })}</p>
+          <h2 className="text-lg font-semibold text-foreground">{t('dashboard.byStage')}</h2>
+          <p className="text-sm text-muted-foreground">{t('dashboard.studentsCount', { count: stats.students })}</p>
+          {stats.byStage.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">{t('dashboard.noStudents')}</p>
           ) : (
             <div className="mt-4 flex items-center gap-4">
               <div className="relative h-[150px] w-[150px] shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={stats.applicationsByStatus} dataKey="count" nameKey="status" innerRadius={52} outerRadius={72} paddingAngle={2} stroke="none">
-                      {stats.applicationsByStatus.map((entry, i) => (
-                        <Cell key={i} fill={stageMeta[entry.status]?.color || 'hsl(var(--chart-5))'} />
+                    <Pie
+                      data={stats.byStage.map((s) => ({ ...s, name: stageLabel(s.stage) }))}
+                      dataKey="count"
+                      nameKey="name"
+                      innerRadius={52}
+                      outerRadius={72}
+                      paddingAngle={2}
+                      stroke="none"
+                    >
+                      {stats.byStage.map((entry) => (
+                        <Cell key={entry.stage} fill={STAGE_COLOR[entry.stage]} />
                       ))}
                     </Pie>
                     <Tooltip contentStyle={tooltipStyle} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-extrabold text-foreground">{totalStaged}</span>
+                  <span className="text-2xl font-extrabold text-foreground">{stats.students}</span>
                 </div>
               </div>
               <div className="flex-1 space-y-2">
-                {stats.applicationsByStatus.map((entry) => (
-                  <div key={entry.status} className="flex items-center gap-2 text-sm">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: stageMeta[entry.status]?.color || 'hsl(var(--chart-5))' }} />
-                    <span className="flex-1 truncate text-muted-foreground">{stageMeta[entry.status]?.label || entry.status}</span>
+                {stats.byStage.map((entry) => (
+                  <div key={entry.stage} className="flex items-center gap-2 text-sm">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: STAGE_COLOR[entry.stage] }} />
+                    <span className="flex-1 truncate text-muted-foreground">{stageLabel(entry.stage)}</span>
                     <span className="font-semibold text-foreground">{entry.count}</span>
                   </div>
                 ))}
@@ -270,22 +272,27 @@ export function CRMDashboard(_props: CRMDashboardProps) {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          {stats.recentActivity.length === 0 ? (
+          {stats.recent.length === 0 ? (
             <p className="px-5 py-10 text-center text-sm text-muted-foreground">{t('dashboard.noRecentActivity')}</p>
           ) : (
             <div className="divide-y divide-border">
-              {stats.recentActivity.map((activity) => (
+              {stats.recent.map((activity) => {
+                const Icon = ACTIVITY_ICON[activity.kind];
+                return (
                 <div key={activity.id} className="flex items-center gap-3 px-5 py-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                    {getActivityIcon(activity.type)}
+                    <Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-foreground">{activity.title}</div>
-                    <div className="truncate text-xs text-muted-foreground">{activity.description}</div>
+                    <div className="truncate text-sm font-semibold text-foreground">{t(`dashboard.activity.${activity.kind}`)}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {activity.universityName ? `${activity.studentName} · ${activity.universityName}` : activity.studentName}
+                    </div>
                   </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">{format(new Date(activity.timestamp), 'MMM d')}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{format(new Date(activity.timestamp), 'dd.MM')}</span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
@@ -293,12 +300,12 @@ export function CRMDashboard(_props: CRMDashboardProps) {
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">{t('navigation.tasks')}</h2>
-            <Badge variant={stats.pendingTasks > 0 ? 'destructive' : 'neutral'}>
-              {stats.pendingTasks} {t('dashboard.pending')}
+            <Badge variant={stats.openTasks > 0 ? 'destructive' : 'neutral'}>
+              {stats.openTasks} {t('dashboard.pending')}
             </Badge>
           </div>
           {stats.tasksByPriority.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">{t('dashboard.noData', { defaultValue: 'No open tasks' })}</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('dashboard.noOpenTasks')}</p>
           ) : (
             <div className="space-y-1">
               {stats.tasksByPriority.map((task, i) => (

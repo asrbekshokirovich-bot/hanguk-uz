@@ -1648,7 +1648,33 @@
     "active": "진행 중",
     "pending": "대기 중",
     "unread": "안 읽음",
-    "total": "전체"
+    "total": "전체",
+    "submittedApps": "제출된 지원서",
+    "admitted": "합격",
+    "trendNote": "대학에 제출된 지원서, 최근 6개월",
+    "byStage": "단계별 학생",
+    "studentsCount": "활성 학생 {{count}}명",
+    "noOpenTasks": "진행 중인 작업 없음",
+    "noStudents": "이번 시즌 활성 학생이 없습니다",
+    "stage": {
+      "new": "신규",
+      "docs_ready": "서류 준비 완료",
+      "online": "온라인 지원",
+      "offline": "오프라인 지원",
+      "interview": "면접",
+      "result": "결과",
+      "visa_process": "비자 진행 중",
+      "visa_waiting": "비자 결과 대기",
+      "visa_received": "비자 발급"
+    },
+    "activity": {
+      "contract": "계약 체결",
+      "online": "온라인 제출",
+      "offline": "원본 서류 발송",
+      "interview": "면접 일정 확정",
+      "accepted": "대학 합격",
+      "rejected": "대학 불합격"
+    }
   },
   "landing": {
     "getStarted": "시작하기",
