@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { embedContent001 } from "../_shared/gemini.ts";
 import { CLARIFY_GUIDE, QUERY_TOOL, runReadOnlyQuery, getAiSchema } from "./analytics.ts";
-import { chatCompletion, LimitReachedError, limitMessage } from "./llm.ts";
+import { chatCompletion, LimitReachedError, limitMessage, type Provider } from "./llm.ts";
 
 // Hanguk AI — retrieval-augmented assistant.
 // Answers questions about a student from their REAL data: call summaries
@@ -556,6 +556,7 @@ You answer questions by CALLING TOOLS to fetch real CRM data, then summarising t
 - "documents pending review" = documents with status 'uploaded' → call list_documents(status:"uploaded").
 - "overdue payments" → list_payments(overdue_only:true). "open tasks" → list_tasks(status:"todo" or "in_progress").
 - To answer about a person mentioned by name, first call search_students (or list_leads with query) to resolve them, then call get_student_card and answer from it.
+- Pass the name to search_students exactly as the staff typed it. If it returns nothing, try again with each name word on its own (e.g. only the surname) before saying the student was not found.
 - Season / stage questions ("nechta talabaning hujjati tayyor", "kimlar topshirdi") → season_pipeline. Its numbers are the CRM Arizalar board numbers.
 - Write numbers, dates, names and amounts EXACTLY as the tools return them. Show money per currency, e.g. "2000 USD / 4000 USD to'langan, 2000 USD qoldi".
 - If a field is empty or missing, say it is not recorded in the CRM ("CRM'da kiritilmagan"). Never guess.
@@ -606,10 +607,11 @@ async function runStaffAgent(
   ];
 
   let finalText = "";
+  let provider: Provider = { name: "gemini", url: "", key: "", model: "" };
   for (let i = 0; i < 6; i++) {
     let resp: Response;
     try {
-      ({ response: resp } = await chatCompletion({ messages, tools, tool_choice: "auto", stream: false }));
+      ({ response: resp, provider } = await chatCompletion({ messages, tools, tool_choice: "auto", stream: false }));
     } catch (e) {
       if (e instanceof LimitReachedError) return streamTextAsSSE(limitMessage(language));
       throw e;
@@ -622,6 +624,8 @@ async function runStaffAgent(
       messages.push(msg);
       for (const tc of msg.tool_calls) {
         const result = await callAgentTool(userClient, tc.function?.name, tc.function?.arguments);
+        // Diagnostics only: tool name, argument size and result size — no student data.
+        console.log(`[hanguk-ai] ${provider.name} tool=${tc.function?.name} args=${(tc.function?.arguments ?? "").length}b result=${JSON.stringify(result ?? null).length}b`);
         messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 8000) });
       }
       continue;
