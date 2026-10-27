@@ -16,6 +16,18 @@ describe('fillSeasonMonths', () => {
     expect(out[1].revenue).toBe(57);
   });
 
+  it('starts earlier when money was paid before the season opened', () => {
+    const out = fillSeasonMonths(
+      [{ month: '2026-06-01', revenue: 5, net: 5 }, { month: '2026-09-01', revenue: 57, net: 50 }],
+      '2026-08-01',
+      '2027-01-31',
+      today,
+    );
+    expect(out.map((m) => m.month)).toEqual([
+      '2026-06-01', '2026-07-01', '2026-08-01', '2026-09-01', '2026-10-01',
+    ]);
+  });
+
   it('stops at the season end for a finished season', () => {
     const out = fillSeasonMonths([], '2025-08-01', '2026-01-31', today);
     expect(out).toHaveLength(6);

@@ -1,7 +1,7 @@
 /**
- * Every month of a season from its start up to the current month (or the
- * season end, whichever comes first), so the investor chart shows a quiet
- * month as zero instead of skipping it.
+ * Every month from the season start (or the earliest month with money, if
+ * earlier) up to the current month or the season end, whichever comes first,
+ * so the investor chart shows a quiet month as zero instead of skipping it.
  */
 export interface MonthRow {
   month: string; // YYYY-MM-DD, first of the month
@@ -23,7 +23,13 @@ export function fillSeasonMonths(
   }
   if (!startsOn) return [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month));
 
-  const start = new Date(`${startsOn.slice(0, 7)}-01T00:00:00Z`);
+  // Revenue belongs to the semester, not to its dates: money paid before the
+  // season opened still counts, so the chart starts at the earliest such month.
+  let start = new Date(`${startsOn.slice(0, 7)}-01T00:00:00Z`);
+  for (const k of byMonth.keys()) {
+    const d = new Date(`${k}-01T00:00:00Z`);
+    if (d < start) start = d;
+  }
   const todayMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
   let last = todayMonth;
   if (endsOn) {
