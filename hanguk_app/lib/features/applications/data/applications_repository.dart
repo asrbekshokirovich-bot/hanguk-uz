@@ -157,47 +157,38 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
 
   final client = Supabase.instance.client;
   try {
-    // Join with institutions table to get university name/location in one call
+    // The student's universities from the same facts the CRM's Arizalar
+    // board uses (confirmed choices, submissions, own pending requests), with
+    // `status` derived from the submission — not the legacy applications
+    // rows staff no longer update (migration 20261030220000).
     final data = await client
-        .from('applications')
-        // name_ko feeds the hangul glyph tile on the application cards
-        // (DESIGN_SPEC §3.4) — the first syllable of the Korean name.
-        .select(
-          '*, university:institutions(id, name_en, name_ko, city_ko, is_partner)',
-        )
-        .eq('student_id', user.id)
-        .order('created_at', ascending: false)
+        .rpc('my_universities')
         // Don't let a stalled/slow connection spin forever — surface an error
         // (with a Retry button) instead. Common on weak mobile networks.
         .timeout(const Duration(seconds: 20));
 
     debugPrint(
-      '[Applications] Query for student ${user.id} returned ${(data as List).length} applications',
+      '[Applications] my_universities for ${user.id} returned ${(data as List).length} rows',
     );
 
-    return (data as List).map((row) {
-      // Parse the joined university row (may be null if no join match)
-      University? university;
-      final uniRow = row['university'] as Map<String, dynamic>?;
-      if (uniRow != null) {
-        university = University(
-          id: uniRow['id'] as String,
-          // Empty / placeholder values, not display text: the card shows the
-          // localized "Unknown university" and country name for them.
-          name:
-              uniRow['name_en'] as String? ??
-              uniRow['name_ko'] as String? ??
-              '',
-          location: uniRow['city_ko'] as String? ?? University.unknownCity,
-          nameKo: uniRow['name_ko'] as String?,
-          nameEn: uniRow['name_en'] as String?,
-          isPartner: uniRow['is_partner'] as bool? ?? false,
-        );
-      }
+    return (data as List).map((raw) {
+      final row = raw as Map<String, dynamic>;
+      // name_ko feeds the hangul glyph tile on the application cards
+      // (DESIGN_SPEC §3.4) — the first syllable of the Korean name.
+      final university = University(
+        id: row['institution_id'] as String,
+        // Empty / placeholder values, not display text: the card shows the
+        // localized "Unknown university" and country name for them.
+        name: row['name_en'] as String? ?? row['name_ko'] as String? ?? '',
+        location: row['city_ko'] as String? ?? University.unknownCity,
+        nameKo: row['name_ko'] as String?,
+        nameEn: row['name_en'] as String?,
+        isPartner: row['is_partner'] as bool? ?? false,
+      );
 
       return StudentApplication(
         id: row['id'] as String,
-        studentId: row['student_id'] as String,
+        studentId: user.id,
         universityId: row['institution_id'] as String? ?? '',
         program: row['program'] as String? ?? '',
         status: row['status'] as String? ?? 'pending',

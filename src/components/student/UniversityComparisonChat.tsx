@@ -16,6 +16,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchMyUniversities } from '@/lib/myUniversities';
 import { ComparisonQuestionnaire, StudentPreferences } from './ComparisonQuestionnaire';
 
 interface StudentContext {
@@ -111,17 +112,14 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
           .eq('user_id', user.id)
           .single();
 
-        const { data: applications } = await supabase
-          .from('applications')
-          .select('status, university:institutions(name_en, name_ko)')
-          .eq('student_id', user.id);
+        const applications = await fetchMyUniversities().catch(() => []);
 
         setStudentContext({
           profile: profile || {},
           staffNotes: [],
           staffComments: [],
           applications: applications?.map(a => ({
-            university_name: (a.university as any)?.name_uz || 'Unknown',
+            university_name: a.name_en || a.name_ko || 'Unknown',
             status: a.status
           })) || []
         });
