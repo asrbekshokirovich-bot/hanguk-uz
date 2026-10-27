@@ -5,7 +5,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
-import { useCRMData } from '@/hooks/useCRMData';
+import { useCRMData, type CRMStudent } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
 import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
@@ -87,12 +87,7 @@ const AccessDenied = () => (
   </Card>
 );
 
-type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
-  })[];
-  documents?: Tables<'documents'>[];
-};
+type StudentProfile = CRMStudent;
 
 export default function CRMPortal() {
   const { t, i18n } = useTranslation();
@@ -116,8 +111,6 @@ export default function CRMPortal() {
     students,
     universities,
     loading: studentsLoading,
-    updateApplicationStatus,
-    createApplication,
     updateDocumentStatus,
     setDocsReady,
     refetchStudents
@@ -316,7 +309,6 @@ export default function CRMPortal() {
     <StudentDetail
       student={selectedStudent}
       onBack={() => setSelectedStudent(null)}
-      onUpdateApplicationStatus={updateApplicationStatus}
       onUpdateDocumentStatus={updateDocumentStatus}
       currentLang={currentLang}
       isDocumentHandler={isDocumentHandler}
@@ -385,7 +377,6 @@ export default function CRMPortal() {
               loading={loading}
               currentLang={currentLang}
               onUpdateDocumentStatus={updateDocumentStatus}
-              onUpdateApplicationStatus={updateApplicationStatus}
               onSetDocsReady={setDocsReady}
               canApproveDocuments={canApproveDocuments}
               onDocumentsChanged={refetchStudents}
@@ -452,7 +443,6 @@ export default function CRMPortal() {
             <UniversitySelectionContent
               students={students}
               loading={loading}
-              onCreateApplication={createApplication}
             />
           </SafeSuspense>
         );

@@ -58,11 +58,13 @@ import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { TransferStudentDialog } from './TransferStudentDialog';
 import { PaymentBalanceLines } from './payments/PaymentBalanceLines';
 import type { CurrencyBalance } from '@/lib/paymentBalance';
+import { PIPELINE_LABELS, PIPELINE_STAGES, type PipelineStage, type StudentPipeline } from '@/lib/studentPipeline';
+import type { PipelineUniversity } from '@/hooks/useCRMData';
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
-  })[];
+  /** Where the student is — same rule as the Arizalar board (useCRMData → src/lib/studentPipeline.ts). */
+  pipeline: StudentPipeline;
+  pipelineUniversities: PipelineUniversity[];
   documents?: Tables<'documents'>[];
   /** Computed upstream by useCRMData (not columns on profiles). */
   paymentStatus?: string;
@@ -85,15 +87,6 @@ interface StudentListProps {
   onRefresh: () => void;
 }
 
-// 6-stage application process (the 7th status, "completed", reads as 6/6).
-const PROCESS_STEPS = [
-  'documents_collection',
-  'documents_translation',
-  'apostille',
-  'application_submitted',
-  'university_response',
-  'visa_documents',
-];
 
 const PLAN_META: Record<string, { label: string; tone: Tone }> = {
   premium: { label: 'Premium', tone: 'lime' },
@@ -102,15 +95,17 @@ const PLAN_META: Record<string, { label: string; tone: Tone }> = {
   free: { label: 'Free', tone: 'neutral' },
 };
 
-const STAGE_META: Record<string, { label: string; tone: Tone }> = {
-  pending_approval: { label: 'Pending', tone: 'neutral' },
-  documents_collection: { label: 'Documents', tone: 'neutral' },
-  documents_translation: { label: 'Translation', tone: 'info' },
-  apostille: { label: 'Apostille', tone: 'info' },
-  application_submitted: { label: 'Submitted', tone: 'info' },
-  university_response: { label: 'Response', tone: 'warning' },
-  visa_documents: { label: 'Visa', tone: 'successSoft' },
-  completed: { label: 'Accepted', tone: 'successSoft' },
+// Board column → badge colour. Labels come from pipeline.stage.* (4 languages).
+const STAGE_TONE: Record<PipelineStage, Tone> = {
+  new: 'neutral',
+  docs_ready: 'info',
+  online: 'info',
+  offline: 'info',
+  interview: 'warning',
+  result: 'warning',
+  visa_process: 'successSoft',
+  visa_waiting: 'successSoft',
+  visa_received: 'successSoft',
 };
 
 const PAYMENT_META: Record<string, { label: string; tone: Tone }> = {
@@ -131,12 +126,8 @@ function getInitials(name: string | null) {
 }
 
 function getProcess(student: StudentProfile) {
-  const app = student.applications?.[0];
-  if (!app) return { step: 0, pct: 0 };
-  if (app.status === 'completed') return { step: 6, pct: 100 };
-  const idx = PROCESS_STEPS.indexOf(app.status);
-  const step = idx >= 0 ? idx + 1 : 0;
-  return { step, pct: (step / 6) * 100 };
+  const { step, steps } = student.pipeline;
+  return { step, steps, pct: (step / steps) * 100 };
 }
 
 // Soft "dot" badge used for payment status chips.
@@ -225,11 +216,11 @@ export function StudentList({
     // University filter
     const matchesUniversity =
       universityFilter === 'all' ||
-      student.applications?.some((app) => app.institution_id === universityFilter);
+      student.pipeline.universityIds.includes(universityFilter);
 
     // Status filter
     const matchesStatus =
-      statusFilter === 'all' || student.applications?.some((app) => app.status === statusFilter);
+      statusFilter === 'all' || student.pipeline.stage === statusFilter;
 
     // Documents filter
     let matchesDocuments = true;
@@ -306,23 +297,24 @@ export function StudentList({
     { key: 'no_risk', label: 'No-Risk', count: planCounts.no_risk },
   ];
 
+  const stageLabel = (stage: PipelineStage) => t(`pipeline.stage.${stage}`, { defaultValue: PIPELINE_LABELS[stage] });
+  // Same columns as the Arizalar board.
   const statusOptions = [
     { value: 'all', label: t('common.all') + ' Status' },
-    { value: 'documents_collection', label: t('crm.documentsCollected') },
-    { value: 'documents_translation', label: t('crm.documentsTranslated') },
-    { value: 'apostille', label: t('crm.apostilleReady') },
-    { value: 'application_submitted', label: t('crm.applicationSubmitted') },
-    { value: 'university_response', label: t('crm.universityResponse') },
+    ...PIPELINE_STAGES.map((stage) => ({ value: stage, label: stageLabel(stage) })),
   ];
 
   const planOf = (student: StudentProfile) => {
     const key = normalizePlanName(student.payment_plan);
     return PLAN_META[key] || PLAN_META.free;
   };
-  const stageOf = (student: StudentProfile) => {
-    const status = student.applications?.[0]?.status;
-    return status ? STAGE_META[status] : undefined;
-  };
+  const stageOf = (student: StudentProfile) => ({
+    label: stageLabel(student.pipeline.stage),
+    tone: STAGE_TONE[student.pipeline.stage],
+  });
+  // Final / first sent university, else the first confirmed choice.
+  const firstUniversity = (student: StudentProfile) =>
+    getUniversityName(student.pipelineUniversities[0] as unknown as Tables<'universities'>);
   const paymentOf = (student: StudentProfile) => {
     const status = student.paymentStatus;
     const meta = status ? PAYMENT_META[status] : undefined;
@@ -357,9 +349,9 @@ export function StudentList({
           student.full_name || '',
           phoneList(student).join(', '),
           student.office_location || '',
-          getUniversityName(student.applications?.[0]?.university),
+          firstUniversity(student),
           planOf(student).label,
-          `${getProcess(student).step}/6`,
+          `${getProcess(student).step}/${getProcess(student).steps}`,
           paymentOf(student)?.label ?? '',
         ]),
       ];
@@ -744,7 +736,7 @@ export function StudentList({
                 const plan = planOf(student);
                 const payment = paymentOf(student);
                 const process = getProcess(student);
-                const uni = getUniversityName(student.applications?.[0]?.university);
+                const uni = firstUniversity(student);
                 return (
                   <TableRow
                     key={student.id}
@@ -782,7 +774,7 @@ export function StudentList({
                     <TableCell className="hidden lg:table-cell">
                       <div className="flex items-center gap-2">
                         <Progress value={process.pct} className="h-1.5 w-20" />
-                        <span className="font-mono text-[11px] text-muted-foreground">{process.step}/6</span>
+                        <span className="font-mono text-[11px] text-muted-foreground">{process.step}/{process.steps}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -838,7 +830,7 @@ export function StudentList({
             const stage = stageOf(student);
             const payment = paymentOf(student);
             const process = getProcess(student);
-            const uni = getUniversityName(student.applications?.[0]?.university);
+            const uni = firstUniversity(student);
             return (
               <Card
                 key={student.id}
@@ -899,7 +891,7 @@ export function StudentList({
 
                 <div className="mt-3 flex items-center gap-2">
                   <Progress value={process.pct} className="h-1.5 flex-1" />
-                  <span className="font-mono text-[11px] text-muted-foreground">{process.step}/6</span>
+                  <span className="font-mono text-[11px] text-muted-foreground">{process.step}/{process.steps}</span>
                 </div>
 
                 <div className="mt-3 flex items-center justify-between gap-2">

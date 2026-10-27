@@ -25,12 +25,12 @@ import {
   calculateFirstPaymentDueDate
 } from '@/hooks/useStudentPlan';
 import { format } from 'date-fns';
+import type { StudentPipeline } from '@/lib/studentPipeline';
 
 interface StudentFinanceCardProps {
   student: Tables<'profiles'> & {
-    applications?: (Tables<'applications'> & {
-      university?: Tables<'universities'>;
-    })[];
+    /** From useCRMData: a university answered "accepted" (student_university_submissions). */
+    pipeline?: Pick<StudentPipeline, 'admitted'>;
   };
   payments: Payment[];
   onRecordPayment?: () => void;
@@ -74,12 +74,8 @@ export function StudentFinanceCard({
     const secondPaymentStatus = secondPayment?.status || (isInstallment ? 'waiting' : 'not_applicable');
 
     // Check if student has been admitted
-    const hasAdmission = student.applications?.some(
-      app => app.status === 'university_response' || 
-             app.status === 'admission_letter' ||
-             app.status === 'visa_documents' ||
-             app.status === 'completed'
-    );
+    // Admitted = a university answered "accepted" (Onlayn ariza → Natijalar).
+    const hasAdmission = !!student.pipeline?.admitted;
 
     return {
       schedule,

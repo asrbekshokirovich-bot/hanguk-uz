@@ -4,6 +4,15 @@ import { useToast } from '@/hooks/use-toast';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
+import { SUBMISSION_STEP_LABELS, submissionStep, type SubmissionFacts } from '@/lib/studentPipeline';
+import { SUBMISSION_COLUMNS } from '@/lib/loadStudentPipelines';
+
+// student_university_submissions is newer than the generated types.
+interface UntypedResult { data: unknown; error: { message: string } | null }
+interface UntypedQuery extends PromiseLike<UntypedResult> {
+  select: (columns: string) => UntypedQuery;
+}
+const untyped = supabase as unknown as { from: (table: string) => UntypedQuery };
 
 export interface ReportData {
   students: {
@@ -72,9 +81,11 @@ export function useReports() {
         universitiesRes,
       ] = await Promise.all([
         supabase.from('profiles').select('*'),
-        applyIntake(supabase.from('student_intakes').select('student_id'), activeIntakeId),
+        applyIntake(supabase.from('student_intakes').select('student_id, contract_cancelled_at'), activeIntakeId),
         supabase.from('user_roles').select('user_id'),
-        applyIntake(supabase.from('applications').select('*, university:institutions(name_en, name_ko)'), activeIntakeId),
+        // Applications = universities the student was sent to (Onlayn / Oflayn ariza),
+        // the same source as the Arizalar board — not the legacy applications table.
+        untyped.from('student_university_submissions').select(SUBMISSION_COLUMNS),
         applyIntake(supabase.from('payments').select('*').gte('created_at', fromDate).lte('created_at', toDate), activeIntakeId),
         supabase.from('calls').select('*').gte('started_at', fromDate).lte('started_at', toDate),
         applyIntake(supabase.from('tasks').select('*'), activeIntakeId),
@@ -84,10 +95,17 @@ export function useReports() {
       // Students in this season = explicit membership, excluding staff.
       const staffIds = new Set((staffRolesRes.data || []).map((r) => r.user_id));
       const memberIds = new Set(
-        (membersRes.data || []).map((m) => m.student_id).filter((id) => !staffIds.has(id)),
+        (membersRes.data || [])
+          .filter((m) => !m.contract_cancelled_at)
+          .map((m) => m.student_id)
+          .filter((id) => !staffIds.has(id)),
       );
-      const profiles = (profilesRes.data || []).filter((p) => memberIds.has(p.user_id));
-      const applications = applicationsRes.data || [];
+      const profiles = (profilesRes.data || []).filter((p) => memberIds.has(p.user_id) && !p.is_demo);
+      const activeIds = new Set(profiles.map((p) => p.user_id));
+      const uniNames = new Map((universitiesRes.data || []).map((u) => [u.id, u.name_en || u.name_ko || 'Unknown']));
+      const applications = ((applicationsRes.data ?? []) as SubmissionFacts[]).filter(
+        (s) => activeIds.has(s.student_id) && (s.online_submitted_at || s.offline_sent_at),
+      );
       const payments = paymentsRes.data || [];
       const calls = callsRes.data || [];
       const tasks = tasksRes.data || [];
@@ -121,21 +139,23 @@ export function useReports() {
       }
 
       applications.forEach((a) => {
-        appsByStatus[a.status] = (appsByStatus[a.status] || 0) + 1;
-        
-        const uniName = (a.university as any)?.name_en || (a.university as any)?.name_uz || 'Unknown';
+        const label = SUBMISSION_STEP_LABELS[submissionStep(a)];
+        appsByStatus[label] = (appsByStatus[label] || 0) + 1;
+
+        const uniName = uniNames.get(a.institution_id) ?? 'Unknown';
         appsByUniversity[uniName] = (appsByUniversity[uniName] || 0) + 1;
 
-        const monthKey = format(new Date(a.created_at), 'MMM yyyy');
-        if (appsByMonth[monthKey]) {
-          appsByMonth[monthKey].submitted++;
-          if (a.status === 'completed') {
-            appsByMonth[monthKey].completed++;
-          }
+        // Submitted = the month it was first sent; completed = the month it was accepted.
+        const sentAt = [a.online_submitted_at, a.offline_sent_at].filter((d): d is string => !!d).sort()[0];
+        const sentKey = format(new Date(sentAt), 'MMM yyyy');
+        if (appsByMonth[sentKey]) appsByMonth[sentKey].submitted++;
+        if (a.result === 'accepted' && a.result_at) {
+          const doneKey = format(new Date(a.result_at), 'MMM yyyy');
+          if (appsByMonth[doneKey]) appsByMonth[doneKey].completed++;
         }
       });
 
-      const completedApps = applications.filter((a) => a.status === 'completed').length;
+      const completedApps = applications.filter((a) => a.result === 'accepted').length;
       const successRate = applications.length > 0 ? (completedApps / applications.length) * 100 : 0;
 
       // Process payments data

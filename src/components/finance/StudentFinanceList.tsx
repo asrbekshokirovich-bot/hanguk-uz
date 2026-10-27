@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import type { StudentPipeline } from '@/lib/studentPipeline';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,9 +21,7 @@ import { PAYMENT_PLANS } from '@/hooks/useStudentPlan';
 
 interface StudentFinanceListProps {
   students: (Tables<'profiles'> & {
-    applications?: (Tables<'applications'> & {
-      university?: Tables<'universities'>;
-    })[];
+    pipeline?: Pick<StudentPipeline, 'admitted'>;
   })[];
   payments: Payment[];
   onRefresh: () => void;

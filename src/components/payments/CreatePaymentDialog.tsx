@@ -25,8 +25,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { PAYMENT_PLANS, getPlanByValue, formatPlanAmount, calculateDueDate } from '@/hooks/useStudentPlan';
 
 interface CreatePaymentDialogProps {
-  students: (Tables<'profiles'> & { 
-    applications?: Tables<'applications'>[];
+  students: (Tables<'profiles'> & {
     contract_date?: string | null;
   })[];
   onCreatePayment: (payment: {
@@ -203,28 +202,6 @@ export function CreatePaymentDialog({ students, onCreatePayment }: CreatePayment
                   : `Total: ${formatPlanAmount(studentPlan.priceOneTime, studentPlan.currency)}`
                 }
               </p>
-            </div>
-          )}
-
-          {selectedStudent?.applications && selectedStudent.applications.length > 0 && (
-            <div className="space-y-2">
-              <Label>{t('navigation.applications')} (Optional)</Label>
-              <Select 
-                value={form.application_id || 'none'} 
-                onValueChange={(v) => setForm({ ...form, application_id: v === 'none' ? '' : v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('common.select')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {selectedStudent.applications.map((app) => (
-                    <SelectItem key={app.id} value={app.id}>
-                      Application #{app.id.slice(0, 8)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           )}
 

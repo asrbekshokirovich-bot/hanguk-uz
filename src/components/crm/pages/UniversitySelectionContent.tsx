@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import type { StudentPipeline } from '@/lib/studentPipeline';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Handshake, Lock, Plus, RefreshCw, Search, Send, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Handshake, Lock, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,8 @@ import {
 } from '@/components/crm/pages/university-catalog/format';
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: Pick<Tables<'applications'>, 'institution_id'>[];
+  /** From useCRMData (src/lib/studentPipeline.ts). */
+  pipeline?: Pick<StudentPipeline, 'submissions'>;
   hasPaid?: boolean;
 };
 
@@ -39,7 +41,6 @@ interface UniversitySelectionContentProps {
   students: StudentProfile[];
   loading: boolean;
   /** Turns a choice into a real application row (status 'pending'). */
-  onCreateApplication?: (studentId: string, institutionId: string) => Promise<{ error: unknown }>;
 }
 
 const PAGE = 40;
@@ -49,7 +50,7 @@ function getInitials(name: string | null) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function UniversitySelectionContent({ students, loading, onCreateApplication }: UniversitySelectionContentProps) {
+export default function UniversitySelectionContent({ students, loading }: UniversitySelectionContentProps) {
   const catalog = useUniversityCatalog();
   const choices = useUniversityChoices();
 
@@ -59,7 +60,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
   const [city, setCity] = useState<string | null>(null);
   const [onlyFit, setOnlyFit] = useState(false);
   const [visible, setVisible] = useState(PAGE);
-  const [sending, setSending] = useState(false);
 
   const filteredStudents = useMemo(() => {
     const q = studentSearch.trim().toLowerCase();
@@ -72,7 +72,14 @@ export default function UniversitySelectionContent({ students, loading, onCreate
   const student = filteredStudents.find((s) => s.user_id === selectedId) ?? filteredStudents[0] ?? null;
   const studentChoices = student ? choices.byStudent.get(student.user_id) ?? [] : [];
   const wishes = student ? choices.wishesByStudent.get(student.user_id) ?? [] : [];
-  const appliedIds = new Set((student?.applications ?? []).map((a) => a.institution_id));
+  // "Arizada" = sent online or posted (student_university_submissions). A
+  // confirmed choice reaches Onlayn / Oflayn ariza by itself, so there is no
+  // separate "send to applications" step any more.
+  const appliedIds = new Set(
+    (student?.pipeline?.submissions ?? [])
+      .filter((s) => s.online_submitted_at || s.offline_sent_at)
+      .map((s) => s.institution_id),
+  );
 
   const entryById = useMemo(() => {
     const m = new Map<string, CatalogEntry>();
@@ -113,21 +120,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
     );
   };
 
-  const sendToApplications = async () => {
-    if (!student || !onCreateApplication) return;
-    // Only choices the student agreed to and staff confirmed become applications.
-    const pending = studentChoices.filter((c) => c.status === 'confirmed' && !appliedIds.has(c.institution_id));
-    setSending(true);
-    let failed = 0;
-    for (const c of pending) {
-      const { error } = await onCreateApplication(student.user_id, c.institution_id);
-      if (error) failed += 1;
-    }
-    setSending(false);
-    if (failed) toast.error(`${failed} ta universitetni arizaga o'tkazib bo'lmadi`);
-    else toast.success("Tanlovlar Arizalar bo'limiga o'tkazildi");
-  };
-
   if (loading || catalog.loading || choices.loading) {
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">
@@ -147,7 +139,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
     );
   }
 
-  const notApplied = studentChoices.filter((c) => c.status === 'confirmed' && !appliedIds.has(c.institution_id)).length;
   const onError = (e: unknown) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi');
 
   return (
@@ -220,17 +211,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                   </div>
                 </div>
               </div>
-              {onCreateApplication && (
-                <Button
-                  variant="highlight"
-                  className="gap-2"
-                  disabled={notApplied === 0 || sending}
-                  onClick={sendToApplications}
-                >
-                  <Send className="h-4 w-4" />
-                  Arizaga o'tkazish{notApplied > 0 ? ` (${notApplied})` : ''}
-                </Button>
-              )}
             </div>
 
             <div className="border-t border-border pt-3">

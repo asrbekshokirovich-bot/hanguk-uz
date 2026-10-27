@@ -49,6 +49,10 @@ const DENY_EXPOSURE = /(public\.|auth\.|vault\.|storage\.|extensions\.|cron\.|pg
 export type QueryResult = { rows?: any[]; error?: string; note?: string; rowCount?: number };
 
 /** Validate + run one read-only SELECT against the `ai` views. Never throws. */
+export const LEGACY_APPLICATIONS = /\b(?:ai\.)?applications\b/i;
+export const LEGACY_APPLICATIONS_ERROR =
+  "applications is a legacy table with stale statuses — use university_submissions (online/offline/interview/result/final/visa per university) and student_seasons (board_stage, contract_active, docs_ready_flag) instead";
+
 export async function runReadOnlyQuery(sql: unknown): Promise<QueryResult> {
   if (typeof sql !== "string") return { error: "sql must be a string" };
   const q = sql.trim().replace(/;+\s*$/, "").trim();
@@ -57,6 +61,9 @@ export async function runReadOnlyQuery(sql: unknown): Promise<QueryResult> {
   if (!/^(select|with)\b/i.test(q)) return { error: "only SELECT / WITH queries are allowed" };
   if (DENY_WRITE.test(q)) return { error: "write statements are not allowed — this tool is read-only" };
   if (DENY_EXPOSURE.test(q)) return { error: "query references a forbidden schema or column; use only the ai.* views and their listed columns" };
+  // The legacy applications table keeps stale, hand-set statuses (staff moved to
+  // the submissions flow on 2026-10-15) — never count progress from it.
+  if (LEGACY_APPLICATIONS.test(q)) return { error: LEGACY_APPLICATIONS_ERROR };
 
   const capped = `select * from (${q}) as _ai_sub limit ${MAX_ROWS}`;
   let client;
@@ -102,6 +109,7 @@ export async function getAiSchema(): Promise<string> {
       `select table_name, column_name, data_type
          from information_schema.columns
         where table_schema = 'ai'
+          and table_name <> 'applications'
         order by table_name, ordinal_position`,
     );
     const byTable = new Map<string, string[]>();
@@ -126,13 +134,13 @@ export const QUERY_TOOL = {
   function: {
     name: "query_database",
     description:
-      "Run ONE read-only SQL SELECT against the ai.* analytics views to count, sum, average, group, join, filter or otherwise compute an exact answer over the whole CRM (students, applications, payments, documents, leads, calls, messages, tasks) — use this for any 'how many / how much / which / list / average / total / by-<group>' question the other tools don't cover. You may call it several times (e.g. inspect the distinct values of a status/decision column first, then compute). Postgres dialect; single statement, no semicolon; results capped at 500 rows.",
+      "Run ONE read-only SQL SELECT against the ai.* analytics views to count, sum, average, group, join, filter or otherwise compute an exact answer over the whole CRM (students, student_seasons, university_submissions, payments, documents, leads, calls, messages, tasks) — use this for any 'how many / how much / which / list / average / total / by-<group>' question the other tools don't cover. You may call it several times (e.g. inspect the distinct values of a status/decision column first, then compute). Postgres dialect; single statement, no semicolon; results capped at 500 rows.",
     parameters: {
       type: "object",
       properties: {
         sql: {
           type: "string",
-          description: "A single Postgres SELECT (or WITH … SELECT) over the ai.* views. Bare table names resolve to the ai schema, e.g. `select count(*) from applications where status = 'completed'`.",
+          description: "A single Postgres SELECT (or WITH … SELECT) over the ai.* views. Bare table names resolve to the ai schema, e.g. `select count(*) from university_submissions where result = 'accepted'` or `select board_stage, count(*) from student_seasons where contract_active and not is_demo group by 1`. Never use the legacy applications table.",
         },
       },
       required: ["sql"],

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '@/integrations/supabase/client';
+import { loadStudentPipelines } from '@/lib/loadStudentPipelines';
+import type { PipelineStage } from '@/lib/studentPipeline';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
 import type { MessageThread } from '@/contexts/MessagesContext';
 import { channelHandle, toChannelId } from './channels';
 import { initialsOf, minutesSince } from './queueLogic';
-import { mostAdvancedStatus, stageLabelKey } from './stages';
+import { stageLabelKey } from './stages';
 import { isMediaPlaceholder, mediaPreviewKey } from './media';
 import type { ConversationVM } from './types';
 
@@ -16,15 +17,15 @@ import type { ConversationVM } from './types';
  * Assignment now arrives WITH the thread list: `get_thread_previews` resolves
  * each thread's latest assignee server-side, so the old client-side scan of
  * every assigned message in the database is gone. Only the pipeline stage
- * (from `applications.status`) still needs its own batched query.
+ * (the Arizalar board column, src/lib/studentPipeline.ts) needs its own batched query.
  */
 export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { threads, loading, fetchThreads } = useMessages();
 
-  /** `profiles.user_id` → most advanced `applications.status`. */
-  const [stages, setStages] = useState<Map<string, string>>(new Map());
+  /** `profiles.user_id` → Arizalar board column. */
+  const [stages, setStages] = useState<Map<string, PipelineStage>>(new Map());
 
   const studentKey = threads
     .map((th) => th.student_id)
@@ -37,24 +38,9 @@ export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
       setStages(new Map());
       return;
     }
-    const { data, error } = await supabase
-      .from('applications')
-      .select('student_id, status')
-      .in('student_id', studentIds);
-
-    if (error || !data) return;
-    const byStudent = new Map<string, string[]>();
-    for (const row of data) {
-      if (!row.student_id) continue;
-      const list = byStudent.get(row.student_id) ?? [];
-      list.push(row.status);
-      byStudent.set(row.student_id, list);
-    }
-    const map = new Map<string, string>();
-    byStudent.forEach((statuses, id) => {
-      const best = mostAdvancedStatus(statuses);
-      if (best) map.set(id, best);
-    });
+    const pipelines = await loadStudentPipelines(studentIds);
+    const map = new Map<string, PipelineStage>();
+    pipelines.forEach((p, id) => map.set(id, p.stage));
     setStages(map);
   }, []);
 
