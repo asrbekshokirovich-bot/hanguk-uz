@@ -39,5 +39,12 @@ export function useAiThreads() {
     refresh();
   }, [refresh]);
 
-  return { threads: query.data ?? [], isLoading: query.isLoading, refresh, togglePin };
+  /** Deletes a conversation; its messages go with it (on delete cascade). */
+  const deleteThread = useCallback(async (id: string) => {
+    const { error } = await db.from('ai_threads').delete().eq('id', id);
+    refresh();
+    if (error) throw error;
+  }, [refresh]);
+
+  return { threads: query.data ?? [], isLoading: query.isLoading, refresh, togglePin, deleteThread };
 }

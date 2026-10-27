@@ -24,6 +24,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
 import { AIMessageContent } from '@/components/ai/AIMessageContent';
@@ -40,6 +50,7 @@ function ThreadCard({
   dayLabel,
   onOpen,
   onPin,
+  onDelete,
   t,
 }: {
   thread: AiThread;
@@ -47,6 +58,8 @@ function ThreadCard({
   dayLabel: string;
   onOpen: () => void;
   onPin: () => void;
+  /** Shown in the history list only. */
+  onDelete?: () => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
   return (
@@ -83,6 +96,17 @@ function ThreadCard({
         >
           <Pin className="h-3.5 w-3.5" />
         </button>
+        {onDelete && (
+          <button
+            type="button"
+            aria-label={t('ai.deleteThread')}
+            title={t('ai.deleteThread')}
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
       {/* w-0 + min-w-full: the preview wraps to the card instead of widening it */}
       <p className="w-0 min-w-full line-clamp-2 min-h-[2.5rem] text-xs leading-5 text-muted-foreground">
@@ -105,12 +129,14 @@ export default function AIAssistantContent() {
   const currentLang = i18n.language;
   const { user } = useAuth();
   const [input, setInput] = useState('');
-  const { threads, refresh, togglePin } = useAiThreads();
+  const { threads, refresh, togglePin, deleteThread } = useAiThreads();
   const { messages, isLoading, error, sendMessage, clearMessages, openThread, threadId } =
     useHangukAI('staff', currentLang, { threads: true, onSaved: refresh });
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [historyOpen, setHistoryOpen] = useState(false);
+  // Conversation waiting for the "Rostdan ham o'chirasizmi?" answer.
+  const [toDelete, setToDelete] = useState<string | null>(null);
   const [staffName, setStaffName] = useState('');
   const [indexing, setIndexing] = useState(false);
   const [docRemaining, setDocRemaining] = useState<number | null>(null);
@@ -196,6 +222,25 @@ export default function AIAssistantContent() {
   const recent = threads.slice(0, 4);
   const empty = messages.length === 0;
 
+  // "Suhbatni tozalash": deletes the open conversation after confirmation.
+  const clearOpenChat = () => {
+    if (threadId) setToDelete(threadId);
+    else clearMessages();
+  };
+
+  const confirmDelete = async () => {
+    const id = toDelete;
+    setToDelete(null);
+    if (!id) return;
+    try {
+      await deleteThread(id);
+      if (id === threadId) clearMessages();
+      toast({ title: t('ai.threadDeleted') });
+    } catch (e) {
+      toast({ title: t('ai.deleteFailed'), description: e instanceof Error ? e.message : '', variant: 'destructive' });
+    }
+  };
+
   const open = (id: string) => {
     setHistoryOpen(false);
     if (id !== threadId || empty) void openThread(id);
@@ -228,7 +273,13 @@ export default function AIAssistantContent() {
             {t('ai.history')}
             <span className="rounded-full bg-accent px-2 text-xs font-bold text-accent-foreground">{threads.length}</span>
           </Button>
-          <Button variant="outline" size="sm" className="h-10 gap-2 rounded-xl" onClick={clearMessages}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 gap-2 rounded-xl"
+            onClick={clearOpenChat}
+            disabled={empty || isLoading}
+          >
             <Trash2 className="h-4 w-4" />
             {t('ai.clearChat', 'Clear Chat')}
           </Button>
@@ -411,12 +462,31 @@ export default function AIAssistantContent() {
                 dayLabel={dayLabel(th.updated_at)}
                 onOpen={() => open(th.id)}
                 onPin={() => void togglePin(th)}
+                onDelete={() => setToDelete(th.id)}
                 t={t}
               />
             ))}
           </div>
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={!!toDelete} onOpenChange={(o) => { if (!o) setToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('ai.deleteConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('ai.deleteConfirmText')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('ai.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => void confirmDelete()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('ai.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
