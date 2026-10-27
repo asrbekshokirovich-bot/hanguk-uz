@@ -3082,7 +3082,7 @@
       "applicationsN_other": "{{n}} applications",
       "allApplications": "All applications →",
       "noSigned": "No students have been signed to this season yet.",
-      "pipelineNote": "Every stage counts students of this season with an active contract. Documents Ready, Submitted and Offer Received follow the CRM application status; Visa Approved and Departed are the dates set on the student's CRM profile.",
+      "pipelineNote": "Every stage counts students of this season with an active contract, the same way as the CRM Applications board: Documents Ready — the 8-document pack is fully approved or marked ready; Submitted — sent to at least one university online or by post; Offer Received — a university result is recorded; Visa Approved and Departed — set on the student's CRM profile.",
       "watchlist": "Watchlist",
       "watchlistSubtitle": "Things worth a question",
       "stuck_one": "{{n}} application stuck {{days}} days",
