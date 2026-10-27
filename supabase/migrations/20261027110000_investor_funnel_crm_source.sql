@@ -7,8 +7,7 @@
 -- so Muratov dropped out of Submitted when his paper documents were posted.
 -- Every stage now reads what the CRM board reads:
 --   Documents Ready - "hujjat tayyor" flag, OR all 8 required pack documents
---                     approved (src/lib/studentDocSlots.ts buildApplicationPack,
---                     matcher src/lib/translationDocuments.ts matchesSlot),
+--                     approved (same rule as buildApplicationPack),
 --                     OR the student is already at a later stage
 --   Submitted       - any university submitted online or posted offline
 --                     (student_university_submissions)
@@ -16,43 +15,6 @@
 --   Visa Approved   - visa_approved_at, OR a final university with visa received
 --   Departed        - departed_at
 -- Leads and Signed are unchanged.
-
-create or replace function public.student_pack_ready(p_student_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  -- Required slots of the application pack and their legacy aliases.
-  with slots(slot_id, alias) as (values
-    ('applicant_id_card',    null),
-    ('foreign_passport',     'applicant_passport'),
-    ('father_id_card',       'parent_passport'),
-    ('mother_id_card',       null),
-    ('birth_certificate',    null),
-    ('language_certificate', null),
-    ('photo',                null),
-    ('diploma',              null)
-  ), latest as (
-    select (select d.status
-              from documents d
-             where d.student_id = p_student_id
-               and exists (
-                 select 1 from unnest(array[s.slot_id, s.alias]) k(id)
-                  where k.id is not null and (
-                        position('[' || k.id || ']' in lower(coalesce(d.name, ''))) > 0
-                     or starts_with(lower(regexp_replace(coalesce(d.file_path, ''), '^.*/', '')), k.id || '-')
-                     or starts_with(lower(regexp_replace(coalesce(d.file_path, ''), '^.*/', '')), k.id || '.')))
-             order by d.created_at desc
-             limit 1) as status
-      from slots s
-  )
-  select count(*) filter (where status = 'approved') = (select count(*) from slots)
-    from latest;
-$$;
-
-revoke all on function public.student_pack_ready(uuid) from public, anon, authenticated;
 
 create or replace view public.v_investor_season_funnel as
  WITH members AS (
@@ -72,11 +34,31 @@ create or replace view public.v_investor_season_funnel as
            FROM student_intakes si
            JOIN profiles p ON p.user_id = si.student_id
           WHERE NOT p.is_demo AND si.contract_cancelled_at IS NULL
+        ), pack AS (
+         -- All 8 required application-pack documents approved. Required slots
+         -- and legacy aliases as in src/lib/studentDocSlots.ts; matching as in
+         -- src/lib/translationDocuments.ts matchesSlot (newest upload wins).
+         -- Inline, not a function: function privileges in a view are checked
+         -- against the investor, who must not call helpers on student data.
+         SELECT m.intake_id, m.student_id,
+                (SELECT count(*)
+                   FROM (VALUES ('applicant_id_card', NULL::text), ('foreign_passport', 'applicant_passport'),
+                                ('father_id_card', 'parent_passport'), ('mother_id_card', NULL), ('birth_certificate', NULL),
+                                ('language_certificate', NULL), ('photo', NULL), ('diploma', NULL)) sl(slot_id, alias)
+                  WHERE (SELECT d.status FROM documents d
+                          WHERE d.student_id = m.student_id
+                            AND EXISTS (SELECT 1 FROM unnest(ARRAY[sl.slot_id, sl.alias]) k(id)
+                                         WHERE k.id IS NOT NULL AND (
+                                               position('[' || k.id || ']' in lower(coalesce(d.name, ''))) > 0
+                                            OR starts_with(lower(regexp_replace(coalesce(d.file_path, ''), '^.*/', '')), k.id || '-')
+                                            OR starts_with(lower(regexp_replace(coalesce(d.file_path, ''), '^.*/', '')), k.id || '.')))
+                          ORDER BY d.created_at DESC LIMIT 1) = 'approved') = 8 AS pack_ready
+           FROM members m
         ), staged AS (
          SELECT m.*,
-                (m.docs_ready OR m.submitted OR m.offered OR public.student_pack_ready(m.student_id)) AS docs_done,
+                (m.docs_ready OR m.submitted OR m.offered OR p.pack_ready) AS docs_done,
                 (m.visa_approved_at IS NOT NULL OR m.visa_received) AS visa_ok
-           FROM members m
+           FROM members m JOIN pack p USING (intake_id, student_id)
         ), base AS (
          SELECT ik.id AS intake_id,
                 (SELECT count(*) FROM leads l WHERE l.intake_id = ik.id) AS leads,
