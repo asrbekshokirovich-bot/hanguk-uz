@@ -505,6 +505,17 @@ describe('til kursi', () => {
     expect(panelLevels(ikkalasi, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
   });
 
+  it('"Til kursi" filtri: Excel yuklay oladigan xodimga hammasi — birinchi faylni yuklash uchun', () => {
+    expect(matchesLevel(excelsiz, 'til_kursi', true)).toBe(true);
+    expect(matchesLevel(excelsiz, 'til_kursi', false)).toBe(false);
+    expect(matchesLevel(uni({ institution_type: 'junior_college' }), 'til_kursi', true)).toBe(true);
+    // Til kursi yashirilgan universitet — filtrda yo'q (panelda belgi bilan bor)
+    const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] });
+    expect(matchesLevel(yashirin, 'til_kursi', true)).toBe(false);
+    // Boshqa darajalar o'zgarmaydi
+    expect(matchesLevel(uni({ institution_type: 'junior_college' }), 'bakalavr', true)).toBe(false);
+  });
+
   it('til kursi yashirilgan universitetda yorliq faqat Excel yuklay oladiganga chiqadi', () => {
     const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] });
     expect(offeredLevels(yashirin)).toEqual(['bakalavr', 'magistratura']);

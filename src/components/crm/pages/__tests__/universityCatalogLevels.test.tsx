@@ -7,7 +7,9 @@ import UniversityCatalogContent from '../UniversityCatalogContent';
  * Daraja filtri (egasi, 2026-10-05): "Magistr" bosilsa — faqat magistratura
  * o'qitadigan universitetlar, "Kasbiy ta'lim" — kollejlar. Kasbiy ta'lim
  * Excel'i ham alohida tugma bilan yuklanadi. Til kursi (egasi, 2026-10-20) —
- * xuddi shunday, filtrda esa til kursi Excel'i yuklanganlar.
+ * xuddi shunday, filtrda esa ko'ruvchiga til kursi Excel'i yuklanganlar,
+ * Excel yuklay oladigan xodimga — hammasi (egasi, 2026-10-27: aks holda
+ * birinchi til kursi faylini yuklash joyi topilmasdi).
  */
 
 function guideline(over: Partial<GuidelineSummary>): GuidelineSummary {
@@ -92,6 +94,7 @@ const mocks = vi.hoisted(() => ({
   entries: [] as unknown[],
   parsed: null as unknown,
   mutateAsync: vi.fn(),
+  role: { isDocumentHandler: true, isCallOperator: false },
 }));
 
 vi.mock('@/hooks/useUniversityCatalog', () => ({
@@ -112,7 +115,7 @@ vi.mock('@/lib/universityGuidelineExcel', () => ({
 }));
 
 vi.mock('@/hooks/useUserRole', () => ({
-  useUserRole: () => ({ isDocumentHandler: true, isCallOperator: false }),
+  useUserRole: () => mocks.role,
 }));
 
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
@@ -132,6 +135,7 @@ beforeEach(() => {
   mocks.entries = entries;
   mocks.parsed = null;
   mocks.mutateAsync.mockReset();
+  mocks.role = { isDocumentHandler: true, isCallOperator: false };
 });
 
 describe('Universitetlar — daraja filtri', () => {
@@ -141,7 +145,8 @@ describe('Universitetlar — daraja filtri', () => {
     expect(levelButton(/^Bakalavr/)).toHaveTextContent('Bakalavr2');
     expect(levelButton(/^Magistr/)).toHaveTextContent('Magistr3');
     expect(levelButton(/^Kasbiy/)).toHaveTextContent("Kasbiy ta'lim2");
-    expect(levelButton(/^Til kursi/)).toHaveTextContent('Til kursi1');
+    // Excel yuklay oladigan xodimga til kursida hammasi — birinchi faylni shu yerdan topadi
+    expect(levelButton(/^Til kursi/)).toHaveTextContent('Til kursi5');
   });
 
   it('"Magistr" bosilsa faqat magistratura o‘qitadigan universitetlar qoladi', () => {
@@ -171,11 +176,28 @@ describe('Universitetlar — daraja filtri', () => {
     expect(shownUniversities()).toEqual(['Daegu Health College', 'Yeungjin University']);
   });
 
-  it('"Til kursi" bosilsa faqat til kursi Excel‘i yuklanganlar qoladi', () => {
+  it('"Til kursi" bosilsa ko‘ruvchiga faqat til kursi Excel‘i yuklanganlar qoladi', () => {
+    mocks.role = { isDocumentHandler: false, isCallOperator: false };
     render(<UniversityCatalogContent />);
+    expect(levelButton(/^Til kursi/)).toHaveTextContent('Til kursi1');
     fireEvent.click(levelButton(/^Til kursi/));
 
     expect(shownUniversities()).toEqual(['Gachon University']);
+    expect(screen.queryByText(/Til kursi Excel'ini yuklash uchun/)).not.toBeInTheDocument();
+  });
+
+  it('Excel yuklay oladigan xodim "Til kursi"da barcha universitetni ko‘radi va panelda o‘sha yorliqda yuklaydi', () => {
+    render(<UniversityCatalogContent />);
+    fireEvent.click(levelButton(/^Til kursi/));
+
+    expect(shownUniversities()).toHaveLength(5);
+    expect(screen.getByText(/Til kursi Excel'ini yuklash uchun universitetni oching/)).toBeInTheDocument();
+
+    // Til kursi Excel'i hali yo'q universitet — panel til kursi yorlig'ida, yuklash tugmasi bilan
+    fireEvent.click(screen.getByText('Yonsei University'));
+    const sheet = screen.getByRole('dialog');
+    expect(within(sheet).getByRole('button', { name: 'Til kursi' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(sheet).getAllByRole('button', { name: 'Excel til kursi yuklash' }).length).toBeGreaterThan(0);
   });
 
   it('sarlavhada Shablon va umumiy Excel tugmalari yo‘q — Excel universitet panelidan yuklanadi', () => {

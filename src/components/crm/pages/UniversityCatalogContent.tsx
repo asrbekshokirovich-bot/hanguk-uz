@@ -159,11 +159,11 @@ export default function UniversityCatalogContent() {
   // Operator faqat ma'lumotli universitetlarni ko'radi (egasi, 2026-10-01).
   const passesFilters = useCallback(
     (e: CatalogEntry, lvl: LevelFilter) =>
-      matchesLevel(e, lvl) &&
+      matchesLevel(e, lvl, canEdit) &&
       (operatorView ? guidelinesForLevel(e, lvl).length > 0 : matchesFilter(e, filter, lvl)) &&
       (!showPanel || matchesPanel(e, panel, lvl, extras)) &&
       matchesSearch(e, search),
-    [filter, search, operatorView, showPanel, panel, extras],
+    [canEdit, filter, search, operatorView, showPanel, panel, extras],
   );
 
   const filtered = useMemo(() => {
@@ -379,6 +379,13 @@ export default function UniversityCatalogContent() {
           );
         })}
       </div>
+
+      {/* Til kursi Excel'i hali kam universitetda — qayerdan yuklanishini aytib qo'yamiz */}
+      {canEdit && level === 'til_kursi' && (
+        <p className="text-sm text-muted-foreground">
+          Til kursi Excel'ini yuklash uchun universitetni oching va «Excel til kursi yuklash» tugmasini bosing.
+        </p>
+      )}
 
       {showPanel && (
         <SortPanel
