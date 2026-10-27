@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { StudentPipeline } from '@/lib/studentPipeline';
 import { Tables } from '@/integrations/supabase/types';
 import { Payment } from './usePayments';
 import { 
@@ -26,9 +27,8 @@ export interface ExpectedPayment {
 }
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
-  })[];
+  /** From useCRMData: a university answered "accepted" (student_university_submissions). */
+  pipeline?: Pick<StudentPipeline, 'admitted'>;
   /** Set by useCRMData from the active season's student_intakes row. */
   freeReapplication?: boolean;
 };
@@ -147,12 +147,7 @@ export function useExpectedPayments(
         // Add second payment (regardless of first payment status)
         if (secondStatus !== 'completed') {
           // Check if student has admission to calculate due date
-          const hasAdmission = student.applications?.some(
-            app => app.status === 'university_response' || 
-                   app.status === 'admission_letter' ||
-                   app.status === 'visa_preparation' ||
-                   app.status === 'completed'
-          );
+          const hasAdmission = !!student.pipeline?.admitted;
           
           result.push({
             id: `expected-${student.user_id}-second`,

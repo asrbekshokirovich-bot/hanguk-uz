@@ -123,7 +123,8 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.study-plan-trainer]
-verify_jwt = false
+# Live v54 runs with verify_jwt = true (checked 2026-10-27); keep it when CI deploys.
+verify_jwt = true
 
 [functions.analyze-lead]
 verify_jwt = false

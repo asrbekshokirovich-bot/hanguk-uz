@@ -7,12 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
-import { buildApplicationPack } from '@/lib/studentDocSlots';
+import { buildStudentPipeline } from '@/lib/studentPipeline';
 import { formatInterview } from '@/lib/interviewTime';
 import {
   PIPELINE_LABELS,
   PIPELINE_STAGES,
-  pipelineStage,
   type PipelineStage,
 } from '@/lib/applicationPipeline';
 import { getInitials } from '@/hooks/useChosenUniversityGroups';
@@ -83,17 +82,10 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
     for (const student of students) {
       if (q && !`${student.full_name ?? ''} ${student.magic_code ?? ''}`.toLowerCase().includes(q)) continue;
       const subs = subsByStudent.get(student.user_id) ?? [];
-      const pack = buildApplicationPack(student.documents ?? []);
-      const stage = pipelineStage({
-        docsReady: !!student.docsReady || (pack.requiredTotal > 0 && pack.requiredVerified === pack.requiredTotal),
-        onlineSubmitted: subs.some((s) => s.online_submitted_at),
-        offlineSent: subs.some((s) => s.offline_sent_at),
-        hasInterview: subs.some((s) => s.interview_at),
-        visaProcess: subs.some((s) => s.final_at && s.visa_status === 'process'),
-        visaWaiting: subs.some((s) => s.final_at && s.visa_status === 'waiting'),
-        visaReceived: subs.some((s) => s.final_at && s.visa_status === 'received'),
-        hasResult: subs.some((s) => s.result),
-      });
+      // The one rule every CRM screen uses (src/lib/studentPipeline.ts).
+      const pipeline = buildStudentPipeline({ docsReady: student.docsReady, documents: student.documents, submissions: subs });
+      const { stage } = pipeline;
+      const pack = { requiredVerified: pipeline.docsVerified, requiredTotal: pipeline.docsRequired };
       let detail: string | null = null;
       let accepted: boolean | null = null;
       if (stage === 'docs_ready' || stage === 'new') {

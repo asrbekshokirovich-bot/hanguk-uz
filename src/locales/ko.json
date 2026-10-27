@@ -2367,5 +2367,40 @@
       "today": "오늘",
       "yesterday": "어제"
     }
+  },
+  "pipeline": {
+    "stage": {
+      "new": "신규",
+      "docs_ready": "서류 준비 완료",
+      "online": "온라인 지원",
+      "offline": "오프라인 지원",
+      "interview": "면접",
+      "result": "결과",
+      "visa_process": "비자 진행",
+      "visa_waiting": "비자 결과 대기",
+      "visa_received": "비자 발급"
+    },
+    "step": {
+      "chosen": "선택됨",
+      "online": "온라인 제출",
+      "offline": "오프라인 발송",
+      "interview": "면접 예정",
+      "accepted": "합격",
+      "rejected": "불합격",
+      "final": "최종 대학",
+      "visa_process": "비자 진행",
+      "visa_waiting": "비자 결과 대기",
+      "visa_received": "비자 발급"
+    },
+    "stageTitle": "진행 단계",
+    "docsPack": "서류 패키지",
+    "universities": "대학 및 제출 현황",
+    "contractDate": "계약일",
+    "online": "온라인",
+    "offline": "오프라인",
+    "interview": "면접",
+    "result": "결과",
+    "noUniversities": "아직 선택되거나 제출된 대학이 없습니다.",
+    "whereToEdit": "서류, 대학 선택, 온라인·오프라인 지원 섹션에서 자동으로 가져옵니다 — 지원 보드와 동일합니다."
   }
 }

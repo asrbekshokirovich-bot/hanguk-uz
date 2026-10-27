@@ -573,7 +573,7 @@ function staffAgentSystem(language: string, today: string, staffName: string, sc
 ## 🛠 query_database — run SQL to COMPUTE any number the typed tools don't cover
 For "how many / how much / total / average / which / breakdown by …" questions
 that the tools above can't answer directly (e.g. admissions outcomes, revenue by
-university, applications by status), call query_database with a read-only SQL
+university, submissions by result), call query_database with a read-only SQL
 SELECT over these views (bare names resolve to them; SELECT/WITH only, one
 statement, no semicolon):
 ${schema}

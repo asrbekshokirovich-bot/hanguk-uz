@@ -21,9 +21,7 @@ import {
 } from '@/hooks/useStudentPlan';
 
 interface PlannedIncomePanelProps {
-  students: (Tables<'profiles'> & { 
-    applications?: Tables<'applications'>[]; 
-  })[];
+  students: Tables<'profiles'>[];
   payments: Payment[];
   loading: boolean;
 }

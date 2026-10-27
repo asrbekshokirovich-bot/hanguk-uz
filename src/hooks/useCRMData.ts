@@ -6,11 +6,30 @@ import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
 import { getPlanByValue } from '@/hooks/useStudentPlan';
 import { isInitialPaymentOverdue, partialBalances, type CurrencyBalance } from '@/lib/paymentBalance';
+import { buildStudentPipeline, type StudentPipeline, type SubmissionFacts } from '@/lib/studentPipeline';
+
+export type PipelineUniversity = Pick<Tables<'institutions'>, 'id' | 'name_en' | 'name_ko' | 'is_partner'>;
+
+/**
+ * A row of the legacy `applications` table that is still a live flow: a
+ * university the student asked for in the app (status 'pending_approval').
+ * Everything about progress comes from `pipeline` instead.
+ */
+export type StudentRequest = Pick<Tables<'applications'>, 'id' | 'institution_id' | 'status' | 'created_at'> & {
+  university?: PipelineUniversity | null;
+};
+
+export type CRMStudent = StudentProfile;
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & {
-    university?: Tables<'institutions'>;
-  })[];
+  /** Where the student is — same rule as the Arizalar board (src/lib/studentPipeline.ts). */
+  pipeline: StudentPipeline;
+  /** Names for pipeline.universityIds, in the same order. */
+  pipelineUniversities: PipelineUniversity[];
+  /** Universities the student requested in the app, waiting for staff. */
+  studentRequests: StudentRequest[];
+  /** Bakalavr / Magistratura / … — still kept on applications.degree_level. */
+  degreeLevel: string | null;
   documents?: Tables<'documents'>[];
   paymentStatus?: string | null;
   initialPaymentOverdue?: boolean;
@@ -35,13 +54,20 @@ type StudentProfile = Tables<'profiles'> & {
   docsReady?: boolean;
 };
 
-type ApplicationWithUniversity = Tables<'applications'> & {
-  university?: Tables<'institutions'>;
-};
+const SUBMISSION_COLUMNS =
+  'student_id, institution_id, online_submitted_at, offline_sent_at, interview_at, result, result_at, final_at, visa_status';
+
+// student_university_submissions / _choices are newer than the generated types.
+interface UntypedResult { data: unknown; error: { message: string } | null }
+interface UntypedQuery extends PromiseLike<UntypedResult> {
+  select: (columns: string) => UntypedQuery;
+  in: (column: string, values: string[]) => UntypedQuery;
+  eq: (column: string, value: unknown) => UntypedQuery;
+}
+const untyped = supabase as unknown as { from: (table: string) => UntypedQuery };
 
 export function useCRMData() {
   const [students, setStudents] = useState<StudentProfile[]>([]);
-  const [applications, setApplications] = useState<ApplicationWithUniversity[]>([]);
   const [universities, setUniversities] = useState<Tables<'institutions'>[]>([]);
   const [loading, setLoading] = useState(true);
   const { activeIntakeId } = useActiveIntake();
@@ -121,10 +147,15 @@ export function useCRMData() {
         return;
       }
 
-      // Batch fetch THIS intake's applications, documents and payments for all students.
-      const [appsResult, docsResult, paymentsResult] = await Promise.all([
+      // Batch fetch this intake's documents and payments, the submissions and
+      // confirmed university choices, and the two legacy facts still kept on
+      // `applications` (student requests and the degree).
+      const [appsResult, docsResult, paymentsResult, subsResult, choicesResult] = await Promise.all([
         applyIntake(
-          supabase.from('applications').select('*, university:institutions(*)').in('student_id', studentUserIds),
+          supabase
+            .from('applications')
+            .select('id, institution_id, status, created_at, degree_level, student_id, university:institutions(id, name_en, name_ko, is_partner)')
+            .in('student_id', studentUserIds),
           activeIntakeId,
         ),
         applyIntake(
@@ -135,7 +166,18 @@ export function useCRMData() {
           supabase.from('payments').select('student_id, status, payment_type, paid_amount, amount, currency').in('student_id', studentUserIds),
           activeIntakeId,
         ),
+        untyped.from('student_university_submissions').select(SUBMISSION_COLUMNS).in('student_id', studentUserIds),
+        untyped
+          .from('student_university_choices')
+          .select('student_id, institution_id, rank')
+          .in('student_id', studentUserIds)
+          .eq('status', 'confirmed'),
       ]);
+      if (subsResult.error) console.error('Error fetching submissions:', subsResult.error);
+      if (choicesResult.error) console.error('Error fetching university choices:', choicesResult.error);
+      const allSubs = (subsResult.data ?? []) as SubmissionFacts[];
+      const allChoices = ((choicesResult.data ?? []) as { student_id: string; institution_id: string; rank: number | null }[])
+        .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
 
       if (appsResult.error) {
         console.error('Error fetching applications:', appsResult.error);
@@ -211,10 +253,44 @@ export function useCRMData() {
         );
       }
 
+      const subsByStudent = new Map<string, SubmissionFacts[]>();
+      for (const s of allSubs) subsByStudent.set(s.student_id, [...(subsByStudent.get(s.student_id) ?? []), s]);
+      const choicesByStudent = new Map<string, string[]>();
+      for (const c of allChoices) choicesByStudent.set(c.student_id, [...(choicesByStudent.get(c.student_id) ?? []), c.institution_id]);
+
+      const pipelines = new Map(
+        memberProfiles.map((profile) => [
+          profile.user_id,
+          buildStudentPipeline({
+            docsReady: docsReadyIds.has(profile.user_id),
+            documents: docsByStudent.get(profile.user_id) || [],
+            submissions: subsByStudent.get(profile.user_id) || [],
+            confirmedChoiceIds: choicesByStudent.get(profile.user_id) || [],
+          }),
+        ]),
+      );
+      const neededIds = [...new Set([...pipelines.values()].flatMap((p) => p.universityIds))];
+      const uniById = new Map<string, PipelineUniversity>();
+      if (neededIds.length) {
+        const { data: unis } = await supabase
+          .from('institutions')
+          .select('id, name_en, name_ko, is_partner')
+          .in('id', neededIds);
+        for (const u of unis ?? []) uniById.set(u.id, u);
+      }
+
       // Combine
       const studentsWithData = memberProfiles.map(profile => ({
         ...profile,
-        applications: appsByStudent.get(profile.user_id) || [],
+        pipeline: pipelines.get(profile.user_id)!,
+        pipelineUniversities: pipelines
+          .get(profile.user_id)!
+          .universityIds.map((id) => uniById.get(id))
+          .filter((u): u is PipelineUniversity => !!u),
+        studentRequests: (appsByStudent.get(profile.user_id) || [])
+          .filter((a) => a.status === 'pending_approval')
+          .map(({ id, institution_id, status, created_at, university }) => ({ id, institution_id, status, created_at, university })),
+        degreeLevel: (appsByStudent.get(profile.user_id) || []).find((a) => a.degree_level)?.degree_level ?? null,
         documents: docsByStudent.get(profile.user_id) || [],
         paymentStatus: paymentStatusByStudent.get(profile.user_id) || null,
         initialPaymentOverdue: initialOverdueByStudent.get(profile.user_id) || false,
@@ -239,24 +315,6 @@ export function useCRMData() {
     }
   };
 
-  const fetchApplications = async () => {
-    try {
-      const { data, error } = await applyIntake(
-        supabase.from('applications').select('*, university:institutions(*)'),
-        activeIntakeId,
-      ).order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching applications:', error);
-        toast.error('Failed to load applications');
-        return;
-      }
-      if (data) setApplications(data as ApplicationWithUniversity[]);
-    } catch (error) {
-      console.error('Unexpected error in fetchApplications:', error);
-    }
-  };
-
   const fetchUniversities = async () => {
     try {
       const { data, error } = await supabase
@@ -273,41 +331,6 @@ export function useCRMData() {
     } catch (error) {
       console.error('Unexpected error in fetchUniversities:', error);
     }
-  };
-
-  const updateApplicationStatus = async (applicationId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('applications')
-      .update({ status: newStatus })
-      .eq('id', applicationId);
-
-    if (!error) {
-      await fetchApplications();
-      await fetchStudents();
-    }
-    return { error };
-  };
-
-  // Staff-created application from the CRM applications board: attach a student
-  // to a university (institution). Stamped with the CRM's active intake so it
-  // lands in the current season's view; status 'pending' → an active application
-  // in the "New" stage (NOT 'pending_approval', which is a student-side request
-  // awaiting staff approval). The (student_id, institution_id) UNIQUE constraint
-  // guards against duplicates — the error is surfaced to the caller.
-  const createApplication = async (studentId: string, institutionId: string, degreeLevel?: string) => {
-    const { error } = await supabase.from('applications').insert({
-      student_id: studentId,
-      institution_id: institutionId,
-      status: 'pending',
-      ...(degreeLevel ? { degree_level: degreeLevel } : {}),
-      ...(activeIntakeId ? { intake_id: activeIntakeId } : {}),
-    });
-
-    if (!error) {
-      await fetchApplications();
-      await fetchStudents();
-    }
-    return { error };
   };
 
   // Marks (or clears) a student's document pack as "ready" for the active
@@ -379,7 +402,6 @@ export function useCRMData() {
       setLoading(true);
       await Promise.all([
         fetchStudents(),
-        fetchApplications(),
         fetchUniversities(),
       ]);
       setLoading(false);
@@ -391,13 +413,9 @@ export function useCRMData() {
 
   return {
     students,
-    applications,
     universities,
     loading,
     refetchStudents: fetchStudents,
-    refetchApplications: fetchApplications,
-    updateApplicationStatus,
-    createApplication,
     updateDocumentStatus,
     setDocsReady,
   };

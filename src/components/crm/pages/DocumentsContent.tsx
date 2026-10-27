@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,9 +37,14 @@ import { cn } from '@/lib/utils';
 import { buildApplicationPack, slotLabel, type ResolvedSlot } from '@/lib/studentDocSlots';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
 import { deleteStudentDocument, openStudentDocument, uploadStudentDocument } from '@/lib/staffDocumentActions';
+import { PIPELINE_LABELS, PIPELINE_STAGES, type StudentPipeline } from '@/lib/studentPipeline';
+import type { PipelineUniversity } from '@/hooks/useCRMData';
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & { university?: Tables<'institutions'> })[];
+  /** Same rule as the Arizalar board (useCRMData → src/lib/studentPipeline.ts). */
+  pipeline: StudentPipeline;
+  pipelineUniversities: PipelineUniversity[];
+  degreeLevel: string | null;
   documents?: Tables<'documents'>[];
   /** Set for a student with no application yet — see onSetDocsReady below. */
   docsReady?: boolean;
@@ -51,8 +57,6 @@ interface DocumentsContentProps {
   loading: boolean;
   currentLang: string;
   onUpdateDocumentStatus: (documentId: string, newStatus: string, notes?: string) => Promise<{ error: unknown }>;
-  /** Advances the student's application row when their pack is fully verified. */
-  onUpdateApplicationStatus?: (applicationId: string, status: string) => Promise<{ error: unknown }>;
   /**
    * Persists "docs ready" on student_intakes for a student who has no
    * application/university yet, so ApplicationsContent can still place them
@@ -74,23 +78,6 @@ interface DocumentsContentProps {
 type PackFilter = 'all' | 'application' | 'visa';
 type Stage = 'new_intake' | 'collecting' | 'translation_apostille' | 'ready' | 'advanced';
 
-// The status written on the application row when a completed pack is pushed to
-// the next pipeline step. Matches ApplicationsContent's `docs` stage — one
-// step at a time, same as a manual "Move to next stage" there would do.
-const NEXT_APPLICATION_STATUS = 'documents_collection';
-const ADVANCED_STATUSES = new Set([
-  'in_review',
-  'university_response',
-  'application_submitted',
-  'submitted',
-  'online_ariza',
-  'originals_sent',
-  'visa_documents',
-  'completed',
-  'accepted',
-  'waitlist',
-  'rejected',
-]);
 // ---------------------------------------------------------------------------
 // The "Application pack" checklist is the list of slots the student portal
 // asks for at contract signing (src/lib/studentDocSlots.ts). The `documents`
@@ -101,16 +88,6 @@ const ADVANCED_STATUSES = new Set([
 // missing.
 // ---------------------------------------------------------------------------
 
-const CONSULTANTS = ['Aziz K.', 'Madina T.', 'Sitora N.'];
-
-function hashInt(seed: string) {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return hash;
-}
-function pick<T>(pool: T[], seed: string) {
-  return pool[hashInt(seed) % pool.length];
-}
 function getInitials(name: string | null) {
   if (!name) return 'U';
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -121,7 +98,8 @@ function fmtDate(iso: string | null | undefined, lang: string) {
 }
 
 // ===========================================================================
-export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onUpdateApplicationStatus, onSetDocsReady, canApproveDocuments = false, onDocumentsChanged }: DocumentsContentProps) {
+export default function DocumentsContent({ students, loading, currentLang, onUpdateDocumentStatus, onSetDocsReady, canApproveDocuments = false, onDocumentsChanged }: DocumentsContentProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [packFilter, setPackFilter] = useState<PackFilter>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 'all'>('all');
@@ -143,13 +121,11 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     return students.map((s) => {
       const docs = s.documents ?? [];
       const { slots, requiredTotal, requiredVerified: verifiedCount } = buildApplicationPack(docs);
-      const app = s.applications?.[0];
-      const uniName =
-        (app?.university && ((app.university as Record<string, unknown>)[`name_${currentLang}`] as string)) ||
-        app?.university?.name_en ||
-        app?.university?.name_ko ||
-        '—';
-      const advanced = advancedIds.has(s.user_id) || ADVANCED_STATUSES.has(app?.status ?? '') || (!app && !!s.docsReady);
+      // Final / first sent university, else the first confirmed choice.
+      const uni = s.pipelineUniversities[0];
+      const uniName = uni?.name_en || uni?.name_ko || '—';
+      // Past the documents step on the Arizalar board (or just pushed there).
+      const advanced = advancedIds.has(s.user_id) || !!s.docsReady || s.pipeline.step > PIPELINE_STAGES.indexOf('docs_ready') + 1;
       let stage: Stage = 'new_intake';
       if (advanced) stage = 'advanced';
       else if (verifiedCount === requiredTotal) stage = 'ready';
@@ -161,15 +137,13 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
         verifiedCount,
         requiredTotal,
         uniName,
-        program: app?.degree_level ?? '',
-        applicationId: app?.id ?? null,
+        program: s.degreeLevel ?? '',
         stage,
-        preparer: pick(CONSULTANTS, `${s.user_id}p`),
-        consultant: pick(CONSULTANTS, `${s.user_id}c`),
-        deadline: fmtDate(new Date(Date.now() + (hashInt(`${s.user_id}d`) % 30 + 5) * 86_400_000).toISOString(), currentLang),
+        stageName: t(`pipeline.stage.${s.pipeline.stage}`, { defaultValue: PIPELINE_LABELS[s.pipeline.stage] }),
+        contractDate: s.contract_date ? fmtDate(s.contract_date, currentLang) : '—',
       };
     });
-  }, [students, advancedIds, currentLang]);
+  }, [students, advancedIds, currentLang, t]);
 
   const stageCounts = useMemo(() => {
     const c: Record<Stage, number> = { new_intake: 0, collecting: 0, translation_apostille: 0, ready: 0, advanced: 0 };
@@ -252,22 +226,10 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     if (error) toast.error("Hujjatni ochib bo'lmadi");
   };
 
-  // At least one verified document → push the student onto the next pipeline
-  // stage. A university/application isn't required — many students collect
-  // documents before one is attached, so without an applicationId this
-  // persists "docs ready" on student_intakes instead (see onSetDocsReady),
-  // which is what puts them in ApplicationsContent's "Hujjatlar tayyor"
-  // column until a real application exists.
-  const advanceToNextStage = async (userId: string, applicationId: string | null) => {
-    if (applicationId && onUpdateApplicationStatus) {
-      setAdvancing(true);
-      const { error } = await onUpdateApplicationStatus(applicationId, NEXT_APPLICATION_STATUS);
-      setAdvancing(false);
-      if (error) {
-        toast.error("Nimadir xato ketdi");
-        return;
-      }
-    } else if (onSetDocsReady) {
+  // Push the student onto the next stage: "docs ready" on student_intakes is
+  // what the Arizalar board reads (the legacy applications status is not).
+  const advanceToNextStage = async (userId: string) => {
+    if (onSetDocsReady) {
       setAdvancing(true);
       const { error } = await onSetDocsReady(userId, true);
       setAdvancing(false);
@@ -354,7 +316,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                     </Avatar>
                     <span className="truncate text-[13px] font-semibold text-foreground">{p.student.full_name || '—'}</span>
                   </div>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{p.deadline}</span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">{p.contractDate}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1">
                   <Badge variant="info" className="text-[10px]">{stageLabel[p.stage]}</Badge>
@@ -412,9 +374,9 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
 
               <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">
                 <Field label="To'plam" value="Ariza to'plami" />
-                <Field label="Tayyorlovchi" value={selected.preparer} />
-                <Field label="Muddat" value={selected.deadline} />
-                <Field label="Konsultant" value={selected.consultant} />
+                <Field label={t('pipeline.stageTitle', { defaultValue: 'Jarayon' })} value={selected.stageName} />
+                <Field label={t('pipeline.contractDate', { defaultValue: 'Shartnoma sanasi' })} value={selected.contractDate} />
+                <Field label={t('pipeline.docsPack', { defaultValue: 'Hujjat paketi' })} value={`${selected.verifiedCount}/${selected.requiredTotal}`} />
               </div>
 
               <div className="flex items-center gap-2 border-t border-border pt-3">
@@ -488,7 +450,7 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
                   <AlertDialogFooter>
                     <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => advanceToNextStage(selected.student.user_id, selected.applicationId)}
+                      onClick={() => advanceToNextStage(selected.student.user_id)}
                     >
                       Ha, o'tkazish
                     </AlertDialogAction>

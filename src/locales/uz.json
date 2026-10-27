@@ -3399,5 +3399,40 @@
       "today": "Bugun",
       "yesterday": "Kecha"
     }
+  },
+  "pipeline": {
+    "stage": {
+      "new": "Yangi",
+      "docs_ready": "Hujjat tayyor",
+      "online": "Onlayn ariza",
+      "offline": "Oflayn ariza",
+      "interview": "Suhbat",
+      "result": "Natija",
+      "visa_process": "Viza jarayonlari",
+      "visa_waiting": "Viza natijasini kutyapti",
+      "visa_received": "Viza oldi"
+    },
+    "step": {
+      "chosen": "Tanlangan",
+      "online": "Onlayn topshirildi",
+      "offline": "Oflayn yuborildi",
+      "interview": "Suhbat belgilangan",
+      "accepted": "Qabul qilindi",
+      "rejected": "Rad etildi",
+      "final": "Yakuniy universitet",
+      "visa_process": "Viza jarayonlari",
+      "visa_waiting": "Viza natijasini kutyapti",
+      "visa_received": "Viza oldi"
+    },
+    "stageTitle": "Jarayon",
+    "docsPack": "Hujjat paketi",
+    "universities": "Universitetlar va topshiruvlar",
+    "contractDate": "Shartnoma sanasi",
+    "online": "Onlayn",
+    "offline": "Oflayn",
+    "interview": "Suhbat",
+    "result": "Natija",
+    "noUniversities": "Hali universitet tanlanmagan yoki topshirilmagan.",
+    "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil."
   }
 }

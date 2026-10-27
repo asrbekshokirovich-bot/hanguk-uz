@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
 import DocumentsContent from '../DocumentsContent';
+import { buildStudentPipeline } from '@/lib/studentPipeline';
 import { deleteStudentDocument, uploadStudentDocument } from '@/lib/staffDocumentActions';
 
 vi.mock('@/lib/staffDocumentActions', () => ({
@@ -46,7 +47,9 @@ const student = {
   magic_code: 'VHK3DAUB',
   avatar_url: null,
   contract_date: null,
-  applications: [],
+  pipeline: buildStudentPipeline({}),
+  pipelineUniversities: [],
+  degreeLevel: null,
   documents: [
     doc('applicant_id_card', 'ID PASSPORT.pdf'),
     doc('foreign_passport', 'ZAGRAN.pdf'),
@@ -67,7 +70,6 @@ const setup = ({ canApprove = true }: { canApprove?: boolean } = {}) => {
       loading={false}
       currentLang="uz"
       onUpdateDocumentStatus={onUpdateDocumentStatus}
-      onUpdateApplicationStatus={vi.fn().mockResolvedValue({ error: null })}
       canApproveDocuments={canApprove}
       onDocumentsChanged={onDocumentsChanged}
     />,

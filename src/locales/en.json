@@ -3336,5 +3336,40 @@
       "today": "Today",
       "yesterday": "Yesterday"
     }
+  },
+  "pipeline": {
+    "stage": {
+      "new": "New",
+      "docs_ready": "Documents ready",
+      "online": "Online application",
+      "offline": "Offline application",
+      "interview": "Interview",
+      "result": "Result",
+      "visa_process": "Visa process",
+      "visa_waiting": "Awaiting visa",
+      "visa_received": "Visa received"
+    },
+    "step": {
+      "chosen": "Chosen",
+      "online": "Submitted online",
+      "offline": "Sent offline",
+      "interview": "Interview scheduled",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "final": "Final university",
+      "visa_process": "Visa process",
+      "visa_waiting": "Awaiting visa",
+      "visa_received": "Visa received"
+    },
+    "stageTitle": "Stage",
+    "docsPack": "Document pack",
+    "universities": "Universities and submissions",
+    "contractDate": "Contract date",
+    "online": "Online",
+    "offline": "Offline",
+    "interview": "Interview",
+    "result": "Result",
+    "noUniversities": "No university chosen or submitted yet.",
+    "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board."
   }
 }

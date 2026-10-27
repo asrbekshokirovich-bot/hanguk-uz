@@ -72,7 +72,8 @@ vi.mock('@/hooks/useUniversityCatalog', () => ({
 type Student = ComponentProps<typeof UniversitySelectionContent>['students'][number];
 const student = {
   user_id: 'u1', full_name: 'ABDIRAIMOV XURSHID', magic_code: 'VHK', avatar_url: null,
-  contract_date: '2026-10-01', hasPaid: true, ielts_score: 6, topik_level: null, applications: [],
+  contract_date: '2026-10-01', hasPaid: true, ielts_score: 6, topik_level: null,
+  pipeline: { submissions: [{ student_id: 's1', institution_id: 'ku', online_submitted_at: '2026-10-27T00:00:00Z', offline_sent_at: null, interview_at: null, result: null, final_at: null, visa_status: null }] },
 } as unknown as Student;
 
 const setup = (props: Partial<ComponentProps<typeof UniversitySelectionContent>> = {}) =>
@@ -146,13 +147,13 @@ describe('UniversitySelectionContent', () => {
     expect(confirm).toHaveBeenCalledWith(choices[1], expect.anything());
   });
 
-  it('sends only confirmed choices to applications', async () => {
-    choices = [choice('c1', 'ku', 1, 'confirmed'), choice('c2', 'pn', 2, 'accepted'), choice('c3', 'dh', 3, 'confirmed')];
-    const onCreateApplication = vi.fn().mockResolvedValue({ error: null });
-    setup({ onCreateApplication });
-    fireEvent.click(screen.getByText(/Arizaga o'tkazish \(2\)/));
-    await waitFor(() => expect(onCreateApplication).toHaveBeenCalledTimes(2));
-    expect(onCreateApplication.mock.calls.map((c) => c[1])).toEqual(['ku', 'dh']);
+  it('shows "Arizada" only for a university really sent, and no legacy send step', () => {
+    choices = [choice('c1', 'ku', 1, 'confirmed'), choice('c3', 'dh', 3, 'confirmed')];
+    setup();
+    const rows = screen.getAllByTestId('choice-row');
+    expect(within(rows[0]).getByText('Arizada')).toBeInTheDocument();
+    expect(within(rows[1]).queryByText('Arizada')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Arizaga o'tkazish/)).not.toBeInTheDocument();
   });
 
   it('filters to universities the student fits', () => {
