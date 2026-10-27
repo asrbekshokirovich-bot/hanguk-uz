@@ -1918,7 +1918,33 @@
     "active": "Active",
     "pending": "Pending",
     "unread": "Unread",
-    "total": "Total"
+    "total": "Total",
+    "submittedApps": "Submitted applications",
+    "admitted": "Admitted",
+    "trendNote": "Applications submitted to universities, last 6 months",
+    "byStage": "Students by stage",
+    "studentsCount": "{{count}} active students",
+    "noOpenTasks": "No open tasks",
+    "noStudents": "No active students this season",
+    "stage": {
+      "new": "New",
+      "docs_ready": "Documents ready",
+      "online": "Online application",
+      "offline": "Offline application",
+      "interview": "Interview",
+      "result": "Result",
+      "visa_process": "Visa in process",
+      "visa_waiting": "Awaiting visa",
+      "visa_received": "Visa received"
+    },
+    "activity": {
+      "contract": "Contract signed",
+      "online": "Submitted online",
+      "offline": "Originals posted",
+      "interview": "Interview scheduled",
+      "accepted": "Admitted by university",
+      "rejected": "Rejected by university"
+    }
   },
   "landing": {
     "getStarted": "Get started",
