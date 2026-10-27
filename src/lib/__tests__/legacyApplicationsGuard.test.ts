@@ -5,7 +5,9 @@
  * student the Arizalar board had in "Yangi" — they read the legacy
  * `applications` table, which staff stopped using on 2026-10-15. Every screen
  * now reads src/lib/studentPipeline.ts (documents, student_intakes,
- * student_university_choices, student_university_submissions).
+ * student_university_choices, student_university_submissions); the student
+ * portal and app read the same facts through my_universities()
+ * (src/lib/myUniversities.ts).
  *
  * This test fails when new code touches `applications` outside the list
  * below. If you think you need it: you almost certainly want
@@ -30,13 +32,9 @@ const ALLOWED: Record<string, string> = {
   'src/components/crm/DeleteStudentDialog.tsx': "deletes the student's rows",
   'src/hooks/useSystemHealth.ts': 'System map health check of the table itself',
   'src/lib/intakeQuery.ts': 'doc comment example only',
-  // Student side — moves to submissions/choices with the app PR (needs the
-  // read-own RLS policy on student_university_submissions first).
-  'src/contexts/StudentDataContext.tsx': 'student web portal (app PR)',
-  'src/components/student/SuggestedUniversities.tsx': 'student request insert',
-  'src/components/student/UniversityComparisonChat.tsx': 'student web portal (app PR)',
-  'src/hooks/useStudentInsights.ts': 'student web portal (app PR)',
-  'hanguk_app/lib/features/applications/data/applications_repository.dart': 'app (app PR)',
+  'src/components/student/SuggestedUniversities.tsx': 'student request insert (pending_approval)',
+  'hanguk_app/lib/features/applications/data/applications_repository.dart':
+    'student request insert (pending_approval); reads go through my_universities()',
 };
 
 function walk(dir: string, out: string[] = []): string[] {
