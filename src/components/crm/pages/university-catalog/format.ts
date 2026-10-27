@@ -321,8 +321,16 @@ export function panelLevels(entry: CatalogEntry, canUpload: boolean): DegreeLeve
   return DEGREE_LEVELS.map((l) => l.key).filter((key) => shown.has(key));
 }
 
-export function matchesLevel(entry: CatalogEntry, level: LevelFilter): boolean {
-  return level === 'hammasi' || offeredLevels(entry).includes(level);
+/**
+ * Daraja filtri. Til kursi (어학당) qaysi universitetda borligi oldindan
+ * ma'lum emas: ko'ruvchiga faqat Excel'i yuklanganlar chiqadi. Excel yuklay
+ * oladigan xodimga esa — panelLevels'dagi kabi hammasi (til kursi
+ * yashirilganlardan tashqari): aks holda birinchi til kursi faylini yuklash
+ * uchun universitetni topib bo'lmasdi (egasi, 2026-10-27).
+ */
+export function matchesLevel(entry: CatalogEntry, level: LevelFilter, canUpload = false): boolean {
+  if (level === 'hammasi' || offeredLevels(entry).includes(level)) return true;
+  return canUpload && level === 'til_kursi' && !hiddenLevels(entry).includes('til_kursi');
 }
 
 export type CatalogFilter = 'hammasi' | 'malumotli' | 'topik' | 'ielts' | 'hamkor';
