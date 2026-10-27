@@ -1,21 +1,27 @@
 /**
  * Investor pipeline rules shared by Overview and Applications.
  *
- * CRM application statuses, in order: documents_collection ->
- * documents_translation -> apostille -> application_submitted ->
- * university_response -> visa_documents -> completed ("Visa Applied").
- * Mirrors v_investor_season_funnel (migration 20261026180000).
+ * Each row of v_investor_applications is one (student, university) step, the
+ * same facts as the Arizalar board (migration 20261030210000):
+ *   chosen -> online -> offline -> interview -> accepted | rejected ->
+ *   final -> visa_process -> visa_waiting -> visa_received
  */
 
+/** Sent to the university (online or on paper) or further. */
 export const SUBMITTED_STATUSES = new Set([
-  'application_submitted',
-  'university_response',
-  'visa_documents',
-  'completed',
+  'online',
+  'offline',
+  'interview',
+  'accepted',
+  'rejected',
+  'final',
+  'visa_process',
+  'visa_waiting',
+  'visa_received',
 ]);
 
-/** "completed" is the last CRM step (visa applied): nothing left to move. */
-export const FINAL_STATUSES = new Set(['completed']);
+/** Nothing left to move: the visa is in hand, or the university said no. */
+export const FINAL_STATUSES = new Set(['visa_received', 'rejected']);
 
 export const STUCK_DAYS = 14;
 
@@ -53,4 +59,21 @@ export function studentsWithoutApplication(signed: number | null, rows: Pipeline
   if (signed == null) return 0;
   const withApp = new Set(rows.map((a) => a.student_id).filter((id): id is string => !!id));
   return Math.max(signed - withApp.size, 0);
+}
+
+const ADMITTED = new Set(['accepted', 'final', 'visa_process', 'visa_waiting', 'visa_received']);
+const VISA_TRACK = new Set(['final', 'visa_process', 'visa_waiting', 'visa_received']);
+
+/** Accepted among applications with a university answer; null until one is recorded. */
+export function acceptanceRate(rows: { status: string }[]): number | null {
+  const decided = rows.filter((r) => ADMITTED.has(r.status) || r.status === 'rejected');
+  if (decided.length === 0) return null;
+  return (decided.filter((r) => ADMITTED.has(r.status)).length * 100) / decided.length;
+}
+
+/** Visas received among final universities; null until a final university is chosen. */
+export function visaRate(rows: { status: string }[]): number | null {
+  const finals = rows.filter((r) => VISA_TRACK.has(r.status));
+  if (finals.length === 0) return null;
+  return (finals.filter((r) => r.status === 'visa_received').length * 100) / finals.length;
 }
