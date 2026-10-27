@@ -465,6 +465,12 @@ const AGENT_TOOLS = [
   { type: "function", function: { name: "learning_centers", description: "O'quv markazlar: each centre with students, leads, converted, assignee.", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "surveys", description: "So'rovnomalar: surveys with question and respondent counts.", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "today_in_app", description: "Bugun ilovada page: today's signals from the student app (new app requests, came back, reports/picks, unanswered offers) with names and assignees.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "app_summary", description: "Ilova analitikasi → Umumiy: student app activity for the last N days (default 7): devices and new installs per day, events, funnel (app_open → university_open → report_view → lead_form → lead_submit).", parameters: { type: "object", properties: { days: { type: "integer" } } } } },
+  { type: "function", function: { name: "app_marketing", description: "Ilova analitikasi → Marketing: installs, leads and conversion by channel / how-heard for a date range (default last 7 days).", parameters: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } } } } },
+  { type: "function", function: { name: "app_live", description: "Ilova analitikasi → Jonli: who is using the app right now (last N minutes, default 5).", parameters: { type: "object", properties: { minutes: { type: "integer" } } } } },
+  { type: "function", function: { name: "app_people", description: "Ilova analitikasi → Odamlar: app users of the last N days with activity; optional name search.", parameters: { type: "object", properties: { days: { type: "integer" }, search: { type: "string" } } } } },
+  { type: "function", function: { name: "app_quality", description: "Ilova analitikasi → Sifat: app errors, crashes and slow screens for the last N days.", parameters: { type: "object", properties: { days: { type: "integer" } } } } },
+  { type: "function", function: { name: "app_retention", description: "Ilova analitikasi → Qaytish: weekly retention of app users (last N weeks, default 6).", parameters: { type: "object", properties: { weeks: { type: "integer" } } } } },
   { type: "function", function: { name: "finance_summary", description: "Moliya (owners / finance access only): season payments per currency (total, paid, outstanding), payment statuses, this month's expenses by category, staff bonuses.", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "search_communications", description: "Hybrid (semantic + keyword) search across Telegram chats, call summaries/transcripts and documents. Use for 'what did we discuss about X' / 'who asked about X' / topical questions. Returns the most relevant snippets with the student they belong to.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" }, student_id: { type: "string", description: "optional: restrict to one student's user_id" } }, required: ["query"] } } },
 ];
@@ -544,6 +550,16 @@ async function callAgentTool(client: any, service: any, name: string, rawArgs: s
     case "learning_centers": return rpc("ai_learning_centers", {});
     case "surveys": return rpc("ai_surveys", {});
     case "today_in_app": return rpc("analytics_today_in_app", {});
+    case "app_summary": return rpc("app_events_summary", { p_days: a.days ?? 7, p_include_test: false });
+    case "app_marketing": {
+      const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
+      const weekAgo = new Date(Date.now() - 7 * 864e5).toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
+      return rpc("analytics_marketing", { p_from: a.from ?? weekAgo, p_to: a.to ?? today, p_include_test: false, p_seg: null });
+    }
+    case "app_live": return rpc("analytics_live", { p_minutes: a.minutes ?? 5 });
+    case "app_people": return rpc("analytics_people", { p_days: a.days ?? 7, p_kind: null, p_include_test: false, p_search: a.search ?? null, p_limit: 15, p_offset: 0 });
+    case "app_quality": return rpc("analytics_quality", { p_days: a.days ?? 7 });
+    case "app_retention": return rpc("analytics_retention", { p_weeks: a.weeks ?? 6, p_include_test: false, p_seg: null });
     case "finance_summary": return rpc("ai_finance_summary", { p_intake_id: null });
     case "query_database": return runReadOnlyQuery(a.sql);
     default: return { error: `unknown tool: ${name}` };
@@ -590,7 +606,7 @@ You answer questions by CALLING TOOLS to fetch real CRM data, then summarising t
 - To answer about a person mentioned by name, first call search_students (or list_leads with query) to resolve them, then call get_student_card and answer from it.
 - Pass the name to search_students exactly as the staff typed it. If it returns nothing, try again with each name word on its own (e.g. only the surname), then try search_leads — the person may be a lead, not a student — before saying nobody was found.
 - Students vs leads vs staff: students signed a contract (search_students); leads are potential clients from Instagram/Telegram/site/app/calls (search_leads, leads_overview); staff are the team (staff_activity). A staff name (Madina, Omina, Olmos, Diyora, Odina, Xushnud, Xo'jamurod, Asrbek, Mukhsin) in a question about work done means staff_activity, not a student.
-- Which tool for which CRM page: Yangi lid / Bugungi lidlar / Lidlar → leads_overview; Telefon → calls_summary; Xabarlar → messages_queue; Bugun ilovada → today_in_app; Universitet tanlash → university_selection; Onlayn/Oflayn ariza and Arizalar → season_pipeline; Application fee → application_fees; O'quv markazlar → learning_centers; So'rovnomalar → surveys; Moliya → finance_summary; Vazifalar → list_tasks.
+- Which tool for which CRM page: Yangi lid / Bugungi lidlar / Lidlar → leads_overview; Telefon → calls_summary; Xabarlar → messages_queue; Bugun ilovada → today_in_app; Ilova analitikasi → app_summary / app_marketing / app_live / app_people / app_quality / app_retention; Universitet tanlash → university_selection; Onlayn/Oflayn ariza and Arizalar → season_pipeline; Application fee → application_fees; O'quv markazlar → learning_centers; So'rovnomalar → surveys; Moliya → finance_summary; Vazifalar → list_tasks.
 - If a tool answers {error: "not authorized ..."}, say this staff member has no access to that section.
 - If the question has several parts, answer every part.
 - Season / stage questions ("nechta talabaning hujjati tayyor", "kimlar topshirdi") → season_pipeline. Its numbers are the CRM Arizalar board numbers.
