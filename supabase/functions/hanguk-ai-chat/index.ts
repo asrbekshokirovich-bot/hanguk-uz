@@ -495,7 +495,11 @@ async function searchCommunicationsHybrid(
   return data ?? [];
 }
 
-async function callAgentTool(client: any, name: string, rawArgs: string | undefined): Promise<any> {
+// `service` is used only for search_students: that RPC has no EXECUTE grant for
+// signed-in users (it returned "permission denied" to the agent, which then said
+// the student was not found). runStaffAgent is reached only after ai_is_staff
+// confirmed the caller, so the lookup runs on the caller's behalf.
+async function callAgentTool(client: any, service: any, name: string, rawArgs: string | undefined): Promise<any> {
   let a: any = {};
   try { a = rawArgs ? JSON.parse(rawArgs) : {}; } catch { /* tolerate bad args */ }
   const rpc = async (fn: string, params: any) => {
@@ -509,7 +513,10 @@ async function callAgentTool(client: any, name: string, rawArgs: string | undefi
     case "list_tasks": return rpc("ai_list_tasks", { p_status: a.status ?? null, p_priority: a.priority ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
     case "list_leads": return rpc("ai_list_leads", { p_query: a.query ?? null, p_status: a.status ?? null, p_source: a.source ?? null, p_exam_type: a.exam_type ?? null, p_city: a.city ?? null, p_interest_level: a.interest_level ?? null, p_from_exam_date: a.from_exam_date ?? null, p_to_exam_date: a.to_exam_date ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
     case "list_students": return rpc("ai_list_students", { p_query: a.query ?? null, p_city: a.city ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 });
-    case "search_students": return rpc("search_students", { p_query: a.query ?? "", p_limit: a.limit ?? 6 });
+    case "search_students": {
+      const { data, error } = await service.rpc("search_students", { p_query: a.query ?? "", p_limit: a.limit ?? 6 });
+      return error ? { error: error.message } : data;
+    }
     case "get_student_card": return rpc("ai_student_card", { p_student_id: a.student_id ?? null });
     case "season_pipeline": return rpc("ai_season_pipeline", { p_intake_id: a.intake_id ?? null });
     case "search_communications": return searchCommunicationsHybrid(client, a.query ?? "", a.limit ?? 12, a.student_id ?? null);
@@ -623,7 +630,7 @@ async function runStaffAgent(
     if (msg.tool_calls?.length) {
       messages.push(msg);
       for (const tc of msg.tool_calls) {
-        const result = await callAgentTool(userClient, tc.function?.name, tc.function?.arguments);
+        const result = await callAgentTool(userClient, service, tc.function?.name, tc.function?.arguments);
         // Diagnostics only: tool name, argument size and result size — no student data.
         console.log(`[hanguk-ai] ${provider.name} tool=${tc.function?.name} args=${(tc.function?.arguments ?? "").length}b result=${JSON.stringify(result ?? null).length}b`);
         messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 8000) });
