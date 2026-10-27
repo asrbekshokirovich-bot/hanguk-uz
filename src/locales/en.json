@@ -1555,7 +1555,14 @@
     "indexDone": "Read {{count}} file(s). Hanguk AI can now answer about their contents.",
     "enrichDoneTitle": "Leads enriched",
     "enrichDone": "Analyzed {{count}} lead(s).",
-    "jobStopped": "Process stopped"
+    "jobStopped": "Process stopped",
+    "deleteThread": "Delete conversation",
+    "deleteConfirmTitle": "Are you sure you want to delete it?",
+    "deleteConfirmText": "This conversation and all its messages will be deleted permanently. This can't be undone.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "threadDeleted": "Conversation deleted",
+    "deleteFailed": "Couldn't delete"
   },
   "room": {
     "status": "Status",

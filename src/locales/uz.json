@@ -1623,7 +1623,14 @@
     "indexDone": "{{count}} ta fayl o'qildi. Endi Hanguk AI ularning ichidagi ma'lumot bo'yicha javob beradi.",
     "enrichDoneTitle": "Lidlar boyitildi",
     "enrichDone": "{{count}} ta lid tahlil qilindi.",
-    "jobStopped": "Jarayon to'xtadi"
+    "jobStopped": "Jarayon to'xtadi",
+    "deleteThread": "Suhbatni o'chirish",
+    "deleteConfirmTitle": "Rostdan ham o'chirasizmi?",
+    "deleteConfirmText": "Bu suhbat va undagi barcha xabarlar butunlay o'chadi. Qaytarib bo'lmaydi.",
+    "delete": "O'chirish",
+    "cancel": "Bekor qilish",
+    "threadDeleted": "Suhbat o'chirildi",
+    "deleteFailed": "O'chirib bo'lmadi"
   },
   "room": {
     "status": "Holat",
