@@ -30,7 +30,7 @@ import {
 } from '@/hooks/useInvestor';
 import { useInvestorExport } from '@/hooks/useInvestorExport';
 import { count, percent, relativeTime } from '@/lib/investorFormat';
-import { FINAL_STATUSES, STUCK_DAYS, isSubmitted, stuckApplications } from '@/lib/investorPipeline';
+import { FINAL_STATUSES, STUCK_DAYS, acceptanceRate, isSubmitted, stuckApplications, visaRate } from '@/lib/investorPipeline';
 
 /* ---------------------------------------------------------------------------
  * SCREENS.md 3 - Applications.
@@ -60,9 +60,15 @@ const FUNNEL_TONES: Record<number, ChartTone> = {
 const UNTRACKED_STAGES = new Set<string>();
 
 const STATUS_TONE: Record<string, PillTone> = {
-  completed: 'success',
-  application_submitted: 'info',
-  pending: 'neutral',
+  chosen: 'neutral',
+  online: 'info',
+  offline: 'info',
+  interview: 'info',
+  accepted: 'success',
+  final: 'success',
+  visa_process: 'success',
+  visa_waiting: 'success',
+  visa_received: 'success',
   rejected: 'danger',
 };
 
@@ -76,7 +82,7 @@ export default function InvestorApplications() {
   const [filter, setFilter] = useState<'all' | 'stuck'>('all');
 
   const rows = applications.data ?? [];
-  // By CRM status: submitted_at is filled inconsistently.
+  // Sent online or on paper (v_investor_applications status).
   const submitted = rows.filter((a) => isSubmitted(a.status));
   const universities = useMemo(() => {
     const map = new Map<string, number>();
@@ -280,12 +286,24 @@ export default function InvestorApplications() {
               <MetricRow
                 label={t('investor.applications.acceptanceRate')}
                 hint={t('investor.applications.needsOffer')}
-                value={<NotTracked />}
+                value={
+                  acceptanceRate(rows) == null ? (
+                    <NotTracked />
+                  ) : (
+                    <Money className="text-[15px] font-bold">{percent(acceptanceRate(rows)!, 0)}</Money>
+                  )
+                }
               />
               <MetricRow
                 label={t('investor.applications.visaRate')}
                 hint={t('investor.applications.needsVisa')}
-                value={<NotTracked />}
+                value={
+                  visaRate(rows) == null ? (
+                    <NotTracked />
+                  ) : (
+                    <Money className="text-[15px] font-bold">{percent(visaRate(rows)!, 0)}</Money>
+                  )
+                }
               />
               <MetricRow
                 label={t('investor.applications.noMovement')}
