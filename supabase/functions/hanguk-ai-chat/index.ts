@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { embedContent001 } from "../_shared/gemini.ts";
 import { CLARIFY_GUIDE, QUERY_TOOL, runReadOnlyQuery, getAiSchema } from "./analytics.ts";
 import { chatCompletion, LimitReachedError, limitMessage, type Provider } from "./llm.ts";
-import { answeredHistory } from "./history.ts";
+import { answeredHistory, type StoredTurn } from "./history.ts";
 
 // Hanguk AI — retrieval-augmented assistant.
 // Answers questions about a student from their REAL data: call summaries
@@ -644,17 +644,31 @@ function streamTextAsSSE(text: string): Response {
   return new Response(stream, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
 }
 
+// A conversation id from the client is used only if it belongs to this user.
+async function ownThread(service: any, threadId: unknown, userId: string): Promise<string | null> {
+  if (typeof threadId !== "string" || !/^[0-9a-f-]{36}$/i.test(threadId)) return null;
+  const { data } = await service.from("ai_threads").select("id").eq("id", threadId).eq("user_id", userId).maybeSingle();
+  return data?.id ?? null;
+}
+
+// Short-term memory: the latest answered turns of this conversation only
+// (or of the whole stream for clients that do not send a conversation id).
+async function loadHistory(service: any, userId: string, threadId: string | null): Promise<StoredTurn[]> {
+  let q = service.from("ai_conversations").select("role, content").eq("user_id", userId);
+  q = threadId ? q.eq("thread_id", threadId) : q.is("thread_id", null);
+  const { data: prev } = await q.order("created_at", { ascending: false }).limit(16);
+  return answeredHistory((prev || []).reverse());
+}
+
 async function runStaffAgent(
   userClient: any,
   service: any,
-  opts: { message: string; language: string; userId: string; staffName: string; canQuery: boolean },
+  opts: { message: string; language: string; userId: string; staffName: string; canQuery: boolean; threadId: string | null },
 ): Promise<Response> {
-  const { message, language, userId, staffName, canQuery } = opts;
+  const { message, language, userId, staffName, canQuery, threadId } = opts;
 
-  const { data: prev } = await service.from("ai_conversations")
-    .select("role, content").eq("user_id", userId).order("created_at", { ascending: false }).limit(16);
-  const history = answeredHistory((prev || []).reverse());
-  await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "user", content: message });
+  const history = await loadHistory(service, userId, threadId);
+  await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "user", content: message, thread_id: threadId });
 
   // owner/admin also get the read-only SQL analytics tool + its schema.
   const schema = canQuery ? await getAiSchema() : null;
@@ -696,7 +710,7 @@ async function runStaffAgent(
   }
 
   if (!finalText) finalText = "I couldn't produce a verified answer from the data. Please rephrase, or check the relevant section directly.";
-  await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "assistant", content: finalText });
+  await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "assistant", content: finalText, thread_id: threadId });
   return streamTextAsSSE(finalText);
 }
 
@@ -705,7 +719,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, user_id, user_type, language: requestedLang = "en" } = await req.json();
+    const { message, user_id, user_type, language: requestedLang = "en", thread_id: rawThreadId = null } = await req.json();
     if (!message || !user_id || !user_type) {
       return new Response(JSON.stringify({ error: "Missing required fields: message, user_id, user_type" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -739,8 +753,9 @@ serve(async (req) => {
               ]);
               const roleList = (roleRows || []).map((r: any) => r.role);
               const canQuery = roleList.includes("owner") || roleList.includes("admin");
+              const threadId = await ownThread(supabase, rawThreadId, authedUser.id);
               return await runStaffAgent(userClient, supabase, {
-                message, language, userId: authedUser.id, staffName: prof?.full_name || "Staff", canQuery,
+                message, language, userId: authedUser.id, staffName: prof?.full_name || "Staff", canQuery, threadId,
               });
             }
           }
@@ -755,11 +770,10 @@ serve(async (req) => {
       : await buildStaffPrompt(supabase, user_id, message, language);
 
     // Short-term chat memory.
-    const { data: prev } = await supabase.from("ai_conversations")
-      .select("role, content").eq("user_id", user_id).order("created_at", { ascending: false }).limit(16);
-    const history = answeredHistory((prev || []).reverse());
+    const legacyThreadId = await ownThread(supabase, rawThreadId, user_id);
+    const history = await loadHistory(supabase, user_id, legacyThreadId);
 
-    await supabase.from("ai_conversations").insert({ user_id, user_type, role: "user", content: message });
+    await supabase.from("ai_conversations").insert({ user_id, user_type, role: "user", content: message, thread_id: legacyThreadId });
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -800,7 +814,7 @@ serve(async (req) => {
           }
         }
         if (fullResponse) {
-          await supabase.from("ai_conversations").insert({ user_id, user_type, role: "assistant", content: fullResponse });
+          await supabase.from("ai_conversations").insert({ user_id, user_type, role: "assistant", content: fullResponse, thread_id: legacyThreadId });
         }
         await writer.close();
       } catch (e) {

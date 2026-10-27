@@ -1,6 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { threadTitleFrom } from '@/lib/aiThreads';
+
+// ai_threads is newer than the generated types.
+const db = supabase as unknown as SupabaseClient;
 
 type Message = {
   role: 'user' | 'assistant';
@@ -11,11 +16,21 @@ type UserType = 'student' | 'staff';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hanguk-ai-chat`;
 
-export function useHangukAI(userType: UserType, language: string = 'en') {
+interface Options {
+  /** Keep each conversation separately (ai_threads). Used by the CRM page. */
+  threads?: boolean;
+  /** Called after an answer is saved, e.g. to refresh the conversation list. */
+  onSaved?: () => void;
+}
+
+export function useHangukAI(userType: UserType, language: string = 'en', options: Options = {}) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const threadRef = useRef<string | null>(null);
+  const { threads = false, onSaved } = options;
 
   const sendMessage = useCallback(async (input: string) => {
     if (!user || !input.trim()) return;
@@ -47,6 +62,19 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+      // A new conversation starts with the first question.
+      if (threads && !threadRef.current) {
+        const { data: created, error: threadErr } = await db
+          .from('ai_threads')
+          .insert({ user_id: user.id, user_type: userType, title: threadTitleFrom(input) })
+          .select('id')
+          .single();
+        if (!threadErr && created?.id) {
+          threadRef.current = created.id as string;
+          setThreadId(threadRef.current);
+        }
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
@@ -59,6 +87,7 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
           user_id: user.id,
           user_type: userType,
           language,
+          thread_id: threads ? threadRef.current : undefined,
         }),
       });
 
@@ -138,12 +167,38 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
       setMessages(prev => prev.filter((_, i) => i !== prev.length - 1));
     } finally {
       setIsLoading(false);
+      onSaved?.();
     }
-  }, [user, userType, language]);
+  }, [user, userType, language, threads, onSaved]);
 
+  /** Start a new conversation (the next question opens a new thread). */
   const clearMessages = useCallback(() => {
     setMessages([]);
     setError(null);
+    threadRef.current = null;
+    setThreadId(null);
+  }, []);
+
+  /** Continue an earlier conversation: load its messages and keep writing to it. */
+  const openThread = useCallback(async (id: string) => {
+    setError(null);
+    const { data, error: loadErr } = await db
+      .from('ai_conversations')
+      .select('role, content')
+      .eq('thread_id', id)
+      .order('created_at', { ascending: true })
+      .limit(200);
+    if (loadErr) {
+      setError(loadErr.message);
+      return;
+    }
+    threadRef.current = id;
+    setThreadId(id);
+    setMessages(
+      (data ?? [])
+        .filter((r: { role: string; content: string }) => (r.role === 'user' || r.role === 'assistant') && r.content)
+        .map((r: { role: string; content: string }) => ({ role: r.role as Message['role'], content: r.content })),
+    );
   }, []);
 
   return {
@@ -152,5 +207,7 @@ export function useHangukAI(userType: UserType, language: string = 'en') {
     error,
     sendMessage,
     clearMessages,
+    openThread,
+    threadId,
   };
 }
