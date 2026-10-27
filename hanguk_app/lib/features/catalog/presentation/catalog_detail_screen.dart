@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../guest/presentation/widgets/contact_sheet.dart';
@@ -11,6 +12,7 @@ import '../data/catalog_filters.dart';
 import '../data/catalog_repository.dart';
 import '../domain/catalog_models.dart';
 import 'catalog_format.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Design screen 03 — "Talablar, narx va daraja": one university's faculties
 /// and fees, what it asks for, and its timeline, all from the guideline Excel
@@ -36,10 +38,13 @@ class CatalogDetailScreen extends ConsumerStatefulWidget {
   }) {
     return Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CatalogDetailScreen(
+        builder: (_) => NavScaffold(
+          current: AppTab.universities,
+          child: CatalogDetailScreen(
           university: university,
           initialDegree: degree,
           isGuest: isGuest,
+          ),
         ),
       ),
     );
@@ -141,7 +146,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
     final router = GoRouter.maybeOf(context);
     ContactSheet.show(
       context,
-      onJoin: widget.isGuest && router != null ? () => router.push('/login', extra: {'magic_code': true}) : null,
+      onJoin: tracked('catalog_detail.contact_sheet_join', widget.isGuest && router != null ? () => router.push('/login', extra: {'magic_code': true}) : null),
     );
   }
 
@@ -171,7 +176,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
                 university: u,
                 guideline: g,
                 season: season,
-                onBack: () => Navigator.of(context).pop(),
+                onBack: tracked('catalog_detail.header_back', () => Navigator.of(context).pop()),
               ),
               Transform.translate(
                 offset: const Offset(0, -40),
@@ -213,7 +218,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: _BottomBar(window: window, onContact: _contact),
+            child: _BottomBar(window: window, onContact: tracked('catalog_detail.bottom_bar_contact', _contact)),
           ),
         ],
       ),
@@ -243,7 +248,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
               SeoulOutlineButton(
                 label: l.commonRetry,
                 expand: false,
-                onPressed: () => ref.invalidate(catalogDetailProvider(widget.university.forDegree(_degree)!.id)),
+                onPressed: tracked('catalog_detail.retry', () => ref.invalidate(catalogDetailProvider(widget.university.forDegree(_degree)!.id))),
               ),
             ],
           )
@@ -257,7 +262,7 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
                   : '${money(groups[i].minFee!, widget.university.forDegree(_degree)!.currency, locale: l.localeName)}'
                         '${periodSuffix(l, groups[i].period)}',
               selected: i == _group,
-              onTap: () => setState(() => _group = i),
+              onTap: tracked('catalog_detail.faculty_row', () => setState(() => _group = i)),
             ),
       ],
     );
@@ -499,7 +504,7 @@ class _Header extends StatelessWidget {
                       _CircleButton(
                         icon: Icons.chevron_left_rounded,
                         label: MaterialLocalizations.of(context).backButtonTooltip,
-                        onTap: onBack,
+                        onTap: tracked('catalog_detail.header_back', onBack),
                       ),
                       const Spacer(),
                       // Decorative only: the ♡ has no action of its own.
@@ -563,7 +568,7 @@ class _CircleButton extends StatelessWidget {
       button: true,
       label: label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_detail.circle_button', onTap),
         behavior: HitTestBehavior.opaque,
         child: circle,
       ),
@@ -622,7 +627,7 @@ class _DegreeTabs extends StatelessWidget {
           selected: on,
           enabled: available,
           child: GestureDetector(
-            onTap: available ? () => onPick(id) : null,
+            onTap: tracked('catalog_detail.pick', available ? () => onPick(id) : null),
             behavior: HitTestBehavior.opaque,
             child: AnimatedContainer(
               duration: SeoulMotion.fast,
@@ -747,7 +752,7 @@ class _FacultyRow extends StatelessWidget {
       button: true,
       selected: selected,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('catalog_detail.faculty_row', onTap),
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: SeoulMotion.fast,
@@ -900,7 +905,7 @@ class _BottomBar extends StatelessWidget {
                   type: MaterialType.transparency,
                   child: InkWell(
                     borderRadius: SeoulRadii.controlR,
-                    onTap: onContact,
+                    onTap: tracked('catalog_detail.bottom_bar_contact', onContact),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Center(

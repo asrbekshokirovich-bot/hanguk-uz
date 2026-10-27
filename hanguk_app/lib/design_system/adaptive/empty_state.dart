@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics/tracked.dart';
 import '../seoul_night/seoul_night.dart';
 
 /// Shared empty-state widget for "no rows / no data yet" surfaces.
@@ -56,7 +57,7 @@ class EmptyState extends StatelessWidget {
           ),
           if (ctaLabel != null && onCta != null) ...[
             const SizedBox(height: 20),
-            LimeButton(label: ctaLabel!, onPressed: onCta, expand: false),
+            LimeButton(label: ctaLabel!, onPressed: tracked('empty_state.empty_cta', onCta), expand: false),
           ],
         ],
       ),

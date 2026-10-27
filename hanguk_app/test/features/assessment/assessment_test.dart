@@ -83,13 +83,15 @@ void main() {
     final catalog = [uni('a', topik: 3), uni('b', topik: 4), uni('c', topik: 2)];
     final need = requiredBank(StudyRoute.bachelor, catalog);
 
-    test('enough bank and TOPIK: a high band', () {
+    test('enough bank and TOPIK alone: a fair chance, not yet a high one', () {
       final o = assess(
         AssessmentInput(topik: 4, gpa: 4.2, bankKrw: need, universityIds: const ['a', 'b', 'c']),
         catalog: catalog,
       );
-      expect(o.band, EligibilityBand.high);
-      expect(o.visaPercent, inInclusiveRange(65, 85));
+      // 30 + TOPIK 4 (12) + the bank (15) + a 4.2 certificate (3).
+      expect(o.band, EligibilityBand.mid);
+      expect(o.visaPercent, 60);
+      expect(o.visaWithConsultantPercent, greaterThan(o.visaPercent));
       expect(o.chances.map((c) => c.university.institutionId), ['a', 'b', 'c']);
       expect(o.openCount, 3);
       expect(o.fixes.where((f) => f.kind == FixKind.bank), isEmpty);
@@ -103,7 +105,7 @@ void main() {
       final bank = o.fixes.firstWhere((f) => f.kind == FixKind.bank);
       expect(bank.value, need);
       expect(bank.gain, greaterThan(0));
-      expect(o.visaPercent + bank.gain, lessThanOrEqualTo(85));
+      expect(o.visaPercent + bank.gain, lessThanOrEqualTo(95));
     });
 
     test('a prior refusal never raises the visa chance', () {
@@ -137,6 +139,44 @@ void main() {
       final r = assess(input, catalog: catalog).toResult();
       expect(r['band'], isIn(['high', 'mid', 'low']));
       expect((r['universities'] as List).single['id'], 'a');
+    });
+  });
+
+  group('visaHints: the old quiz\'s tariff and weak point', () {
+    final catalog = [uni('a', topik: 3)];
+    final need = requiredBank(StudyRoute.bachelor, catalog);
+    VisaHints hints(AssessmentInput i) => visaHints(i, catalog: catalog, requiredBankKrw: need, now: DateTime(2026, 10, 26));
+
+    test('TOPIK 2 for a bachelor\'s, income documented, money in the bank: language, Premium', () {
+      final h = hints(AssessmentInput(topik: 2, incomeDocumented: true, bankKrw: need));
+      expect(h.low, 'language');
+      expect(h.tariff, Tariff.premium);
+      expect(h.formalIncome, isTrue);
+    });
+
+    test('TOPIK 1 and nothing in the bank: Hanbox', () {
+      final h = hints(const AssessmentInput(topik: 1, incomeDocumented: true));
+      expect(h.low, 'language');
+      expect(h.tariff, Tariff.hanbox);
+    });
+
+    test('the language met, money short and no income papers: NO RISK, the income first', () {
+      final h = hints(const AssessmentInput(topik: 3, bankKrw: 1000000));
+      expect(h.low, 'income');
+      expect(h.tariff, Tariff.noRisk);
+    });
+
+    test('nothing against: no weak point', () {
+      final h = hints(AssessmentInput(topik: 4, incomeDocumented: true, bankKrw: need));
+      expect(h.low, isNull);
+      expect(h.tariff, Tariff.premium);
+    });
+
+    test('the result the CRM reads carries the tariff (leads.tariff_interest)', () {
+      final r = assess(AssessmentInput(topik: 2, incomeDocumented: true, bankKrw: need, universityIds: const ['a']), catalog: catalog)
+          .toResult();
+      expect(r['tariff'], 'premium');
+      expect(r['low'], 'language');
     });
   });
 

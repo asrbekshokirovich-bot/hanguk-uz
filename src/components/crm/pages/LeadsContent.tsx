@@ -266,7 +266,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
 
   return (
     <div className="min-h-full">
-      <div className="mx-auto max-w-[1360px] px-1 pb-16 pt-1">
+      <div className="mx-auto max-w-[1440px] px-1 pb-16 pt-1">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-5">
           <div>
             <h1 className="text-[28px] font-bold tracking-[-0.015em]">

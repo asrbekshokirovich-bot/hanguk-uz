@@ -4859,4 +4859,805 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get ajBack => 'Назад';
+
+  @override
+  String get btField => 'Выберите направление';
+
+  @override
+  String get btCount => 'Подходящие университеты';
+
+  @override
+  String get btVisa => 'Ваши шансы на визу';
+
+  @override
+  String get btList => 'Смотреть список';
+
+  @override
+  String get btStrip => 'Подходящие вам';
+
+  @override
+  String get btCity => 'Какой город?';
+
+  @override
+  String get btDegree => 'Какая ступень?';
+
+  @override
+  String get btTopik => 'Ваш уровень корейского';
+
+  @override
+  String get btIelts => 'Ваш балл IELTS';
+
+  @override
+  String get btFee => 'Стоимость обучения';
+
+  @override
+  String get btType => 'Государственный или частный';
+
+  @override
+  String get btGrant => 'Нужен грант?';
+
+  @override
+  String get fdSectionIelts => 'Мой английский (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => 'Не буду учиться на английском';
+
+  @override
+  String fdIeltsHint(String score) {
+    return 'Программы на английском — до IELTS $score';
+  }
+
+  @override
+  String get fdSectionGrant => 'Грант / стипендия';
+
+  @override
+  String get fdGrantHint => 'Скидка на обучение';
+
+  @override
+  String get fdGrantNone => 'Не нужно';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return 'Грант $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — открывается TOPIK $level+';
+  }
+
+  @override
+  String get fdTopikHintNone => 'Выберите уровень';
+
+  @override
+  String get fdTopikLevel1 => 'Приветствия';
+
+  @override
+  String get fdTopikLevel2 => 'Простые фразы';
+
+  @override
+  String get fdTopikLevel3 => 'Бытовое общение';
+
+  @override
+  String get fdTopikLevel4 => 'Свободное общение';
+
+  @override
+  String get fdTopikLevel5 => 'Научные тексты';
+
+  @override
+  String get fdTopikLevel6 => 'Как родной';
+
+  @override
+  String fdCodeSms(String bold) {
+    return '$bold код из SMS консультанта';
+  }
+
+  @override
+  String get fdCodeEight => '8-значный';
+
+  @override
+  String get fdCodeUnlocks => 'Код открывает';
+
+  @override
+  String get fdCodeChat => 'Чат с консультантом';
+
+  @override
+  String get fdCodeScanShort => 'Сканировать QR';
+
+  @override
+  String get fdCodeNone => 'Нет кода';
+
+  @override
+  String get fdCodeFreeConsult => 'Бесплатная консультация';
+
+  @override
+  String get uaTitle => 'Шанс поступления';
+
+  @override
+  String get uaCity => 'Город';
+
+  @override
+  String get uaAskTitle => 'Хотите узнать шанс поступить в этот университет?';
+
+  @override
+  String get uaAskBody =>
+      '12 вопросов + Study Plan + тестовое собеседование · около 3 минут. Процент, точность и способы повысить — в конце.';
+
+  @override
+  String get uaAskStart => 'Начать оценку →';
+
+  @override
+  String get uaImpactNone => 'не влияет';
+
+  @override
+  String get uaSecAcademic => 'Учёба';
+
+  @override
+  String get uaSecLanguage => 'Язык';
+
+  @override
+  String get uaSecDocuments => 'Пакет документов';
+
+  @override
+  String get uaSecTests => 'Оценочные тесты';
+
+  @override
+  String get uaTestsCount => 'входит в процент';
+
+  @override
+  String get uaTestsBadge => '+ точность';
+
+  @override
+  String get uaTestsHint => 'Пройдите тесты — шанс поступления станет точнее';
+
+  @override
+  String get uaNo => 'Нет';
+
+  @override
+  String get uaHave => 'Есть';
+
+  @override
+  String get uaQDegree => 'На какую ступень поступаете';
+
+  @override
+  String get uaDegLanguage => 'Языковые курсы (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Бакалавриат';
+
+  @override
+  String get uaDegMaster => 'Магистратура';
+
+  @override
+  String get uaQGpa => 'Средний балл аттестата / диплома';
+
+  @override
+  String get uaQGap => 'Сколько прошло после выпуска';
+
+  @override
+  String get uaGap0 => '0 лет';
+
+  @override
+  String get uaGap1 => '1 год';
+
+  @override
+  String get uaGap2 => '2 года';
+
+  @override
+  String get uaGap3 => '3+ лет';
+
+  @override
+  String get uaQExperience => 'Опыт по выбранному направлению';
+
+  @override
+  String get uaExpCourse => 'Курс / кружок';
+
+  @override
+  String get uaExpProject => 'Проект';
+
+  @override
+  String get uaExpWork => 'Опыт работы';
+
+  @override
+  String get uaQOlympiad => 'Олимпиады / конкурсы';
+
+  @override
+  String get uaOlSchool => 'Школьная';
+
+  @override
+  String get uaOlNational => 'Республиканская';
+
+  @override
+  String get uaOlInternational => 'Международная';
+
+  @override
+  String get uaQTopik => 'Уровень TOPIK';
+
+  @override
+  String get uaQTopikCert => 'Сертификат TOPIK';
+
+  @override
+  String get uaCertOld => 'Старше 2 лет';
+
+  @override
+  String get uaCertFresh => 'Действует (до 2 лет)';
+
+  @override
+  String get uaQIelts => 'Английский (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Мотивационное письмо';
+
+  @override
+  String get uaMotDraft => 'Черновик';
+
+  @override
+  String get uaMotReady => 'Готово';
+
+  @override
+  String get uaQRecommendation => 'Рекомендация (от учителя)';
+
+  @override
+  String get uaQPortfolio => 'Портфолио (дизайн, искусство, проекты)';
+
+  @override
+  String get uaQActivity => 'Внеучебная деятельность';
+
+  @override
+  String get uaActVolunteer => 'Волонтёрство';
+
+  @override
+  String get uaActSportArt => 'Спорт / искусство';
+
+  @override
+  String get uaActLeader => 'Руководил организацией';
+
+  @override
+  String get uaTestPlan => 'Тест Study Plan';
+
+  @override
+  String get uaTestTalk => 'Тестовое собеседование';
+
+  @override
+  String get uaTestStart => 'Начать';
+
+  @override
+  String get uaTestTaken => 'Сдан · только одна попытка';
+
+  @override
+  String get uaTestsNeedCode =>
+      'Тесты открываются по коду клиента — консультант пришлёт его по SMS';
+
+  @override
+  String get uaResultTitle => 'Ваш шанс поступления';
+
+  @override
+  String get uaAccuracyLow => 'Точность: низкая — тесты ещё не сданы';
+
+  @override
+  String get uaAccuracyMid => 'Точность: средняя — сдан один тест';
+
+  @override
+  String get uaAccuracyHigh => 'Точность: высокая — сданы оба теста';
+
+  @override
+  String get uaInterviewFailed =>
+      'Собеседование ниже 60 баллов — при реальном поступлении этот этап не пройти.';
+
+  @override
+  String get uaWays => 'КАК ПОВЫСИТЬ';
+
+  @override
+  String get uaWayMotivation => 'Подготовьте мотивационное письмо';
+
+  @override
+  String get uaWayRecommendation => 'Получите рекомендацию';
+
+  @override
+  String get sptQ1 => 'Почему именно этот университет и это направление?';
+
+  @override
+  String get sptQ2 => 'Что и как вы будете изучать в Корее?';
+
+  @override
+  String get sptQ3 => 'Чем займётесь после выпуска?';
+
+  @override
+  String get sptHint => 'Пишите на корейском или английском';
+
+  @override
+  String get sptSubmit => 'Отправить на проверку';
+
+  @override
+  String get sptChecking => 'ИИ проверяет…';
+
+  @override
+  String get sptError =>
+      'Не удалось проверить. Проверьте интернет и отправьте снова.';
+
+  @override
+  String get sptResultTitle => 'БАЛЛ STUDY PLAN';
+
+  @override
+  String get sptMotivation => 'Мотивация и знание направления';
+
+  @override
+  String get sptPlan => 'План обучения';
+
+  @override
+  String get sptCareer => 'План после выпуска';
+
+  @override
+  String get sptLanguage => 'Язык и стиль';
+
+  @override
+  String get sptStrengths => 'Сильные стороны';
+
+  @override
+  String get sptImprovements => 'Что улучшить';
+
+  @override
+  String get sptDone => 'Готово';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'поступление +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'поступление −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return 'Для $name · $questions вопроса · $minutes мин · 1 попытка';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'Сдайте TOPIK $level';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return 'Ответьте на 3 вопроса для $name. Время — $minutes мин, одна попытка; когда время выйдет, написанное отправится.';
+  }
+
+  @override
+  String get vzTitle => 'Дадут ли';
+
+  @override
+  String get vzTitleMark => 'визу?';
+
+  @override
+  String get vzYes => 'Да';
+
+  @override
+  String get vzOne => 'Один';
+
+  @override
+  String get vzTwoPlus => 'Два и больше';
+
+  @override
+  String get vzSecEducation => 'Образование';
+
+  @override
+  String get vzSecMoney => 'Финансы';
+
+  @override
+  String get vzSecHistory => 'История';
+
+  @override
+  String get vzSecPrep => 'Подготовка';
+
+  @override
+  String get vzQEducation => 'Последнее образование';
+
+  @override
+  String get vzEduSchool => 'Школа (11 класс)';
+
+  @override
+  String get vzEduCollege => 'Колледж / лицей';
+
+  @override
+  String get vzQAge => 'Возраст';
+
+  @override
+  String get vzQIncome => 'Годовой доход родителей';
+
+  @override
+  String get vzIncome0 => '< \$5 000';
+
+  @override
+  String get vzIncome1 => '\$5–10 тыс.';
+
+  @override
+  String get vzIncome2 => '\$10–20 тыс.';
+
+  @override
+  String get vzIncome3 => '\$20 тыс.+';
+
+  @override
+  String get vzQIncomeDocumented =>
+      'Доход официально подтверждён (зарплата, налоги, бизнес)';
+
+  @override
+  String get vzQSponsor => 'Кто спонсор';
+
+  @override
+  String get vzSponsorSelf => 'Я сам';
+
+  @override
+  String get vzSponsorParents => 'Родители';
+
+  @override
+  String get vzSponsorRelative => 'Другой родственник';
+
+  @override
+  String get vzQRelationDoc => 'Документ о родстве (с апостилем)';
+
+  @override
+  String get vzQStability => 'Как давно доход стабилен';
+
+  @override
+  String get vzStable0 => '< 6 мес.';
+
+  @override
+  String get vzStable1 => '6–12 мес.';
+
+  @override
+  String get vzStable2 => '1–3 года';
+
+  @override
+  String get vzStable3 => '3+ лет';
+
+  @override
+  String get vzQProperty =>
+      'Недвижимость на имя родителей (дом, квартира, земля)';
+
+  @override
+  String get vzQCar => 'Автомобиль на имя родителей';
+
+  @override
+  String get vzQBusiness => 'Бизнес / компания родителей';
+
+  @override
+  String get vzBusinessIp => 'ИП';
+
+  @override
+  String get vzBusinessLlc => 'Компания (ООО)';
+
+  @override
+  String get vzQRefused => 'Был ли отказ в визе';
+
+  @override
+  String get vzQKoreaBefore => 'Были ли вы в Корее';
+
+  @override
+  String get vzKoreaOnTime => 'Да, вернулся вовремя';
+
+  @override
+  String get vzKoreaOverstay => 'Да, превысил срок';
+
+  @override
+  String get vzQIllegalRelatives =>
+      'Есть ли близкие родственники, нелегально находящиеся в Корее';
+
+  @override
+  String get vzQLegalRelatives => 'Родственники, законно живущие в Корее';
+
+  @override
+  String get vzQStudyPlan => 'Study Plan (план обучения)';
+
+  @override
+  String get vzQInterview => 'Подготовка к собеседованию';
+
+  @override
+  String get vzInterviewSelf => 'Готовился сам';
+
+  @override
+  String get vzInterviewAi => 'С Hanguk AI 3+ раза';
+
+  @override
+  String get vzBandHigh => 'Высокий шанс';
+
+  @override
+  String get vzBandHighHint => 'готовьте документы';
+
+  @override
+  String get vzBandMid => 'Средний шанс';
+
+  @override
+  String get vzBandMidHint => 'нужно поработать';
+
+  @override
+  String get vzBandLow => 'Низкий шанс';
+
+  @override
+  String get vzBandLowHint => 'многое исправить';
+
+  @override
+  String get vzTourGauge => 'Шанс на визу — меняется по ответам';
+
+  @override
+  String get vzTourEducation => 'Образование: ступень, баллы, возраст';
+
+  @override
+  String get vzTourLanguage => 'Язык: TOPIK и IELTS';
+
+  @override
+  String get vzTourMoney => 'Финансы: посольство проверяет больше всего';
+
+  @override
+  String get vzTourHistory => 'История: прошлые визы и родственники';
+
+  @override
+  String get vzTourPrep => 'Подготовка: Study Plan, собеседование, письма';
+
+  @override
+  String get vzTourReplay => 'Посмотреть подсказки снова';
+
+  @override
+  String uaVisaUp(int n) {
+    return 'виза +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return 'виза −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n лет';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return 'с консультантом ~$n%';
+  }
+
+  @override
+  String get tuHero => 'Университет: название, город и цена';
+
+  @override
+  String get tuFacts => 'Город, контракт, язык и срок документов';
+
+  @override
+  String get tuAsk => 'Здесь узнаете шанс поступления';
+
+  @override
+  String get tuPick => 'Понравился — добавьте в выбор, до 3';
+
+  @override
+  String get taAcademic => 'Учёба: у каждого ответа видно влияние';
+
+  @override
+  String get taLanguage => 'Язык: TOPIK и IELTS';
+
+  @override
+  String get taDocuments => 'Документы: письмо, рекомендация, портфолио';
+
+  @override
+  String get taTests => 'Тесты: Study Plan и собеседование — по разу';
+
+  @override
+  String get taResult => 'Итог: процент и как его повысить';
+
+  @override
+  String get fdCodeBannerTitle => 'Этот раздел — для студентов Hanguk';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Станьте нашим студентом и пользуйтесь всем: Подготовка, Моя заявка и Документы откроются полностью.';
+
+  @override
+  String get fdCodeTelegram => 'Написать админу в Telegram';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Ваш код клиента:';
+
+  @override
+  String get fdCodePaste => 'вставить →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Подготовка — для клиентов Premium и No-Risk. Если есть код, введите его';
+
+  @override
+  String get fdGrantOrder => 'сначала баллы → потом грант';
+
+  @override
+  String get fdGrantStepScores => '1 · ВАШИ БАЛЛЫ';
+
+  @override
+  String get fdGrantStepWanted => '2 · НУЖНЫЙ ГРАНТ';
+
+  @override
+  String get fdGrantAny => 'Не важно';
+
+  @override
+  String get fdSectionCityMap => 'Город · выберите на карте';
+
+  @override
+  String get fdAllRegions => 'Все';
+
+  @override
+  String get fdRegionGangwonPlus => 'Канвон+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'Не менее $n%';
+  }
+
+  @override
+  String get ulTitle => 'Университеты';
+
+  @override
+  String get ulSearchHint => 'Название, направление, город';
+
+  @override
+  String get ulPrivate => 'Частный университет';
+
+  @override
+  String get ulState => 'Государственный университет';
+
+  @override
+  String get ulNoRequirement => 'Без требований';
+
+  @override
+  String get fltTitle => 'Фильтр';
+
+  @override
+  String get fltAllFields => 'Все';
+
+  @override
+  String get fltFeeSem => 'Контракт / семестр';
+
+  @override
+  String ulCount(int n) {
+    return '$n';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n университетов · нажмите на карточку';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'ПОДХОДЯЩИЕ ВУЗЫ · ИЗ $n';
+  }
+
+  @override
+  String get vzReport => 'Посмотреть отчёт →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'Тест не открылся — проверьте интернет и попробуйте снова';
+
+  @override
+  String get tuGrants => 'Грант по вашему результату TOPIK или IELTS';
+
+  @override
+  String get ugTitle => 'Грант';
+
+  @override
+  String get ugSubtitle => 'Скидка с оплаты при поступлении — по TOPIK / IELTS';
+
+  @override
+  String get ugNoCertificate => 'Без сертификата';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik или $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik и $english';
+  }
+
+  @override
+  String get ugNone =>
+      'В руководстве этого университета нет гранта за TOPIK / IELTS';
+
+  @override
+  String get ugYours => 'ВАШ';
+
+  @override
+  String get fltOnePercent => 'Университеты топ-1%';
+
+  @override
+  String get fltOnePercentOnly => 'Только 1%';
+
+  @override
+  String get deviceCodeTitle => 'Код устройства';
+
+  @override
+  String get deviceCodeBody =>
+      'Сотрудник вводит этот код в CRM (Ilova analitikasi → Sozlamalar), чтобы отметить телефон как тестовый.';
+
+  @override
+  String get deviceCodeNone => 'Код ещё не готов: попробуйте чуть позже.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Версия $version';
+  }
+
+  @override
+  String get leadForWhomQ => 'Для кого?';
+
+  @override
+  String get leadForWhomSelf => 'Для себя';
+
+  @override
+  String get leadForWhomChild => 'Для ребёнка';
+
+  @override
+  String get leadForWhomRelative => 'Для родственника';
+
+  @override
+  String get leadHowHeardQ => 'Как вы нас нашли?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return 'Из приложения · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => 'Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram';
+
+  @override
+  String get leadHeardFriend => 'Рекомендация друга или родственника';
+
+  @override
+  String get leadHeardKoreaFriend => 'Знакомый, который учится в Корее';
+
+  @override
+  String get leadHeardLearningCenter => 'Учебный центр';
+
+  @override
+  String get leadHeardEvent => 'Мероприятие';
+
+  @override
+  String get leadHeardStore => 'Play Market или App Store';
+
+  @override
+  String get leadHeardOther => 'Другое';
+
+  @override
+  String get leadConsent =>
+      'Консультант увидит выбранные вами университеты и ответы на тест и на их основе даст совет.';
+
+  @override
+  String get guestPushTitle => 'Не пропустите сроки';
+
+  @override
+  String get guestPushBody =>
+      'Присылать уведомления о сроках приёма и новых грантах? Номер телефона не нужен.';
+
+  @override
+  String get guestPushYes => 'Да, присылайте';
+
+  @override
+  String get guestPushLater => 'Позже';
 }

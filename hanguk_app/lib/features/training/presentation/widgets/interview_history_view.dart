@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/interview_repository.dart';
 import 'interview_analytics_view.dart';
 import 'training_status_label.dart';
+import '../../../../features/discover/presentation/widgets/app_nav.dart';
 
 class InterviewHistoryView extends ConsumerStatefulWidget {
   const InterviewHistoryView({super.key});
@@ -63,7 +65,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
                   label: l.a11yTooltipBack,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.pop(context),
+                    onTap: tracked('interview_history.back', () => Navigator.pop(context)),
                     child: Container(
                       width: SeoulSizes.minTapTarget,
                       height: SeoulSizes.minTapTarget,
@@ -187,15 +189,18 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
       blur: false,
-      onTap: () {
+      onTap: tracked('interview_history.open_session', () {
         if (isCompleted) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => InterviewAnalyticsView(
+              builder: (_) => NavScaffold(
+                current: AppTab.prepare,
+                child: InterviewAnalyticsView(
                 overrideSessionId: session['id'],
                 overrideVapiCallId: session['vapi_call_id'] as String?,
-                onBackPressed: () => Navigator.pop(context),
+                onBackPressed: tracked('interview_history.analytics_back', () => Navigator.pop(context)),
+                ),
               ),
             ),
           );
@@ -209,7 +214,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
             ),
           );
         }
-      },
+      }),
       child: Row(
         children: [
           Container(
@@ -267,7 +272,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
               color: SeoulColors.textSecondary,
               size: 20,
             ),
-            onPressed: () => _confirmDelete(session['id'] as String),
+            onPressed: tracked('interview_history.delete_session', () => _confirmDelete(session['id'] as String)),
           ),
         ],
       ),
@@ -295,7 +300,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
+              onPressed: tracked('interview_history.cancel', () => Navigator.pop(ctx, false)),
               child: Text(
                 dl.cancel,
                 style: SeoulType.button.copyWith(
@@ -304,7 +309,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
               ),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
+              onPressed: tracked('interview_history.delete_label', () => Navigator.pop(ctx, true)),
               child: Text(
                 dl.deleteLabel,
                 style: SeoulType.button.copyWith(color: SeoulColors.dangerText),

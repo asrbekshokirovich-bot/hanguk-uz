@@ -48,6 +48,7 @@ import {
   ArrowRight,
   ChevronRight,
   RotateCcw,
+  Ban,
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { normalizePlanName } from '@/hooks/useStudentPlan';
@@ -55,6 +56,8 @@ import { cn } from '@/lib/utils';
 import { AddStudentDialog } from './AddStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
 import { TransferStudentDialog } from './TransferStudentDialog';
+import { PaymentBalanceLines } from './payments/PaymentBalanceLines';
+import type { CurrencyBalance } from '@/lib/paymentBalance';
 
 type StudentProfile = Tables<'profiles'> & {
   applications?: (Tables<'applications'> & {
@@ -64,8 +67,12 @@ type StudentProfile = Tables<'profiles'> & {
   /** Computed upstream by useCRMData (not columns on profiles). */
   paymentStatus?: string;
   initialPaymentOverdue?: boolean;
+  /** Part-paid balances per currency: "5000$ dan 1000$ to'langan, 4000$ qoldi". */
+  paymentBalances?: CurrencyBalance[];
   /** Exempt for the active season only — see useCRMData. */
   freeReapplication?: boolean;
+  /** Contract cancelled in the active season — see useCRMData. */
+  contractCancelled?: boolean;
 };
 
 type Tone = 'lime' | 'info' | 'neutral' | 'successSoft' | 'warning' | 'destructive';
@@ -318,7 +325,11 @@ export function StudentList({
   };
   const paymentOf = (student: StudentProfile) => {
     const status = student.paymentStatus;
-    return status ? PAYMENT_META[status] : undefined;
+    const meta = status ? PAYMENT_META[status] : undefined;
+    // Past the 7 working days with the contract not paid in full: the chip
+    // turns red. The price is not touched — staff decide what happens next.
+    if (meta && student.initialPaymentOverdue) return { ...meta, tone: 'destructive' as Tone };
+    return meta;
   };
 
   /**
@@ -778,13 +789,21 @@ export function StudentList({
                       {/* The exemption belongs here rather than beside the plan:
                           it is the answer to "why is nothing owed", and the
                           plan it sits next to is still the student's real one. */}
-                      {student.freeReapplication ? (
+                      {student.contractCancelled ? (
+                        <Badge variant="destructive" className="gap-1">
+                          <Ban className="h-3 w-3" />
+                          {t('crm.contractCancelledShort')}
+                        </Badge>
+                      ) : student.freeReapplication ? (
                         <Badge variant="successSoft" className="gap-1">
                           <RotateCcw className="h-3 w-3" />
                           {t('crm.freeReapplicationShort')}
                         </Badge>
                       ) : payment ? (
-                        <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge>
+                        <div className="space-y-1">
+                          <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge>
+                          <PaymentBalanceLines balances={student.paymentBalances} />
+                        </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -887,7 +906,12 @@ export function StudentList({
                   {stage ? <Badge variant={stage.tone}>{stage.label}</Badge> : <span />}
                   {/* Same slot as the payment chip, for the same reason as the
                       table: it explains the absence of one. */}
-                  {student.freeReapplication ? (
+                  {student.contractCancelled ? (
+                    <Badge variant="destructive" className="gap-1">
+                      <Ban className="h-3 w-3" />
+                      {t('crm.contractCancelledShort')}
+                    </Badge>
+                  ) : student.freeReapplication ? (
                     <Badge variant="successSoft" className="gap-1">
                       <RotateCcw className="h-3 w-3" />
                       {t('crm.freeReapplicationShort')}
@@ -896,6 +920,9 @@ export function StudentList({
                     payment && <ToneBadge tone={payment.tone} dot>{payment.label}</ToneBadge>
                   )}
                 </div>
+                {!student.freeReapplication && !student.contractCancelled && (
+                  <PaymentBalanceLines balances={student.paymentBalances} className="mt-2 text-right" />
+                )}
               </Card>
             );
           })}

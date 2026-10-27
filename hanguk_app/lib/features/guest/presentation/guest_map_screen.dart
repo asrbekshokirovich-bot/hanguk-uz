@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../map/data/map_repository.dart';
@@ -59,7 +60,7 @@ class GuestMapScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     SeoulOutlineButton(
                       label: l.commonRetry,
-                      onPressed: () => ref.invalidate(universitiesProvider),
+                      onPressed: tracked('guest_map.retry', () => ref.invalidate(universitiesProvider)),
                     ),
                   ],
                 ),

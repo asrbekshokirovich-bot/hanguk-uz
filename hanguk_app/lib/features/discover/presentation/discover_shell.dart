@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
-import 'filter_board_screen.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../auth/presentation/client_code_screen.dart';
+import 'visa_screen.dart';
 import 'prepare_screen.dart';
 import 'universities_screen.dart';
 import 'widgets/app_nav.dart';
@@ -28,6 +30,22 @@ class _DiscoverShellState extends State<DiscoverShell> {
   late int _tab = widget.tab.clamp(0, AppTab.count - 1);
   late final Set<int> _built = {AppTab.home, _tab};
 
+  /// The route this shell is shown under ('/guest', or a deep link's), so the
+  /// analytics name the screen "<route>#<tab>".
+  String _route = '/guest';
+  bool _told = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context)?.settings.name;
+    if (!_told || (route != null && route != _route)) {
+      _told = true;
+      _route = route ?? _route;
+      AppEvents.tabChanged(_route, _names[_tab], initial: true);
+    }
+  }
+
   @override
   void didUpdateWidget(DiscoverShell old) {
     super.didUpdateWidget(old);
@@ -37,7 +55,11 @@ class _DiscoverShellState extends State<DiscoverShell> {
   static const _names = ['universities', 'prepare', 'home', 'application', 'documents'];
 
   void _go(int tab) => setState(() {
-    if (tab != _tab) AppEvents.track('tab_open', screen: 'guest', props: {'tab': _names[tab]});
+    if (tab != _tab) {
+      AppEvents.tabChanged(_route, _names[tab]);
+      // The code's cells in a tab left behind keep no keyboard up.
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
     _built.add(tab);
     _tab = tab;
   });
@@ -47,21 +69,23 @@ class _DiscoverShellState extends State<DiscoverShell> {
     return switch (tab) {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(),
-      AppTab.home => FilterBoardScreen(showBack: false, onShow: () => _go(AppTab.universities)),
-      // A guest never gets here: the nav sends them to the sign-in instead.
-      _ => const SizedBox.shrink(),
+      AppTab.home => VisaScreen(embedded: true, active: _tab == AppTab.home),
+      _ => ClientCodeScreen(embedded: true, notice: AppLocalizations.of(context)!.fdNavNeedsClientCode),
     };
   }
 
   @override
   Widget build(BuildContext context) {
+    // On the code's tabs the nav steps aside for the keyboard, as on the
+    // sign-in page.
+    final hideNav = AppTab.needsClient(_tab) && MediaQuery.viewInsetsOf(context).bottom > 0;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: FdPage(
         child: IndexedStack(index: _tab, children: [for (var i = 0; i < AppTab.count; i++) _page(i)]),
       ),
-      bottomNavigationBar: AppNav(current: _tab, onLocal: _go),
-      floatingActionButton: AppNavOrb(current: _tab, onLocal: _go),
+      bottomNavigationBar: hideNav ? null : AppNav(current: _tab, onLocal: _go),
+      floatingActionButton: hideNav ? null : AppNavOrb(current: _tab, onLocal: _go),
       floatingActionButtonLocation: kFdNavOrbLocation,
     );
   }

@@ -74,6 +74,8 @@ interface CRMSidebarProps {
   isCallOperator: boolean;
   isDocumentHandler: boolean;
   canReviewUniDb?: boolean;
+  /** "Application fee": owner/admin/document handler, plus application_fee_access. */
+  canSeeApplicationFees?: boolean;
   user: User | null;
   onSignOut: () => void;
 }
@@ -86,6 +88,7 @@ function buildGroups(
   canReviewUniDb: boolean,
   t: (key: string) => string,
   lang: string,
+  canSeeApplicationFees: boolean = isDocumentHandler,
 ): SidebarGroup[] {
   return [
     {
@@ -103,8 +106,8 @@ function buildGroups(
         { title: 'Universitet tanlash', url: '/crm/university-selection', icon: ListChecks, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Onlayn ariza', url: '/crm/online-application', icon: Send, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Oflayn ariza', url: '/crm/offline-application', icon: Package, visible: isAdmin || isDocumentHandler || isCallOperator },
-        { title: 'Ilova faolligi', url: '/crm/app-activity', icon: Smartphone, visible: isAdmin },
-        { title: 'Application fee', url: '/crm/application-fees', icon: Receipt, visible: isDocumentHandler },
+        { title: 'Ilova analitikasi', url: '/crm/app-analytics', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler },
+        { title: 'Application fee', url: '/crm/application-fees', icon: Receipt, visible: canSeeApplicationFees },
         { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isCallOperator || isDocumentHandler },
       ],
     },
@@ -115,9 +118,12 @@ function buildGroups(
       visible: true,
       items: [
         { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
+        // Investor writes to a staff member; that person answers here (owner also records payouts).
+        { title: t('crm.investorDesk.nav'), url: '/crm/investor-desk', icon: Briefcase, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
         { title: t('navigation.newLeads'), url: '/crm/new-leads', icon: BellRing, visible: true, highlight: true },
         { title: t('navigation.todayLeads'), url: '/crm/today-leads', icon: CalendarCheck, visible: true, highlight: true },
+        { title: 'Bugun ilovada', url: '/crm/today-in-app', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
         { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
       ],
@@ -181,6 +187,7 @@ export function CRMSidebar({
   isCallOperator,
   isDocumentHandler,
   canReviewUniDb = false,
+  canSeeApplicationFees = isDocumentHandler,
   user,
   onSignOut,
 }: CRMSidebarProps) {
@@ -191,7 +198,16 @@ export function CRMSidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const groups = buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
+  const groups = buildGroups(
+    canSeeFinance,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    canReviewUniDb,
+    t,
+    lang,
+    canSeeApplicationFees,
+  );
 
   // Whether an item's URL matches the current route (most-specific match wins
   // via startsWith; '/crm' only matches exactly so it isn't always active).
@@ -324,6 +340,16 @@ export function useSidebarGroups(
   t: (key: string) => string,
   lang: string,
   canReviewUniDb = false,
+  canSeeApplicationFees: boolean = isDocumentHandler,
 ): SidebarGroup[] {
-  return buildGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, canReviewUniDb, t, lang);
+  return buildGroups(
+    canSeeFinance,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    canReviewUniDb,
+    t,
+    lang,
+    canSeeApplicationFees,
+  );
 }

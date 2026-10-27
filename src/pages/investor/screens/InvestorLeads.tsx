@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { InvestorScreenHeader } from '@/components/investor/InvestorScreen';
 import {
   CardHead,
@@ -15,6 +16,7 @@ import {
   ProgressBar,
   type ChartTone,
 } from '@/components/investor/InvestorCharts';
+import { intakeLabel, leadSourceLabel } from '@/components/investor/investorLabels';
 import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
 import {
   useInvestorLeadMonthly,
@@ -38,28 +40,21 @@ import { count, monthLabel, percent } from '@/lib/investorFormat';
  * manual, Public Registration), not a person, so it is safe to name.
  * ------------------------------------------------------------------------ */
 
-const STAGE_TONES: { key: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost'; label: string; tone: ChartTone }[] = [
-  { key: 'new', label: 'New', tone: 'royal' },
-  { key: 'contacted', label: 'Contacted', tone: 'blue' },
-  { key: 'qualified', label: 'Qualified', tone: 'lime' },
-  { key: 'converted', label: 'Converted', tone: 'success' },
-  { key: 'lost', label: 'Lost', tone: 'slate' },
+// Labels are investor.leads.stage.<key>; known sources are investor.sources.*.
+const STAGE_TONES: { key: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost'; tone: ChartTone }[] = [
+  { key: 'new', tone: 'royal' },
+  { key: 'contacted', tone: 'blue' },
+  { key: 'qualified', tone: 'lime' },
+  { key: 'converted', tone: 'success' },
+  { key: 'lost', tone: 'slate' },
 ];
 
-const SOURCE_LABELS: Record<string, string> = {
-  instagram: 'Instagram',
-  telegram: 'Telegram',
-  call: 'Phone call',
-  manual: 'Entered by staff',
-  learning_center: 'Partner learning center',
-};
-
-function sourceLabel(source: string): string {
-  return SOURCE_LABELS[source] ?? source;
-}
-
 export default function InvestorLeads() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { activeIntakeId, activeIntake } = useInvestorSeason();
+  const seasonName = intakeLabel(t, activeIntake);
+  const sourceLabel = (source: string) => leadSourceLabel(t, source);
   const summary = useInvestorLeadSummary(activeIntakeId);
   const sources = useInvestorLeadSources(activeIntakeId);
   const monthly = useInvestorLeadMonthly(activeIntakeId);
@@ -71,6 +66,7 @@ export default function InvestorLeads() {
     () =>
       STAGE_TONES.map((stage) => ({
         ...stage,
+        label: t(`investor.leads.stage.${stage.key}`),
         value: Number(
           s
             ? ({
@@ -83,7 +79,7 @@ export default function InvestorLeads() {
             : 0,
         ),
       })),
-    [s],
+    [s, t],
   );
 
   const sourceRows = sources.data ?? [];
@@ -99,38 +95,48 @@ export default function InvestorLeads() {
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <InvestorScreenHeader
-        title="Leads"
+        title={t('investor.nav.leads')}
         subtitle={
           total === 0
-            ? 'No enquiries have been recorded for this season yet.'
-            : `${count(total)} enquiries this season · ${count(open)} still open · ${count(Number(s?.converted_leads ?? 0))} became signed students.`
+            ? t('investor.leads.noEnquiries')
+            : t('investor.leads.subtitle', {
+                total: count(total),
+                open: count(open),
+                converted: count(Number(s?.converted_leads ?? 0)),
+              })
         }
       />
 
       {/* ---------------------------------------------------------- stat row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Total Leads"
+          label={t('investor.leads.totalLeads')}
           value={count(total)}
-          note={activeIntake ? activeIntake.label : '—'}
+          note={activeIntake ? seasonName : '—'}
         />
         <StatCard
-          label="New in Last 30 Days"
+          label={t('investor.leads.newLast30')}
           value={count(Number(s?.leads_last_30_days ?? 0))}
-          note={total > 0 ? `${percent((Number(s?.leads_last_30_days ?? 0) * 100) / total, 0)} of the season's leads` : 'Nothing recorded yet'}
+          note={
+            total > 0
+              ? t('investor.leads.ofSeasonLeads', {
+                  pct: percent((Number(s?.leads_last_30_days ?? 0) * 100) / total, 0),
+                })
+              : t('investor.leads.nothingRecorded')
+          }
         />
         <StatCard
-          label="Converted"
+          label={t('investor.leads.stage.converted')}
           value={count(Number(s?.converted_leads ?? 0))}
-          note="Leads that became signed students"
+          note={t('investor.leads.convertedNote')}
         />
         <StatCard
-          label="Conversion Rate"
+          label={t('investor.leads.conversionRate')}
           value={s?.conversion_pct != null ? percent(Number(s.conversion_pct), 1) : '—'}
           note={
             s?.conversion_pct != null
-              ? 'Converted ÷ all leads this season'
-              : 'No leads to measure against yet'
+              ? t('investor.leads.conversionNote')
+              : t('investor.leads.noLeadsToMeasure')
           }
         />
       </div>
@@ -139,29 +145,29 @@ export default function InvestorLeads() {
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[1.6fr_1fr]">
         <InvestorCard className="flex flex-col">
           <CardHead
-            title="Leads by Month"
-            subtitle={`${activeIntake?.label ?? 'Season'} · when the enquiry reached the CRM`}
+            title={t('investor.leads.byMonth')}
+            subtitle={`${seasonName || t('investor.common.season')} · ${t('investor.leads.byMonthSubtitle')}`}
             action={
               <ChartLegend
                 series={[
-                  { label: 'Leads', tone: 'royal' },
-                  { label: 'Converted', tone: 'lime' },
+                  { label: t('investor.nav.leads'), tone: 'royal' },
+                  { label: t('investor.leads.stage.converted'), tone: 'lime' },
                 ]}
               />
             }
           />
           {months.length === 0 ? (
-            <EmptyNote>No enquiries have been recorded for this season yet.</EmptyNote>
+            <EmptyNote>{t('investor.leads.noEnquiries')}</EmptyNote>
           ) : (
             <div className="px-5 pb-5 pt-4">
               <GroupedBars
                 groups={months.map((m) => ({
-                  label: monthLabel(m.month),
+                  label: monthLabel(m.month, lang),
                   values: [Number(m.lead_count), Number(m.converted_count)],
                 }))}
                 series={[
-                  { label: 'Leads', tone: 'royal' },
-                  { label: 'Converted', tone: 'lime' },
+                  { label: t('investor.nav.leads'), tone: 'royal' },
+                  { label: t('investor.leads.stage.converted'), tone: 'lime' },
                 ]}
                 formatValue={(n) => count(n)}
               />
@@ -170,9 +176,12 @@ export default function InvestorLeads() {
         </InvestorCard>
 
         <InvestorCard className="flex flex-col">
-          <CardHead title="Pipeline Status" subtitle="Where this season's leads stand today" />
+          <CardHead
+            title={t('investor.leads.pipelineStatus')}
+            subtitle={t('investor.leads.pipelineStatusSubtitle')}
+          />
           {total === 0 ? (
-            <EmptyNote>Nothing to show until the first enquiry is recorded.</EmptyNote>
+            <EmptyNote>{t('investor.leads.nothingUntilFirst')}</EmptyNote>
           ) : (
             <div className="mt-4 space-y-3 px-5 pb-5">
               {stages.map((stage) => (
@@ -199,11 +208,11 @@ export default function InvestorLeads() {
       <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[1.6fr_1fr]">
         <InvestorCard className="overflow-hidden">
           <CardHead
-            title="Where They Came From"
-            subtitle="Acquisition channel, and how well each one converts"
+            title={t('investor.leads.whereFrom')}
+            subtitle={t('investor.leads.whereFromSubtitle')}
           />
           {sourceRows.length === 0 ? (
-            <EmptyNote>No enquiries have been recorded for this season yet.</EmptyNote>
+            <EmptyNote>{t('investor.leads.noEnquiries')}</EmptyNote>
           ) : (
             <div className="mt-4 space-y-3 px-5">
               {sourceRows.map((row, i) => (
@@ -213,8 +222,10 @@ export default function InvestorLeads() {
                       {sourceLabel(row.source)}
                     </span>
                     <Money className="shrink-0 text-muted-foreground">
-                      {count(Number(row.lead_count))} leads ·{' '}
-                      {count(Number(row.converted_count))} converted
+                      {t('investor.leads.sourceLine', {
+                        leads: count(Number(row.lead_count)),
+                        converted: count(Number(row.converted_count)),
+                      })}
                       {row.converted_pct != null
                         ? ` · ${percent(Number(row.converted_pct), 0)}`
                         : ''}
@@ -234,23 +245,22 @@ export default function InvestorLeads() {
           <div className="mt-4 flex items-center gap-2 border-t border-border bg-soft-surface px-5 py-3">
             <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <p className="text-[12px] text-muted-foreground">
-              Lead names, phone numbers and messages stay with the sales team. This screen shows
-              counts only.
+              {t('investor.leads.piiNote')}
             </p>
           </div>
         </InvestorCard>
 
         <InvestorCard className="flex flex-col">
-          <CardHead title="Funnel Health" />
+          <CardHead title={t('investor.leads.funnelHealth')} />
           <div className="mt-3">
             <MetricRow
-              label="Still open"
-              hint="Neither converted nor lost"
+              label={t('investor.leads.stillOpen')}
+              hint={t('investor.leads.stillOpenHint')}
               value={<Money className="text-[15px] font-bold">{count(open)}</Money>}
             />
             <MetricRow
-              label="Lost"
-              hint="Closed without converting"
+              label={t('investor.leads.stage.lost')}
+              hint={t('investor.leads.lostHint')}
               value={
                 <Money className="text-[15px] font-bold">
                   {count(Number(s?.lost_leads ?? 0))}
@@ -259,8 +269,8 @@ export default function InvestorLeads() {
               }
             />
             <MetricRow
-              label="Best channel"
-              hint="By lead volume"
+              label={t('investor.leads.bestChannel')}
+              hint={t('investor.leads.byVolume')}
               value={
                 topSource ? (
                   <span className="text-[15px] font-bold text-foreground">
@@ -272,7 +282,7 @@ export default function InvestorLeads() {
               }
             />
             <MetricRow
-              label="Channels active"
+              label={t('investor.leads.channelsActive')}
               value={<Money className="text-[15px] font-bold">{count(sourceRows.length)}</Money>}
             />
           </div>
@@ -281,7 +291,7 @@ export default function InvestorLeads() {
               to="/crm/investor/messages"
               className="text-[13px] font-semibold text-primary hover:underline"
             >
-              Ask the team about this →
+              {t('investor.common.askTeam')}
             </Link>
           </div>
         </InvestorCard>

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/study_plan_repository.dart';
 import '../study_plan_screen.dart';
 import 'training_status_label.dart';
+import '../../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Past Study Plan / Personal Statement sessions, scoped to one
 /// document type. Mirrors `InterviewHistoryView` and ports the React
@@ -109,7 +111,7 @@ class _StudyPlanHistoryViewState extends ConsumerState<StudyPlanHistoryView> {
                 _GlassCircleButton(
                   icon: Icons.arrow_back_rounded,
                   tooltip: l.a11yTooltipBack,
-                  onTap: () => Navigator.of(context).maybePop(),
+                  onTap: tracked('study_plan_history.back', () => Navigator.of(context).maybePop()),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -196,16 +198,16 @@ class _StudyPlanHistoryViewState extends ConsumerState<StudyPlanHistoryView> {
       // Long lists: one saved layer per card is not worth the blur.
       blur: false,
       padding: const EdgeInsets.all(16),
-      onTap: () {
+      onTap: tracked('study_plan_history.load_session', () {
         ref
             .read(studyPlanSessionProvider.notifier)
             .loadSession(widget.documentType, session.id);
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => StudyPlanScreen(documentType: widget.documentType),
+            builder: (_) => NavScaffold(current: AppTab.prepare, child: StudyPlanScreen(documentType: widget.documentType)),
           ),
         );
-      },
+      }),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -299,7 +301,7 @@ class _GlassCircleButton extends StatelessWidget {
       child: Tooltip(
         message: tooltip,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('study_plan_history.glass_circle_button', onTap),
           child: Container(
             width: SeoulSizes.minTapTarget,
             height: SeoulSizes.minTapTarget,

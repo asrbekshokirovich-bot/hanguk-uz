@@ -1,14 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
+import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../discover/presentation/chosen_screen.dart' show kConsultantVisaBoost;
 import '../../discover/presentation/discover_routes.dart';
 import '../../discover/presentation/widgets/chance_badge.dart';
 import '../../onboarding/domain/eligibility_engine.dart';
@@ -32,10 +35,53 @@ class ReportScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportScreenState extends ConsumerState<ReportScreen> {
+  bool _resultSent = false;
+
+  /// What the report showed, for the analytics: the visa's band and each
+  /// university's chance, as tens of percent (S5: ranges, not figures); with
+  /// the visa, what the lead's card shows — the weak point, the TOPIK level,
+  /// whether the income is documented, the tariff (VisaHints).
+  void _sendResult(AssessmentOutcome o) {
+    if (_resultSent) return;
+    _resultSent = true;
+    final h = o.hints;
+    AppEvents.track('assessment_result', props: {
+      'kind': 'visa',
+      'band': o.band.name,
+      'score_bucket': o.visaPercent ~/ 10 * 10,
+      if (h != null) ...{
+        'low': h.low,
+        'topik': ref.read(assessmentProvider).topikCounted,
+        'income': h.formalIncome ? 'yes' : 'no',
+        'tariff': h.tariff.code,
+      },
+    });
+    for (final c in o.chances) {
+      AppEvents.track('assessment_result', props: {
+        'kind': 'admission',
+        'institution_id': c.university.institutionId,
+        'score_bucket': c.percent ~/ 10 * 10,
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     AppEvents.track('report_view', props: {'universities': ref.read(assessmentProvider).universityIds.length});
+    // A guest is asked once, a moment after the report shows, whether we
+    // may send news on deadlines and scholarships (GuestPush, plan stage 5).
+    _pushAsk = Timer(const Duration(seconds: 3), () {
+      if (mounted) unawaited(GuestPush.maybeAsk(context));
+    });
+  }
+
+  Timer? _pushAsk;
+
+  @override
+  void dispose() {
+    _pushAsk?.cancel();
+    super.dispose();
   }
 
   String _shareText(AppLocalizations l, AssessmentOutcome o) => [
@@ -55,6 +101,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         body: FdPage(solid: FdColors.blue, child: Center(child: CircularProgressIndicator(color: FdColors.lime))),
       );
     }
+    _sendResult(outcome);
     final best = outcome.chances.isEmpty
         ? null
         : outcome.chances.reduce((a, b) => b.percent > a.percent ? b : a);
@@ -75,13 +122,13 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     HardIconButton(
                       glyph: LucideIcons.chevronLeft,
                       semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                      onTap: () => context.pop(),
+                      onTap: tracked('report.back', () => context.pop()),
                     ),
                     const Spacer(),
                     HardIconButton(
                       glyph: LucideIcons.share2,
                       semanticLabel: l.fdShare,
-                      onTap: () => Share.share(_shareText(l, outcome)),
+                      onTap: tracked('report.share', () => Share.share(_shareText(l, outcome))),
                     ),
                   ],
                 ),
@@ -103,7 +150,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         children: [
                           Expanded(child: _BestCard(best: best)),
                           const SizedBox(width: 12),
-                          Expanded(child: _VisaCard(visa: outcome.visaPercent)),
+                          Expanded(child: _VisaCard(visa: outcome.visaPercent, consultant: outcome.visaWithConsultantPercent ?? outcome.visaPercent)),
                         ],
                       ),
                     ),
@@ -120,7 +167,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                 child: HardButton(
                   label: l.fdReportCta,
                   shadow: _kBlueShadow,
-                  onPressed: () => context.push(kAssessmentLeadPath),
+                  onPressed: tracked('report.cta', () => context.push(kAssessmentLeadPath)),
                 ),
               ),
             ],
@@ -180,9 +227,10 @@ class _BestCard extends StatelessWidget {
 
 /// "VIZA D-2 51% → 72% konsultant bilan".
 class _VisaCard extends StatelessWidget {
-  const _VisaCard({required this.visa});
+  const _VisaCard({required this.visa, required this.consultant});
 
   final int visa;
+  final int consultant;
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +248,7 @@ class _VisaCard extends StatelessWidget {
             style: fdText(44, FontWeight.w800, chanceLook(visa).accent, height: 1.1, letterSpacing: -1.5),
           ),
           Text(
-            l.fdReportWithConsultant((visa + kConsultantVisaBoost).clamp(0, 96)),
+            l.fdReportWithConsultant(consultant),
             style: fdText(14, FontWeight.w800, FdColors.ink, height: 1.25),
           ),
         ],

@@ -13,6 +13,7 @@ import {
   focusGuideline,
   formatMoney,
   guidelinesForLevel,
+  hiddenLevels,
   institutionCode,
   languageBadges,
   matchesFilter,
@@ -157,6 +158,23 @@ describe('cityLabel va displayName', () => {
       primary: 'Jeonbuk National University',
       secondary: '전북대학교',
     });
+  });
+
+  it('Excel‘dagi magistratura qo‘shimchasi emas, universitet nomi ko‘rinadi', () => {
+    const e = entry();
+    e.latest = { ...e.latest!, univ_nomi_en: 'Jeonbuk National University — Graduate School', univ_nomi_kr: '전북대학교 일반대학원' };
+    expect(displayName(e)).toEqual({
+      primary: 'Jeonbuk National University',
+      secondary: '전북대학교',
+    });
+  });
+
+  it('institutions‘da nom bo‘lmasa Excel nomi zaxira bo‘ladi', () => {
+    const e = entry();
+    e.institution.name_en = null;
+    e.institution.name_ko = null;
+    e.latest = { ...e.latest!, univ_nomi_en: 'Jeonbuk National Univ.', univ_nomi_kr: null };
+    expect(displayName(e)).toEqual({ primary: 'Jeonbuk National Univ.', secondary: null });
   });
 
   it('inglizcha nom yo‘q bo‘lsa koreyschasini asosiy qiladi', () => {
@@ -487,10 +505,30 @@ describe('til kursi', () => {
     expect(panelLevels(ikkalasi, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
   });
 
-  it('til kursi yashirilgan universitetda yorliq chiqmaydi', () => {
-    const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] }, [til]);
+  it('til kursi yashirilgan universitetda yorliq faqat Excel yuklay oladiganga chiqadi', () => {
+    const yashirin = uni({ institution_type: 'private', hidden_levels: ['til_kursi'] });
     expect(offeredLevels(yashirin)).toEqual(['bakalavr', 'magistratura']);
-    expect(panelLevels(yashirin, true)).toEqual(['bakalavr', 'magistratura']);
+    expect(panelLevels(yashirin, false)).toEqual(['bakalavr', 'magistratura']);
+    expect(panelLevels(yashirin, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(hiddenLevels(yashirin)).toEqual(['til_kursi']);
+  });
+
+  it('yashirilgan darajaga Excel yuklansa — daraja bor (서울장신대 magistraturasi)', () => {
+    const sjs = uni({ institution_type: 'private', hidden_levels: ['magistratura'] });
+    // Ro'yxat bo'yicha yashirilgan: katalogda va operatorga ko'rinmaydi ...
+    expect(offeredLevels(sjs)).toEqual(['bakalavr']);
+    expect(matchesLevel(sjs, 'magistratura')).toBe(false);
+    expect(panelLevels(sjs, false)).toEqual(['bakalavr']);
+    // ... lekin Excel yuklay oladigan xodim yorliqni ko'radi va Excel'ni yuklay oladi.
+    expect(panelLevels(sjs, true)).toEqual(['bakalavr', 'magistratura', 'til_kursi']);
+    expect(hiddenLevels(sjs)).toEqual(['magistratura']);
+
+    const mag = guideline({ id: 'm', daraja: 'magistratura' });
+    const sjsExcel = uni({ institution_type: 'private', hidden_levels: ['magistratura'] }, [mag]);
+    expect(offeredLevels(sjsExcel)).toEqual(['bakalavr', 'magistratura']);
+    expect(matchesLevel(sjsExcel, 'magistratura')).toBe(true);
+    expect(panelLevels(sjsExcel, false)).toEqual(['bakalavr', 'magistratura']);
+    expect(hiddenLevels(sjsExcel)).toEqual([]);
   });
 
   it('"Barcha darajalar"da karta o‘qish darajasini ko‘rsatadi, til kursi yangi bo‘lsa ham', () => {

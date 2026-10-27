@@ -3632,6 +3632,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_id: string
+          paid_on: string
           payment_method: string | null
           receipt_url: string | null
           receipt_urls: string[] | null
@@ -3645,6 +3646,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_id: string
+          paid_on?: string
           payment_method?: string | null
           receipt_url?: string | null
           receipt_urls?: string[] | null
@@ -3658,6 +3660,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_id?: string
+          paid_on?: string
           payment_method?: string | null
           receipt_url?: string | null
           receipt_urls?: string[] | null
@@ -5151,6 +5154,9 @@ export type Database = {
       }
       student_intakes: {
         Row: {
+          contract_cancel_note: string | null
+          contract_cancelled_at: string | null
+          contract_cancelled_by: string | null
           created_at: string
           discount_percent: number
           docs_ready: boolean
@@ -5158,8 +5164,13 @@ export type Database = {
           intake_id: string
           is_free_reapplication: boolean
           student_id: string
+          visa_approved_at: string | null
+          departed_at: string | null
         }
         Insert: {
+          contract_cancel_note?: string | null
+          contract_cancelled_at?: string | null
+          contract_cancelled_by?: string | null
           created_at?: string
           discount_percent?: number
           docs_ready?: boolean
@@ -5167,8 +5178,13 @@ export type Database = {
           intake_id: string
           is_free_reapplication?: boolean
           student_id: string
+          visa_approved_at?: string | null
+          departed_at?: string | null
         }
         Update: {
+          contract_cancel_note?: string | null
+          contract_cancelled_at?: string | null
+          contract_cancelled_by?: string | null
           created_at?: string
           discount_percent?: number
           docs_ready?: boolean
@@ -5176,6 +5192,8 @@ export type Database = {
           intake_id?: string
           is_free_reapplication?: boolean
           student_id?: string
+          visa_approved_at?: string | null
+          departed_at?: string | null
         }
         Relationships: [
           {
@@ -7525,6 +7543,24 @@ export type Database = {
       }
     }
     Functions: {
+      record_payment_installment: {
+        Args: {
+          p_amount: number
+          p_gateway_fee?: number
+          p_method?: string
+          p_notes?: string
+          p_paid_on?: string
+          p_payment_id: string
+          p_receipt_urls?: string[]
+        }
+        Returns: {
+          is_completed: boolean
+          new_paid_amount: number
+          payment_amount: number
+          transaction_id: string
+          was_completed: boolean
+        }[]
+      }
       _rls_add_child_policies: {
         Args: { p_child: string; p_parent: string }
         Returns: undefined

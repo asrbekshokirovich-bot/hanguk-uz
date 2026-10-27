@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
@@ -30,6 +30,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { cn } from '@/lib/utils';
 
 // Lazy load page contents for better performance
 const FinanceOverviewContent = lazy(() => import('@/components/finance/FinanceOverview').then(m => ({ default: m.FinanceOverview })));
@@ -48,7 +49,8 @@ const UniversityCatalogContent = lazy(() => import('@/components/crm/pages/Unive
 const UniversitySelectionContent = lazy(() => import('@/components/crm/pages/UniversitySelectionContent'));
 const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/OnlineApplicationContent'));
 const OfflineApplicationContent = lazy(() => import('@/components/crm/pages/OfflineApplicationContent'));
-const AppActivityContent = lazy(() => import('@/components/crm/pages/AppActivityContent'));
+const AppAnalyticsContent = lazy(() => import('@/components/crm/pages/AppAnalyticsContent'));
+const TodayInAppContent = lazy(() => import('@/components/crm/pages/TodayInAppContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
@@ -60,6 +62,9 @@ const ApplicationsPipeline = lazy(() => import('@/components/crm/pages/Applicati
 const DocumentsContent = lazy(() => import('@/components/crm/pages/DocumentsContent'));
 const AITranslationPage = lazy(() => import('@/components/crm/pages/AITranslationPage'));
 const LeadsContent = lazy(() => import('@/components/crm/pages/LeadsContent'));
+
+/** Views given a wider content column — see the main content wrapper. */
+const WIDE_VIEWS = new Set(['leads', 'new-leads', 'today-leads']);
 const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfileContent'));
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
@@ -67,6 +72,7 @@ const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapConten
 const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
+const InvestorDeskContent = lazy(() => import('@/components/crm/pages/InvestorDeskContent'));
 const LearningCentersContent = lazy(() => import('@/components/crm/pages/LearningCentersContent'));
 const ApplicationFeeContent = lazy(() => import('@/components/crm/pages/ApplicationFeeContent'));
 
@@ -94,7 +100,17 @@ export default function CRMPortal() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isStaff, isOwner, isAdmin, isCallOperator, isDocumentHandler, canSeeFinance, canApproveDocuments, loading: roleLoading } = useUserRole();
+  const {
+    isStaff,
+    isOwner,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    canSeeFinance,
+    canApproveDocuments,
+    canSeeApplicationFees,
+    loading: roleLoading,
+  } = useUserRole();
   const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
@@ -112,8 +128,30 @@ export default function CRMPortal() {
 
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
 
+  // /crm/students?student=<user id> opens that student (links from the app
+  // analytics: «Bugun ilovada», «Mijozlar faolligi»).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const studentParam = searchParams.get('student');
+  useEffect(() => {
+    if (!studentParam || !location.pathname.startsWith('/crm/students') || !students.length) return;
+    const found = students.find((s) => s.user_id === studentParam);
+    if (found) setSelectedStudent(found as StudentProfile);
+    const next = new URLSearchParams(searchParams);
+    next.delete('student');
+    setSearchParams(next, { replace: true });
+  }, [studentParam, students, location.pathname, searchParams, setSearchParams]);
+
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
-  const sidebarGroups = useSidebarGroups(canSeeFinance, isAdmin, isCallOperator, isDocumentHandler, t, currentLang, canReviewUniDb);
+  const sidebarGroups = useSidebarGroups(
+    canSeeFinance,
+    isAdmin,
+    isCallOperator,
+    isDocumentHandler,
+    t,
+    currentLang,
+    canReviewUniDb,
+    canSeeApplicationFees,
+  );
 
   // Determine current view from URL
   const currentPath = location.pathname;
@@ -141,13 +179,16 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
     if (currentPath.startsWith('/crm/online-application')) return 'online-application';
     if (currentPath.startsWith('/crm/offline-application')) return 'offline-application';
-    if (currentPath.startsWith('/crm/app-activity')) return 'app-activity';
+    // "Ilova faolligi" became a tab of "Ilova analitikasi"; old links still open it.
+    if (currentPath.startsWith('/crm/app-activity')) return 'app-analytics';
+    if (currentPath.startsWith('/crm/app-analytics')) return 'app-analytics';
     if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
     if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
     if (currentPath.startsWith('/crm/today-leads')) return 'today-leads';
+    if (currentPath.startsWith('/crm/today-in-app')) return 'today-in-app';
     // The profile check must come first: '/crm/leads/<id>' also starts with
     // '/crm/leads', and the list would otherwise swallow every detail URL.
     if (leadProfileId) return 'lead-profile';
@@ -162,6 +203,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     if (currentPath.startsWith('/crm/admin/institutions')) return 'institutions';
     if (currentPath.startsWith('/crm/surveys')) return 'surveys';
+    if (currentPath.startsWith('/crm/investor-desk')) return 'investor-desk';
     if (currentPath.startsWith('/crm/learning-centers')) return 'learning-centers';
     return 'dashboard';
   };
@@ -414,9 +456,10 @@ export default function CRMPortal() {
             />
           </SafeSuspense>
         );
-      case 'app-activity':
-        if (!isAdmin) return <AccessDenied />;
-        return <SafeSuspense><AppActivityContent /></SafeSuspense>;
+      case 'app-analytics':
+        // Every staff role (S6); investors never reach the CRM.
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return <SafeSuspense><AppAnalyticsContent /></SafeSuspense>;
       case 'online-application':
         if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
         return (
@@ -432,7 +475,7 @@ export default function CRMPortal() {
           </SafeSuspense>
         );
       case 'application-fees':
-        if (!isDocumentHandler) return <AccessDenied />;
+        if (!canSeeApplicationFees) return <AccessDenied />;
         return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;
       case 'institutions':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
@@ -448,6 +491,10 @@ export default function CRMPortal() {
         return <SafeSuspense><LeadsContent key="new-leads" view="new" /></SafeSuspense>;
       case 'today-leads':
         return <SafeSuspense><LeadsContent key="today-leads" view="today" /></SafeSuspense>;
+      case 'today-in-app':
+        // The operators' list from the app's signals; every staff role (S6).
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return <SafeSuspense><TodayInAppContent /></SafeSuspense>;
       case 'lead-profile':
         return (
           <SafeSuspense>
@@ -472,6 +519,8 @@ export default function CRMPortal() {
         return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
       case 'surveys':
         return <SafeSuspense><SurveysContent /></SafeSuspense>;
+      case 'investor-desk':
+        return <SafeSuspense><InvestorDeskContent /></SafeSuspense>;
       case 'learning-centers':
         if (!isCallOperator) return <AccessDenied />;
         return <SafeSuspense><LearningCentersContent /></SafeSuspense>;
@@ -501,6 +550,7 @@ export default function CRMPortal() {
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
             canReviewUniDb={canReviewUniDb}
+            canSeeApplicationFees={canSeeApplicationFees}
             user={user}
             onSignOut={handleSignOut}
           />
@@ -530,7 +580,16 @@ export default function CRMPortal() {
               <CallsProvider>
                 <MessagesProvider>
                   <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
-                    <div key={activeView} className="mx-auto max-w-[1240px] animate-fade-up space-y-6">
+                    {/* The lead lists are twelve-column tables; on a wide monitor
+                        they get the room to show every column at once instead of
+                        scrolling sideways inside a 1240px box. */}
+                    <div
+                      key={activeView}
+                      className={cn(
+                        'mx-auto animate-fade-up space-y-6',
+                        WIDE_VIEWS.has(activeView) ? 'max-w-[1440px]' : 'max-w-[1240px]',
+                      )}
+                    >
                       {renderContent()}
                     </div>
                   </main>

@@ -23,7 +23,7 @@ interface FeeBlock {
   institution: InstitutionOption | null;
   amount: string;
   expense: string;
-  receipt: FeeReceipt | null;
+  receipts: FeeReceipt[];
 }
 
 const newBlock = (): FeeBlock => ({
@@ -31,7 +31,7 @@ const newBlock = (): FeeBlock => ({
   institution: null,
   amount: '',
   expense: '',
-  receipt: null,
+  receipts: [],
 });
 
 /** Bo'sh — hali kiritilmagan; aks holda faqat raqamlardan iborat qatordagi son. */
@@ -48,7 +48,7 @@ function FeeBlockFields({
   institution,
   amount,
   expense,
-  receipt,
+  receipts,
   studentId,
   onPickInstitution,
   onAmountChange,
@@ -58,12 +58,12 @@ function FeeBlockFields({
   institution: { name_en: string | null; name_ko: string } | null;
   amount: string;
   expense: string;
-  receipt: FeeReceipt | null;
+  receipts: FeeReceipt[];
   studentId: string;
   onPickInstitution: () => void;
   onAmountChange: (value: string) => void;
   onExpenseChange: (value: string) => void;
-  onReceiptChange: (receipt: FeeReceipt | null) => void;
+  onReceiptChange: (receipts: FeeReceipt[]) => void;
 }) {
   return (
     <>
@@ -102,8 +102,8 @@ function FeeBlockFields({
         </div>
       </div>
       <div className="min-w-0 space-y-1">
-        <p className="text-xs text-muted-foreground">Chek</p>
-        <FeeReceiptUpload value={receipt} onChange={onReceiptChange} studentId={studentId} />
+        <p className="text-xs text-muted-foreground">Cheklar</p>
+        <FeeReceiptUpload value={receipts} onChange={onReceiptChange} studentId={studentId} />
       </div>
     </>
   );
@@ -138,7 +138,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
   const [editInstitution, setEditInstitution] = useState<InstitutionOption | null>(null);
   const [editAmount, setEditAmount] = useState('');
   const [editExpense, setEditExpense] = useState('');
-  const [editReceipt, setEditReceipt] = useState<FeeReceipt | null>(null);
+  const [editReceipts, setEditReceipts] = useState<FeeReceipt[]>([]);
 
   const startAdding = () => {
     setBlocks([newBlock()]);
@@ -171,8 +171,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
         institution_id: block.institution.id,
         amount_krw: amount,
         expense_krw: parseOptionalAmount(block.expense),
-        receipt_url: block.receipt?.url ?? null,
-        receipt_file_name: block.receipt?.fileName ?? null,
+        receipts: block.receipts,
       });
     }
     if (entries.length === 0) {
@@ -202,7 +201,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
     );
     setEditAmount(String(p.amount_krw));
     setEditExpense(p.expense_krw !== null ? String(p.expense_krw) : '');
-    setEditReceipt(p.receipt_url ? { url: p.receipt_url, fileName: p.receipt_file_name ?? 'chek' } : null);
+    setEditReceipts(p.receipts);
   };
 
   const cancelEditing = () => setEditingId(null);
@@ -221,8 +220,7 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
           institution_id: editInstitution.id,
           amount_krw: amount,
           expense_krw: parseOptionalAmount(editExpense),
-          receipt_url: editReceipt?.url ?? null,
-          receipt_file_name: editReceipt?.fileName ?? null,
+          receipts: editReceipts,
         },
       });
       toast({ title: 'Yangilandi' });
@@ -287,12 +285,12 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                     institution={block.institution}
                     amount={block.amount}
                     expense={block.expense}
-                    receipt={block.receipt}
+                    receipts={block.receipts}
                     studentId={studentId ?? 'unknown'}
                     onPickInstitution={() => setPickerTarget({ type: 'block', key: block.key })}
                     onAmountChange={(amount) => updateBlock(block.key, { amount })}
                     onExpenseChange={(expense) => updateBlock(block.key, { expense })}
-                    onReceiptChange={(receipt) => updateBlock(block.key, { receipt })}
+                    onReceiptChange={(receipts) => updateBlock(block.key, { receipts })}
                   />
                   {blocks.length > 1 && (
                     <Button
@@ -343,12 +341,12 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                           institution={editInstitution}
                           amount={editAmount}
                           expense={editExpense}
-                          receipt={editReceipt}
+                          receipts={editReceipts}
                           studentId={p.student_id}
                           onPickInstitution={() => setPickerTarget({ type: 'edit' })}
                           onAmountChange={setEditAmount}
                           onExpenseChange={setEditExpense}
-                          onReceiptChange={setEditReceipt}
+                          onReceiptChange={setEditReceipts}
                         />
                         <Button
                           type="button"
@@ -396,17 +394,34 @@ export function StudentFeeSheet({ studentId, studentName, open, onOpenChange }: 
                         <p className="text-xs text-muted-foreground">
                           {new Date(p.created_at).toLocaleDateString('uz-UZ')}
                           {p.expense_krw !== null && ` · Chiqim: ${formatWon(p.expense_krw)}`}
-                          {p.receipt_url && (
+                          {p.receipts.length > 0 && (
                             <>
                               {' · '}
-                              <a
-                                href={p.receipt_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                chek
-                              </a>
+                              {p.receipts.length === 1 ? (
+                                <a
+                                  href={p.receipts[0].url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary hover:underline"
+                                >
+                                  chek
+                                </a>
+                              ) : (
+                                <>
+                                  {p.receipts.length} ta chek:{' '}
+                                  {p.receipts.map((r, i) => (
+                                    <a
+                                      key={r.url}
+                                      href={r.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="mr-1 text-primary hover:underline"
+                                    >
+                                      {i + 1}
+                                    </a>
+                                  ))}
+                                </>
+                              )}
                             </>
                           )}
                         </p>

@@ -12,7 +12,7 @@
 // channel-health-check). The caller is checked in `authorized()`.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { stageMessage, type StageKind } from "./messages.ts";
+import { pushData, stageMessage, type StageKind } from "./messages.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -173,7 +173,7 @@ serve(async (req) => {
             message: {
               token,
               notification: { title: msg.title, body: msg.body },
-              data: { type: "stage", kind },
+              data: pushData(kind),
               android: { priority: "high", notification: { sound: "default" } },
             },
           }),

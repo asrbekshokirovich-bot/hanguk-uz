@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Send } from 'lucide-react';
+import type { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { InvestorScreenHeader } from '@/components/investor/InvestorScreen';
 import {
@@ -8,6 +10,7 @@ import {
   InvestorCard,
   StatusPill,
 } from '@/components/investor/InvestorPrimitives';
+import { staffRoleLabel } from '@/components/investor/investorLabels';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   useInvestorIdentity,
@@ -20,7 +23,7 @@ import {
   type InvestorMessageRow,
   type InvestorThreadWithPreview,
 } from '@/hooks/useInvestor';
-import { humanizeLineItem, shortTime } from '@/lib/investorFormat';
+import { dayMonth, shortTime } from '@/lib/investorFormat';
 
 /* ---------------------------------------------------------------------------
  * SCREENS.md 4 - Messages. The only writable surface in the portal.
@@ -36,6 +39,8 @@ import { humanizeLineItem, shortTime } from '@/lib/investorFormat';
  * ------------------------------------------------------------------------ */
 
 export default function InvestorMessages() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { user } = useAuth();
   const { data: identity } = useInvestorIdentity();
   const staff = useInvestorStaffDirectory();
@@ -125,8 +130,8 @@ export default function InvestorMessages() {
   return (
     <div className="mx-auto w-full max-w-[1400px] space-y-4">
       <InvestorScreenHeader
-        title="Messages"
-        subtitle="Every person on the Hanguk team is one message away."
+        title={t('investor.nav.messages')}
+        subtitle={t('investor.messages.subtitle')}
       />
 
       <div className="grid min-h-[520px] grid-cols-1 gap-4 lg:grid-cols-[330px_1fr]">
@@ -138,7 +143,7 @@ export default function InvestorMessages() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search the team"
+                placeholder={t('investor.messages.searchTeam')}
                 className="h-11 min-h-[44px] rounded-md border-0 bg-muted pl-9 text-[13px]"
               />
             </div>
@@ -146,9 +151,9 @@ export default function InvestorMessages() {
 
           <div className="flex-1 overflow-y-auto">
             {staff.isLoading ? (
-              <EmptyNote>Loading the team…</EmptyNote>
+              <EmptyNote>{t('investor.messages.loadingTeam')}</EmptyNote>
             ) : people.length === 0 ? (
-              <EmptyNote>No one matches that search.</EmptyNote>
+              <EmptyNote>{t('investor.messages.noMatch')}</EmptyNote>
             ) : (
               people.map((p) => {
                 const isSelected = p.user_id === selectedStaffId;
@@ -170,7 +175,7 @@ export default function InvestorMessages() {
                           {p.full_name}
                         </span>
                         <span className="shrink-0 text-[11px] text-muted-foreground">
-                          {p.thread?.preview_at ? shortTime(p.thread.preview_at) : ''}
+                          {p.thread?.preview_at ? shortTime(p.thread.preview_at, lang) : ''}
                         </span>
                       </div>
                       <div
@@ -178,16 +183,16 @@ export default function InvestorMessages() {
                           isSelected ? 'text-primary' : 'text-muted-foreground'
                         }`}
                       >
-                        {humanizeLineItem(p.role)}
+                        {staffRoleLabel(t, p.role)}
                       </div>
                       <div className="mt-0.5 flex items-center gap-2">
                         <span className="min-w-0 flex-1 truncate text-[12px] text-muted-foreground">
-                          {p.thread?.preview ?? 'No messages yet'}
+                          {p.thread?.preview ?? t('investor.messages.noMessagesYet')}
                         </span>
                         {(p.thread?.unread ?? 0) > 0 && (
                           <span
                             className="h-2 w-2 shrink-0 rounded-pill bg-accent"
-                            aria-label="Unread"
+                            aria-label={t('investor.messages.unread')}
                           />
                         )}
                       </div>
@@ -203,7 +208,7 @@ export default function InvestorMessages() {
         <InvestorCard className="flex min-h-[520px] flex-col overflow-hidden">
           {!selected ? (
             <EmptyNote className="my-auto">
-              Choose someone on the left to start a conversation.
+              {t('investor.messages.chooseSomeone')}
             </EmptyNote>
           ) : (
             <>
@@ -219,19 +224,19 @@ export default function InvestorMessages() {
                         selected.presence_status === 'online' ? 'bg-success' : 'bg-muted-foreground'
                       }`}
                     />
-                    {humanizeLineItem(selected.role)}
+                    {staffRoleLabel(t, selected.role)}
                   </div>
                 </div>
-                <StatusPill tone="neutral">Direct message</StatusPill>
+                <StatusPill tone="neutral">{t('investor.messages.direct')}</StatusPill>
               </div>
 
               <div ref={scroller} className="flex-1 space-y-4 overflow-y-auto bg-background px-6 py-5">
                 {(messages.data ?? []).length === 0 ? (
                   <p className="py-10 text-center text-[13px] text-muted-foreground">
-                    No messages yet. Anything you send here goes straight to {selected.full_name}.
+                    {t('investor.messages.emptyThread', { name: selected.full_name })}
                   </p>
                 ) : (
-                  groupByDay(messages.data ?? []).map((group) => (
+                  groupByDay(messages.data ?? [], t, lang).map((group) => (
                     <div key={group.label} className="space-y-4">
                       <div className="text-center text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                         {group.label}
@@ -259,7 +264,7 @@ export default function InvestorMessages() {
                       void handleSend();
                     }
                   }}
-                  placeholder={`Message ${selected.full_name}…`}
+                  placeholder={t('investor.messages.placeholder', { name: selected.full_name })}
                   className="h-11 min-h-[44px] flex-1 rounded-md text-[14px]"
                 />
                 <button
@@ -269,7 +274,7 @@ export default function InvestorMessages() {
                   className="inline-flex h-11 min-h-[44px] items-center gap-2 rounded-md bg-accent px-4 text-[14px] font-bold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
-                  Send
+                  {t('investor.messages.send')}
                 </button>
               </div>
             </>
@@ -289,6 +294,7 @@ function Bubble({
   mine: boolean;
   senderName: string;
 }) {
+  const { t, i18n } = useTranslation();
   const pending = message.id.startsWith('pending-');
   return (
     <div className={`flex items-end gap-2 ${mine ? 'justify-end' : 'justify-start'}`}>
@@ -305,8 +311,11 @@ function Bubble({
         </div>
         <div className="mt-1 text-[11px] text-muted-foreground">
           {pending
-            ? 'Sending…'
-            : [shortTime(message.created_at), mine && message.read_at ? 'Read' : null]
+            ? t('investor.messages.sending')
+            : [
+                shortTime(message.created_at, i18n.language),
+                mine && message.read_at ? t('investor.messages.read') : null,
+              ]
                 .filter(Boolean)
                 .join(' · ')}
         </div>
@@ -315,7 +324,7 @@ function Bubble({
   );
 }
 
-function groupByDay(messages: InvestorMessageRow[]) {
+function groupByDay(messages: InvestorMessageRow[], t: TFunction, lang: string) {
   const today = new Date().toDateString();
   const yesterday = new Date(Date.now() - 86_400_000).toDateString();
   const groups: { label: string; messages: InvestorMessageRow[] }[] = [];
@@ -324,13 +333,10 @@ function groupByDay(messages: InvestorMessageRow[]) {
     const day = new Date(m.created_at).toDateString();
     const label =
       day === today
-        ? 'Today'
+        ? t('investor.messages.today')
         : day === yesterday
-          ? 'Yesterday'
-          : new Date(m.created_at).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'long',
-            });
+          ? t('investor.messages.yesterday')
+          : dayMonth(m.created_at, lang);
     const last = groups[groups.length - 1];
     if (last && last.label === label) last.messages.push(m);
     else groups.push({ label, messages: [m] });

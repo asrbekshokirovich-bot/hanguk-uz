@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 
@@ -137,7 +138,8 @@ export function EmptyNote({ children, className }: { children: ReactNode; classN
 /** A figure the CRM does not record yet. Says so rather than showing a zero
  *  that would read as a real result. */
 export function NotTracked() {
-  return <span className="text-[13px] text-muted-foreground">Not tracked yet</span>;
+  const { t } = useTranslation();
+  return <span className="text-[13px] text-muted-foreground">{t('investor.common.notTracked')}</span>;
 }
 
 export function MetricRow({

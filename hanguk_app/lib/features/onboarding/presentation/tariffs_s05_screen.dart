@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/eligibility_engine.dart';
 import '../onboarding_routes.dart';
@@ -25,7 +26,7 @@ class TariffsScreen extends StatelessWidget {
     final children = <Widget>[
       Row(
         children: [
-          OnbBackTile(onTap: () => context.canPop() ? context.pop() : context.go('/')),
+          OnbBackTile(onTap: tracked('tariffs_s05.onb_back_tile', () => context.canPop() ? context.pop() : context.go('/'))),
           const SizedBox(width: 12),
           Flexible(
             child: Row(
@@ -128,7 +129,7 @@ class _TariffCard extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: OnbTap(
-              onTap: () => context.push(tariffDetailPath(tariff.code)),
+              onTap: tracked('tariffs_s05.tariff_more', () => context.push(tariffDetailPath(tariff.code))),
               child: Text(
                 l.onbTariffMore,
                 strutStyle: onbStrut(13),

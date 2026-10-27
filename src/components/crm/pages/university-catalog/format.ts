@@ -84,10 +84,19 @@ export interface DisplayName {
   secondary: string | null;
 }
 
-/** Kartada: yuqorida inglizcha nom, pastida koreyscha (yoki teskarisi). */
+/**
+ * Kartada: yuqorida inglizcha nom, pastida koreyscha (yoki teskarisi).
+ *
+ * Nom institutions jadvalidan olinadi. Excel yo'riqnomasidagi univ_nomi_en /
+ * univ_nomi_kr xodim qo'lda yozgan matn: magistratura fayllarida u
+ * "… — Graduate School", "(Graduate School)", "… 일반대학원" kabi qo'shimcha
+ * bilan keladi va eng yangi yo'riqnoma magistratura bo'lsa, universitet nomi
+ * shunday ko'rinib qolardi. Excel nomi faqat institutions'da nom yo'q bo'lsa
+ * zaxira sifatida ishlatiladi.
+ */
 export function displayName(entry: CatalogEntry): DisplayName {
-  const en = entry.latest?.univ_nomi_en?.trim() || entry.institution.name_en?.trim() || '';
-  const ko = entry.latest?.univ_nomi_kr?.trim() || entry.institution.name_ko?.trim() || '';
+  const en = entry.institution.name_en?.trim() || entry.latest?.univ_nomi_en?.trim() || '';
+  const ko = entry.institution.name_ko?.trim() || entry.latest?.univ_nomi_kr?.trim() || '';
   if (en && ko) return { primary: en, secondary: ko };
   return { primary: en || ko || '—', secondary: null };
 }
@@ -248,13 +257,26 @@ function isGraduateOnly(entry: CatalogEntry): boolean {
   return ko.includes('대학원') || /graduate (school|university)/i.test(en);
 }
 
+/** Excel'i (guideline'i) yuklangan darajalar. */
+function excelLevels(entry: CatalogEntry): Set<DegreeLevel> {
+  const levels = new Set<DegreeLevel>();
+  for (const g of entry.guidelines) {
+    if (DEGREE_LEVELS.some((l) => l.key === g.daraja)) levels.add(g.daraja as DegreeLevel);
+  }
+  return levels;
+}
+
 /**
  * Universitet qaysi darajalarda o'qitadi. Excel yuklangan daraja — aniq bor.
  * Qolgani oliygoh turidan: kollej (전문대학) — kasbiy ta'lim, nomida 대학원
  * bo'lgan oliygoh — faqat magistratura, qolgan 4 yillik universitetlarda ham
  * bakalavr, ham magistratura (대학원) bor. Til kursi (어학당) qaysi
  * universitetda borligi oldindan ma'lum emas — faqat Excel'i yuklanganda.
- * institutions.hidden_levels'dagi darajalar olib tashlanadi.
+ *
+ * institutions.hidden_levels'dagi darajalar olib tashlanadi — lekin Excel'i
+ * yuklangan daraja emas: chet elliklar uchun guideline bor ekan, daraja bor.
+ * Ro'yxat xato bo'lsa (서울장신대 magistraturasi, 2026-10-21), Excel yuklash
+ * uni o'zi tuzatadi.
  */
 export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
   const levels = new Set<DegreeLevel>();
@@ -266,24 +288,37 @@ export function offeredLevels(entry: CatalogEntry): DegreeLevel[] {
     levels.add('bakalavr');
     levels.add('magistratura');
   }
-  for (const g of entry.guidelines) {
-    if (DEGREE_LEVELS.some((l) => l.key === g.daraja)) levels.add(g.daraja as DegreeLevel);
+  const withExcel = excelLevels(entry);
+  for (const level of withExcel) levels.add(level);
+  for (const hidden of entry.institution.hidden_levels ?? []) {
+    if (!withExcel.has(hidden as DegreeLevel)) levels.delete(hidden as DegreeLevel);
   }
-  // Xodim yashirgan daraja (chet ellik qabuli yo'q, faqat diniy) — Excel bo'lsa ham ko'rinmaydi.
-  for (const hidden of entry.institution.hidden_levels ?? []) levels.delete(hidden as DegreeLevel);
   return DEGREE_LEVELS.map((l) => l.key).filter((key) => levels.has(key));
+}
+
+/**
+ * Yashirilgan, lekin Excel'i yo'q darajalar — katalogda ko'rinmaydi. Excel
+ * yuklay oladigan xodim panelda ularni "yashirilgan" belgisi bilan ko'radi:
+ * ro'yxat xato bo'lsa, Excel'ni shu yerdan yuklab darajani qaytaradi.
+ */
+export function hiddenLevels(entry: CatalogEntry): DegreeLevel[] {
+  const withExcel = excelLevels(entry);
+  const hidden = new Set(entry.institution.hidden_levels ?? []);
+  return DEGREE_LEVELS.map((l) => l.key).filter((key) => hidden.has(key) && !withExcel.has(key));
 }
 
 /**
  * Universitet panelidagi daraja yorliqlari. Til kursi Excel'i hali yo'q
  * universitetda ham Excel yuklay oladigan xodimga yorliq ochiq turadi —
- * birinchi faylni shu yerdan yuklaydi (daraja yashirilgan bo'lsa — yo'q).
+ * birinchi faylni shu yerdan yuklaydi. Yashirilgan darajalar ham shu xodimga
+ * ko'rinadi (hiddenLevels) — boshqalarga yo'q.
  */
 export function panelLevels(entry: CatalogEntry, canUpload: boolean): DegreeLevel[] {
   const levels = offeredLevels(entry);
-  const hidden = entry.institution.hidden_levels ?? [];
-  if (canUpload && !levels.includes('til_kursi') && !hidden.includes('til_kursi')) levels.push('til_kursi');
-  return levels;
+  if (!canUpload) return levels;
+  if (!levels.includes('til_kursi')) levels.push('til_kursi');
+  const shown = new Set([...levels, ...hiddenLevels(entry)]);
+  return DEGREE_LEVELS.map((l) => l.key).filter((key) => shown.has(key));
 }
 
 export function matchesLevel(entry: CatalogEntry, level: LevelFilter): boolean {

@@ -132,7 +132,8 @@ IMPORTANT: Evaluate if the student demonstrated knowledge about this specific un
 
     const feedbackLang = language === "uz" ? "Uzbek" : 
                          language === "ru" ? "Russian" :
-                         language === "en" ? "English" : "Korean";
+                         language === "en" ? "English" :
+                         language === "vi" ? "Vietnamese" : "Korean";
 
     const systemPrompt = `You are an expert Korean university admission interview evaluator. 
 Analyze this practice interview transcript and provide detailed feedback.
@@ -263,6 +264,10 @@ Include message_scores for EVERY student response in the transcript.`;
           // and see a different number, which is exactly what "approximate"
           // looks like from the outside.
           temperature: 0,
+          // "low": the model's own reasoning was most of the ~40s wait after
+          // "Suhbatni tugatish"; the score comes from the rubric, not from
+          // long deliberation, so keep it short and the result comes fast.
+          reasoning_effort: "low",
           response_format: { type: "json_object" },
         }),
       });

@@ -1,4 +1,5 @@
 import { CalendarDays, Check, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
+import { intakeLabel } from './investorLabels';
 
 /**
  * Season selector for the investor topbar.
@@ -18,6 +20,7 @@ import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
  * floor. This lists exactly what v_investor_intakes returns.
  */
 export function InvestorSeasonSwitcher({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const { intakes, activeIntake, setActiveIntakeId, isLoading } = useInvestorSeason();
 
   if (isLoading && !activeIntake) {
@@ -33,7 +36,7 @@ export function InvestorSeasonSwitcher({ className }: { className?: string }) {
           className={cn('h-11 gap-2 px-3 text-[13px] font-semibold', className)}
         >
           <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="truncate">{activeIntake.label}</span>
+          <span className="truncate">{intakeLabel(t, activeIntake)}</span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
@@ -47,10 +50,10 @@ export function InvestorSeasonSwitcher({ className }: { className?: string }) {
               className="gap-2 text-[13px] font-medium"
             >
               <Check className={cn('h-4 w-4 shrink-0', !selected && 'opacity-0')} />
-              <span className="flex-1 truncate">{intake.label}</span>
+              <span className="flex-1 truncate">{intakeLabel(t, intake)}</span>
               {intake.is_open && (
                 <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                  Open
+                  {t('investor.season.open')}
                 </span>
               )}
             </DropdownMenuItem>

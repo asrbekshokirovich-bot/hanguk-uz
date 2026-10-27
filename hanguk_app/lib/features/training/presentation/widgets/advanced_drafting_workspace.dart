@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../data/draft_spell_checker.dart';
@@ -517,7 +518,7 @@ class _AdvancedDraftingWorkspaceState
                             issue.originalText,
                             issue.suggestion,
                           ),
-                          onTap: () => _applyGrammarFix(issue),
+                          onTap: tracked('advanced_drafting_workspace.grammar_replace_with', () => _applyGrammarFix(issue)),
                         );
                       }).toList(),
                     ),
@@ -598,7 +599,7 @@ class _AdvancedDraftingWorkspaceState
         // user can keep typing without inserting.
         _GhostSuggestionBar(
           controller: _controller,
-          onAccept: _acceptSuggestion,
+          onAccept: tracked('advanced_drafting_workspace.ghost_suggestion_bar_accept', _acceptSuggestion),
         ),
         // How much of the 12 000-character allowance is used. The exact
         // counts sit right below in the metrics bar.
@@ -617,7 +618,7 @@ class _AdvancedDraftingWorkspaceState
         LimeButton(
           icon: Icons.auto_awesome,
           label: l.workspaceAnalyzeButton,
-          onPressed: () async {
+          onPressed: tracked('advanced_drafting_workspace.workspace_analyze_button', () async {
             // Audit A6: previously this fire-and-forgot. If save
             // failed the analyzer ran on a stale draft. Now we wait
             // for the save and bail on failure (the SaveStatus error
@@ -630,7 +631,7 @@ class _AdvancedDraftingWorkspaceState
             ref
                 .read(studyPlanSessionProvider.notifier)
                 .updateSessionStep(widget.documentType, 4);
-          },
+          }),
         ),
       ],
     );
@@ -651,7 +652,7 @@ class _FixChip extends StatelessWidget {
       button: true,
       label: label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('advanced_drafting_workspace.fix_chip', onTap),
         child: Container(
           constraints: const BoxConstraints(minHeight: SeoulSizes.minTapTarget),
           alignment: Alignment.center,
@@ -716,7 +717,7 @@ class _GhostSuggestionBar extends StatelessWidget {
               ? Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: GestureDetector(
-                    onTap: onAccept,
+                    onTap: tracked('advanced_drafting_workspace.ghost_suggestion_bar_accept', onAccept),
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
                       decoration: BoxDecoration(
@@ -759,12 +760,12 @@ class _GhostSuggestionBar extends StatelessWidget {
                           // Analyze action at the bottom of the workspace.
                           _GhostAcceptButton(
                             label: l.ghostAccept,
-                            onTap: onAccept,
+                            onTap: tracked('advanced_drafting_workspace.ghost_suggestion_bar_accept', onAccept),
                           ),
                           // Dismiss — clears the ghost without
                           // inserting, so the user can keep typing.
                           IconButton(
-                            onPressed: () => controller.setGhostText(null),
+                            onPressed: tracked('advanced_drafting_workspace.ghost_dismiss', () => controller.setGhostText(null)),
                             icon: const Icon(Icons.close, size: 18),
                             color: SeoulColors.textSecondary,
                             tooltip: l.ghostDismiss,
@@ -799,7 +800,7 @@ class _GhostAcceptButton extends StatelessWidget {
       button: true,
       label: label,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('advanced_drafting_workspace.ghost_accept_button', onTap),
         child: Container(
           constraints: const BoxConstraints(
             minWidth: 72,

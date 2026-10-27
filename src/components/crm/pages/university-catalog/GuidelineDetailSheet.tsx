@@ -67,6 +67,7 @@ import {
   facultyNoun,
   formatMoney,
   guidelinesForLevel,
+  hiddenLevels,
   levelLabel,
   panelLevels,
   periodLabel,
@@ -864,6 +865,9 @@ export function GuidelineDetailSheet({
     const levels = entry ? panelLevels(entry, canUpload) : [];
     return DEGREE_LEVELS.filter((l) => levels.includes(l.key));
   }, [entry, canUpload]);
+  // Katalogda yashirilgan darajalar (institutions.hidden_levels) — faqat Excel
+  // yuklay oladigan xodimga, belgi bilan.
+  const hiddenTabs = useMemo(() => new Set(entry ? hiddenLevels(entry) : []), [entry]);
 
   // Odatiy yorliq: katalogda tanlangan daraja; u bo'lmasa — ma'lumoti bor
   // birinchi daraja (bakalavr ustun); hech qayerda ma'lumot bo'lmasa — birinchi
@@ -959,6 +963,11 @@ export function GuidelineDetailSheet({
                 onClick={() => pickTab(t.key)}
               >
                 {t.label}
+                {hiddenTabs.has(t.key) && (
+                  <Badge variant="neutral" className="ml-2">
+                    yashirilgan
+                  </Badge>
+                )}
                 {count > 0 && (
                   <Badge variant={darajaTab === t.key ? 'neutral' : 'successSoft'} className="ml-2">
                     {count}
@@ -1007,9 +1016,11 @@ export function GuidelineDetailSheet({
               icon={FileSpreadsheet}
               title={`Bu universitet uchun ${levelLabel(darajaTab).toLowerCase()} excel yuklanmagan`}
               description={
-                canUpload
-                  ? `Shablon bo'yicha to'ldirilgan .xlsx faylni yuklang — muddatlar, ${noun.many} va hujjatlar shu yerda ko'rinadi.`
-                  : "Ma'lumot yuklangach shu yerda ko'rinadi."
+                hiddenTabs.has(darajaTab)
+                  ? `Bu daraja katalogda yashirilgan (chet elliklar qabuli yo'q deb belgilangan). Aslida bor bo'lsa — Excel'ni yuklang: daraja katalogda ko'rinadi.`
+                  : canUpload
+                    ? `Shablon bo'yicha to'ldirilgan .xlsx faylni yuklang — muddatlar, ${noun.many} va hujjatlar shu yerda ko'rinadi.`
+                    : "Ma'lumot yuklangach shu yerda ko'rinadi."
               }
               action={
                 canUpload && entry

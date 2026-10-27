@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -35,12 +36,19 @@ abstract final class AppTab {
 const List<int> _navTabs = [AppTab.universities, AppTab.prepare, AppTab.application, AppTab.documents];
 
 /// Opens [tab] of the home from a screen pushed over it (or from the home's
-/// own nav when [onLocal] is null): a client's tabs for a guest go to the
-/// client-code sign-in with a note, as the prototype's lock dots promise.
-void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>? onLocal}) {
+/// own nav when [onLocal] is null). A client's tab for a guest opens in the
+/// guest home itself, where it asks for the client code (owner, 2026-10-22).
+/// The sign-in's own nav passes [onLocked], as it is that page already.
+void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>? onLocal, VoidCallback? onLocked}) {
   final signedIn = ref.read(signedInProvider);
   if (AppTab.needsClient(tab) && !signedIn) {
-    context.push('/login', extra: {'notice': AppLocalizations.of(context)!.fdNavNeedsClientCode});
+    if (onLocked != null) {
+      onLocked();
+    } else if (onLocal != null) {
+      onLocal(tab);
+    } else {
+      context.go(discoverTabPath(tab));
+    }
     return;
   }
   if (onLocal != null) {
@@ -54,13 +62,16 @@ void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>
 /// [current] is the lit [AppTab]; pass [AppTab.home] to light only the round
 /// button, or -1 for none.
 class AppNav extends ConsumerWidget {
-  const AppNav({super.key, required this.current, this.onLocal});
+  const AppNav({super.key, required this.current, this.onLocal, this.onLocked});
 
   final int current;
 
   /// The home's own switch; null on a pushed screen, where a tab goes back
   /// to the home with that tab open.
   final ValueChanged<int>? onLocal;
+
+  /// See [openAppTab].
+  final VoidCallback? onLocked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -76,19 +87,23 @@ class AppNav extends ConsumerWidget {
       items: items,
       current: _navTabs.indexOf(current),
       hasCenter: true,
-      onSelect: (i) => openAppTab(context, ref, _navTabs[i], onLocal: onLocal),
+      onSelect: (i) => openAppTab(context, ref, _navTabs[i], onLocal: onLocal, onLocked: onLocked),
     );
   }
 }
 
 /// The round button of [AppNav]: the best chance among the three picked
-/// universities, or "?%", over "BAHOLASH". Give it to the Scaffold as its
+/// universities, or "?%", over "BAHOLASH"; it opens the home tab, "Vizam
+/// chiqadimi?" (owner, 2026-10-21). Give it to the Scaffold as its
 /// `floatingActionButton`, with [kFdNavOrbLocation].
 class AppNavOrb extends ConsumerWidget {
-  const AppNavOrb({super.key, required this.current, this.onLocal});
+  const AppNavOrb({super.key, required this.current, this.onLocal, this.onTap});
 
   final int current;
   final ValueChanged<int>? onLocal;
+
+  /// In place of opening the home tab (the visa page pushed on its own).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,7 +121,7 @@ class AppNavOrb extends ConsumerWidget {
       value: best == null ? '?%' : '$best%',
       label: l.fdNavAssess,
       active: current == AppTab.home,
-      onTap: () => openAppTab(context, ref, AppTab.home, onLocal: onLocal),
+      onTap: tracked('app_nav.nav_assess', onTap ?? () => openAppTab(context, ref, AppTab.home, onLocal: onLocal)),
     );
   }
 }

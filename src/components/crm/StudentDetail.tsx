@@ -45,7 +45,8 @@ import {
   Lightbulb,
   Search,
   GraduationCap,
-  Wallet
+  Wallet,
+  Ban,
 } from 'lucide-react';
 import {
   Dialog,
@@ -75,8 +76,14 @@ import {
 } from '@/components/ui/sheet';
 import { EditStudentDialog } from './EditStudentDialog';
 import { DeleteStudentDialog } from './DeleteStudentDialog';
+import { ContractCancelSection } from './ContractCancelSection';
+import { VisaDepartureCard } from './VisaDepartureCard';
 import { AddPaymentDialog } from './AddPaymentDialog';
 import { EditPaymentDialog } from './EditPaymentDialog';
+import { AddInstallmentDialog } from './payments/AddInstallmentDialog';
+import { PaymentTransfers } from './payments/PaymentTransfers';
+import { PaymentBalanceLines } from './payments/PaymentBalanceLines';
+import { summarizeBalance } from '@/lib/paymentBalance';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { useUniversities } from '@/hooks/useUniversities';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
@@ -100,6 +107,8 @@ type StudentProfile = Tables<'profiles'> & {
     university?: Tables<'universities'>;
   })[];
   documents?: Tables<'documents'>[];
+  /** Contract cancelled in the active season — computed by useCRMData. */
+  contractCancelled?: boolean;
 };
 
 interface StudentDetailProps {
@@ -190,6 +199,9 @@ interface PaymentRecord {
     gateway_fee: number;
     payment_method: string | null;
     created_at: string;
+    paid_on?: string | null;
+    receipt_url?: string | null;
+    receipt_urls?: string[] | null;
   }[];
 }
 
@@ -242,6 +254,8 @@ export function StudentDetail({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
+  // The account a new transfer (bo'lak) is being added to, or null.
+  const [installmentFor, setInstallmentFor] = useState<PaymentRecord | null>(null);
   const [degreeSaving, setDegreeSaving] = useState<string | null>(null);
   const [suggestUniversityDialogOpen, setSuggestUniversityDialogOpen] = useState(false);
   const [existingSuggestedUniversityIds, setExistingSuggestedUniversityIds] = useState<string[]>([]);
@@ -1005,6 +1019,12 @@ export function StudentDetail({
                         {student.full_name || t('common.name')}
                       </SheetTitle>
                       {heroPlan && <Badge variant={heroPlan.tone}>{heroPlan.label}</Badge>}
+                      {student.contractCancelled && (
+                        <Badge variant="destructive" className="gap-1">
+                          <Ban className="h-3 w-3" />
+                          {t('crm.contractCancelledShort')}
+                        </Badge>
+                      )}
                       {heroIsVip && (
                         <Badge variant="warning" className="gap-1">
                           <Crown className="h-3 w-3" />
@@ -1328,10 +1348,19 @@ export function StudentDetail({
                   )}
                 </section>
               </div>
+
+              {/* Shartnomani bekor qilish / tiklash — at the bottom of the profile. */}
+              <ContractCancelSection
+                studentId={student.user_id}
+                intakeId={activeIntakeId}
+                onChanged={onRefresh}
+              />
             </TabsContent>
 
             {/* Status Tab */}
             <TabsContent value="status" className="space-y-4 mt-6">
+              {/* Viza tasdiqlandi / Jo'nab ketdi — feed the investor pipeline. */}
+              <VisaDepartureCard studentId={student.user_id} intakeId={activeIntakeId} />
               {!latestApp ? (
                 <Card>
                   <CardContent className="py-8 text-center space-y-3">
@@ -1651,21 +1680,27 @@ export function StudentDetail({
                         </div>
 
                         <div className="text-sm space-y-1">
-                          {payment.transactions?.[0]?.payment_method && (
-                            <p>Method: {payment.transactions[0].payment_method}</p>
-                          )}
                           {payment.due_date && (
                             <p>Due: {format(new Date(payment.due_date), 'M/d/yyyy')}</p>
                           )}
-                          {payment.paid_at && (
-                            <p>Paid: {format(new Date(payment.paid_at), 'M/d/yyyy')}</p>
+                          {payment.status !== 'refunded' && (
+                            <PaymentBalanceLines
+                              className="text-sm"
+                              balances={summarizeBalance([payment])}
+                            />
                           )}
                         </div>
 
-                        <Button variant="link" className="p-0 h-auto text-primary">
-                          <Download className="h-4 w-4 mr-1" />
-                          View Receipt/Cheque
-                        </Button>
+                        {/* Transfers (bo'laklar) with their receipts. Replaces the
+                            old "View Receipt/Cheque" button, which had no action. */}
+                        <PaymentTransfers
+                          transfers={payment.transactions}
+                          currency={payment.currency}
+                          studentId={student.user_id}
+                          canAdd={payment.status !== 'refunded' && Number(payment.paid_amount) < Number(payment.amount)}
+                          onAddInstallment={() => setInstallmentFor(payment)}
+                          onChanged={fetchPayments}
+                        />
                       </CardContent>
                     </Card>
                   );
@@ -2280,9 +2315,21 @@ export function StudentDetail({
         studentPaymentMode={student.payment_mode || 'one_time'}
         contractDate={student.contract_date}
         existingPayments={payments.map(p => ({
+          id: p.id,
           payment_type: p.payment_type,
-          status: p.status
+          status: p.status,
+          amount: Number(p.amount),
+          paid_amount: Number(p.paid_amount),
+          currency: p.currency,
         }))}
+        onSuccess={fetchPayments}
+      />
+
+      <AddInstallmentDialog
+        open={!!installmentFor}
+        onOpenChange={(o) => !o && setInstallmentFor(null)}
+        payment={installmentFor ? { ...installmentFor, student_id: student.user_id } : null}
+        studentPlan={student.payment_plan}
         onSuccess={fetchPayments}
       />
 

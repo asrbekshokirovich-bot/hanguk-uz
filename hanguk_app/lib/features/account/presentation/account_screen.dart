@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../core/config/app_config.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -17,6 +18,7 @@ import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/language_sheet.dart';
 import '../../training/presentation/study_plan_screen.dart';
 import '../../uni_db/data/admin_review_providers.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Account management screen — sign out and (irreversibly) delete the
 /// account. The deletion flow is required by both Apple App Store
@@ -168,7 +170,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               const SizedBox(height: 20),
               SeoulOutlineButton(
                 label: l10n.ok,
-                onPressed: () => Navigator.of(ctx).pop(),
+                onPressed: tracked('account.ok', () => Navigator.of(ctx).pop()),
               ),
             ],
           ),
@@ -213,7 +215,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 _GlassCircleButton(
                   icon: Icons.arrow_back_rounded,
                   tooltip: l10n.accountBackTooltip,
-                  onTap: () => Navigator.of(context).maybePop(),
+                  onTap: tracked('account.back', () => Navigator.of(context).maybePop()),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -263,7 +265,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 label: _signingOut
                     ? l10n.accountSigningOut
                     : l10n.accountSignOut,
-                onPressed: _signingOut ? null : _signOut,
+                onPressed: tracked('account.signing_out', _signingOut ? null : _signOut),
               ),
             ),
 
@@ -281,23 +283,26 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   SeoulOutlineButton(
                     icon: Icons.poll_outlined,
                     label: l10n.surveysTitle,
-                    onPressed: () => context.push('/surveys'),
+                    onPressed: tracked('account.surveys_title', () => context.push('/surveys')),
                   ),
                   const SizedBox(height: 10),
                   SeoulOutlineButton(
                     icon: Icons.notifications_none_rounded,
                     label: l10n.homeNotifications,
-                    onPressed: () => context.push('/notifications'),
+                    onPressed: tracked('account.home_notifications', () => context.push('/notifications')),
                   ),
                   const SizedBox(height: 10),
                   SeoulOutlineButton(
                     icon: Icons.edit_note_rounded,
                     label: l10n.personalStatementCardTitle,
-                    onPressed: () => Navigator.of(context).push(
+                    onPressed: tracked('account.personal_statement_card_title', () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
-                        builder: (_) => const StudyPlanScreen(documentType: 'personal_statement'),
+                        builder: (_) => const NavScaffold(
+                          current: AppTab.prepare,
+                          child: StudyPlanScreen(documentType: 'personal_statement'),
+                        ),
                       ),
-                    ),
+                    )),
                   ),
                   if (ref.watch(canReviewUniDbProvider).value ?? false) ...[
                     const SizedBox(height: 10),
@@ -306,7 +311,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       label: (ref.watch(reviewQueueCountProvider).value ?? 0) > 0
                           ? 'Review (${ref.watch(reviewQueueCountProvider).value})'
                           : 'Review',
-                      onPressed: () => context.push('/admin/review'),
+                      onPressed: tracked('account.to_admin_review', () => context.push('/admin/review')),
                     ),
                   ],
                 ],
@@ -326,7 +331,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                     kEntryLanguageNames[ref.watch(entryProvider).languageCode ??
                         Localizations.localeOf(context).languageCode] ??
                     l10n.entryLanguageLabel,
-                onPressed: () => showLanguageSheet(context, ref),
+                onPressed: tracked('account.entry_language_label', () => showLanguageSheet(context, ref)),
               ),
             ),
 
@@ -343,7 +348,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 label: _exporting
                     ? l10n.accountPreparingExport
                     : l10n.accountDownloadMyData,
-                onPressed: _exporting ? null : _exportMyData,
+                onPressed: tracked('account.preparing_export', _exporting ? null : _exportMyData),
               ),
             ),
 
@@ -358,7 +363,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               child: _DangerButton(
                 icon: Icons.delete_forever_rounded,
                 label: l10n.accountDeleteAccount,
-                onPressed: _showDeleteFlow,
+                onPressed: tracked('account.delete_account', _showDeleteFlow),
               ),
             ),
 
@@ -373,12 +378,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               children: [
                 _LegalLink(
                   label: l10n.accountPrivacyPolicy,
-                  onTap: () => _openLegal(AppConfig.privacyPolicyUrl),
+                  onTap: tracked('account.privacy_policy', () => _openLegal(AppConfig.privacyPolicyUrl)),
                 ),
                 const Text(' • ', style: SeoulType.bodySecondary),
                 _LegalLink(
                   label: l10n.accountTermsOfService,
-                  onTap: () => _openLegal(AppConfig.termsOfServiceUrl),
+                  onTap: tracked('account.terms_of_service', () => _openLegal(AppConfig.termsOfServiceUrl)),
                 ),
               ],
             ),
@@ -484,7 +489,7 @@ class _GlassCircleButton extends StatelessWidget {
       child: Tooltip(
         message: tooltip,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('account.glass_circle_button', onTap),
           child: Container(
             width: SeoulSizes.minTapTarget,
             height: SeoulSizes.minTapTarget,
@@ -511,7 +516,7 @@ class _LegalLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      onPressed: onTap,
+      onPressed: tracked('account.legal_link', onTap),
       style: TextButton.styleFrom(
         foregroundColor: SeoulColors.textSecondary,
         minimumSize: const Size(
@@ -587,7 +592,7 @@ class _DangerButtonState extends State<_DangerButton> {
       enabled: enabled,
       label: widget.label,
       child: GestureDetector(
-        onTap: widget.onPressed,
+        onTap: tracked('account.danger_button', widget.onPressed),
         onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
         onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
         onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
@@ -729,16 +734,16 @@ class _DeleteConfirmDialogState extends State<_DeleteConfirmDialog> {
               Expanded(
                 child: SeoulOutlineButton(
                   label: l10n.cancel,
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: tracked('account.cancel', () => Navigator.of(context).pop(false)),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _DangerButton(
                   label: l10n.accountDeleteDialogConfirm,
-                  onPressed: _canConfirm
+                  onPressed: tracked('account.delete_dialog_confirm', _canConfirm
                       ? () => Navigator.of(context).pop(true)
-                      : null,
+                      : null),
                 ),
               ),
             ],

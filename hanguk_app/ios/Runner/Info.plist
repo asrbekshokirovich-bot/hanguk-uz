@@ -52,6 +52,21 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<!-- An operator's link (hanguk.uz/l/<code>) opens the app as
+	     hanguk://open/l/<code>; the router ties the phone to the lead. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>uz.hanguk.open</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hanguk</string>
+			</array>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>

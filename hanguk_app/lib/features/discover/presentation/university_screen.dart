@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -14,16 +15,17 @@ import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_detail_screen.dart';
 import '../../catalog/presentation/catalog_format.dart';
 import '../../assessment/data/assessment_controller.dart';
-import '../../assessment/domain/assessment.dart';
 import '../data/application_windows.dart';
 import '../data/chances.dart';
 import '../data/qs_ranking.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
 import 'widgets/app_nav.dart';
-import 'widgets/chance_cards.dart';
 import 'widgets/fd_bottom_nav.dart';
 import 'widgets/fd_parts.dart';
+import 'widgets/page_tour.dart';
+import '../data/board_tour.dart';
+import '../data/grant_tiers.dart';
 
 /// One programme of a faculty with the languages it is taught in.
 @visibleForTesting
@@ -70,7 +72,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
   @override
   void initState() {
     super.initState();
-    AppEvents.track('university_open', props: {'institution_id': widget.institutionId});
+    AppEvents.track('university_open', props: {
+      'institution_id': widget.institutionId,
+      ...AppEvents.cardOrigin(widget.institutionId),
+    });
   }
 
   @override
@@ -100,7 +105,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                               radius: 12,
                               iconSize: 18,
                               semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                              onTap: () => _back(context),
+                              onTap: tracked('university.back', () => _back(context)),
                             ),
                             const Spacer(),
                             Center(child: Text(l.uniDbLoadFailed, style: fdText(14, FontWeight.w600, FdColors.onPage))),
@@ -109,7 +114,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                               child: SeoulOutlineButton(
                                 label: l.commonRetry,
                                 expand: false,
-                                onPressed: () => ref.invalidate(catalogProvider),
+                                onPressed: tracked('university.retry', () => ref.invalidate(catalogProvider)),
                               ),
                             ),
                             const Spacer(),
@@ -117,7 +122,20 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                         ),
                       ),
                     )
-            : _body(context, l, u),
+            : PageTour(
+                name: 'university',
+                seen: tourSeenProvider('university'),
+                steps: (context) {
+                  Widget icon(LucideGlyph g) => Lucide(g, size: 16, color: FdColors.onLime);
+                  return [
+                    TourStep(l.tuHero, icon: icon(LucideIcons.graduationCap)),
+                    TourStep(l.tuGrants, icon: icon(LucideIcons.award)),
+                    TourStep(l.tuAsk, icon: icon(LucideIcons.award)),
+                    TourStep(l.tuPick, icon: icon(LucideIcons.heart)),
+                  ];
+                },
+                builder: (context, keys) => _body(context, l, u, keys),
+              ),
       ),
     );
   }
@@ -130,7 +148,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     }
   }
 
-  Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u) {
+  Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u, List<GlobalKey> keys) {
     final degree = _degree ?? u.primary.degree ?? CatalogDegree.bachelor;
     final g = u.forDegree(degree) ?? u.primary;
     final detailAsync = ref.watch(catalogDetailProvider(g.id));
@@ -141,7 +159,6 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     final slot = slots.indexOf(u.institutionId);
     final picked = slots.whereType<String>().length;
     final book = ref.watch(chanceBookProvider);
-    final outcome = ref.watch(assessmentOutcomeProvider);
     final window = ref.watch(applicationWindowsProvider).value?[g.id];
     final deadline = window?.endDate ?? window?.startDate;
     final season = seasonLabel(l, g);
@@ -149,7 +166,6 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     final both = u.hasDegree(CatalogDegree.bachelor) && u.hasDegree(CatalogDegree.master);
 
     final admission = book.admission(u);
-    final boosts = _boosts(l, book, u, outcome);
 
     void pick() {
       final n = ref.read(slotsProvider.notifier);
@@ -186,7 +202,8 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
           l.catalogApplicationFee,
           money(g.applicationFee!, g.applicationFeeCurrency ?? g.currency, locale: l.localeName),
         ),
-      if (g.topikMin != null && g.koreanTrack != false) (LucideIcons.languages, l.fdCellLanguage, 'TOPIK ${scoreText(g.topikMin!)}+'),
+      if (g.topikMin != null && g.koreanTrack != false)
+        (LucideIcons.languages, l.fdCellLanguage, 'TOPIK ${scoreText(g.topikMin!)}+'),
       if (deadline != null) (LucideIcons.calendar, l.fdUniDeadline, formatDate(context, deadline)),
     ];
 
@@ -201,7 +218,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                 HardIconButton(
                   glyph: LucideIcons.chevronLeft,
                   semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
-                  onTap: () => _back(context),
+                  onTap: tracked('university.back', () => _back(context)),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -219,7 +236,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
             child: ListView(
               padding: const EdgeInsets.only(top: 8),
               children: [
-                _Hero(university: u, guideline: g),
+                KeyedSubtree(
+                  key: keys[0],
+                  child: _Hero(university: u, guideline: g),
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
                   child: Wrap(
@@ -229,37 +249,6 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                       if (u.city != null) _Chip(label: u.city!, glyph: LucideIcons.mapPin),
                       if (season != null) _Chip(label: season, lime: true),
                     ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: ChanceCard(
-                            label: l.fdUniAdmissionLabel,
-                            percent: admission,
-                            note: admission >= 80
-                                ? l.fdUniNoteHigh
-                                : admission >= 50
-                                ? l.fdUniNoteReal
-                                : l.fdUniNoteDream,
-                            onTap: () => openAppTab(context, ref, AppTab.home),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ChanceCard(
-                            label: l.fdBoardVisaTitle,
-                            percent: book.visa,
-                            note: l.fdUniVisaNote,
-                            onTap: () => openAppTab(context, ref, AppTab.home),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
                 if (both)
@@ -276,11 +265,11 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                             child: HardChoice(
                               label: label,
                               selected: degree == id,
-                              onTap: () => setState(() {
+                              onTap: tracked('university.set_degree', () => setState(() {
                                 _degree = id;
                                 _open = 0;
                                 _expanded.clear();
-                              }),
+                              })),
                             ),
                           ),
                         ],
@@ -292,29 +281,12 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                     padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
                     child: _StatGrid(stats: stats),
                   ),
-                if (boosts.isNotEmpty)
+                // What this university takes off the tuition for a TOPIK or
+                // IELTS result, from its scholarship table.
                 Padding(
+                  key: keys[1],
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(l.fdUniBoostTitle, style: fdText(11, FontWeight.w800, FdColors.pageMuted)),
-                      const SizedBox(height: 6),
-                      for (final b in boosts) ...[
-                        BoostRow(
-                          label: b.label,
-                          gain: b.gain,
-                          onTap: () {
-                            b.apply();
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(SnackBar(content: Text(l.fdUniBoostApplied)));
-                          },
-                        ),
-                        const SizedBox(height: 6),
-                      ],
-                    ],
-                  ),
+                  child: _GrantCard(guideline: g),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
@@ -348,16 +320,26 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                       rows: [for (final r in rounds) (catalogStepName(l, r), catalogRoundValue(context, l, r))],
                     ),
                   ),
+                // Under it all, the way to this university's own assessment.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 22, 0),
+                  child: _AskCard(
+                    key: keys[2],
+                    percent: ref.watch(assessmentTouchedProvider) || book.testsOf(u).any ? admission : null,
+                    onStart: tracked('university.ask_card_start', () => context.push(universityAssessPath(u.institutionId)), props: {'institution_id': u.institutionId}),
+                  ),
+                ),
                 const SizedBox(height: 20),
               ],
             ),
           ),
           FdBottomBar(
+            key: keys[3],
             aboveNav: true,
             child: HardButton(
               label: slot >= 0 ? l.fdUniInPick(picked) : l.fdUniAddPick(picked),
               fill: slot >= 0 ? FdColors.card : FdColors.lime,
-              onPressed: pick,
+              onPressed: tracked('university.pick', pick, props: {'institution_id': u.institutionId}),
             ),
           ),
         ],
@@ -365,35 +347,12 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     );
   }
 
-  /// The rows that would raise the chances, from the answers on the board: one
-  /// more TOPIK level (this university's admission) and the bank the visa
-  /// needs. None until the board has been answered.
-  List<_Boost> _boosts(AppLocalizations l, ChanceBook book, CatalogUniversity u, AssessmentOutcome? outcome) {
-    final notifier = ref.read(assessmentProvider.notifier);
-    final input = book.input;
-    final out = <_Boost>[];
-    final now = book.admission(u);
-    if (input.topik < 6) {
-      final next = input.topik + 1;
-      final gain = book.admissionWithTopik(u, next) - now;
-      if (gain > 0) {
-        out.add(_Boost(l.fdFixTopik(next), l.fdGainAdmission(gain), () => notifier.set(input.copyWith(topik: next))));
-      }
-    }
-    final bank = outcome?.fixes.where((f) => f.kind == FixKind.bank).firstOrNull;
-    if (bank != null) {
-      out.add(
-        _Boost(
-          l.fdFixBank(l.fdMln((bank.value / 1000000).round())),
-          l.fdGainVisa(bank.gain),
-          () => notifier.set(input.copyWith(bankKrw: bank.value)),
-        ),
-      );
-    }
-    return out;
-  }
-
-  Widget _faculties(AppLocalizations l, AsyncValue<CatalogGuidelineDetail> async, List<FacultyGroup> groups, CatalogGuideline g) {
+  Widget _faculties(
+    AppLocalizations l,
+    AsyncValue<CatalogGuidelineDetail> async,
+    List<FacultyGroup> groups,
+    CatalogGuideline g,
+  ) {
     if (async.isLoading && groups.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 20),
@@ -407,7 +366,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
           SeoulOutlineButton(
             label: l.commonRetry,
             expand: false,
-            onPressed: () => ref.invalidate(catalogDetailProvider(g.id)),
+            onPressed: tracked('university.retry_2', () => ref.invalidate(catalogDetailProvider(g.id))),
           ),
         ],
       );
@@ -423,13 +382,11 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
           _FacultyCard(
             name: groups[i].name,
             majors: majorsOf(groups[i]),
-            price: groups[i].minFee == null
-                ? null
-                : money(groups[i].minFee!, g.currency, locale: l.localeName),
+            price: groups[i].minFee == null ? null : money(groups[i].minFee!, g.currency, locale: l.localeName),
             open: _open == i,
             expanded: _expanded.contains(i),
-            onTap: () => setState(() => _open = _open == i ? null : i),
-            onExpand: () => setState(() => _expanded.add(i)),
+            onTap: tracked('university.faculty_card', () => setState(() => _open = _open == i ? null : i)),
+            onExpand: tracked('university.faculty_card_expand', () => setState(() => _expanded.add(i))),
           ),
         ],
       ],
@@ -457,7 +414,8 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
         ),
       if (requiredDocs > 0) (l.catalogReqDocuments, l.catalogDocsRequired(requiredDocs)),
       if (apostille > 0) (l.catalogReqApostille, l.catalogApostilleDocs(apostille)),
-      if (g.bankAmount != null) (l.catalogReqBank, money(g.bankAmount!, g.bankCurrency ?? g.currency, locale: l.localeName)),
+      if (g.bankAmount != null)
+        (l.catalogReqBank, money(g.bankAmount!, g.bankCurrency ?? g.currency, locale: l.localeName)),
     ];
   }
 
@@ -465,17 +423,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     final x = a ?? b!;
     final y = b ?? a!;
     final loc = l.localeName;
-    return x == y ? money(x, currency, locale: loc) : '${money(x, currency, locale: loc)} – ${money(y, currency, locale: loc)}';
+    return x == y
+        ? money(x, currency, locale: loc)
+        : '${money(x, currency, locale: loc)} – ${money(y, currency, locale: loc)}';
   }
-}
-
-/// One row that raises the chances and what tapping it does.
-class _Boost {
-  const _Boost(this.label, this.gain, this.apply);
-
-  final String label;
-  final String gain;
-  final VoidCallback apply;
 }
 
 /// The cover: the campus photo (the prototype's blue gradient when there is
@@ -498,7 +449,8 @@ class _Hero extends StatelessWidget {
     final sub = [
       if (university.city != null) shortCity(university.city!),
       if (price != null) money(price, guideline.currency, locale: l.localeName),
-      if (rank != null) '${rank.source == RankSource.qs ? 'QS' : 'THE'} ${rank.to != null ? '${rank.from}–${rank.to}' : rank.label}',
+      if (rank != null)
+        '${rank.source == RankSource.qs ? 'QS' : 'THE'} ${rank.to != null ? '${rank.from}–${rank.to}' : rank.label}',
     ].join(' · ');
 
     return Container(
@@ -544,7 +496,12 @@ class _Hero extends StatelessWidget {
                     style: fdText(26, FontWeight.w800, Colors.white, height: 1.15, letterSpacing: -0.52),
                   ),
                 if (sub.isNotEmpty)
-                  Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: fdText(12, FontWeight.w700, Colors.white)),
+                  Text(
+                    sub,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: fdText(12, FontWeight.w700, Colors.white),
+                  ),
               ],
             ),
           ),
@@ -565,7 +522,10 @@ class _Hero extends StatelessWidget {
                     Container(
                       width: 7,
                       height: 7,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: private ? FdColors.privateBlue : FdColors.good),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: private ? FdColors.privateBlue : FdColors.good,
+                      ),
                     ),
                     const SizedBox(width: 5),
                     Text(type, style: fdText(11, FontWeight.w800, FdColors.ink)),
@@ -599,10 +559,7 @@ class _Chip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (glyph != null) ...[
-            Lucide(glyph!, size: 11, color: fg),
-            const SizedBox(width: 5),
-          ],
+          if (glyph != null) ...[Lucide(glyph!, size: 11, color: fg), const SizedBox(width: 5)],
           Text(label, style: fdText(12, lime ? FontWeight.w700 : FontWeight.w600, fg)),
         ],
       ),
@@ -723,7 +680,7 @@ class _FacultyCard extends StatelessWidget {
             button: true,
             expanded: open,
             child: GestureDetector(
-              onTap: onTap,
+              onTap: tracked('university.faculty_card', onTap),
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
@@ -764,11 +721,14 @@ class _FacultyCard extends StatelessWidget {
                     Semantics(
                       button: true,
                       child: GestureDetector(
-                        onTap: onExpand,
+                        onTap: tracked('university.faculty_card_expand', onExpand),
                         behavior: HitTestBehavior.opaque,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text(l.fdUniAllMajors(majors.length), style: fdText(11, FontWeight.w800, FdColors.navy)),
+                          child: Text(
+                            l.fdUniAllMajors(majors.length),
+                            style: fdText(11, FontWeight.w800, FdColors.navy),
+                          ),
                         ),
                       ),
                     ),
@@ -811,10 +771,7 @@ class _MajorLine extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: FdColors.ink, width: 1.5),
                 ),
-                child: Text(
-                  badge,
-                  style: fdText(10, FontWeight.w800, major.english ? FdColors.onLime : FdColors.ink),
-                ),
+                child: Text(badge, style: fdText(10, FontWeight.w800, major.english ? FdColors.onLime : FdColors.ink)),
               ),
             ],
           ],
@@ -872,7 +829,9 @@ class _InfoCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: i == 0
                   ? null
-                  : const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFD9DFE8), width: 1.5))),
+                  : const BoxDecoration(
+                      border: Border(top: BorderSide(color: Color(0xFFD9DFE8), width: 1.5)),
+                    ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -888,6 +847,175 @@ class _InfoCard extends StatelessWidget {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Grant — TOPIK / IELTS natijangizga qarab": each result this university
+/// rewards on admission and what it takes off the tuition, a percent or a
+/// sum; the best one the student's own answers earn is lime.
+class _GrantCard extends ConsumerWidget {
+  const _GrantCard({required this.guideline});
+
+  final CatalogGuideline guideline;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final async = ref.watch(universityGrantsProvider(guideline.id));
+    final tiers = async.value ?? const <GrantTier>[];
+    final profile = ref.watch(assessmentProvider);
+
+    String level(double v) => scoreText(v);
+    String topik(GrantTier t) {
+      final lo = t.topikMin;
+      final hi = t.topikMax;
+      if (lo == null && hi == null) return l.ugNoCertificate;
+      if (lo != null && hi != null) return lo == hi ? 'TOPIK ${level(lo)}' : 'TOPIK ${level(lo)}–${level(hi)}';
+      return lo != null ? 'TOPIK ${level(lo)}+' : 'TOPIK ≤${level(hi!)}';
+    }
+
+    String english(GrantTier t) => [
+      if (t.ieltsMin != null) 'IELTS ${level(t.ieltsMin!)}+',
+      if (t.toeflMin != null) 'TOEFL ${level(t.toeflMin!)}+',
+    ].join(' / ');
+
+    String label(GrantTier t) => switch (t.test) {
+      GrantTest.topik => topik(t),
+      GrantTest.ielts => english(t),
+      GrantTest.either => l.ugEither(topik(t), english(t)),
+      GrantTest.both => l.ugBoth(topik(t), english(t)),
+    };
+
+    String value(GrantTier t) => t.percent > 0 ? '${t.percent}%' : money(t.sum ?? 0, 'KRW', locale: l.localeName);
+
+    // The student's best: the largest percent, else the largest sum.
+    GrantTier? best;
+    for (final t in tiers) {
+      if (!t.earnedBy(topik: profile.topikCounted, ielts: profile.ielts)) continue;
+      final b = best;
+      if (b == null || t.percent > b.percent || (t.percent == b.percent && (t.sum ?? 0) > (b.sum ?? 0))) best = t;
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+      decoration: BoxDecoration(
+        color: FdColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: FdColors.ink, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Lucide(LucideIcons.award, size: 16, color: FdColors.ink),
+              const SizedBox(width: 6),
+              Expanded(child: Text(l.ugTitle, style: fdText(14, FontWeight.w800, FdColors.ink))),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(l.ugSubtitle, style: fdText(11, FontWeight.w500, FdColors.muted)),
+          const SizedBox(height: 6),
+          if (async.isLoading && tiers.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: FdColors.ink),
+                ),
+              ),
+            )
+          else if (tiers.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                async.hasError ? l.uniDbLoadFailed : l.ugNone,
+                style: fdText(12, FontWeight.w600, FdColors.muted, height: 1.35),
+              ),
+            )
+          else
+            for (var i = 0; i < tiers.length; i++)
+              Container(
+                margin: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: identical(tiers[i], best)
+                    ? BoxDecoration(color: FdColors.lime, borderRadius: BorderRadius.circular(10))
+                    : i == 0
+                    ? null
+                    : const BoxDecoration(
+                        border: Border(top: BorderSide(color: Color(0xFFD9DFE8), width: 1.5)),
+                      ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(label(tiers[i]), style: fdText(12, FontWeight.w700, FdColors.ink, height: 1.35)),
+                    ),
+                    if (identical(tiers[i], best)) ...[
+                      Text(l.ugYours, style: fdText(10, FontWeight.w800, FdColors.onLime)),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(value(tiers[i]), style: fdText(13, FontWeight.w800, FdColors.ink)),
+                  ],
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Bu universitetga kirish ehtimolingizni bilmoqchimisiz?": blue, lifted on
+/// a lime shadow, "?%" in a dashed ring until the student has been assessed.
+class _AskCard extends StatelessWidget {
+  const _AskCard({super.key, required this.percent, required this.onStart});
+
+  final int? percent;
+  final VoidCallback onStart;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: FdColors.ink, width: 1.5),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [FdColors.blue, FdColors.blueDeep],
+        ),
+        boxShadow: const [BoxShadow(color: FdColors.lime, offset: Offset(5, 5))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              CustomPaint(
+                painter: const DashedPillPainter(color: FdColors.lime),
+                child: SizedBox.square(
+                  dimension: 58,
+                  child: Center(
+                    child: Text(
+                      percent == null ? '?%' : '$percent%',
+                      style: fdText(18, FontWeight.w800, FdColors.onPage, height: 1),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(child: Text(l.uaAskTitle, style: fdText(16, FontWeight.w800, FdColors.onPage, height: 1.2))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(l.uaAskBody, style: fdText(12, FontWeight.w500, const Color(0xFFC9D3F5), height: 1.45)),
+          const SizedBox(height: 16),
+          HardButton(label: l.uaAskStart, onPressed: tracked('university.ask_card_start', onStart)),
         ],
       ),
     );

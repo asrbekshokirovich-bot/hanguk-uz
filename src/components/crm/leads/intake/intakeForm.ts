@@ -217,9 +217,62 @@ export const matchesLeadQuery = (lead: Lead, query: string): boolean => {
   // otherwise `phoneDigits('aziz')` is '' and would match every lead that has
   // a phone at all.
   const digits = phoneDigits(query);
-  if (digits && phoneDigits(lead.phone ?? '').includes(digits)) return true;
+  if (!digits) return false;
 
-  return false;
+  // Exactly four digits is how the office looks a caller up — "the number
+  // ending in 4567". Matched against the END of each stored number, because a
+  // plain substring search also returns every number that merely has those
+  // four digits somewhere in the middle.
+  if (isLastDigitsQuery(query)) {
+    return phoneNumbersOf(lead.phone).some((number) => number.endsWith(digits));
+  }
+
+  return phoneDigits(lead.phone ?? '').includes(digits);
+};
+
+/** How many trailing digits make a "number ending in …" lookup. */
+export const LAST_DIGITS_LENGTH = 4;
+
+/** `"4567"` or `"45 67"` — digits (spaces allowed), exactly four of them. */
+export const isLastDigitsQuery = (query: string): boolean =>
+  /^[\d\s]+$/.test(query.trim()) && phoneDigits(query).length === LAST_DIGITS_LENGTH;
+
+/**
+ * The separate numbers in a phone field, as digit strings.
+ *
+ * A few records hold two numbers in one field ("90 123 45 67 / 91 765 43 21");
+ * each is matched on its own, so the first number's ending is not lost inside
+ * the second.
+ */
+export const phoneNumbersOf = (phone: string | null | undefined): string[] =>
+  (phone ?? '')
+    .split(/[,;/|\n]/)
+    .map(phoneDigits)
+    .filter(Boolean);
+
+/**
+ * A phone number laid out for reading in the list.
+ *
+ * Only reshapes what is unambiguous — an Uzbek number stored as 9 digits, or as
+ * 12 digits starting with 998. Anything else (foreign numbers, two numbers in
+ * one field, text such as "Tel:") is shown exactly as stored, so nothing is
+ * guessed. The stored value is never changed.
+ */
+export const formatPhoneForList = (phone: string | null | undefined): string => {
+  const raw = (phone ?? '').trim();
+  if (!raw) return '';
+  const numbers = phoneNumbersOf(raw);
+  if (numbers.length !== 1 || /[^\d\s()+-]/.test(raw)) return raw;
+  const digits = numbers[0];
+  const local =
+    digits.length === 12 && digits.startsWith('998')
+      ? digits.slice(3)
+      : digits.length === 9
+        ? digits
+        : null;
+  if (!local) return raw;
+  const grouped = `${local.slice(0, 2)} ${local.slice(2, 5)} ${local.slice(5, 7)} ${local.slice(7)}`;
+  return digits.length === 12 ? `+998 ${grouped}` : grouped;
 };
 
 /**

@@ -28,6 +28,8 @@ class CatalogFilter {
     this.regions = const {},
     this.topik,
     this.type,
+    this.grant,
+    this.onePercent = false,
   });
 
   final String query;
@@ -55,6 +57,13 @@ class CatalogFilter {
   /// `state` or `private`; null for "Farqi yo'q".
   final String? type;
 
+  /// "Grant / stipendiya": the least tuition waiver wanted, in percent (30,
+  /// 50, 100); null for "Shart emas".
+  final int? grant;
+
+  /// Only the "1% universitetlar" ([kOnePercentUniversities]).
+  final bool onePercent;
+
   bool get hasPrice => minPrice != null || maxPrice != null;
 
   /// The number on the filter button's badge: cities + degree + price + IELTS.
@@ -66,7 +75,9 @@ class CatalogFilter {
       (field != null ? 1 : 0) +
       regions.length +
       (topik != null ? 1 : 0) +
-      (type != null ? 1 : 0);
+      (type != null ? 1 : 0) +
+      (grant != null ? 1 : 0) +
+      (onePercent ? 1 : 0);
 
   CatalogFilter copyWith({
     String? query,
@@ -79,6 +90,8 @@ class CatalogFilter {
     Set<String>? regions,
     String? Function()? topik,
     String? Function()? type,
+    int? Function()? grant,
+    bool? onePercent,
   }) {
     return CatalogFilter(
       query: query ?? this.query,
@@ -91,6 +104,8 @@ class CatalogFilter {
       regions: regions ?? this.regions,
       topik: topik != null ? topik() : this.topik,
       type: type != null ? type() : this.type,
+      grant: grant != null ? grant() : this.grant,
+      onePercent: onePercent ?? this.onePercent,
     );
   }
 
@@ -112,6 +127,47 @@ final catalogFilterProvider = NotifierProvider<CatalogFilterNotifier, CatalogFil
   CatalogFilterNotifier.new,
 );
 
+/// Hanguk's "1% universitetlar ro'yxati" (2026-10-21), by Korean name as the
+/// catalog writes it. A few are not in the catalog yet and match nothing.
+const Set<String> kOnePercentUniversities = {
+  '건국대학교',
+  '건양대학교',
+  '경북대학교',
+  '경성대학교',
+  '경희대학교',
+  '계명대학교',
+  '고려대학교',
+  '덕성여자대학교',
+  '동국대학교',
+  '부산대학교',
+  '부산외국어대학교',
+  '서울시립대학교',
+  '서울신학대학교',
+  '선문대학교',
+  '성결대학교',
+  '성균관대학교',
+  '성신여자대학교',
+  '세종대학교',
+  '숙명여자대학교',
+  '아주대학교',
+  '울산과학기술원',
+  '이화여자대학교',
+  '인하대학교',
+  '제주대학교',
+  '중부대학교',
+  '중앙대학교',
+  '충남대학교',
+  '충북대학교',
+  '포항공과대학교',
+  '한국항공대학교',
+  '한성대학교',
+  '한양대학교',
+  '홍익대학교',
+};
+
+/// Whether [u] is on [kOnePercentUniversities].
+bool isOnePercent(CatalogUniversity u) => kOnePercentUniversities.contains(u.nameKo?.trim());
+
 /// The guideline a card shows for [u] under [f]: the chosen degree's, or the
 /// bachelor's when the filter says "all".
 CatalogGuideline? guidelineFor(CatalogUniversity u, CatalogFilter f) =>
@@ -124,19 +180,24 @@ num? priceOf(CatalogGuideline g) => g.tuitionMin ?? g.tuitionMax;
 /// Apply [f] to [all]. Cheapest first; a university with no fee sorts last.
 /// [fieldMatches] is the field search's answer for [CatalogFilter.field]:
 /// the universities with a programme of that field (null while it loads, or
-/// with no field chosen — then the field does not filter).
+/// with no field chosen — then the field does not filter). [grants] is each
+/// university's largest tuition waiver in percent, for [CatalogFilter.grant]
+/// (null while it loads — then the grant does not filter).
 List<CatalogUniversity> applyCatalogFilter(
   List<CatalogUniversity> all,
   CatalogFilter f, {
   Set<String>? fieldMatches,
+  Map<String, int>? grants,
 }) {
   final q = f.query.trim().toLowerCase();
   final out = all.where((u) {
     final g = guidelineFor(u, f);
     if (g == null) return false;
     if (f.cities.isNotEmpty && !f.cities.contains(u.city)) return false;
+    if (f.onePercent && !isOnePercent(u)) return false;
     if (f.field != null && fieldMatches != null && !fieldMatches.contains(u.institutionId)) return false;
     if (f.regions.isNotEmpty && !f.regions.contains(catalogRegionOf(g.city ?? u.city))) return false;
+    if (f.grant != null && grants != null && (grants[u.institutionId] ?? 0) < f.grant!) return false;
     if (f.topik != null) {
       final need = g.topikMin;
       if (f.topik == CatalogTopik.none) {

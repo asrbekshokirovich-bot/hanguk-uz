@@ -104,7 +104,7 @@ interface UploadReport {
   fileName: string;
   errors: string[];
   warnings: string[];
-  imported: { muddatlar: number; fakultetlar: number; hujjatlar: number } | null;
+  imported: { muddatlar: number; fakultetlar: number; hujjatlar: number; grantlar: number | null } | null;
   /** Fakultetlar varag'idagi qatorlar nomi — til kursida "kurs". */
   facultyNoun?: string;
 }
@@ -253,6 +253,7 @@ export default function UniversityCatalogContent() {
           muddatlar: outcome.muddatlar,
           fakultetlar: outcome.fakultetlar,
           hujjatlar: outcome.hujjatlar,
+          grantlar: outcome.grantlar ?? null,
         },
         facultyNoun: noun,
       });
@@ -488,6 +489,9 @@ export default function UniversityCatalogContent() {
                 </Badge>
                 <Badge variant="successSoft">{report.imported.muddatlar} muddat</Badge>
                 <Badge variant="successSoft">{report.imported.hujjatlar} hujjat</Badge>
+                {report.imported.grantlar !== null && (
+                  <Badge variant="successSoft">{report.imported.grantlar} grant</Badge>
+                )}
               </div>
             )}
 

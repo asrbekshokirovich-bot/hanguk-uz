@@ -87,9 +87,15 @@ class EntryNotifier extends Notifier<EntryState> {
   @override
   EntryState build() => EntryStore.initial;
 
-  Future<void> setLanguage(String code) async {
+  /// [source] is where it was chosen: 'first_run' (the first screen, sent even
+  /// when the phone's own language is kept) or 'settings'. [deviceDefault] says
+  /// whether it is the phone's language, which the first screen pre-selects.
+  Future<void> setLanguage(String code, {String source = 'settings', bool? deviceDefault}) async {
     if (!kEntryLanguages.contains(code)) return;
-    if (state.languageCode != code) AppEvents.track('language_set', props: {'language': code});
+    if (state.languageCode != code || source == 'first_run') {
+      AppEvents.track('language_set', props: {'language': code, 'source': source, 'device_default': deviceDefault});
+    }
+    AppEvents.setLanguage(code);
     state = state.copyWith(languageCode: code);
     await EntryStore.saveLanguage(code);
   }

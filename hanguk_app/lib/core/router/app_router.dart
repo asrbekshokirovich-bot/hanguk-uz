@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
 
+import '../../core/analytics/tracked.dart';
 import '../../design_system/seoul_night/seoul_night.dart';
 import '../analytics/app_events.dart';
+import '../analytics/identity_links.dart';
 import '../../l10n/app_localizations.dart';
 import '../../design_system/seoul_night/seoul_night_gallery.dart';
 import '../../features/account/presentation/account_screen.dart';
@@ -21,13 +26,15 @@ import '../../features/discover/presentation/chosen_screen.dart';
 import '../../features/discover/presentation/compare_screen.dart';
 import '../../features/discover/presentation/discover_shell.dart';
 import '../../features/discover/presentation/duel_screen.dart';
-import '../../features/discover/presentation/filter_board_screen.dart';
 import '../../features/discover/presentation/universities_screen.dart';
 import '../../features/discover/presentation/widgets/app_nav.dart';
 import '../../features/discover/data/list_mode.dart';
 import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
+import '../../features/discover/presentation/filter_screen.dart';
+import '../../features/discover/presentation/university_assess_screen.dart';
 import '../../features/discover/presentation/university_screen.dart';
+import '../../features/discover/presentation/visa_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/onboarding/onboarding_routes.dart';
 import '../../features/onboarding/presentation/quiz_s02_screen.dart';
@@ -69,12 +76,12 @@ part 'app_router.g.dart';
 // Wiring this is required for the store-mandated sign-out and account
 // deletion flow — see `account_screen.dart`.
 List<RouteBase> _accountRoutes() => [
-  GoRoute(path: '/account', builder: (context, state) => const AccountScreen()),
+  GoRoute(path: '/account', builder: (context, state) => const NavScaffold(current: -1, child: AccountScreen())),
   // The 한 orb's bell opens this — actionable reminders (documents to submit,
   // application stages), not the per-institution notification toggles.
   GoRoute(
     path: '/notifications',
-    builder: (context, state) => const NotificationsScreen(),
+    builder: (context, state) => const NavScaffold(current: -1, child: NotificationsScreen()),
   ),
 ];
 
@@ -89,33 +96,57 @@ List<RouteBase> _guestRoutes() => [
     builder: (context, state) =>
         DiscoverShell(tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? AppTab.home),
   ),
-  GoRoute(path: kDiscoverSearchPath, builder: (context, state) => const SearchScreen()),
+  GoRoute(
+    path: kDiscoverSearchPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.universities, child: SearchScreen()),
+  ),
   GoRoute(
     path: kDiscoverFilterPath,
-    builder: (context, state) => const NavScaffold(current: AppTab.home, child: FilterBoardScreen()),
+    builder: (context, state) => const NavScaffold(current: AppTab.universities, child: FilterScreen()),
   ),
   GoRoute(
     path: kDiscoverResultsPath,
     builder: (context, state) => const NavScaffold(current: AppTab.universities, child: UniversitiesScreen()),
   ),
-  GoRoute(path: kDiscoverDuelPath, builder: (context, state) => const DuelScreen()),
+  GoRoute(
+    path: kDiscoverDuelPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.universities, child: DuelScreen()),
+  ),
   GoRoute(path: kDiscoverChosenPath, builder: (context, state) => const ChosenScreen()),
   GoRoute(
     path: kDiscoverComparePath,
-    builder: (context, state) =>
-        CompareScreen(institutionIds: state.extra is List ? (state.extra as List).whereType<String>().toList() : const []),
+    builder: (context, state) => NavScaffold(
+      current: AppTab.universities,
+      child: CompareScreen(
+        institutionIds: state.extra is List ? (state.extra as List).whereType<String>().toList() : const [],
+      ),
+    ),
   ),
   GoRoute(path: kDiscoverSavedPath, builder: (context, state) => const SavedScreen()),
   GoRoute(
     path: '/university/:id',
     builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
   ),
+  GoRoute(path: kVisaPath, builder: (context, state) => const VisaScreen()),
+  GoRoute(
+    path: '/university/:id/assess',
+    builder: (context, state) => UniversityAssessScreen(institutionId: state.pathParameters['id'] ?? ''),
+  ),
   // The assessment's questions live on the home board now; a link to the old
   // page opens the report.
   GoRoute(path: kAssessmentPath, redirect: (context, state) => kAssessmentReportPath),
-  GoRoute(path: kAssessmentReportPath, builder: (context, state) => const ReportScreen()),
-  GoRoute(path: kAssessmentLeadPath, builder: (context, state) => const LeadScreen()),
-  GoRoute(path: kAssessmentSentPath, builder: (context, state) => const SentScreen()),
+  GoRoute(
+    path: kAssessmentReportPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.home, child: ReportScreen()),
+  ),
+  GoRoute(
+    path: kAssessmentLeadPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.home, child: LeadScreen()),
+  ),
+  GoRoute(
+    path: kAssessmentSentPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.home, child: SentScreen()),
+  ),
 ];
 
 /// The way in before Welcome: the language picker on first launch — see the
@@ -137,27 +168,33 @@ List<RouteBase> _onboardingRoutes() => [
   ),
   GoRoute(
     path: kTariffsPath,
-    builder: (context, state) => const TariffsScreen(),
+    builder: (context, state) => const NavScaffold(current: -1, child: TariffsScreen()),
   ),
   GoRoute(
     path: '$kTariffsPath/:code',
     builder: (context, state) =>
-        TariffDetailScreen(code: state.pathParameters['code'] ?? 'premium'),
+        NavScaffold(current: -1, child: TariffDetailScreen(code: state.pathParameters['code'] ?? 'premium')),
   ),
 ];
 
 List<RouteBase> _universityChoiceRoutes() => [
-  GoRoute(path: kUniversityChoicesPath, builder: (context, state) => const UniversityChoicesScreen()),
+  GoRoute(
+    path: kUniversityChoicesPath,
+    builder: (context, state) => const NavScaffold(current: AppTab.application, child: UniversityChoicesScreen()),
+  ),
 ];
 
 List<RouteBase> _surveyRoutes() => [
-  GoRoute(path: '/surveys', builder: (context, state) => const SurveysScreen()),
+  GoRoute(
+    path: '/surveys',
+    builder: (context, state) => const NavScaffold(current: AppTab.prepare, child: SurveysScreen()),
+  ),
   GoRoute(
     path: '/surveys/:id',
     builder: (context, state) {
       final id = state.pathParameters['id'] ?? '';
       final title = state.extra is String ? state.extra as String : null;
-      return SurveyDetailScreen(surveyId: id, surveyTitle: title);
+      return NavScaffold(current: AppTab.prepare, child: SurveyDetailScreen(surveyId: id, surveyTitle: title));
     },
   ),
 ];
@@ -170,14 +207,14 @@ List<RouteBase> _mapRoutes() => [
       final extraUni = state.extra is University
           ? state.extra as University
           : null;
-      return _WalkaroundRouteEntry(institutionId: id, seed: extraUni);
+      return NavScaffold(current: AppTab.universities, child: _WalkaroundRouteEntry(institutionId: id, seed: extraUni));
     },
   ),
   GoRoute(
     path: '/map/:institutionId',
     builder: (context, state) {
       final id = state.pathParameters['institutionId'] ?? '';
-      return _MapDeepLinkEntry(institutionId: id);
+      return NavScaffold(current: AppTab.universities, child: _MapDeepLinkEntry(institutionId: id));
     },
   ),
 ];
@@ -278,7 +315,7 @@ class _RouteMissingShell extends StatelessWidget {
               SeoulOutlineButton(
                 label: l.a11yTooltipBack,
                 expand: false,
-                onPressed: () {
+                onPressed: tracked('app_router.back', () {
                   if (nav.canPop()) {
                     nav.pop();
                   } else {
@@ -287,7 +324,7 @@ class _RouteMissingShell extends StatelessWidget {
                     // visitor.
                     context.go('/');
                   }
-                },
+                }),
               ),
             ],
           ),
@@ -310,22 +347,23 @@ List<RouteBase> _uniDbRoutes() => [
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
           .toList(growable: false);
-      return InstitutionCompareScreen(ids: ids);
+      return NavScaffold(current: AppTab.universities, child: InstitutionCompareScreen(ids: ids));
     },
   ),
   GoRoute(
     path: '/institutions/:id',
-    builder: (context, state) => InstitutionDetailScreen(
-      institutionId: state.pathParameters['id'] ?? '',
+    builder: (context, state) => NavScaffold(
+      current: AppTab.universities,
+      child: InstitutionDetailScreen(institutionId: state.pathParameters['id'] ?? ''),
     ),
   ),
   GoRoute(
     path: '/applications/tracker',
-    builder: (context, state) => const ApplicationTrackerScreen(),
+    builder: (context, state) => const NavScaffold(current: AppTab.application, child: ApplicationTrackerScreen()),
   ),
   GoRoute(
     path: '/notifications/settings',
-    builder: (context, state) => const NotificationSettingsScreen(),
+    builder: (context, state) => const NavScaffold(current: -1, child: NotificationSettingsScreen()),
   ),
   GoRoute(
     path: '/admin/review',
@@ -333,13 +371,40 @@ List<RouteBase> _uniDbRoutes() => [
   ),
 ];
 
+/// What the redirect needs from the auth stream, and a ping when it changes.
+///
+/// The router used to `ref.watch` the auth stream itself, so EVERY auth event
+/// built a brand-new GoRouter at '/': the guest sign-in that opens the
+/// university tests, and the token refresh when the app comes back from the
+/// microphone prompt or the background. Each one threw the student out of the
+/// Study Plan / interview test to the home screen. Now the router is built
+/// once and only re-runs its redirect when being signed in actually changes.
+class _AuthGate extends ChangeNotifier {
+  bool isLoading = true;
+  bool isAuthenticated = false;
+
+  void update({required bool isLoading, required bool isAuthenticated}) {
+    if (isLoading == this.isLoading && isAuthenticated == this.isAuthenticated) return;
+    this.isLoading = isLoading;
+    this.isAuthenticated = isAuthenticated;
+    notifyListeners();
+  }
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authStateAsync = ref.watch(authStateProvider);
   // Only the language gate rebuilds the router; switching language later
   // must not throw the visitor back to the first screen.
   final hasLanguage = ref.watch(entryProvider.select((s) => s.hasLanguage));
 
-  return GoRouter(
+  final gate = _AuthGate();
+  void sync(AsyncValue<AuthState> s) => gate.update(
+    isLoading: s.isLoading,
+    isAuthenticated: isClientSession(s.value?.session),
+  );
+  sync(ref.read(authStateProvider));
+  ref.listen<AsyncValue<AuthState>>(authStateProvider, (_, next) => sync(next));
+
+  final router = GoRouter(
     initialLocation: '/',
     observers: [AppEventsNavigatorObserver()],
     routes: <RouteBase>[
@@ -352,6 +417,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ..._universityChoiceRoutes(),
       ..._mapRoutes(),
       if (kUniDbEnabled) ..._uniDbRoutes(),
+      // An operator's link; the redirect above leaves it at once.
+      GoRoute(path: '/l/:code', builder: (context, state) => const SizedBox.shrink()),
       // Seoul Night design-system gallery. Debug builds only — the flag is
       // kDebugMode, so the route simply doesn't exist in a release binary.
       if (kSeoulGalleryEnabled)
@@ -360,13 +427,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           builder: (context, state) => const SeoulNightGallery(),
         ),
     ],
-    redirect: (context, state) => resolveAppRedirect(
-      loc: state.uri.toString(),
-      isLoading: authStateAsync.isLoading,
-      isAuthenticated: authStateAsync.value?.session != null,
-      hasLanguage: hasLanguage,
-    ),
+    refreshListenable: gate,
+    redirect: (context, state) {
+      // An operator's link (hanguk.uz/l/<code>, opened as
+      // hanguk://open/l/<code>): tie this phone to the lead, then carry on
+      // as from the home.
+      final link = IdentityLinks.codeFromPath(state.uri.path);
+      if (link != null) {
+        unawaited(IdentityLinks.claim(link, 'link'));
+        return resolveAppRedirect(
+              loc: '/',
+              isLoading: gate.isLoading,
+              isAuthenticated: gate.isAuthenticated,
+              hasLanguage: hasLanguage,
+            ) ??
+            '/';
+      }
+      return resolveAppRedirect(
+        loc: state.uri.toString(),
+        isLoading: gate.isLoading,
+        isAuthenticated: gate.isAuthenticated,
+        hasLanguage: hasLanguage,
+      );
+    },
   );
+  return router;
 });
 
 /// Where [loc] should go instead, or null to stay. Pure, so the gates can be

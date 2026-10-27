@@ -6391,5 +6391,616 @@
   "ajBack": "Back",
   "@ajBack": {
     "description": "Accessibility label of the back button on the detail page."
+  },
+  "btField": "Pick your field",
+  "@btField": {
+    "description": "Home board tour step 1: label beside the field tiles."
+  },
+  "btCount": "Matching universities",
+  "@btCount": {
+    "description": "Home board tour step 2: label beside the count of matching universities."
+  },
+  "btVisa": "Your visa chances",
+  "@btVisa": {
+    "description": "Home board tour step 3: label beside the visa gauge."
+  },
+  "btList": "See the list",
+  "@btList": {
+    "description": "Home board tour step 4: label above the show-universities button."
+  },
+  "btStrip": "Your best matches",
+  "@btStrip": {
+    "description": "Board tour: label beside the strip of matching universities."
+  },
+  "btCity": "Which city?",
+  "@btCity": {
+    "description": "Board tour: label beside the city chips."
+  },
+  "btDegree": "Which degree?",
+  "@btDegree": {
+    "description": "Board tour: label beside the degree choice."
+  },
+  "btTopik": "Your Korean level",
+  "@btTopik": {
+    "description": "Board tour: label beside the student's TOPIK level."
+  },
+  "btIelts": "Your IELTS score",
+  "@btIelts": {
+    "description": "Board tour: label beside the IELTS score."
+  },
+  "btFee": "Tuition",
+  "@btFee": {
+    "description": "Board tour: label beside the tuition slider."
+  },
+  "btType": "State or private",
+  "@btType": {
+    "description": "Board tour: label beside state/private."
+  },
+  "btGrant": "Need a grant?",
+  "@btGrant": {
+    "description": "Board tour: label beside the grant choice."
+  },
+  "fdSectionIelts": "My English (IELTS)",
+  "@fdSectionIelts": {
+    "description": "Board section title: the student's IELTS score."
+  },
+  "fdIeltsNoneHint": "I won't study in English",
+  "@fdIeltsNoneHint": {
+    "description": "Note beside the IELTS section when 'No' is chosen."
+  },
+  "fdIeltsHint": "English programmes up to IELTS {score}",
+  "@fdIeltsHint": {
+    "description": "Note beside the IELTS section when a score is chosen.",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "fdSectionGrant": "Grant / scholarship",
+  "@fdSectionGrant": {
+    "description": "Board section title: the grant / scholarship wanted."
+  },
+  "fdGrantHint": "Tuition discount",
+  "@fdGrantHint": {
+    "description": "Note beside the grant section."
+  },
+  "fdGrantNone": "Not needed",
+  "@fdGrantNone": {
+    "description": "Grant choice: not needed."
+  },
+  "fdGrantSummary": "Grant {pct}%+",
+  "@fdGrantSummary": {
+    "description": "The grant choice in the one-line filter summary.",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "fdTopikHint": "{meaning} — TOPIK {level}+ opens",
+  "@fdTopikHint": {
+    "description": "Note beside the TOPIK level: what it means and what it opens.",
+    "placeholders": {
+      "meaning": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "fdTopikHintNone": "Pick your level",
+  "@fdTopikHintNone": {
+    "description": "Note beside the TOPIK level when none is chosen."
+  },
+  "fdTopikLevel1": "Greetings",
+  "@fdTopikLevel1": {
+    "description": "What TOPIK 1 means."
+  },
+  "fdTopikLevel2": "Simple sentences",
+  "@fdTopikLevel2": {
+    "description": "What TOPIK 2 means."
+  },
+  "fdTopikLevel3": "Everyday talk",
+  "@fdTopikLevel3": {
+    "description": "What TOPIK 3 means."
+  },
+  "fdTopikLevel4": "Free conversation",
+  "@fdTopikLevel4": {
+    "description": "What TOPIK 4 means."
+  },
+  "fdTopikLevel5": "Academic texts",
+  "@fdTopikLevel5": {
+    "description": "What TOPIK 5 means."
+  },
+  "fdTopikLevel6": "Near native",
+  "@fdTopikLevel6": {
+    "description": "What TOPIK 6 means."
+  },
+  "fdCodeSms": "The {bold} code your consultant sent by SMS",
+  "@fdCodeSms": {
+    "description": "Code screen: line under the title; {bold} is fdCodeEight, shown bold.",
+    "placeholders": {
+      "bold": {
+        "type": "String"
+      }
+    }
+  },
+  "fdCodeEight": "8-character",
+  "@fdCodeEight": {
+    "description": "Code screen: the bold part of fdCodeSms."
+  },
+  "fdCodeUnlocks": "The code opens",
+  "@fdCodeUnlocks": {
+    "description": "Code screen: heading over what the code opens (shown upper case)."
+  },
+  "fdCodeChat": "Consultant chat",
+  "@fdCodeChat": {
+    "description": "Code screen: the consultant chat tile."
+  },
+  "fdCodeScanShort": "Scan QR",
+  "@fdCodeScanShort": {
+    "description": "Code screen: QR button."
+  },
+  "fdCodeNone": "No code",
+  "@fdCodeNone": {
+    "description": "Code screen: 'no code' button, calls the office."
+  },
+  "fdCodeFreeConsult": "Free consultation",
+  "@fdCodeFreeConsult": {
+    "description": "Code screen footer, before the phone number."
+  },
+  "uaTitle": "Admission chance",
+  "uaCity": "City",
+  "uaAskTitle": "Want to know your chance of getting into this university?",
+  "uaAskBody": "12 questions + Study Plan + a test interview · about 3 minutes. The percentage, its accuracy and ways to raise it come at the end.",
+  "uaAskStart": "Start the assessment →",
+  "uaImpactNone": "no effect",
+  "uaSecAcademic": "Academic",
+  "uaSecLanguage": "Language",
+  "uaSecDocuments": "Documents",
+  "uaSecTests": "Assessment tests",
+  "uaTestsCount": "counts toward the %",
+  "uaTestsBadge": "+ accuracy",
+  "uaTestsHint": "Take the tests and your admission chance gets more accurate",
+  "uaNo": "No",
+  "uaHave": "Yes",
+  "uaQDegree": "Which level are you applying for",
+  "uaDegLanguage": "Language course (D-4)",
+  "uaDegBachelor": "Bachelor",
+  "uaDegMaster": "Master",
+  "uaQGpa": "Certificate / diploma average",
+  "uaQGap": "Time since graduating",
+  "uaGap0": "0 yrs",
+  "uaGap1": "1 yr",
+  "uaGap2": "2 yrs",
+  "uaGap3": "3+ yrs",
+  "uaQExperience": "Experience in your chosen field",
+  "uaExpCourse": "Course / club",
+  "uaExpProject": "Project",
+  "uaExpWork": "Work experience",
+  "uaQOlympiad": "Olympiad / contest results",
+  "uaOlSchool": "School",
+  "uaOlNational": "National",
+  "uaOlInternational": "International",
+  "uaQTopik": "TOPIK level",
+  "uaQTopikCert": "TOPIK certificate",
+  "uaCertOld": "Over 2 years old",
+  "uaCertFresh": "Valid (under 2 years)",
+  "uaQIelts": "English (IELTS)",
+  "uaQMotivation": "Motivation letter",
+  "uaMotDraft": "Draft",
+  "uaMotReady": "Ready",
+  "uaQRecommendation": "Recommendation (from a teacher)",
+  "uaQPortfolio": "Portfolio (design, art, projects)",
+  "uaQActivity": "Extra activities",
+  "uaActVolunteer": "Volunteering",
+  "uaActSportArt": "Sport / art",
+  "uaActLeader": "Led an organisation",
+  "uaTestPlan": "Study Plan test",
+  "uaTestTalk": "Interview test",
+  "uaTestStart": "Start",
+  "uaTestTaken": "Taken · one attempt only",
+  "uaTestsNeedCode": "The tests open with your client code — your consultant sends it by SMS",
+  "uaResultTitle": "Your admission chance",
+  "uaAccuracyLow": "Accuracy: low — no tests taken yet",
+  "uaAccuracyMid": "Accuracy: medium — one test taken",
+  "uaAccuracyHigh": "Accuracy: high — both tests taken",
+  "uaInterviewFailed": "The interview scored under 60 — in a real admission this stage would not be passed.",
+  "uaWays": "WAYS TO RAISE IT",
+  "uaWayMotivation": "Finish your motivation letter",
+  "uaWayRecommendation": "Get a recommendation",
+  "sptQ1": "Why this university and this major?",
+  "sptQ2": "What will you study in Korea, and how?",
+  "sptQ3": "What will you do after graduating?",
+  "sptHint": "Write in Korean or English",
+  "sptSubmit": "Send for checking",
+  "sptChecking": "The AI is checking…",
+  "sptError": "Couldn't check it. Check your connection and send again.",
+  "sptResultTitle": "STUDY PLAN SCORE",
+  "sptMotivation": "Motivation and knowing the major",
+  "sptPlan": "Study plan",
+  "sptCareer": "Plan after graduating",
+  "sptLanguage": "Language and writing",
+  "sptStrengths": "Strengths",
+  "sptImprovements": "To improve",
+  "sptDone": "Done",
+  "uaImpactUp": "admission +{n}%",
+  "@uaImpactUp": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaImpactDown": "admission −{n}%",
+  "@uaImpactDown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaGpaValue": "{value} / 5",
+  "@uaGpaValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "uaTestMeta": "For {name} · {questions} questions · {minutes} min · 1 attempt",
+  "@uaTestMeta": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "questions": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "uaTestScore": "{n}/100",
+  "@uaTestScore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaWayTopik": "Reach TOPIK {level}",
+  "@uaWayTopik": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "sptIntro": "Answer 3 questions for {name}. You have {minutes} minutes and one attempt; when time runs out, what you wrote is sent.",
+  "@sptIntro": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "vzTitle": "Will I get",
+  "vzTitleMark": "the visa?",
+  "vzYes": "Yes",
+  "vzOne": "One",
+  "vzTwoPlus": "Two or more",
+  "vzSecEducation": "Education",
+  "vzSecMoney": "Finances",
+  "vzSecHistory": "History",
+  "vzSecPrep": "Preparation",
+  "vzQEducation": "Your last education",
+  "vzEduSchool": "School (11th grade)",
+  "vzEduCollege": "College / lyceum",
+  "vzQAge": "Age",
+  "vzQIncome": "Your parents' yearly income",
+  "vzIncome0": "< $5,000",
+  "vzIncome1": "$5–10k",
+  "vzIncome2": "$10–20k",
+  "vzIncome3": "$20k+",
+  "vzQIncomeDocumented": "Income is officially documented (salary, tax, business)",
+  "vzQSponsor": "Who is the sponsor",
+  "vzSponsorSelf": "Myself",
+  "vzSponsorParents": "My parents",
+  "vzSponsorRelative": "Another relative",
+  "vzQRelationDoc": "Kinship certificate (apostilled)",
+  "vzQStability": "How long the income has been steady",
+  "vzStable0": "< 6 months",
+  "vzStable1": "6–12 months",
+  "vzStable2": "1–3 years",
+  "vzStable3": "3+ years",
+  "vzQProperty": "Property in your parents' name (house, flat, land)",
+  "vzQCar": "A car in your parents' name",
+  "vzQBusiness": "Your parents' business / registered company",
+  "vzBusinessIp": "Sole trader (IP)",
+  "vzBusinessLlc": "Company (LLC)",
+  "vzQRefused": "Has a visa been refused before",
+  "vzQKoreaBefore": "Have you been to Korea before",
+  "vzKoreaOnTime": "Yes, left on time",
+  "vzKoreaOverstay": "I overstayed",
+  "vzQIllegalRelatives": "Any close relatives staying illegally in South Korea",
+  "vzQLegalRelatives": "Relatives living legally in Korea",
+  "vzQStudyPlan": "Study Plan",
+  "vzQInterview": "Interview practice",
+  "vzInterviewSelf": "Practised on my own",
+  "vzInterviewAi": "Hanguk AI 3+ times",
+  "vzBandHigh": "Good chance",
+  "vzBandHighHint": "get the papers ready",
+  "vzBandMid": "Fair chance",
+  "vzBandMidHint": "needs work",
+  "vzBandLow": "Low chance",
+  "vzBandLowHint": "much to fix",
+  "vzTourGauge": "Your visa chance — it moves with your answers",
+  "vzTourEducation": "Education: level, grades, age",
+  "vzTourLanguage": "Language: TOPIK and IELTS",
+  "vzTourMoney": "Finances: what the embassy checks most",
+  "vzTourHistory": "History: past visas and relatives",
+  "vzTourPrep": "Preparation: Study Plan, interview, letters",
+  "vzTourReplay": "Watch the guide again",
+  "uaVisaUp": "visa +{n}%",
+  "@uaVisaUp": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "uaVisaDown": "visa −{n}%",
+  "@uaVisaDown": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vzAgeValue": "{n} yrs",
+  "@vzAgeValue": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vzWithConsultant": "with a consultant ~{n}%",
+  "@vzWithConsultant": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tuHero": "The university: name, city and price",
+  "tuFacts": "City, contract, language and document deadline",
+  "tuAsk": "Find your admission chance here",
+  "tuPick": "Like it? Add it to your picks, up to 3",
+  "taAcademic": "Academic: each answer shows its effect",
+  "taLanguage": "Language: TOPIK and IELTS",
+  "taDocuments": "Documents: letter, recommendation, portfolio",
+  "taTests": "Tests: Study Plan and interview — once each",
+  "taResult": "The result: the % and ways to raise it",
+  "fdCodeBannerTitle": "This section is for Hanguk students",
+  "fdCodeBannerBody": "Become our student and use everything: Preparation, My application and Documents open in full.",
+  "fdCodeTelegram": "Message the admin on Telegram",
+  "fdCodeSmsFrom": "SMS · Hanguk",
+  "fdCodeYours": "Your client code:",
+  "fdCodePaste": "use it →",
+  "fdPrepareNeedsCode": "Preparation is for Premium and No-Risk clients. Enter your code if you have one",
+  "fdGrantOrder": "scores first → then the grant",
+  "fdGrantStepScores": "1 · YOUR SCORES",
+  "fdGrantStepWanted": "2 · GRANT YOU NEED",
+  "fdGrantAny": "Not needed",
+  "fdSectionCityMap": "City · pick on the map",
+  "fdAllRegions": "All",
+  "fdRegionGangwonPlus": "Gangwon+",
+  "fdGrantAtLeast": "At least {n}%",
+  "@fdGrantAtLeast": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ulTitle": "Universities",
+  "ulSearchHint": "Name, field, city",
+  "ulPrivate": "Private university",
+  "ulState": "State university",
+  "ulNoRequirement": "No requirement",
+  "fltTitle": "Filter",
+  "fltAllFields": "All",
+  "fltFeeSem": "Contract / semester",
+  "ulCount": "{n}",
+  "@ulCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ulSubtitle": "{n} universities · tap a card",
+  "@ulSubtitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "fltCount": "MATCHING UNIVERSITIES · OF {n}",
+  "@fltCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "vzReport": "See the report →",
+  "uaTestsUnavailable": "The test couldn't open — check your connection and try again",
+  "tuGrants": "Grants for your TOPIK or IELTS result",
+  "@tuGrants": {
+    "description": "University page grant table"
+  },
+  "ugTitle": "Grant",
+  "@ugTitle": {
+    "description": "University page grant table"
+  },
+  "ugSubtitle": "Off the tuition on admission, by TOPIK / IELTS",
+  "@ugSubtitle": {
+    "description": "University page grant table"
+  },
+  "ugNoCertificate": "No certificate",
+  "@ugNoCertificate": {
+    "description": "University page grant table"
+  },
+  "ugEither": "{topik} or {english}",
+  "@ugEither": {
+    "description": "University page grant table",
+    "placeholders": {
+      "topik": {
+        "type": "String"
+      },
+      "english": {
+        "type": "String"
+      }
+    }
+  },
+  "ugBoth": "{topik} and {english}",
+  "@ugBoth": {
+    "description": "University page grant table",
+    "placeholders": {
+      "topik": {
+        "type": "String"
+      },
+      "english": {
+        "type": "String"
+      }
+    }
+  },
+  "ugNone": "No TOPIK / IELTS grant in this university's guide",
+  "@ugNone": {
+    "description": "University page grant table"
+  },
+  "ugYours": "YOURS",
+  "@ugYours": {
+    "description": "University page grant table"
+  },
+  "fltOnePercent": "Top 1% universities",
+  "@fltOnePercent": {
+    "description": "Filtr: Hanguk's top 1% university list"
+  },
+  "fltOnePercentOnly": "Only the 1%",
+  "@fltOnePercentOnly": {
+    "description": "Filtr: Hanguk's top 1% university list"
+  },
+  "deviceCodeTitle": "Device code",
+  "@deviceCodeTitle": {
+    "description": "Hidden staff dialog (7 taps on the Tayyorgarlik title): the code that marks this phone as a test device in the CRM"
+  },
+  "deviceCodeBody": "Staff enter this code in the CRM (Ilova analitikasi → Sozlamalar) to mark this phone as a test device.",
+  "@deviceCodeBody": {
+    "description": "Hidden staff dialog: what the device code is for"
+  },
+  "deviceCodeNone": "The code is not ready yet: try again in a moment.",
+  "@deviceCodeNone": {
+    "description": "Hidden staff dialog: the code is not known yet"
+  },
+  "deviceCodeVersion": "Version {version}",
+  "@deviceCodeVersion": {
+    "description": "Hidden staff dialog: the app's version and build",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "leadForWhomQ": "Who is it for?",
+  "@leadForWhomQ": {
+    "description": "Lead form: who the consultation is for"
+  },
+  "leadForWhomSelf": "For me",
+  "@leadForWhomSelf": {
+    "description": "Lead form, «Kim uchun?»: for me"
+  },
+  "leadForWhomChild": "For my child",
+  "@leadForWhomChild": {
+    "description": "Lead form, «Kim uchun?»: for my child"
+  },
+  "leadForWhomRelative": "For a relative",
+  "@leadForWhomRelative": {
+    "description": "Lead form, «Kim uchun?»: for a relative"
+  },
+  "leadHowHeardQ": "How did you find us?",
+  "@leadHowHeardQ": {
+    "description": "Lead form: where the person found us (stored as the lead's how_heard)"
+  },
+  "contactTelegramMessage": "From the app · {code}",
+  "@contactTelegramMessage": {
+    "description": "The text the app types into a Telegram message to the consultant, with this phone's short code that ties the chat to it (the marketing plan's example: «Ilovadan · A7K2»)",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "leadHeardInstagram": "Instagram",
+  "@leadHeardInstagram": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: Instagram"
+  },
+  "leadHeardTelegram": "Telegram",
+  "@leadHeardTelegram": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: Telegram"
+  },
+  "leadHeardFriend": "A friend's or relative's recommendation",
+  "@leadHeardFriend": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: a friend's or relative's recommendation"
+  },
+  "leadHeardKoreaFriend": "Someone I know studying in Korea",
+  "@leadHeardKoreaFriend": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: someone I know who studies in Korea"
+  },
+  "leadHeardLearningCenter": "Learning centre",
+  "@leadHeardLearningCenter": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: a learning centre"
+  },
+  "leadHeardEvent": "Event",
+  "@leadHeardEvent": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: an event"
+  },
+  "leadHeardStore": "Play Market or App Store",
+  "@leadHeardStore": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: found the app in Play Market or the App Store"
+  },
+  "leadHeardOther": "Other",
+  "@leadHeardOther": {
+    "description": "Lead form, «Bizni qayerdan topdingiz?»: somewhere else"
+  },
+  "leadConsent": "Your consultant will see the universities you chose and your test answers, and advise you on that basis.",
+  "@leadConsent": {
+    "description": "Lead form: the consent line (the marketing plan's text, approved by the owner, B4)"
+  },
+  "guestPushTitle": "Don't miss the deadlines",
+  "@guestPushTitle": {
+    "description": "Guest push permission sheet (app analytics plan, stage 5; B3): title"
+  },
+  "guestPushBody": "Shall we notify you about admission deadlines and new scholarships? No phone number needed.",
+  "@guestPushBody": {
+    "description": "Guest push permission sheet: what we would send; a guest leaves no phone number"
+  },
+  "guestPushYes": "Yes, notify me",
+  "@guestPushYes": {
+    "description": "Guest push permission sheet: yes (then the system asks)"
+  },
+  "guestPushLater": "Later",
+  "@guestPushLater": {
+    "description": "Guest push permission sheet: not now"
   }
 }

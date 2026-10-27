@@ -212,7 +212,7 @@ void main() {
 
   testWidgets('the client shell opens on Ariza and has five tabs', (t) async {
     await pump(t, const ClientShell(), apps: [app('a', 'interview')], journey: designJourney);
-    for (final label in ['Universitetlar', 'Tayyorgarlik', 'BAHOLASH', 'Ariza', 'Hujjatlar']) {
+    for (final label in ['Universitetlar', 'Tayyorgarlik', 'BAHOLASH', 'Arizam', 'Hujjatlar']) {
       expect(find.text(label), findsWidgets, reason: label);
     }
     expect(find.text('Ariza jarayoni'), findsOneWidget);

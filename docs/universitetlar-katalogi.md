@@ -63,8 +63,26 @@ faylni o'zgartirib push qilish, keyin Supabase SQL editor'da
 (fayl GitHub'dan `net.http_get` bilan olinadi, fayldagi guideline'larning eski
 qoidalari bitta tranzaksiyada almashtiriladi).
 
-Excel qayta yuklanganda grantlar o'chmaydi — guideline qatori o'sha id bilan
-yangilanadi.
+### Excel'dan grantlar (shablon v4)
+
+v4 shablonda 5-varaq — `grantlar`: har bir daraja / ball alohida qator
+(`mezon_turi` = topik, ielts, toefl_ibt, gpa, hammaga ...; `mezon_min` /
+`mezon_max`; `grant_foiz` yoki `grant_summa` + `grant_valyuta`). Sayt varaqni
+tekshiradi (`src/lib/universityGuidelineGrants.ts`), qatorlarni yuqoridagi
+jadval shakliga keltiradi va xulosani (`grant_holat`, foizlar oralig'i)
+hisoblaydi:
+
+- `topik` / `ielts` / `toefl_ibt` → mezon `TOPIK` / `IELTS` / `TOEFL`, ball
+  `topik_min`/`topik_max`, `ielts_min`, `toefl_ibt_min` ustunlariga — ilova
+  (`app_grant_tiers`) grantni shundan hisoblaydi;
+- qolgan mezonlar (GPA, TOEIC, CEFR, hammaga ...) → `boshqa`; GPA — o'qish
+  davomida;
+- kartadagi foizlar oralig'iga va ilovaga faqat kontraktdan foizlar kiradi
+  (`nimaga` = kontrakt, kontrakt_va_kirish yoki bo'sh) — kirish to'lovi,
+  yotoqxona, naqd stipendiya kirmaydi;
+- grantlar varag'i bor faylda guideline'ning grantlari **to'liq
+  almashtiriladi**. v2/v3 faylda (varaq yo'q) grantlarga tegilmaydi — qo'lda
+  yuklangan grantlar saqlanadi.
 
 ## Darajalar
 
@@ -78,6 +96,13 @@ alohida yorliqda turadi.
 | Magistr | `magistratura` | 4 yillik universitetlar va 대학원대학교 |
 | Kasbiy ta'lim | `kasbiy` | kollejlar (전문대학) |
 | Til kursi | `til_kursi` | til kursi (어학당) Excel'i yuklanganlar |
+
+Ro'yxat bo'yicha yashirilgan daraja (`institutions.hidden_levels`, masalan
+교육대학교 bakalavri) katalogda ko'rinmaydi. Lekin o'sha darajaga Excel
+yuklansa — daraja bor deb ko'rinadi (Excel isbot). Excel yuklay oladigan xodim
+yashirilgan darajaning yorlig'ini **yashirilgan** belgisi bilan ko'radi:
+ro'yxat xato bo'lsa (서울장신대 magistraturasi, 2026-10-21), Excel'ni shu
+yerdan yuklaydi.
 
 Qaysi universitetda til kursi borligi oldindan ma'lum emas, shuning uchun
 "Til kursi" yorlig'i Excel yuklay oladigan xodimga hamma universitetda
@@ -104,7 +129,7 @@ Bitta fayl = bitta qabul (`guideline_id`). Ya'ni 2027-bahor bakalavr va
 
 Shablon: [`public/templates/universitet-guideline-shablon.xlsx`](../public/templates/universitet-guideline-shablon.xlsx).
 
-Fayl ichida 5 ta varaq bor, sayt shundan 4 tasini o'qiydi:
+Fayl ichida 6 ta varaq bor, sayt shundan 5 tasini o'qiydi:
 
 | Varaq | Nima yoziladi | Qatorlar |
 | --- | --- | --- |
@@ -112,6 +137,7 @@ Fayl ichida 5 ta varaq bor, sayt shundan 4 tasini o'qiydi:
 | `muddatlar` | Har bir bosqich uchun 11 ta etap (online ariza → vizaga hujjat topshirish) | bosqich × 11 |
 | `fakultetlar` | Fakultet nomi (EN + KR), track, til talabi, kontrakt | har bir fakultet |
 | `hujjatlar` | Talab qilinadigan hujjatlar cheklisti | har bir hujjat |
+| `grantlar` | TOPIK / IELTS / ... darajasiga qarab grantlar (v4 dan) | har bir daraja |
 | `qollanma` | Ustunlar ta'rifi va ruxsat etilgan qiymatlar — **faqat odam uchun**, sayt o'qimaydi | — |
 
 Asosiy qoidalar (to'lig'i `qollanma` varag'ida):
@@ -125,8 +151,9 @@ Asosiy qoidalar (to'lig'i `qollanma` varag'ida):
   (`jbnu.ac.kr` → `jbnu`). Fayl shu kod orqali universitetga bog'lanadi.
 - Fayl nomi: `guideline_id.xlsx`.
 
-Format o'zgarsa `format_versiya` oshiriladi. Sayt hozir **v2** ni kutadi;
-boshqa versiya kelsa import to'xtamaydi, lekin ogohlantirish chiqadi.
+Format o'zgarsa `format_versiya` oshiriladi. Sayt **v2–v4** ni tushunadi
+(v2/v3 — grantlar varag'isiz); boshqa versiya kelsa import to'xtamaydi, lekin
+ogohlantirish chiqadi.
 
 ## Yuklash
 
@@ -194,6 +221,7 @@ Interfeysda ham shu qoida: yuklash va "Universitet qo'shish" tugmalari
 | --- | --- |
 | `src/lib/xlsxReader.ts` | jszip ustida minimal .xlsx o'quvchi (katak matnlari) |
 | `src/lib/universityGuidelineExcel.ts` | Shablon qoidalari, tekshirish, RPC uchun JSON |
+| `src/lib/universityGuidelineGrants.ts` | grantlar varag'i: tekshirish, jadval shakli, xulosa |
 | `src/hooks/useUniversityCatalog.ts` | Katalog, detal, import va universitet qo'shish |
 | `src/components/crm/pages/UniversityCatalogContent.tsx` | Bo'limning o'zi |
 | `src/components/crm/pages/university-catalog/` | Karta, detal paneli, formatlash, grantlar (`grants.ts`) |

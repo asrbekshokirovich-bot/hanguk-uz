@@ -61,6 +61,24 @@ List<CatalogUniversity> _catalogue() => groupCatalogRows([
 ]);
 
 void main() {
+  group('CatalogUniversity.displayName', () {
+    test('shows the catalogue name, not the Excel\'s graduate-school suffix', () {
+      final row = _row('g1', 'u1', name: 'Daegu Haany University', nameKo: '대구한의대학교', degree: 'magistratura')
+        ..['univ_nomi_en'] = 'Daegu Haany University — Graduate School'
+        ..['univ_nomi_kr'] = '대구한의대학교 일반대학원';
+      final u = groupCatalogRows([row]).single;
+      expect(u.displayName, 'Daegu Haany University');
+      expect(u.nameKo, '대구한의대학교');
+    });
+
+    test('falls back to the Excel name when the catalogue has none', () {
+      final row = _row('g1', 'u1', name: 'Alpha University')
+        ..['name_en'] = null
+        ..['univ_nomi_en'] = 'Alpha Univ.';
+      expect(groupCatalogRows([row]).single.displayName, 'Alpha Univ.');
+    });
+  });
+
   group('groupCatalogRows', () {
     test('one entry per university, every degree kept', () {
       final all = _catalogue();
@@ -96,6 +114,29 @@ void main() {
     test('city', () {
       final out = applyCatalogFilter(all, const CatalogFilter(cities: {'Daegu'}));
       expect(out.map((u) => u.institutionId), ['u2']);
+    });
+
+    test('1% keeps only the universities on Hanguk\'s 1% list', () {
+      final list = groupCatalogRows([
+        _row('g1', 'u1', name: 'Konkuk University', nameKo: '건국대학교'),
+        _row('g2', 'u2', name: 'Alpha University', nameKo: '알파대학교'),
+      ]);
+      expect(applyCatalogFilter(list, const CatalogFilter(onePercent: true)).map((u) => u.institutionId), ['u1']);
+      expect(applyCatalogFilter(list, const CatalogFilter()).length, 2);
+      expect(const CatalogFilter(onePercent: true).activeCount, 1);
+    });
+
+    test('grant keeps the universities whose largest waiver reaches it; no data yet filters nothing', () {
+      const grants = {'u1': 100, 'u3': 30};
+      expect(
+        applyCatalogFilter(all, const CatalogFilter(grant: 50), grants: grants).map((u) => u.institutionId),
+        ['u1'],
+      );
+      expect(
+        applyCatalogFilter(all, const CatalogFilter(grant: 30), grants: grants).map((u) => u.institutionId),
+        ['u1', 'u3'],
+      );
+      expect(applyCatalogFilter(all, const CatalogFilter(grant: 50)).length, 3);
     });
 
     test('degree keeps only universities with that guideline', () {

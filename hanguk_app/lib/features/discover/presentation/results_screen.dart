@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -133,8 +134,8 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                                 university: u,
                                 guideline: guidelineFor(u, f)!,
                                 inSlot: slots.contains(u.institutionId),
-                                onToggle: () => _toggle(u.institutionId),
-                                onOpen: () => context.push(universityPath(u.institutionId)),
+                                onToggle: tracked('results.draggable_row_toggle', () => _toggle(u.institutionId), props: {'institution_id': u.institutionId}),
+                                onOpen: tracked('results.draggable_row_open', () => context.push(universityPath(u.institutionId)), props: {'institution_id': u.institutionId}),
                               );
                             },
                           ),
@@ -148,9 +149,9 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                   bottom: 12,
                   child: _BestThreeBanner(
                     count: list.length,
-                    onTap: () => context.push(
+                    onTap: tracked('results.best_three_banner', () => context.push(
                       ref.read(slotsProvider.notifier).isFull ? kDiscoverChosenPath : kDiscoverDuelPath,
-                    ),
+                    )),
                   ),
                 ),
             ],
@@ -181,7 +182,7 @@ class _Header extends StatelessWidget {
           radius: 14,
           iconSize: 18,
           shadow: 3,
-          onTap: () => context.canPop() ? context.pop() : context.go(kDiscoverPath),
+          onTap: tracked('results.to_discover', () => context.canPop() ? context.pop() : context.go(kDiscoverPath)),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -189,7 +190,7 @@ class _Header extends StatelessWidget {
             button: true,
             label: l.fdSearchHint,
             child: GestureDetector(
-              onTap: () => context.push(kDiscoverSearchPath),
+              onTap: tracked('results.to_discover_search', () => context.push(kDiscoverSearchPath)),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 height: 48,
@@ -233,7 +234,7 @@ class _Header extends StatelessWidget {
                 fill: FdColors.navy,
                 iconColor: Colors.white,
                 shadow: 3,
-                onTap: () => context.canPop() ? context.pop() : context.push(kDiscoverFilterPath),
+                onTap: tracked('results.catalog_filter_title', () => context.canPop() ? context.pop() : context.push(kDiscoverFilterPath)),
               ),
               if (active > 0)
                 Positioned(
@@ -318,7 +319,7 @@ class _DraggableRow extends StatelessWidget {
               child: Semantics(
                 button: true,
                 child: GestureDetector(
-                  onTap: onOpen,
+                  onTap: tracked('results.draggable_row_open', onOpen),
                   behavior: HitTestBehavior.opaque,
                   child: Row(
                     children: [
@@ -348,7 +349,7 @@ class _DraggableRow extends StatelessWidget {
               label: inSlot ? l.fdRemoveFromSlot : l.fdAddToSlot,
               excludeSemantics: true,
               child: GestureDetector(
-                onTap: onToggle,
+                onTap: tracked('results.draggable_row_toggle', onToggle),
                 behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -450,7 +451,7 @@ class _BestThreeBanner extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('results.best_three_banner', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 11, 12, 11),

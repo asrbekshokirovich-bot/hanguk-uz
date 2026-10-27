@@ -1,0 +1,74 @@
+# Apply named migration files to production, in the order given — by hand only.
+#
+# supabase-deploy.yml explains why `supabase db push` is not used: production's
+# migration history and this directory share no versions. Migrations have been
+# applied one at a time with the Supabase MCP's `apply_migration`. This does the
+# same thing through the same Management API endpoint ("apply a database
+# migration": each file runs in its own transaction and is recorded in
+# production's history under its name), for when that tool cannot be used —
+# on 2026-10-27 its confirmation prompt for statements with `drop` never
+# reached the person approving, so nothing with `drop ... if exists` could run.
+#
+# Nothing runs on push. A person starts it and names the files. The files are
+# always read from main, whatever branch the run was started from, so only
+# merged SQL can reach production. It stops at the first file that fails;
+# the files before it stay applied (each is its own transaction).
+
+name: Supabase apply migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'File names in supabase/migrations, space-separated, in the order to apply'
+        required: true
+        type: string
+
+concurrency:
+  group: supabase-apply-migrations
+  cancel-in-progress: false
+
+env:
+  SUPABASE_PROJECT_ID: lysjdtyanhdfphqyijsr
+
+jobs:
+  apply:
+    name: Apply migrations from main
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Apply
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          FILES: ${{ inputs.files }}
+        run: |
+          set -euo pipefail
+          api="https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/migrations"
+
+          # Every name must be a migration file on main before anything runs.
+          for f in $FILES; do
+            if ! [[ "$f" =~ ^[0-9]{14}_[a-z0-9_]+\.sql$ ]] || [ ! -f "supabase/migrations/$f" ]; then
+              echo "::error title=Not a migration on main::$f"
+              exit 1
+            fi
+          done
+
+          for f in $FILES; do
+            name="${f#*_}"
+            name="${name%.sql}"
+            jq -n --rawfile query "supabase/migrations/$f" --arg name "$name" \
+              '{query: $query, name: $name}' > body.json
+            code=$(curl -sS -o out.json -w '%{http_code}' -X POST "$api" \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              -H 'Content-Type: application/json' \
+              --data-binary @body.json)
+            if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+              echo "::error title=$f failed (HTTP $code)::$(head -c 800 out.json | tr '\n' ' ')"
+              exit 1
+            fi
+            echo "::notice title=$f::applied as $name (HTTP $code)"
+          done

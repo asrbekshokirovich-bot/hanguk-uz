@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../auth/presentation/widgets/sign_in_chrome.dart';
 
@@ -174,7 +175,7 @@ class _EntryFieldState extends State<EntryField> {
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: _focus.requestFocus,
+              onTap: tracked('entry_fields.visibility', _focus.requestFocus),
               child: Row(
                 children: [
                   const SizedBox(width: 18),
@@ -222,7 +223,7 @@ class _EntryFieldState extends State<EntryField> {
                       excludeSemantics: true,
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _hidden = !_hidden),
+                        onTap: tracked('entry_fields.set_hidden', () => setState(() => _hidden = !_hidden)),
                         child: SizedBox.square(
                           dimension: _height - 2 * _border,
                           child: Icon(
@@ -278,7 +279,7 @@ class EntryLink extends StatelessWidget {
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: tracked('entry_fields.entry_link', onTap),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text.rich(

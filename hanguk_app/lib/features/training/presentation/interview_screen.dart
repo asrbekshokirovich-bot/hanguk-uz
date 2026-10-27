@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../core/analytics/tracked.dart';
 import '../data/interview_repository.dart';
 
 import 'widgets/interview_setup_view.dart';
 import 'widgets/interview_active_view.dart';
 import 'widgets/interview_analytics_view.dart';
 import 'widgets/interview_history_view.dart';
+import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 class InterviewScreen extends ConsumerStatefulWidget {
   /// Optional initial configuration passed by the caller.
@@ -20,6 +22,14 @@ class InterviewScreen extends ConsumerStatefulWidget {
   final String? initialLanguage;
   final String? initialPersona;
 
+  /// The university assessment's interview test: timed, on a set topic.
+  final int? initialTimeLimitSeconds;
+  final String? initialFocusTopic;
+
+  /// The university's interview test: exactly this many questions, then the
+  /// result, then back to the university page.
+  final int? initialQuestionLimit;
+
   const InterviewScreen({
     super.key,
     this.initialSessionType,
@@ -27,6 +37,9 @@ class InterviewScreen extends ConsumerStatefulWidget {
     this.initialUniversityName,
     this.initialLanguage,
     this.initialPersona,
+    this.initialTimeLimitSeconds,
+    this.initialFocusTopic,
+    this.initialQuestionLimit,
   });
 
   @override
@@ -49,6 +62,10 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
               targetUniversityName: widget.initialUniversityName,
               language: widget.initialLanguage ?? 'ko',
               persona: widget.initialPersona ?? 'friendly',
+              focusTopic: widget.initialFocusTopic,
+              timedMode: widget.initialTimeLimitSeconds != null,
+              timeLimitSeconds: widget.initialTimeLimitSeconds,
+              questionLimit: widget.initialQuestionLimit,
             );
       });
     }
@@ -58,6 +75,16 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
+
+    // The university's interview test: when it ends without a result (the
+    // student never answered, or scoring failed — the live view says which),
+    // go back to the university page, not to the general practice setup.
+    if (widget.initialTimeLimitSeconds != null) {
+      ref.listen(interviewProvider, (prev, next) {
+        final wasLive = prev?.status == 'active' || prev?.status == 'abandoned';
+        if (wasLive && next.status == 'idle' && mounted) Navigator.of(context).maybePop();
+      });
+    }
 
     // The live call is design screen 20, on the light page with its own
     // header (the X there ends the call).
@@ -98,7 +125,9 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
             label: l.a11yTooltipBack,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).maybePop(),
+              onTap: tracked('interview.arrow_back', isCompleted && widget.initialTimeLimitSeconds != null
+                  ? _done
+                  : () => Navigator.of(context).maybePop()),
               child: Container(
                 width: SeoulSizes.minTapTarget,
                 height: SeoulSizes.minTapTarget,
@@ -133,6 +162,15 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
     );
   }
 
+  /// Back to the university page, then clear the finished test out of the
+  /// shared interview state (after the route has gone), so the practice
+  /// interview does not open on this result.
+  void _done() {
+    final notifier = ref.read(interviewProvider.notifier);
+    Navigator.of(context).maybePop();
+    Future<void>.delayed(const Duration(milliseconds: 400), notifier.resetForNewSession);
+  }
+
   Widget _buildCurrentView(InterviewSessionState state) {
     final l = AppLocalizations.of(context)!;
     if (state.status == 'idle') {
@@ -150,31 +188,39 @@ class _InterviewScreenState extends ConsumerState<InterviewScreen> {
         );
       }
       return InterviewSetupView(
-        onHistoryTapped: () {
+        onHistoryTapped: tracked('interview.setup_view_history_tapped', () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+            MaterialPageRoute(
+              builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
+            ),
           );
-        },
+        }),
       );
     } else if (state.status == 'completed') {
       // Analytics is the richer post-session view — overall + per-metric
       // scores, strengths/improvements, and the audio player for replaying
       // the recorded session. The simpler InterviewFeedbackView is reachable
       // separately if needed.
-      return const InterviewAnalyticsView();
+      // The university's test is taken once: its result ends with "Tayyor"
+      // back to the university page, not a new practice interview.
+      return InterviewAnalyticsView(
+        onDone: widget.initialTimeLimitSeconds != null ? _done : null,
+      );
     } else if (state.status == 'active') {
       return const InterviewActiveView();
     } else {
       // 'abandoned' (or anything unexpected): never remount the live-call
       // view against a dead session — return to setup instead.
       return InterviewSetupView(
-        onHistoryTapped: () {
+        onHistoryTapped: tracked('interview.setup_view_history_tapped', () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InterviewHistoryView()),
+            MaterialPageRoute(
+              builder: (_) => const NavScaffold(current: AppTab.prepare, child: InterviewHistoryView()),
+            ),
           );
-        },
+        }),
       );
     }
   }

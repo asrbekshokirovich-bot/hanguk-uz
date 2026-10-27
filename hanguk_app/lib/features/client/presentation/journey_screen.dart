@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton;
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -67,7 +68,7 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
                         selected: false,
                         height: 44,
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        onTap: () => ref.invalidate(applicationJourneyProvider),
+                        onTap: tracked('journey.retry', () => ref.invalidate(applicationJourneyProvider)),
                       ),
                     ],
                   ),
@@ -77,7 +78,7 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
           ],
         ),
         data: (journey) {
-          if (journey.universities.isEmpty) return _Empty(name: name, onBrowse: widget.onBrowse);
+          if (journey.universities.isEmpty) return _Empty(name: name, onBrowse: tracked('journey.screen_browse', widget.onBrowse));
           final all = [for (final u in journey.universities) UniversityProgress.of(u, journey.facts, now)];
           final open = all.indexWhere((p) => p.university.institutionId == _openId);
           if (open >= 0) {
@@ -91,7 +92,7 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
                 index: open + 1,
                 total: all.length,
                 now: now,
-                onBack: () => setState(() => _openId = null),
+                onBack: tracked('journey.detail_back', () => setState(() => _openId = null)),
               ),
             );
           }
@@ -134,7 +135,7 @@ class _Empty extends StatelessWidget {
                     style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.45),
                   ),
                   const SizedBox(height: 18),
-                  HardButton(label: l.fdJourneyBrowse, onPressed: onBrowse),
+                  HardButton(label: l.fdJourneyBrowse, onPressed: tracked('journey.empty_browse', onBrowse)),
                 ],
               ),
             ),
@@ -186,7 +187,7 @@ class _List extends StatelessWidget {
                 size: 44,
                 radius: 13,
                 iconSize: 20,
-                onTap: () => context.push('/account'),
+                onTap: tracked('journey.account', () => context.push('/account')),
               ),
             ],
           ),
@@ -224,7 +225,7 @@ class _List extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             children: [
               const UniversityChoicesEntry(),
-              for (final p in all) _Card(progress: p, now: now, onOpen: () => onOpen(p)),
+              for (final p in all) _Card(progress: p, now: now, onOpen: tracked('journey.list_open', () => onOpen(p))),
             ],
           ),
         ),
@@ -310,7 +311,7 @@ class _Card extends ConsumerWidget {
         label: l.ajOpenUniversity(u.name),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: onOpen,
+          onTap: tracked('journey.card_open', onOpen),
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
             decoration: BoxDecoration(
@@ -359,7 +360,7 @@ class _Card extends ConsumerWidget {
                     ),
                     if (action) ...[
                       const SizedBox(width: 10),
-                      _SignButton(onTap: () => openStudyPlan(context, ref)),
+                      _SignButton(onTap: tracked('journey.sign_button', () => openStudyPlan(context, ref))),
                     ],
                   ],
                 ),
@@ -434,7 +435,7 @@ class _SignButton extends StatelessWidget {
       label: l.ajSign,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: tracked('journey.sign_button', onTap),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(

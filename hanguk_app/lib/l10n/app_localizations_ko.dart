@@ -4670,4 +4670,796 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ajBack => '뒤로';
+
+  @override
+  String get btField => '전공을 고르세요';
+
+  @override
+  String get btCount => '맞는 대학';
+
+  @override
+  String get btVisa => '비자 가능성';
+
+  @override
+  String get btList => '목록 보기';
+
+  @override
+  String get btStrip => '나에게 맞는 대학';
+
+  @override
+  String get btCity => '어느 도시?';
+
+  @override
+  String get btDegree => '어떤 과정?';
+
+  @override
+  String get btTopik => '나의 한국어 수준';
+
+  @override
+  String get btIelts => '나의 IELTS 점수';
+
+  @override
+  String get btFee => '등록금';
+
+  @override
+  String get btType => '국립 또는 사립';
+
+  @override
+  String get btGrant => '장학금이 필요한가요?';
+
+  @override
+  String get fdSectionIelts => '나의 영어 (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => '영어로 공부하지 않아요';
+
+  @override
+  String fdIeltsHint(String score) {
+    return '영어 과정 — IELTS $score까지';
+  }
+
+  @override
+  String get fdSectionGrant => '장학금';
+
+  @override
+  String get fdGrantHint => '등록금 감면';
+
+  @override
+  String get fdGrantNone => '상관없음';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return '장학금 $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — TOPIK $level+ 대학 열림';
+  }
+
+  @override
+  String get fdTopikHintNone => '수준을 선택하세요';
+
+  @override
+  String get fdTopikLevel1 => '인사';
+
+  @override
+  String get fdTopikLevel2 => '간단한 문장';
+
+  @override
+  String get fdTopikLevel3 => '일상 대화';
+
+  @override
+  String get fdTopikLevel4 => '자유로운 대화';
+
+  @override
+  String get fdTopikLevel5 => '학술 글';
+
+  @override
+  String get fdTopikLevel6 => '원어민 수준';
+
+  @override
+  String fdCodeSms(String bold) {
+    return '상담원이 SMS로 보낸 $bold 코드';
+  }
+
+  @override
+  String get fdCodeEight => '8자리';
+
+  @override
+  String get fdCodeUnlocks => '코드로 열리는 기능';
+
+  @override
+  String get fdCodeChat => '상담원 채팅';
+
+  @override
+  String get fdCodeScanShort => 'QR 스캔';
+
+  @override
+  String get fdCodeNone => '코드 없음';
+
+  @override
+  String get fdCodeFreeConsult => '무료 상담';
+
+  @override
+  String get uaTitle => '합격 가능성';
+
+  @override
+  String get uaCity => '도시';
+
+  @override
+  String get uaAskTitle => '이 대학교 합격 가능성을 알고 싶으신가요?';
+
+  @override
+  String get uaAskBody =>
+      '12개 질문 + 학업계획서 + 모의 면접 · 약 3분. 확률, 정확도, 올리는 방법은 마지막에 나옵니다.';
+
+  @override
+  String get uaAskStart => '평가 시작 →';
+
+  @override
+  String get uaImpactNone => '영향 없음';
+
+  @override
+  String get uaSecAcademic => '학업';
+
+  @override
+  String get uaSecLanguage => '어학';
+
+  @override
+  String get uaSecDocuments => '서류';
+
+  @override
+  String get uaSecTests => '평가 테스트';
+
+  @override
+  String get uaTestsCount => '결과가 확률에 반영';
+
+  @override
+  String get uaTestsBadge => '+ 정확도';
+
+  @override
+  String get uaTestsHint => '테스트를 보면 합격 가능성이 더 정확해져요';
+
+  @override
+  String get uaNo => '없음';
+
+  @override
+  String get uaHave => '있음';
+
+  @override
+  String get uaQDegree => '지원 과정';
+
+  @override
+  String get uaDegLanguage => '어학연수 (D-4)';
+
+  @override
+  String get uaDegBachelor => '학사';
+
+  @override
+  String get uaDegMaster => '석사';
+
+  @override
+  String get uaQGpa => '고교·대학 평균 성적';
+
+  @override
+  String get uaQGap => '졸업 후 경과 기간';
+
+  @override
+  String get uaGap0 => '0년';
+
+  @override
+  String get uaGap1 => '1년';
+
+  @override
+  String get uaGap2 => '2년';
+
+  @override
+  String get uaGap3 => '3년 이상';
+
+  @override
+  String get uaQExperience => '지원 전공 관련 경험';
+
+  @override
+  String get uaExpCourse => '강좌 / 동아리';
+
+  @override
+  String get uaExpProject => '프로젝트';
+
+  @override
+  String get uaExpWork => '실무 경력';
+
+  @override
+  String get uaQOlympiad => '올림피아드 / 대회 수상';
+
+  @override
+  String get uaOlSchool => '학교';
+
+  @override
+  String get uaOlNational => '전국';
+
+  @override
+  String get uaOlInternational => '국제';
+
+  @override
+  String get uaQTopik => 'TOPIK 급수';
+
+  @override
+  String get uaQTopikCert => 'TOPIK 성적표';
+
+  @override
+  String get uaCertOld => '2년 경과';
+
+  @override
+  String get uaCertFresh => '유효 (2년 이내)';
+
+  @override
+  String get uaQIelts => '영어 (IELTS)';
+
+  @override
+  String get uaQMotivation => '자기소개서';
+
+  @override
+  String get uaMotDraft => '초안';
+
+  @override
+  String get uaMotReady => '완성';
+
+  @override
+  String get uaQRecommendation => '추천서 (교사)';
+
+  @override
+  String get uaQPortfolio => '포트폴리오 (디자인·예술·프로젝트)';
+
+  @override
+  String get uaQActivity => '비교과 활동';
+
+  @override
+  String get uaActVolunteer => '봉사활동';
+
+  @override
+  String get uaActSportArt => '스포츠 / 예술';
+
+  @override
+  String get uaActLeader => '단체 리더';
+
+  @override
+  String get uaTestPlan => '학업계획서 테스트';
+
+  @override
+  String get uaTestTalk => '면접 테스트';
+
+  @override
+  String get uaTestStart => '시작';
+
+  @override
+  String get uaTestTaken => '응시 완료 · 1회만 가능';
+
+  @override
+  String get uaTestsNeedCode => '테스트는 고객 코드로 열립니다 — 상담사가 문자로 보내 드립니다';
+
+  @override
+  String get uaResultTitle => '나의 합격 가능성';
+
+  @override
+  String get uaAccuracyLow => '정확도: 낮음 — 아직 테스트 미응시';
+
+  @override
+  String get uaAccuracyMid => '정확도: 보통 — 테스트 1개 응시';
+
+  @override
+  String get uaAccuracyHigh => '정확도: 높음 — 테스트 2개 모두 응시';
+
+  @override
+  String get uaInterviewFailed =>
+      '면접 점수가 60점 미만입니다 — 실제 입학에서도 이 단계를 통과하기 어렵습니다.';
+
+  @override
+  String get uaWays => '올리는 방법';
+
+  @override
+  String get uaWayMotivation => '자기소개서를 완성하세요';
+
+  @override
+  String get uaWayRecommendation => '추천서를 받으세요';
+
+  @override
+  String get sptQ1 => '왜 이 대학교, 이 전공인가요?';
+
+  @override
+  String get sptQ2 => '한국에서 무엇을 어떻게 공부할 계획인가요?';
+
+  @override
+  String get sptQ3 => '졸업 후 무엇을 할 계획인가요?';
+
+  @override
+  String get sptHint => '한국어 또는 영어로 작성하세요';
+
+  @override
+  String get sptSubmit => '제출하기';
+
+  @override
+  String get sptChecking => 'AI가 평가 중입니다…';
+
+  @override
+  String get sptError => '평가하지 못했습니다. 인터넷을 확인하고 다시 제출하세요.';
+
+  @override
+  String get sptResultTitle => '학업계획서 점수';
+
+  @override
+  String get sptMotivation => '지원동기·전공 이해';
+
+  @override
+  String get sptPlan => '학업 계획';
+
+  @override
+  String get sptCareer => '졸업 후 진로';
+
+  @override
+  String get sptLanguage => '언어·문장력';
+
+  @override
+  String get sptStrengths => '강점';
+
+  @override
+  String get sptImprovements => '보완할 점';
+
+  @override
+  String get sptDone => '완료';
+
+  @override
+  String uaImpactUp(int n) {
+    return '합격 +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return '합격 −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return '$name · $questions문항 · $minutes분 · 1회';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'TOPIK $level급 취득';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return '$name 지원용 3개 질문에 답하세요. 제한 시간 $minutes분, 1회만 응시 가능하며 시간이 끝나면 작성한 내용이 제출됩니다.';
+  }
+
+  @override
+  String get vzTitle => '비자';
+
+  @override
+  String get vzTitleMark => '나올까?';
+
+  @override
+  String get vzYes => '예';
+
+  @override
+  String get vzOne => '1개';
+
+  @override
+  String get vzTwoPlus => '2개 이상';
+
+  @override
+  String get vzSecEducation => '학력';
+
+  @override
+  String get vzSecMoney => '재정';
+
+  @override
+  String get vzSecHistory => '이력';
+
+  @override
+  String get vzSecPrep => '준비';
+
+  @override
+  String get vzQEducation => '최종 학력';
+
+  @override
+  String get vzEduSchool => '고등학교';
+
+  @override
+  String get vzEduCollege => '전문학교 / 리세';
+
+  @override
+  String get vzQAge => '나이';
+
+  @override
+  String get vzQIncome => '부모님 연소득';
+
+  @override
+  String get vzIncome0 => '\$5,000 미만';
+
+  @override
+  String get vzIncome1 => '\$5천–1만';
+
+  @override
+  String get vzIncome2 => '\$1만–2만';
+
+  @override
+  String get vzIncome3 => '\$2만 이상';
+
+  @override
+  String get vzQIncomeDocumented => '소득 공식 증빙 (급여·세금·사업)';
+
+  @override
+  String get vzQSponsor => '재정보증인';
+
+  @override
+  String get vzSponsorSelf => '본인';
+
+  @override
+  String get vzSponsorParents => '부모님';
+
+  @override
+  String get vzSponsorRelative => '기타 친척';
+
+  @override
+  String get vzQRelationDoc => '가족관계 증명 (아포스티유)';
+
+  @override
+  String get vzQStability => '소득 유지 기간';
+
+  @override
+  String get vzStable0 => '6개월 미만';
+
+  @override
+  String get vzStable1 => '6–12개월';
+
+  @override
+  String get vzStable2 => '1–3년';
+
+  @override
+  String get vzStable3 => '3년 이상';
+
+  @override
+  String get vzQProperty => '부모 명의 부동산 (주택·아파트·토지)';
+
+  @override
+  String get vzQCar => '부모 명의 자동차';
+
+  @override
+  String get vzQBusiness => '부모님 사업 / 등록 회사';
+
+  @override
+  String get vzBusinessIp => '개인사업자 (IP)';
+
+  @override
+  String get vzBusinessLlc => '법인 (LLC)';
+
+  @override
+  String get vzQRefused => '비자 거절 이력';
+
+  @override
+  String get vzQKoreaBefore => '한국 체류 경험';
+
+  @override
+  String get vzKoreaOnTime => '예, 기한 내 출국';
+
+  @override
+  String get vzKoreaOverstay => '체류기간 초과';
+
+  @override
+  String get vzQIllegalRelatives => '가까운 친척 중 한국 불법체류자';
+
+  @override
+  String get vzQLegalRelatives => '한국 합법 체류 친척';
+
+  @override
+  String get vzQStudyPlan => '학업계획서';
+
+  @override
+  String get vzQInterview => '면접 준비';
+
+  @override
+  String get vzInterviewSelf => '혼자 연습';
+
+  @override
+  String get vzInterviewAi => 'Hanguk AI와 3회 이상';
+
+  @override
+  String get vzBandHigh => '높은 가능성';
+
+  @override
+  String get vzBandHighHint => '서류를 준비하세요';
+
+  @override
+  String get vzBandMid => '보통';
+
+  @override
+  String get vzBandMidHint => '보완이 필요해요';
+
+  @override
+  String get vzBandLow => '낮은 가능성';
+
+  @override
+  String get vzBandLowHint => '많은 보완 필요';
+
+  @override
+  String get vzTourGauge => '비자 가능성 — 답변에 따라 바뀝니다';
+
+  @override
+  String get vzTourEducation => '학력: 과정·성적·나이';
+
+  @override
+  String get vzTourLanguage => '어학: TOPIK·IELTS';
+
+  @override
+  String get vzTourMoney => '재정: 대사관이 가장 많이 확인';
+
+  @override
+  String get vzTourHistory => '이력: 이전 비자·친척';
+
+  @override
+  String get vzTourPrep => '준비: 학업계획서·면접·추천서';
+
+  @override
+  String get vzTourReplay => '가이드 다시 보기';
+
+  @override
+  String uaVisaUp(int n) {
+    return '비자 +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return '비자 −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n세';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return '상담사와 함께 ~$n%';
+  }
+
+  @override
+  String get tuHero => '대학교: 이름·도시·등록금';
+
+  @override
+  String get tuFacts => '도시·등록금·어학 요건·서류 마감';
+
+  @override
+  String get tuAsk => '여기서 합격 가능성을 확인하세요';
+
+  @override
+  String get tuPick => '마음에 들면 최대 3개까지 추가';
+
+  @override
+  String get taAcademic => '학업: 답마다 영향이 표시됩니다';
+
+  @override
+  String get taLanguage => '어학: TOPIK·IELTS';
+
+  @override
+  String get taDocuments => '서류: 자기소개서·추천서·포트폴리오';
+
+  @override
+  String get taTests => '테스트: 학업계획서·면접 — 각 1회';
+
+  @override
+  String get taResult => '결과: 확률과 올리는 방법';
+
+  @override
+  String get fdCodeBannerTitle => '이 메뉴는 Hanguk 학생 전용입니다';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Hanguk 학생이 되어 모든 기능을 이용하세요: 준비, 내 지원, 서류 메뉴가 모두 열립니다.';
+
+  @override
+  String get fdCodeTelegram => '텔레그램으로 관리자에게 문의';
+
+  @override
+  String get fdCodeSmsFrom => '문자 · Hanguk';
+
+  @override
+  String get fdCodeYours => '고객 코드:';
+
+  @override
+  String get fdCodePaste => '입력 →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      '준비 메뉴는 Premium·No-Risk 고객 전용입니다. 코드가 있으면 입력하세요';
+
+  @override
+  String get fdGrantOrder => '점수 먼저 → 장학금';
+
+  @override
+  String get fdGrantStepScores => '1 · 나의 점수';
+
+  @override
+  String get fdGrantStepWanted => '2 · 필요한 장학금';
+
+  @override
+  String get fdGrantAny => '상관없음';
+
+  @override
+  String get fdSectionCityMap => '도시 · 지도에서 선택';
+
+  @override
+  String get fdAllRegions => '전체';
+
+  @override
+  String get fdRegionGangwonPlus => '강원+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return '최소 $n%';
+  }
+
+  @override
+  String get ulTitle => '대학교';
+
+  @override
+  String get ulSearchHint => '이름·전공·도시';
+
+  @override
+  String get ulPrivate => '사립대학교';
+
+  @override
+  String get ulState => '국립대학교';
+
+  @override
+  String get ulNoRequirement => '요건 없음';
+
+  @override
+  String get fltTitle => '필터';
+
+  @override
+  String get fltAllFields => '전체';
+
+  @override
+  String get fltFeeSem => '등록금 / 학기';
+
+  @override
+  String ulCount(int n) {
+    return '$n개';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '대학교 $n곳 · 카드를 누르세요';
+  }
+
+  @override
+  String fltCount(int n) {
+    return '맞는 대학교 · $n곳 중';
+  }
+
+  @override
+  String get vzReport => '보고서 보기 →';
+
+  @override
+  String get uaTestsUnavailable => '테스트를 열 수 없습니다 — 인터넷을 확인하고 다시 시도하세요';
+
+  @override
+  String get tuGrants => 'TOPIK·IELTS 성적별 장학금';
+
+  @override
+  String get ugTitle => '장학금';
+
+  @override
+  String get ugSubtitle => '입학 시 등록금 감면 — TOPIK / IELTS 기준';
+
+  @override
+  String get ugNoCertificate => '자격증 없음';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik 또는 $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik 및 $english';
+  }
+
+  @override
+  String get ugNone => '이 대학 모집요강에 TOPIK / IELTS 장학금이 없습니다';
+
+  @override
+  String get ugYours => '내 장학금';
+
+  @override
+  String get fltOnePercent => '상위 1% 대학';
+
+  @override
+  String get fltOnePercentOnly => '1%만';
+
+  @override
+  String get deviceCodeTitle => '기기 코드';
+
+  @override
+  String get deviceCodeBody =>
+      '직원이 CRM(Ilova analitikasi → Sozlamalar)에 이 코드를 입력해 이 휴대폰을 테스트 기기로 표시합니다.';
+
+  @override
+  String get deviceCodeNone => '코드가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return '버전 $version';
+  }
+
+  @override
+  String get leadForWhomQ => '누구를 위한 상담인가요?';
+
+  @override
+  String get leadForWhomSelf => '본인';
+
+  @override
+  String get leadForWhomChild => '자녀';
+
+  @override
+  String get leadForWhomRelative => '친척';
+
+  @override
+  String get leadHowHeardQ => '저희를 어떻게 알게 되셨나요?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return '앱에서 · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => '인스타그램';
+
+  @override
+  String get leadHeardTelegram => '텔레그램';
+
+  @override
+  String get leadHeardFriend => '친구나 친척의 추천';
+
+  @override
+  String get leadHeardKoreaFriend => '한국에서 공부하는 지인';
+
+  @override
+  String get leadHeardLearningCenter => '학원';
+
+  @override
+  String get leadHeardEvent => '행사';
+
+  @override
+  String get leadHeardStore => 'Play Market 또는 App Store';
+
+  @override
+  String get leadHeardOther => '기타';
+
+  @override
+  String get leadConsent => '상담사가 선택하신 대학교와 테스트 답변을 보고 이를 바탕으로 상담해 드립니다.';
+
+  @override
+  String get guestPushTitle => '마감일을 놓치지 마세요';
+
+  @override
+  String get guestPushBody => '입학 마감일과 새 장학금 소식을 알림으로 보내드릴까요? 전화번호는 필요 없습니다.';
+
+  @override
+  String get guestPushYes => '네, 보내주세요';
+
+  @override
+  String get guestPushLater => '나중에';
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/seen.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -21,11 +23,6 @@ void openAssessmentFor(BuildContext context, WidgetRef ref, List<String> ids) {
   ref.read(assessmentProvider.notifier).useUniversities(ids);
   context.push(kAssessmentPath);
 }
-
-/// What the prototype says a consultant adds to the visa chance, in points.
-/// The prototype's own figure, not measured: change it here if the agency's
-/// numbers say otherwise.
-const int kConsultantVisaBoost = 21;
 
 /// "Ajoyib tanlov!": the three picked universities with their chances, the
 /// overall D-2 visa chance, and the question the app answers next — "Koreaga
@@ -62,27 +59,34 @@ class ChosenScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
-                children: [
-                  Text(
-                    chosen.isEmpty ? l.fdChosenEmpty : l.fdPickedHint(chosen.length),
-                    style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.4),
-                  ),
-                  const SizedBox(height: 8),
-                  for (var i = 0; i < chosen.length; i++) ...[
-                    const SizedBox(height: 8),
-                    _Row(
-                      rank: i + 1,
-                      university: chosen[i],
-                      percent: book.admission(chosen[i]),
-                      onTap: () => context.push(universityPath(chosen[i].institutionId)),
-                      onRemove: () => ref.read(slotsProvider.notifier).remove(chosen[i].institutionId),
+              child: SeenList(
+                name: 'chosen',
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
+                  children: [
+                    Text(
+                      chosen.isEmpty ? l.fdChosenEmpty : l.fdPickedHint(chosen.length),
+                      style: fdText(13, FontWeight.w400, FdColors.pageMuted, height: 1.4),
                     ),
+                    const SizedBox(height: 8),
+                    for (var i = 0; i < chosen.length; i++) ...[
+                      const SizedBox(height: 8),
+                      Seen(
+                        id: chosen[i].institutionId,
+                        position: i + 1,
+                        child: _Row(
+                          rank: i + 1,
+                          university: chosen[i],
+                          percent: book.admission(chosen[i]),
+                          onTap: tracked('chosen.row', () => context.push(universityPath(chosen[i].institutionId)), props: {'institution_id': chosen[i].institutionId}),
+                          onRemove: tracked('chosen.row_remove', () => ref.read(slotsProvider.notifier).remove(chosen[i].institutionId), props: {'institution_id': chosen[i].institutionId}),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    _VisaCard(visa: book.visa, consultant: book.visaConsultant),
                   ],
-                  const SizedBox(height: 12),
-                  _VisaCard(visa: book.visa),
-                ],
+                ),
               ),
             ),
             if (chosen.isNotEmpty)
@@ -90,10 +94,10 @@ class ChosenScreen extends ConsumerWidget {
                 aboveNav: true,
                 child: HardButton(
                   label: l.fdPickedCta,
-                  onPressed: () {
+                  onPressed: tracked('chosen.picked_cta', () {
                     ref.read(assessmentProvider.notifier).useUniversities(ids);
                     context.push(kAssessmentReportPath);
-                  },
+                  }),
                 ),
               ),
           ],
@@ -125,7 +129,7 @@ class _Row extends StatelessWidget {
     return Semantics(
       button: true,
       child: GestureDetector(
-        onTap: onTap,
+        onTap: tracked('chosen.row', onTap),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: const EdgeInsets.all(10),
@@ -174,7 +178,7 @@ class _Row extends StatelessWidget {
                 label: l.fdPickedRemove,
                 excludeSemantics: true,
                 child: GestureDetector(
-                  onTap: onRemove,
+                  onTap: tracked('chosen.row_remove', onRemove),
                   behavior: HitTestBehavior.opaque,
                   child: Container(
                     width: 24,
@@ -199,9 +203,10 @@ class _Row extends StatelessWidget {
 /// "UMUMIY VIZA D-2 56% · konsultant bilan ~77%" on a blue card with a lime
 /// shadow and a bar.
 class _VisaCard extends StatelessWidget {
-  const _VisaCard({required this.visa});
+  const _VisaCard({required this.visa, required this.consultant});
 
   final int? visa;
+  final int? consultant;
 
   @override
   Widget build(BuildContext context) {
@@ -226,10 +231,10 @@ class _VisaCard extends StatelessWidget {
             children: [
               Text(v == null ? '?%' : '$v%', style: fdText(40, FontWeight.w800, FdColors.lime, height: 1, letterSpacing: -1.2)),
               const SizedBox(width: 10),
-              if (v != null)
+              if (v != null && consultant != null)
                 Flexible(
                   child: Text(
-                    l.fdPickedWithConsultant((v + kConsultantVisaBoost).clamp(0, 96)),
+                    l.fdPickedWithConsultant(consultant!),
                     style: fdText(12, FontWeight.w700, Colors.white),
                   ),
                 ),

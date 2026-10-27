@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/updater_repository.dart';
@@ -198,16 +199,16 @@ class _AvailableView extends ConsumerWidget {
             LimeButton(
               icon: Icons.system_update_alt_rounded,
               label: l10n.updateNow,
-              onPressed: () => notifier.startUpdate(info),
+              onPressed: tracked('update_dialog.update_now', () => notifier.startUpdate(info)),
             ),
             if (!forced) ...[
               const SizedBox(height: 10),
               SeoulOutlineButton(
                 label: l10n.updateLater,
-                onPressed: () {
+                onPressed: tracked('update_dialog.update_later', () {
                   notifier.dismiss();
                   Navigator.of(context, rootNavigator: true).maybePop();
-                },
+                }),
               ),
             ],
           ],
@@ -328,16 +329,16 @@ class _FailedView extends ConsumerWidget {
             LimeButton(
               icon: Icons.refresh_rounded,
               label: l10n.commonRetry,
-              onPressed: () => notifier.startUpdate(info),
+              onPressed: tracked('update_dialog.retry', () => notifier.startUpdate(info)),
             ),
             const SizedBox(height: 10),
           ],
           SeoulOutlineButton(
             label: l10n.ok,
-            onPressed: () {
+            onPressed: tracked('update_dialog.ok', () {
               notifier.dismiss();
               Navigator.of(context, rootNavigator: true).maybePop();
-            },
+            }),
           ),
         ],
       ),

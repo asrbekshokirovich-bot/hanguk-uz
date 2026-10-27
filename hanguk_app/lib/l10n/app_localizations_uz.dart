@@ -4067,7 +4067,7 @@ class AppLocalizationsUz extends AppLocalizations {
   }
 
   @override
-  String get fdNavApplication => 'Ariza';
+  String get fdNavApplication => 'Arizam';
 
   @override
   String get fdNavDocuments => 'Hujjatlar';
@@ -4853,4 +4853,812 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get ajBack => 'Orqaga';
+
+  @override
+  String get btField => 'Yo\'nalishni tanlang';
+
+  @override
+  String get btCount => 'Mos universitetlar';
+
+  @override
+  String get btVisa => 'Viza imkoningiz';
+
+  @override
+  String get btList => 'Ro\'yxatni ko\'rish';
+
+  @override
+  String get btStrip => 'Sizga mos universitetlar';
+
+  @override
+  String get btCity => 'Qaysi shahar?';
+
+  @override
+  String get btDegree => 'Qaysi daraja?';
+
+  @override
+  String get btTopik => 'Koreys tili darajangiz';
+
+  @override
+  String get btIelts => 'IELTS balingiz';
+
+  @override
+  String get btFee => 'Kontrakt narxi';
+
+  @override
+  String get btType => 'Davlat yoki xususiy';
+
+  @override
+  String get btGrant => 'Grant kerakmi?';
+
+  @override
+  String get fdSectionIelts => 'Ingliz tilim (IELTS)';
+
+  @override
+  String get fdIeltsNoneHint => 'Ingliz tilida o\'qimayman';
+
+  @override
+  String fdIeltsHint(String score) {
+    return 'Ingliz tilidagi dasturlar — IELTS $score gacha';
+  }
+
+  @override
+  String get fdSectionGrant => 'Grant / stipendiya';
+
+  @override
+  String get fdGrantHint => 'Kontraktdan chegirma';
+
+  @override
+  String get fdGrantNone => 'Shart emas';
+
+  @override
+  String fdGrantSummary(int pct) {
+    return 'Grant $pct%+';
+  }
+
+  @override
+  String fdTopikHint(String meaning, int level) {
+    return '$meaning — TOPIK $level+ ochiladi';
+  }
+
+  @override
+  String get fdTopikHintNone => 'Darajangizni tanlang';
+
+  @override
+  String get fdTopikLevel1 => 'Salomlashish';
+
+  @override
+  String get fdTopikLevel2 => 'Oddiy gaplar';
+
+  @override
+  String get fdTopikLevel3 => 'Kundalik suhbat';
+
+  @override
+  String get fdTopikLevel4 => 'Erkin suhbat';
+
+  @override
+  String get fdTopikLevel5 => 'Ilmiy matnlar';
+
+  @override
+  String get fdTopikLevel6 => 'Ona tilidek';
+
+  @override
+  String fdCodeSms(String bold) {
+    return 'Konsultant SMS da yuborgan $bold kod';
+  }
+
+  @override
+  String get fdCodeEight => '8 belgili';
+
+  @override
+  String get fdCodeUnlocks => 'Kod bilan ochiladi';
+
+  @override
+  String get fdCodeChat => 'Konsultant chati';
+
+  @override
+  String get fdCodeScanShort => 'QR skanerlash';
+
+  @override
+  String get fdCodeNone => 'Kod yo\'q';
+
+  @override
+  String get fdCodeFreeConsult => 'Bepul konsultatsiya';
+
+  @override
+  String get uaTitle => 'Kirish ehtimoli';
+
+  @override
+  String get uaCity => 'Shahar';
+
+  @override
+  String get uaAskTitle =>
+      'Bu universitetga kirish ehtimolingizni bilmoqchimisiz?';
+
+  @override
+  String get uaAskBody =>
+      '12 ta savol + Study Plan + test suhbat · taxminan 3 daqiqa. Foiz, aniqlik va oshirish yo\'llari oxirida chiqadi.';
+
+  @override
+  String get uaAskStart => 'Baholashni boshlash →';
+
+  @override
+  String get uaImpactNone => 'ta\'sir yo\'q';
+
+  @override
+  String get uaSecAcademic => 'Akademik';
+
+  @override
+  String get uaSecLanguage => 'Til';
+
+  @override
+  String get uaSecDocuments => 'Hujjatlar to\'plami';
+
+  @override
+  String get uaSecTests => 'Baholash testlari';
+
+  @override
+  String get uaTestsCount => 'natija foizga kiradi';
+
+  @override
+  String get uaTestsBadge => '+ aniqlik';
+
+  @override
+  String get uaTestsHint =>
+      'Testlarni topshirsangiz, kirish ehtimolingiz aniqroq hisoblanadi';
+
+  @override
+  String get uaNo => 'Yo\'q';
+
+  @override
+  String get uaHave => 'Bor';
+
+  @override
+  String get uaQDegree => 'Qaysi darajaga topshirasiz';
+
+  @override
+  String get uaDegLanguage => 'Til kursi (D-4)';
+
+  @override
+  String get uaDegBachelor => 'Bakalavr';
+
+  @override
+  String get uaDegMaster => 'Magistr';
+
+  @override
+  String get uaQGpa => 'Attestat / diplom o\'rtacha bali';
+
+  @override
+  String get uaQGap => 'Bitirgandan keyin o\'tgan vaqt';
+
+  @override
+  String get uaGap0 => '0 yil';
+
+  @override
+  String get uaGap1 => '1 yil';
+
+  @override
+  String get uaGap2 => '2 yil';
+
+  @override
+  String get uaGap3 => '3+ yil';
+
+  @override
+  String get uaQExperience => 'Tanlagan yo\'nalish bo\'yicha tajriba';
+
+  @override
+  String get uaExpCourse => 'Kurs / to\'garak';
+
+  @override
+  String get uaExpProject => 'Loyiha';
+
+  @override
+  String get uaExpWork => 'Ish tajribasi';
+
+  @override
+  String get uaQOlympiad => 'Olimpiada / musobaqa yutuqlari';
+
+  @override
+  String get uaOlSchool => 'Maktab';
+
+  @override
+  String get uaOlNational => 'Respublika';
+
+  @override
+  String get uaOlInternational => 'Xalqaro';
+
+  @override
+  String get uaQTopik => 'TOPIK darajasi';
+
+  @override
+  String get uaQTopikCert => 'TOPIK sertifikati';
+
+  @override
+  String get uaCertOld => '2 yildan eski';
+
+  @override
+  String get uaCertFresh => 'Amalda (2 yilgacha)';
+
+  @override
+  String get uaQIelts => 'Ingliz tili (IELTS)';
+
+  @override
+  String get uaQMotivation => 'Motivatsiya xati';
+
+  @override
+  String get uaMotDraft => 'Qoralama';
+
+  @override
+  String get uaMotReady => 'Tayyor';
+
+  @override
+  String get uaQRecommendation => 'Tavsiyanoma (o\'qituvchidan)';
+
+  @override
+  String get uaQPortfolio => 'Portfolio (dizayn, san\'at, loyiha)';
+
+  @override
+  String get uaQActivity => 'Qo\'shimcha faoliyat';
+
+  @override
+  String get uaActVolunteer => 'Ko\'ngilli ish';
+
+  @override
+  String get uaActSportArt => 'Sport / san\'at';
+
+  @override
+  String get uaActLeader => 'Tashkilot rahbari';
+
+  @override
+  String get uaTestPlan => 'Study Plan testi';
+
+  @override
+  String get uaTestTalk => 'Suhbat testi';
+
+  @override
+  String get uaTestStart => 'Boshlash';
+
+  @override
+  String get uaTestTaken => 'Topshirildi · bir marta topshiriladi';
+
+  @override
+  String get uaTestsNeedCode =>
+      'Testlar mijoz kodi bilan ochiladi — konsultant SMS yuboradi';
+
+  @override
+  String get uaResultTitle => 'Kirish ehtimolingiz';
+
+  @override
+  String get uaAccuracyLow => 'Aniqlik: past — testlar hali topshirilmagan';
+
+  @override
+  String get uaAccuracyMid => 'Aniqlik: o\'rta — bitta test topshirilgan';
+
+  @override
+  String get uaAccuracyHigh => 'Aniqlik: yuqori — ikkala test topshirilgan';
+
+  @override
+  String get uaInterviewFailed =>
+      'Suhbat 60 balldan past — haqiqiy qabulda ham bu bosqichdan o\'tib bo\'lmaydi.';
+
+  @override
+  String get uaWays => 'OSHIRISH YO\'LLARI';
+
+  @override
+  String get uaWayMotivation => 'Motivatsiya xatini tayyorlang';
+
+  @override
+  String get uaWayRecommendation => 'Tavsiyanoma oling';
+
+  @override
+  String get sptQ1 => 'Nega aynan shu universitet va shu yo\'nalish?';
+
+  @override
+  String get sptQ2 => 'Koreyada nimani va qanday o\'qiysiz?';
+
+  @override
+  String get sptQ3 => 'Bitirgandan keyin nima qilasiz?';
+
+  @override
+  String get sptHint => 'Koreys yoki ingliz tilida yozing';
+
+  @override
+  String get sptSubmit => 'Tekshirishga yuborish';
+
+  @override
+  String get sptChecking => 'Sun\'iy intellekt tekshirmoqda…';
+
+  @override
+  String get sptError =>
+      'Tekshirib bo\'lmadi. Internetni tekshirib, qayta yuboring.';
+
+  @override
+  String get sptResultTitle => 'STUDY PLAN BALI';
+
+  @override
+  String get sptMotivation => 'Motivatsiya va yo\'nalishni bilish';
+
+  @override
+  String get sptPlan => 'O\'qish rejasi';
+
+  @override
+  String get sptCareer => 'Bitirgandan keyingi reja';
+
+  @override
+  String get sptLanguage => 'Til va yozuv';
+
+  @override
+  String get sptStrengths => 'Kuchli tomonlar';
+
+  @override
+  String get sptImprovements => 'Yaxshilash kerak';
+
+  @override
+  String get sptDone => 'Tayyor';
+
+  @override
+  String uaImpactUp(int n) {
+    return 'qabul +$n%';
+  }
+
+  @override
+  String uaImpactDown(int n) {
+    return 'qabul −$n%';
+  }
+
+  @override
+  String uaGpaValue(String value) {
+    return '$value / 5';
+  }
+
+  @override
+  String uaTestMeta(String name, int questions, int minutes) {
+    return '$name uchun · $questions savol · $minutes daqiqa · 1 urinish';
+  }
+
+  @override
+  String uaTestScore(int n) {
+    return '$n/100';
+  }
+
+  @override
+  String uaWayTopik(int level) {
+    return 'TOPIK $level ga chiqing';
+  }
+
+  @override
+  String sptIntro(String name, int minutes) {
+    return '$name uchun 3 ta savolga javob yozing. Vaqt — $minutes daqiqa, test faqat bir marta topshiriladi. Vaqt tugasa, yozilgani yuboriladi.';
+  }
+
+  @override
+  String get vzTitle => 'Vizam';
+
+  @override
+  String get vzTitleMark => 'chiqadimi?';
+
+  @override
+  String get vzYes => 'Ha';
+
+  @override
+  String get vzOne => 'Bitta';
+
+  @override
+  String get vzTwoPlus => 'Ikki va ko\'p';
+
+  @override
+  String get vzSecEducation => 'Ta\'lim';
+
+  @override
+  String get vzSecMoney => 'Moliya';
+
+  @override
+  String get vzSecHistory => 'Tarix';
+
+  @override
+  String get vzSecPrep => 'Tayyorgarlik';
+
+  @override
+  String get vzQEducation => 'Oxirgi ma\'lumotingiz';
+
+  @override
+  String get vzEduSchool => 'Maktab (11-sinf)';
+
+  @override
+  String get vzEduCollege => 'Kollej / litsey';
+
+  @override
+  String get vzQAge => 'Yosh';
+
+  @override
+  String get vzQIncome => 'Ota-onangizning yillik daromadi';
+
+  @override
+  String get vzIncome0 => '< \$5 000';
+
+  @override
+  String get vzIncome1 => '\$5–10 ming';
+
+  @override
+  String get vzIncome2 => '\$10–20 ming';
+
+  @override
+  String get vzIncome3 => '\$20 ming+';
+
+  @override
+  String get vzQIncomeDocumented =>
+      'Daromad rasmiy hujjatlangan (ish haqi, soliq, biznes)';
+
+  @override
+  String get vzQSponsor => 'Sponsor kim';
+
+  @override
+  String get vzSponsorSelf => 'O\'zim';
+
+  @override
+  String get vzSponsorParents => 'Ota-onam';
+
+  @override
+  String get vzSponsorRelative => 'Boshqa qarindosh';
+
+  @override
+  String get vzQRelationDoc => 'Qarindoshlik hujjati (apostil bilan)';
+
+  @override
+  String get vzQStability => 'Daromad necha vaqtdan beri barqaror';
+
+  @override
+  String get vzStable0 => '< 6 oy';
+
+  @override
+  String get vzStable1 => '6–12 oy';
+
+  @override
+  String get vzStable2 => '1–3 yil';
+
+  @override
+  String get vzStable3 => '3 yil+';
+
+  @override
+  String get vzQProperty =>
+      'Ota-onangiz nomida ko\'chmas mulk bormi (uy, kvartira, yer)';
+
+  @override
+  String get vzQCar => 'Ota-onangiz nomida avtomobil bormi';
+
+  @override
+  String get vzQBusiness =>
+      'Ota-onangizning biznesi / ro\'yxatdan o\'tgan kompaniyasi bormi';
+
+  @override
+  String get vzBusinessIp => 'Yakka tartibda (IP)';
+
+  @override
+  String get vzBusinessLlc => 'Kompaniya (MChJ)';
+
+  @override
+  String get vzQRefused => 'Oldin viza rad etilganmi';
+
+  @override
+  String get vzQKoreaBefore => 'Koreyada oldin bo\'lganmisiz';
+
+  @override
+  String get vzKoreaOnTime => 'Ha, muddatida qaytganman';
+
+  @override
+  String get vzKoreaOverstay => 'Muddatdan oshganman';
+
+  @override
+  String get vzQIllegalRelatives =>
+      'Yaqin qarindoshlaringizdan Janubiy Koreyada noqonuniy (nelegal) bo\'lganlar bormi';
+
+  @override
+  String get vzQLegalRelatives =>
+      'Koreyada qonuniy yashovchi qarindoshlaringiz bormi';
+
+  @override
+  String get vzQStudyPlan => 'Study Plan (o\'qish rejasi)';
+
+  @override
+  String get vzQInterview => 'Suhbatga tayyorgarlik';
+
+  @override
+  String get vzInterviewSelf => 'O\'zim mashq qildim';
+
+  @override
+  String get vzInterviewAi => 'Hanguk AI bilan 3+ marta';
+
+  @override
+  String get vzBandHigh => 'Yuqori imkon';
+
+  @override
+  String get vzBandHighHint => 'hujjatlarni tayyorlang';
+
+  @override
+  String get vzBandMid => 'O\'rtacha imkon';
+
+  @override
+  String get vzBandMidHint => 'ishlash kerak';
+
+  @override
+  String get vzBandLow => 'Past imkon';
+
+  @override
+  String get vzBandLowHint => 'ko\'p ishlash kerak';
+
+  @override
+  String get vzTourGauge =>
+      'Viza ehtimolingiz — javoblaringizga qarab o\'zgaradi';
+
+  @override
+  String get vzTourEducation => 'Ta\'lim: daraja, ball, yosh';
+
+  @override
+  String get vzTourLanguage => 'Til: TOPIK va IELTS';
+
+  @override
+  String get vzTourMoney => 'Moliya: elchixona eng ko\'p shuni tekshiradi';
+
+  @override
+  String get vzTourHistory => 'Tarix: oldingi vizalar va qarindoshlar';
+
+  @override
+  String get vzTourPrep => 'Tayyorgarlik: Study Plan, suhbat, xatlar';
+
+  @override
+  String get vzTourReplay => 'Yo\'riqnomani qayta ko\'rish';
+
+  @override
+  String uaVisaUp(int n) {
+    return 'viza +$n%';
+  }
+
+  @override
+  String uaVisaDown(int n) {
+    return 'viza −$n%';
+  }
+
+  @override
+  String vzAgeValue(int n) {
+    return '$n yosh';
+  }
+
+  @override
+  String vzWithConsultant(int n) {
+    return 'konsultant bilan ~$n%';
+  }
+
+  @override
+  String get tuHero => 'Universitet: nomi, shahri va narxi';
+
+  @override
+  String get tuFacts => 'Shahar, kontrakt, til talabi va hujjat muddati';
+
+  @override
+  String get tuAsk => 'Bu yerdan kirish ehtimolingizni bilasiz';
+
+  @override
+  String get tuPick => 'Yoqsa — tanlovga qo\'shing, 3 tagacha';
+
+  @override
+  String get taAcademic => 'Akademik: har javob qabulga ta\'sirini ko\'rsatadi';
+
+  @override
+  String get taLanguage => 'Til: TOPIK va IELTS';
+
+  @override
+  String get taDocuments => 'Hujjatlar: xat, tavsiyanoma, portfolio';
+
+  @override
+  String get taTests => 'Testlar: Study Plan va suhbat — bir marta';
+
+  @override
+  String get taResult => 'Natija: foiz va uni oshirish yo\'llari';
+
+  @override
+  String get fdCodeBannerTitle => 'Bu bo\'lim Hanguk ichki talabalari uchun';
+
+  @override
+  String get fdCodeBannerBody =>
+      'Bizning talabamizga aylaning va barcha imkoniyatlardan foydalaning: Tayyorgarlik, Arizam va Hujjatlar bo\'limlari to\'liq ochiladi.';
+
+  @override
+  String get fdCodeTelegram => 'Telegramda admin bilan yozishish';
+
+  @override
+  String get fdCodeSmsFrom => 'SMS · Hanguk';
+
+  @override
+  String get fdCodeYours => 'Mijoz kodingiz:';
+
+  @override
+  String get fdCodePaste => 'qo\'yish →';
+
+  @override
+  String get fdPrepareNeedsCode =>
+      'Tayyorgarlik — Premium va No-Risk mijozlar uchun. Kodingiz bo\'lsa kiriting';
+
+  @override
+  String get fdGrantOrder => 'avval ball → keyin grant';
+
+  @override
+  String get fdGrantStepScores => '1 · BALLARINGIZ';
+
+  @override
+  String get fdGrantStepWanted => '2 · KERAKLI GRANT';
+
+  @override
+  String get fdGrantAny => 'Shart emas';
+
+  @override
+  String get fdSectionCityMap => 'Shahar · xaritadan tanlang';
+
+  @override
+  String get fdAllRegions => 'Hammasi';
+
+  @override
+  String get fdRegionGangwonPlus => 'Gangwon+';
+
+  @override
+  String fdGrantAtLeast(int n) {
+    return 'Kamida $n%';
+  }
+
+  @override
+  String get ulTitle => 'Universitetlar';
+
+  @override
+  String get ulSearchHint => 'Nom, yo\'nalish, shahar';
+
+  @override
+  String get ulPrivate => 'Xususiy universitet';
+
+  @override
+  String get ulState => 'Davlat universiteti';
+
+  @override
+  String get ulNoRequirement => 'Talab yo\'q';
+
+  @override
+  String get fltTitle => 'Filtr';
+
+  @override
+  String get fltAllFields => 'Barchasi';
+
+  @override
+  String get fltFeeSem => 'Kontrakt / semestr';
+
+  @override
+  String ulCount(int n) {
+    return '$n ta';
+  }
+
+  @override
+  String ulSubtitle(int n) {
+    return '$n ta universitet · kartani bosing';
+  }
+
+  @override
+  String fltCount(int n) {
+    return 'MOS UNIVERSITETLAR · $n TADAN';
+  }
+
+  @override
+  String get vzReport => 'Hisobotni ko\'rish →';
+
+  @override
+  String get uaTestsUnavailable =>
+      'Test hozircha ochilmadi — internetni tekshirib, qayta urinib ko\'ring';
+
+  @override
+  String get tuGrants => 'TOPIK yoki IELTS natijangizga qarab grant';
+
+  @override
+  String get ugTitle => 'Grant';
+
+  @override
+  String get ugSubtitle =>
+      'Kirishda kontraktdan chegirma — TOPIK / IELTS ga qarab';
+
+  @override
+  String get ugNoCertificate => 'Sertifikatsiz';
+
+  @override
+  String ugEither(String topik, String english) {
+    return '$topik yoki $english';
+  }
+
+  @override
+  String ugBoth(String topik, String english) {
+    return '$topik va $english';
+  }
+
+  @override
+  String get ugNone =>
+      'Bu universitet qo\'llanmasida TOPIK / IELTS granti yo\'q';
+
+  @override
+  String get ugYours => 'SIZGA';
+
+  @override
+  String get fltOnePercent => '1% universitetlar';
+
+  @override
+  String get fltOnePercentOnly => 'Faqat 1%';
+
+  @override
+  String get deviceCodeTitle => 'Qurilma kodi';
+
+  @override
+  String get deviceCodeBody =>
+      'Xodim bu kodni CRM\'da (Ilova analitikasi → Sozlamalar) kiritib, telefonni test qurilma deb belgilaydi.';
+
+  @override
+  String get deviceCodeNone =>
+      'Kod hali tayyor emas: birozdan keyin qayta urinib ko\'ring.';
+
+  @override
+  String deviceCodeVersion(String version) {
+    return 'Versiya $version';
+  }
+
+  @override
+  String get leadForWhomQ => 'Kim uchun?';
+
+  @override
+  String get leadForWhomSelf => 'O\'zim uchun';
+
+  @override
+  String get leadForWhomChild => 'Farzandim uchun';
+
+  @override
+  String get leadForWhomRelative => 'Qarindoshim uchun';
+
+  @override
+  String get leadHowHeardQ => 'Bizni qayerdan topdingiz?';
+
+  @override
+  String contactTelegramMessage(String code) {
+    return 'Ilovadan · $code';
+  }
+
+  @override
+  String get leadHeardInstagram => 'Instagram';
+
+  @override
+  String get leadHeardTelegram => 'Telegram';
+
+  @override
+  String get leadHeardFriend => 'Do\'st yoki qarindosh tavsiyasi';
+
+  @override
+  String get leadHeardKoreaFriend => 'Koreyada o\'qiyotgan tanish';
+
+  @override
+  String get leadHeardLearningCenter => 'O\'quv markazi';
+
+  @override
+  String get leadHeardEvent => 'Tadbir';
+
+  @override
+  String get leadHeardStore => 'Play Market yoki App Store';
+
+  @override
+  String get leadHeardOther => 'Boshqa';
+
+  @override
+  String get leadConsent =>
+      'Konsultant tanlagan universitetlaringizni va test javoblaringizni ko\'radi va shu asosda maslahat beradi.';
+
+  @override
+  String get guestPushTitle => 'Muddatlarni o\'tkazib yubormang';
+
+  @override
+  String get guestPushBody =>
+      'Qabul muddatlari va yangi grantlar haqida bildirishnoma yuboraylikmi? Telefon raqamingiz kerak emas.';
+
+  @override
+  String get guestPushYes => 'Ha, yuboring';
+
+  @override
+  String get guestPushLater => 'Keyinroq';
 }

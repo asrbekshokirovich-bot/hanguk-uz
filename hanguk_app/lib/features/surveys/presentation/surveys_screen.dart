@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/survey_repository.dart';
@@ -21,13 +22,13 @@ class SurveysScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: SeoulColors.textPrimary),
-          onPressed: () {
+          onPressed: tracked('surveys.to_home', () {
             if (Navigator.of(context).canPop()) {
               Navigator.of(context).pop();
             } else {
               context.go('/');
             }
-          },
+          }),
         ),
         title: HangulTag(en: l.surveysTitle, ko: '설문조사'),
       ),
@@ -50,7 +51,7 @@ class SurveysScreen extends ConsumerWidget {
                 SeoulOutlineButton(
                   label: l.commonRetry,
                   expand: false,
-                  onPressed: () => ref.invalidate(activeSurveysProvider),
+                  onPressed: tracked('surveys.retry', () => ref.invalidate(activeSurveysProvider)),
                 ),
               ],
             ),
@@ -123,7 +124,7 @@ class _SurveyCard extends StatelessWidget {
     return GlassCard(
       blur: false,
       borderColor: isCompleted ? SeoulColors.lime.withValues(alpha: 0.3) : null,
-      onTap: () => context.push('/surveys/${survey.id}', extra: title),
+      onTap: tracked('surveys.open_survey', () => context.push('/surveys/${survey.id}', extra: title)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

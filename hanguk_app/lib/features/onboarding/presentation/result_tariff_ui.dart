@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night_tokens.dart';
 import '../../../design_system/seoul_night/seoul_night_typography.dart';
 
@@ -180,7 +181,7 @@ class OnbTap extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
-      child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: onTap, child: child),
+      child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: tracked('result_tariff_ui.onb_tap', onTap), child: child),
     );
   }
 }
@@ -196,7 +197,7 @@ class OnbPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnbTap(
-      onTap: onTap,
+      onTap: tracked('result_tariff_ui.onb_primary_button', onTap),
       child: Container(
         height: 56,
         width: double.infinity,
@@ -233,7 +234,7 @@ class OnbOutlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnbTap(
-      onTap: onTap,
+      onTap: tracked('result_tariff_ui.onb_outline_button', onTap),
       child: Container(
         height: 52,
         width: double.infinity,
@@ -264,7 +265,7 @@ class OnbBackTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OnbTap(
-      onTap: onTap,
+      onTap: tracked('result_tariff_ui.onb_back_tile', onTap),
       label: MaterialLocalizations.of(context).backButtonTooltip,
       child: Container(
         width: 44,

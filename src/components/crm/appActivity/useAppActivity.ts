@@ -126,15 +126,26 @@ export function useAppActivity(target: { leadId?: string | null; userId?: string
 
 export interface AppEventsSummary {
   days: number;
+  /** Devices with any event in the period. */
   devices: number;
+  /** Signed-in people (distinct accounts) and the devices they used. */
+  people?: number;
+  demo_people?: number;
   signed_in_devices: number;
+  /** Devices first seen in the period — tracking began on [tracking_since]. */
   new_devices: number;
+  tracking_since?: string | null;
   events: number;
   by_event: { event: string; n: number; devices: number }[];
   by_screen: { screen: string; n: number; devices: number }[];
+  /** Bottom-nav sections: tab names, the guest home and the signed-in Ariza. */
+  sections?: { section: string; n: number; devices: number }[];
+  /** Devices that reached each step at least once (not a strict sequence). */
   funnel: { event: string; devices: number }[];
+  top_picked?: { institution_id: string; name: string | null; devices: number }[];
+  /** Same list as top_picked; what the page read before the 26-Oct migration. */
   top_saved: { institution_id: string; name: string | null; devices: number }[];
-  daily: { day: string; devices: number }[];
+  daily: { day: string; devices: number; new?: number }[];
 }
 
 /** The CRM overview (app_events_summary) for the last [days] days. */

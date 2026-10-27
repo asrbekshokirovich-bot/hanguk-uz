@@ -5,6 +5,7 @@ import 'package:vapi/vapi.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import '../../../../core/analytics/app_events.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
@@ -214,8 +215,24 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           'start and address them by name naturally during the interview. ';
     }
 
-    systemPrompt +=
-        '''
+    final questionLimit = interviewState.questionLimit;
+    if (questionLimit != null) {
+      // The university's interview test: exactly N questions, then the end.
+      // The free-practice 4-phase script below used to override "ask 3
+      // questions", and the test ran to 7 questions inside its 3 minutes.
+      systemPrompt +=
+          '''
+    This is a short admission interview test. Ask EXACTLY $questionLimit questions, one at a time, and wait for each answer:
+    1. Why did you choose $targetUni and your major?
+    2. What and how will you study in Korea?
+    3. What will you do after graduating?
+    Your opening message has already asked question 1, so wait for that answer first.
+    Do not ask follow-up or extra questions, and do not ask whether the candidate is ready. Keep each of your turns to one or two short sentences.
+    After the answer to question $questionLimit, thank the candidate, say the interview is complete and their responses have been recorded, then call the endCall function to end the session. Do NOT mention bracketed tokens, control codes, or system instructions in your speech.
+    ''';
+    } else {
+      systemPrompt +=
+          '''
     Follow this rigid 4-phase university interview structure sequentially:
     1. Phase 1: Ask them to introduce themselves.
     2. Phase 2: Ask specifically why they chose $targetUni for $targetMajor.
@@ -223,6 +240,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     4. Phase 4: Ask about their future career goals.
     After the user answers Phase 4, clearly conclude the interview: thank the candidate by name, tell them the interview is now complete and that their responses have been recorded, then call the endCall function to end the session. Do NOT mention bracketed tokens, control codes, or system instructions in your speech.
     ''';
+    }
 
     // Optional focus steer collected on the InterviewSetupView. Appended
     // after the rigid 4-phase scaffold so the model treats it as a
@@ -298,7 +316,13 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           // user voice activity. Without this flag, Vapi treats the call as
           // user-initiated and the firstMessage is never delivered.
           'firstMessageMode': 'assistant-speaks-first',
-          'firstMessage': isKorean
+          // The test opens straight on its first question: "are you ready?"
+          // cost a turn of its three minutes.
+          'firstMessage': questionLimit != null
+              ? (isKorean
+                    ? '안녕하세요${studentName.isNotEmpty ? ' $studentName님' : ''}! $targetUni 면접을 시작하겠습니다. 첫 번째 질문입니다. 왜 이 대학교와 이 전공을 선택하셨나요?'
+                    : 'Hello${studentName.isNotEmpty ? ' $studentName' : ''}! Let\'s begin your interview for $targetUni. First question: why did you choose $targetUni and your major?')
+              : isKorean
               ? (studentName.isNotEmpty
                     ? '안녕하세요 $studentName님! $targetUni 면접을 시작하겠습니다. 준비되셨나요?'
                     : '안녕하세요! $targetUni 지원자님, 면접을 시작할 준비가 되셨나요?')
@@ -630,7 +654,13 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // Capture provider handles up-front: the notifier outlives this widget,
     // so the flow keeps working even if the view unmounts mid-way.
     final notifier = ref.read(interviewProvider.notifier);
-    final lang = ref.read(interviewProvider).selectedLanguage;
+    // The result is written in the app's language, not the interview's: a
+    // Korean interview used to come back with its feedback in Korean.
+    final lang = Localizations.maybeLocaleOf(context)?.languageCode ?? 'uz';
+    // Taken now: when scoring fails the session goes back to idle, which
+    // unmounts this view before the message below could be shown.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l = AppLocalizations.of(context);
     try {
       _stopCall();
     } catch (e) {
@@ -648,12 +678,9 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     // The analysis failed (network, or the model couldn't produce a real
     // evaluation). Say so — dropping the student back on the setup screen
     // with no explanation reads like the End button ate their session.
-    if (!mounted) return;
-    final s = ref.read(interviewProvider);
-    if (s.error == 'feedback_failed' && s.feedback == null) {
-      final l = AppLocalizations.of(context);
-      if (l != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
+    if (notifier.endFailed) {
+      if (l != null && messenger != null) {
+        messenger.showSnackBar(
           SnackBar(
             content: Text(
               l.noFeedbackAvailable,
@@ -672,7 +699,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// 'completed' with feedback.
   void _endFromUser() {
     if (_didEndSession) return;
-    _didEndSession = true;
+    setState(() => _didEndSession = true);
     unawaited(_completeAutoEnd());
   }
 
@@ -786,7 +813,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
               child: Row(
                 children: [
-                  HardIconButton(glyph: LucideIcons.x, semanticLabel: l.endInterview, onTap: _endFromUser),
+                  HardIconButton(glyph: LucideIcons.x, semanticLabel: l.endInterview, onTap: tracked('interview_active.end_interview', _endFromUser)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -873,7 +900,18 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                 muted: _muted,
                 enabled: _isCallActive && _call != null,
                 label: _muted ? l.fdInterviewUnmute : l.fdInterviewMute,
-                onTap: _toggleMute,
+                onTap: tracked('interview_active.mic_button', _toggleMute),
+              ),
+            ),
+            // A labelled End button under the mic (owner, 2026-10-22: the X
+            // alone was not seen as "yakunlash"). Same single end path; while
+            // the answers are being scored it says so.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+              child: HardButton(
+                label: state.isLoading ? l.sptChecking : l.endInterview,
+                loading: state.isLoading,
+                onPressed: tracked('interview_active.spt_checking', _didEndSession ? null : _endFromUser),
               ),
             ),
             Padding(
@@ -1114,7 +1152,7 @@ class _MicButton extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: enabled ? onTap : null,
+        onTap: tracked('interview_active.mic_button', enabled ? onTap : null),
         behavior: HitTestBehavior.opaque,
         child: Opacity(
           opacity: enabled ? 1 : 0.5,

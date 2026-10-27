@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/analytics/contact_codes.dart';
+import '../../../../core/analytics/tracked.dart';
 import '../../../../core/config/contact_links.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -21,7 +23,7 @@ class ContactSheet extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ContactSheet(onJoin: onJoin),
+      builder: (_) => ContactSheet(onJoin: tracked('contact_sheet.join', onJoin)),
     );
   }
 
@@ -34,6 +36,19 @@ class ContactSheet extends StatelessWidget {
       messenger.showSnackBar(
         SnackBar(content: Text(l.guestContactLaunchFailed)),
       );
+    }
+  }
+
+  /// The consultant's Telegram, the message typed in with this phone's code
+  /// (ContactCodes): the chat is then tied to the phone.
+  Future<void> _openTelegram(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context)!;
+    Navigator.of(context).pop();
+    final uri = await ContactCodes.telegram(l.contactTelegramMessage);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok) {
+      messenger.showSnackBar(SnackBar(content: Text(l.guestContactLaunchFailed)));
     }
   }
 
@@ -91,25 +106,25 @@ class ContactSheet extends StatelessWidget {
                 glyph: '텔',
                 label: l.guestContactTelegramChannel,
                 value: l.guestContactTelegramChannelHint,
-                onTap: () => _open(context, ContactLinks.telegramChannelUri),
+                onTap: tracked('contact_sheet.guest_contact_telegram_channel', () => _open(context, ContactLinks.telegramChannelUri)),
               ),
               _ContactRow(
                 glyph: '톡',
                 label: l.guestContactTelegramDirect,
                 value: l.guestContactTelegramDirectHint,
-                onTap: () => _open(context, ContactLinks.telegramDirectUri),
+                onTap: tracked('contact_sheet.guest_contact_telegram_direct', () => _openTelegram(context)),
               ),
               _ContactRow(
                 glyph: '인',
                 label: l.guestContactInstagram,
                 value: l.guestContactInstagramHint,
-                onTap: () => _open(context, ContactLinks.instagramUri),
+                onTap: tracked('contact_sheet.guest_contact_instagram', () => _open(context, ContactLinks.instagramUri)),
               ),
               _ContactRow(
                 glyph: '전',
                 label: l.guestContactCall,
                 value: ContactLinks.phoneDisplay,
-                onTap: () => _open(context, ContactLinks.phoneUri),
+                onTap: tracked('contact_sheet.guest_contact_call', () => _open(context, ContactLinks.phoneUri)),
               ),
               if (onJoin != null) ...[
                 const SizedBox(height: 8),
@@ -118,10 +133,10 @@ class ContactSheet extends StatelessWidget {
                   label: l.guestJoinCta,
                   value: l.guestContactJoinHint,
                   highlight: true,
-                  onTap: () {
+                  onTap: tracked('contact_sheet.guest_join_cta', () {
                     Navigator.of(context).pop();
                     onJoin!();
-                  },
+                  }),
                 ),
               ],
             ],
@@ -158,7 +173,7 @@ class _ContactRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         borderColor: highlight ? SeoulColors.lime : null,
         blur: false,
-        onTap: onTap,
+        onTap: tracked('contact_sheet.contact_row', onTap),
         child: Row(
           children: [
             Container(

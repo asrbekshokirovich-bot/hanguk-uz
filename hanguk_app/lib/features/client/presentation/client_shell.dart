@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
-import '../../discover/presentation/filter_board_screen.dart';
+import '../../discover/presentation/visa_screen.dart';
 import '../../discover/presentation/prepare_screen.dart';
 import '../../discover/presentation/universities_screen.dart';
 import '../../discover/presentation/widgets/app_nav.dart';
@@ -33,6 +34,22 @@ class _ClientShellState extends State<ClientShell> {
   late int _tab = widget.tab.clamp(0, AppTab.count - 1);
   late final Set<int> _built = {_tab};
 
+  /// The route this shell is shown under ('/', or a deep link's), so the
+  /// analytics name the screen "<route>#<tab>".
+  String _route = '/';
+  bool _told = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context)?.settings.name;
+    if (!_told || (route != null && route != _route)) {
+      _told = true;
+      _route = route ?? _route;
+      AppEvents.tabChanged(_route, _names[_tab], initial: true);
+    }
+  }
+
   @override
   void didUpdateWidget(ClientShell old) {
     super.didUpdateWidget(old);
@@ -42,7 +59,7 @@ class _ClientShellState extends State<ClientShell> {
   static const _names = ['universities', 'prepare', 'home', 'application', 'documents'];
 
   void _go(int i) => setState(() {
-    if (i != _tab) AppEvents.track('tab_open', screen: 'client', props: {'tab': _names[i]});
+    if (i != _tab) AppEvents.tabChanged(_route, _names[i]);
     _built.add(i);
     _tab = i;
   });
@@ -52,8 +69,8 @@ class _ClientShellState extends State<ClientShell> {
     return switch (i) {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(signedIn: true),
-      AppTab.home => FilterBoardScreen(showBack: false, onShow: () => _go(AppTab.universities)),
-      AppTab.application => JourneyScreen(onBrowse: () => _go(AppTab.universities)),
+      AppTab.home => VisaScreen(embedded: true, active: _tab == AppTab.home),
+      AppTab.application => JourneyScreen(onBrowse: tracked('client_shell.journey_screen_browse', () => _go(AppTab.universities))),
       _ => const ClientDocumentsScreen(),
     };
   }
