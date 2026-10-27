@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { embedContent001 } from "../_shared/gemini.ts";
 import { CLARIFY_GUIDE, QUERY_TOOL, runReadOnlyQuery, getAiSchema } from "./analytics.ts";
 import { chatCompletion, LimitReachedError, limitMessage, type Provider } from "./llm.ts";
+import { answeredHistory } from "./history.ts";
 
 // Hanguk AI — retrieval-augmented assistant.
 // Answers questions about a student from their REAL data: call summaries
@@ -567,7 +568,10 @@ You answer questions by CALLING TOOLS to fetch real CRM data, then summarising t
 - Season / stage questions ("nechta talabaning hujjati tayyor", "kimlar topshirdi") → season_pipeline. Its numbers are the CRM Arizalar board numbers.
 - Write numbers, dates, names and amounts EXACTLY as the tools return them. Show money per currency, e.g. "2000 USD / 4000 USD to'langan, 2000 USD qoldi".
 - If a field is empty or missing, say it is not recorded in the CRM ("CRM'da kiritilmagan"). Never guess.
-- Present results as a clear numbered list including each person's NAME (and phone). State the total: "Showing N of M".
+- Answer ONLY the latest user message. Earlier messages are context, never questions still waiting for an answer.
+- Present lists as a numbered list with each person's NAME (and phone) and say how many there are, e.g. "Jami: 12 ta". For one student, do not add a count.
+- Formatting: plain text, short headings, numbered or "-" lists and **bold** only. Never use tables (the chat cannot show them). Never show internal field names such as board_stage, student_id or JSON keys — use plain Uzbek words.
+- Call as few tools as possible. season_pipeline already lists the students' names for every stage: answer season questions from it directly, without searching each student. Call get_student_card only when the staff asks about one specific student.
 - If a tool returns 0 rows (or {total:0}), say so plainly — do not fabricate. If a tool returns {error: ...}, report that you couldn't fetch it.
 - Answer ONLY from values present in tool results. Cite dates from the data. Be concise.${analytics}
 
@@ -598,8 +602,8 @@ async function runStaffAgent(
   const { message, language, userId, staffName, canQuery } = opts;
 
   const { data: prev } = await service.from("ai_conversations")
-    .select("role, content").eq("user_id", userId).order("created_at", { ascending: false }).limit(10);
-  const history = (prev || []).reverse();
+    .select("role, content").eq("user_id", userId).order("created_at", { ascending: false }).limit(16);
+  const history = answeredHistory((prev || []).reverse());
   await service.from("ai_conversations").insert({ user_id: userId, user_type: "staff", role: "user", content: message });
 
   // owner/admin also get the read-only SQL analytics tool + its schema.
@@ -702,8 +706,8 @@ serve(async (req) => {
 
     // Short-term chat memory.
     const { data: prev } = await supabase.from("ai_conversations")
-      .select("role, content").eq("user_id", user_id).order("created_at", { ascending: false }).limit(10);
-    const history = (prev || []).reverse();
+      .select("role, content").eq("user_id", user_id).order("created_at", { ascending: false }).limit(16);
+    const history = answeredHistory((prev || []).reverse());
 
     await supabase.from("ai_conversations").insert({ user_id, user_type, role: "user", content: message });
 

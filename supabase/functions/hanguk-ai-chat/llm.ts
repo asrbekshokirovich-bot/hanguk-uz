@@ -55,6 +55,13 @@ export function chatProviders(): Provider[] {
   return list;
 }
 
+export let RETRY_WAIT_MS = 8000;
+/** Tests shorten the wait. */
+export function setRetryWaitMs(ms: number) {
+  RETRY_WAIT_MS = ms;
+}
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export class LimitReachedError extends Error {
   constructor(message: string) {
     super(message);
@@ -76,11 +83,20 @@ export async function chatCompletion(
   let lastStatus = 0;
   let lastText = "";
   for (const p of providers) {
-    const response = await fetch(p.url, {
+    const send = () => fetch(p.url, {
       method: "POST",
       headers: { Authorization: `Bearer ${p.key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ ...body, model: p.model }),
     });
+    let response = await send();
+    // Cerebras' free tier allows only a few requests per minute; one agent
+    // question makes several. Wait once and retry before moving on, so a
+    // tool loop does not drain Groq's small per-minute token budget.
+    if (response.status === 429 && p.name === "cerebras") {
+      await response.body?.cancel();
+      await sleep(RETRY_WAIT_MS);
+      response = await send();
+    }
     if (response.ok) return { response, provider: p };
     lastStatus = response.status;
     lastText = (await response.text()).slice(0, 300);

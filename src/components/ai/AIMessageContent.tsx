@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 
 // Hanguk AI can ask a multiple-choice clarifying question instead of guessing
@@ -68,5 +69,11 @@ export function AIMessageContent({ content, onPick, interactive = true }: Props)
     return <p className="text-sm text-muted-foreground">…</p>;
   }
 
-  return <p className="text-sm whitespace-pre-wrap leading-relaxed">{content}</p>;
+  // Replies use light markdown (bold, lists, short headings); show it formatted
+  // instead of raw ** and - marks. Raw HTML stays disabled (react-markdown default).
+  return (
+    <div className="text-sm leading-relaxed space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:my-0.5 [&_strong]:font-semibold [&_h1]:font-semibold [&_h2]:font-semibold [&_h3]:font-semibold [&_p]:whitespace-pre-wrap">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
 }

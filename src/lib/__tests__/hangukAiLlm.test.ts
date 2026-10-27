@@ -4,9 +4,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const env: Record<string, string | undefined> = {};
 (globalThis as unknown as { Deno: unknown }).Deno = { env: { get: (k: string) => env[k] } };
 
-const { chatCompletion, chatProviders, LimitReachedError } = await import(
+const { chatCompletion, chatProviders, LimitReachedError, setRetryWaitMs } = await import(
   '../../../supabase/functions/hanguk-ai-chat/llm.ts'
 );
+
+setRetryWaitMs(0);
 
 const ok = () => new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }] }), { status: 200 });
 const status = (s: number) => new Response('err', { status: s });
@@ -27,13 +29,25 @@ describe('Hanguk AI providers', () => {
     expect(chatProviders().map((p) => p.name)).toEqual(['gemini']);
   });
 
-  it('falls through to Groq when Cerebras hits its limit', async () => {
+  it('waits and retries Cerebras once before moving on', async () => {
     Object.assign(env, { CEREBRAS_API_KEY: 'c', GROQ_API_KEY: 'g' });
     const fetchMock = vi.fn().mockResolvedValueOnce(status(429)).mockResolvedValueOnce(ok());
     vi.stubGlobal('fetch', fetchMock);
     const { provider } = await chatCompletion({ messages: [] });
+    expect(provider.name).toBe('cerebras');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls through to Groq when Cerebras is still at its limit', async () => {
+    Object.assign(env, { CEREBRAS_API_KEY: 'c', GROQ_API_KEY: 'g' });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(status(429))
+      .mockResolvedValueOnce(status(429))
+      .mockResolvedValueOnce(ok());
+    vi.stubGlobal('fetch', fetchMock);
+    const { provider } = await chatCompletion({ messages: [] });
     expect(provider.name).toBe('groq');
-    expect(JSON.parse(fetchMock.mock.calls[1][1].body).model).toBe('openai/gpt-oss-120b');
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body).model).toBe('openai/gpt-oss-120b');
   });
 
   it('reports a limit when every free provider is out of quota', async () => {
