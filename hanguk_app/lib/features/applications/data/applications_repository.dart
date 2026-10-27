@@ -161,17 +161,18 @@ final applicationsProvider = FutureProvider<List<StudentApplication>>((
     // board uses (confirmed choices, submissions, own pending requests), with
     // `status` derived from the submission — not the legacy applications
     // rows staff no longer update (migration 20261030220000).
-    final data = await client
+    final rows = await client
         .rpc('my_universities')
         // Don't let a stalled/slow connection spin forever — surface an error
         // (with a Retry button) instead. Common on weak mobile networks.
         .timeout(const Duration(seconds: 20));
+    if (rows is! List) return <StudentApplication>[];
 
     debugPrint(
-      '[Applications] my_universities for ${user.id} returned ${(data as List).length} rows',
+      '[Applications] my_universities for ${user.id} returned ${rows.length} rows',
     );
 
-    return (data as List).map((raw) {
+    return rows.map((raw) {
       final row = raw as Map<String, dynamic>;
       // name_ko feeds the hangul glyph tile on the application cards
       // (DESIGN_SPEC §3.4) — the first syllable of the Korean name.
