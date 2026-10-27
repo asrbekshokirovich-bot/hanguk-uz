@@ -454,6 +454,18 @@ const AGENT_TOOLS = [
   { type: "function", function: { name: "search_students", description: "Fuzzy, ranked student lookup by name or pasted phone number. Use to resolve a person mentioned by name to their student_id.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
   { type: "function", function: { name: "get_student_card", description: "EVERYTHING about one student, exactly as the CRM shows it: seasons with contract status (active / cancelled), Arizalar board stage, tariff, payments per currency ('X to'langan, Z qoldi'), the 8-document application pack (which are approved / under review / missing), chosen universities with online/offline submission, interview, result, final choice and visa, open tasks, last call summaries. Call this after search_students for ANY question about a named student.", parameters: { type: "object", properties: { student_id: { type: "string", description: "the student's user_id from search_students" } }, required: ["student_id"] } } },
   { type: "function", function: { name: "season_pipeline", description: "The CRM Arizalar board for a season: number of active students, cancelled contracts, and each stage (Yangi, Hujjat tayyor, Onlayn ariza, Oflayn ariza, Suhbat, Natija, Viza…) with the students' names. Use for 'how many students have documents ready / submitted / got results' and similar season questions. Defaults to the current season.", parameters: { type: "object", properties: { intake_id: { type: "string", description: "optional intake id; omit for the current season" } } } } },
+  { type: "function", function: { name: "leads_overview", description: "Leads pages exactly as the CRM counts them for a day (default today, Tashkent): 'Yangi lid' (nobody answered yet, with waiting minutes), 'Bugungi lidlar' (arrived that day and answered, by channel / call result / outcome, with names and phones), 'Lidlar' pipeline totals, and all-season counts by source. Use for ANY question about new leads, today's leads, leads from the site / Instagram / Telegram / app, how many leads came on a date.", parameters: { type: "object", properties: { day: { type: "string", description: "YYYY-MM-DD; omit for today" } } } } },
+  { type: "function", function: { name: "search_leads", description: "Find LEADS (potential clients, not yet students) by name, phone, Telegram or Instagram handle. Spelling-tolerant (x/kh, q/k). Use when a person is not found among students, or the question says lid / lead / mijoz.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] } } },
+  { type: "function", function: { name: "get_lead_card", description: "Everything about one lead: contact, status, call result, channel, how they heard, education and language levels, wishes, next follow-up, assignee, latest staff notes with who wrote them, calls.", parameters: { type: "object", properties: { lead_id: { type: "string" } }, required: ["lead_id"] } } },
+  { type: "function", function: { name: "staff_activity", description: "What staff members did in a date range (default today): leads contacted (lead notes by type and outcome, with lead names), phone calls, chat replies, open chats assigned, leads created, tasks done and open, documents reviewed, online/offline submissions recorded. Use for 'Madina bugun nechta lid bilan gaplashdi', 'kim nima qildi', staff performance. Staff names: Asrbek, Mukhsin (owners), Olmos, Xo'jamurod, Xushnud (admins), Madina, Omina (call operators), Diyora, Odina (document handlers).", parameters: { type: "object", properties: { staff: { type: "string", description: "staff name; omit for everyone" }, from: { type: "string", description: "YYYY-MM-DD" }, to: { type: "string", description: "YYYY-MM-DD" } } } } },
+  { type: "function", function: { name: "calls_summary", description: "Telefon page: calls in a date range (default last 7 days) by direction, status, staff; missed calls; recent calls with lead/student names.", parameters: { type: "object", properties: { from: { type: "string" }, to: { type: "string" } } } } },
+  { type: "function", function: { name: "messages_queue", description: "Xabarlar page: open chats, unassigned, unread, by source and assignee, chats waiting for a reply longer than 10 minutes (longest first), today's incoming/outgoing message counts.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "university_selection", description: "Universitet tanlash page for the season: students with and without chosen universities, choice statuses (offered/accepted/change_requested/confirmed), confirmed students per university, change requests.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "application_fees", description: "Application fee page for the season: payments, students paid, total and expense in KRW, by university, list.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "learning_centers", description: "O'quv markazlar: each centre with students, leads, converted, assignee.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "surveys", description: "So'rovnomalar: surveys with question and respondent counts.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "today_in_app", description: "Bugun ilovada page: today's signals from the student app (new app requests, came back, reports/picks, unanswered offers) with names and assignees.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "finance_summary", description: "Moliya (owners / finance access only): season payments per currency (total, paid, outstanding), payment statuses, this month's expenses by category, staff bonuses.", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "search_communications", description: "Hybrid (semantic + keyword) search across Telegram chats, call summaries/transcripts and documents. Use for 'what did we discuss about X' / 'who asked about X' / topical questions. Returns the most relevant snippets with the student they belong to.", parameters: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" }, student_id: { type: "string", description: "optional: restrict to one student's user_id" } }, required: ["query"] } } },
 ];
 
@@ -520,7 +532,19 @@ async function callAgentTool(client: any, service: any, name: string, rawArgs: s
     }
     case "get_student_card": return rpc("ai_student_card", { p_student_id: a.student_id ?? null });
     case "season_pipeline": return rpc("ai_season_pipeline", { p_intake_id: a.intake_id ?? null });
-    case "search_communications": return searchCommunicationsHybrid(client, a.query ?? "", a.limit ?? 12, a.student_id ?? null);
+    case "search_communications": return searchCommunicationsHybrid(service, a.query ?? "", a.limit ?? 12, a.student_id ?? null);
+    case "leads_overview": return rpc("ai_leads_overview", { p_day: a.day ?? null, p_intake_id: null });
+    case "search_leads": return rpc("ai_search_leads", { p_query: a.query ?? "", p_limit: a.limit ?? 8 });
+    case "get_lead_card": return rpc("ai_lead_card", { p_lead_id: a.lead_id ?? null });
+    case "staff_activity": return rpc("ai_staff_activity", { p_staff: a.staff ?? null, p_from: a.from ?? null, p_to: a.to ?? null });
+    case "calls_summary": return rpc("ai_calls_summary", { p_from: a.from ?? null, p_to: a.to ?? null });
+    case "messages_queue": return rpc("ai_messages_queue", {});
+    case "university_selection": return rpc("ai_university_selection", { p_intake_id: null });
+    case "application_fees": return rpc("ai_application_fees", { p_intake_id: null });
+    case "learning_centers": return rpc("ai_learning_centers", {});
+    case "surveys": return rpc("ai_surveys", {});
+    case "today_in_app": return rpc("analytics_today_in_app", {});
+    case "finance_summary": return rpc("ai_finance_summary", { p_intake_id: null });
     case "query_database": return runReadOnlyQuery(a.sql);
     default: return { error: `unknown tool: ${name}` };
   }
@@ -564,7 +588,11 @@ You answer questions by CALLING TOOLS to fetch real CRM data, then summarising t
 - "documents pending review" = documents with status 'uploaded' → call list_documents(status:"uploaded").
 - "overdue payments" → list_payments(overdue_only:true). "open tasks" → list_tasks(status:"todo" or "in_progress").
 - To answer about a person mentioned by name, first call search_students (or list_leads with query) to resolve them, then call get_student_card and answer from it.
-- Pass the name to search_students exactly as the staff typed it. If it returns nothing, try again with each name word on its own (e.g. only the surname) before saying the student was not found.
+- Pass the name to search_students exactly as the staff typed it. If it returns nothing, try again with each name word on its own (e.g. only the surname), then try search_leads — the person may be a lead, not a student — before saying nobody was found.
+- Students vs leads vs staff: students signed a contract (search_students); leads are potential clients from Instagram/Telegram/site/app/calls (search_leads, leads_overview); staff are the team (staff_activity). A staff name (Madina, Omina, Olmos, Diyora, Odina, Xushnud, Xo'jamurod, Asrbek, Mukhsin) in a question about work done means staff_activity, not a student.
+- Which tool for which CRM page: Yangi lid / Bugungi lidlar / Lidlar → leads_overview; Telefon → calls_summary; Xabarlar → messages_queue; Bugun ilovada → today_in_app; Universitet tanlash → university_selection; Onlayn/Oflayn ariza and Arizalar → season_pipeline; Application fee → application_fees; O'quv markazlar → learning_centers; So'rovnomalar → surveys; Moliya → finance_summary; Vazifalar → list_tasks.
+- If a tool answers {error: "not authorized ..."}, say this staff member has no access to that section.
+- If the question has several parts, answer every part.
 - Season / stage questions ("nechta talabaning hujjati tayyor", "kimlar topshirdi") → season_pipeline. Its numbers are the CRM Arizalar board numbers.
 - Write numbers, dates, names and amounts EXACTLY as the tools return them. Show money per currency, e.g. "2000 USD / 4000 USD to'langan, 2000 USD qoldi".
 - If a field is empty or missing, say it is not recorded in the CRM ("CRM'da kiritilmagan"). Never guess.
@@ -576,6 +604,12 @@ You answer questions by CALLING TOOLS to fetch real CRM data, then summarising t
 - Answer ONLY from values present in tool results. Cite dates from the data. Be concise.${analytics}
 
 ${CLARIFY_GUIDE}`;
+}
+
+// query_database returns count(*) as BigInt, which JSON.stringify rejects; that
+// crashed the agent and dropped the answer to the old prompt (2026-10-27).
+function safeJson(v: unknown): string {
+  return JSON.stringify(v, (_k, x) => (typeof x === "bigint" ? Number(x) : x));
 }
 
 function streamTextAsSSE(text: string): Response {
@@ -636,8 +670,8 @@ async function runStaffAgent(
       for (const tc of msg.tool_calls) {
         const result = await callAgentTool(userClient, service, tc.function?.name, tc.function?.arguments);
         // Diagnostics only: tool name, argument size and result size — no student data.
-        console.log(`[hanguk-ai] ${provider.name} tool=${tc.function?.name} args=${(tc.function?.arguments ?? "").length}b result=${JSON.stringify(result ?? null).length}b`);
-        messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result).slice(0, 8000) });
+        console.log(`[hanguk-ai] ${provider.name} tool=${tc.function?.name} args=${(tc.function?.arguments ?? "").length}b result=${safeJson(result ?? null).length}b`);
+        messages.push({ role: "tool", tool_call_id: tc.id, content: safeJson(result).slice(0, 8000) });
       }
       continue;
     }
