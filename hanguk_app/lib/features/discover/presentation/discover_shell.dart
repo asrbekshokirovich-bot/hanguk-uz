@@ -76,9 +76,8 @@ class _DiscoverShellState extends State<DiscoverShell> {
 
   @override
   Widget build(BuildContext context) {
-    // On the code's tabs the nav steps aside for the keyboard, as on the
-    // sign-in page.
-    final hideNav = AppTab.needsClient(_tab) && MediaQuery.viewInsetsOf(context).bottom > 0;
+    // The nav steps aside for the keyboard (see keyboardOpen).
+    final hideNav = keyboardOpen(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: FdPage(

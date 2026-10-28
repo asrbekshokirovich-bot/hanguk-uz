@@ -1,0 +1,86 @@
+name: Store bundle (unsigned, sign off-CI)
+
+# The Play bundle without the upload key in GitHub: built exactly like
+# android-release.yml (STORE_BUILD=true, the same optional defines, the same
+# Play-blocked-permission check) but signed by whoever holds the key, outside
+# CI, with jarsigner — the signing Google documents for app bundles:
+#
+#   zip -d app-release.aab 'META-INF/*'            # drop Gradle's debug signature
+#   jarsigner -keystore upload.jks app-release.aab upload
+#
+# Push a branch named release/aab-<anything> at the commit to ship. The bundle
+# goes to a DRAFT release "aab-<short sha>" (drafts are visible only to people
+# with write access), so it can be fetched without artifact storage.
+
+on:
+  push:
+    branches: ['release/aab-*']
+
+concurrency:
+  group: store-bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: hanguk_app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Collect optional dart-defines
+        id: defines
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          KAKAO_JS_KEY: ${{ secrets.KAKAO_JS_KEY }}
+        run: |
+          defines="--dart-define=STORE_BUILD=true"
+          [ -n "$SENTRY_DSN" ]   && defines="$defines --dart-define=SENTRY_DSN=$SENTRY_DSN"
+          [ -n "$KAKAO_JS_KEY" ] && defines="$defines --dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY"
+          echo "flags=$defines" >> "$GITHUB_OUTPUT"
+          echo "SENTRY_DSN supplied:   $([ -n "$SENTRY_DSN" ]   && echo yes || echo no)"
+          echo "KAKAO_JS_KEY supplied: $([ -n "$KAKAO_JS_KEY" ] && echo yes || echo no)"
+
+      - name: Build app bundle
+        run: flutter build appbundle --release ${{ steps.defines.outputs.flags }}
+
+      - name: Assert no Play-blocked permission survived the manifest merge
+        run: |
+          manifests=$(find build/app/intermediates -name AndroidManifest.xml \
+                        \( -path '*merged*' -o -path '*packaged*' \) 2>/dev/null)
+          [ -n "$manifests" ] || { echo "::error::No merged manifest found"; exit 1; }
+          echo "$manifests" | python3 "$GITHUB_WORKSPACE/.github/scripts/assert_no_media_permissions.py"
+
+      - name: Publish to a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git rev-parse --short HEAD)
+          version=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          tag="aab-$sha"
+          cp build/app/outputs/bundle/release/app-release.aab "hanguk-$version-unsigned.aab"
+          gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1 || \
+            gh release create "$tag" --repo "${{ github.repository }}" --draft --target "${{ github.sha }}" \
+              --title "Store bundle $version ($sha) — unsigned" \
+              --notes "STORE_BUILD=true. Sign with the upload key (jarsigner) before Play. Built by store-bundle-unsigned.yml."
+          gh release upload "$tag" "hanguk-$version-unsigned.aab" --repo "${{ github.repository }}" --clobber
+          echo "### Store bundle $version" >> "$GITHUB_STEP_SUMMARY"
+          echo "Draft release \`$tag\`: hanguk-$version-unsigned.aab" >> "$GITHUB_STEP_SUMMARY"

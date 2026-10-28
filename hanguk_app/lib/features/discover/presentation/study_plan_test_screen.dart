@@ -193,13 +193,18 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                                 style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.3),
                               ),
                               const SizedBox(height: 8),
-                              TextField(
+                              TextSelectionTheme(
+                                data: kLightFieldSelection,
+                                child: TextField(
                                 controller: _answers[i],
                                 enabled: !_sending,
                                 minLines: 3,
                                 maxLines: 8,
                                 maxLength: 1500,
                                 style: fdText(13, FontWeight.w500, FdColors.ink, height: 1.4),
+                                // Ink, not the theme's lime: lime on this near-white
+                                // field all but disappears.
+                                cursorColor: FdColors.ink,
                                 decoration: InputDecoration(
                                   hintText: l.sptHint,
                                   hintStyle: fdText(13, FontWeight.w500, FdColors.muted),
@@ -225,6 +230,7 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
+                              ),
                               ),
                             ],
                           ),
