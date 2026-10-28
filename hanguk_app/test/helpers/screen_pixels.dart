@@ -229,8 +229,12 @@ void expectTypedTextVisible(WidgetTester t, Shot shot, Finder field, {double min
 
   // The caret itself: its pixels stand out from the field (a lime caret on a
   // white field is as good as none). Needs EditableText.debugDeterministicCursor.
-  final caretInk = inkIn(shot, shot.toImage(c.inflate(1)), min: 3.0);
-  expect(caretInk.readable, greaterThan(0.15), reason: 'the caret$at cannot be seen against ${caretInk.background}');
+  // Drawn only while the field has focus (a plan reopened is not being typed
+  // in yet).
+  if (_editable(t, field).widget.focusNode.hasFocus) {
+    final caretInk = inkIn(shot, shot.toImage(c.inflate(1)), min: 3.0);
+    expect(caretInk.readable, greaterThan(0.15), reason: 'the caret$at cannot be seen against ${caretInk.background}');
+  }
 }
 
 /// Fails unless the text of [finder] (a Text) stands out from what is behind
