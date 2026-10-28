@@ -43,7 +43,8 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  # write: only for "Publish test screens" below (a release asset per PR).
+  contents: write
 
 jobs:
   check:
@@ -100,7 +101,9 @@ jobs:
       # `flutter test` does on a developer's machine, which is their call and
       # not a side effect of adding CI.
       - name: Test
-        run: flutter test --exclude-tags manual --reporter expanded
+        # github: each failure is also an annotation on the check, readable
+        # without the log; the full expanded report goes to a file.
+        run: flutter test --exclude-tags manual --reporter github --file-reporter expanded:build/test_report.txt
 
       # Screens the pixel tests rendered (test/helpers/screen_pixels.dart):
       # the Study Plan as a phone shows it, keyboard open and closed. Kept
@@ -113,3 +116,20 @@ jobs:
           path: hanguk_app/build/test_screens/
           if-no-files-found: ignore
           retention-days: 14
+
+      # The same screens and the test report on a release asset
+      # (test-screens/pr-<number>.zip), for whoever cannot reach artifact
+      # storage. Replaced on every run of the PR.
+      - name: Publish test screens
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/test_screens
+          [ -f build/test_report.txt ] && cp build/test_report.txt build/test_screens/ || true
+          [ -n "$(ls -A build/test_screens)" ] || exit 0
+          zip -qr "pr-${{ github.event.number }}.zip" build/test_screens
+          gh release view test-screens --repo "${{ github.repository }}" >/dev/null 2>&1 || \
+            gh release create test-screens --repo "${{ github.repository }}" --prerelease \
+              --title "Test screens (CI)" --notes "Screens the pixel tests rendered and the test report, one zip per PR. Written by flutter-check.yml."
+          gh release upload test-screens "pr-${{ github.event.number }}.zip" --repo "${{ github.repository }}" --clobber
