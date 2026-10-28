@@ -41,11 +41,16 @@ function previousPostDay(date: Date): Date {
   return d;
 }
 
-/** The latest day the post may leave for a university with this deadline. */
-export function lastDispatchDate(deadline: Date): Date {
-  // Last post day whose arrival is on or before the deadline.
+/** The last post day whose arrival is on or before the deadline. */
+export function finalDispatchDate(deadline: Date): Date {
   let d = new Date(deadline.getTime() - TRANSIT_DAYS * DAY);
   while (!isPostDay(d)) d = new Date(d.getTime() - DAY);
+  return d;
+}
+
+/** The recommended latest day: two post days before the final one. */
+export function lastDispatchDate(deadline: Date): Date {
+  let d = finalDispatchDate(deadline);
   for (let i = 0; i < SAFETY_POST_DAYS; i += 1) d = previousPostDay(d);
   return d;
 }
@@ -64,23 +69,35 @@ export function daysBetween(from: Date, to: Date): number {
 export interface PostPlan {
   /** The university's offline-document deadline. */
   deadline: Date;
-  /** Latest day the documents may leave. */
+  /** Recommended latest day the documents leave. */
   lastDispatch: Date;
-  /** The next post day from today, if it is not past the last dispatch. */
+  /** The final post that still arrives by the deadline (end of the reserve). */
+  finalDispatch: Date;
+  /** The next post day from today, if it is not past the final dispatch. */
   nextDispatch: Date | null;
-  /** Days from today to the last dispatch (negative once it has passed). */
+  /** Days from today to the recommended last dispatch (negative once passed). */
   daysLeft: number;
+  /** The recommended day has passed but a reserve post can still make it. */
+  reserve: boolean;
+  /** Even the final post has gone. */
+  passed: boolean;
 }
 
 export function planPost(deadlineIso: string, today: Date): PostPlan {
   const deadline = parseDay(deadlineIso);
   const lastDispatch = lastDispatchDate(deadline);
+  const finalDispatch = finalDispatchDate(deadline);
   const todayDay = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
   const next = nextPostDay(todayDay);
+  const daysLeft = daysBetween(todayDay, lastDispatch);
+  const passed = todayDay.getTime() > finalDispatch.getTime();
   return {
     deadline,
     lastDispatch,
-    nextDispatch: next.getTime() <= lastDispatch.getTime() ? next : null,
-    daysLeft: daysBetween(todayDay, lastDispatch),
+    finalDispatch,
+    nextDispatch: next.getTime() <= finalDispatch.getTime() ? next : null,
+    daysLeft,
+    reserve: daysLeft < 0 && !passed,
+    passed,
   };
 }
