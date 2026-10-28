@@ -101,3 +101,15 @@ jobs:
       # not a side effect of adding CI.
       - name: Test
         run: flutter test --exclude-tags manual --reporter expanded
+
+      # Screens the pixel tests rendered (test/helpers/screen_pixels.dart):
+      # the Study Plan as a phone shows it, keyboard open and closed. Kept
+      # even when a test fails — that is when they are most worth a look.
+      - name: Keep test screens
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screens
+          path: hanguk_app/build/test_screens/
+          if-no-files-found: ignore
+          retention-days: 14
