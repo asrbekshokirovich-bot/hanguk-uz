@@ -311,6 +311,14 @@ async function handleMessage(m: any, account: any, ver: string): Promise<void> {
   const attachType = attachments[0]?.type ?? null;
   const messageType = attachType ? (MEDIA_TO_TYPE[attachType] ?? "file") : "text";
   let content = (msg.text ?? "").trim();
+  // A card ("template") carries its words in payload.generic.elements, not in
+  // text — Meta's instant-form reply "Rahmat! Operatorlarimiz…" arrives so.
+  // An empty card (sent alongside a lead form) says nothing: it is not stored.
+  const cards = attachments.filter((a) => a?.type === "template");
+  if (!content && cards.length && cards.length === attachments.length) {
+    content = cards.map(templateText).filter(Boolean).join("\n\n");
+    if (!content) return;
+  }
   if (!content && attachments.length) {
     content = attachments.map((a) => `[${a?.type ?? "attachment"}]${a?.payload?.url ? " " + a.payload.url : ""}`).join("\n");
   }
@@ -701,6 +709,21 @@ async function alreadyStored(partnerId: string, direction: string, at: number, t
   return !!data;
 }
 
+/**
+ * The words on a card: each element's title and subtitle, then its buttons
+ * ("↗ View website"). Empty when the card has none.
+ */
+function templateText(att: any): string {
+  const payload = att?.payload ?? {};
+  const elements: any[] = payload?.generic?.elements ?? payload?.elements ?? [];
+  return elements.map((el: any) => {
+    const lines = [el?.title, el?.subtitle].map((v) => String(v ?? "").trim()).filter(Boolean);
+    const buttons = (Array.isArray(el?.buttons) ? el.buttons : [])
+      .map((b: any) => String(b?.title ?? "").trim()).filter(Boolean).map((t: string) => `↗ ${t}`);
+    return [...lines, ...buttons].join("\n");
+  }).filter(Boolean).join("\n\n");
+}
+
 /** The conversations API's attachment shapes, as the webhook delivers them. */
 function toWebhookAttachments(list: any[]): any[] {
   return list.map((a: any) => {
@@ -708,6 +731,11 @@ function toWebhookAttachments(list: any[]): any[] {
     if (a?.video_data?.url) return { type: "video", payload: { url: a.video_data.url } };
     if (a?.audio_data?.url) return { type: "audio", payload: { url: a.audio_data.url } };
     if (a?.file_url) return { type: "file", payload: { url: a.file_url } };
+    // Cards (Meta's instant-form reply) come back as generic_template.
+    if (a?.generic_template) {
+      const g = a.generic_template;
+      return { type: "template", payload: { generic: { elements: Array.isArray(g) ? g : g.elements ?? [g] } } };
+    }
     return { type: a?.type ?? "file", payload: { url: a?.url ?? null } };
   });
 }

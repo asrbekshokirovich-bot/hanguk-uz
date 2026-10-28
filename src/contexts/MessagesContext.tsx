@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { isHiddenMessage } from '@/components/crm/messages/hiddenMessages';
 
 export interface Message {
   id: string;
@@ -287,7 +288,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     const current = selectedThreadRef.current;
     if (current && current.id !== thread.id) return;
 
-    const page = (data as Message[]).slice().reverse();
+    const page = (data as Message[]).slice().reverse().filter((m) => !isHiddenMessage(m));
     setMessages(page);
     setHasMoreMessages((data as any[]).length === PAGE_SIZE);
 
@@ -320,7 +321,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         p_limit: PAGE_SIZE,
       });
       if (!error && data) {
-        const page = (data as Message[]).slice().reverse();
+        const page = (data as Message[]).slice().reverse().filter((m) => !isHiddenMessage(m));
         setMessages((prev) => {
           const ids = new Set(prev.map((m) => m.id));
           return [...page.filter((m) => !ids.has(m.id)), ...prev];
@@ -336,6 +337,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const upsertMessageRow = useCallback((row: Message) => {
     const sel = selectedThreadRef.current;
     if (!sel || row.source !== sel.source || row.sender_id !== sel.sender_id) return;
+    if (isHiddenMessage(row)) return;
     setMessages((prev) => {
       const idx = prev.findIndex((m) => m.id === row.id);
       if (idx >= 0) {
