@@ -95,7 +95,7 @@ alohida yorliqda turadi.
 | Bakalavr | `bakalavr` | 4 yillik universitetlar |
 | Magistr | `magistratura` | 4 yillik universitetlar va 대학원대학교 |
 | Kasbiy ta'lim | `kasbiy` | kollejlar (전문대학) |
-| Til kursi | `til_kursi` | til kursi (어학당) Excel'i yuklanganlar; Excel yuklay oladigan xodimga — hammasi |
+| Til kursi | `til_kursi` | til kursi (어학당) Excel'i yuklanganlar (har bir xodimga bir xil) |
 
 Ro'yxat bo'yicha yashirilgan daraja (`institutions.hidden_levels`, masalan
 교육대학교 bakalavri) katalogda ko'rinmaydi. Lekin o'sha darajaga Excel
@@ -105,10 +105,12 @@ ro'yxat xato bo'lsa (서울장신대 magistraturasi, 2026-10-21), Excel'ni shu
 yerdan yuklaydi.
 
 Qaysi universitetda til kursi borligi oldindan ma'lum emas, shuning uchun
-Excel yuklay oladigan xodim "Til kursi" filtrida barcha universitetlarni
-(til kursi yashirilganlardan tashqari) ko'radi, panelda esa "Til kursi"
-yorlig'i hamma universitetda ochiq — birinchi faylni shu yerdan yuklaydi.
-Qolganlar til kursini Excel yuklangandan keyin ko'radi.
+"Til kursi" filtri — til kursi Excel'i yuklangan universitetlar, har bir
+xodimga bir xil: xodimlar til kursi bor universitetlarni shu bilan ajratadi
+(egasi, 2026-10-28). Excel yuklay oladigan xodimga panelda "Til kursi"
+yorlig'i hamma universitetda ochiq: ro'yxatda yo'q universitetga birinchi
+faylni "Barcha darajalar"dan ochib, shu yorliqdan yuklaydi (filtr ostida shu
+haqida yozuv bor). Qolganlar til kursini Excel yuklangandan keyin ko'radi.
 
 Til kursi Excel'i shu shablonda to'ldiriladi:
 

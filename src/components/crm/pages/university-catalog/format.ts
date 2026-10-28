@@ -323,14 +323,14 @@ export function panelLevels(entry: CatalogEntry, canUpload: boolean): DegreeLeve
 
 /**
  * Daraja filtri. Til kursi (어학당) qaysi universitetda borligi oldindan
- * ma'lum emas: ko'ruvchiga faqat Excel'i yuklanganlar chiqadi. Excel yuklay
- * oladigan xodimga esa — panelLevels'dagi kabi hammasi (til kursi
- * yashirilganlardan tashqari): aks holda birinchi til kursi faylini yuklash
- * uchun universitetni topib bo'lmasdi (egasi, 2026-10-27).
+ * ma'lum emas, shuning uchun "Til kursi" — til kursi Excel'i yuklangan
+ * universitetlar, har bir xodimga bir xil: xodimlar til kursi bor
+ * universitetlarni shu bilan ajratadi (egasi, 2026-10-28). Yangi universitetga
+ * til kursi Excel'i panelning "Til kursi" yorlig'idan yuklanadi — u Excel
+ * yuklay oladigan xodimga har bir universitetda ochiq (panelLevels).
  */
-export function matchesLevel(entry: CatalogEntry, level: LevelFilter, canUpload = false): boolean {
-  if (level === 'hammasi' || offeredLevels(entry).includes(level)) return true;
-  return canUpload && level === 'til_kursi' && !hiddenLevels(entry).includes('til_kursi');
+export function matchesLevel(entry: CatalogEntry, level: LevelFilter): boolean {
+  return level === 'hammasi' || offeredLevels(entry).includes(level);
 }
 
 export type CatalogFilter = 'hammasi' | 'malumotli' | 'topik' | 'ielts' | 'hamkor';
