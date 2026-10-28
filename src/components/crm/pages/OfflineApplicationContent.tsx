@@ -259,7 +259,8 @@ function dayLabel(d: Date, withWeekday = true) {
 /**
  * The university's post plan: the latest day its paper documents may leave
  * (two post days before the last post that still arrives by the deadline —
- * see src/lib/postSchedule.ts) and the next post day.
+ * see src/lib/postSchedule.ts) and the next post day. Once that day has
+ * passed, the two reserve posts are shown up to the final one.
  */
 function PostLine({ deadline, loading }: { deadline: OfflineDeadline | null; loading: boolean }) {
   if (loading) return <Skeleton className="mb-3 h-8 w-full rounded-lg" />;
@@ -271,25 +272,48 @@ function PostLine({ deadline, loading }: { deadline: OfflineDeadline | null; loa
     );
   }
   const plan = planPost(deadline.date, new Date());
-  const passed = plan.daysLeft < 0;
-  const urgent = !passed && plan.daysLeft <= 3;
+  const { passed, reserve } = plan;
+  const urgent = !passed && !reserve && plan.daysLeft <= 3;
+  const tone = passed ? 'destructive' : reserve || urgent ? 'warning' : null;
   return (
     <div
       data-testid="post-line"
       className={cn(
         'mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border px-3 py-2 text-xs',
-        passed ? 'border-destructive/40 bg-destructive/10' : urgent ? 'border-warning/40 bg-warning/10' : 'border-border bg-muted/40',
+        tone === 'destructive' ? 'border-destructive/40 bg-destructive/10' : tone === 'warning' ? 'border-warning/40 bg-warning/10' : 'border-border bg-muted/40',
       )}
     >
-      <span className="flex items-center gap-1.5 font-semibold text-foreground">
-        <Mailbox className="h-3.5 w-3.5" />
-        Oxirgi pochta: {dayLabel(plan.lastDispatch)}
-      </span>
-      <span className={cn('font-semibold', passed ? 'text-destructive' : urgent ? 'text-warning' : 'text-muted-foreground')}>
-        {passed ? "Pochta muddati o'tib ketdi" : plan.daysLeft === 0 ? 'Bugun oxirgi kun' : `${plan.daysLeft} kun qoldi`}
-      </span>
-      {plan.nextDispatch && (
-        <span className="text-muted-foreground">Keyingi pochta: {dayLabel(plan.nextDispatch)}</span>
+      {passed ? (
+        <span className="flex items-center gap-1.5 font-semibold text-destructive">
+          <Mailbox className="h-3.5 w-3.5" />
+          Pochta muddati o'tib ketdi
+        </span>
+      ) : reserve ? (
+        <>
+          <span className="flex items-center gap-1.5 font-semibold text-warning">
+            <Mailbox className="h-3.5 w-3.5" />
+            Tavsiya kuni o'tdi ({dayLabel(plan.lastDispatch, false)})
+          </span>
+          {plan.nextDispatch && plan.nextDispatch.getTime() < plan.finalDispatch.getTime() && (
+            <span className="font-semibold text-foreground">Zaxira pochta: {dayLabel(plan.nextDispatch)}</span>
+          )}
+          <span className="font-semibold text-foreground">
+            Eng oxirgi pochta: {dayLabel(plan.finalDispatch)} ({dayLabel(plan.deadline, false)} ga yetadi)
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="flex items-center gap-1.5 font-semibold text-foreground">
+            <Mailbox className="h-3.5 w-3.5" />
+            Oxirgi pochta: {dayLabel(plan.lastDispatch)}
+          </span>
+          <span className={cn('font-semibold', urgent ? 'text-warning' : 'text-muted-foreground')}>
+            {plan.daysLeft === 0 ? 'Bugun oxirgi kun' : `${plan.daysLeft} kun qoldi`}
+          </span>
+          {plan.nextDispatch && plan.nextDispatch.getTime() <= plan.lastDispatch.getTime() && (
+            <span className="text-muted-foreground">Keyingi pochta: {dayLabel(plan.nextDispatch)}</span>
+          )}
+        </>
       )}
       <span className="text-muted-foreground">
         Universitet muddati: {dayLabel(plan.deadline, false)} ({deadline.bosqich}-bosqich)
