@@ -712,13 +712,18 @@ async function alreadyStored(partnerId: string, direction: string, at: number, t
 /**
  * The words on a card: each element's title and subtitle, then its buttons
  * ("↗ View website"). Empty when the card has none.
+ *
+ * The webhook puts buttons under `buttons`; the conversations API returns the
+ * same card as `generic_template: { title, cta: [{ title, url, type }] }`
+ * (checked against the live API on 2026-10-28).
  */
 function templateText(att: any): string {
   const payload = att?.payload ?? {};
   const elements: any[] = payload?.generic?.elements ?? payload?.elements ?? [];
   return elements.map((el: any) => {
     const lines = [el?.title, el?.subtitle].map((v) => String(v ?? "").trim()).filter(Boolean);
-    const buttons = (Array.isArray(el?.buttons) ? el.buttons : [])
+    const raw = Array.isArray(el?.buttons) ? el.buttons : Array.isArray(el?.cta) ? el.cta : [];
+    const buttons = raw
       .map((b: any) => String(b?.title ?? "").trim()).filter(Boolean).map((t: string) => `↗ ${t}`);
     return [...lines, ...buttons].join("\n");
   }).filter(Boolean).join("\n\n");
