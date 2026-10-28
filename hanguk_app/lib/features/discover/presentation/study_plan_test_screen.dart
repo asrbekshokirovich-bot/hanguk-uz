@@ -193,7 +193,9 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                                 style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.3),
                               ),
                               const SizedBox(height: 8),
-                              TextField(
+                              TextSelectionTheme(
+                                data: kLightFieldSelection,
+                                child: TextField(
                                 controller: _answers[i],
                                 enabled: !_sending,
                                 minLines: 3,
@@ -228,6 +230,7 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                                     borderSide: BorderSide.none,
                                   ),
                                 ),
+                              ),
                               ),
                             ],
                           ),

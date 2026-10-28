@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hanguk_app/design_system/seoul_night/seoul_night.dart' show HardButton;
+import 'package:hanguk_app/design_system/seoul_night/widgets/fd_kit.dart' show FdColors;
 import 'package:hanguk_app/design_system/theme/app_theme.dart';
 import 'package:hanguk_app/features/auth/data/auth_repository.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
@@ -26,6 +27,7 @@ import 'package:hanguk_app/features/training/data/study_plan_repository.dart';
 import 'package:hanguk_app/features/training/presentation/study_plan_builder_screen.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
+import '../../helpers/contrast.dart';
 import '../../helpers/screen_pixels.dart';
 
 final _uni = CatalogUniversity(
@@ -114,6 +116,16 @@ class _Plans extends StudyPlanSessionNotifier {
   );
 }
 
+/// The drop under the caret and the selection highlight: the app theme's
+/// lime is all but invisible on a white field.
+void _expectSelectionVisible(WidgetTester t, Finder field) {
+  final sel = TextSelectionTheme.of(t.element(field));
+  expect(contrastRatio(sel.selectionHandleColor!, FdColors.card), greaterThanOrEqualTo(3.0), reason: 'selection handle');
+  final hl = Color.alphaBlend(sel.selectionColor!, FdColors.card);
+  expect(contrastRatio(hl, FdColors.card), greaterThanOrEqualTo(1.3), reason: 'selection highlight');
+  expect(contrastRatio(FdColors.ink, hl), greaterThanOrEqualTo(4.5), reason: 'text on the highlight');
+}
+
 Future<void> _settle(WidgetTester t, [int frames = 12]) async {
   for (var i = 0; i < frames; i++) {
     await t.pump(const Duration(milliseconds: 50));
@@ -197,6 +209,7 @@ void main() {
       await _settle(t);
       shot = await capture(t, 'builder_2_typed');
       expectTypedTextVisible(t, shot, field, where: 'keyboard closed');
+      _expectSelectionVisible(t, field);
 
       openKeyboard(t);
       await _settle(t, 20);
@@ -320,6 +333,9 @@ void main() {
       final fields = find.byType(TextField);
       expect(fields, findsNWidgets(3));
       var shot = await capture(t, 'test_1_empty');
+      for (var i = 0; i < 3; i++) {
+        _expectSelectionVisible(t, fields.at(i));
+      }
       expectLabelVisible(t, shot, find.text(l.sptHint).first);
 
       final answers = [_goal, _korea, 'Bitirgach Toshkentda IT kompaniya ochaman va Koreya bilan hamkorlik qilaman.'];

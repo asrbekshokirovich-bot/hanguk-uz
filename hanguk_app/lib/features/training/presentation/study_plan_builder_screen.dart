@@ -524,7 +524,9 @@ class StudyPlanField extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          TextField(
+          TextSelectionTheme(
+            data: kLightFieldSelection,
+            child: TextField(
             controller: controller,
             onChanged: (_) => onChanged(),
             minLines: 5,
@@ -544,6 +546,7 @@ class StudyPlanField extends StatelessWidget {
               focusedBorder: InputBorder.none,
               filled: false,
               contentPadding: const EdgeInsets.fromLTRB(12, 10, 12, 26),
+            ),
             ),
           ),
           Positioned(

@@ -78,6 +78,14 @@ abstract final class FdColors {
   static const Color navRule = Color(0x2EFFFFFF);
 }
 
+/// Selection on a white field: the app theme's lime handles and highlight
+/// all but vanish on white, so a light field uses blue ones and an ink caret.
+const TextSelectionThemeData kLightFieldSelection = TextSelectionThemeData(
+  cursorColor: FdColors.ink,
+  selectionColor: Color(0x552447D6),
+  selectionHandleColor: FdColors.blue,
+);
+
 /// Inter at the design's size and weight. [height] defaults to CSS
 /// `line-height: normal`.
 TextStyle fdText(
