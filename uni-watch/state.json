@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-28T01:24:45+00:00",
+ "last_run": "2026-10-28T08:35:24+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -819,6 +819,9 @@
   "https://ipsi.gw.ac.kr/": [],
   "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
+   "19095c26a33b9528",
+   "312173880998ac27",
+   "6d875612c0b5f078",
    "4cfc95d452d88322",
    "b73856be1af11053",
    "73fd3b38f76c4c2e",
@@ -1202,6 +1205,7 @@
    "a049a4b850fa0c80"
   ],
   "https://www.hanbat.ac.kr/admission/": [
+   "c106784f6bccae14",
    "f5579b7efd56c80e",
    "5c869c3d92bea65f",
    "b741440a726ce26e",
@@ -1262,6 +1266,7 @@
    "5c557c03b7d80f54"
   ],
   "https://www.kmou.ac.kr/ipsi/": [
+   "46c8bc9003aacb45",
    "c294193ae87443f7",
    "0b1c2bb9632b959d",
    "83c6aaa7cebf5d66",
@@ -1335,7 +1340,9 @@
    "d581de1136f9d059"
   ],
   "https://www.sdc.ac.kr/": [],
-  "https://www.semyung.ac.kr/ipsi.do": [],
+  "https://www.semyung.ac.kr/ipsi.do": [
+   "e280d8e05ab93650"
+  ],
   "https://www.seoil.ac.kr/ipsi/index.do": [
    "4378c2aa84d31215"
   ],
