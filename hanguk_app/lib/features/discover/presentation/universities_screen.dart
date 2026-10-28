@@ -128,6 +128,8 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                             onChanged: (_) => setState(() {}),
                             textInputAction: TextInputAction.search,
                             style: fdText(14, FontWeight.w600, FdColors.ink),
+                            // Ink, not the theme's lime, on this white box.
+                            cursorColor: FdColors.ink,
                             decoration: InputDecoration(
                               hintText: l.ulSearchHint,
                               hintStyle: fdText(14, FontWeight.w500, FdColors.muted),

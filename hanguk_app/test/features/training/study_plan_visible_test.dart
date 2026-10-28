@@ -155,6 +155,10 @@ void main() {
 
   setUpAll(loadAppFonts);
 
+  // The caret always drawn (no blinking), so a capture always has it.
+  setUp(() => EditableText.debugDeterministicCursor = true);
+  tearDown(() => EditableText.debugDeterministicCursor = false);
+
   setUp(() {
     stored.clear();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(

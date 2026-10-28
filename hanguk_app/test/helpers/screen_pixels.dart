@@ -207,22 +207,30 @@ void expectTypedTextVisible(WidgetTester t, Shot shot, Finder field, {double min
   expect(c.bottom, lessThanOrEqualTo(keyboardTop + 0.5), reason: 'the caret is under the keyboard$at: $c');
   expect(c.top, greaterThanOrEqualTo(0), reason: 'the caret is above the screen$at: $c');
 
-  // Whatever takes a tap on the caret is what is drawn on top there: it must
-  // be the field itself, not the round button, a bar or a sheet.
+  // A tap on the caret goes to what is drawn on top there. Layers (the
+  // Scaffold's button, a sheet, a bar) stop at the first that takes it, so
+  // if the field is not reached at all, something covers the line.
   final result = HitTestResult();
   WidgetsBinding.instance.hitTestInView(result, c.center, t.view.viewId);
-  final re = _editable(t, field).renderEditable;
-  final first = result.path.map((e) => e.target).whereType<RenderObject>().firstOrNull;
-  var cur = first;
-  var inside = false;
-  while (cur != null) {
-    if (identical(cur, re) || identical(cur, t.renderObject(field))) {
-      inside = true;
-      break;
+  final root = t.renderObject(field);
+  bool inField(RenderObject o) {
+    for (RenderObject? cur = o; cur != null; cur = cur.parent) {
+      if (identical(cur, root)) return true;
     }
-    cur = cur.parent;
+    return false;
   }
-  expect(inside, isTrue, reason: 'something is drawn over the caret$at: ${first.runtimeType}');
+
+  final targets = result.path.map((e) => e.target).whereType<RenderObject>().toList();
+  expect(
+    targets.any(inField),
+    isTrue,
+    reason: 'something is drawn over the caret$at: ${targets.firstOrNull.runtimeType}',
+  );
+
+  // The caret itself: its pixels stand out from the field (a lime caret on a
+  // white field is as good as none). Needs EditableText.debugDeterministicCursor.
+  final caretInk = inkIn(shot, shot.toImage(c.inflate(1)), min: 3.0);
+  expect(caretInk.readable, greaterThan(0.15), reason: 'the caret$at cannot be seen against ${caretInk.background}');
 }
 
 /// Fails unless the text of [finder] (a Text) stands out from what is behind

@@ -200,6 +200,9 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
                                 maxLines: 8,
                                 maxLength: 1500,
                                 style: fdText(13, FontWeight.w500, FdColors.ink, height: 1.4),
+                                // Ink, not the theme's lime: lime on this near-white
+                                // field all but disappears.
+                                cursorColor: FdColors.ink,
                                 decoration: InputDecoration(
                                   hintText: l.sptHint,
                                   hintStyle: fdText(13, FontWeight.w500, FdColors.muted),
