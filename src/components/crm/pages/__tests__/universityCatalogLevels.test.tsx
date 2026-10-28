@@ -7,9 +7,10 @@ import UniversityCatalogContent from '../UniversityCatalogContent';
  * Daraja filtri (egasi, 2026-10-05): "Magistr" bosilsa — faqat magistratura
  * o'qitadigan universitetlar, "Kasbiy ta'lim" — kollejlar. Kasbiy ta'lim
  * Excel'i ham alohida tugma bilan yuklanadi. Til kursi (egasi, 2026-10-20) —
- * xuddi shunday, filtrda esa ko'ruvchiga til kursi Excel'i yuklanganlar,
- * Excel yuklay oladigan xodimga — hammasi (egasi, 2026-10-27: aks holda
- * birinchi til kursi faylini yuklash joyi topilmasdi).
+ * xuddi shunday, filtrda esa har bir xodimga faqat til kursi Excel'i
+ * yuklanganlar (egasi, 2026-10-28: xodimlar til kursi bor universitetlarni
+ * ajrata olsin). Yangi universitetga til kursi Excel'i panelning "Til kursi"
+ * yorlig'idan yuklanadi.
  */
 
 function guideline(over: Partial<GuidelineSummary>): GuidelineSummary {
@@ -145,8 +146,8 @@ describe('Universitetlar — daraja filtri', () => {
     expect(levelButton(/^Bakalavr/)).toHaveTextContent('Bakalavr2');
     expect(levelButton(/^Magistr/)).toHaveTextContent('Magistr3');
     expect(levelButton(/^Kasbiy/)).toHaveTextContent("Kasbiy ta'lim2");
-    // Excel yuklay oladigan xodimga til kursida hammasi — birinchi faylni shu yerdan topadi
-    expect(levelButton(/^Til kursi/)).toHaveTextContent('Til kursi5');
+    // Til kursi — faqat til kursi Excel'i yuklanganlar, Excel yuklay oladigan xodimga ham
+    expect(levelButton(/^Til kursi/)).toHaveTextContent('Til kursi1');
   });
 
   it('"Magistr" bosilsa faqat magistratura o‘qitadigan universitetlar qoladi', () => {
@@ -183,19 +184,24 @@ describe('Universitetlar — daraja filtri', () => {
     fireEvent.click(levelButton(/^Til kursi/));
 
     expect(shownUniversities()).toEqual(['Gachon University']);
-    expect(screen.queryByText(/Til kursi Excel'ini yuklash uchun/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/til kursi Excel'ini yuklash uchun/)).not.toBeInTheDocument();
   });
 
-  it('Excel yuklay oladigan xodim "Til kursi"da barcha universitetni ko‘radi va panelda o‘sha yorliqda yuklaydi', () => {
+  it('"Til kursi" bosilsa Excel yuklay oladigan xodimga ham faqat til kursi borlar qoladi', () => {
     render(<UniversityCatalogContent />);
     fireEvent.click(levelButton(/^Til kursi/));
 
-    expect(shownUniversities()).toHaveLength(5);
-    expect(screen.getByText(/Til kursi Excel'ini yuklash uchun universitetni oching/)).toBeInTheDocument();
+    expect(shownUniversities()).toEqual(['Gachon University']);
+    // Yangi universitetga qayerdan yuklanishi aytiladi
+    expect(screen.getByText(/Ro'yxatda yo'q universitetga til kursi Excel'ini yuklash uchun/)).toBeInTheDocument();
+  });
 
-    // Til kursi Excel'i hali yo'q universitet — panel til kursi yorlig'ida, yuklash tugmasi bilan
+  it('til kursi Excel‘i yo‘q universitet panelida "Til kursi" yorlig‘i yuklash tugmasi bilan ochiq', () => {
+    render(<UniversityCatalogContent />);
     fireEvent.click(screen.getByText('Yonsei University'));
     const sheet = screen.getByRole('dialog');
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Til kursi' }));
+
     expect(within(sheet).getByRole('button', { name: 'Til kursi' })).toHaveAttribute('aria-pressed', 'true');
     expect(within(sheet).getAllByRole('button', { name: 'Excel til kursi yuklash' }).length).toBeGreaterThan(0);
   });
