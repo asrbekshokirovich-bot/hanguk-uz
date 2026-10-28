@@ -147,18 +147,29 @@ EditableTextState _editable(WidgetTester t, Finder field) =>
     t.state<EditableTextState>(find.descendant(of: field, matching: find.byType(EditableText)));
 
 /// Where the text of [field] is on screen, line by line (logical, global),
-/// cut to what the field shows.
+/// cut to what the field shows. The boxes of one line (a run of Latin, a run
+/// of Korean, the space a line wraps at) are joined into one, so a line is
+/// judged as a whole and the empty box of a wrapping space is not.
 List<Rect> textLines(WidgetTester t, Finder field) {
   final re = _editable(t, field).renderEditable;
   final text = re.text?.toPlainText() ?? '';
   if (text.isEmpty) return const [];
-  final clip = MatrixUtils.transformRect(re.getTransformTo(null), Offset.zero & re.size);
+  final toScreen = re.getTransformTo(null);
+  final clip = MatrixUtils.transformRect(toScreen, Offset.zero & re.size);
   final lines = <Rect>[];
   for (final b in re.getBoxesForSelection(TextSelection(baseOffset: 0, extentOffset: text.length))) {
-    final r = MatrixUtils.transformRect(re.getTransformTo(null), b.toRect()).intersect(clip);
-    if (r.width > 4 && r.height > 4) lines.add(r);
+    final r = MatrixUtils.transformRect(toScreen, b.toRect());
+    final same = lines.indexWhere((l) => (l.center.dy - r.center.dy).abs() < r.height / 2);
+    if (same >= 0) {
+      lines[same] = lines[same].expandToInclude(r);
+    } else {
+      lines.add(r);
+    }
   }
-  return lines;
+  return [
+    for (final l in lines)
+      if (l.intersect(clip) case final r when r.width > 4 && r.height > 4) r,
+  ];
 }
 
 /// The caret of [field] (logical, global).

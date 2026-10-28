@@ -126,8 +126,15 @@ class AppNavOrb extends ConsumerWidget {
   }
 }
 
+/// Whether the keyboard is up. The bottom nav and the round button step aside
+/// while it is (owner, 2026-10-28): the button floats just above the
+/// keyboard, so it covered the very line being typed (the third answer of
+/// the Study Plan test).
+bool keyboardOpen(BuildContext context) => MediaQuery.viewInsetsOf(context).bottom > 0;
+
 /// A page over the home that keeps the home's bottom nav and round button:
-/// the page, in the design's blue page, with [AppNav] under it.
+/// the page, in the design's blue page, with [AppNav] under it. Both step
+/// aside while the keyboard is up ([keyboardOpen]).
 class NavScaffold extends StatelessWidget {
   const NavScaffold({super.key, required this.current, required this.child});
 
@@ -136,11 +143,14 @@ class NavScaffold extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: Colors.transparent,
-    body: FdPage(child: child),
-    bottomNavigationBar: AppNav(current: current),
-    floatingActionButton: AppNavOrb(current: current),
-    floatingActionButtonLocation: kFdNavOrbLocation,
-  );
+  Widget build(BuildContext context) {
+    final typing = keyboardOpen(context);
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: FdPage(child: child),
+      bottomNavigationBar: typing ? null : AppNav(current: current),
+      floatingActionButton: typing ? null : AppNavOrb(current: current),
+      floatingActionButtonLocation: kFdNavOrbLocation,
+    );
+  }
 }

@@ -198,6 +198,10 @@ void main() {
       await _settle(t, 20);
       shot = await capture(t, 'builder_3_typed_keyboard');
       expectTypedTextVisible(t, shot, field, where: 'keyboard open');
+      // The round button floats just above the keyboard: while it is up the
+      // button and the bar step aside, so nothing sits on the line typed.
+      expect(find.byType(AppNavOrb), findsNothing);
+      expect(find.byType(AppNav), findsNothing);
 
       // To the limit: the box holds 300, the caret at the end stays in view.
       await t.enterText(field, _long);
@@ -210,6 +214,7 @@ void main() {
 
       closeKeyboard(t);
       await _settle(t, 20);
+      expect(find.byType(AppNavOrb), findsOneWidget, reason: 'the bar comes back with the keyboard down');
       shot = await capture(t, 'builder_5_full');
       expectTypedTextVisible(t, shot, field, where: 'full, keyboard closed');
       expectLabelVisible(t, shot, find.text('$kPlanMaxChars / $kPlanMaxChars'));
@@ -323,6 +328,7 @@ void main() {
         await _settle(t, 20);
         shot = await capture(t, 'test_${i + 2}_answer${i + 1}_keyboard');
         expectTypedTextVisible(t, shot, fields.at(i), where: 'answer ${i + 1}, keyboard open');
+        expect(find.byType(AppNavOrb), findsNothing);
       }
 
       // A long answer: the box scrolls, the end of it stays readable.
