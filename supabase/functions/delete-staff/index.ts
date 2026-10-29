@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     }
 
     // Xodimga biriktirilgan yozuvlar o'chmaydi — faqat biriktirish olib tashlanadi;
-    // investor suhbati o'chirayotgan owner'ga o'tadi (migr. 20261030250000).
+    // investor suhbati o'chirayotgan owner'ga o'tadi (migr. 20261030251000).
     const { error: cleanupError } = await adminClient.rpc("prepare_staff_deletion", {
       p_target: targetUserId,
       p_owner: requestingUser.id,
