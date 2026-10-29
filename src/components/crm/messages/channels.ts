@@ -44,7 +44,13 @@ export const CHANNELS: Record<ChannelId, ChannelMeta> = {
   },
 };
 
-export const CHANNEL_IDS: ChannelId[] = ['telegram', 'app', 'instagram'];
+/**
+ * Channels offered as filter chips. The app channel is not listed: no
+ * producer writes `source = 'app'` (audit 2026-10-29, finding 18), so the chip
+ * was always empty. `toChannelId` still maps stray sources onto it so a row
+ * can never vanish.
+ */
+export const CHANNEL_IDS: ChannelId[] = ['telegram', 'instagram'];
 
 /**
  * Narrows the free-form `message_threads.source` string to a known channel.
@@ -56,10 +62,23 @@ export function toChannelId(source: string | null | undefined): ChannelId {
   return 'app';
 }
 
-/** "@malika_ysp" for social channels; the product name for the app channel. */
-export function channelHandle(channel: ChannelId, senderId: string, senderName: string | null): string {
+/**
+ * "@malika_ysp" for social channels; the product name for the app channel.
+ *
+ * Only a real username is shown. The old fallback was "@" + the numeric chat
+ * id ("@1819638515"), which looked like a handle and was not one (audit
+ * 2026-10-29, finding 15). With no username the result is empty and the
+ * header simply omits it.
+ */
+export function channelHandle(
+  channel: ChannelId,
+  handle: string | null | undefined,
+  senderName: string | null,
+): string {
   if (channel === 'app') return 'Hanguk App';
+  const known = (handle ?? '').trim().replace(/^@/, '');
+  if (known) return `@${known}`;
   const raw = (senderName ?? '').trim();
-  if (raw.startsWith('@')) return raw;
-  return `@${senderId}`;
+  if (raw.startsWith('@') && raw.length > 1) return raw;
+  return '';
 }

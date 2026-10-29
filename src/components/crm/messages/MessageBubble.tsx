@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertCircle, Check, Clock, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessageAttachment } from './MessageAttachment';
+import { deliveryErrorKey } from './deliveryErrors';
 import type { MessageVM } from './types';
 
 interface MessageBubbleProps {
@@ -93,8 +94,13 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
         {failed && (
           <div className="mt-1.5 flex items-center justify-end gap-2 px-0.5">
             <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" aria-hidden="true" />
-            <span className="max-w-[380px] truncate text-[11px] font-medium text-destructive">
-              {m.deliveryError || t('messages.thread.sendFailed', 'Not delivered')}
+            {/* The channel's raw reason ("PEER_FLOOD", Meta's German text) is
+                kept in the tooltip; what the operator reads says what to do. */}
+            <span
+              className="max-w-[380px] truncate text-[11px] font-medium text-destructive"
+              title={m.deliveryError ?? undefined}
+            >
+              {m.deliveryError ? t(deliveryErrorKey(m.deliveryError)) : t('messages.thread.sendFailed', 'Not delivered')}
             </span>
             {onRetry && (
               <button

@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
 import type { MessageThread } from '@/contexts/MessagesContext';
 import { channelHandle, toChannelId } from './channels';
-import { initialsOf, minutesSince } from './queueLogic';
+import { initialsOf, minutesSince, STALE_AFTER_DAYS } from './queueLogic';
 import { stageLabelKey } from './stages';
 import { isMediaPlaceholder, mediaPreviewKey } from './media';
 import type { ConversationVM } from './types';
@@ -14,10 +14,10 @@ import type { ConversationVM } from './types';
 /**
  * Adapts the global `MessagesContext` into the shared-queue view model.
  *
- * Assignment now arrives WITH the thread list: `get_thread_previews` resolves
- * each thread's latest assignee server-side, so the old client-side scan of
- * every assigned message in the database is gone. Only the pipeline stage
- * (the Arizalar board column, src/lib/studentPipeline.ts) needs its own batched query.
+ * Assignment, the lead behind the chat, the person's handle and the two
+ * timestamps the waiting rule needs all arrive WITH the thread list
+ * (`get_thread_previews`). Only the pipeline stage (the Arizalar board column,
+ * src/lib/studentPipeline.ts) needs its own batched query.
  */
 export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
   const { t } = useTranslation();
@@ -56,27 +56,39 @@ export function useMessagesQueue(locallyRead: ReadonlySet<string> = new Set()) {
 
   const conversations = useMemo<ConversationVM[]>(() => {
     const now = Date.now();
+    const staleBefore = now - STALE_AFTER_DAYS * 24 * 60 * 60 * 1000;
     return threads.map((th: MessageThread) => {
       const channel = toChannelId(th.source);
       const assignee = th.assigned_to ?? null;
       const last = th.lastMessage;
-      const name = th.sender_name?.trim() || channelHandle(channel, th.sender_id, th.sender_name);
+      const handle = channelHandle(channel, th.handle, th.sender_name);
+      const name = th.sender_name?.trim() || handle || t('messages.queue.unknownName');
+
+      // The person is waiting when their latest message is newer than the
+      // latest reply written by a PERSON on our side. Automatic replies and
+      // internal notes are excluded server-side (get_thread_previews v2).
+      const incomingAt = th.last_incoming_at ? new Date(th.last_incoming_at).getTime() : null;
+      const humanAt = th.last_human_out_at ? new Date(th.last_human_out_at).getTime() : null;
+      const isWaiting = incomingAt !== null && (humanAt === null || incomingAt > humanAt);
 
       return {
         threadId: th.id,
         channel,
         senderId: th.sender_id,
         name,
-        initials: initialsOf(name, channel === 'telegram' ? 'TG' : channel === 'instagram' ? 'IG' : 'HK'),
+        initials: initialsOf(th.sender_name, channel === 'telegram' ? 'TG' : channel === 'instagram' ? 'IG' : 'HK'),
         avatarUrl: th.sender_avatar,
-        handle: channelHandle(channel, th.sender_id, th.sender_name),
+        handle,
         studentId: th.student_id,
+        leadId: th.lead_id ?? null,
+        kind: th.kind ?? 'lead',
         stage: t(stageLabelKey(th.student_id, th.student_id ? stages.get(th.student_id) : null)),
         preview: previewFor(last, t),
         lastAt: th.last_message_at,
-        // Nothing is "waiting" once the operator has replied, so an outbound
-        // last message resets the SLA clock to zero.
-        waitingMinutes: last?.direction === 'incoming' ? minutesSince(th.last_message_at, now) : 0,
+        isWaiting,
+        waitingSince: isWaiting ? th.last_incoming_at : null,
+        waitingMinutes: isWaiting && th.last_incoming_at ? minutesSince(th.last_incoming_at, now) : 0,
+        isStale: new Date(th.last_message_at).getTime() < staleBefore,
         isMine: !!assignee && assignee === user?.id,
         isAssigned: !!assignee,
         isDone: th.status === 'archived',

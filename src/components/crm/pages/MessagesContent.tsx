@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages } from '@/hooks/useMessages';
 import { useToast } from '@/hooks/use-toast';
-import type { Message } from '@/contexts/MessagesContext';
+import type { Message, ThreadKind } from '@/contexts/MessagesContext';
 import { LinkContactDialog } from '@/components/calls/LinkContactDialog';
 import { MessagesQueue } from '@/components/crm/messages/MessagesQueue';
 import { QueueClearState } from '@/components/crm/messages/QueueClearState';
 import { StudentContextRail } from '@/components/crm/messages/StudentContextRail';
 import { ThreadPane } from '@/components/crm/messages/ThreadPane';
-import { filterConversations, sortConversations } from '@/components/crm/messages/queueLogic';
+import {
+  countHiddenStale,
+  filterConversations,
+  sortConversations,
+} from '@/components/crm/messages/queueLogic';
 import { useMessagesQueue } from '@/components/crm/messages/useMessagesQueue';
 import { useStudentContext } from '@/components/crm/messages/useStudentContext';
 import { useThreadMessages } from '@/components/crm/messages/useThreadMessages';
@@ -43,11 +48,18 @@ import type {
  * two currently have ingest and relay paths (`telegram-webhook`,
  * `instagram-webhook`, `send-telegram`, `send-instagram`); the app channel
  * renders correctly but no producer writes `source = 'app'` yet.
+ *
+ * Nothing opens by itself. The old inbox auto-selected the first row of the
+ * list and, because opening a thread marks it read, every tab switch silently
+ * marked somebody's unanswered message as read for every operator (audit
+ * 2026-10-29, finding 3). A conversation is open only when the operator
+ * clicked it or arrived with `?thread=<id>` in the URL.
  */
 export default function MessagesContent() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     threads,
     messages,
@@ -57,6 +69,8 @@ export default function MessagesContent() {
     retryMessage,
     appendLocalMessage,
     archiveThread,
+    reopenThread,
+    setThreadKind,
     assignThread,
     hasMoreMessages,
     loadOlderMessages,
@@ -69,9 +83,10 @@ export default function MessagesContent() {
   const [locallyRead, setLocallyRead] = useState<Set<string>>(() => new Set());
   const { conversations, loading, refreshAssignments } = useMessagesQueue(locallyRead);
 
-  const [tab, setTab] = useState<QueueTab>('unassigned');
+  const [tab, setTab] = useState<QueueTab>('waiting');
   const [channel, setChannel] = useState<ChannelFilter>('all');
   const [query, setQuery] = useState('');
+  const [showStale, setShowStale] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contextOpen, setContextOpen] = useState(true);
   const [claiming, setClaiming] = useState(false);
@@ -79,22 +94,24 @@ export default function MessagesContent() {
   const [linkOpen, setLinkOpen] = useState(false);
 
   const filtered = useMemo(
-    () => sortConversations(filterConversations(conversations, tab, channel, query), tab),
-    [conversations, tab, channel, query],
+    () => sortConversations(filterConversations(conversations, tab, channel, query, { includeStale: showStale }), tab),
+    [conversations, tab, channel, query, showStale],
+  );
+  const hiddenStale = useMemo(
+    () => (tab === 'waiting' && !showStale && !query.trim() ? countHiddenStale(conversations, channel) : 0),
+    [conversations, tab, channel, showStale, query],
   );
 
   // The selection is held as an id, never as a snapshot, so a claim or a new
   // inbound message re-derives the active row instead of showing stale state.
   //
   // It is deliberately sticky against the FULL conversation list rather than
-  // the filtered one. Replying auto-assigns the thread, which drops it out of
-  // the Unassigned tab — matching against `filtered` here would yank the
-  // operator to the top of the queue mid-conversation, right after they sent
-  // a message. The thread stays open until they pick another one.
+  // the filtered one. Replying auto-assigns the thread and answering takes it
+  // out of Waiting — matching against `filtered` here would yank the operator
+  // to another row mid-conversation. The thread stays open until they pick
+  // another one or change a filter.
   const activeId =
-    selectedId && conversations.some((c) => c.threadId === selectedId)
-      ? selectedId
-      : filtered[0]?.threadId ?? null;
+    selectedId && conversations.some((c) => c.threadId === selectedId) ? selectedId : null;
   const active = useMemo<ConversationVM | null>(
     () => conversations.find((c) => c.threadId === activeId) ?? null,
     [conversations, activeId],
@@ -107,8 +124,27 @@ export default function MessagesContent() {
     return [active, ...filtered];
   }, [filtered, active]);
 
+  // Arriving from a lead profile ("Chatni ochish"): open that conversation,
+  // whatever tab it is in, then drop the parameter so a reload does not
+  // re-open it after the operator moved on.
+  const threadParam = searchParams.get('thread');
+  useEffect(() => {
+    if (!threadParam || loading) return;
+    const target = conversations.find((c) => c.threadId === threadParam);
+    if (target) {
+      setSelectedId(target.threadId);
+      if (target.kind !== 'lead') setChannel('internal');
+      else if (target.isDone) setTab('done');
+      else if (!target.isWaiting) setTab('all');
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('thread');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threadParam, loading, conversations.length]);
+
   // Changing a filter is an explicit "show me something else", so the sticky
-  // selection is released and the first row of the new list opens.
+  // selection is released. Nothing else opens in its place.
   const changeTab = useCallback((next: QueueTab) => {
     setTab(next);
     setSelectedId(null);
@@ -130,7 +166,7 @@ export default function MessagesContent() {
     if (thread) setSelectedThread(thread);
   }, [activeId, threads, selectedThread, setSelectedThread]);
 
-  // Whatever is open counts as read for this operator, from the moment it opens.
+  // Whatever the operator opened counts as read for them, from the moment it opens.
   useEffect(() => {
     if (!activeId) return;
     setLocallyRead((prev) => (prev.has(activeId) ? prev : new Set(prev).add(activeId)));
@@ -190,6 +226,29 @@ export default function MessagesContent() {
     setSelectedId(null);
   }, [active, archiveThread, toast, t]);
 
+  const handleReopen = useCallback(async () => {
+    if (!active) return;
+    const { error } = await reopenThread(active.threadId);
+    if (error) {
+      toast({ title: t('common.error'), description: t('messages.toast.reopenFailed'), variant: 'destructive' });
+      return;
+    }
+    toast({ title: t('messages.toast.reopened') });
+  }, [active, reopenThread, toast, t]);
+
+  const handleKindChange = useCallback(
+    async (kind: ThreadKind) => {
+      if (!active || active.kind === kind) return;
+      const { error } = await setThreadKind(active.threadId, kind);
+      if (error) {
+        toast({ title: t('common.error'), description: t('messages.toast.kindFailed'), variant: 'destructive' });
+        return;
+      }
+      toast({ title: t('messages.toast.kindChanged', { kind: t(`messages.kind.${kind}`) }) });
+    },
+    [active, setThreadKind, toast, t],
+  );
+
   const handleSend = useCallback(
     async (
       rawText: string,
@@ -201,31 +260,38 @@ export default function MessagesContent() {
       },
     ): Promise<boolean> => {
       if (!active || !selectedThread) return false;
+      const noteText = rawText.trim();
 
       if (options.internal) {
         // Internal notes are stored on the thread but never relayed to the
         // channel, so they bypass MessagesContext.sendMessage entirely. The
         // inserted row is appended locally so the note appears instantly.
+        //
+        // This path threw for weeks: it referenced the translated `text`
+        // declared further down (a temporal-dead-zone ReferenceError), the
+        // composer had already cleared the draft, and the note vanished —
+        // zero notes ever reached the database (audit 2026-10-29, finding 7).
+        if (!noteText) return false;
         const { data: inserted, error } = await supabase
           .from('messages')
           .insert({
             source: selectedThread.source,
             sender_id: selectedThread.sender_id,
             student_id: selectedThread.student_id,
-            content: text,
+            content: noteText,
             direction: 'outgoing',
             message_type: 'note',
             status: 'read',
             metadata: { internal: true },
             replied_by: user?.id ?? null,
             replied_at: new Date().toISOString(),
-          })
+          } as any)
           .select('*')
           .single();
         if (error || !inserted) {
           toast({
             title: t('common.error'),
-            description: t('messages.toast.noteFailed'),
+            description: error?.message || t('messages.toast.noteFailed'),
             variant: 'destructive',
           });
           return false;
@@ -333,6 +399,7 @@ export default function MessagesContent() {
       user,
       toast,
       t,
+      i18n.language,
     ],
   );
 
@@ -366,7 +433,7 @@ export default function MessagesContent() {
       const result = await translateMessage({
         messageId: message.id,
         text: message.text,
-        targetLang: 'English',
+        targetLang: (i18n.language || 'uz').slice(0, 2).toUpperCase(),
       });
       setTranslatingId(null);
       if (!result) {
@@ -376,7 +443,7 @@ export default function MessagesContent() {
         });
       }
     },
-    [toggleMessage, toast, t],
+    [toggleMessage, toast, t, i18n.language],
   );
 
   // Attaching a conversation to a person is keyed on the RAW thread row, not on
@@ -392,13 +459,13 @@ export default function MessagesContent() {
       ? (selectedThread.source as 'telegram' | 'instagram' | 'whatsapp')
       : null;
 
-  const unassignedCount = conversations.filter((c) => !c.isAssigned && !c.isDone).length;
-  const mineCount = conversations.filter((c) => c.isMine && !c.isDone).length;
+  const waitingCount = conversations.filter((c) => c.kind === 'lead' && c.isWaiting && !c.isDone).length;
+  const mineCount = conversations.filter((c) => c.kind === 'lead' && c.isMine && !c.isDone).length;
 
   return (
     <div className="flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col">
       <p className="mb-3 shrink-0 text-xs text-muted-foreground">
-        {t('messages.header.summary', { unassigned: unassignedCount, mine: mineCount })}
+        {t('messages.header.summary', { waiting: waitingCount, mine: mineCount })}
       </p>
 
       <div className="flex min-h-0 flex-1 overflow-x-auto rounded-lg border border-border">
@@ -410,6 +477,8 @@ export default function MessagesContent() {
           tab={tab}
           channel={channel}
           query={query}
+          hiddenStale={hiddenStale}
+          onShowStale={() => setShowStale(true)}
           onTabChange={changeTab}
           onChannelChange={changeChannel}
           onQueryChange={setQuery}
@@ -435,6 +504,8 @@ export default function MessagesContent() {
               onToggleContext={() => setContextOpen((v) => !v)}
               onClaim={handleClaim}
               onMarkDone={handleMarkDone}
+              onReopen={handleReopen}
+              onKindChange={handleKindChange}
               onSend={handleSend}
               onLinkContact={linkChannel ? () => setLinkOpen(true) : undefined}
             />
@@ -455,10 +526,12 @@ export default function MessagesContent() {
         ) : (
           <section className="flex min-w-[520px] flex-1 flex-col bg-background">
             <QueueClearState
-              onGoToUnassigned={() => {
-                setTab('unassigned');
+              variant={visible.length === 0 ? 'empty' : 'pick'}
+              onGoToWaiting={() => {
+                setTab('waiting');
                 setChannel('all');
                 setQuery('');
+                setShowStale(false);
               }}
             />
           </section>

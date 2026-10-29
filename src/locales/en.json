@@ -1333,16 +1333,17 @@
     "audioUnavailable": "Voice message unavailable",
     "tabs": {
       "label": "Queue filter",
-      "unassigned": "Unassigned",
       "mine": "Mine",
       "all": "All",
-      "done": "Done"
+      "done": "Closed",
+      "waiting": "Waiting"
     },
     "channels": {
       "all": "All channels",
       "telegram": "Telegram",
       "instagram": "Instagram",
-      "app": "App"
+      "app": "App",
+      "internal": "Staff"
     },
     "queue": {
       "label": "Conversation queue",
@@ -1352,7 +1353,9 @@
       "mine": "Mine",
       "noPreview": "No messages yet",
       "emptyTitle": "No conversations",
-      "emptyBody": "Try another tab, channel, or search term."
+      "emptyBody": "Try another tab, channel, or search term.",
+      "unknownName": "Unknown",
+      "showStale": "Conversations older than 30 days ({{count}}) — show"
     },
     "thread": {
       "streamLabel": "Message history",
@@ -1375,7 +1378,11 @@
       "deleted": "deleted",
       "internalNoteLabel": "Internal note · not sent to student",
       "linkContact": "Attach to a student or lead",
-      "relinkContact": "Change who this is attached to"
+      "relinkContact": "Change who this is attached to",
+      "reopen": "Reopen",
+      "more": "More actions",
+      "kindLabel": "Conversation type",
+      "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Staff” filter."
     },
     "composer": {
       "label": "Write a reply",
@@ -1450,11 +1457,13 @@
     },
     "empty": {
       "title": "Queue is clear",
-      "body": "Nothing waiting on this filter. Pick another tab, or claim the next conversation from Unassigned.",
-      "cta": "Go to Unassigned"
+      "body": "No conversation in this filter is waiting for a reply. Pick another tab.",
+      "cta": "Go to Waiting",
+      "pickTitle": "Pick a conversation",
+      "pickBody": "Click a conversation in the list on the left. Nothing opens by itself or gets marked as read."
     },
     "header": {
-      "summary": "Shared queue · {{unassigned}} unassigned · {{mine}} assigned to you"
+      "summary": "Queue · {{waiting}} waiting for a reply · {{mine}} yours"
     },
     "toast": {
       "claimFailed": "Could not claim this conversation.",
@@ -1466,7 +1475,11 @@
       "translationUnavailableTitle": "Translation unavailable",
       "translationUnavailableBody": "No translation service is configured yet. Cached translations still display.",
       "translateFailed": "Could not translate",
-      "sentUntranslated": "The message was sent in the original language."
+      "sentUntranslated": "The message was sent in the original language.",
+      "reopenFailed": "Could not reopen the conversation.",
+      "reopened": "Conversation reopened",
+      "kindFailed": "Could not change the conversation type.",
+      "kindChanged": "Conversation type: {{kind}}"
     },
     "media": {
       "voice": "Voice message",
@@ -1478,6 +1491,21 @@
     "day": {
       "today": "Today",
       "yesterday": "Yesterday"
+    },
+    "kind": {
+      "lead": "Lead",
+      "staff": "Staff",
+      "partner": "Partner",
+      "service": "Service"
+    },
+    "deliveryErrors": {
+      "peerFlood": "The Telegram account is temporarily limited (PEER_FLOOD) — reply from the phone and check @SpamBot.",
+      "windowExpired": "The customer has not written for over 24 hours — Instagram does not allow sending from here. Reply from the Instagram app.",
+      "userbotDown": "The Telegram account connection is down — the message was not sent. Retry or tell an administrator.",
+      "tooLong": "Message too long (Instagram allows 1000 characters) — shorten it or split it.",
+      "unsupportedMedia": "Instagram accepts only images, video and audio — send the document via Telegram.",
+      "blocked": "This user has blocked us or their account is gone.",
+      "unknown": "Not delivered — hover to see the reason."
     }
   },
   "errors": {

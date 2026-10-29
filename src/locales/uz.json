@@ -1402,16 +1402,17 @@
     "audioUnavailable": "Ovozli xabar mavjud emas",
     "tabs": {
       "label": "Navbat filtri",
-      "unassigned": "Biriktirilmagan",
       "mine": "Meniki",
-      "all": "Barchasi",
-      "done": "Yakunlangan"
+      "all": "Hammasi",
+      "done": "Yopilgan",
+      "waiting": "Kutmoqda"
     },
     "channels": {
       "all": "Barcha kanallar",
       "telegram": "Telegram",
       "instagram": "Instagram",
-      "app": "Ilova"
+      "app": "Ilova",
+      "internal": "Xodimlar"
     },
     "queue": {
       "label": "Suhbatlar navbati",
@@ -1421,7 +1422,9 @@
       "mine": "Meniki",
       "noPreview": "Hozircha xabar yo‘q",
       "emptyTitle": "Suhbatlar yo‘q",
-      "emptyBody": "Boshqa bo‘lim, kanal yoki qidiruv so‘zini sinab ko‘ring."
+      "emptyBody": "Boshqa bo‘lim, kanal yoki qidiruv so‘zini sinab ko‘ring.",
+      "unknownName": "Noma’lum",
+      "showStale": "30 kundan eski suhbatlar ({{count}}) — ko‘rsatish"
     },
     "thread": {
       "streamLabel": "Xabarlar tarixi",
@@ -1444,7 +1447,11 @@
       "deleted": "o‘chirilgan",
       "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi",
       "linkContact": "Talaba yoki lidga biriktirish",
-      "relinkContact": "Biriktirishni o'zgartirish"
+      "relinkContact": "Biriktirishni o'zgartirish",
+      "reopen": "Qayta ochish",
+      "more": "Boshqa amallar",
+      "kindLabel": "Suhbat turi",
+      "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Xodimlar” filtrida turadi."
     },
     "composer": {
       "label": "Javob yozing",
@@ -1519,11 +1526,13 @@
     },
     "empty": {
       "title": "Navbat bo‘sh",
-      "body": "Bu filtrda kutayotgan suhbat yo‘q. Boshqa bo‘limni tanlang yoki Biriktirilmagan navbatdan keyingisini oling.",
-      "cta": "Biriktirilmaganga o‘tish"
+      "body": "Bu filtrda javob kutayotgan suhbat yo‘q. Boshqa bo‘limni tanlang.",
+      "cta": "“Kutmoqda” bo‘limiga o‘tish",
+      "pickTitle": "Suhbatni tanlang",
+      "pickBody": "Chap tomondagi ro‘yxatdan suhbatni bosing. Hech narsa o‘z-o‘zidan ochilmaydi va o‘qilgan deb belgilanmaydi."
     },
     "header": {
-      "summary": "Umumiy navbat · {{unassigned}} biriktirilmagan · {{mine}} sizda"
+      "summary": "Navbat · {{waiting}} javob kutmoqda · {{mine}} sizda"
     },
     "toast": {
       "claimFailed": "Suhbatni olishning iloji bo‘lmadi.",
@@ -1535,7 +1544,11 @@
       "translationUnavailableTitle": "Tarjima mavjud emas",
       "translationUnavailableBody": "Tarjima xizmati hali sozlanmagan. Saqlangan tarjimalar ko‘rinishda qoladi.",
       "translateFailed": "Tarjima qilinmadi",
-      "sentUntranslated": "Xabar asl tilida yuborildi."
+      "sentUntranslated": "Xabar asl tilida yuborildi.",
+      "reopenFailed": "Suhbatni qayta ochishning iloji bo‘lmadi.",
+      "reopened": "Suhbat qayta ochildi",
+      "kindFailed": "Suhbat turini o‘zgartirishning iloji bo‘lmadi.",
+      "kindChanged": "Suhbat turi: {{kind}}"
     },
     "media": {
       "voice": "Ovozli xabar",
@@ -1547,6 +1560,21 @@
     "day": {
       "today": "Bugun",
       "yesterday": "Kecha"
+    },
+    "kind": {
+      "lead": "Lid",
+      "staff": "Xodim",
+      "partner": "Hamkor",
+      "service": "Xizmat"
+    },
+    "deliveryErrors": {
+      "peerFlood": "Telegram akkaunti vaqtincha cheklangan (PEER_FLOOD) — telefondan yozing, @SpamBot’ni tekshiring.",
+      "windowExpired": "Mijoz 24 soatdan beri yozmagan — Instagram bu yerdan yuborishga ruxsat bermaydi. Instagram ilovasidan yozing.",
+      "userbotDown": "Telegram akkaunt ulanishi ishlamayapti — xabar yuborilmadi. Qayta urinib ko‘ring yoki administratorga ayting.",
+      "tooLong": "Xabar juda uzun (Instagram 1000 belgigacha) — qisqartiring yoki bo‘lib yuboring.",
+      "unsupportedMedia": "Instagram faqat rasm, video va audio qabul qiladi — hujjatni Telegram orqali yuboring.",
+      "blocked": "Bu foydalanuvchi bizni bloklagan yoki akkaunti o‘chirilgan.",
+      "unknown": "Yuborilmadi — sabab ustiga kursorni olib boring."
     }
   },
   "errors": {

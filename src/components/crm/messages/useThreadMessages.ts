@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useStaffMentions } from '@/hooks/useStaffMentions';
 import type { Message } from '@/contexts/MessagesContext';
-import { looksNonEnglish } from './queueLogic';
+import { formatDayMonth, looksNonEnglish } from './queueLogic';
 import { extractMedia, isMediaPlaceholder } from './media';
 import { readCachedTranslation } from './translateMessage';
 import type { MessageVM } from './types';
@@ -103,5 +103,5 @@ function formatDayLabel(iso: string, locale: string, t: TFunction): string {
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   if (d.toDateString() === yesterday.toDateString()) return t('messages.day.yesterday');
-  return d.toLocaleDateString(locale, { day: 'numeric', month: 'long' });
+  return formatDayMonth(d, locale, true);
 }
