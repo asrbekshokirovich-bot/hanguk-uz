@@ -132,6 +132,7 @@ jobs:
           # with the repo on 2026-10-27: same code (interview-ai's live copy only has
           # a garbled Korean fallback string). They read the student's universities
           # from student_university_choices now, not the legacy applications table.
+          # guideline-index is new (Hanguk AI 2.0, 2026-10-31): no live copy existed.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -162,6 +163,7 @@ jobs:
             hanguk-ai-chat
             interview-ai
             study-plan-trainer
+            guideline-index
           "
 
           for fn in $FUNCTIONS; do
