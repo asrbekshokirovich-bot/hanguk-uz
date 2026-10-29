@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HANGUK ilovasi</title>
+<script>
+(function () {
+  var PKG = "com.hanguk.studentapp.hanguk_app";
+  var IOS = "https://apps.apple.com/uz/app/hanguk/id6759643305";
+  var PLAY_WEB = "https://play.google.com/store/apps/details?id=" + PKG;
+  // Forces the Google Play app (com.android.vending) — skips GetApps / AppGallery choosers
+  var PLAY_INTENT = "intent://details?id=" + PKG +
+    "#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=" +
+    encodeURIComponent(PLAY_WEB) + ";end";
+
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(ua);
+
+  if (isIOS) {
+    location.replace(IOS);
+  } else if (isAndroid) {
+    location.replace(PLAY_INTENT);
+    // Some in-app browsers (e.g. Instagram) block intent:// — fall back to the web Play link
+    setTimeout(function () { location.replace(PLAY_WEB); }, 1200);
+  } else {
+    document.documentElement.className = "desktop";
+  }
+})();
+</script>
+<style>
+  html:not(.desktop) body{display:none}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;margin:0;padding:24px 16px;text-align:center}
+  .c{max-width:360px;width:100%}
+  .logo{width:80px;height:80px;border-radius:20px;margin:0 auto 16px;display:block}
+  p{color:#94a3b8;font-size:14px;margin:0 0 22px}
+  h1{font-size:22px;margin:0 0 20px}
+  a{display:block;padding:14px;border-radius:12px;background:#fff;color:#0f172a;text-decoration:none;font-weight:600;margin-bottom:12px}
+</style>
+</head>
+<body>
+  <div class="c">
+    <img src="/brand-mark.png" alt="HANGUK" class="logo">
+    <h1>HANGUK ilovasini yuklab oling</h1>
+    <p>Telefoningizdan ochsangiz, do'kon avtomatik ochiladi.</p>
+    <a href="https://apps.apple.com/uz/app/hanguk/id6759643305">App Store (iPhone)</a>
+    <a href="https://play.google.com/store/apps/details?id=com.hanguk.studentapp.hanguk_app">Google Play (Android)</a>
+  </div>
+</body>
+</html>
