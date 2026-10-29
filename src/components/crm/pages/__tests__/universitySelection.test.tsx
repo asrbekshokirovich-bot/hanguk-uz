@@ -7,6 +7,9 @@ const add = vi.fn();
 const remove = vi.fn();
 const move = vi.fn();
 const confirm = vi.fn();
+const unlockConfirmed = vi.fn();
+let canChangeConfirmed = false;
+let changedStudents = new Set<string>();
 type Choice = {
   id: string; student_id: string; institution_id: string; rank: number; created_at: string;
   status: string; responded_at: string | null; change_reason: string | null; change_note: string | null; confirmed_at: string | null;
@@ -34,6 +37,9 @@ vi.mock('@/hooks/useUniversityChoices', async (orig) => {
         remove: { mutate: remove, isPending: false },
         move: { mutate: move, isPending: false },
         confirm: { mutate: confirm, isPending: false },
+        unlockConfirmed: { mutate: unlockConfirmed, isPending: false },
+        canChangeConfirmed,
+        changedStudents,
       };
     },
   };
@@ -82,7 +88,9 @@ const setup = (props: Partial<ComponentProps<typeof UniversitySelectionContent>>
 describe('UniversitySelectionContent', () => {
   beforeEach(() => {
     choices = [];
-    [add, remove, move, confirm].forEach((m) => m.mockReset());
+    canChangeConfirmed = false;
+    changedStudents = new Set();
+    [add, remove, move, confirm, unlockConfirmed].forEach((m) => m.mockReset());
   });
 
   it('checks each university against the student score', () => {
@@ -134,6 +142,25 @@ describe('UniversitySelectionContent', () => {
     // A confirmed choice is locked: no remove, no reorder.
     expect(within(rows[2]).getByText(/Biriktirildi/)).toBeInTheDocument();
     expect(within(rows[2]).queryByLabelText('Olib tashlash')).not.toBeInTheDocument();
+  });
+
+  it('offers the one change of a confirmed university only to those allowed', async () => {
+    choices = [choice('c1', 'ku', 1, 'confirmed', { confirmed_at: '2026-10-14T00:00:00Z' })];
+    const { unmount } = setup();
+    expect(screen.queryByText('Almashtirish (1 marta)')).not.toBeInTheDocument();
+    unmount();
+
+    canChangeConfirmed = true;
+    const second = setup();
+    fireEvent.click(screen.getByText('Almashtirish (1 marta)'));
+    fireEvent.click(await screen.findByText('Ha, almashtirish'));
+    expect(unlockConfirmed).toHaveBeenCalledWith(choices[0], expect.anything());
+    second.unmount();
+
+    changedStudents = new Set(['u1']);
+    setup();
+    expect(screen.queryByText('Almashtirish (1 marta)')).not.toBeInTheDocument();
+    expect(screen.getByText('Almashtirish ishlatilgan')).toBeInTheDocument();
   });
 
   it('lets staff confirm the partner slot without waiting for the student', () => {
