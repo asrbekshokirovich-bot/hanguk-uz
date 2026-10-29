@@ -73,7 +73,10 @@ describe('applications pipeline', () => {
     expect(within(col('new')).getByText('FRESH')).toBeInTheDocument();
     expect(within(col('docs_ready')).getByText('READY')).toBeInTheDocument();
     expect(within(col('online')).getByText('ONLINE')).toBeInTheDocument();
-    expect(within(col('online')).getByText('Kyungpook +1')).toBeInTheDocument();
+    // Every university on its own line, no "Kyungpook +1".
+    expect(within(col('online')).getByText('Kyungpook')).toBeInTheDocument();
+    expect(within(col('online')).getByText('Pusan')).toBeInTheDocument();
+    expect(within(col('online')).queryByText(/\+1/)).toBeNull();
     expect(within(col('offline')).getByText('OFFLINE')).toBeInTheDocument();
     expect(within(col('result')).getByText('Kirdi: Kyungpook')).toBeInTheDocument();
     // Suhbat: the university and the interview time.
