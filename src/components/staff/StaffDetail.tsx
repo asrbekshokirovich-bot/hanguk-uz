@@ -456,39 +456,44 @@ export function StaffDetail({
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-destructive">Delete Account</p>
+                  <p className="font-medium text-destructive">{t('crm.staffDelete.title')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Permanently remove this staff member and their access
+                    {t('crm.staffDelete.hint')}
                   </p>
                 </div>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm" disabled={deleting}>
                       <Trash2 className="h-4 w-4 mr-2" />
-                      {deleting ? 'Deleting...' : 'Delete'}
+                      {deleting ? t('crm.staffDelete.deleting') : t('crm.staffDelete.button')}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Staff Account</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to permanently delete{' '}
-                        <strong>{staff.full_name || 'this staff member'}</strong>? This will:
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                          <li>Remove all their roles and permissions</li>
-                          <li>Delete their profile and account</li>
-                          <li>Prevent them from logging in</li>
-                        </ul>
-                        <p className="mt-2 font-medium">This action cannot be undone.</p>
+                      <AlertDialogTitle>{t('crm.staffDelete.confirmTitle')}</AlertDialogTitle>
+                      <AlertDialogDescription asChild>
+                        <div>
+                          <p>
+                            {t('crm.staffDelete.confirmText', {
+                              name: staff.full_name || t('crm.staffDelete.fallbackName'),
+                            })}
+                          </p>
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>{t('crm.staffDelete.itemRoles')}</li>
+                            <li>{t('crm.staffDelete.itemLogin')}</li>
+                            <li>{t('crm.staffDelete.itemHistory')}</li>
+                          </ul>
+                          <p className="mt-2 font-medium">{t('crm.staffDelete.irreversible')}</p>
+                        </div>
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t('crm.staffDelete.cancel')}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDeleteAccount}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Delete Account
+                        {t('crm.staffDelete.confirm')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

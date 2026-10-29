@@ -450,6 +450,23 @@
       "errPeriod": "Davrni yozing (masalan, Q4 2026)",
       "errAmount": "Summa musbat son bo'lishi kerak",
       "errPaidAt": "To'langan sanani kiriting"
+    },
+    "staffDelete": {
+      "title": "Akkauntni o'chirish",
+      "hint": "Xodimni va uning tizimga kirish huquqini butunlay olib tashlash",
+      "button": "O'chirish",
+      "deleting": "O'chirilmoqda...",
+      "confirmTitle": "Xodim akkauntini o'chirish",
+      "confirmText": "«{{name}}» akkauntini butunlay o'chirmoqchimisiz?",
+      "itemRoles": "Barcha rollari va ruxsatlari olib tashlanadi",
+      "itemLogin": "Akkaunti o'chiriladi, tizimga kira olmaydi",
+      "itemHistory": "U kiritgan yozuvlar (to'lovlar, hujjatlar, vazifalar) o'chmaydi",
+      "irreversible": "Bu amalni qaytarib bo'lmaydi.",
+      "cancel": "Bekor qilish",
+      "confirm": "Ha, o'chirish",
+      "success": "Xodim akkaunti o'chirildi",
+      "failed": "Xodim akkauntini o'chirib bo'lmadi",
+      "fallbackName": "bu xodim"
     }
   },
   "leads": {
