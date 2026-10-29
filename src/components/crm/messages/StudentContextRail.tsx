@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatDayMonth } from './queueLogic';
 import type { ConversationVM, StudentContextVM } from './types';
 
 interface StudentContextRailProps {
@@ -140,10 +141,7 @@ export function StudentContextRail({ conversation, student, loading }: StudentCo
               {student.payment.nextDue && (
                 <p className="mt-1.5 text-[11.5px] text-muted-foreground">
                   {t('messages.rail.nextInstalment', {
-                    date: new Date(student.payment.nextDue).toLocaleDateString(i18n.language, {
-                      day: 'numeric',
-                      month: 'short',
-                    }),
+                    date: formatDayMonth(new Date(student.payment.nextDue), i18n.language),
                   })}
                 </p>
               )}
@@ -160,10 +158,7 @@ export function StudentContextRail({ conversation, student, loading }: StudentCo
                     <span className="min-w-0">
                       <span className="block text-[12.5px] font-medium text-foreground/75">{a.text}</span>
                       <span className="block text-[11px] text-muted-foreground">
-                        {new Date(a.at).toLocaleDateString(i18n.language, {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                        {formatDayMonth(new Date(a.at), i18n.language)}
                       </span>
                     </span>
                   </li>

@@ -1,6 +1,7 @@
 import { Composer } from './Composer';
 import { MessageStream } from './MessageStream';
 import { ThreadHeader } from './ThreadHeader';
+import type { ThreadKind } from '@/contexts/MessagesContext';
 import type { ConversationVM, MessageVM, SendLanguage } from './types';
 
 interface ThreadPaneProps {
@@ -20,6 +21,8 @@ interface ThreadPaneProps {
   onToggleContext: () => void;
   onClaim: () => void;
   onMarkDone: () => void;
+  onReopen: () => void;
+  onKindChange: (kind: ThreadKind) => void;
   onLinkContact?: () => void;
   onSend: (
     text: string,
@@ -50,6 +53,8 @@ export function ThreadPane({
   onToggleContext,
   onClaim,
   onMarkDone,
+  onReopen,
+  onKindChange,
   onLinkContact,
   onSend,
 }: ThreadPaneProps) {
@@ -63,6 +68,8 @@ export function ThreadPane({
         onClaim={onClaim}
         onToggleAutoTranslate={onToggleAutoTranslate}
         onMarkDone={onMarkDone}
+        onReopen={onReopen}
+        onKindChange={onKindChange}
         onToggleContext={onToggleContext}
         onLinkContact={onLinkContact}
       />

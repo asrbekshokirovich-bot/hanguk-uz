@@ -9,14 +9,29 @@ import type { MessageMedia } from './media';
  * `payments`) onto them. See `docs` note in each field for the source column.
  */
 
-/** Queue segment. Mirrors the mockup's segmented control. */
-export type QueueTab = 'unassigned' | 'mine' | 'all' | 'done';
+/**
+ * Queue segment.
+ *
+ * `waiting` — the person wrote and no PERSON on our side has answered since
+ * (an automatic reply does not count). Newest first. This is the operator's
+ * work list and the default tab since the 2026-10-29 audit; the old
+ * "Unassigned" tab put a 141-day-old conversation on top because nobody who
+ * answers from the phone ever pressed Claim.
+ */
+export type QueueTab = 'waiting' | 'mine' | 'all' | 'done';
 
 /** Supported inbound channels. `app` = the Hanguk App in-app student chat. */
 export type ChannelId = 'telegram' | 'instagram' | 'app';
 
-/** Channel filter chip value — channels plus the "all" pseudo-value. */
-export type ChannelFilter = ChannelId | 'all';
+/**
+ * Channel filter chip value — channels plus the "all" pseudo-value and
+ * `internal`, which shows the conversations that are not leads at all
+ * (our own staff, partner universities, Telegram's service account).
+ */
+export type ChannelFilter = ChannelId | 'all' | 'internal';
+
+/** What a conversation is; only `lead` threads are in the operator queue. */
+export type ThreadKind = 'lead' | 'staff' | 'partner' | 'service';
 
 /** Language the operator composes in; the outbound text is translated on send. */
 export type SendLanguage = 'UZ' | 'RU' | 'KO' | 'EN';
@@ -42,10 +57,14 @@ export interface ConversationVM {
   name: string;
   initials: string;
   avatarUrl: string | null;
-  /** "@handle" for social channels, product name for the app channel. */
+  /** "@username" when the person has one; empty otherwise (never a numeric id). */
   handle: string;
   /** `message_threads.student_id` → `profiles.user_id`, or null for cold leads. */
   studentId: string | null;
+  /** The lead behind this conversation, when one exists. */
+  leadId: string | null;
+  /** `message_threads.kind` */
+  kind: ThreadKind;
   /** Pipeline stage label, derived from `applications.status`. */
   stage: string;
   /** Last message body, one line. */
@@ -53,10 +72,21 @@ export interface ConversationVM {
   /** `message_threads.last_message_at` */
   lastAt: string;
   /**
-   * Minutes the student has been waiting for a reply. 0 when the last message
-   * was outbound — i.e. the operator has already answered.
+   * True while the person's latest message has not been answered by a
+   * PERSON on our side. Automatic replies (bot, after-hours text, Meta's
+   * instant reply) and internal notes do not end the wait.
+   */
+  isWaiting: boolean;
+  /** ISO time of the message the person is waiting on; null when answered. */
+  waitingSince: string | null;
+  /**
+   * Minutes the person has been waiting for a reply. 0 when answered.
+   * Floored, so a message that arrived seconds ago reads 0 while
+   * `isWaiting` is already true.
    */
   waitingMinutes: number;
+  /** Nothing has happened in this conversation for STALE_AFTER_DAYS. */
+  isStale: boolean;
   /** True when the thread is assigned to the signed-in operator. */
   isMine: boolean;
   /** True when any operator owns it (used to split Unassigned from All). */

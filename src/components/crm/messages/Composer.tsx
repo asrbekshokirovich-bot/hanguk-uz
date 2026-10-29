@@ -178,6 +178,18 @@ export function Composer({ onSend }: ComposerProps) {
     }
   };
 
+  // Escape closes the saved-replies panel wherever the focus is. It used to
+  // work only inside the textarea, so a panel opened with the button stayed
+  // open while the operator moved on (audit 2026-10-29, finding 17).
+  useEffect(() => {
+    if (!showSnippets) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSnippets(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showSnippets]);
+
   const pickReply = (reply: SavedReply) => {
     setDraft(reply.body);
     setShowSnippets(false);
@@ -187,8 +199,14 @@ export function Composer({ onSend }: ComposerProps) {
   const languageName = t(SEND_LANGUAGES.find((l) => l.code === language)?.nameKey ?? 'messages.languages.uz');
 
   return (
-    <div className="shrink-0 border-t border-border bg-card px-6 pb-4 pt-3">
-      {showSnippets && <SavedRepliesPanel onPick={pickReply} />}
+    <div className="relative shrink-0 border-t border-border bg-card px-6 pb-4 pt-3">
+      {/* Floats ABOVE the composer instead of growing it: a panel inside the
+          flow pushed the Send button below the fold (finding 17). */}
+      {showSnippets && (
+        <div className="absolute bottom-full left-6 right-6 z-20 mb-1">
+          <SavedRepliesPanel onPick={pickReply} onClose={() => setShowSnippets(false)} />
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-card focus-within:ring-2 focus-within:ring-ring">
         {noteMode && (

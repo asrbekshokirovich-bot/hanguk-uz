@@ -4,6 +4,7 @@ import type { SavedReply } from './types';
 
 interface SavedRepliesPanelProps {
   onPick: (reply: SavedReply) => void;
+  onClose?: () => void;
 }
 
 /**
@@ -12,15 +13,26 @@ interface SavedRepliesPanelProps {
  * Each row is a mono key chip + title + truncated body, so an operator who
  * knows the shortcut can scan by key and one who doesn't can read the title.
  */
-export function SavedRepliesPanel({ onPick }: SavedRepliesPanelProps) {
+export function SavedRepliesPanel({ onPick, onClose }: SavedRepliesPanelProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="mb-2.5 rounded-lg border border-border bg-popover p-2 shadow-pop">
-      <p className="px-2 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-        {t('messages.composer.savedReplies')}
-      </p>
-      <div className="flex flex-col gap-0.5">
+    <div className="rounded-lg border border-border bg-popover p-2 shadow-pop">
+      <div className="flex items-center px-2 pb-2 pt-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
+          {t('messages.composer.savedReplies')}
+        </p>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto rounded-sm px-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Esc
+          </button>
+        )}
+      </div>
+      <div className="flex max-h-[260px] flex-col gap-0.5 overflow-y-auto">
         {SAVED_REPLIES.map((reply) => (
           <button
             key={reply.key}

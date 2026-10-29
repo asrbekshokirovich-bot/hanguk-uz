@@ -12,9 +12,12 @@ interface ChannelFilterChipsProps {
 
 export function ChannelFilterChips({ value, onChange, visibleCount }: ChannelFilterChipsProps) {
   const { t } = useTranslation();
+  // "Internal" is the only way to reach staff / partner / service chats:
+  // they are kept out of every other view so the queue is leads only.
   const options: { id: ChannelFilter; label: string }[] = [
     { id: 'all', label: t('messages.channels.all') },
     ...CHANNEL_IDS.map((id) => ({ id: id as ChannelFilter, label: t(CHANNELS[id].labelKey) })),
+    { id: 'internal', label: t('messages.channels.internal') },
   ];
 
   return (

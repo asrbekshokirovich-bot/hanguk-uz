@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
-import { initialsOf } from './queueLogic';
+import { formatDayMonth, initialsOf } from './queueLogic';
 import { STAGE_KEYS, stageIndexFor } from './stages';
 import { loadStudentPipelines } from '@/lib/loadStudentPipelines';
 import type { StudentPipeline } from '@/lib/studentPipeline';
@@ -144,7 +144,7 @@ function stepNote(
       .map((s) => s.online_submitted_at ?? s.offline_sent_at)
       .filter((d): d is string => !!d)
       .sort()[0];
-    if (submitted) return new Date(submitted).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+    if (submitted) return formatDayMonth(new Date(submitted), locale);
   }
   if (index < currentStage) return t('messages.rail.complete');
   return '—';

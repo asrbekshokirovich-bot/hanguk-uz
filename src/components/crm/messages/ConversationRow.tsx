@@ -15,13 +15,14 @@ interface ConversationRowProps {
  * meta pill row (stage · waiting · Mine · unread).
  *
  * The waiting pill is the SLA signal — danger-tinted at or past the threshold
- * in `queueLogic.SLA_WARNING_MINUTES`, neutral below it. It is hidden entirely
- * once the operator has replied, because nothing is waiting then.
+ * in `queueLogic.SLA_WARNING_MINUTES`, neutral below it. It is shown only
+ * while the person is waiting for a reply written by a person; an automatic
+ * reply does not make it go away.
  */
 export function ConversationRow({ conversation: c, selected, onSelect }: ConversationRowProps) {
   const { t, i18n } = useTranslation();
   const overdue = isOverdue(c);
-  const showWait = c.waitingMinutes > 0 && !c.isDone;
+  const showWait = c.isWaiting && !c.isDone;
 
   return (
     <button
@@ -43,9 +44,16 @@ export function ConversationRow({ conversation: c, selected, onSelect }: Convers
 
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
-          <span className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</span>
+          <span
+            className={cn(
+              'truncate text-[13.5px] text-foreground',
+              c.unreadCount > 0 ? 'font-bold' : 'font-semibold',
+            )}
+          >
+            {c.name}
+          </span>
           <span className="ml-auto shrink-0 text-[11px] font-medium text-muted-foreground">
-            {formatRowTime(c.lastAt, i18n.language)}
+            {formatRowTime(c.lastAt, i18n.language, new Date(), t('messages.day.yesterday'))}
           </span>
         </span>
 
@@ -54,9 +62,15 @@ export function ConversationRow({ conversation: c, selected, onSelect }: Convers
         </span>
 
         <span className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
-          <span className="max-w-[54%] truncate whitespace-nowrap rounded-pill bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
-            {c.stage}
-          </span>
+          {c.kind !== 'lead' ? (
+            <span className="max-w-[54%] truncate whitespace-nowrap rounded-pill bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-warning">
+              {t(`messages.kind.${c.kind}`)}
+            </span>
+          ) : (
+            <span className="max-w-[54%] truncate whitespace-nowrap rounded-pill bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
+              {c.stage}
+            </span>
+          )}
 
           {showWait && (
             <span

@@ -1083,16 +1083,17 @@
     "audioUnavailable": "음성 메시지를 사용할 수 없습니다",
     "tabs": {
       "label": "대기열 필터",
-      "unassigned": "미배정",
       "mine": "내 담당",
       "all": "전체",
-      "done": "완료"
+      "done": "종료",
+      "waiting": "대기 중"
     },
     "channels": {
       "all": "모든 채널",
       "telegram": "텔레그램",
       "instagram": "인스타그램",
-      "app": "앱"
+      "app": "앱",
+      "internal": "직원"
     },
     "queue": {
       "label": "대화 대기열",
@@ -1102,7 +1103,9 @@
       "mine": "내 담당",
       "noPreview": "아직 메시지가 없습니다",
       "emptyTitle": "대화가 없습니다",
-      "emptyBody": "다른 탭, 채널 또는 검색어를 사용해 보세요."
+      "emptyBody": "다른 탭, 채널 또는 검색어를 사용해 보세요.",
+      "unknownName": "이름 없음",
+      "showStale": "30일 이상 지난 대화 ({{count}}) — 보기"
     },
     "thread": {
       "streamLabel": "메시지 기록",
@@ -1125,7 +1128,11 @@
       "deleted": "삭제됨",
       "internalNoteLabel": "내부 메모 · 학생에게 전송되지 않음",
       "linkContact": "학생 또는 리드에 연결",
-      "relinkContact": "연결 대상 변경"
+      "relinkContact": "연결 대상 변경",
+      "reopen": "다시 열기",
+      "more": "기타 작업",
+      "kindLabel": "대화 유형",
+      "kindHint": "대기열에는 “리드” 대화만 표시됩니다. 직원·파트너·서비스 채팅은 “직원” 필터에 있습니다."
     },
     "composer": {
       "label": "답장 작성",
@@ -1200,11 +1207,13 @@
     },
     "empty": {
       "title": "대기열이 비었습니다",
-      "body": "이 필터에는 대기 중인 대화가 없습니다. 다른 탭을 선택하거나 미배정 대기열에서 다음 대화를 담당하세요.",
-      "cta": "미배정으로 이동"
+      "body": "이 필터에는 답장을 기다리는 대화가 없습니다. 다른 탭을 선택하세요.",
+      "cta": "“대기 중”으로 이동",
+      "pickTitle": "대화를 선택하세요",
+      "pickBody": "왼쪽 목록에서 대화를 클릭하세요. 자동으로 열리거나 읽음 처리되지 않습니다."
     },
     "header": {
-      "summary": "공유 대기열 · 미배정 {{unassigned}}건 · 내 담당 {{mine}}건"
+      "summary": "대기열 · 답장 대기 {{waiting}} · 내 담당 {{mine}}"
     },
     "toast": {
       "claimFailed": "대화를 담당할 수 없습니다.",
@@ -1216,7 +1225,11 @@
       "translationUnavailableTitle": "번역을 사용할 수 없음",
       "translationUnavailableBody": "번역 서비스가 아직 설정되지 않았습니다. 저장된 번역은 계속 표시됩니다.",
       "translateFailed": "번역하지 못했습니다",
-      "sentUntranslated": "메시지가 원문 그대로 전송되었습니다."
+      "sentUntranslated": "메시지가 원문 그대로 전송되었습니다.",
+      "reopenFailed": "대화를 다시 열 수 없습니다.",
+      "reopened": "대화를 다시 열었습니다",
+      "kindFailed": "대화 유형을 변경할 수 없습니다.",
+      "kindChanged": "대화 유형: {{kind}}"
     },
     "media": {
       "voice": "음성 메시지",
@@ -1228,6 +1241,21 @@
     "day": {
       "today": "오늘",
       "yesterday": "어제"
+    },
+    "kind": {
+      "lead": "리드",
+      "staff": "직원",
+      "partner": "파트너",
+      "service": "서비스"
+    },
+    "deliveryErrors": {
+      "peerFlood": "Telegram 계정이 일시적으로 제한되었습니다(PEER_FLOOD) — 휴대폰에서 답장하고 @SpamBot을 확인하세요.",
+      "windowExpired": "고객이 24시간 이상 메시지를 보내지 않았습니다 — Instagram이 여기서의 전송을 허용하지 않습니다. Instagram 앱에서 답장하세요.",
+      "userbotDown": "Telegram 계정 연결이 끊겼습니다 — 메시지가 전송되지 않았습니다. 다시 시도하거나 관리자에게 알리세요.",
+      "tooLong": "메시지가 너무 깁니다(Instagram 1000자 제한) — 줄이거나 나누어 보내세요.",
+      "unsupportedMedia": "Instagram은 이미지·동영상·오디오만 받습니다 — 문서는 Telegram으로 보내세요.",
+      "blocked": "이 사용자가 우리를 차단했거나 계정이 삭제되었습니다.",
+      "unknown": "전송되지 않음 — 이유를 보려면 마우스를 올리세요."
     }
   },
   "errors": {
