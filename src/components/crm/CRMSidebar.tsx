@@ -73,8 +73,6 @@ interface CRMSidebarProps {
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
-  /** "Application fee": owner/admin/document handler, plus application_fee_access. */
-  canSeeApplicationFees?: boolean;
   user: User | null;
   onSignOut: () => void;
 }
@@ -86,7 +84,6 @@ function buildGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
-  canSeeApplicationFees: boolean = isDocumentHandler,
 ): SidebarGroup[] {
   return [
     {
@@ -105,7 +102,6 @@ function buildGroups(
         { title: 'Onlayn ariza', url: '/crm/online-application', icon: Send, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Oflayn ariza', url: '/crm/offline-application', icon: Package, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Ilova analitikasi', url: '/crm/app-analytics', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler },
-        { title: 'Application fee', url: '/crm/application-fees', icon: Receipt, visible: canSeeApplicationFees },
         { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isCallOperator || isDocumentHandler },
       ],
     },
@@ -177,7 +173,6 @@ export function CRMSidebar({
   isAdmin,
   isCallOperator,
   isDocumentHandler,
-  canSeeApplicationFees = isDocumentHandler,
   user,
   onSignOut,
 }: CRMSidebarProps) {
@@ -195,7 +190,6 @@ export function CRMSidebar({
     isDocumentHandler,
     t,
     lang,
-    canSeeApplicationFees,
   );
 
   // Whether an item's URL matches the current route (most-specific match wins
@@ -328,7 +322,6 @@ export function useSidebarGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
-  canSeeApplicationFees: boolean = isDocumentHandler,
 ): SidebarGroup[] {
   return buildGroups(
     canSeeFinance,
@@ -337,6 +330,5 @@ export function useSidebarGroups(
     isDocumentHandler,
     t,
     lang,
-    canSeeApplicationFees,
   );
 }

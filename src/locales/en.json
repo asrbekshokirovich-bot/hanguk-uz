@@ -2204,7 +2204,7 @@
   "applicationFeeAccess": {
     "title": "Separate permissions",
     "label": "Application fee section",
-    "hint": "Opens only the Application fee section without a role: view and add payments.",
+    "hint": "Opens only the Application fee block on the Universitet tanlash page without a role: view and add payments.",
     "viaRole": "Already has it through a role (owner, admin or document handler).",
     "granted": "Application fee access granted",
     "revoked": "Application fee access removed",

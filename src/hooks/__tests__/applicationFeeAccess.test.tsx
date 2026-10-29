@@ -40,29 +40,24 @@ const roleOf = async (roles: string[], tables: Record<string, boolean> = {}) => 
 };
 
 const t = (k: string) => k;
-const feeItemVisible = (r: Awaited<ReturnType<typeof roleOf>>) =>
-  buildSidebarGroups(
-    r.canSeeFinance,
-    r.isAdmin,
-    r.isCallOperator,
-    r.isDocumentHandler,
-    t,
-    'uz',
-    r.canSeeApplicationFees,
-  )
-    .flatMap((g) => g.items)
-    .find((i) => i.url === '/crm/application-fees')?.visible;
+const sidebarItems = (r: Awaited<ReturnType<typeof roleOf>>) =>
+  buildSidebarGroups(r.canSeeFinance, r.isAdmin, r.isCallOperator, r.isDocumentHandler, t, 'uz').flatMap(
+    (g) => g.items,
+  );
 
+// "Application fee" is no longer a sidebar page: it is a block of the selected
+// student on Universitet tanlash, shown when canSeeApplicationFees is true
+// (CRMPortal passes it to UniversitySelectionContent).
 describe('Application fee access', () => {
   beforeEach(() => {
     db.roles = [];
     db.tables = {};
   });
 
-  it('an owner sees the section (menu and page gate)', async () => {
+  it('an owner sees the block, and Universitet tanlash where it lives', async () => {
     const r = await roleOf(['owner']);
     expect(r.canSeeApplicationFees).toBe(true);
-    expect(feeItemVisible(r)).toBe(true);
+    expect(sidebarItems(r).find((i) => i.url === '/crm/university-selection')?.visible).toBe(true);
   });
 
   it('admin and document handler see it through their role', async () => {
@@ -73,25 +68,25 @@ describe('Application fee access', () => {
   it('a call operator does not see it without a grant', async () => {
     const r = await roleOf(['call_operator']);
     expect(r.canSeeApplicationFees).toBe(false);
-    expect(feeItemVisible(r)).toBe(false);
   });
 
   it('a call operator listed in application_fee_access sees it, and nothing else opens', async () => {
     const r = await roleOf(['call_operator'], { application_fee_access: true });
     expect(r.canSeeApplicationFees).toBe(true);
-    expect(feeItemVisible(r)).toBe(true);
     // The grant is narrow: no document-handler pages, no finance.
     expect(r.isDocumentHandler).toBe(false);
     expect(r.canSeeFinance).toBe(false);
-    const docs = buildSidebarGroups(r.canSeeFinance, r.isAdmin, r.isCallOperator, r.isDocumentHandler, t, 'uz', true)
-      .flatMap((g) => g.items)
-      .find((i) => i.url === '/crm/documents');
-    expect(docs?.visible).toBe(false);
+    const items = sidebarItems(r);
+    expect(items.find((i) => i.url === '/crm/documents')?.visible).toBe(false);
+    // A call operator already reaches Universitet tanlash, so the grant alone opens the block.
+    expect(items.find((i) => i.url === '/crm/university-selection')?.visible).toBe(true);
   });
 
-  it('callers that do not pass the new flag keep the old rule', () => {
-    const items = buildSidebarGroups(false, false, false, true, t, 'uz').flatMap((g) => g.items);
-    expect(items.find((i) => i.url === '/crm/application-fees')?.visible).toBe(true);
+  it('the sidebar has no separate Application fee page any more', async () => {
+    const r = await roleOf(['owner']);
+    const items = sidebarItems(r);
+    expect(items.find((i) => i.url === '/crm/application-fees')).toBeUndefined();
+    expect(items.find((i) => i.title === 'Application fee')).toBeUndefined();
   });
 
   it('knows which roles already carry the section', () => {

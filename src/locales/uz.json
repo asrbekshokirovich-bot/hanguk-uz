@@ -2264,7 +2264,7 @@
   "applicationFeeAccess": {
     "title": "Alohida ruxsatlar",
     "label": "Application fee bo'limi",
-    "hint": "Rol bermasdan faqat Application fee bo'limini ochadi: ko'rish va to'lov qo'shish.",
+    "hint": "Rol bermasdan faqat Universitet tanlash sahifasidagi Application fee blokini ochadi: ko'rish va to'lov qo'shish.",
     "viaRole": "Roli orqali allaqachon bor (owner, admin yoki document handler).",
     "granted": "Application fee bo'limiga ruxsat berildi",
     "revoked": "Application fee bo'limiga ruxsat olib tashlandi",

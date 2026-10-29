@@ -40,6 +40,28 @@ vi.mock('@/hooks/useUniversityChoices', async (orig) => {
 });
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
+// "Application fee" block of the selected student (StudentFeePanel).
+type FeePaymentRow = import('@/hooks/useApplicationFeePayments').FeePayment;
+let feePayments: FeePaymentRow[] = [];
+const addFee = vi.fn();
+const updateFee = vi.fn();
+const deleteFee = vi.fn();
+vi.mock('@/hooks/useApplicationFeePayments', () => ({
+  useStudentFeePayments: (id: string | null) => ({ payments: id ? feePayments : [], loading: false, error: null }),
+  useAddFeePayments: () => ({ mutateAsync: addFee, isPending: false }),
+  useUpdateFeePayment: () => ({ mutateAsync: updateFee, isPending: false }),
+  useDeleteFeePayment: () => ({ mutateAsync: deleteFee, isPending: false }),
+  useInstitutionOptions: () => ({
+    data: [{ id: 'ku', name_ko: '고려대학교', name_en: 'Korea University', city_ko: 'Seoul', is_partner: false }],
+  }),
+}));
+const feePayment = (id: string, amount: number, extra: Partial<FeePaymentRow> = {}): FeePaymentRow => ({
+  id, student_id: 'u1', institution_id: 'ku', amount_krw: amount, expense_krw: null, receipt_url: null,
+  receipt_file_name: null, created_at: '2026-10-20T00:00:00Z',
+  institution: { id: 'ku', name_ko: '고려대학교', name_en: 'Korea University', city_ko: 'Seoul' },
+  receipts: [], ...extra,
+});
+
 const guideline = (institution_id: string, ielts_min: number | null, topik_min: number | null) => ({
   id: `g-${institution_id}`, guideline_id: `g-${institution_id}`, institution_id, univ_kod: institution_id,
   univ_nomi_en: null, univ_nomi_kr: null, kampus: null, shahar: 'Seoul', qabul_yili: 2027, semestr: 'bahor',
@@ -82,7 +104,10 @@ const setup = (props: Partial<ComponentProps<typeof UniversitySelectionContent>>
 describe('UniversitySelectionContent', () => {
   beforeEach(() => {
     choices = [];
-    [add, remove, move, confirm].forEach((m) => m.mockReset());
+    feePayments = [];
+    [add, remove, move, confirm, addFee, updateFee, deleteFee].forEach((m) => m.mockReset());
+    addFee.mockResolvedValue(undefined);
+    updateFee.mockResolvedValue(undefined);
   });
 
   it('checks each university against the student score', () => {
@@ -161,5 +186,72 @@ describe('UniversitySelectionContent', () => {
     fireEvent.click(screen.getByText('Faqat mos keladigan'));
     expect(screen.getByText('Korea University')).toBeInTheDocument();
     expect(screen.queryByText('Yonsei University')).not.toBeInTheDocument();
+  });
+
+  describe('Application fee block', () => {
+    it('is hidden without application fee access', () => {
+      feePayments = [feePayment('p1', 100000)];
+      setup();
+      expect(screen.queryByTestId('fee-panel')).not.toBeInTheDocument();
+      expect(screen.queryByText("App fee qo'shish")).not.toBeInTheDocument();
+    });
+
+    it("lists the selected student's payments inside the student card and edits one", async () => {
+      feePayments = [
+        feePayment('p1', 100000, { expense_krw: 90000, receipts: [{ url: 'https://x/chek.pdf', fileName: 'chek.pdf' }] }),
+      ];
+      setup({ canSeeApplicationFees: true });
+      const panel = screen.getByTestId('fee-panel');
+      // The block sits in the same card as the chosen universities, under them.
+      expect(panel.closest('.space-y-3.p-5')).toBe(screen.getByText('Tanlangan universitetlar').closest('.space-y-3.p-5'));
+      expect(within(panel).getByText('Application fee')).toBeInTheDocument();
+      expect(within(panel).getByText("1 ta to'lov")).toBeInTheDocument();
+      const row = within(panel).getByTestId('fee-row');
+      expect(within(row).getByText('Korea University')).toBeInTheDocument();
+      expect(within(row).getByText('₩100,000')).toBeInTheDocument();
+      expect(within(row).getByText(/Chiqim: ₩90,000/)).toBeInTheDocument();
+      expect(within(row).getByRole('link', { name: 'chek' })).toHaveAttribute('href', 'https://x/chek.pdf');
+
+      fireEvent.click(within(row).getByLabelText('Tahrirlash'));
+      const amount = within(panel).getByPlaceholderText('Masalan: 100000') as HTMLInputElement;
+      expect(amount.value).toBe('100000');
+      fireEvent.change(amount, { target: { value: '120000' } });
+      fireEvent.click(within(panel).getByText('Yangilash'));
+      expect(updateFee).toHaveBeenCalledWith({
+        id: 'p1',
+        studentId: 'u1',
+        update: {
+          institution_id: 'ku',
+          amount_krw: 120000,
+          expense_krw: 90000,
+          receipts: [{ url: 'https://x/chek.pdf', fileName: 'chek.pdf' }],
+        },
+      });
+      // Saved → the row leaves edit mode.
+      await waitFor(() => expect(within(panel).queryByText('Yangilash')).not.toBeInTheDocument());
+    });
+
+    it('adds a payment: university from the picker, amount, save', async () => {
+      setup({ canSeeApplicationFees: true });
+      const panel = screen.getByTestId('fee-panel');
+      expect(within(panel).getByText("Hali to'lov qo'shilmagan")).toBeInTheDocument();
+
+      fireEvent.click(within(panel).getByText("App fee qo'shish"));
+      fireEvent.click(within(panel).getByRole('button', { name: /Tanlash/ }));
+      const dialog = await screen.findByRole('dialog');
+      fireEvent.click(within(dialog).getByText('Korea University'));
+
+      fireEvent.change(within(panel).getByPlaceholderText('Masalan: 100000'), { target: { value: '150000' } });
+      fireEvent.click(within(panel).getByText('Saqlash'));
+      await waitFor(() =>
+        expect(addFee).toHaveBeenCalledWith({
+          studentId: 'u1',
+          entries: [{ institution_id: 'ku', amount_krw: 150000, expense_krw: null, receipts: [] }],
+        }),
+      );
+      // Saved → the form closes and the button is back.
+      await waitFor(() => expect(within(panel).getByText("App fee qo'shish")).toBeInTheDocument());
+      expect(within(panel).queryByText('Saqlash')).not.toBeInTheDocument();
+    });
   });
 });
