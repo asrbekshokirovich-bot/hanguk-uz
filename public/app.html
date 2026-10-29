@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HANGUK ilovasi</title>
+<title>HANGUK ilovasi — App Store va Google Play</title>
+<meta name="description" content="HANGUK ilovasini yuklab oling: Koreya universitetlari, muddatlar, TOPIK va hujjatlar — bitta ilovada.">
+<meta property="og:title" content="HANGUK ilovasi">
+<meta property="og:description" content="Koreyaga yo‘l cho‘ntagingizda. iOS va Android uchun.">
+<meta property="og:image" content="https://hanguk.uz/app-assets/app-demo-poster.jpg">
+<meta property="og:url" content="https://hanguk.uz/app">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico">
 <script>
 (function () {
   var PKG = "com.hanguk.studentapp.hanguk_app";
@@ -13,39 +20,144 @@
   var PLAY_INTENT = "intent://details?id=" + PKG +
     "#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=" +
     encodeURIComponent(PLAY_WEB) + ";end";
-
   var ua = navigator.userAgent || "";
   var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   var isAndroid = /Android/i.test(ua);
-
   if (isIOS) {
     location.replace(IOS);
   } else if (isAndroid) {
     location.replace(PLAY_INTENT);
-    // Some in-app browsers (e.g. Instagram) block intent:// — fall back to the web Play link
-    setTimeout(function () { location.replace(PLAY_WEB); }, 1200);
+    setTimeout(function () { location.replace(PLAY_WEB); }, 1200); // in-app browsers that block intent://
   } else {
     document.documentElement.className = "desktop";
   }
 })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap">
 <style>
   html:not(.desktop) body{display:none}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f172a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;margin:0;padding:24px 16px;text-align:center}
-  .c{max-width:360px;width:100%}
-  .logo{width:80px;height:80px;border-radius:20px;margin:0 auto 16px;display:block}
-  p{color:#94a3b8;font-size:14px;margin:0 0 22px}
-  h1{font-size:22px;margin:0 0 20px}
-  a{display:block;padding:14px;border-radius:12px;background:#fff;color:#0f172a;text-decoration:none;font-weight:600;margin-bottom:12px}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0b1327;color:#fff;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:#D4E94C;text-decoration:none}a:hover{color:#fff}
+  .page{position:relative;overflow:hidden;min-height:100vh;
+    background:radial-gradient(ellipse 60% 50% at 78% 38%,rgba(46,95,224,.35) 0%,rgba(46,95,224,0) 70%),linear-gradient(160deg,#0f172a 0%,#132a5e 50%,#1e3a8a 100%)}
+  .bg-mark{position:absolute;right:-60px;top:-40px;width:760px;height:760px;object-fit:contain;opacity:.05;pointer-events:none;user-select:none}
+  .bg-glow{position:absolute;right:120px;top:120px;width:720px;height:720px;border-radius:50%;background:radial-gradient(circle,rgba(212,233,76,.16) 0%,rgba(212,233,76,0) 62%);pointer-events:none}
+  .wrap{max-width:1440px;margin:0 auto}
+  .hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:96px;align-items:center;padding:40px 96px 64px;min-height:820px}
+  .copy{max-width:640px}
+  .brand{display:flex;align-items:center;gap:16px;margin-bottom:72px}
+  .brand img.mark{width:48px;height:48px;object-fit:contain}
+  .brand img.word{height:30px;width:auto}
+  .eyebrow{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#D4E94C;margin-bottom:24px}
+  .eyebrow i{width:28px;height:2px;background:#D4E94C}
+  h1{margin:0 0 22px;font-size:54px;font-weight:800;letter-spacing:-.035em;line-height:1.08}
+  h1 span{display:block}
+  h1 em{font-style:normal;color:#D4E94C}
+  .lead{margin:0 0 40px;font-size:21px;font-weight:500;line-height:1.5;color:rgba(255,255,255,.72);max-width:520px}
+  .badges{display:flex;align-items:center;gap:16px;margin-bottom:40px;flex-wrap:wrap}
+  .badges a{display:block;height:64px;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);outline:1.5px solid rgba(255,255,255,.22);transition:transform .15s}
+  .badges a:hover{transform:translateY(-2px)}
+  .badges img{height:64px;width:auto;display:block}
+  .qr{display:flex;align-items:center;gap:20px}
+  .qr-box{flex:none;width:128px;height:128px;border-radius:16px;background:#fff;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+  .qr-box img{width:100%;height:100%;display:block}
+  .qr b{display:block;font-size:18px;font-weight:700;line-height:1.2;margin-bottom:6px}
+  .qr span{font-size:15px;font-weight:500;line-height:1.3;color:rgba(255,255,255,.6)}
+  .phone-wrap{position:relative;display:flex;justify-content:center;align-items:center}
+  .phone{zoom:.76;filter:drop-shadow(0 50px 80px rgba(0,0,0,.5))}
+  .shell{position:relative;width:412px;height:912px;border-radius:52px;background:#0a0f1e;padding:12px;box-shadow:0 0 0 2px #1c2742,inset 0 0 0 1.5px rgba(255,255,255,.08)}
+  .shell i{position:absolute;right:-3px;width:3px;border-radius:2px;background:#1c2742}
+  .screen{position:relative;width:388px;height:888px;border-radius:42px;overflow:hidden;background:#0f1d4a}
+  .screen video{position:absolute;left:0;top:0;width:388px;height:859px;display:block;object-fit:cover;pointer-events:none}
+  .screen .chin{position:absolute;left:0;right:0;bottom:0;height:46px;background:#0f1d4a}
+  .screen .bar{position:absolute;left:50%;bottom:12px;width:120px;height:4px;margin-left:-60px;border-radius:2px;background:rgba(255,255,255,.55)}
+  .screen .cam{position:absolute;left:50%;top:14px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:#000;box-shadow:inset 0 0 0 2px #0a0f1e}
+  .features{position:relative;padding:24px 96px 96px}
+  .features header{max-width:620px;margin-bottom:40px}
+  .features header span{display:block;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#D4E94C;margin-bottom:12px}
+  h2{margin:0;font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+  .card{display:flex;flex-direction:column;gap:22px;padding:28px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+  .ico{width:52px;height:52px;border-radius:14px;background:#0B1D4D;border:1px solid rgba(212,233,76,.3);display:inline-flex;align-items:center;justify-content:center}
+  .ico svg{width:26px;height:26px;fill:none;stroke:#D4E94C;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .card b{display:block;font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.2;margin-bottom:8px}
+  .card p{margin:0;font-size:15.5px;font-weight:500;line-height:1.5;color:rgba(255,255,255,.66)}
+  footer{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:28px 96px 36px;border-top:1px solid rgba(255,255,255,.1);flex-wrap:wrap}
+  footer .l{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  footer .l img{height:20px;width:auto;opacity:.9}
+  footer .l a{font-size:15px;font-weight:700;color:#fff}
+  footer .l span{font-size:14px;font-weight:500;color:rgba(255,255,255,.45)}
+  footer .r{display:flex;align-items:center;gap:28px}
+  footer .r a{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:rgba(255,255,255,.85)}
+  footer .r svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  @media (max-width:1200px){
+    .hero{grid-template-columns:1fr;gap:48px;padding:40px 48px 48px;min-height:0}
+    .phone-wrap{order:-1}.phone{zoom:.55}
+    .brand{margin-bottom:40px}h1{font-size:44px}
+    .features,footer{padding-left:48px;padding-right:48px}
+    .grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:640px){
+    .hero,.features,footer{padding-left:20px;padding-right:20px}
+    h1{font-size:34px}h1 span{white-space:normal}.lead{font-size:17px}
+    .grid{grid-template-columns:1fr}.phone{zoom:.42}
+  }
 </style>
 </head>
 <body>
-  <div class="c">
-    <img src="/brand-mark.png" alt="HANGUK" class="logo">
-    <h1>HANGUK ilovasini yuklab oling</h1>
-    <p>Telefoningizdan ochsangiz, do'kon avtomatik ochiladi.</p>
-    <a href="https://apps.apple.com/uz/app/hanguk/id6759643305">App Store (iPhone)</a>
-    <a href="https://play.google.com/store/apps/details?id=com.hanguk.studentapp.hanguk_app">Google Play (Android)</a>
+<div class="page">
+  <img class="bg-mark" src="/app-assets/brand-mark.png" alt="">
+  <div class="bg-glow"></div>
+  <div class="wrap">
+    <section class="hero">
+      <div class="copy">
+        <div class="brand"><img class="mark" src="/app-assets/brand-mark.png" alt=""><img class="word" src="/app-assets/brand-wordmark.png" alt="Hanguk"></div>
+        <div class="eyebrow"><i></i>iOS va Android uchun</div>
+        <h1><span>HANGUK ilovasi —</span><span>Koreyaga yo‘l <em>cho‘ntagingizda</em></span></h1>
+        <p class="lead">Arizalar, muddatlar va TOPIK tayyorgarligi — hammasi bitta ilovada.</p>
+        <div class="badges">
+          <a href="https://apps.apple.com/uz/app/hanguk/id6759643305" target="_blank" rel="noopener"><img src="/app-assets/badge-appstore.svg" alt="Download on the App Store"></a>
+          <a href="https://play.google.com/store/apps/details?id=com.hanguk.studentapp.hanguk_app" target="_blank" rel="noopener"><img src="/app-assets/badge-googleplay.svg" alt="Get it on Google Play"></a>
+        </div>
+        <div class="qr">
+          <div class="qr-box"><img src="/app-assets/app-qr.svg" alt="QR: hanguk.uz/app"></div>
+          <div><b>Telefon bilan skanerlang</b><span>hanguk.uz/app — to‘g‘ridan-to‘g‘ri do‘konga olib boradi</span></div>
+        </div>
+      </div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="shell">
+            <i style="top:180px;height:60px"></i><i style="top:260px;height:100px"></i>
+            <div class="screen">
+              <video src="/app-assets/app-demo.mp4" poster="/app-assets/app-demo-poster.jpg" muted autoplay loop playsinline preload="metadata"></video>
+              <div class="chin"></div><div class="bar"></div><div class="cam"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <header><span>Ilovada nimalar bor</span><h2>Qabulning har bir bosqichi — bitta ekranda</h2></header>
+      <div class="grid">
+        <div class="card"><span class="ico"><svg viewBox="0 0 24 24"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"/><path d="m21 21-4.3-4.3"/></svg></span><div><b>Universitet qidiruv</b><p>200+ universitet: shahar, yo‘nalish, TOPIK darajasi va kontrakt bo‘yicha filtr.</p></div></div>
+        <div class="card"><span class="ico"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg></span><div><b>Muddatlar</b><p>Ariza oynalari Toshkent vaqtida, eslatmalar 7 va 1 kun oldin.</p></div></div>
+        <div class="card"><span class="ico"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span><div><b>TOPIK mashqlari</b><p>Har kuni 10 daqiqa: lug‘at, grammatika, tinglash — darajangizga mos.</p></div></div>
+        <div class="card"><span class="ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></span><div><b>Hujjatlar</b><p>Hujjatlar ro‘yxati, yuklash va tekshiruv holati — bir joyda.</p></div></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="l"><img src="/app-assets/brand-wordmark.png" alt="Hanguk"><a href="https://hanguk.uz">hanguk.uz</a><span>© 2026 HANGUK Consulting · Toshkent</span></div>
+      <div class="r">
+        <a href="https://t.me/hangukuz_consulting" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>Telegram</a>
+        <a href="https://instagram.com/hanguk_consulting" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" style="fill:currentColor"/></svg>Instagram</a>
+      </div>
+    </footer>
   </div>
+</div>
 </body>
 </html>
