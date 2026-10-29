@@ -73,7 +73,6 @@ interface CRMSidebarProps {
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
-  canReviewUniDb?: boolean;
   /** "Application fee": owner/admin/document handler, plus application_fee_access. */
   canSeeApplicationFees?: boolean;
   user: User | null;
@@ -85,7 +84,6 @@ function buildGroups(
   isAdmin: boolean,
   isCallOperator: boolean,
   isDocumentHandler: boolean,
-  canReviewUniDb: boolean,
   t: (key: string) => string,
   lang: string,
   canSeeApplicationFees: boolean = isDocumentHandler,
@@ -164,13 +162,6 @@ function buildGroups(
       visible: isAdmin,
       items: [
         { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: isAdmin },
-        {
-          title: 'Review',
-          url: '/crm/admin/uni-db-review',
-          icon: ClipboardCheck,
-          visible: canReviewUniDb && isAdmin,
-          highlight: true,
-        },
         // uni_db bazasini boshqarish (hamkor/xarita bayroqlari, PDF guideline).
         // Xodimlar ko'radigan katalog — "Asosiy" guruhidagi Universitetlar.
         { title: 'Institutions (uni_db)', url: '/crm/admin/institutions', icon: Building2, visible: isAdmin },
@@ -186,7 +177,6 @@ export function CRMSidebar({
   isAdmin,
   isCallOperator,
   isDocumentHandler,
-  canReviewUniDb = false,
   canSeeApplicationFees = isDocumentHandler,
   user,
   onSignOut,
@@ -203,7 +193,6 @@ export function CRMSidebar({
     isAdmin,
     isCallOperator,
     isDocumentHandler,
-    canReviewUniDb,
     t,
     lang,
     canSeeApplicationFees,
@@ -339,7 +328,6 @@ export function useSidebarGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
-  canReviewUniDb = false,
   canSeeApplicationFees: boolean = isDocumentHandler,
 ): SidebarGroup[] {
   return buildGroups(
@@ -347,7 +335,6 @@ export function useSidebarGroups(
     isAdmin,
     isCallOperator,
     isDocumentHandler,
-    canReviewUniDb,
     t,
     lang,
     canSeeApplicationFees,

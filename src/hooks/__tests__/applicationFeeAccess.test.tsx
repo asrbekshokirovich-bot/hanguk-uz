@@ -48,7 +48,6 @@ const feeItemVisible = (r: Awaited<ReturnType<typeof roleOf>>) =>
     r.isDocumentHandler,
     t,
     'uz',
-    false,
     r.canSeeApplicationFees,
   )
     .flatMap((g) => g.items)
@@ -84,7 +83,7 @@ describe('Application fee access', () => {
     // The grant is narrow: no document-handler pages, no finance.
     expect(r.isDocumentHandler).toBe(false);
     expect(r.canSeeFinance).toBe(false);
-    const docs = buildSidebarGroups(r.canSeeFinance, r.isAdmin, r.isCallOperator, r.isDocumentHandler, t, 'uz', false, true)
+    const docs = buildSidebarGroups(r.canSeeFinance, r.isAdmin, r.isCallOperator, r.isDocumentHandler, t, 'uz', true)
       .flatMap((g) => g.items)
       .find((i) => i.url === '/crm/documents');
     expect(docs?.visible).toBe(false);

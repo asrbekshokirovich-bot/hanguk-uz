@@ -47,7 +47,6 @@ import '../../features/map/presentation/map_deeplink_provider.dart';
 import '../../features/map/presentation/widgets/university_roadview_screen.dart';
 import '../../features/surveys/presentation/surveys_screen.dart';
 import '../../features/surveys/presentation/survey_detail_screen.dart';
-import '../../features/uni_db/presentation/admin_review_screen.dart';
 import '../../features/uni_db/presentation/application_tracker_screen.dart';
 import '../../features/uni_db/presentation/institution_compare_screen.dart';
 import '../../features/uni_db/presentation/institution_detail_screen.dart';
@@ -364,10 +363,6 @@ List<RouteBase> _uniDbRoutes() => [
   GoRoute(
     path: '/notifications/settings',
     builder: (context, state) => const NavScaffold(current: -1, child: NotificationSettingsScreen()),
-  ),
-  GoRoute(
-    path: '/admin/review',
-    builder: (context, state) => const AdminReviewScreen(),
   ),
 ];
 

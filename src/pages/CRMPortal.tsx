@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
 import { useCRMData, type CRMStudent } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
@@ -69,7 +68,6 @@ const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfile
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
-const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
 const InvestorDeskContent = lazy(() => import('@/components/crm/pages/InvestorDeskContent'));
@@ -106,7 +104,6 @@ export default function CRMPortal() {
     canSeeApplicationFees,
     loading: roleLoading,
   } = useUserRole();
-  const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
     universities,
@@ -142,7 +139,6 @@ export default function CRMPortal() {
     isDocumentHandler,
     t,
     currentLang,
-    canReviewUniDb,
     canSeeApplicationFees,
   );
 
@@ -193,7 +189,6 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/intakes')) return 'intakes';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
-    if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     if (currentPath.startsWith('/crm/admin/institutions')) return 'institutions';
     if (currentPath.startsWith('/crm/surveys')) return 'surveys';
     if (currentPath.startsWith('/crm/investor-desk')) return 'investor-desk';
@@ -505,8 +500,6 @@ export default function CRMPortal() {
         return <SafeSuspense><ManageIntakesContent /></SafeSuspense>;
       case 'kakao-map':
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
-      case 'uni-db-review':
-        return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
       case 'surveys':
         return <SafeSuspense><SurveysContent /></SafeSuspense>;
       case 'investor-desk':
@@ -539,7 +532,6 @@ export default function CRMPortal() {
             isAdmin={isAdmin}
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
-            canReviewUniDb={canReviewUniDb}
             canSeeApplicationFees={canSeeApplicationFees}
             user={user}
             onSignOut={handleSignOut}

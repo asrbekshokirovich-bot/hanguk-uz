@@ -17,7 +17,6 @@ import '../../auth/data/auth_repository.dart';
 import '../../entry/data/entry_store.dart';
 import '../../entry/presentation/language_sheet.dart';
 import '../../training/presentation/study_plan_screen.dart';
-import '../../uni_db/data/admin_review_providers.dart';
 import '../../../features/discover/presentation/widgets/app_nav.dart';
 
 /// Account management screen — sign out and (irreversibly) delete the
@@ -304,16 +303,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       ),
                     )),
                   ),
-                  if (ref.watch(canReviewUniDbProvider).value ?? false) ...[
-                    const SizedBox(height: 10),
-                    SeoulOutlineButton(
-                      icon: Icons.fact_check_outlined,
-                      label: (ref.watch(reviewQueueCountProvider).value ?? 0) > 0
-                          ? 'Review (${ref.watch(reviewQueueCountProvider).value})'
-                          : 'Review',
-                      onPressed: tracked('account.to_admin_review', () => context.push('/admin/review')),
-                    ),
-                  ],
                 ],
               ),
             ),
