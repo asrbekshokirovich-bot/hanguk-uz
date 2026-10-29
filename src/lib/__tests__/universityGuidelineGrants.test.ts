@@ -60,21 +60,21 @@ describe('grantlar varag‘i (v4) — haqiqiy fayl', () => {
     });
   });
 
-  it('grantlar varag‘i bo‘lmagan (v2/v3) faylda grantlar yuborilmaydi — bazadagilar saqlanadi', async () => {
+  it('grantlar varag‘i bo‘lmagan eski (v2/v3) fayl qabul qilinmaydi', async () => {
     const r = await parseGuidelineWorkbook(fixture('jbnu_2027_bahor_bakalavr.xlsx'), 'jbnu.xlsx');
-    expect(r.ok).toBe(true);
-    expect(r.payload).not.toHaveProperty('grantlar');
-    expect(r.warnings.some((w) => w.includes('format'))).toBe(false);
+    expect(r.ok).toBe(false);
+    expect(r.notTemplate).toBe(true);
+    expect(r.errors).toEqual(['Faylda varaq yetishmaydi: grantlar']);
   });
 
-  it('v4 faylda grantlar varag‘i o‘chirilgan bo‘lsa — ogohlantiradi', async () => {
+  it('v4 faylda grantlar varag‘i o‘chirilgan bo‘lsa — qabul qilinmaydi', async () => {
     const zip = await JSZip.loadAsync(fixture(UST));
     const wb = await zip.file('xl/workbook.xml')!.async('string');
     zip.file('xl/workbook.xml', wb.replace(/<sheet [^>]*name="grantlar"[^>]*\/>/, ''));
     const r = await parseGuidelineWorkbook(await zip.generateAsync({ type: 'arraybuffer' }), UST);
-    expect(r.ok).toBe(true);
-    expect(r.payload).not.toHaveProperty('grantlar');
-    expect(r.warnings).toContain('Fayl formati v4, lekin "grantlar" varag\'i yo\'q — bazadagi grantlar o\'zgarmadi');
+    expect(r.ok).toBe(false);
+    expect(r.notTemplate).toBe(true);
+    expect(r.errors).toEqual(['Faylda varaq yetishmaydi: grantlar']);
   });
 });
 

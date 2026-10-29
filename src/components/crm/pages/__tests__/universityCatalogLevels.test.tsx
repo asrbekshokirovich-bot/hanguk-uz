@@ -111,7 +111,8 @@ vi.mock('@/hooks/useUniversityCatalog', () => ({
   useCatalogExtras: () => ({ extras: { faculties: new Map() }, loading: false, error: null }),
 }));
 
-vi.mock('@/lib/universityGuidelineExcel', () => ({
+vi.mock('@/lib/universityGuidelineExcel', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/universityGuidelineExcel')>()),
   parseGuidelineWorkbook: async () => mocks.parsed,
 }));
 
@@ -231,6 +232,10 @@ describe('Universitetlar — universitet panelidan Excel yuklash', () => {
       errors: [],
       warnings: [],
     };
+    await pickFileInPanel(university, level);
+  }
+
+  async function pickFileInPanel(university: string, level = KASBIY) {
     const { container } = render(<UniversityCatalogContent />);
     fireEvent.click(screen.getByText(university));
     const sheet = screen.getByRole('dialog');
@@ -277,5 +282,24 @@ describe('Universitetlar — universitet panelidan Excel yuklash', () => {
     expect(mocks.mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ institutionId: 'yonsei' }));
     // Til kursida fakultetlar varag'idagi qatorlar — kurslar.
     expect(await screen.findByText('2 kurs')).toBeInTheDocument();
+  });
+
+  it('shablon formatida bo‘lmagan fayl yuklanmaydi — xato va shablonni yuklab olish havolasi chiqadi', async () => {
+    mocks.parsed = {
+      ok: false,
+      payload: null,
+      errors: ['Faylda varaq yetishmaydi: grantlar'],
+      warnings: [],
+      notTemplate: true,
+    };
+    await pickFileInPanel('Yeungjin University');
+
+    expect(await screen.findByText(/Faylda varaq yetishmaydi: grantlar/)).toBeInTheDocument();
+    expect(screen.getByText(/Sayt faqat HANGUK guideline shabloni \(v4\) formatidagi faylni qabul qiladi/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Shablonni yuklab olish' })).toHaveAttribute(
+      'href',
+      '/templates/universitet-guideline-shablon.xlsx',
+    );
+    expect(mocks.mutateAsync).not.toHaveBeenCalled();
   });
 });

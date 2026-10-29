@@ -39,7 +39,7 @@ import {
   useUniversityCatalog,
   type CatalogEntry,
 } from '@/hooks/useUniversityCatalog';
-import { parseGuidelineWorkbook } from '@/lib/universityGuidelineExcel';
+import { parseGuidelineWorkbook, TEMPLATE_NAME, TEMPLATE_URL } from '@/lib/universityGuidelineExcel';
 import {
   AlertTriangle,
   GraduationCap,
@@ -107,6 +107,8 @@ interface UploadReport {
   imported: { muddatlar: number; fakultetlar: number; hujjatlar: number; grantlar: number | null } | null;
   /** Fakultetlar varag'idagi qatorlar nomi — til kursida "kurs". */
   facultyNoun?: string;
+  /** Fayl shablon formatida emas — shablonni yuklab olish havolasi chiqadi. */
+  notTemplate?: boolean;
 }
 
 const emptyNewInstitution = {
@@ -217,7 +219,13 @@ export default function UniversityCatalogContent() {
 
     const parsed = await parseGuidelineWorkbook(await file.arrayBuffer(), file.name);
     if (!parsed.ok || !parsed.payload) {
-      setReport({ fileName: file.name, errors: parsed.errors, warnings: parsed.warnings, imported: null });
+      setReport({
+        fileName: file.name,
+        errors: parsed.errors,
+        warnings: parsed.warnings,
+        imported: null,
+        notTemplate: parsed.notTemplate,
+      });
       return;
     }
 
@@ -501,6 +509,15 @@ export default function UniversityCatalogContent() {
                   <Badge variant="successSoft">{report.imported.grantlar} grant</Badge>
                 )}
               </div>
+            )}
+
+            {report?.notTemplate && (
+              <p className="text-sm">
+                Sayt faqat {TEMPLATE_NAME} formatidagi faylni qabul qiladi.{' '}
+                <a href={TEMPLATE_URL} download className="font-medium text-primary hover:underline">
+                  Shablonni yuklab olish
+                </a>
+              </p>
             )}
 
             {report && report.errors.length > 0 && (
