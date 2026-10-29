@@ -132,6 +132,27 @@ export function useUniversityChoices() {
     return map;
   }, [wishesQuery.data]);
 
+  /**
+   * A confirmed university may be changed once per student, and only by the
+   * admins and Omina (Asrbek, 2026-10-29) — public.unlock_confirmed_choice.
+   */
+  const canChangeQuery = useQuery<boolean, Error>({
+    queryKey: [...KEY, 'can-change-confirmed'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('can_change_confirmed_choice' as never);
+      if (error) throw new Error(error.message);
+      return data === true;
+    },
+  });
+
+  const changesQuery = useQuery<Set<string>, Error>({
+    queryKey: [...KEY, 'changes'],
+    queryFn: async () => {
+      const rows = ((await run(db.from('university_choice_changes').select('student_id'))) ?? []) as { student_id: string }[];
+      return new Set(rows.map((r) => r.student_id));
+    },
+  });
+
   const invalidate = () => qc.invalidateQueries({ queryKey: [...KEY, 'choices'] });
 
   /**
@@ -197,6 +218,21 @@ export function useUniversityChoices() {
     onSettled: invalidate,
   });
 
+  /** The one change of a confirmed university: frees the slot for a new pick. */
+  const unlockConfirmed = useMutation({
+    mutationFn: async (choice: UniversityChoice) => {
+      const { error } = await supabase.rpc('unlock_confirmed_choice' as never, { p_choice_id: choice.id } as never);
+      if (error) throw new Error(error.message);
+      if (choice.rank === PARTNER_RANK) return;
+      const rest = (byStudent.get(choice.student_id) ?? []).filter((c) => c.id !== choice.id && c.rank !== PARTNER_RANK);
+      await writeRanks(rest);
+    },
+    onSettled: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: [...KEY, 'changes'] });
+    },
+  });
+
   /** Swap a choice with its neighbour (direction -1 = up, +1 = down). */
   const move = useMutation({
     mutationFn: async ({ choice, direction }: { choice: UniversityChoice; direction: -1 | 1 }) => {
@@ -220,5 +256,8 @@ export function useUniversityChoices() {
     remove,
     move,
     confirm,
+    unlockConfirmed,
+    canChangeConfirmed: canChangeQuery.data === true,
+    changedStudents: changesQuery.data ?? new Set<string>(),
   };
 }
