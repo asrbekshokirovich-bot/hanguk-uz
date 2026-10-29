@@ -6,9 +6,12 @@ import { useVoiceRecorder, type VoiceRecording } from '@/hooks/useVoiceRecorder'
 import { SavedRepliesPanel } from './SavedRepliesPanel';
 import { SEND_LANGUAGES } from './languages';
 import { SendLanguageChips } from './SendLanguageChips';
-import type { SavedReply, SendLanguage } from './types';
+import { fillReply, matchReplies, useSavedReplies, type SavedReplyRow } from './useSavedReplies';
+import type { SendLanguage } from './types';
 
 interface ComposerProps {
+  /** The person's name, for {{ism}} in saved replies. */
+  recipientName?: string | null;
   onSend: (
     text: string,
     options: {
@@ -44,8 +47,9 @@ const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
  * Internal-note mode paints the composer amber and switches the send path to a
  * note write, which is stored on the thread but never relayed to the channel.
  */
-export function Composer({ onSend }: ComposerProps) {
+export function Composer({ onSend, recipientName }: ComposerProps) {
   const { t } = useTranslation();
+  const { replies } = useSavedReplies();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState('');
   const [noteMode, setNoteMode] = useState(false);
@@ -167,9 +171,16 @@ export function Composer({ onSend }: ComposerProps) {
     else setFile(wasFile);
   };
 
+  const shownReplies = matchReplies(replies, draft);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      // "/docs" + Enter inserts the template instead of sending the key.
+      if (showSnippets && draft.trim().startsWith('/') && shownReplies.length === 1) {
+        pickReply(shownReplies[0]);
+        return;
+      }
       void submit();
     }
     if (e.key === 'Escape' && showSnippets) {
@@ -190,8 +201,8 @@ export function Composer({ onSend }: ComposerProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [showSnippets]);
 
-  const pickReply = (reply: SavedReply) => {
-    setDraft(reply.body);
+  const pickReply = (reply: SavedReplyRow) => {
+    setDraft(fillReply(reply.body, recipientName));
     setShowSnippets(false);
     textareaRef.current?.focus();
   };
@@ -204,7 +215,7 @@ export function Composer({ onSend }: ComposerProps) {
           flow pushed the Send button below the fold (finding 17). */}
       {showSnippets && (
         <div className="absolute bottom-full left-6 right-6 z-20 mb-1">
-          <SavedRepliesPanel onPick={pickReply} onClose={() => setShowSnippets(false)} />
+          <SavedRepliesPanel replies={shownReplies} onPick={pickReply} onClose={() => setShowSnippets(false)} />
         </div>
       )}
 
@@ -299,6 +310,7 @@ export function Composer({ onSend }: ComposerProps) {
             const value = e.target.value;
             setDraft(value);
             if (value.trim() === '/') setShowSnippets(true);
+            else if (showSnippets && !value.trim().startsWith('/') && value.trim() !== '') setShowSnippets(false);
           }}
           onKeyDown={handleKeyDown}
           placeholder={t('messages.composer.placeholder')}

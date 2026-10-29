@@ -19,6 +19,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { SavedRepliesSettings } from '@/components/crm/messages/SavedRepliesSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Settings, 
@@ -38,7 +39,8 @@ import {
   Building2,
   Key,
   Loader2,
-  Plug
+  Plug,
+  Zap,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import IntegrationsSettings from '@/components/crm/pages/IntegrationsSettings';
@@ -185,7 +187,7 @@ export default function SettingsContent() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -197,6 +199,10 @@ export default function SettingsContent() {
           <TabsTrigger value="integrations" className="flex items-center gap-2">
             <Plug className="h-4 w-4" />
             <span className="hidden sm:inline">Integrations</span>
+          </TabsTrigger>
+          <TabsTrigger value="saved-replies" className="flex items-center gap-2">
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('messages.composer.savedReplies')}</span>
           </TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
@@ -417,6 +423,21 @@ export default function SettingsContent() {
             </CardHeader>
             <CardContent>
               <IntegrationsSettings />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Saved replies (CRM → Xabarlar composer) */}
+        <TabsContent value="saved-replies" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                {t('messages.composer.savedReplies')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SavedRepliesSettings canEdit={isAdmin} />
             </CardContent>
           </Card>
         </TabsContent>

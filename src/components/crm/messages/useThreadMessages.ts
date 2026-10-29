@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useStaffMentions } from '@/hooks/useStaffMentions';
 import type { Message } from '@/contexts/MessagesContext';
-import { formatDayMonth, looksNonEnglish } from './queueLogic';
+import { formatDayMonth } from './queueLogic';
+import { needsTranslation } from './detectLanguage';
 import { extractMedia, isMediaPlaceholder } from './media';
 import { readCachedTranslation } from './translateMessage';
 import type { MessageVM } from './types';
@@ -69,7 +70,20 @@ export function useThreadMessages(messages: Message[]) {
         text,
         media,
         createdAt: m.created_at,
-        senderLabel: kind === 'in' ? null : (staffId ? staffNames.get(staffId) ?? null : null),
+        // Who wrote an outgoing message. A reply from the CRM carries the staff
+        // member; one typed in the Telegram/Instagram app on the shared
+        // account carries nobody, and says so instead of showing nothing
+        // (audit 2026-10-29, finding 6).
+        senderLabel:
+          kind === 'in'
+            ? null
+            : staffId
+              ? staffNames.get(staffId) ?? null
+              : kind === 'out'
+                ? m.metadata?.auto_reply
+                  ? t('messages.thread.autoReply')
+                  : t('messages.thread.fromPhone')
+                : null,
         // Real delivery lifecycle (sending → sent / failed) written by the
         // send functions and the userbot triggers; legacy rows fall back to
         // 'sent' so old history doesn't render as unconfirmed.
@@ -77,7 +91,7 @@ export function useThreadMessages(messages: Message[]) {
         deliveryError: kind === 'out' ? m.delivery_error ?? null : null,
         pending: kind === 'out' && m.delivery_status === 'sending',
         translation: readCachedTranslation(m.metadata),
-        translatable: !media && looksNonEnglish(m.content),
+        translatable: !media && needsTranslation(m.content, i18n.language),
         edited: !!m.metadata?.edited,
         originalText: typeof m.metadata?.original_content === 'string' ? m.metadata.original_content : null,
         deleted: !!m.metadata?.deleted,
@@ -85,7 +99,7 @@ export function useThreadMessages(messages: Message[]) {
     }
 
     return out;
-  }, [messages, staffNames, i18n.language]);
+  }, [messages, staffNames, i18n.language, t]);
 }
 
 /**

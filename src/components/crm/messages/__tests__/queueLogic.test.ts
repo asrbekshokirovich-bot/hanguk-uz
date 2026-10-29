@@ -92,6 +92,15 @@ describe('filterConversations + stale rule', () => {
     const h = vm({ handle: '@malika_ysp', name: 'Malika' });
     expect(filterConversations([h], 'all', 'all', 'malika_').length).toBe(1);
   });
+  it('a search ignores the tab and adds what the server found (phone)', () => {
+    const closed = vm({ threadId: 'closed', isDone: true, name: 'Lobar' });
+    const byPhone = vm({ threadId: 'phone', name: 'Zarina' });
+    expect(filterConversations([closed], 'waiting', 'all', 'lobar').length).toBe(1);
+    expect(filterConversations([byPhone], 'waiting', 'all', '941643900').length).toBe(0);
+    expect(
+      filterConversations([byPhone], 'waiting', 'all', '941643900', { serverMatches: new Set(['phone']) }).length,
+    ).toBe(1);
+  });
 });
 
 describe('sortConversations', () => {
