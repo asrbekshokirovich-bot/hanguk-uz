@@ -83,7 +83,7 @@
    "audience": "staff",
    "lang": "uz",
    "question": "TOPIK 3 bilan Keimyung bakalavrning nechta fakultetiga topshirsa bo'ladi?",
-   "expect_sql": "select count(*)::text as v from university_guideline_faculties f join university_guidelines g on g.id = f.guideline_uuid join institutions i on i.id = g.institution_id where i.name_en = 'Keimyung University' and g.daraja = 'bakalavr' and f.track = 'korean' and coalesce(f.topik_min, g.topik_min, 0) <= 3"
+   "expect_sql": "select count(*)::text as v from university_guideline_faculties f join university_guidelines g on g.id = f.guideline_uuid join institutions i on i.id = g.institution_id where i.name_en = 'Keimyung University' and g.daraja = 'bakalavr' and f.track = 'korean' and coalesce(f.topik_min, g.topik_min) <= 3"
   },
   {
    "id": "uni-13",
