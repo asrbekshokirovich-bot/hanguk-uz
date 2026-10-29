@@ -2077,7 +2077,7 @@
   "applicationFeeAccess": {
     "title": "개별 권한",
     "label": "Application fee 섹션",
-    "hint": "역할 없이 Application fee 섹션만 엽니다: 조회 및 결제 추가.",
+    "hint": "역할 없이 Universitet tanlash 페이지의 Application fee 블록만 엽니다: 조회 및 결제 추가.",
     "viaRole": "이미 역할로 권한이 있습니다 (owner, admin 또는 document handler).",
     "granted": "Application fee 권한이 부여되었습니다",
     "revoked": "Application fee 권한이 해제되었습니다",

@@ -35,13 +35,11 @@ export function InstitutionPickerDialog({ open, onOpenChange, onPick }: Props) {
   }, [institutions, search]);
 
   return (
-    // modal={false}: bu dialog "Application fee" panelining (Sheet — o'zi ham
-    // Radix Dialog) ICHIDA ochiladi. Ikkalasi ham "modal" bo'lsa, ba'zan
-    // universitet tanlangandan keyin (dialog yopilganda) Radix butun sahifani
-    // "muzlatib" qo'yadi — <body> ustidagi pointer-events: none qaytarilmay
-    // qoladi va "Saqlash" kabi tugmalar hech qanday xatosiz bosilmay qoladi.
-    // modal={false} shu nested-dialog holatini butunlay chetlab o'tadi.
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    // Ilgari bu dialog "Application fee" yon paneli (Sheet) ichida ochilar edi
+    // va ichma-ich Radix dialoglar sahifani "muzlatib" qo'ymasligi uchun
+    // modal={false} edi. Endi StudentFeePanel oddiy sahifa ichida (Universitet
+    // tanlash), shuning uchun odatdagi modal dialog.
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

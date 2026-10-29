@@ -3,6 +3,10 @@
  * log (amount in KRW + a receipt file). See
  * supabase/migrations/20260922110000_application_fee_payments.sql.
  *
+ * Staff reach them from the "Application fee" block of the selected student
+ * on Universitet tanlash (StudentFeePanel); Moliya > Tranzaksiyalar lists the
+ * season's payments through useAllFeePayments.
+ *
  * `application_fee_payments` isn't in the generated types yet, so the client
  * is widened once here (same chainable-untyped-query approach as
  * src/hooks/useUniversityCatalog.ts) rather than `as any` at every call site.
@@ -59,14 +63,6 @@ export interface FeePayment {
   receipts: FeeReceipt[];
 }
 
-export interface FeeRosterEntry {
-  student_id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  office_location: string | null;
-  paidCount: number;
-}
-
 export interface InstitutionOption {
   id: string;
   name_ko: string;
@@ -75,7 +71,6 @@ export interface InstitutionOption {
   is_partner: boolean;
 }
 
-const ROSTER_KEY = 'application-fee-roster';
 const PAYMENTS_KEY = 'application-fee-payments';
 const INSTITUTIONS_KEY = 'application-fee-institutions';
 const LEDGER_KEY = 'application-fee-ledger';
@@ -104,73 +99,6 @@ export function useInstitutionOptions() {
     },
     staleTime: 5 * 60 * 1000,
   });
-}
-
-/** Talaba kartochkalari + har birining shu sezon uchun to'lov soni. */
-export function useApplicationFeeRoster() {
-  const { activeIntakeId } = useActiveIntake();
-
-  const query = useQuery<FeeRosterEntry[], Error>({
-    queryKey: [ROSTER_KEY, activeIntakeId],
-    enabled: !!activeIntakeId,
-    queryFn: async () => {
-      if (!activeIntakeId) return [];
-
-      // Sezon ro'yxati boshqa hamma joyda ham student_intakes'dan olinadi —
-      // rolga qarab farq qilmaydigan yagona manba (useCRMData.fetchStudents bilan bir xil).
-      const { data: memberships, error: mErr } = await supabase
-        .from('student_intakes')
-        .select('student_id')
-        .eq('intake_id', activeIntakeId);
-      if (mErr) throw new Error(mErr.message);
-
-      const studentIds = [...new Set((memberships ?? []).map((m) => m.student_id))];
-      if (studentIds.length === 0) return [];
-
-      const [{ data: staffRoles, error: sErr }, { data: profiles, error: pErr }] = await Promise.all([
-        supabase.from('user_roles').select('user_id'),
-        supabase
-          .from('profiles')
-          .select('user_id, full_name, avatar_url, office_location')
-          .in('user_id', studentIds),
-      ]);
-      if (sErr) throw new Error(sErr.message);
-      if (pErr) throw new Error(pErr.message);
-
-      const { data: payments, error: payErr } = await rel('application_fee_payments')
-        .select('student_id')
-        .eq('intake_id', activeIntakeId);
-      if (payErr) throw new Error(payErr.message);
-
-      const staffIds = new Set((staffRoles ?? []).map((r) => r.user_id));
-      const countByStudent = new Map<string, number>();
-      for (const p of (payments ?? []) as { student_id: string }[]) {
-        countByStudent.set(p.student_id, (countByStudent.get(p.student_id) ?? 0) + 1);
-      }
-
-      // profiles'ning haqiqiy ustuni user_id — FeeRosterEntry esa student_id
-      // deb ataydi (StudentFeeSheet/FeeStudentCard shu nomni ishlatadi).
-      // Bu yerda aniq ko'chirilmasa, entry.student_id undefined bo'lib qoladi
-      // va "Saqlash" hech qanday so'rov yubormay, jim to'xtab qoladi.
-      return (profiles ?? [])
-        .filter((p) => !staffIds.has(p.user_id))
-        .map((p) => ({
-          student_id: p.user_id,
-          full_name: p.full_name,
-          avatar_url: p.avatar_url,
-          office_location: p.office_location,
-          paidCount: countByStudent.get(p.user_id) ?? 0,
-        }))
-        .sort((a, b) => (a.full_name ?? '').localeCompare(b.full_name ?? ''));
-    },
-  });
-
-  return {
-    roster: query.data ?? [],
-    loading: query.isLoading,
-    error: query.error,
-    refetch: query.refetch,
-  };
 }
 
 /**
@@ -355,7 +283,7 @@ export function useAddFeePayments() {
       }
     },
     onSuccess: (_data, { studentId }) => {
-      qc.invalidateQueries({ queryKey: [ROSTER_KEY] });
+      qc.invalidateQueries({ queryKey: [LEDGER_KEY] });
       qc.invalidateQueries({ queryKey: [PAYMENTS_KEY, studentId] });
     },
   });
@@ -380,7 +308,7 @@ export function useUpdateFeePayment() {
       await replaceReceipts(id, update.receipts, tableAvailable);
     },
     onSuccess: (_data, { studentId }) => {
-      qc.invalidateQueries({ queryKey: [ROSTER_KEY] });
+      qc.invalidateQueries({ queryKey: [LEDGER_KEY] });
       qc.invalidateQueries({ queryKey: [PAYMENTS_KEY, studentId] });
     },
   });
@@ -396,7 +324,7 @@ export function useDeleteFeePayment() {
       if (error) throw new Error(error.message);
     },
     onSuccess: (_data, { studentId }) => {
-      qc.invalidateQueries({ queryKey: [ROSTER_KEY] });
+      qc.invalidateQueries({ queryKey: [LEDGER_KEY] });
       qc.invalidateQueries({ queryKey: [PAYMENTS_KEY, studentId] });
     },
   });
