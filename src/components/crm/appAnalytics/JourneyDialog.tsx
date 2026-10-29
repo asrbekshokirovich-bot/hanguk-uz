@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { screenLabel } from '@/components/crm/appActivity/describe';
+import { isLaunchScreen, screenLabel } from '@/components/crm/appActivity/describe';
 import { plan } from './planUi';
 import { STEP_ICON, duration, useStepDescriber } from './steps';
 import {
@@ -73,7 +73,7 @@ export default function JourneyDialog({ leadId, person, open, onOpenChange }: Jo
                   {g.session && (
                     <span className={cn('font-semibold', plan.muted)}>
                       {t('appPerson.entryExit', {
-                        entry: screenLabel(g.session.entry_screen, t) || '—',
+                        entry: (isLaunchScreen(g.session.entry_screen) ? t('appActivity.screens.home') : screenLabel(g.session.entry_screen, t)) || '—',
                         exit: screenLabel(g.session.exit_screen, t) || '—',
                       })}
                     </span>

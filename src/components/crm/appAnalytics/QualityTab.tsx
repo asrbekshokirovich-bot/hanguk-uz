@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useAnalyticsQuality } from './api';
 import { coverageOf } from './helpers';
+import { whenLabel } from './person';
 
 const PERIODS = [1, 7, 30];
 
@@ -37,7 +38,7 @@ export default function QualityTab() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[12px] text-muted-foreground">
           {data.last_refresh
-            ? t('appAnalytics.quality.refreshed', { time: new Date(data.last_refresh).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' }) })
+            ? t('appAnalytics.quality.refreshed', { time: whenLabel(data.last_refresh, t) })
             : t('appAnalytics.quality.neverRefreshed')}
         </p>
         <div className="flex gap-1" role="group" aria-label={t('appActivity.page.period')}>
@@ -89,7 +90,7 @@ export default function QualityTab() {
                 key={h.hour}
                 className="min-w-[6px] flex-1 rounded-t bg-primary"
                 style={{ height: `${Math.max(3, (h.events / maxHour) * 100)}px` }}
-                title={`${new Date(h.hour).toLocaleString([], { day: 'numeric', hour: '2-digit', minute: '2-digit' })}: ${h.events} · ${h.devices}`}
+                title={`${whenLabel(h.hour, t)}: ${h.events} · ${h.devices}`}
               />
             ))}
           </div>
@@ -112,7 +113,7 @@ export default function QualityTab() {
                   b.events.toLocaleString(),
                   c.named === null ? '—' : `${c.named}%`,
                   c.timed === null ? '—' : `${c.timed}%`,
-                  new Date(b.last_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                  whenLabel(b.last_at, t),
                 ],
               };
             })}
@@ -148,7 +149,7 @@ export default function QualityTab() {
                 r.event || '—',
                 r.build ? String(r.build) : '—',
                 r.n.toLocaleString(),
-                new Date(r.last_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+                whenLabel(r.last_at, t),
               ],
             }))}
           />

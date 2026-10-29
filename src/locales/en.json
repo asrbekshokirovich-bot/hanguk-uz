@@ -2088,7 +2088,12 @@
       "interviewTest": "Interview test",
       "studyPlanTest": "Study Plan test",
       "walkaround": "360° campus",
-      "visa": "Will I get the visa?"
+      "visa": "Will I get the visa?",
+      "surveyDetail": "Survey",
+      "guestPush": "Notification permission prompt",
+      "guestShell": "Guest · bottom menu",
+      "clientShell": "Client · bottom menu",
+      "shellTab": "{{shell}} · {{tab}}"
     },
     "tabs": {
       "universities": "Universities",
@@ -2216,7 +2221,19 @@
     "emptyLead": "No device is linked to this lead yet. A device is linked when the lead sends the app's “Contact a consultant” form.",
     "emptyStudent": "The student has not signed in to the app with their client code yet.",
     "picked_one": "{{count}} university picked (♥)",
-    "picked_other": "{{count}} universities picked (♥)"
+    "picked_other": "{{count}} universities picked (♥)",
+    "shells": {
+      "guest": "Guest",
+      "client": "Client"
+    },
+    "forms": {
+      "lead": "consultant form",
+      "quiz_contact": "call-back form",
+      "client_code": "client code",
+      "survey": "survey",
+      "visa": "«Will I get the visa?»",
+      "university": "university assessment"
+    }
   },
   "applicationFeeAccess": {
     "title": "Separate permissions",
@@ -2352,7 +2369,8 @@
       "report": "report",
       "request": "sent a request",
       "test": "test",
-      "more": "{{shown}} of {{total}} shown"
+      "more": "{{shown}} of {{total}} shown",
+      "scoreHint": "0–100: how far the person got in the app — opening a university 10, ♥ 15, assessment 15, report 20, consultant form 10, a request or contact 10, preparing (Study Plan, interview, AI) 10, coming back 5 + 5. Last seen over 7 days ago ×0.7, over 30 days ×0.4."
     }
   },
   "appLink": {
@@ -2548,7 +2566,7 @@
       "university": "University",
       "devices": "Devices",
       "opens": "Opened",
-      "position": "List position",
+      "position": "Average list position",
       "seen": "Saw the card"
     },
     "questions": {
@@ -2558,7 +2576,32 @@
       "bank": "Money in the bank",
       "income": "Parents' income",
       "income_documented": "Documented income",
-      "age": "Age"
+      "age": "Age",
+      "education": "Your last education",
+      "gpa": "Certificate / diploma average",
+      "gap_years": "Time since graduating",
+      "topik_fresh": "TOPIK certificate",
+      "sponsor": "Who is the sponsor",
+      "relation_doc": "Kinship certificate (apostilled)",
+      "income_stability": "How long the income has been steady",
+      "property": "Property in your parents' name (house, flat, land)",
+      "car": "A car in your parents' name",
+      "business": "Your parents' business / registered company",
+      "visa_refused": "Has a visa been refused before",
+      "korea_before": "Have you been to Korea before",
+      "illegal_relatives": "Any close relatives staying illegally in South Korea",
+      "legal_relatives": "Relatives living legally in Korea",
+      "experience": "Experience in your chosen field",
+      "olympiad": "Olympiad / contest results",
+      "motivation": "Motivation letter",
+      "recommendation": "Recommendation (from a teacher)",
+      "portfolio": "Portfolio (design, art, projects)",
+      "activity": "Extra activities",
+      "study_plan": "Study Plan",
+      "interview_prep": "Interview practice",
+      "degree": "Which level are you applying for",
+      "for_whom": "For whom",
+      "how_heard": "How did you hear about us"
     },
     "bands": {
       "none": "none",
@@ -2610,7 +2653,9 @@
       "save": "Save",
       "saved": "Saved",
       "removed": "Removed",
-      "failed": "Could not save"
+      "failed": "Could not save",
+      "add": "+ Add spend",
+      "cancel": "Cancel"
     },
     "test": {
       "show": "Show test devices too",
@@ -2661,6 +2706,25 @@
       "age": {
         "new": "New",
         "returning": "Returning"
+      }
+    },
+    "filterValues": {
+      "field": {
+        "it": "IT",
+        "business": "Business",
+        "engineering": "Engineering",
+        "medicine": "Medicine",
+        "design": "Design",
+        "tourism": "Tourism",
+        "education": "Education"
+      },
+      "degree": {
+        "bakalavr": "Bachelor",
+        "magistratura": "Master"
+      },
+      "type": {
+        "state": "State",
+        "private": "Private"
       }
     }
   },
@@ -2714,7 +2778,8 @@
     "offersNote": "Over 48 hours is red: the documents team gets a task and the student a reminder push by itself (once per offer).",
     "noOffers": "No offer is waiting for an answer",
     "noDocuments": "Everyone's documents are complete",
-    "noInactive": "Everyone opened the app in the last 7 days"
+    "noInactive": "Everyone opened the app in the last 7 days",
+    "seasonNote": "Only {{season}} students — without cancelled contracts and those who left for Korea. Change the season in the top bar."
   },
   "guestPush": {
     "title": "Push to guests",

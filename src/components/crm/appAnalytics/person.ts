@@ -230,6 +230,20 @@ export function whenLabel(
   return `${d.getDate()}-${UZ_MONTHS[d.getMonth()]} ${time}`;
 }
 
+/**
+ * "15-okt", or "20-yan 2025" outside the current year — a day the way the
+ * plan writes it. A bare 'YYYY-MM-DD' is that calendar day; a timestamp is
+ * read in local time.
+ */
+export function dayLabel(iso: string | null | undefined, now: Date = new Date()): string {
+  if (!iso) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  const d = m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const day = `${d.getDate()}-${UZ_MONTHS[d.getMonth()]}`;
+  return d.getFullYear() === now.getFullYear() ? day : `${day} ${d.getFullYear()}`;
+}
+
 export const PLATFORM_LABEL: Record<string, string> = { android: 'Android', ios: 'iOS', web: 'Web' };
 
 export const TARIFF_LABEL: Record<string, string> = {

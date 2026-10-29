@@ -20,7 +20,10 @@ const live = {
   ],
 };
 const rpc = vi.fn(async () => ({ data: live, error: null }));
-const from = () => ({ select: () => Promise.resolve({ data: [{ event: 'tap', description_uz: 'Bosdi' }] }) });
+const from = () => ({
+  select: () =>
+    Promise.resolve({ data: [{ event: 'tap', description_uz: 'Bosdi' }, { event: 'question_answer', description_uz: 'Savolga javob berdi' }] }),
+});
 vi.mock('@/integrations/supabase/client', () => ({ supabase: { rpc: (...a: unknown[]) => rpc(...(a as [])), from: () => from() } }));
 
 import LiveTab from '../LiveTab';
@@ -54,6 +57,35 @@ describe('«Jonli»', () => {
     expect(rpc).toHaveBeenCalledWith('analytics_live', { p_minutes: 5 });
   });
 
+  it("names what 1.1.2 sends: a tab as a screen, an answer by its question, a pill by what it is", async () => {
+    const before = live.events;
+    live.events = [
+      { at, event: 'screen_leave', screen: '/guest#universities', element: null, duration_ms: 13_000, props: {}, platform: 'android', kind: 'guest', name: null, lead_id: null, source: null, contact_channel: null },
+      { at, event: 'question_answer', screen: '/guest#home', element: null, duration_ms: null, props: { form: 'visa', q: 'recommendation', band: 1 }, platform: 'android', kind: 'guest', name: null, lead_id: null, source: null, contact_channel: null },
+      { at, event: 'question_answer', screen: '/guest#home', element: null, duration_ms: null, props: { form: 'visa', q: 'topik', band: 3 }, platform: 'android', kind: 'guest', name: null, lead_id: null, source: null, contact_channel: null },
+      { at, event: 'tap', screen: '/guest#home', element: 'assess.pill', duration_ms: null, props: { value: 1 }, platform: 'android', kind: 'guest', name: null, lead_id: null, source: null, contact_channel: null },
+    ] as typeof live.events;
+    try {
+      render(
+        <MemoryRouter>
+          <I18nextProvider i18n={i18n}>
+            <LiveTab />
+          </I18nextProvider>
+        </MemoryRouter>,
+      );
+      await waitFor(() => expect(screen.getAllByRole('listitem')[1].children[1].textContent).toContain('Savolga'.toLowerCase()));
+      const lines = screen.getAllByRole('listitem').map((li) => li.children[1].textContent);
+      expect(lines).toEqual([
+        'Mehmon · Android — Mehmon · Universitetlar, 13 s',
+        "Mehmon · Android — savolga javob berdi: Tavsiyanoma (o'qituvchidan)",
+        'Mehmon · Android — savolga javob berdi: TOPIK — TOPIK 3',
+        'Mehmon · Android — bosdi: javob varianti',
+      ]);
+    } finally {
+      live.events = before;
+    }
+  });
+
   it('lowers the first letter only when the line does not start with a name', () => {
     expect(lowerFirst('Universitet sahifasi')).toBe('universitet sahifasi');
     expect(lowerFirst("Bo'limga o'tdi: Hujjatlar")).toBe("bo'limga o'tdi: Hujjatlar");
@@ -62,5 +94,6 @@ describe('«Jonli»', () => {
     expect(lowerFirst('Hanguk AI chat')).toBe('Hanguk AI chat');
     expect(lowerFirst('«Vizam chiqadimi?» testini boshladi')).toBe('«Vizam chiqadimi?» testini boshladi');
     expect(lowerFirst('Bosdi: Orqaga')).toBe('bosdi: Orqaga');
+    expect(lowerFirst('Mehmon · Universitetlar')).toBe('Mehmon · Universitetlar');
   });
 });

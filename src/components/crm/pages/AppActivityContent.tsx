@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { screenLabel } from '@/components/crm/appActivity/describe';
 import { useAppEventsSummary } from '@/components/crm/appActivity/useAppActivity';
+import { dayLabel, useEventNames } from '@/components/crm/appAnalytics/person';
 
 const PERIODS = [7, 30, 90];
 
@@ -16,6 +17,8 @@ export default function AppActivityContent({ embedded = false }: { embedded?: bo
   const { t } = useTranslation();
   const [days, setDays] = useState(7);
   const { data, loading, error } = useAppEventsSummary(days);
+  // the app's registry names what the CRM has no wording of its own for (tap, card_view, …)
+  const registry = useEventNames();
 
   const opened = data?.funnel.find((f) => f.event === 'app_open')?.devices ?? 0;
   const maxDaily = Math.max(1, ...(data?.daily.map((d) => d.devices) ?? [1]));
@@ -71,7 +74,7 @@ export default function AppActivityContent({ embedded = false }: { embedded?: bo
               sub={[
                 data.tracking_since
                   ? t('appActivity.page.kpi.newDevicesNote', {
-                      date: new Date(data.tracking_since).toLocaleDateString([], { day: 'numeric', month: 'long' }),
+                      date: dayLabel(data.tracking_since),
                     })
                   : null,
               ]}
@@ -146,15 +149,18 @@ export default function AppActivityContent({ embedded = false }: { embedded?: bo
               <p className="mt-2 text-[12.5px] text-muted-foreground">{t('appActivity.empty')}</p>
             ) : (
               <div className="mt-3 flex h-32 items-end gap-1 overflow-x-auto">
-                {data.daily.map((d) => (
+                {data.daily.map((d, i) => (
                   <div key={d.day} className="flex min-w-[18px] flex-1 flex-col items-center gap-1">
                     <span className="text-[10px] tabular-nums text-muted-foreground">{d.devices}</span>
                     <div
                       className="w-full rounded-t bg-primary"
                       style={{ height: `${Math.max(4, (d.devices / maxDaily) * 88)}px` }}
-                      title={`${d.day}: ${d.devices}${d.new ? ` · ${t('appActivity.page.dailyNew')} ${d.new}` : ''}`}
+                      title={`${dayLabel(d.day)}: ${d.devices}${d.new ? ` · ${t('appActivity.page.dailyNew')} ${d.new}` : ''}`}
                     />
-                    <span className="text-[10px] text-muted-foreground">{d.day.slice(5)}</span>
+                    {/* «22-okt»; with many bars, the day alone except under the first and a month's first day */}
+                    <span className="whitespace-nowrap text-[10px] text-muted-foreground">
+                      {data.daily.length <= 14 || i === 0 || d.day.endsWith('-01') ? dayLabel(d.day) : String(Number(d.day.slice(8)))}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -167,7 +173,7 @@ export default function AppActivityContent({ embedded = false }: { embedded?: bo
               empty={t('appActivity.empty')}
               rows={data.by_event.map((e) => ({
                 key: e.event,
-                label: t(`appActivity.page.eventNames.${e.event}`, { defaultValue: e.event }),
+                label: t(`appActivity.page.eventNames.${e.event}`, { defaultValue: registry[e.event] ?? e.event }),
                 devices: e.devices,
                 n: e.n,
               }))}
