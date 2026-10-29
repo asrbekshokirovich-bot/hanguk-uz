@@ -1098,7 +1098,8 @@
         "lead": "리드:",
         "student": "학생:",
         "message": "메시지:"
-      }
+      },
+      "showMore": "{{count}}개 더 보기"
     },
     "thread": {
       "streamLabel": "메시지 기록",
@@ -1127,7 +1128,8 @@
       "kindLabel": "대화 유형",
       "kindHint": "대기열에는 “리드” 대화만 표시됩니다. 직원·파트너·서비스 채팅은 “직원” 필터에 있습니다.",
       "fromPhone": "휴대폰에서",
-      "autoReply": "자동 응답"
+      "autoReply": "자동 응답",
+      "back": "목록으로"
     },
     "composer": {
       "label": "답장 작성",

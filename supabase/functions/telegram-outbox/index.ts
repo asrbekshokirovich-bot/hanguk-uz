@@ -117,6 +117,8 @@ Deno.serve(async (req) => {
       p_ok: ok,
       p_tg_message_id: tgMessageId,
       p_error: errText,
+      // The worker says a retry is pointless (PEER_FLOOD / FLOOD_WAIT).
+      p_final: body.final === true,
     });
     if (error) {
       console.error("complete failed:", error.message);

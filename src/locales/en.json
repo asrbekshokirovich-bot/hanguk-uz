@@ -1363,7 +1363,8 @@
         "lead": "Lead:",
         "student": "Student:",
         "message": "In message:"
-      }
+      },
+      "showMore": "Show {{count}} more"
     },
     "thread": {
       "streamLabel": "Message history",
@@ -1392,7 +1393,8 @@
       "kindLabel": "Conversation type",
       "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Staff” filter.",
       "fromPhone": "from phone",
-      "autoReply": "auto-reply"
+      "autoReply": "auto-reply",
+      "back": "Back to the list"
     },
     "composer": {
       "label": "Write a reply",

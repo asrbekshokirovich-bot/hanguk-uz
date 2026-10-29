@@ -1,11 +1,15 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
 import { Loader2, Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { ThreadSearchHit } from './useThreadSearch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChannelFilterChips } from './ChannelFilterChips';
 import { ConversationRow } from './ConversationRow';
 import { QueueTabs } from './QueueTabs';
 import type { ChannelFilter, ConversationVM, QueueTab } from './types';
+
+const PAGE = 120;
 
 interface MessagesQueueProps {
   conversations: ConversationVM[];
@@ -21,6 +25,8 @@ interface MessagesQueueProps {
   /** Why the database matched a row (phone, message text…), by thread id. */
   searchHits: ReadonlyMap<string, ThreadSearchHit>;
   searching: boolean;
+  /** Single-pane layout (phone/tablet): the list takes the whole width. */
+  fullWidth?: boolean;
   onTabChange: (tab: QueueTab) => void;
   onChannelChange: (channel: ChannelFilter) => void;
   onQueryChange: (query: string) => void;
@@ -45,6 +51,7 @@ export function MessagesQueue({
   onShowStale,
   searchHits,
   searching,
+  fullWidth,
   onTabChange,
   onChannelChange,
   onQueryChange,
@@ -52,10 +59,19 @@ export function MessagesQueue({
 }: MessagesQueueProps) {
   const { t } = useTranslation();
 
+  // A few hundred rows of avatars and pills is a lot of DOM for nothing: the
+  // operator reads the top of the list. Render a page, offer the rest.
+  const [limit, setLimit] = useState(PAGE);
+  useEffect(() => setLimit(PAGE), [tab, channel, query]);
+  const shown = visible.slice(0, limit);
+
   return (
     <section
       aria-label={t('messages.queue.label')}
-      className="flex w-[320px] shrink-0 flex-col border-r border-border bg-card 2xl:w-[352px]"
+      className={cn(
+        'flex shrink-0 flex-col bg-card',
+        fullWidth ? 'w-full' : 'w-[320px] border-r border-border 2xl:w-[352px]',
+      )}
     >
       <div className="border-b border-border/60 p-3.5 pb-2.5">
         <QueueTabs value={tab} onChange={onTabChange} conversations={conversations} />
@@ -102,7 +118,7 @@ export function MessagesQueue({
           </div>
         ) : (
           <>
-            {visible.map((c) => (
+            {shown.map((c) => (
               <ConversationRow
                 key={c.threadId}
                 conversation={c}
@@ -111,6 +127,15 @@ export function MessagesQueue({
                 searchHit={query.trim() ? searchHits.get(c.threadId) ?? null : null}
               />
             ))}
+            {visible.length > shown.length && (
+              <button
+                type="button"
+                onClick={() => setLimit((n) => n + PAGE)}
+                className="mt-1 flex w-full items-center justify-center rounded-md border border-border px-3 py-2 text-[12px] font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {t('messages.queue.showMore', { count: visible.length - shown.length })}
+              </button>
+            )}
             {hiddenStale > 0 && (
               <button
                 type="button"

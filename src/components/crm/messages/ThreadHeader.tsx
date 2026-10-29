@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Check, CheckCheck, Languages, MoreHorizontal, PanelRight, RotateCcw, UserPlus } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, Languages, MoreHorizontal, PanelRight, RotateCcw, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -28,6 +28,8 @@ interface ThreadHeaderProps {
   onToggleContext: () => void;
   /** Opens the attach-to-person dialog. Absent for channels we cannot key on. */
   onLinkContact?: () => void;
+  /** Single-pane layout: back to the list. */
+  onBack?: () => void;
 }
 
 /**
@@ -55,6 +57,7 @@ export function ThreadHeader({
   onKindChange,
   onToggleContext,
   onLinkContact,
+  onBack,
 }: ThreadHeaderProps) {
   const { t } = useTranslation();
   // The handle is shown only when the person has one; a numeric chat id is
@@ -75,7 +78,18 @@ export function ThreadHeader({
       : t('messages.thread.unassigned');
 
   return (
-    <header className="flex h-[68px] shrink-0 items-center gap-3 overflow-hidden border-b border-border bg-card px-4">
+    <header className="flex h-[68px] shrink-0 items-center gap-2 overflow-hidden border-b border-border bg-card px-2 sm:gap-3 sm:px-4">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          title={t('messages.thread.back')}
+          className="flex h-9 w-9 min-h-0 min-w-0 shrink-0 items-center justify-center rounded-md text-foreground/75 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">{t('messages.thread.back')}</span>
+        </button>
+      )}
       <ChannelAvatar channel={c.channel} initials={c.initials} avatarUrl={c.avatarUrl} size={40} />
 
       <div className="min-w-0 flex-1">
@@ -144,6 +158,7 @@ export function ThreadHeader({
           />
         )}
 
+        <span className="hidden sm:inline-flex">
         <IconAction
           label={autoTrLabel}
           active={autoTranslate}
@@ -151,6 +166,7 @@ export function ThreadHeader({
           onClick={onToggleAutoTranslate}
           icon={<Languages className="h-4 w-4" aria-hidden="true" />}
         />
+        </span>
 
         {!c.isDone && (
           <IconAction

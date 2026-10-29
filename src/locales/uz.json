@@ -1432,7 +1432,8 @@
         "lead": "Lid:",
         "student": "Talaba:",
         "message": "Xabarda:"
-      }
+      },
+      "showMore": "Yana {{count}} ta ko‘rsatish"
     },
     "thread": {
       "streamLabel": "Xabarlar tarixi",
@@ -1461,7 +1462,8 @@
       "kindLabel": "Suhbat turi",
       "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Xodimlar” filtrida turadi.",
       "fromPhone": "telefondan",
-      "autoReply": "avto-javob"
+      "autoReply": "avto-javob",
+      "back": "Ro‘yxatga qaytish"
     },
     "composer": {
       "label": "Javob yozing",
