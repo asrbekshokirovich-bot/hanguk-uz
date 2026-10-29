@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-28T21:08:04+00:00",
+ "last_run": "2026-10-29T01:00:57+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -549,6 +549,7 @@
   "https://inco.kmu.ac.kr/sites/asiacenter/index.do": [],
   "https://info.kimpo.ac.kr/EnterLogin.aspx": [],
   "https://info.masan.ac.kr/": [
+   "35c7fd7ab40c93f9",
    "79fc74f1ae2e6d76",
    "6be1723cc500ce20",
    "e78ecbce86050e49",
