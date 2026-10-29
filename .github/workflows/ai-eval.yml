@@ -1,0 +1,41 @@
+# Hanguk AI golden-question eval (plan §10.2). Manual for now: it calls the
+# deployed function with real models, so every run costs tokens.
+#
+# Secrets: SUPABASE_DB_URL (read-only use), SUPABASE_PUBLISHABLE_KEY,
+# EVAL_STAFF_EMAIL / EVAL_STAFF_PASSWORD, EVAL_STUDENT_EMAIL / EVAL_STUDENT_PASSWORD
+# (test accounts, not real staff or students).
+name: Hanguk AI eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: 'Only questions whose id starts with this (e.g. uni-)'
+        required: false
+        default: ''
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save pg@8
+      - name: Run
+        env:
+          SUPABASE_URL: https://lysjdtyanhdfphqyijsr.supabase.co
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          EVAL_STAFF_EMAIL: ${{ secrets.EVAL_STAFF_EMAIL }}
+          EVAL_STAFF_PASSWORD: ${{ secrets.EVAL_STAFF_PASSWORD }}
+          EVAL_STUDENT_EMAIL: ${{ secrets.EVAL_STUDENT_EMAIL }}
+          EVAL_STUDENT_PASSWORD: ${{ secrets.EVAL_STUDENT_PASSWORD }}
+        run: node scripts/ai-eval.mjs ${{ inputs.only && format('--only {0}', inputs.only) || '' }} --out eval-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-eval-report
+          path: eval-report.json
