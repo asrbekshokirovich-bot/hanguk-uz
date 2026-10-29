@@ -38,7 +38,6 @@ void main() {
       '/institutions/compare',
       '/institutions/abc',
       '/notifications/settings',
-      '/admin/review',
       '/map/abc',
       '/universityx',
       '/assessment-admin',

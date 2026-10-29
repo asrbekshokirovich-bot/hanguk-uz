@@ -12,11 +12,6 @@
 ///   4. Edge Functions (get-pdf-url, register-push-token,
 ///      notify-tracked-changes) deployed to both projects.
 ///
-/// Routes that require a specific role (e.g. /admin/review needs
-/// uni_db_reviewer or uni_db_admin) handle that internally with their
-/// own forbidden scaffold — flag-on doesn't grant access, only
-/// exposure of the route.
-///
 /// Compile-time override: `--dart-define=UNI_DB_ENABLED=false` to
 /// disable in a specific build (e.g. for an emergency hotfix that
 /// needs to revert UI exposure without redeploying the database).
