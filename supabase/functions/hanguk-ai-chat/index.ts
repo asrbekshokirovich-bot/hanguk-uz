@@ -6,7 +6,9 @@ import { runAgent, sourcesFooter, type AgentEvent, type AgentResult } from "./ag
 import { answeredHistory, type StoredTurn } from "./history.ts";
 import { CallerError, quotaFor, resolveCaller } from "./identity.ts";
 import { guestSystem, staffSystem, studentSystem } from "./prompts.ts";
-import { ALL_TOOLS } from "./tools/index.ts";
+import { allTools } from "./tools/index.ts";
+import { memorySection } from "./tools/memory.ts";
+import { WEB_RULES } from "./tools/web.ts";
 import { SQL_TOOL } from "./tools/sql.ts";
 import { type Caller, toolsFor } from "./tools/types.ts";
 
@@ -180,19 +182,24 @@ serve(async (req) => {
 
           const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tashkent" });
           const canQuery = caller.audience === "staff" && caller.roles.some((r) => r === "owner" || r === "admin");
-          const tools = toolsFor([...ALL_TOOLS, SQL_TOOL], caller);
+          const tools = toolsFor([...allTools(), SQL_TOOL], caller);
+          const ctx = { user: userClient, service, caller, language };
+          const extra = [
+            tools.some((t) => t.name.startsWith("web_")) ? WEB_RULES : "",
+            await memorySection(ctx),
+          ].filter(Boolean).join("\n\n");
           const system = caller.audience === "staff"
             ? staffSystem({
               language, today, staffName: caller.name || "Staff", team: await teamLine(service),
-              sqlSchema: canQuery ? await getAiSchema() : null,
+              sqlSchema: canQuery ? await getAiSchema() : null, extra,
             })
             : caller.audience === "student"
-            ? studentSystem({ language, today, name: caller.name })
-            : guestSystem({ language, today });
+            ? studentSystem({ language, today, name: caller.name, extra })
+            : guestSystem({ language, today, extra });
 
           result = await runAgent({
             system, history, message, tools,
-            ctx: { user: userClient, service, caller, language },
+            ctx,
             onEvent: (e: AgentEvent) => sendEvent(e),
           });
           outcome = result.outcome;
