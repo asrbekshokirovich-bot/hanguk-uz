@@ -1,4 +1,5 @@
-import { FUNNEL_STEPS, bandLabel, channelName, money, perOne, periodLabel, segSummary, type Cohort, type Marketing } from './marketing';
+import { screenLabel } from '@/components/crm/appActivity/describe';
+import { FUNNEL_STEPS, bandLabel, channelName, filterValueLabel, money, perOne, periodLabel, segSummary, type Cohort, type Marketing } from './marketing';
 
 /**
  * The Marketing panel to a file (S8: Excel and CSV). Excel: one sheet per
@@ -92,7 +93,10 @@ export async function exportXlsx(
         sheet: t('marketing.blocks.demand'),
         data: [
           [bold(t('marketing.sheets.what')), bold(t('marketing.sheets.value')), bold(t('marketing.demand.devices'))],
-          ...data.demand.filters.map((f) => [t(`marketing.demand.${f.field}`, { defaultValue: f.field }), f.value, f.devices]),
+          ...data.demand.filters
+            .map((f) => ({ ...f, label: filterValueLabel(f.field, f.value, t) }))
+            .filter((f) => f.label !== null)
+            .map((f) => [t(`marketing.demand.${f.field}`, { defaultValue: f.field }), f.label, f.devices]),
           ...data.demand.answers.map((a) => [t(`marketing.questions.${a.q}`, { defaultValue: a.q }), bandLabel(a.q, a.band, t), a.devices]),
           ...data.demand.universities.map((u) => [t('marketing.demand.university'), u.name_en || u.name_ko || u.institution_id, u.devices]),
         ],
@@ -105,11 +109,11 @@ export async function exportXlsx(
           [t('marketing.sheets.languageExits'), data.stops.language_exits],
           [t('marketing.sheets.clientCodeSeen'), data.stops.client_code_seen],
           [t('marketing.sheets.clientCodeLeft'), data.stops.client_code_left],
-          ...data.stops.locked_tabs.map((x) => [t('marketing.sheets.locked', { tab: x.tab }), x.devices]),
+          ...data.stops.locked_tabs.map((x) => [t('marketing.sheets.locked', { tab: t(`appActivity.tabs.${x.tab}`, { defaultValue: x.tab }) }), x.devices]),
           [t('marketing.sheets.formOpened'), data.stops.lead_form.opened],
           [t('marketing.sheets.formErrors'), data.stops.lead_form.field_error],
           [t('marketing.sheets.formSent'), data.stops.lead_form.submitted],
-          ...data.stops.exit_screens.map((x) => [t('marketing.sheets.exitScreen', { screen: x.screen }), x.sessions]),
+          ...data.stops.exit_screens.map((x) => [t('marketing.sheets.exitScreen', { screen: screenLabel(x.screen, t) || x.screen }), x.sessions]),
         ],
         columns: [{ width: 44 }, { width: 12 }],
       },

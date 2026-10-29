@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
-import { channelLabel, groupBySession, sourceChips, whenLabel, type Person } from '../person';
+import { channelLabel, dayLabel, groupBySession, sourceChips, whenLabel, type Person } from '../person';
 
 const t = (k: string, o?: Record<string, unknown>) => {
   const uz: Record<string, string> = {
@@ -21,6 +21,15 @@ describe('the plan\'s wording of a person', () => {
     expect(whenLabel(new Date(2026, 9, 25, 21, 40).toISOString(), t, now)).toBe('Kecha 21:40');
     expect(whenLabel(new Date(2026, 9, 24, 18, 30).toISOString(), t, now)).toBe('24-okt 18:30');
     expect(whenLabel(null, t, now)).toBe('—');
+  });
+
+  it('writes a day the same way, with the year only when it is another one', () => {
+    const now = new Date(2026, 9, 29, 10, 0);
+    expect(dayLabel('2026-10-15', now)).toBe('15-okt');
+    expect(dayLabel('2026-01-20', now)).toBe('20-yan');
+    expect(dayLabel('2025-09-11', now)).toBe('11-sen 2025');
+    expect(dayLabel(new Date(2026, 9, 15, 14, 0).toISOString(), now)).toBe('15-okt');
+    expect(dayLabel(null, now)).toBe('—');
   });
 
   it('«Manba»: the own answer first, then the ways in — the form is not one', () => {
