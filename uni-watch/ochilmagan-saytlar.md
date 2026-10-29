@@ -1,7 +1,7 @@
 # Ochilmagan universitet saytlari
 
-Oxirgi tekshiruv: 2026-10-29T14:22:43+00:00
-Tekshirildi: 408 ta · Ochilmadi: 99 ta
+Oxirgi tekshiruv: 2026-10-29T20:20:45+00:00
+Tekshirildi: 408 ta · Ochilmadi: 98 ta
 
 Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`
 faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda
@@ -18,16 +18,15 @@ bu ro'yxatdan tushadi.
 | 거제대학교 (Koje College) | https://koje.ac.kr | ConnectError: [Errno -5] No address associated with hostname |
 | 경남정보대학교 (Kyungnam College of Information & Technology) | https://iphak.kit.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 경북과학대학교 (Kyongbuk College of Science) | https://kbsu.ac.kr | ConnectError: [Errno -3] Temporary failure in name resolution |
-| 경북대학교 (Kyungpook National University) | https://international.knu.ac.kr/ | ConnectTimeout:  |
 | 경북보건대학교 (Gyeongbuk College of Health) | https://gbhc.ac.kr | ConnectError: [Errno -2] Name or service not known |
+| 경운대학교 (Kyungwoon University) | https://www.ikw.ac.kr/worldle/page/3879/2759.tc?protocol=http | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 경인여자대학교 (Kyungin Women's University) | https://www.kic.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 계약신학대학원대학교 (Kyeyak Graduate School of Theology) | https://kyeyak.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 고구려대학교 (Koguryeo College) | https://koguryeo.ac.kr | ConnectError: [Errno -2] Name or service not known |
-| 광신대학교 (Kwangshin University) | https://kwangshin.ac.kr | ConnectError: [Errno -3] Temporary failure in name resolution |
+| 광신대학교 (Kwangshin University) | https://kwangshin.ac.kr | ConnectTimeout:  |
 | 광양대학교 (Gwangyang University) | https://www.gwangyang-c.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 광양보건대학교 (Gwangyang Health Sciences University) | https://www.gyhu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 광주가톨릭대학교 (Gwangju Catholic University) | https://www.gjcatholic.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
-| 광주과학기술원 (Gwangju Institute of Science and Technology (GIST)) | https://www.gist.ac.kr/gadm/ | ConnectTimeout:  |
 | 광주대학교 (Gwangju University) | https://iphak.gwangju.ac.kr/ | ConnectTimeout:  |
 | 광주보건대학교 (Gwangju Health University) | https://ipsi.ghu.ac.kr/ | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 국제사이버대학교 (International Cyber University) | https://www.icu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
