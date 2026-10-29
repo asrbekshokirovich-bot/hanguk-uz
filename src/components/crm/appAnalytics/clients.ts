@@ -64,6 +64,37 @@ export function useClientsActivity() {
   return { data, error, reload: useCallback(() => setTick((n) => n + 1), []) };
 }
 
+/**
+ * The selected season's students (the top bar's Bahor/Kuz switcher, as on
+ * every other CRM page): its roster without cancelled contracts and those who
+ * have left for Korea. undefined while loading; null if it could not be read
+ * (the lists are then shown whole).
+ */
+export function useSeasonRoster(intakeId: string | null) {
+  const [ids, setIds] = useState<Set<string> | null | undefined>(undefined);
+  useEffect(() => {
+    if (!intakeId) {
+      setIds(null);
+      return;
+    }
+    let alive = true;
+    setIds(undefined);
+    void supabase
+      .from('student_intakes')
+      .select('student_id')
+      .eq('intake_id', intakeId)
+      .is('contract_cancelled_at', null)
+      .is('departed_at', null)
+      .then(({ data, error }) => {
+        if (alive) setIds(error ? null : new Set((data ?? []).map((r) => r.student_id)));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [intakeId]);
+  return ids;
+}
+
 /** A slot's name as the documents page writes it. */
 export function slotName(id: string, lang: string): string {
   const slot = APPLICATION_PACK_SLOTS.find((s) => s.id === id);

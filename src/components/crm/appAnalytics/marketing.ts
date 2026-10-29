@@ -301,6 +301,18 @@ export function bandLabel(q: string, band: string, t: T): string {
   }
 }
 
+/**
+ * A filter's value as the app's filter board names it: «Biznes», «Magistr»,
+ * «Xususiy», «TOPIK 3»; a city as it is. Null for «all» — no filter at all.
+ */
+export function filterValueLabel(field: string, value: string, t: T): string | null {
+  const v = value.trim();
+  if (!v || v === 'all') return null;
+  if (field === 'topik') return bandLabel('topik', v === 'none' ? '0' : v, t);
+  if (field !== 'field' && field !== 'degree' && field !== 'type') return v;
+  return /^[a-z_]+$/.test(v) ? t(`marketing.filterValues.${field}.${v}`, { defaultValue: v }) : v;
+}
+
 const PLATFORMS: Record<string, string> = { android: 'Android', ios: 'iOS', web: 'Web' };
 
 /** One cut's value as the person reads it: «Instagram», «TOPIK 2», «Mehmon». */

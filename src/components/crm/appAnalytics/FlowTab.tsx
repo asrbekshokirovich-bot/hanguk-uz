@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SCREEN_ROUTES, screenLabel } from '@/components/crm/appActivity/describe';
+import { SCREEN_ROUTES, isLaunchScreen, screenLabel } from '@/components/crm/appActivity/describe';
 import { cn } from '@/lib/utils';
 import { plan } from './planUi';
 import { addDays, periodOf, tashkentToday, useChannelNames, useSegmentOptions, type PeriodKey, type Segment } from './marketing';
@@ -46,9 +46,11 @@ export default function FlowTab() {
   );
 }
 
-function screenName(screen: string, t: T): string {
+/** A node's name; [step] 1 is where every visit starts, so the shell it passes through is the launch. */
+function screenName(screen: string, t: T, step?: number): string {
   if (screen === '__exit__') return t('flow.exit');
   if (screen === '__other__') return t('flow.other');
+  if (step === 1 && isLaunchScreen(screen)) return t('appActivity.screens.home');
   return screenLabel(screen, t) || screen;
 }
 
@@ -83,7 +85,7 @@ const H = 380;
 /** The Sankey: a column per step, bands by visits, the exits red. Hover for numbers. */
 function FlowChart({ data, t }: { data: PathsData; t: T }) {
   const f = useMemo(() => layoutFlow(data, W, H), [data]);
-  const name = (screen: string) => screenName(screen, t);
+  const name = (screen: string, step: number) => screenName(screen, t, step);
   return (
     <svg viewBox={`0 0 ${W} ${f.height + 4}`} width={W} height={f.height + 4} className="max-w-none" role="img" aria-label={t('flow.pathsTitle')}>
       {f.links.map((l, i) => {
@@ -96,14 +98,14 @@ function FlowChart({ data, t }: { data: PathsData; t: T }) {
             d={`M${x0},${l.y0} C${xm},${l.y0} ${xm},${l.y1} ${x1},${l.y1} L${x1},${l.y1 + l.h} C${xm},${l.y1 + l.h} ${xm},${l.y0 + l.h} ${x0},${l.y0 + l.h} Z`}
             className={l.to.exit ? 'fill-[#B4232E]/20 dark:fill-[#FF8C92]/20' : 'fill-[#93A7FF]/35 dark:fill-[#93A7FF]/25'}
           >
-            <title>{`${name(l.from.screen)} → ${name(l.to.screen)}: ${t('flow.visits', { count: l.sessions })}`}</title>
+            <title>{`${name(l.from.screen, l.from.step)} → ${name(l.to.screen, l.to.step)}: ${t('flow.visits', { count: l.sessions })}`}</title>
           </path>
         );
       })}
       {f.nodes.map((n) => (
         <g key={n.key}>
           <rect x={n.x} y={n.y} width={f.nodeWidth} height={n.h} className={n.exit ? 'fill-[#B4232E] dark:fill-[#FF8C92]' : 'fill-[#2447D6] dark:fill-[#93A7FF]'}>
-            <title>{`${name(n.screen)}: ${t('flow.visits', { count: n.sessions })}`}</title>
+            <title>{`${name(n.screen, n.step)}: ${t('flow.visits', { count: n.sessions })}`}</title>
           </rect>
           <text
             x={n.x + f.nodeWidth + 6}
@@ -111,7 +113,7 @@ function FlowChart({ data, t }: { data: PathsData; t: T }) {
             dy="0.35em"
             className={cn('text-[12px]', n.exit ? 'fill-[#B4232E] dark:fill-[#FF8C92]' : 'fill-[#0A1A34] dark:fill-[#EEF2FB]')}
           >
-            {`${name(n.screen)} · ${n.sessions}`}
+            {`${name(n.screen, n.step)} · ${n.sessions}`}
           </text>
         </g>
       ))}
@@ -143,7 +145,8 @@ function StepFunnel({
       .sort((a, b) => a.label.localeCompare(b.label));
     return [...screens, ...evs];
   }, [events, t]);
-  const labelOf = (k: string) => choices.find((c) => c.key === k)?.label ?? k;
+  // until the registry has loaded, an event step reads by the CRM's own name, not its key
+  const labelOf = (k: string) => choices.find((c) => c.key === k)?.label ?? t(`appActivity.page.eventNames.${k}`, { defaultValue: k });
   const set = (i: number, v: string) => onSteps(steps.map((s, j) => (j === i ? v : s)));
   const top = data?.steps[0]?.devices ?? 0;
 

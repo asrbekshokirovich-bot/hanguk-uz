@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
 import { createInstance } from 'i18next';
 import uz from '@/locales/uz.json';
@@ -20,12 +20,18 @@ const sample: Marketing = {
   ],
   funnel: { all: [63, 49, 35, 20, 14, 4, 2, 0], telegram: [2, 2, 1, 1, 1, 1, 0, 0], unknown: [61, 47, 34, 19, 13, 3, 2, 0] },
   demand: {
-    filters: [{ field: 'field', value: 'IT', devices: 10 }, { field: 'regions', value: 'Seul', devices: 11 }],
+    filters: [
+      { field: 'field', value: 'IT', devices: 10 },
+      { field: 'field', value: 'business', devices: 6 },
+      { field: 'regions', value: 'Seul', devices: 11 },
+      { field: 'degree', value: 'all', devices: 40 },
+      { field: 'degree', value: 'magistratura', devices: 3 },
+    ],
     answers: [{ form: 'visa', q: 'topik', band: '2', devices: 4 }],
     universities: [{ institution_id: 'a', name_en: 'Catholic University of Pusan', name_ko: null, devices: 13, opens: 20, avg_position: 1.4, seen: 30 }],
   },
   stops: {
-    exit_screens: [{ screen: '/language', sessions: 8 }],
+    exit_screens: [{ screen: '/language', sessions: 8 }, { screen: '/guest#home', sessions: 5 }],
     language_exits: 8,
     client_code_seen: 28,
     client_code_left: 18,
@@ -47,7 +53,7 @@ vi.mock('../marketing', async (orig) => {
 });
 
 import MarketingTab from '../MarketingTab';
-import { addDays, bandLabel, money, perOne, periodLabel, periodOf } from '../marketing';
+import { addDays, bandLabel, filterValueLabel, money, perOne, periodLabel, periodOf } from '../marketing';
 import { buildCsv } from '../marketingExport';
 
 const i18n = createInstance();
@@ -71,6 +77,32 @@ describe('Marketing panel (the plan\'s mock-up)', () => {
     expect(titles).toEqual(['Voronka', 'Talab', "To'xtash joylari", 'Qaytish', 'Xarajat', 'Test filtri']);
     expect(screen.getByText(/Mijoz kodi ekranini ochib, kodsiz chiqqan qurilmalar: 18 \/ 28/)).toBeTruthy();
     expect(screen.getAllByText("500 000 so'm").length).toBeGreaterThan(0);
+  });
+
+  it("«Talab» and the exits read by the app's own names; «all» is no filter and is left out", () => {
+    render(
+      <I18nextProvider i18n={i18n}>
+        <MarketingTab />
+      </I18nextProvider>,
+    );
+    expect(screen.getByText('Biznes')).toBeTruthy();
+    expect(screen.getByText('Magistr')).toBeTruthy();
+    expect(screen.queryByText('all')).toBeNull();
+    expect(screen.queryByText('business')).toBeNull();
+    expect(screen.getByText('Mehmon · Baholash (markaziy tugma)')).toBeTruthy();
+    expect(screen.queryByText('/guest#home')).toBeNull();
+    expect(screen.getByText("O'rtacha o'rni (ro'yxatda)")).toBeTruthy();
+    // the spend form opens on request
+    expect(screen.queryByRole('button', { name: 'Saqlash' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '+ Xarajat kiritish' }));
+    expect(screen.getByRole('button', { name: 'Saqlash' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Bekor qilish' }));
+    expect(screen.queryByRole('button', { name: 'Saqlash' })).toBeNull();
+    expect(filterValueLabel('topik', 'none', t)).toBe("yo'q");
+    expect(filterValueLabel('topik', '3', t)).toBe('TOPIK 3');
+    expect(filterValueLabel('type', 'private', t)).toBe('Xususiy');
+    expect(filterValueLabel('regions', 'Busan', t)).toBe('Busan');
+    expect(filterValueLabel('degree', 'all', t)).toBeNull();
   });
 
   it('periods, labels and money', () => {
