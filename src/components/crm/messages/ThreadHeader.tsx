@@ -116,7 +116,7 @@ export function ThreadHeader({
             className="flex items-center gap-1.5 rounded-pill bg-warning/10 py-1 pl-2.5 pr-1"
             title={unassignedLabel}
           >
-            <span className="whitespace-nowrap text-xs font-semibold text-warning">
+            <span className="hidden whitespace-nowrap text-xs font-semibold text-warning sm:inline">
               {c.isWaiting && c.waitingMinutes > 0 ? formatWait(c.waitingMinutes) : t('messages.thread.unassigned')}
             </span>
             <button
@@ -146,6 +146,7 @@ export function ThreadHeader({
         )}
 
         {onLinkContact && (
+          <span className="hidden sm:inline-flex">
           <IconAction
             label={
               c.studentId
@@ -156,6 +157,7 @@ export function ThreadHeader({
             onClick={onLinkContact}
             icon={<UserPlus className="h-4 w-4" aria-hidden="true" />}
           />
+          </span>
         )}
 
         <span className="hidden sm:inline-flex">
@@ -169,11 +171,13 @@ export function ThreadHeader({
         </span>
 
         {!c.isDone && (
+          <span className="hidden sm:inline-flex">
           <IconAction
             label={t('messages.thread.markDone')}
             onClick={onMarkDone}
             icon={<CheckCheck className="h-4 w-4" aria-hidden="true" />}
           />
+          </span>
         )}
 
         <DropdownMenu>
@@ -191,6 +195,26 @@ export function ThreadHeader({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            {/* On a phone the icon row is hidden; its actions live here. */}
+            <div className="sm:hidden">
+              {!c.isDone && (
+                <DropdownMenuItem onSelect={onMarkDone} className="gap-2">
+                  <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t('messages.thread.markDone')}
+                </DropdownMenuItem>
+              )}
+              {onLinkContact && (
+                <DropdownMenuItem onSelect={onLinkContact} className="gap-2">
+                  <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
+                  {c.studentId ? t('messages.thread.relinkContact') : t('messages.thread.linkContact')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={onToggleAutoTranslate} className="gap-2">
+                <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+                {autoTrLabel}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </div>
             <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
               {t('messages.thread.kindLabel')}
             </DropdownMenuLabel>

@@ -183,7 +183,7 @@ export function CRMSidebar({
 }: CRMSidebarProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const navigate = useNavigate();
@@ -266,7 +266,12 @@ export function CRMSidebar({
                           <span className="pointer-events-none absolute bottom-2 left-0 top-2 z-10 w-[3px] rounded-full bg-sidebar-primary" />
                         )}
                         <SidebarMenuButton
-                          onClick={() => navigate(item.url)}
+                          onClick={() => {
+                            navigate(item.url);
+                            // On a phone the sidebar is a sheet over the page; leave it open
+                            // and the page the operator just chose stays hidden behind it.
+                            if (isMobile) setOpenMobile(false);
+                          }}
                           isActive={active}
                           tooltip={item.title}
                           className={cn(

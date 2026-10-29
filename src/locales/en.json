@@ -1344,11 +1344,11 @@
       "telegram": "Telegram",
       "instagram": "Instagram",
       "app": "App",
-      "internal": "Staff"
+      "internal": "Internal"
     },
     "queue": {
       "label": "Conversation queue",
-      "searchPlaceholder": "Name, phone, @username or message text",
+      "searchPlaceholder": "Name, phone or message",
       "shown": "{{count}} shown",
       "waiting": "{{time}} waiting",
       "mine": "Mine",
@@ -1391,10 +1391,15 @@
       "reopen": "Reopen",
       "more": "More actions",
       "kindLabel": "Conversation type",
-      "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Staff” filter.",
+      "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Internal” filter.",
       "fromPhone": "from phone",
       "autoReply": "auto-reply",
-      "back": "Back to the list"
+      "back": "Back to the list",
+      "retry": "Retry",
+      "sendFailed": "Not delivered",
+      "sent": "Sent",
+      "loadEarlier": "Load earlier messages",
+      "jumpToLatest": "Jump to latest"
     },
     "composer": {
       "label": "Write a reply",

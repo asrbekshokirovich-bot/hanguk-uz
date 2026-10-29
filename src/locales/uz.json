@@ -1413,11 +1413,11 @@
       "telegram": "Telegram",
       "instagram": "Instagram",
       "app": "Ilova",
-      "internal": "Xodimlar"
+      "internal": "Ichki"
     },
     "queue": {
       "label": "Suhbatlar navbati",
-      "searchPlaceholder": "Ism, telefon, @username yoki xabar matni",
+      "searchPlaceholder": "Ism, telefon yoki xabar",
       "shown": "{{count}} ta ko‘rsatilgan",
       "waiting": "{{time}} kutmoqda",
       "mine": "Meniki",
@@ -1460,10 +1460,15 @@
       "reopen": "Qayta ochish",
       "more": "Boshqa amallar",
       "kindLabel": "Suhbat turi",
-      "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Xodimlar” filtrida turadi.",
+      "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Ichki” filtrida turadi.",
       "fromPhone": "telefondan",
       "autoReply": "avto-javob",
-      "back": "Ro‘yxatga qaytish"
+      "back": "Ro‘yxatga qaytish",
+      "retry": "Qayta yuborish",
+      "sendFailed": "Yuborilmadi",
+      "sent": "Yuborildi",
+      "loadEarlier": "Oldingi xabarlar",
+      "jumpToLatest": "Oxirgi xabarga"
     },
     "composer": {
       "label": "Javob yozing",

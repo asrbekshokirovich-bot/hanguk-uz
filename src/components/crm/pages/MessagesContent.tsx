@@ -92,7 +92,15 @@ export default function MessagesContent() {
   const [query, setQuery] = useState('');
   const [showStale, setShowStale] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [contextOpen, setContextOpen] = useState(true);
+  // The rail opens by itself only where it fits beside a readable thread
+  // (2xl); between xl and 2xl it is one click on the panel button away.
+  const [contextOpen, setContextOpen] = useState(() => {
+    try {
+      return window.matchMedia('(min-width: 1536px)').matches;
+    } catch {
+      return true;
+    }
+  });
   const [claiming, setClaiming] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -472,7 +480,8 @@ export default function MessagesContent() {
       ? (selectedThread.source as 'telegram' | 'instagram' | 'whatsapp')
       : null;
 
-  const waitingCount = conversations.filter((c) => c.kind === 'lead' && c.isWaiting && !c.isDone).length;
+  // Same rule as the tab and the sidebar badge: recent lead conversations only.
+  const waitingCount = conversations.filter((c) => c.kind === 'lead' && c.isWaiting && !c.isDone && !c.isStale).length;
   const mineCount = conversations.filter((c) => c.kind === 'lead' && c.isMine && !c.isDone).length;
 
   return (
