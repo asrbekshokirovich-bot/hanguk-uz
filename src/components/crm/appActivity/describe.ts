@@ -37,15 +37,55 @@ const SCREENS: Record<string, string> = {
   interview_test: 'interviewTest',
   ai_chat: 'aiChat',
   qr_scan: 'qrScan',
+  '/surveys/:id': 'surveyDetail',
+  // Not screens of their own: where a tap or a contact came from.
+  client_code: 'login',
+  guest_push: 'guestPush',
+  // tab_open events carry the shell they happened in.
+  guest: 'guestShell',
+  client: 'clientShell',
 };
 
-/** The app's screens by route (for picking a screen as a funnel step). */
-export const SCREEN_ROUTES = Object.keys(SCREENS).filter((k) => k.startsWith('/'));
+/** A shell route ('/guest' for the guest, '/' for the signed-in client) and its bottom-nav tabs. */
+const SHELLS: Record<string, 'guest' | 'client'> = { '/guest': 'guest', '/': 'client' };
+const SHELL_TABS = ['home', 'universities', 'prepare', 'application', 'documents'] as const;
+
+/**
+ * The app's screens (for picking a screen as a funnel step): the routes, then
+ * the shells' tabs — from 1.1.2 the app writes a tab as '/guest#universities'.
+ */
+export const SCREEN_ROUTES = [
+  ...Object.keys(SCREENS).filter((k) => k.startsWith('/')),
+  ...Object.keys(SHELLS).flatMap((shell) => SHELL_TABS.map((tab) => `${shell}#${tab}`)),
+];
 
 export function screenLabel(screen: string | null | undefined, t: T): string {
   if (!screen) return '';
   const key = SCREENS[screen];
-  return key ? t(`appActivity.screens.${key}`) : screen;
+  if (key) return t(`appActivity.screens.${key}`);
+  // A contact tapped in the client's Ariza tab.
+  if (screen === 'application') return screenLabel('/#application', t);
+  // '/guest#universities' → «Mehmon · Universitetlar».
+  const hash = screen.indexOf('#');
+  if (hash > 0) {
+    const route = screen.slice(0, hash);
+    const tab = screen.slice(hash + 1);
+    const tabName = t(`appActivity.tabs.${tab}`, { defaultValue: tab });
+    const shell = SHELLS[route];
+    return shell
+      ? t('appActivity.screens.shellTab', { shell: t(`appActivity.shells.${shell}`), tab: tabName })
+      : `${screenLabel(route, t)} · ${tabName}`;
+  }
+  return screen;
+}
+
+/**
+ * Every launch passes through the signed-in shell before the language and
+ * sign-in checks send a guest on: '/' up to 1.1.1, '/#application' from 1.1.2.
+ * As a visit's first screen that is the app starting, not the Ariza tab.
+ */
+export function isLaunchScreen(screen: string | null | undefined): boolean {
+  return screen === '/' || screen === '/#application';
 }
 
 function str(v: unknown): string | null {

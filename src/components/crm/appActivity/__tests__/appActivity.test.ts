@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 import { createInstance } from 'i18next';
 import uz from '@/locales/uz.json';
-import { describeEvent, pickedUniversities, screenLabel, sessionsOf } from '../describe';
+import { SCREEN_ROUTES, describeEvent, isLaunchScreen, pickedUniversities, screenLabel, sessionsOf } from '../describe';
 import { institutionIds, type AppEvent } from '../useAppActivity';
 
 const i18n = createInstance();
@@ -46,6 +46,28 @@ describe('app activity', () => {
     expect(screenLabel('/guest', t)).toBe('Mehmon bosh oynasi');
     expect(screenLabel('/assess/lead', t)).toBe('Konsultant formasi');
     expect(screenLabel('/university/:id/assess', t)).toBe("Universitet bo'yicha baholash");
+  });
+
+  it("names a shell's tab as 1.1.2 writes it ('/guest#universities'), and the rest seen in the data", () => {
+    expect(screenLabel('/guest#home', t)).toBe('Mehmon · Baholash (markaziy tugma)');
+    expect(screenLabel('/guest#universities', t)).toBe('Mehmon · Universitetlar');
+    expect(screenLabel('/#documents', t)).toBe('Mijoz · Hujjatlar');
+    expect(screenLabel('/#application', t)).toBe('Mijoz · Ariza');
+    expect(screenLabel('application', t)).toBe('Mijoz · Ariza');
+    expect(screenLabel('guest', t)).toBe('Mehmon · pastki menyu');
+    expect(screenLabel('client', t)).toBe('Mijoz · pastki menyu');
+    expect(screenLabel('/surveys/:id', t)).toBe("So'rovnoma");
+    expect(screenLabel('client_code', t)).toBe('Mijoz kodi bilan kirish');
+    expect(screenLabel('guest_push', t)).toBe("Bildirishnomaga ruxsat so'rovi");
+    // a tab the CRM does not know yet still reads by its shell
+    expect(screenLabel('/guest#brand_new', t)).toBe('Mehmon · brand_new');
+    // the launch passes through the client shell: '/' before 1.1.2, '/#application' since
+    expect(isLaunchScreen('/')).toBe(true);
+    expect(isLaunchScreen('/#application')).toBe(true);
+    expect(isLaunchScreen('/guest#home')).toBe(false);
+    // the funnel can pick a tab as a step
+    expect(SCREEN_ROUTES).toContain('/guest#universities');
+    expect(SCREEN_ROUTES).toContain('/guest');
   });
 
   it('tells the two assessments apart (new versions send kind)', () => {

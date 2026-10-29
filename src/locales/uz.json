@@ -450,6 +450,23 @@
       "errPeriod": "Davrni yozing (masalan, Q4 2026)",
       "errAmount": "Summa musbat son bo'lishi kerak",
       "errPaidAt": "To'langan sanani kiriting"
+    },
+    "staffDelete": {
+      "title": "Akkauntni o'chirish",
+      "hint": "Xodimni va uning tizimga kirish huquqini butunlay olib tashlash",
+      "button": "O'chirish",
+      "deleting": "O'chirilmoqda...",
+      "confirmTitle": "Xodim akkauntini o'chirish",
+      "confirmText": "«{{name}}» akkauntini butunlay o'chirmoqchimisiz?",
+      "itemRoles": "Barcha rollari va ruxsatlari olib tashlanadi",
+      "itemLogin": "Akkaunti o'chiriladi, tizimga kira olmaydi",
+      "itemHistory": "U kiritgan yozuvlar (to'lovlar, hujjatlar, vazifalar) o'chmaydi",
+      "irreversible": "Bu amalni qaytarib bo'lmaydi.",
+      "cancel": "Bekor qilish",
+      "confirm": "Ha, o'chirish",
+      "success": "Xodim akkaunti o'chirildi",
+      "failed": "Xodim akkauntini o'chirib bo'lmadi",
+      "fallbackName": "bu xodim"
     }
   },
   "leads": {
@@ -2215,7 +2232,12 @@
       "interviewTest": "Suhbat testi",
       "studyPlanTest": "Study Plan testi",
       "walkaround": "360° kampus",
-      "visa": "Vizam chiqadimi?"
+      "visa": "Vizam chiqadimi?",
+      "surveyDetail": "So'rovnoma",
+      "guestPush": "Bildirishnomaga ruxsat so'rovi",
+      "guestShell": "Mehmon · pastki menyu",
+      "clientShell": "Mijoz · pastki menyu",
+      "shellTab": "{{shell}} · {{tab}}"
     },
     "tabs": {
       "universities": "Universitetlar",
@@ -2343,7 +2365,19 @@
     "emptyLead": "Bu lidga hali hech qaysi qurilma bog'lanmagan. Qurilma lid ilovadagi «Konsultant bog'lansin» formasini yuborganda bog'lanadi.",
     "emptyStudent": "Talaba ilovaga hali mijoz kodi bilan kirmagan.",
     "picked_one": "{{count}} ta universitet tanlangan (♥)",
-    "picked_other": "{{count}} ta universitet tanlangan (♥)"
+    "picked_other": "{{count}} ta universitet tanlangan (♥)",
+    "shells": {
+      "guest": "Mehmon",
+      "client": "Mijoz"
+    },
+    "forms": {
+      "lead": "konsultant formasi",
+      "quiz_contact": "qo'ng'iroq formasi",
+      "client_code": "mijoz kodi",
+      "survey": "so'rovnoma",
+      "visa": "«Vizam chiqadimi?»",
+      "university": "universitet bo'yicha baholash"
+    }
   },
   "applicationFeeAccess": {
     "title": "Alohida ruxsatlar",
@@ -2479,7 +2513,8 @@
       "report": "hisobot",
       "request": "so'rov yubordi",
       "test": "test",
-      "more": "{{total}} tadan {{shown}} tasi ko'rsatildi"
+      "more": "{{total}} tadan {{shown}} tasi ko'rsatildi",
+      "scoreHint": "0–100: ilovada qanchalik oldinga borgani — universitet ochish 10, ♥ 15, baholash 15, hisobot 20, konsultant formasi 10, murojaat yoki bog'lanish 10, tayyorgarlik (Study Plan, suhbat, AI) 10, qaytib kelish 5 + 5. Oxirgi kirish 7 kundan eski bo'lsa ×0,7, 30 kundan eski bo'lsa ×0,4."
     }
   },
   "appLink": {
@@ -2675,7 +2710,7 @@
       "university": "Universitet",
       "devices": "Qurilma",
       "opens": "Ochildi",
-      "position": "Ro'yxatdagi o'rni",
+      "position": "O'rtacha o'rni (ro'yxatda)",
       "seen": "Kartasini ko'rgan"
     },
     "questions": {
@@ -2685,7 +2720,32 @@
       "bank": "Bankdagi pul",
       "income": "Ota-ona daromadi",
       "income_documented": "Rasmiy daromad",
-      "age": "Yosh"
+      "age": "Yosh",
+      "education": "Oxirgi ma'lumotingiz",
+      "gpa": "Attestat / diplom o'rtacha bali",
+      "gap_years": "Bitirgandan keyin o'tgan vaqt",
+      "topik_fresh": "TOPIK sertifikati",
+      "sponsor": "Sponsor kim",
+      "relation_doc": "Qarindoshlik hujjati (apostil bilan)",
+      "income_stability": "Daromad necha vaqtdan beri barqaror",
+      "property": "Ota-onangiz nomida ko'chmas mulk bormi (uy, kvartira, yer)",
+      "car": "Ota-onangiz nomida avtomobil bormi",
+      "business": "Ota-onangizning biznesi / ro'yxatdan o'tgan kompaniyasi bormi",
+      "visa_refused": "Oldin viza rad etilganmi",
+      "korea_before": "Koreyada oldin bo'lganmisiz",
+      "illegal_relatives": "Yaqin qarindoshlaringizdan Janubiy Koreyada noqonuniy (nelegal) bo'lganlar bormi",
+      "legal_relatives": "Koreyada qonuniy yashovchi qarindoshlaringiz bormi",
+      "experience": "Tanlagan yo'nalish bo'yicha tajriba",
+      "olympiad": "Olimpiada / musobaqa yutuqlari",
+      "motivation": "Motivatsiya xati",
+      "recommendation": "Tavsiyanoma (o'qituvchidan)",
+      "portfolio": "Portfolio (dizayn, san'at, loyiha)",
+      "activity": "Qo'shimcha faoliyat",
+      "study_plan": "Study Plan (o'qish rejasi)",
+      "interview_prep": "Suhbatga tayyorgarlik",
+      "degree": "Qaysi darajaga topshirasiz",
+      "for_whom": "Kim uchun",
+      "how_heard": "Qayerdan topdingiz"
     },
     "bands": {
       "none": "yo'q",
@@ -2737,7 +2797,9 @@
       "save": "Saqlash",
       "saved": "Saqlandi",
       "removed": "O'chirildi",
-      "failed": "Saqlab bo'lmadi"
+      "failed": "Saqlab bo'lmadi",
+      "add": "+ Xarajat kiritish",
+      "cancel": "Bekor qilish"
     },
     "test": {
       "show": "Test qurilmalarni ham ko'rsatish",
@@ -2788,6 +2850,25 @@
       "age": {
         "new": "Yangi",
         "returning": "Qaytgan"
+      }
+    },
+    "filterValues": {
+      "field": {
+        "it": "IT",
+        "business": "Biznes",
+        "engineering": "Muhandislik",
+        "medicine": "Tibbiyot",
+        "design": "Dizayn",
+        "tourism": "Turizm",
+        "education": "Pedagogika"
+      },
+      "degree": {
+        "bakalavr": "Bakalavr",
+        "magistratura": "Magistr"
+      },
+      "type": {
+        "state": "Davlat",
+        "private": "Xususiy"
       }
     }
   },
@@ -2841,7 +2922,8 @@
     "offersNote": "48 soatdan oshgani qizil: hujjatlar xodimiga vazifa tushadi, talabaga eslatma push o'zi ketadi (har taklifga bir marta).",
     "noOffers": "Javob kutayotgan taklif yo'q",
     "noDocuments": "Hammasining hujjatlari to'liq",
-    "noInactive": "Hamma 7 kun ichida ilovaga kirgan"
+    "noInactive": "Hamma 7 kun ichida ilovaga kirgan",
+    "seasonNote": "Faqat {{season}} mavsumi talabalari — shartnomasi bekor qilinganlar va Koreyaga ketganlarsiz. Mavsumni tepadagi tanlovdan almashtiring."
   },
   "guestPush": {
     "title": "Mehmonlarga push",

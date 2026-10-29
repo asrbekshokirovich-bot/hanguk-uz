@@ -390,6 +390,23 @@
       "errPeriod": "기간을 입력하세요 (예: Q4 2026)",
       "errAmount": "금액은 양수여야 합니다",
       "errPaidAt": "지급일을 입력하세요"
+    },
+    "staffDelete": {
+      "title": "계정 삭제",
+      "hint": "직원과 시스템 접근 권한을 영구적으로 삭제합니다",
+      "button": "삭제",
+      "deleting": "삭제 중...",
+      "confirmTitle": "직원 계정 삭제",
+      "confirmText": "«{{name}}» 계정을 영구적으로 삭제하시겠습니까?",
+      "itemRoles": "모든 역할과 권한이 제거됩니다",
+      "itemLogin": "계정이 삭제되어 더 이상 로그인할 수 없습니다",
+      "itemHistory": "직원이 입력한 기록(결제, 서류, 작업)은 유지됩니다",
+      "irreversible": "이 작업은 되돌릴 수 없습니다.",
+      "cancel": "취소",
+      "confirm": "네, 삭제합니다",
+      "success": "직원 계정이 삭제되었습니다",
+      "failed": "직원 계정을 삭제할 수 없습니다",
+      "fallbackName": "이 직원"
     }
   },
   "leads": {

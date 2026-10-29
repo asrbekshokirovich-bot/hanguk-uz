@@ -9,6 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
@@ -106,6 +116,7 @@ export default function UniversitySelectionContent({
   const regularChoices = studentChoices.filter((c) => c.rank !== PARTNER_RANK);
   const partnerChoice = studentChoices.find((c) => c.rank === PARTNER_RANK) ?? null;
   const [partnerPick, setPartnerPick] = useState('');
+  const [unlocking, setUnlocking] = useState<UniversityChoice | null>(null);
 
   // Universities with an uploaded guideline first — those carry the
   // requirements, fees and deadlines a choice is made on.
@@ -247,7 +258,15 @@ export default function UniversitySelectionContent({
                     first={i === 0}
                     last={c.rank === PARTNER_RANK || i === regularChoices.length - 1}
                     applied={appliedIds.has(c.institution_id)}
-                    busy={choices.move.isPending || choices.remove.isPending || choices.confirm.isPending}
+                    busy={choices.move.isPending || choices.remove.isPending || choices.confirm.isPending || choices.unlockConfirmed.isPending}
+                    changeOnce={
+                      c.status !== 'confirmed' || !choices.canChangeConfirmed
+                        ? 'none'
+                        : choices.changedStudents.has(student.user_id)
+                          ? 'used'
+                          : 'available'
+                    }
+                    onChangeConfirmed={() => setUnlocking(c)}
                     onMove={(direction) => choices.move.mutate({ choice: c, direction }, { onError })}
                     onRemove={() => choices.remove.mutate(c, { onError })}
                     onConfirm={() =>
@@ -420,6 +439,34 @@ export default function UniversitySelectionContent({
           </Card>
         </div>
       )}
+
+      <AlertDialog open={!!unlocking} onOpenChange={(open) => !open && setUnlocking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tasdiqlangan universitet almashtirilsinmi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {unlocking && (entryById.get(unlocking.institution_id) ? displayName(entryById.get(unlocking.institution_id)!).primary : 'Universitet')}{' '}
+              tanlovdan olib tashlanadi, o'rniga yangi universitet tanlaysiz. Bu talaba uchun faqat bir marta mumkin — keyin qaytarib bo'lmaydi.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const c = unlocking;
+                setUnlocking(null);
+                if (c)
+                  choices.unlockConfirmed.mutate(c, {
+                    onSuccess: () => toast.success("Olib tashlandi — endi yangi universitet tanlang"),
+                    onError,
+                  });
+              }}
+            >
+              Ha, almashtirish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -434,6 +481,9 @@ interface ChoiceRowProps {
   onMove: (direction: -1 | 1) => void;
   onRemove: () => void;
   onConfirm: () => void;
+  /** Confirmed choices: may this user use the student's one change? */
+  changeOnce: 'none' | 'available' | 'used';
+  onChangeConfirmed: () => void;
 }
 
 function fmtDay(iso: string | null) {
@@ -478,7 +528,7 @@ function StatusBadge({ choice }: { choice: UniversityChoice }) {
   }
 }
 
-function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm }: ChoiceRowProps) {
+function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm, changeOnce, onChangeConfirmed }: ChoiceRowProps) {
   const name = entry ? displayName(entry) : { primary: '—', secondary: null };
   const isPartner = choice.rank === PARTNER_RANK;
   const confirmed = choice.status === 'confirmed';
@@ -507,6 +557,15 @@ function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove
         </div>
         <StatusBadge choice={choice} />
         {applied && <Badge variant="successSoft" className="text-[10px]">Arizada</Badge>}
+        {changeOnce === 'available' && (
+          <Button size="sm" variant="outline" className="h-7 shrink-0 gap-1 text-xs" disabled={busy} onClick={onChangeConfirmed}>
+            <RefreshCw className="h-3 w-3" />
+            Almashtirish (1 marta)
+          </Button>
+        )}
+        {changeOnce === 'used' && (
+          <Badge variant="neutral" className="text-[10px]">Almashtirish ishlatilgan</Badge>
+        )}
         {!confirmed && (
           <div className="flex shrink-0 items-center">
             {!isPartner && (

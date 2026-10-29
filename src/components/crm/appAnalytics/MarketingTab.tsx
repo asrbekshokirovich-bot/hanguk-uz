@@ -12,6 +12,7 @@ import {
   addDays,
   bandLabel,
   channelName,
+  filterValueLabel,
   money,
   perOne,
   periodLabel,
@@ -245,9 +246,14 @@ function Funnel({ data, names, t }: { data: Marketing; names: Record<string, str
 }
 
 function Demand({ data, t }: { data: Marketing; t: T }) {
+  // «all» is no filter at all: left out, the rest by the app's own names
   const groups = ['field', 'regions', 'degree'].map((f) => ({
     f,
-    rows: data.demand.filters.filter((x) => x.field === f).slice(0, 6),
+    rows: data.demand.filters
+      .filter((x) => x.field === f)
+      .map((x) => ({ ...x, label: filterValueLabel(f, x.value, t) }))
+      .filter((x): x is typeof x & { label: string } => x.label !== null)
+      .slice(0, 6),
   }));
   const answers = ANSWER_QS.map((q) => ({
     q,
@@ -263,7 +269,7 @@ function Demand({ data, t }: { data: Marketing; t: T }) {
               <ul className="space-y-1 text-[13px]">
                 {g.rows.map((r) => (
                   <li key={r.value} className="flex justify-between gap-2">
-                    <span className="min-w-0 truncate">{r.value}</span>
+                    <span className="min-w-0 truncate">{r.label}</span>
                     <span className="tabular-nums">{r.devices}</span>
                   </li>
                 ))}
@@ -401,6 +407,8 @@ function Spend({ data, names, onSaved, t }: { data: Marketing; names: Record<str
   const [currency, setCurrency] = useState<'USD' | 'UZS'>('USD');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
+  // the form opens on request: an analytics page first, data entry second
+  const [adding, setAdding] = useState(false);
   const total = useMemo(() => {
     const by: Record<string, number> = {};
     for (const r of data.spend) by[r.currency] = (by[r.currency] ?? 0) + Number(r.amount);
@@ -417,6 +425,7 @@ function Spend({ data, names, onSaved, t }: { data: Marketing; names: Record<str
       toast.success(t(status === 'ok' ? 'marketing.spend.saved' : 'marketing.spend.removed'));
       setAmount('');
       setNote('');
+      setAdding(false);
       onSaved();
     }
   };
@@ -455,7 +464,14 @@ function Spend({ data, names, onSaved, t }: { data: Marketing; names: Record<str
           </table>
         </div>
       )}
-      {isAdmin && (
+      {isAdmin && !adding && (
+        <div>
+          <button type="button" className={plan.btn} onClick={() => setAdding(true)}>
+            {t('marketing.spend.add')}
+          </button>
+        </div>
+      )}
+      {isAdmin && adding && (
         <form
           className="mt-1 flex flex-wrap items-end gap-2"
           onSubmit={(e) => {
@@ -494,6 +510,9 @@ function Spend({ data, names, onSaved, t }: { data: Marketing; names: Record<str
           </label>
           <button type="submit" className={plan.btnPrimary} disabled={busy}>
             {t('marketing.spend.save')}
+          </button>
+          <button type="button" className={plan.btn} disabled={busy} onClick={() => setAdding(false)}>
+            {t('marketing.spend.cancel')}
           </button>
         </form>
       )}

@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useUserRole } from '@/hooks/useUserRole';
 import { PUSH_LANGS, campaignKey, sendGuestPush, usePushCampaigns, validKey, type PushLang, type PushTexts } from './push';
+import { whenLabel } from './person';
 
 /**
  * «Mehmonlarga push» (plan v2, stage 5; B3 — guests asked for permission):
@@ -161,7 +162,7 @@ export default function GuestPushBlock() {
                     {c.delivered > 0 ? ` (${Math.round((c.opened / c.delivered) * 100)}%)` : ''}
                   </td>
                   <td className="py-1 text-muted-foreground">
-                    {new Date(c.sent_at ?? c.created_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {whenLabel(c.sent_at ?? c.created_at, t)}
                   </td>
                 </tr>
               ))}

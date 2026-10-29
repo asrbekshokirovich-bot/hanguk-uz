@@ -85,6 +85,26 @@ const AccessDenied = () => (
   </Card>
 );
 
+const ContentLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
+
+// Defined here, not inside CRMPortal: a component declared in the render body
+// is a new type on every render, so React threw the whole page away and
+// mounted it again each time CRMPortal re-rendered — and it re-renders every
+// time the browser tab comes back into view (supabase-js reports SIGNED_IN
+// then and AuthContext sets a new user object). Pages lost what was typed,
+// filters reset, the scroll jumped to the top and everything loaded again.
+const SafeSuspense = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<ContentLoader />}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
+
 type StudentProfile = CRMStudent;
 
 export default function CRMPortal() {
@@ -249,45 +269,6 @@ export default function CRMPortal() {
     }
   }, [user, isStaff, authLoading, roleLoading, navigate]);
 
-  const ContentLoader = () => (
-    <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-    </div>
-  );
-
-  const SafeSuspense = ({ children }: { children: React.ReactNode }) => (
-    <ErrorBoundary>
-      <Suspense fallback={<ContentLoader />}>
-        {children}
-      </Suspense>
-    </ErrorBoundary>
-  );
-
-  // Wrapper components for finance pages that need data from hooks
-  const FinanceStudentsWrapper = React.memo(function FinanceStudentsWrapper() {
-    return (
-      <Suspense fallback={<ContentLoader />}>
-        <FinanceStudentsContent students={students} payments={payments} onRefresh={fetchPayments} />
-      </Suspense>
-    );
-  });
-
-  const TransactionsWrapper = React.memo(function TransactionsWrapper() {
-    return (
-      <Suspense fallback={<ContentLoader />}>
-        <TransactionsContent payments={payments} loading={loading} />
-      </Suspense>
-    );
-  });
-
-  const FinanceReportsWrapper = React.memo(function FinanceReportsWrapper() {
-    return (
-      <Suspense fallback={<ContentLoader />}>
-        <FinanceReportsContent students={students} payments={payments} />
-      </Suspense>
-    );
-  });
-
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -395,7 +376,11 @@ export default function CRMPortal() {
         );
       case 'finance-students':
         if (!canSeeFinance) return <AccessDenied />;
-        return <FinanceStudentsWrapper />;
+        return (
+          <Suspense fallback={<ContentLoader />}>
+            <FinanceStudentsContent students={students} payments={payments} onRefresh={fetchPayments} />
+          </Suspense>
+        );
       case 'finance-budgets':
         if (!canSeeFinance) return <AccessDenied />;
         return (
@@ -419,7 +404,11 @@ export default function CRMPortal() {
         );
       case 'finance-transactions':
         if (!canSeeFinance) return <AccessDenied />;
-        return <TransactionsWrapper />;
+        return (
+          <Suspense fallback={<ContentLoader />}>
+            <TransactionsContent payments={payments} loading={loading} />
+          </Suspense>
+        );
       case 'finance-distribution':
         if (!canSeeFinance) return <AccessDenied />;
         return (
@@ -436,7 +425,11 @@ export default function CRMPortal() {
         );
       case 'finance-reports':
         if (!canSeeFinance) return <AccessDenied />;
-        return <FinanceReportsWrapper />;
+        return (
+          <Suspense fallback={<ContentLoader />}>
+            <FinanceReportsContent students={students} payments={payments} />
+          </Suspense>
+        );
       case 'universities':
         return <SafeSuspense><UniversityCatalogContent /></SafeSuspense>;
       case 'university-selection':

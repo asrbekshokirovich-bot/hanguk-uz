@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { deviceCode, markTestDevice, TEST_REASONS, unmarkTestDevice, useTestDevices, type TestReason } from './api';
 import GuestPushBlock from './GuestPushBlock';
+import { dayLabel, whenLabel } from './person';
 
 /**
  * "Sozlamalar": test devices (S10). Phones that are staff's, demo accounts' or
@@ -126,12 +127,12 @@ export default function SettingsTab() {
                       {d.test_marked_at && (
                         <span className="text-muted-foreground">
                           {' · '}
-                          {new Date(d.test_marked_at).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                          {dayLabel(d.test_marked_at)}
                         </span>
                       )}
                     </td>
                     <td className="py-1 pr-2 text-muted-foreground">
-                      {new Date(d.last_seen_at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {whenLabel(d.last_seen_at, t)}
                     </td>
                     <td className="py-1 text-right">
                       <Button type="button" size="sm" variant="ghost" onClick={() => void unmark(d.install_id)}>

@@ -132,6 +132,10 @@ jobs:
           # with the repo on 2026-10-27: same code (interview-ai's live copy only has
           # a garbled Korean fallback string). They read the student's universities
           # from student_university_choices now, not the legacy applications table.
+          # Verified on 2026-10-29: `delete-staff` live version 52 was read out of
+          # production — identical to this repo's copy before the staff-delete fix
+          # (cleanup via prepare_staff_deletion RPC, auth user deleted first).
+          # verify_jwt stays true (default; live is true).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -162,6 +166,7 @@ jobs:
             hanguk-ai-chat
             interview-ai
             study-plan-trainer
+            delete-staff
           "
 
           for fn in $FUNCTIONS; do

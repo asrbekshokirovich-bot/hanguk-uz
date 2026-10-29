@@ -19,7 +19,25 @@ const activity = {
   inactive: [{ user_id: 'u4', name: 'Bobur', contract_date: '2026-09-01', last_seen_at: null }],
 };
 const rpc = vi.fn(async () => ({ data: activity, error: null }));
-vi.mock('@/integrations/supabase/client', () => ({ supabase: { rpc: (...a: unknown[]) => rpc(...(a as [])) } }));
+// The selected season's roster (student_intakes), read with select().eq().is().is().
+let roster: string[] | null = null;
+const rosterQuery = vi.fn();
+function rosterBuilder() {
+  const b = {
+    select: () => b,
+    eq: (col: string, v: unknown) => (rosterQuery(col, v), b),
+    is: (col: string, v: unknown) => (rosterQuery(col, v), b),
+    then: (ok: (r: { data: { student_id: string }[] | null; error: unknown }) => unknown) =>
+      Promise.resolve(roster ? { data: roster.map((id) => ({ student_id: id })), error: null } : { data: null, error: { message: 'x' } }).then(ok),
+  };
+  return b;
+}
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: { rpc: (...a: unknown[]) => rpc(...(a as [])), from: () => rosterBuilder() },
+}));
+vi.mock('@/contexts/IntakeContext', () => ({
+  useActiveIntake: () => ({ activeIntakeId: 'intake-1', activeIntake: { id: 'intake-1', season: 'spring', year: 2027 } }),
+}));
 
 import ClientsTab from '../ClientsTab';
 import { studentPath, waited } from '../clients';
@@ -33,18 +51,23 @@ function Where() {
   return <p data-testid="where">{l.pathname + l.search}</p>;
 }
 
+function renderTab() {
+  return render(
+    <MemoryRouter initialEntries={['/crm/app-analytics/clients']}>
+      <I18nextProvider i18n={i18n}>
+        <Routes>
+          <Route path="/crm/app-analytics/clients" element={<ClientsTab />} />
+          <Route path="/crm/students" element={<Where />} />
+        </Routes>
+      </I18nextProvider>
+    </MemoryRouter>,
+  );
+}
+
 describe('«Mijozlar faolligi»', () => {
   it('lists offers, missing documents and students away from the app; a row opens the student', async () => {
-    render(
-      <MemoryRouter initialEntries={['/crm/app-analytics/clients']}>
-        <I18nextProvider i18n={i18n}>
-          <Routes>
-            <Route path="/crm/app-analytics/clients" element={<ClientsTab />} />
-            <Route path="/crm/students" element={<Where />} />
-          </Routes>
-        </I18nextProvider>
-      </MemoryRouter>,
-    );
+    roster = ['u1', 'u2', 'u3', 'u4'];
+    renderTab();
     await waitFor(() => expect(screen.getByText('Javobsiz universitet takliflari')).toBeTruthy());
     // 72 hours is three days, red; 5 hours is not
     expect(screen.getByText('3 kun').className).toContain('B4232E');
@@ -53,8 +76,32 @@ describe('«Mijozlar faolligi»', () => {
     expect(within(docs).getByText("Topshiruvchining zagran pasporti nusxasi · rad etilgan")).toBeTruthy();
     expect(within(docs).getByText('Diplom yoki attestat nusxasi')).toBeTruthy();
     expect(within(screen.getByText('Bobur').closest('tr') as HTMLElement).getByText('hech qachon')).toBeTruthy();
+    // the contract day as the plan writes a day
+    expect(within(docs).getByText(new Date().getFullYear() === 2026 ? '1-okt' : '1-okt 2026')).toBeTruthy();
     fireEvent.click(screen.getByText('Ali Valiyev'));
     expect(screen.getByTestId('where').textContent).toBe('/crm/students?student=u1');
+  });
+
+  it("shows only the season picked in the top bar: its roster, without cancelled contracts and those who left", async () => {
+    roster = ['u1', 'u3'];
+    rosterQuery.mockClear();
+    renderTab();
+    await waitFor(() => expect(screen.getByText('Ali Valiyev')).toBeTruthy());
+    expect(screen.getByText(/Faqat Bahor 2027 mavsumi talabalari/)).toBeTruthy();
+    expect(screen.queryByText('Vali Aliyev')).toBeNull();
+    expect(screen.getByText('Sardor')).toBeTruthy();
+    expect(screen.queryByText('Bobur')).toBeNull();
+    expect(rosterQuery).toHaveBeenCalledWith('intake_id', 'intake-1');
+    expect(rosterQuery).toHaveBeenCalledWith('contract_cancelled_at', null);
+    expect(rosterQuery).toHaveBeenCalledWith('departed_at', null);
+  });
+
+  it('shows the lists whole when the roster cannot be read', async () => {
+    roster = null;
+    renderTab();
+    await waitFor(() => expect(screen.getByText('Vali Aliyev')).toBeTruthy());
+    expect(screen.getByText('Bobur')).toBeTruthy();
+    expect(screen.queryByText(/mavsumi talabalari/)).toBeNull();
   });
 
   it('says how long in hours, then days', () => {
