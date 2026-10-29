@@ -72,11 +72,12 @@ describe('applications pipeline', () => {
     const col = (s: string) => screen.getByTestId(`column-${s}`);
     expect(within(col('new')).getByText('FRESH')).toBeInTheDocument();
     expect(within(col('docs_ready')).getByText('READY')).toBeInTheDocument();
-    expect(within(col('online')).getByText('ONLINE')).toBeInTheDocument();
-    // Every university on its own line, no "Kyungpook +1".
+    // One card per university, no "Kyungpook +1" (Asrbek, 2026-10-29).
+    expect(within(col('online')).getAllByText('ONLINE')).toHaveLength(2);
     expect(within(col('online')).getByText('Kyungpook')).toBeInTheDocument();
     expect(within(col('online')).getByText('Pusan')).toBeInTheDocument();
     expect(within(col('online')).queryByText(/\+1/)).toBeNull();
+    expect(within(col('online')).getByText('2')).toBeInTheDocument();
     expect(within(col('offline')).getByText('OFFLINE')).toBeInTheDocument();
     expect(within(col('result')).getByText('Kirdi: Kyungpook')).toBeInTheDocument();
     // Suhbat: the university and the interview time.

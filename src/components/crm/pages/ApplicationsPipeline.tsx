@@ -76,7 +76,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
 
   const columns = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const byStage = new Map<PipelineStage, { student: S; detail: string | null; accepted: boolean | null }[]>(
+    const byStage = new Map<PipelineStage, { key: string; student: S; detail: string | null; accepted: boolean | null }[]>(
       PIPELINE_STAGES.map((s) => [s, []]),
     );
     for (const student of students) {
@@ -88,12 +88,14 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
       const pack = { requiredVerified: pipeline.docsVerified, requiredTotal: pipeline.docsRequired };
       let detail: string | null = null;
       let accepted: boolean | null = null;
+      // A student applying to several universities gets one card per
+      // university in these columns (Asrbek, 2026-10-29: "alohida karta").
+      let perUniversity: string[] | null = null;
       if (stage === 'docs_ready' || stage === 'new') {
         detail = `Hujjatlar ${pack.requiredVerified}/${pack.requiredTotal}`;
       } else if (stage === 'online' || stage === 'offline') {
         const ids = subs.filter((s) => (stage === 'online' ? s.online_submitted_at : s.offline_sent_at)).map((s) => s.institution_id);
-        // Every university on its own line, never "Ajou +1" (Asrbek, 2026-10-29).
-        detail = ids.map(uniName).join('\n');
+        perUniversity = ids.map(uniName);
       } else if (stage === 'visa_process' || stage === 'visa_waiting' || stage === 'visa_received') {
         const final = subs.find((s) => s.final_at);
         detail = final ? uniName(final.institution_id) : null;
@@ -101,7 +103,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
         const next = subs
           .filter((s) => s.interview_at)
           .sort((a, b) => a.interview_at!.localeCompare(b.interview_at!));
-        detail = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`).join('\n');
+        perUniversity = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`);
       } else if (stage === 'result') {
         const final = subs.find((s) => s.final_at);
         const admitted = subs.filter((s) => s.result === 'accepted');
@@ -111,7 +113,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
           detail = `Yakuniy: ${uniName(final.institution_id)}`;
         } else if (admitted.length > 0) {
           accepted = true;
-          detail = admitted.map((s) => `Kirdi: ${uniName(s.institution_id)}`).join('\n');
+          perUniversity = admitted.map((s) => `Kirdi: ${uniName(s.institution_id)}`);
         } else if (waiting) {
           detail = 'Kirmadi · boshqalari kutilmoqda';
         } else {
@@ -119,7 +121,13 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
           detail = 'Hammasidan kirmadi';
         }
       }
-      byStage.get(stage)!.push({ student, detail, accepted });
+      if (perUniversity && perUniversity.length > 0) {
+        perUniversity.forEach((line, i) =>
+          byStage.get(stage)!.push({ key: `${student.user_id}:${i}`, student, detail: line, accepted }),
+        );
+      } else {
+        byStage.get(stage)!.push({ key: student.user_id, student, detail, accepted });
+      }
     }
     return byStage;
   }, [students, subsByStudent, search, uniName]);
@@ -160,11 +168,11 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
                 <Badge variant="neutral" className="text-[10px]">{items.length}</Badge>
               </div>
               <div className="flex min-h-[120px] flex-col gap-2">
-                {items.map(({ student, detail, accepted }) => {
+                {items.map(({ key, student, detail, accepted }) => {
                   const tint = paymentTint(student);
                   return (
                     <button
-                      key={student.user_id}
+                      key={key}
                       type="button"
                       data-testid="pipeline-card"
                       onClick={() => onOpenStudent(student)}
@@ -188,19 +196,13 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
                       {detail && (
                         <div
                           className={cn(
-                            'flex items-start gap-1 text-[11px]',
+                            'flex items-center gap-1 truncate text-[11px]',
                             accepted === true ? 'font-semibold text-success' : accepted === false ? 'font-semibold text-destructive' : 'text-muted-foreground',
                           )}
                         >
-                          {accepted === true && <GraduationCap className="mt-0.5 h-3 w-3 shrink-0" />}
-                          {accepted === false && <X className="mt-0.5 h-3 w-3 shrink-0" />}
-                          <span className="min-w-0">
-                            {detail.split('\n').map((line, i) => (
-                              <span key={i} className="block truncate">
-                                {line}
-                              </span>
-                            ))}
-                          </span>
+                          {accepted === true && <GraduationCap className="h-3 w-3 shrink-0" />}
+                          {accepted === false && <X className="h-3 w-3 shrink-0" />}
+                          <span className="truncate">{detail}</span>
                         </div>
                       )}
                     </button>
