@@ -222,6 +222,11 @@ verify_jwt = true
 [functions.hr-bot]
 verify_jwt = false
 
+# Xodim boti (vazifalar, 17:00 hisobot, guruh): Telegram webhook, JWT yo'q —
+# funksiya Telegram'ning maxfiy sarlavhasini o'zi tekshiradi.
+[functions.staff-bot]
+verify_jwt = false
+
 # Fills in the English/Korean/Russian names of catalogue documents; called by
 # pg_cron with the secret key in `apikey`. verify_jwt is off so the cron caller
 # isn't blocked at the gateway; the function checks the key itself.
