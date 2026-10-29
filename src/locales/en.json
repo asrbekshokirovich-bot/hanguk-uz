@@ -420,6 +420,30 @@
       "success": "Staff account deleted",
       "failed": "Could not delete the staff account",
       "fallbackName": "this staff member"
+    },
+    "staffTelegram": {
+      "title": "Telegram bot",
+      "hint": "Once linked, tasks and the 17:00 daily report work in Telegram. The link is valid for 15 minutes and works once — send it to the staff member; the bot links them when they open it.",
+      "linked": "Linked",
+      "notLinked": "Not linked",
+      "pending": "Link issued, valid for {{minutes}} more min",
+      "createLink": "Link to Telegram",
+      "newLink": "New link",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy — copy the link manually",
+      "openInTelegram": "Open in Telegram",
+      "expiresIn": "Valid for {{minutes}} min, single use",
+      "expired": "Link expired — create a new one",
+      "botNotSetUp": "The bot is not set up yet (bot_username is empty): open staff-bot ?action=setup first. Until then the staff member can send /start and this code to the bot.",
+      "linkFailed": "Could not create the link",
+      "unlink": "Unlink",
+      "unlinkTitle": "Unlink Telegram",
+      "unlinkText": "The staff member will lose access to the bot. A new link is needed to reconnect.",
+      "unlinkConfirm": "Unlink",
+      "unlinked": "Telegram unlinked",
+      "unlinkFailed": "Could not unlink",
+      "cancel": "Cancel"
     }
   },
   "leads": {

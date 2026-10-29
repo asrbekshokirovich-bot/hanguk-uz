@@ -407,6 +407,30 @@
       "success": "직원 계정이 삭제되었습니다",
       "failed": "직원 계정을 삭제할 수 없습니다",
       "fallbackName": "이 직원"
+    },
+    "staffTelegram": {
+      "title": "텔레그램 봇",
+      "hint": "연결하면 업무와 17:00 일일 보고가 텔레그램에서 동작합니다. 링크는 15분간 1회만 유효합니다. 직원에게 보내면 봇이 자동으로 연결합니다.",
+      "linked": "연결됨",
+      "notLinked": "미연결",
+      "pending": "링크 발급됨, {{minutes}}분 남음",
+      "createLink": "연결 링크",
+      "newLink": "새 링크",
+      "copy": "복사",
+      "copied": "복사됨",
+      "copyFailed": "복사할 수 없습니다. 링크를 직접 복사하세요",
+      "openInTelegram": "텔레그램에서 열기",
+      "expiresIn": "{{minutes}}분간 유효, 1회용",
+      "expired": "링크가 만료되었습니다. 새로 만드세요",
+      "botNotSetUp": "봇이 아직 설정되지 않았습니다(bot_username 비어 있음): 먼저 staff-bot ?action=setup을 여세요. 그동안 직원은 봇에 /start와 이 코드를 보낼 수 있습니다.",
+      "linkFailed": "링크를 만들 수 없습니다",
+      "unlink": "연결 해제",
+      "unlinkTitle": "텔레그램 연결 해제",
+      "unlinkText": "직원이 봇을 사용할 수 없게 됩니다. 다시 연결하려면 새 링크가 필요합니다.",
+      "unlinkConfirm": "해제",
+      "unlinked": "텔레그램 연결이 해제되었습니다",
+      "unlinkFailed": "해제할 수 없습니다",
+      "cancel": "취소"
     }
   },
   "leads": {
