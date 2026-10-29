@@ -92,7 +92,8 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
         detail = `Hujjatlar ${pack.requiredVerified}/${pack.requiredTotal}`;
       } else if (stage === 'online' || stage === 'offline') {
         const ids = subs.filter((s) => (stage === 'online' ? s.online_submitted_at : s.offline_sent_at)).map((s) => s.institution_id);
-        detail = ids.length > 1 ? `${uniName(ids[0])} +${ids.length - 1}` : uniName(ids[0]);
+        // Every university on its own line, never "Ajou +1" (Asrbek, 2026-10-29).
+        detail = ids.map(uniName).join('\n');
       } else if (stage === 'visa_process' || stage === 'visa_waiting' || stage === 'visa_received') {
         const final = subs.find((s) => s.final_at);
         detail = final ? uniName(final.institution_id) : null;
@@ -100,7 +101,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
         const next = subs
           .filter((s) => s.interview_at)
           .sort((a, b) => a.interview_at!.localeCompare(b.interview_at!));
-        detail = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`).join(', ');
+        detail = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`).join('\n');
       } else if (stage === 'result') {
         const final = subs.find((s) => s.final_at);
         const admitted = subs.filter((s) => s.result === 'accepted');
@@ -110,7 +111,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
           detail = `Yakuniy: ${uniName(final.institution_id)}`;
         } else if (admitted.length > 0) {
           accepted = true;
-          detail = `Kirdi: ${admitted.map((s) => uniName(s.institution_id)).join(', ')}`;
+          detail = admitted.map((s) => `Kirdi: ${uniName(s.institution_id)}`).join('\n');
         } else if (waiting) {
           detail = 'Kirmadi · boshqalari kutilmoqda';
         } else {
@@ -187,13 +188,19 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
                       {detail && (
                         <div
                           className={cn(
-                            'flex items-center gap-1 truncate text-[11px]',
+                            'flex items-start gap-1 text-[11px]',
                             accepted === true ? 'font-semibold text-success' : accepted === false ? 'font-semibold text-destructive' : 'text-muted-foreground',
                           )}
                         >
-                          {accepted === true && <GraduationCap className="h-3 w-3 shrink-0" />}
-                          {accepted === false && <X className="h-3 w-3 shrink-0" />}
-                          <span className="truncate">{detail}</span>
+                          {accepted === true && <GraduationCap className="mt-0.5 h-3 w-3 shrink-0" />}
+                          {accepted === false && <X className="mt-0.5 h-3 w-3 shrink-0" />}
+                          <span className="min-w-0">
+                            {detail.split('\n').map((line, i) => (
+                              <span key={i} className="block truncate">
+                                {line}
+                              </span>
+                            ))}
+                          </span>
                         </div>
                       )}
                     </button>
