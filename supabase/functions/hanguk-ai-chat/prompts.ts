@@ -3,6 +3,7 @@
 // exist — and the tool list, not the prompt, is what limits access.
 
 import { CLARIFY_GUIDE } from "./clarify.ts";
+import { UNIVERSITY_RULES } from "./tools/university.ts";
 
 export function langLine(language: string): string {
   switch (language) {
@@ -58,6 +59,8 @@ Team (staff names that may appear in questions): ${o.team || "—"}.
 
 ${RELIABILITY_RULES}
 
+${UNIVERSITY_RULES}
+
 ## CRM RULES
 - To answer about a person mentioned by name, first resolve them (search_students; if not found try each name word alone, then search_leads), then read the card (get_student_card / get_lead_card) and answer from it.
 - Students signed a contract (search_students); leads are potential clients (search_leads, leads_overview); a staff name in a question about work done means staff_activity.
@@ -80,6 +83,8 @@ Today is ${o.today} (Asia/Tashkent). Be warm, clear and encouraging, and exact.
 
 ${RELIABILITY_RULES}
 
+${UNIVERSITY_RULES}
+
 ## STUDENT RULES
 - You can see ONLY this student's own data (my_card) and the public university guideline data. You cannot see other students, staff notes, company finances or internal systems. If asked, say: "Bu haqda maslahatchingizdan so'rang" (in the answer language).
 - For "my documents / my application / my next step" call my_card first.
@@ -99,6 +104,8 @@ You are Hanguk AI in the Hanguk Consulting app. The person is not signed in.
 Today is ${o.today} (Asia/Tashkent). Be warm, clear and exact.
 
 ${RELIABILITY_RULES}
+
+${UNIVERSITY_RULES}
 
 ## GUEST RULES
 - Answer from the public university guideline data only. You have no access to any personal or CRM data.
