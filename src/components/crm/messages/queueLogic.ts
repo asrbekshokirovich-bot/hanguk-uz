@@ -11,16 +11,23 @@ import type { ChannelFilter, ConversationVM, QueueTab } from './types';
  */
 export const SLA_WARNING_MINUTES = 10;
 
+/**
+ * A conversation nobody has touched for this long is "old": it stays out of
+ * the Waiting list until the operator asks for it, so a 141-day-old greeting
+ * never sits above today's messages again (audit 2026-10-29, finding 2).
+ */
+export const STALE_AFTER_DAYS = 30;
+
 /** True when the conversation has breached the reply SLA. */
 export function isOverdue(c: ConversationVM): boolean {
-  return !c.isDone && c.waitingMinutes >= SLA_WARNING_MINUTES;
+  return !c.isDone && c.isWaiting && c.waitingMinutes >= SLA_WARNING_MINUTES;
 }
 
 /** Does this conversation belong in the given tab? */
 export function matchesTab(c: ConversationVM, tab: QueueTab): boolean {
   switch (tab) {
-    case 'unassigned':
-      return !c.isAssigned && !c.isDone;
+    case 'waiting':
+      return c.isWaiting && !c.isDone;
     case 'mine':
       return c.isMine && !c.isDone;
     case 'all':
@@ -30,39 +37,70 @@ export function matchesTab(c: ConversationVM, tab: QueueTab): boolean {
   }
 }
 
-/** Live count shown next to each tab label. */
+/**
+ * Only lead conversations are the operators' work. Staff, partner and service
+ * chats are reachable through the "internal" chip and nowhere else.
+ */
+export function matchesChannel(c: ConversationVM, channel: ChannelFilter): boolean {
+  if (channel === 'internal') return c.kind !== 'lead';
+  if (c.kind !== 'lead') return false;
+  if (channel === 'all') return true;
+  return c.channel === channel;
+}
+
+/** Live count shown next to each tab label (lead conversations only). */
 export function countForTab(list: ConversationVM[], tab: QueueTab): number {
-  return list.filter((c) => matchesTab(c, tab)).length;
+  return list.filter((c) => c.kind === 'lead' && matchesTab(c, tab) && !(tab === 'waiting' && c.isStale)).length;
 }
 
 /**
- * Tab AND channel AND query — the three filters compose, exactly as in the
- * mockup. The query matches name, preview and stage.
+ * Tab AND channel AND query.
+ *
+ * A search is a question about EVERY conversation: while a query is typed the
+ * tab (and the 30-day rule) no longer narrow the list — "where is the girl
+ * with 94 164 39 00?" has to find her whether she is waiting, answered or
+ * closed (audit 2026-10-29, finding 5). The local match covers name, handle,
+ * preview and stage; `serverMatches` adds what only the database knows — the
+ * lead's phone, older messages — from `search_threads`.
  */
 export function filterConversations(
   list: ConversationVM[],
   tab: QueueTab,
   channel: ChannelFilter,
   query: string,
+  options: { includeStale?: boolean; serverMatches?: ReadonlySet<string> } = {},
 ): ConversationVM[] {
   const q = query.trim().toLowerCase();
   return list.filter((c) => {
+    if (!matchesChannel(c, channel)) return false;
+    if (q) {
+      if (options.serverMatches?.has(c.threadId)) return true;
+      return `${c.name} ${c.handle} ${c.preview} ${c.stage}`.toLowerCase().includes(q);
+    }
     if (!matchesTab(c, tab)) return false;
-    if (channel !== 'all' && c.channel !== channel) return false;
-    if (q && !`${c.name} ${c.preview} ${c.stage}`.toLowerCase().includes(q)) return false;
+    if (tab === 'waiting' && c.isStale && !options.includeStale) return false;
     return true;
   });
 }
 
+/** How many Waiting rows the stale rule is hiding right now. */
+export function countHiddenStale(list: ConversationVM[], channel: ChannelFilter): number {
+  return list.filter((c) => matchesTab(c, 'waiting') && matchesChannel(c, channel) && c.isStale).length;
+}
+
 /**
- * Unassigned is a work queue, so it sorts by longest wait first — the operator
- * should always see the most-breached conversation at the top. Every other tab
- * sorts by recency, which is what people expect from an inbox.
+ * Every tab is an inbox: newest activity first. Waiting sorts by the message
+ * the person is waiting on, so the conversation that just wrote is on top and
+ * the one that has waited longest is at the bottom — where the operator
+ * reaches it after the fresh ones, instead of being greeted by it.
  */
 export function sortConversations(list: ConversationVM[], tab: QueueTab): ConversationVM[] {
   const sorted = [...list];
-  if (tab === 'unassigned') {
-    sorted.sort((a, b) => b.waitingMinutes - a.waitingMinutes);
+  if (tab === 'waiting') {
+    sorted.sort(
+      (a, b) =>
+        new Date(b.waitingSince ?? b.lastAt).getTime() - new Date(a.waitingSince ?? a.lastAt).getTime(),
+    );
   } else {
     sorted.sort((a, b) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
   }
@@ -83,16 +121,43 @@ export function formatWait(minutes: number): string {
   return `${Math.floor(minutes / (60 * 24))}d`;
 }
 
-/** "12:41" for today, "Yest." for yesterday, "12 Jun" beyond that. */
-export function formatRowTime(iso: string, locale: string, now: Date = new Date()): string {
+/**
+ * Short month names. Chrome's "uz" locale renders `{ month: 'short' }` as
+ * "M06" (audit 2026-10-29, finding 13), so Uzbek carries its own table; the
+ * other interface languages use the browser's.
+ */
+const UZ_MONTHS_SHORT = ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'];
+const UZ_MONTHS_LONG = [
+  'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr',
+];
+
+/** "12 iyn" / "12 Jun" / "12 июн." — day and short month in the UI language. */
+export function formatDayMonth(d: Date, locale: string, long = false): string {
+  if (locale.toLowerCase().startsWith('uz')) {
+    const months = long ? UZ_MONTHS_LONG : UZ_MONTHS_SHORT;
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  }
+  return d.toLocaleDateString(locale, { day: 'numeric', month: long ? 'long' : 'short' });
+}
+
+/**
+ * "12:41" for today, the word for yesterday (translated by the caller via
+ * `yesterdayLabel`), "12 iyn" beyond that.
+ */
+export function formatRowTime(
+  iso: string,
+  locale: string,
+  now: Date = new Date(),
+  yesterdayLabel = 'Yest.',
+): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   const sameDay = d.toDateString() === now.toDateString();
   if (sameDay) return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (d.toDateString() === yesterday.toDateString()) return 'Yest.';
-  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  if (d.toDateString() === yesterday.toDateString()) return yesterdayLabel;
+  return formatDayMonth(d, locale);
 }
 
 /** Two-letter avatar initials from a display name. */

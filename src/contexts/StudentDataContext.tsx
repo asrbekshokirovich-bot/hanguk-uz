@@ -2,10 +2,25 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
+import { fetchMyUniversities, type MyUniversity } from '@/lib/myUniversities';
 
 type Application = Tables<'applications'> & {
   university?: Tables<'universities'>;
 };
+
+/** Portal cards keep their old shape; the data is my_universities(). */
+const toApplication = (u: MyUniversity, studentId: string): Application =>
+  ({
+    id: u.id,
+    student_id: studentId,
+    institution_id: u.institution_id,
+    status: u.status,
+    degree_level: u.program,
+    created_at: u.created_at,
+    updated_at: u.created_at,
+    notes: null,
+    university: { id: u.institution_id, name_en: u.name_en, name_ko: u.name_ko, city_ko: u.city_ko, is_partner: u.is_partner },
+  }) as unknown as Application;
 
 interface StudentDataContextType {
   applications: Application[];
@@ -31,14 +46,11 @@ export function StudentDataProvider({ children }: { children: ReactNode }) {
   const fetchApplications = useCallback(async () => {
     if (!user) return;
     
-    const { data, error } = await supabase
-      .from('applications')
-      .select('*, university:institutions(*)')
-      .eq('student_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setApplications(data);
+    try {
+      const rows = await fetchMyUniversities();
+      setApplications(rows.map((u) => toApplication(u, user.id)));
+    } catch (error) {
+      console.error('my_universities failed', error);
     }
   }, [user]);
 

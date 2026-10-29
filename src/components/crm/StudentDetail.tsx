@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import type { CRMStudent } from '@/hooks/useCRMData';
+import { PIPELINE_LABELS, PIPELINE_STAGES } from '@/lib/studentPipeline';
+import { StudentPipelineSummary, StudentPipelineUniversities } from '@/components/crm/StudentPipelinePanel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
@@ -102,19 +105,11 @@ import { APPLICATION_PACK_SLOTS } from '@/lib/studentDocSlots';
  */
 const SLOTS_WITH_TRANSLATION = new Set(APPLICATION_PACK_SLOTS.filter((s) => s.translation).map((s) => s.id));
 
-type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
-  })[];
-  documents?: Tables<'documents'>[];
-  /** Contract cancelled in the active season — computed by useCRMData. */
-  contractCancelled?: boolean;
-};
+type StudentProfile = CRMStudent;
 
 interface StudentDetailProps {
   student: StudentProfile;
   onBack: () => void;
-  onUpdateApplicationStatus: (appId: string, status: string) => Promise<{ error: any }>;
   onUpdateDocumentStatus: (docId: string, status: string) => Promise<{ error: any }>;
   currentLang: string;
   isDocumentHandler: boolean;
@@ -122,42 +117,6 @@ interface StudentDetailProps {
   canApproveDocuments?: boolean;
   onRefresh: () => void;
 }
-
-// Status categories for the Status tab
-const statusCategories = {
-  documents: {
-    title: 'Documents',
-    steps: [
-      { key: 'documents_collection', label: 'Documents Collected' },
-      { key: 'documents_translation', label: 'Documents Translated' },
-      { key: 'apostille', label: 'Apostille Ready' },
-    ]
-  },
-  application: {
-    title: 'Application',
-    steps: [
-      { key: 'application_submitted', label: 'Application Submitted' },
-      { key: 'university_response', label: 'Admission Letter Received' },
-    ]
-  },
-  visa: {
-    title: 'Visa',
-    steps: [
-      { key: 'visa_documents', label: 'Visa Documents Ready' },
-      { key: 'completed', label: 'Visa Applied' },
-    ]
-  }
-};
-
-const allStatusSteps = [
-  'documents_collection',
-  'documents_translation',
-  'apostille',
-  'application_submitted',
-  'university_response',
-  'visa_documents',
-  'completed'
-];
 
 const paymentPlans = [
   { value: 'free', label: 'FREE', priceOneTime: '0 UZS', priceInstallment: '0 UZS', currency: 'UZS', isVIP: false },
@@ -218,7 +177,6 @@ interface CallRecord {
 export function StudentDetail({
   student,
   onBack,
-  onUpdateApplicationStatus,
   onUpdateDocumentStatus,
   currentLang,
   isDocumentHandler,
@@ -385,7 +343,10 @@ export function StudentDetail({
     );
   }, [universities, uniSearch]);
 
-  const existingAppUniIds = new Set(student.applications?.map(a => a.institution_id) || []);
+  const existingAppUniIds = new Set([
+    ...student.pipeline.universityIds,
+    ...student.studentRequests.map((r) => r.institution_id),
+  ]);
 
   const handleRecommendApply = async (universityId: string) => {
     setApplyingUniId(universityId);
@@ -420,7 +381,10 @@ export function StudentDetail({
   const handleApproveApplication = async (appId: string) => {
     setProcessingApplication(appId);
     try {
-      const { error } = await onUpdateApplicationStatus(appId, 'documents_collection');
+      // A student's own request (made in the app) accepted by staff. The request
+      // lives in the legacy applications table; progress itself is tracked in
+      // Universitet tanlash / Onlayn / Oflayn ariza.
+      const { error } = await supabase.from('applications').update({ status: 'documents_collection' }).eq('id', appId);
       if (error) throw error;
       toast({ title: 'Application approved successfully' });
       onRefresh();
@@ -864,25 +828,6 @@ export function StudentDetail({
     return (university[nameKey] as string) || university.name_uz || 'Unknown';
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      documents_collection: t('crm.documentsCollected'),
-      documents_translation: t('crm.documentsTranslated'),
-      apostille: t('crm.apostilleReady'),
-      application_submitted: t('crm.applicationSubmitted'),
-      university_response: t('crm.universityResponse'),
-      visa_documents: t('crm.visaDocuments'),
-      completed: t('common.success')
-    };
-    return labels[status] || status;
-  };
-
-  const handleStatusChange = async (appId: string, newStatus: string) => {
-    setUpdating(appId);
-    await onUpdateApplicationStatus(appId, newStatus);
-    setUpdating(null);
-  };
-
   const handleDocStatusChange = async (docId: string, newStatus: string) => {
     setUpdating(docId);
     await onUpdateDocumentStatus(docId, newStatus);
@@ -918,10 +863,9 @@ export function StudentDetail({
     return `${price} ${modeLabel}${extra}`;
   };
 
-  // Get current application status
-  const latestApp = student.applications?.[0];
-  const currentStatusIndex = latestApp ? allStatusSteps.indexOf(latestApp.status) : -1;
-  const currentDegree = student.applications?.find((a) => a.degree_level)?.degree_level ?? null;
+  // Where the student is: same rule as the Arizalar board (src/lib/studentPipeline.ts).
+  const pipeline = student.pipeline;
+  const currentDegree = student.degreeLevel;
 
   // 'gks' is historic — students recorded before the vocational rename keep that
   // label; only 'vocational' is offered for new applications.
@@ -932,22 +876,6 @@ export function StudentDetail({
       vocational: t('applications.degreeVocational', { defaultValue: "Kasbiy ta'lim" }),
       gks: t('applications.degreeGks', { defaultValue: 'GKS' }),
     })[value] ?? value;
-
-  const isStepCompleted = (stepKey: string) => {
-    const stepIndex = allStatusSteps.indexOf(stepKey);
-    return stepIndex <= currentStatusIndex;
-  };
-
-  const handleMarkComplete = async (stepKey: string) => {
-    if (!latestApp) return;
-    await handleStatusChange(latestApp.id, stepKey);
-  };
-
-  const handleMarkAllComplete = async (categorySteps: { key: string }[]) => {
-    if (!latestApp) return;
-    const lastStep = categorySteps[categorySteps.length - 1];
-    await handleStatusChange(latestApp.id, lastStep.key);
-  };
 
   // Calculate payment totals
   const totalStudentPaid = payments.reduce((sum, p) => sum + Number(p.paid_amount), 0);
@@ -989,14 +917,9 @@ export function StudentDetail({
   };
   const heroPlan = heroPlanMap[(student.payment_plan || '').toLowerCase()];
   const heroIsVip = paymentPlans.find((p) => p.value === student.payment_plan?.toLowerCase())?.isVIP;
-  const trackerSteps = [
-    t('crm.stepDocuments', { defaultValue: 'Documents' }),
-    t('crm.stepTranslation', { defaultValue: 'Translation' }),
-    t('crm.stepApostille', { defaultValue: 'Apostille' }),
-    t('crm.stepSubmitted', { defaultValue: 'Submitted' }),
-    t('crm.stepResponse', { defaultValue: 'Response' }),
-    t('crm.stepVisa', { defaultValue: 'Visa' }),
-  ];
+  // The Arizalar board columns, in order.
+  const trackerSteps = PIPELINE_STAGES.map((s) => t(`pipeline.stage.${s}`, { defaultValue: PIPELINE_LABELS[s] }));
+  const currentStatusIndex = pipeline.step - 1;
 
   return (
     <>
@@ -1074,8 +997,8 @@ export function StudentDetail({
                 </div>
               </div>
 
-              {/* 6-step process tracker (live application status) */}
-              {latestApp && (
+              {/* Process tracker: the Arizalar board columns (src/lib/studentPipeline.ts) */}
+              {(
                 <div className="mt-5 border-t border-border pt-5">
                   <div className="flex items-start">
                     {trackerSteps.map((label, i) => {
@@ -1361,61 +1284,8 @@ export function StudentDetail({
             <TabsContent value="status" className="space-y-4 mt-6">
               {/* Viza tasdiqlandi / Jo'nab ketdi — feed the investor pipeline. */}
               <VisaDepartureCard studentId={student.user_id} intakeId={activeIntakeId} />
-              {!latestApp ? (
-                <Card>
-                  <CardContent className="py-8 text-center space-y-3">
-                    <p className="text-muted-foreground">No application found.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                Object.entries(statusCategories).map(([key, category]) => (
-                  <Card key={key} className="border-border/50">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">{category.title}</CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleMarkAllComplete(category.steps)}
-                          disabled={updating === latestApp.id}
-                        >
-                          Mark All Complete
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {category.steps.map((step) => {
-                        const completed = isStepCompleted(step.key);
-                        return (
-                          <div
-                            key={step.key}
-                            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg ${completed ? 'bg-primary/20' : 'bg-muted/50'
-                              }`}
-                          >
-                            <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
-                              {completed ? (
-                                <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5 sm:mt-0" />
-                              ) : (
-                                <Clock className="h-5 w-5 text-warning shrink-0 mt-0.5 sm:mt-0" />
-                              )}
-                              <span className="font-medium break-words leading-tight">{step.label}</span>
-                            </div>
-                            <Button
-                              variant={completed ? "outline" : "default"}
-                              size="sm"
-                              className="w-full sm:w-auto"
-                              onClick={() => handleMarkComplete(step.key)}
-                              disabled={updating === latestApp.id}
-                            >
-                              {completed ? 'Completed' : 'Mark Complete'}
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+              <StudentPipelineSummary pipeline={pipeline} />
+              <StudentPipelineUniversities pipeline={pipeline} universities={student.pipelineUniversities} />
             </TabsContent>
 
             {/* Universities & Applications Tab */}
@@ -1479,7 +1349,7 @@ export function StudentDetail({
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold border-b pb-2 w-full">Pending Student Applications</h3>
                 </div>
-                {(!student.applications || student.applications.filter(a => a.status === 'pending_approval').length === 0) ? (
+                {student.studentRequests.length === 0 ? (
                   <Card>
                     <CardContent className="py-6 text-center text-muted-foreground text-sm">
                       No applications pending approval.
@@ -1487,7 +1357,7 @@ export function StudentDetail({
                   </Card>
                 ) : (
                   <div className="grid gap-4">
-                    {student.applications.filter(a => a.status === 'pending_approval').map((app) => (
+                    {student.studentRequests.map((app) => (
                       <Card key={app.id} className="border-warning bg-warning/10/50 dark:bg-warning/10 dark:border-warning/50">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-base text-warning dark:text-warning">
@@ -1524,82 +1394,9 @@ export function StudentDetail({
 
               <div className="space-y-4 pt-6 border-t border-border/50">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Active Applications (In Progress)</h3>
+                  <h3 className="text-lg font-semibold">{t('pipeline.universities', { defaultValue: 'Universitetlar va topshiruvlar' })}</h3>
                 </div>
-                {(!student.applications || student.applications.filter(a => a.status !== 'pending_approval').length === 0) ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground">
-                      No active applications.
-                    </CardContent>
-                  </Card>
-                ) : (
-                  student.applications.filter(a => a.status !== 'pending_approval').map((app) => {
-                  const currentIndex = allStatusSteps.indexOf(app.status);
-                  const progressPercent = ((currentIndex + 1) / allStatusSteps.length) * 100;
-
-                  return (
-                    <Card key={app.id}>
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-base">
-                              {getUniversityName(app.university)}
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(app.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                          {app.university?.website && (
-                            <a
-                              href={app.university.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{t('student.progress')}</span>
-                            <span className="font-medium">{Math.round(progressPercent)}%</span>
-                          </div>
-                          <Progress value={progressPercent} className="h-2" />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">{t('common.status')}:</span>
-                          <Select
-                            value={app.status}
-                            onValueChange={(value) => handleStatusChange(app.id, value)}
-                            disabled={updating === app.id}
-                          >
-                            <SelectTrigger className="w-48">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {allStatusSteps.map((status) => (
-                                <SelectItem key={status} value={status}>
-                                  {getStatusLabel(status)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {app.notes && (
-                          <p className="text-sm text-muted-foreground border-t pt-2">
-                            {app.notes}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })
-                )}
+                <StudentPipelineUniversities pipeline={pipeline} universities={student.pipelineUniversities} />
               </div>
             </TabsContent>
 
@@ -2338,7 +2135,7 @@ export function StudentDetail({
         onOpenChange={setSuggestUniversityDialogOpen}
         studentId={student.user_id}
         existingSuggestedUniversityIds={existingSuggestedUniversityIds}
-        existingApplicationUniversityIds={student.applications?.map(a => a.institution_id) || []}
+        existingApplicationUniversityIds={[...existingAppUniIds]}
         onSuccess={() => {
           fetchSuggestions();
           onRefresh();

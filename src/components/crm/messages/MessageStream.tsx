@@ -108,7 +108,7 @@ export function MessageStream({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 py-5"
+        className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4 sm:px-6 sm:py-5"
         role="log"
         aria-live="polite"
         aria-label={t('messages.thread.streamLabel')}

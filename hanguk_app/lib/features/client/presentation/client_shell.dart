@@ -82,8 +82,9 @@ class _ClientShellState extends State<ClientShell> {
       body: FdPage(
         child: IndexedStack(index: _tab, children: [for (var i = 0; i < AppTab.count; i++) _page(i)]),
       ),
-      bottomNavigationBar: AppNav(current: _tab, onLocal: _go),
-      floatingActionButton: AppNavOrb(current: _tab, onLocal: _go),
+      // Both step aside for the keyboard (see keyboardOpen).
+      bottomNavigationBar: keyboardOpen(context) ? null : AppNav(current: _tab, onLocal: _go),
+      floatingActionButton: keyboardOpen(context) ? null : AppNavOrb(current: _tab, onLocal: _go),
       floatingActionButtonLocation: kFdNavOrbLocation,
     );
   }

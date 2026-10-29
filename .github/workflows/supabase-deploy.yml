@@ -123,6 +123,19 @@ jobs:
           # read out of production — index.ts matched this repo's copy before
           # the offer_reminder kind (2ad3f2bb) line for line, messages.ts had
           # the same seven kinds and texts — so the repo copy is the newer code.
+          # Verified on 2026-10-27: `hanguk-ai-chat` live version 60 was read out
+          # of production — index.ts and analytics.ts matched this repo's copy
+          # before #513 (only comments stripped), _shared/gemini.ts exported the
+          # same four helpers — so the repo copy (free providers, student card)
+          # is the newer code. verify_jwt = false comes from config.toml.
+          # interview-ai (live v58) and study-plan-trainer (live v54) were compared
+          # with the repo on 2026-10-27: same code (interview-ai's live copy only has
+          # a garbled Korean fallback string). They read the student's universities
+          # from student_university_choices now, not the legacy applications table.
+          # Verified on 2026-10-29: `delete-staff` live version 52 was read out of
+          # production — identical to this repo's copy before the staff-delete fix
+          # (cleanup via prepare_staff_deletion RPC, auth user deleted first).
+          # verify_jwt stays true (default; live is true).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -150,6 +163,10 @@ jobs:
             weekly-app-report
             app-quality-alerts
             send-guest-push
+            hanguk-ai-chat
+            interview-ai
+            study-plan-trainer
+            delete-staff
           "
 
           for fn in $FUNCTIONS; do

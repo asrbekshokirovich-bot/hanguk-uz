@@ -1,6 +1,7 @@
 import { Composer } from './Composer';
 import { MessageStream } from './MessageStream';
 import { ThreadHeader } from './ThreadHeader';
+import type { ThreadKind } from '@/contexts/MessagesContext';
 import type { ConversationVM, MessageVM, SendLanguage } from './types';
 
 interface ThreadPaneProps {
@@ -20,7 +21,11 @@ interface ThreadPaneProps {
   onToggleContext: () => void;
   onClaim: () => void;
   onMarkDone: () => void;
+  onReopen: () => void;
+  onKindChange: (kind: ThreadKind) => void;
   onLinkContact?: () => void;
+  /** Single-pane layout: back to the list. */
+  onBack?: () => void;
   onSend: (
     text: string,
     options: {
@@ -50,11 +55,14 @@ export function ThreadPane({
   onToggleContext,
   onClaim,
   onMarkDone,
+  onReopen,
+  onKindChange,
   onLinkContact,
+  onBack,
   onSend,
 }: ThreadPaneProps) {
   return (
-    <section className="flex min-h-0 min-w-[520px] flex-1 flex-col bg-background">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background lg:min-w-[420px] 2xl:min-w-[520px]">
       <ThreadHeader
         conversation={conversation}
         autoTranslate={autoTranslate}
@@ -63,8 +71,11 @@ export function ThreadPane({
         onClaim={onClaim}
         onToggleAutoTranslate={onToggleAutoTranslate}
         onMarkDone={onMarkDone}
+        onReopen={onReopen}
+        onKindChange={onKindChange}
         onToggleContext={onToggleContext}
         onLinkContact={onLinkContact}
+        onBack={onBack}
       />
       <MessageStream
         messages={messages}
@@ -76,7 +87,7 @@ export function ThreadPane({
         translatingId={translatingId}
         onToggleTranslation={onToggleTranslation}
       />
-      <Composer onSend={onSend} />
+      <Composer key={conversation.threadId} onSend={onSend} recipientName={conversation.name} />
     </section>
   );
 }

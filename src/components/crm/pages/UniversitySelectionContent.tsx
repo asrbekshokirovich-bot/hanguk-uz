@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import type { StudentPipeline } from '@/lib/studentPipeline';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Handshake, Lock, Plus, RefreshCw, Search, Send, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Handshake, Lock, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tables } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
@@ -29,17 +40,23 @@ import {
   matchesSearch,
   operatorCities,
 } from '@/components/crm/pages/university-catalog/format';
+import { StudentFeePanel } from '@/components/crm/pages/application-fees/StudentFeePanel';
 
 type StudentProfile = Tables<'profiles'> & {
-  applications?: Pick<Tables<'applications'>, 'institution_id'>[];
+  /** From useCRMData (src/lib/studentPipeline.ts). */
+  pipeline?: Pick<StudentPipeline, 'submissions'>;
   hasPaid?: boolean;
 };
 
 interface UniversitySelectionContentProps {
   students: StudentProfile[];
   loading: boolean;
-  /** Turns a choice into a real application row (status 'pending'). */
-  onCreateApplication?: (studentId: string, institutionId: string) => Promise<{ error: unknown }>;
+  /**
+   * Shows the "Application fee" block of the selected student (payments per
+   * university). useUserRole().canSeeApplicationFees: owner, admin, document
+   * handler, plus whoever application_fee_access names.
+   */
+  canSeeApplicationFees?: boolean;
 }
 
 const PAGE = 40;
@@ -49,7 +66,11 @@ function getInitials(name: string | null) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function UniversitySelectionContent({ students, loading, onCreateApplication }: UniversitySelectionContentProps) {
+export default function UniversitySelectionContent({
+  students,
+  loading,
+  canSeeApplicationFees = false,
+}: UniversitySelectionContentProps) {
   const catalog = useUniversityCatalog();
   const choices = useUniversityChoices();
 
@@ -59,7 +80,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
   const [city, setCity] = useState<string | null>(null);
   const [onlyFit, setOnlyFit] = useState(false);
   const [visible, setVisible] = useState(PAGE);
-  const [sending, setSending] = useState(false);
 
   const filteredStudents = useMemo(() => {
     const q = studentSearch.trim().toLowerCase();
@@ -72,7 +92,14 @@ export default function UniversitySelectionContent({ students, loading, onCreate
   const student = filteredStudents.find((s) => s.user_id === selectedId) ?? filteredStudents[0] ?? null;
   const studentChoices = student ? choices.byStudent.get(student.user_id) ?? [] : [];
   const wishes = student ? choices.wishesByStudent.get(student.user_id) ?? [] : [];
-  const appliedIds = new Set((student?.applications ?? []).map((a) => a.institution_id));
+  // "Arizada" = sent online or posted (student_university_submissions). A
+  // confirmed choice reaches Onlayn / Oflayn ariza by itself, so there is no
+  // separate "send to applications" step any more.
+  const appliedIds = new Set(
+    (student?.pipeline?.submissions ?? [])
+      .filter((s) => s.online_submitted_at || s.offline_sent_at)
+      .map((s) => s.institution_id),
+  );
 
   const entryById = useMemo(() => {
     const m = new Map<string, CatalogEntry>();
@@ -89,6 +116,7 @@ export default function UniversitySelectionContent({ students, loading, onCreate
   const regularChoices = studentChoices.filter((c) => c.rank !== PARTNER_RANK);
   const partnerChoice = studentChoices.find((c) => c.rank === PARTNER_RANK) ?? null;
   const [partnerPick, setPartnerPick] = useState('');
+  const [unlocking, setUnlocking] = useState<UniversityChoice | null>(null);
 
   // Universities with an uploaded guideline first — those carry the
   // requirements, fees and deadlines a choice is made on.
@@ -113,21 +141,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
     );
   };
 
-  const sendToApplications = async () => {
-    if (!student || !onCreateApplication) return;
-    // Only choices the student agreed to and staff confirmed become applications.
-    const pending = studentChoices.filter((c) => c.status === 'confirmed' && !appliedIds.has(c.institution_id));
-    setSending(true);
-    let failed = 0;
-    for (const c of pending) {
-      const { error } = await onCreateApplication(student.user_id, c.institution_id);
-      if (error) failed += 1;
-    }
-    setSending(false);
-    if (failed) toast.error(`${failed} ta universitetni arizaga o'tkazib bo'lmadi`);
-    else toast.success("Tanlovlar Arizalar bo'limiga o'tkazildi");
-  };
-
   if (loading || catalog.loading || choices.loading) {
     return (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr]">
@@ -147,7 +160,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
     );
   }
 
-  const notApplied = studentChoices.filter((c) => c.status === 'confirmed' && !appliedIds.has(c.institution_id)).length;
   const onError = (e: unknown) => toast.error(e instanceof Error ? e.message : 'Nimadir xato ketdi');
 
   return (
@@ -220,17 +232,6 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                   </div>
                 </div>
               </div>
-              {onCreateApplication && (
-                <Button
-                  variant="highlight"
-                  className="gap-2"
-                  disabled={notApplied === 0 || sending}
-                  onClick={sendToApplications}
-                >
-                  <Send className="h-4 w-4" />
-                  Arizaga o'tkazish{notApplied > 0 ? ` (${notApplied})` : ''}
-                </Button>
-              )}
             </div>
 
             <div className="border-t border-border pt-3">
@@ -257,7 +258,15 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                     first={i === 0}
                     last={c.rank === PARTNER_RANK || i === regularChoices.length - 1}
                     applied={appliedIds.has(c.institution_id)}
-                    busy={choices.move.isPending || choices.remove.isPending || choices.confirm.isPending}
+                    busy={choices.move.isPending || choices.remove.isPending || choices.confirm.isPending || choices.unlockConfirmed.isPending}
+                    changeOnce={
+                      c.status !== 'confirmed' || !choices.canChangeConfirmed
+                        ? 'none'
+                        : choices.changedStudents.has(student.user_id)
+                          ? 'used'
+                          : 'available'
+                    }
+                    onChangeConfirmed={() => setUnlocking(c)}
                     onMove={(direction) => choices.move.mutate({ choice: c, direction }, { onError })}
                     onRemove={() => choices.remove.mutate(c, { onError })}
                     onConfirm={() =>
@@ -323,6 +332,9 @@ export default function UniversitySelectionContent({ students, loading, onCreate
                 </div>
               )}
             </div>
+
+            {/* ---- application fee (was its own sidebar page) ---- */}
+            {canSeeApplicationFees && <StudentFeePanel key={student.user_id} studentId={student.user_id} />}
           </Card>
 
           {/* ---- catalog ---- */}
@@ -427,6 +439,34 @@ export default function UniversitySelectionContent({ students, loading, onCreate
           </Card>
         </div>
       )}
+
+      <AlertDialog open={!!unlocking} onOpenChange={(open) => !open && setUnlocking(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tasdiqlangan universitet almashtirilsinmi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {unlocking && (entryById.get(unlocking.institution_id) ? displayName(entryById.get(unlocking.institution_id)!).primary : 'Universitet')}{' '}
+              tanlovdan olib tashlanadi, o'rniga yangi universitet tanlaysiz. Bu talaba uchun faqat bir marta mumkin — keyin qaytarib bo'lmaydi.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const c = unlocking;
+                setUnlocking(null);
+                if (c)
+                  choices.unlockConfirmed.mutate(c, {
+                    onSuccess: () => toast.success("Olib tashlandi — endi yangi universitet tanlang"),
+                    onError,
+                  });
+              }}
+            >
+              Ha, almashtirish
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -441,6 +481,9 @@ interface ChoiceRowProps {
   onMove: (direction: -1 | 1) => void;
   onRemove: () => void;
   onConfirm: () => void;
+  /** Confirmed choices: may this user use the student's one change? */
+  changeOnce: 'none' | 'available' | 'used';
+  onChangeConfirmed: () => void;
 }
 
 function fmtDay(iso: string | null) {
@@ -485,7 +528,7 @@ function StatusBadge({ choice }: { choice: UniversityChoice }) {
   }
 }
 
-function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm }: ChoiceRowProps) {
+function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm, changeOnce, onChangeConfirmed }: ChoiceRowProps) {
   const name = entry ? displayName(entry) : { primary: '—', secondary: null };
   const isPartner = choice.rank === PARTNER_RANK;
   const confirmed = choice.status === 'confirmed';
@@ -514,6 +557,15 @@ function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove
         </div>
         <StatusBadge choice={choice} />
         {applied && <Badge variant="successSoft" className="text-[10px]">Arizada</Badge>}
+        {changeOnce === 'available' && (
+          <Button size="sm" variant="outline" className="h-7 shrink-0 gap-1 text-xs" disabled={busy} onClick={onChangeConfirmed}>
+            <RefreshCw className="h-3 w-3" />
+            Almashtirish (1 marta)
+          </Button>
+        )}
+        {changeOnce === 'used' && (
+          <Badge variant="neutral" className="text-[10px]">Almashtirish ishlatilgan</Badge>
+        )}
         {!confirmed && (
           <div className="flex shrink-0 items-center">
             {!isPartner && (

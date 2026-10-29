@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { plan } from './planUi';
 import { PLATFORM_LABEL, whenLabel } from './person';
+import { studentPath } from './clients';
 
 const db = supabase as unknown as {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,7 +86,8 @@ export default function PeopleTab() {
 
   const open = (r: PeopleRow) => {
     if (r.lead_id && r.kind === 'lead') navigate(`/crm/leads/${r.lead_id}`);
-    else if (r.kind === 'student') navigate('/crm/students');
+    // the student's own card, not just the list
+    else if (r.kind === 'student' && r.user_id) navigate(studentPath(r.user_id));
   };
 
   return (
@@ -112,7 +114,7 @@ export default function PeopleTab() {
               className={cn('rounded px-2.5 py-1 text-[12.5px] font-semibold', kind === k ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
             >
               {t(`appAnalytics.people.kinds.${k}`)}
-              {k !== 'all' && data?.kinds?.[k] != null ? ` · ${data.kinds[k]}` : ''}
+              {k !== 'all' && data ? ` · ${data.kinds?.[k] ?? 0}` : ''}
             </button>
           ))}
         </div>
@@ -144,7 +146,9 @@ export default function PeopleTab() {
                   <th className={plan.th}>{t('appAnalytics.people.cols.source')}</th>
                   <th className={plan.th}>{t('appAnalytics.people.cols.last')}</th>
                   <th className={cn(plan.th, plan.num)}>{t('appAnalytics.people.cols.visits')}</th>
-                  <th className={cn(plan.th, plan.num)}>{t('appAnalytics.people.cols.score')}</th>
+                  <th className={cn(plan.th, plan.num)} title={t('appAnalytics.people.scoreHint')}>
+                    {t('appAnalytics.people.cols.score')} <span aria-hidden className={plan.muted}>ⓘ</span>
+                  </th>
                   <th className={plan.th}>{t('appAnalytics.people.cols.stage')}</th>
                 </tr>
               </thead>
@@ -161,7 +165,7 @@ export default function PeopleTab() {
                   ]
                     .filter(Boolean)
                     .join(' · ');
-                  const clickable = (r.kind === 'lead' && r.lead_id) || r.kind === 'student';
+                  const clickable = (r.kind === 'lead' && r.lead_id) || (r.kind === 'student' && r.user_id);
                   return (
                     <tr
                       key={r.person_key}

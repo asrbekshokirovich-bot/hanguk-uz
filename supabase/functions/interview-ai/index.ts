@@ -151,11 +151,15 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    // Get student's applications
-    const { data: studentApplications } = await adminClient
-      .from("applications")
-      .select("university_id, status")
-      .eq("student_id", user.id);
+    // The student's universities: confirmed choices (Universitet tanlash), best
+    // rank first. The legacy applications table is not read — it had no
+    // university_id column, so this lookup always came back empty.
+    const { data: studentChoices } = await adminClient
+      .from("student_university_choices")
+      .select("institution_id, rank")
+      .eq("student_id", user.id)
+      .eq("status", "confirmed")
+      .order("rank", { ascending: true });
 
     // Get relevant questions for context
     const { data: questions } = await adminClient
@@ -200,25 +204,23 @@ serve(async (req) => {
     let universityNotes = "";
     
     let targetUniId = targetUniversityId;
-    if (!targetUniId && studentApplications && studentApplications.length > 0) {
-      targetUniId = studentApplications[0].university_id;
+    if (!targetUniId && studentChoices && studentChoices.length > 0) {
+      targetUniId = studentChoices[0].institution_id;
     }
 
     if (targetUniId) {
+      // public.universities does not exist; universities live in institutions.
       const { data: university } = await adminClient
-        .from("universities")
-        .select("*")
+        .from("institutions")
+        .select("name_en, name_ko, city_ko")
         .eq("id", targetUniId)
-        .single();
-      
+        .maybeSingle();
+
       if (university) {
         universityContext = `
 === TARGET UNIVERSITY INFORMATION ===
 University Name: ${university.name_ko || university.name_en} (${university.name_en || ''})
-Location: ${university.city_ko || university.city_en || 'Seoul'}, South Korea
-Ranking: ${university.ranking ? `#${university.ranking} in Korea` : 'Well-regarded institution'}
-Website: ${university.website || 'N/A'}
-Description: ${university.description_en || university.description_ko || 'A prestigious Korean university'}
+Location: ${university.city_ko || 'South Korea'}
 `;
       }
 

@@ -68,9 +68,31 @@ describe('OfflineApplicationContent', () => {
       expect(line).toHaveTextContent('Universitet muddati: 31-okt (1-bosqich)');
     });
 
-    it('warns once the last post day has passed', () => {
+    it('after the recommended day, shows the reserve post and the final post', () => {
       vi.useFakeTimers({ toFake: ['Date'] });
       vi.setSystemTime(new Date('2026-10-22T09:00:00Z'));
+      deadline = { date: '2026-10-31', bosqich: 1 };
+      setup();
+      const line = screen.getByTestId('post-line');
+      expect(line).toHaveTextContent("Tavsiya kuni o'tdi (21-okt)");
+      expect(line).toHaveTextContent('Zaxira pochta: 26-okt, dushanba');
+      expect(line).toHaveTextContent('Eng oxirgi pochta: 28-okt, chorshanba (31-okt ga yetadi)');
+      expect(line).not.toHaveTextContent("o'tib ketdi");
+    });
+
+    it('on the final post day shows only the final post', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-28T09:00:00Z'));
+      deadline = { date: '2026-10-31', bosqich: 1 };
+      setup();
+      const line = screen.getByTestId('post-line');
+      expect(line).not.toHaveTextContent('Zaxira pochta');
+      expect(line).toHaveTextContent('Eng oxirgi pochta: 28-okt, chorshanba');
+    });
+
+    it('warns once even the final post has gone', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-29T09:00:00Z'));
       deadline = { date: '2026-10-31', bosqich: 1 };
       setup();
       expect(screen.getByTestId('post-line')).toHaveTextContent("Pochta muddati o'tib ketdi");

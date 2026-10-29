@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { isHiddenMessage } from '@/components/crm/messages/hiddenMessages';
 
 export interface Message {
   id: string;
@@ -39,7 +40,21 @@ export interface MessageThread {
   lastMessage?: Message;
   /** Latest assignee, resolved server-side by get_thread_previews. */
   assigned_to?: string | null;
+  /** lead (queue) | staff | partner | service — see message_threads.kind. */
+  kind: ThreadKind;
+  /** Public @username of the person, without the "@"; null when unknown. */
+  handle: string | null;
+  archived_at: string | null;
+  /** The lead this conversation belongs to (communication_identities / leads.source_id). */
+  lead_id: string | null;
+  /** When the person last wrote (hidden rows excluded). */
+  last_incoming_at: string | null;
+  /** When a PERSON on our side last answered — bot and auto-replies excluded. */
+  last_human_out_at: string | null;
 }
+
+export type ThreadKind = 'lead' | 'staff' | 'partner' | 'service';
+export const THREAD_KINDS: ThreadKind[] = ['lead', 'staff', 'partner', 'service'];
 
 interface MessagesContextType {
   threads: MessageThread[];
@@ -62,8 +77,18 @@ interface MessagesContextType {
   retryMessage: (message: Message) => Promise<{ error: Error | null }>;
   appendLocalMessage: (message: Message) => void;
   archiveThread: (threadId: string) => Promise<{ error: Error | null }>;
+  reopenThread: (threadId: string) => Promise<{ error: Error | null }>;
+  setThreadKind: (threadId: string, kind: ThreadKind) => Promise<{ error: Error | null }>;
   assignThread: (threadId: string, userId: string) => Promise<{ error: Error | null }>;
+  /**
+   * Called for every new INCOMING message that arrives over realtime, with the
+   * thread it belongs to when it is already known. Returns an unsubscribe.
+   * The sidebar badge, the sound and the browser notification hang off this.
+   */
+  onIncoming: (listener: IncomingListener) => () => void;
 }
+
+export type IncomingListener = (message: Message, thread: MessageThread | undefined) => void;
 
 const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
 
@@ -181,6 +206,12 @@ function rowToThread(row: any): MessageThread {
     status: row.status,
     created_at: row.last_message_at,
     assigned_to: row.assigned_to ?? null,
+    kind: (THREAD_KINDS as string[]).includes(row.kind) ? (row.kind as ThreadKind) : 'lead',
+    handle: row.handle ?? null,
+    archived_at: row.archived_at ?? null,
+    lead_id: row.lead_id ?? null,
+    last_incoming_at: row.last_incoming_at ?? null,
+    last_human_out_at: row.last_human_out_at ?? null,
     lastMessage: row.last_created_at
       ? ({
           id: `preview-${row.id}`,
@@ -222,6 +253,15 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
   const selectedThreadRef = useRef(selectedThread);
   selectedThreadRef.current = selectedThread;
+  const threadsRef = useRef<MessageThread[]>([]);
+  threadsRef.current = threads;
+  const incomingListeners = useRef(new Set<IncomingListener>());
+  const onIncoming = useCallback((listener: IncomingListener) => {
+    incomingListeners.current.add(listener);
+    return () => {
+      incomingListeners.current.delete(listener);
+    };
+  }, []);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
 
@@ -287,7 +327,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
     const current = selectedThreadRef.current;
     if (current && current.id !== thread.id) return;
 
-    const page = (data as Message[]).slice().reverse();
+    const page = (data as Message[]).slice().reverse().filter((m) => !isHiddenMessage(m));
     setMessages(page);
     setHasMoreMessages((data as any[]).length === PAGE_SIZE);
 
@@ -320,7 +360,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         p_limit: PAGE_SIZE,
       });
       if (!error && data) {
-        const page = (data as Message[]).slice().reverse();
+        const page = (data as Message[]).slice().reverse().filter((m) => !isHiddenMessage(m));
         setMessages((prev) => {
           const ids = new Set(prev.map((m) => m.id));
           return [...page.filter((m) => !ids.has(m.id)), ...prev];
@@ -336,6 +376,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   const upsertMessageRow = useCallback((row: Message) => {
     const sel = selectedThreadRef.current;
     if (!sel || row.source !== sel.source || row.sender_id !== sel.sender_id) return;
+    if (isHiddenMessage(row)) return;
     setMessages((prev) => {
       const idx = prev.findIndex((m) => m.id === row.id);
       if (idx >= 0) {
@@ -364,13 +405,26 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           !t.lastMessage || new Date(row.created_at).getTime() >= new Date(t.lastMessage.created_at).getTime();
         if (!isNewer) return prev;
         const next = [...prev];
+        const isNote = (row.message_type as string) === 'note' || !!row.metadata?.internal;
         next[idx] = {
           ...t,
-          lastMessage: row,
+          // A note is staff-only: it is neither the preview nor an answer.
+          lastMessage: isNote ? t.lastMessage : row,
           last_message_at:
-            new Date(row.created_at).getTime() > new Date(t.last_message_at).getTime()
+            !isNote && new Date(row.created_at).getTime() > new Date(t.last_message_at).getTime()
               ? row.created_at
               : t.last_message_at,
+          last_incoming_at: row.direction === 'incoming' ? row.created_at : t.last_incoming_at,
+          // Only a reply written by a person ends the wait; the server tells
+          // bot / after-hours rows apart by metadata.auto_reply.
+          last_human_out_at:
+            row.direction === 'outgoing' && !isNote && !row.metadata?.auto_reply
+              ? row.created_at
+              : t.last_human_out_at,
+          // The person writing again reopens a closed conversation (server
+          // trigger); mirror it so the row returns to the queue at once.
+          status: row.direction === 'incoming' ? 'active' : t.status,
+          archived_at: row.direction === 'incoming' ? null : t.archived_at,
         };
         return sortThreads(next);
       });
@@ -518,31 +572,59 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
   );
 
   const archiveThread = useCallback(async (threadId: string) => {
-    const { error } = await supabase.from('message_threads').update({ status: 'archived' }).eq('id', threadId);
+    const archivedAt = new Date().toISOString();
+    const { error } = await supabase
+      .from('message_threads')
+      .update({ status: 'archived', archived_at: archivedAt } as any)
+      .eq('id', threadId);
     if (!error) {
-      setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, status: 'archived' as const } : t)));
+      setThreads((prev) =>
+        prev.map((t) => (t.id === threadId ? { ...t, status: 'archived' as const, archived_at: archivedAt } : t)),
+      );
+    }
+    return { error };
+  }, []);
+
+  /** "Qayta ochish": the opposite of Mark Done. A new incoming message does
+   *  this by itself (trg_reactivate_thread_on_incoming); this is for staff. */
+  const reopenThread = useCallback(async (threadId: string) => {
+    const { error } = await supabase
+      .from('message_threads')
+      .update({ status: 'active', archived_at: null } as any)
+      .eq('id', threadId);
+    if (!error) {
+      setThreads((prev) =>
+        prev.map((t) => (t.id === threadId ? { ...t, status: 'active' as const, archived_at: null } : t)),
+      );
+    }
+    return { error };
+  }, []);
+
+  /** Staff, partner and service chats leave the operator queue by their kind. */
+  const setThreadKind = useCallback(async (threadId: string, kind: ThreadKind) => {
+    const { error } = await supabase.from('message_threads').update({ kind } as any).eq('id', threadId);
+    if (!error) {
+      setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, kind } : t)));
     }
     return { error };
   }, []);
 
   const assignThread = useCallback(
     async (threadId: string, userId: string) => {
-      const thread = threads.find((t) => t.id === threadId);
-      if (!thread) return { error: new Error('Thread not found') };
       // One row. This used to stamp `assigned_to` onto every message in the
       // conversation — hundreds of UPDATEs for one click on Claim, every one of
       // them broadcast to every open CRM tab through realtime. The assignee is
       // a fact about the thread, and now lives on it.
       const { error } = await supabase
         .from('message_threads')
-        .update({ assigned_to: userId, assigned_at: new Date().toISOString() })
+        .update({ assigned_to: userId, assigned_at: new Date().toISOString() } as any)
         .eq('id', threadId);
       if (!error) {
         setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, assigned_to: userId } : t)));
       }
       return { error };
     },
-    [threads],
+    [],
   );
 
   const fetchThreadsRef = useRef(fetchThreads);
@@ -566,6 +648,16 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         const row = payload.new as Message;
         upsertRef.current(row);
         bumpRef.current(row);
+        if (row.direction === 'incoming') {
+          const thread = threadsRef.current.find((t) => t.source === row.source && t.sender_id === row.sender_id);
+          incomingListeners.current.forEach((listener) => {
+            try {
+              listener(row, thread);
+            } catch (e) {
+              console.error('incoming listener failed', e);
+            }
+          });
+        }
         const sel = selectedThreadRef.current;
         if (
           sel &&
@@ -627,6 +719,10 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
             sender_name: row.sender_name ?? next[idx].sender_name,
             sender_avatar: row.sender_avatar ?? next[idx].sender_avatar,
             student_id: row.student_id ?? next[idx].student_id,
+            assigned_to: row.assigned_to === undefined ? next[idx].assigned_to : row.assigned_to,
+            kind: (THREAD_KINDS as string[]).includes(row.kind) ? (row.kind as ThreadKind) : next[idx].kind,
+            handle: row.handle === undefined ? next[idx].handle : row.handle,
+            archived_at: row.archived_at === undefined ? next[idx].archived_at : row.archived_at,
           };
           return sortThreads(next);
         });
@@ -679,7 +775,10 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         retryMessage,
         appendLocalMessage,
         archiveThread,
+        reopenThread,
+        setThreadKind,
         assignThread,
+        onIncoming,
       }}
     >
       {children}

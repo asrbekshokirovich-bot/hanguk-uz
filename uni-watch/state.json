@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-27T05:07:55+00:00",
+ "last_run": "2026-10-29T07:08:41+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -35,6 +35,7 @@
    "629d5ee598ec3788"
   ],
   "https://admission.cdu.ac.kr/": [
+   "8b464b32b319df86",
    "06ab1285c9034e81",
    "3e177c35e7ec91cd",
    "fe7a70d4e168c405",
@@ -408,6 +409,7 @@
   ],
   "https://go.sdu.ac.kr/": [],
   "https://go.sjcu.ac.kr/": [
+   "d711042759f2ed86",
    "8a72f6f18ed3c95d",
    "5e92e18c31f346cf"
   ],
@@ -547,6 +549,7 @@
   "https://inco.kmu.ac.kr/sites/asiacenter/index.do": [],
   "https://info.kimpo.ac.kr/EnterLogin.aspx": [],
   "https://info.masan.ac.kr/": [
+   "35c7fd7ab40c93f9",
    "79fc74f1ae2e6d76",
    "6be1723cc500ce20",
    "e78ecbce86050e49",
@@ -817,6 +820,9 @@
   "https://ipsi.gw.ac.kr/": [],
   "https://ipsi.halla.ac.kr/": [],
   "https://ipsi.hknu.ac.kr/": [
+   "19095c26a33b9528",
+   "312173880998ac27",
+   "6d875612c0b5f078",
    "4cfc95d452d88322",
    "b73856be1af11053",
    "73fd3b38f76c4c2e",
@@ -1200,6 +1206,8 @@
    "a049a4b850fa0c80"
   ],
   "https://www.hanbat.ac.kr/admission/": [
+   "af63ea6a5e3e9e14",
+   "c106784f6bccae14",
    "f5579b7efd56c80e",
    "5c869c3d92bea65f",
    "b741440a726ce26e",
@@ -1209,6 +1217,7 @@
   "https://www.hit.ac.kr/": [],
   "https://www.hj.ac.kr/": [],
   "https://www.hongik.ac.kr/kr/admission/undergraduate-admission.do": [
+   "654c2904754ae0fc",
    "1e514c5cfca81fc1",
    "514c7a4d84c99b4d",
    "ef7ea48ae9dd02c9",
@@ -1260,6 +1269,7 @@
    "5c557c03b7d80f54"
   ],
   "https://www.kmou.ac.kr/ipsi/": [
+   "46c8bc9003aacb45",
    "c294193ae87443f7",
    "0b1c2bb9632b959d",
    "83c6aaa7cebf5d66",
@@ -1333,7 +1343,9 @@
    "d581de1136f9d059"
   ],
   "https://www.sdc.ac.kr/": [],
-  "https://www.semyung.ac.kr/ipsi.do": [],
+  "https://www.semyung.ac.kr/ipsi.do": [
+   "e280d8e05ab93650"
+  ],
   "https://www.seoil.ac.kr/ipsi/index.do": [
    "4378c2aa84d31215"
   ],
@@ -1373,6 +1385,7 @@
    "b1d9868c7854e253"
   ],
   "https://www.ut.ac.kr/ipsi.do": [
+   "5de16342698bb52d",
    "6e5dbd9f76b62e51",
    "c46c972ddca8b899",
    "b289e4f6a5e23a04",

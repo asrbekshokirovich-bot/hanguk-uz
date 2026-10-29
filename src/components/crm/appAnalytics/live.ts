@@ -72,6 +72,8 @@ export function lowerFirst(s: string): string {
   if (!/^\p{Lu}[\p{Ll}'ʻʼ‘’-]*[\p{Ll}?:,]*$/u.test(first ?? '')) return s;
   // «Study Plan», «Hanguk AI»: a name of two words; «Bosdi: Orqaga» is not.
   if (second && !/[:,]$/.test(first) && /^\p{Lu}/u.test(second)) return s;
+  // «Mehmon · Universitetlar»: a shell and its tab, a name too.
+  if (second === '·') return s;
   return s.charAt(0).toLowerCase() + s.slice(1);
 }
 

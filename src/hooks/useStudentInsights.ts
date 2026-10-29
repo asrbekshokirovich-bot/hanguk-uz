@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchMyUniversities } from '@/lib/myUniversities';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentInsight {
@@ -25,7 +26,7 @@ export function useStudentInsights() {
     try {
       // Fetch student data
       const [applicationsRes, documentsRes, paymentsRes, tasksRes] = await Promise.all([
-        supabase.from('applications').select('*, university:institutions(*)').eq('student_id', user.id),
+        fetchMyUniversities().then((data) => ({ data })),
         supabase.from('documents').select('*').eq('student_id', user.id),
         supabase.from('payments').select('*').eq('student_id', user.id),
         supabase.from('tasks').select('*').eq('student_id', user.id).neq('status', 'completed'),
@@ -53,7 +54,7 @@ export function useStudentInsights() {
       }
 
       // 2. Check for applications needing documents
-      const docCollectionApps = applications.filter(a => a.status === 'documents_collection');
+      const docCollectionApps = applications.filter(a => a.status === 'documents');
       if (docCollectionApps.length > 0 && documents.length < 3) {
         insightsList.push({
           id: 'need-more-docs',
@@ -113,27 +114,27 @@ export function useStudentInsights() {
       }
 
       // 5. Application status updates (positive)
-      const acceptedApps = applications.filter(a => a.decision === 'accepted');
+      const acceptedApps = applications.filter(a => ['university_response', 'visa_documents', 'visa_issue', 'completed'].includes(a.status));
       if (acceptedApps.length > 0) {
         insightsList.push({
           id: 'accepted-apps',
           type: 'success',
           icon: '🎉',
           title: `Congratulations! ${acceptedApps.length} acceptance${acceptedApps.length > 1 ? 's' : ''}`,
-          description: `You've been accepted to ${acceptedApps.map(a => a.university?.name_en).join(', ')}!`,
+          description: `You've been accepted to ${acceptedApps.map(a => a.name_en || a.name_ko).join(', ')}!`,
           priority: 0,
         });
       }
 
       // 6. Applications under review
-      const underReview = applications.filter(a => a.status === 'university_review');
+      const underReview = applications.filter(a => ['application_submitted', 'originals_sent', 'interview'].includes(a.status));
       if (underReview.length > 0) {
         insightsList.push({
           id: 'under-review',
           type: 'info',
           icon: '🏫',
           title: `${underReview.length} application${underReview.length > 1 ? 's' : ''} under university review`,
-          description: `Waiting for response from: ${underReview.map(a => a.university?.name_en).join(', ')}`,
+          description: `Waiting for response from: ${underReview.map(a => a.name_en || a.name_ko).join(', ')}`,
           priority: 3,
         });
       }

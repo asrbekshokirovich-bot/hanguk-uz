@@ -403,6 +403,23 @@
       "errPeriod": "Enter the period (e.g. Q4 2026)",
       "errAmount": "Amount must be a positive number",
       "errPaidAt": "Enter the paid date"
+    },
+    "staffDelete": {
+      "title": "Delete account",
+      "hint": "Permanently remove this staff member and their access",
+      "button": "Delete",
+      "deleting": "Deleting...",
+      "confirmTitle": "Delete staff account",
+      "confirmText": "Permanently delete «{{name}}»?",
+      "itemRoles": "All roles and permissions are removed",
+      "itemLogin": "The account is deleted and can no longer log in",
+      "itemHistory": "Records they entered (payments, documents, tasks) are kept",
+      "irreversible": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Yes, delete",
+      "success": "Staff account deleted",
+      "failed": "Could not delete the staff account",
+      "fallbackName": "this staff member"
     }
   },
   "leads": {
@@ -1162,7 +1179,8 @@
           "no": "no",
           "unknown": "not sure"
         }
-      }
+      },
+      "openChat": "Open chat"
     }
   },
   "universities": {
@@ -1333,26 +1351,37 @@
     "audioUnavailable": "Voice message unavailable",
     "tabs": {
       "label": "Queue filter",
-      "unassigned": "Unassigned",
       "mine": "Mine",
       "all": "All",
-      "done": "Done"
+      "done": "Closed",
+      "waiting": "Waiting"
     },
     "channels": {
       "all": "All channels",
       "telegram": "Telegram",
       "instagram": "Instagram",
-      "app": "App"
+      "app": "App",
+      "internal": "Internal"
     },
     "queue": {
       "label": "Conversation queue",
-      "searchPlaceholder": "Search students & messages",
+      "searchPlaceholder": "Name, phone or message",
       "shown": "{{count}} shown",
       "waiting": "{{time}} waiting",
       "mine": "Mine",
       "noPreview": "No messages yet",
       "emptyTitle": "No conversations",
-      "emptyBody": "Try another tab, channel, or search term."
+      "emptyBody": "Try another tab, channel, or search term.",
+      "unknownName": "Unknown",
+      "showStale": "Conversations older than 30 days ({{count}}) — show",
+      "searchAllTabs": "Searching every tab",
+      "match": {
+        "phone": "Phone:",
+        "lead": "Lead:",
+        "student": "Student:",
+        "message": "In message:"
+      },
+      "showMore": "Show {{count}} more"
     },
     "thread": {
       "streamLabel": "Message history",
@@ -1375,7 +1404,19 @@
       "deleted": "deleted",
       "internalNoteLabel": "Internal note · not sent to student",
       "linkContact": "Attach to a student or lead",
-      "relinkContact": "Change who this is attached to"
+      "relinkContact": "Change who this is attached to",
+      "reopen": "Reopen",
+      "more": "More actions",
+      "kindLabel": "Conversation type",
+      "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Internal” filter.",
+      "fromPhone": "from phone",
+      "autoReply": "auto-reply",
+      "back": "Back to the list",
+      "retry": "Retry",
+      "sendFailed": "Not delivered",
+      "sent": "Sent",
+      "loadEarlier": "Load earlier messages",
+      "jumpToLatest": "Jump to latest"
     },
     "composer": {
       "label": "Write a reply",
@@ -1398,7 +1439,8 @@
       "removeVoice": "Remove voice message",
       "micDenied": "Microphone access was denied. Allow it in your browser settings.",
       "voiceUnsupported": "This browser cannot record voice messages.",
-      "voiceFailed": "The recording failed. Try again."
+      "voiceFailed": "The recording failed. Try again.",
+      "noSavedReplies": "No saved replies. Add them in Settings → Saved replies."
     },
     "savedReplies": {
       "docs": "Document checklist",
@@ -1446,15 +1488,33 @@
         "received": "Received",
         "review": "In review",
         "missing": "Missing"
-      }
+      },
+      "noLeadTitle": "No lead",
+      "noLeadBody": "This conversation is not linked to a lead or a student yet.",
+      "createLead": "Create lead",
+      "createLeadFailed": "Could not create the lead.",
+      "leadCreated": "Lead created and linked to the conversation",
+      "noPhone": "No phone number",
+      "leadLabel": "Lead",
+      "openLead": "Lead profile",
+      "call": "Call",
+      "leadSource": "Source",
+      "leadCity": "City",
+      "leadProgram": "Program",
+      "leadOwner": "Owner",
+      "leadFollowUp": "Next contact",
+      "leadCreatedAt": "Lead since",
+      "leadNotes": "Notes"
     },
     "empty": {
       "title": "Queue is clear",
-      "body": "Nothing waiting on this filter. Pick another tab, or claim the next conversation from Unassigned.",
-      "cta": "Go to Unassigned"
+      "body": "No conversation in this filter is waiting for a reply. Pick another tab.",
+      "cta": "Go to Waiting",
+      "pickTitle": "Pick a conversation",
+      "pickBody": "Click a conversation in the list on the left. Nothing opens by itself or gets marked as read."
     },
     "header": {
-      "summary": "Shared queue · {{unassigned}} unassigned · {{mine}} assigned to you"
+      "summary": "Queue · {{waiting}} waiting for a reply · {{mine}} yours"
     },
     "toast": {
       "claimFailed": "Could not claim this conversation.",
@@ -1466,7 +1526,11 @@
       "translationUnavailableTitle": "Translation unavailable",
       "translationUnavailableBody": "No translation service is configured yet. Cached translations still display.",
       "translateFailed": "Could not translate",
-      "sentUntranslated": "The message was sent in the original language."
+      "sentUntranslated": "The message was sent in the original language.",
+      "reopenFailed": "Could not reopen the conversation.",
+      "reopened": "Conversation reopened",
+      "kindFailed": "Could not change the conversation type.",
+      "kindChanged": "Conversation type: {{kind}}"
     },
     "media": {
       "voice": "Voice message",
@@ -1478,6 +1542,50 @@
     "day": {
       "today": "Today",
       "yesterday": "Yesterday"
+    },
+    "kind": {
+      "lead": "Lead",
+      "staff": "Staff",
+      "partner": "Partner",
+      "service": "Service"
+    },
+    "deliveryErrors": {
+      "peerFlood": "The Telegram account is temporarily limited (PEER_FLOOD) — reply from the phone and check @SpamBot.",
+      "windowExpired": "The customer has not written for over 24 hours — Instagram does not allow sending from here. Reply from the Instagram app.",
+      "userbotDown": "The Telegram account connection is down — the message was not sent. Retry or tell an administrator.",
+      "tooLong": "Message too long (Instagram allows 1000 characters) — shorten it or split it.",
+      "unsupportedMedia": "Instagram accepts only images, video and audio — send the document via Telegram.",
+      "blocked": "This user has blocked us or their account is gone.",
+      "unknown": "Not delivered — hover to see the reason."
+    },
+    "alerts": {
+      "newMessage": "New message",
+      "badge": "{{count}} conversations waiting for a reply",
+      "soundOn": "Sound on",
+      "soundOff": "Sound off",
+      "desktopEnable": "Enable notifications",
+      "desktopOn": "Notifications on",
+      "desktopOff": "Notifications off",
+      "desktopDenied": "Notifications blocked by the browser",
+      "desktopUnsupported": "Browser has no notifications"
+    },
+    "savedRepliesSettings": {
+      "hint": "Operators insert these texts with \"/\" or the \"Saved replies\" button.",
+      "add": "New reply",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteTitle": "Delete this saved reply?",
+      "key": "Key",
+      "title": "Title",
+      "body": "Text",
+      "order": "Order",
+      "activeLabel": "Active",
+      "inactive": "inactive",
+      "saved": "Saved",
+      "badKey": "The key starts with \"/\" and uses only lowercase latin letters, digits, \"-\" or \"_\" (e.g. /docs).",
+      "required": "Title and text are required.",
+      "duplicate": "This key already exists.",
+      "variables": "{{ism}} — replaced with the customer’s first name (removed when there is none)."
     }
   },
   "errors": {
@@ -1527,7 +1635,42 @@
     "noIssues": "No urgent issues or recommendations at this time.",
     "askAI": "Ask Hanguk AI for help",
     "yourUpdates": "Your Updates",
-    "askForHelp": "Ask AI for help"
+    "askForHelp": "Ask AI for help",
+    "history": "History",
+    "historyTitle": "Conversation history",
+    "historyEmpty": "No conversations yet.",
+    "greeting": "Hi, {{name}}. Where shall we start?",
+    "greetingNoName": "Hi! Where shall we start?",
+    "greetingHint": "Ask about a student, lead, document or payment.",
+    "recentTitle": "Recent conversations",
+    "seeAll": "All · {{count}}",
+    "continue": "Continue",
+    "messagesCount_one": "{{count}} message",
+    "messagesCount_other": "{{count}} messages",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "moreActions": "More actions",
+    "send": "Send",
+    "indexDocuments": "Read all documents (AI)",
+    "indexDocumentsHint": "Lets the AI answer about what's inside each file. Runs in the background; keep this tab open.",
+    "enrichLeads": "Enrich leads (AI)",
+    "enrichLeadsHint": "Reads each lead's chats and calls to fill in exam date, intake, program, priority and a summary.",
+    "indexing": "Reading files… {{count}} left",
+    "enriching": "Enriching leads… {{count}} left",
+    "indexDoneTitle": "Documents read",
+    "indexDone": "Read {{count}} file(s). Hanguk AI can now answer about their contents.",
+    "enrichDoneTitle": "Leads enriched",
+    "enrichDone": "Analyzed {{count}} lead(s).",
+    "jobStopped": "Process stopped",
+    "deleteThread": "Delete conversation",
+    "deleteConfirmTitle": "Are you sure you want to delete it?",
+    "deleteConfirmText": "This conversation and all its messages will be deleted permanently. This can't be undone.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "threadDeleted": "Conversation deleted",
+    "deleteFailed": "Couldn't delete"
   },
   "room": {
     "status": "Status",
@@ -1978,319 +2121,6 @@
     "ctaSub": "Get your magic code from a consultant and start today.",
     "getApp": "Get the app"
   },
-  "uniReview": {
-    "title": "University database — review",
-    "subtitle": "Auto-collected admission guidelines are approved here before students see them. Nothing is published without your permission.",
-    "refresh": "Refresh",
-    "crawl": {
-      "label": "Auto-scanner semester",
-      "helper": "The nightly scanner looks for each university's guideline for this semester.",
-      "noDefault": "No default semester set — the scanner falls back to next year",
-      "updated": "Scanner target: {{label}}",
-      "adminsOnly": "Only owners and admins can change this.",
-      "placeholder": "Choose a semester",
-      "planning": "planning",
-      "spring": "Spring",
-      "fall": "Fall"
-    },
-    "tabs": {
-      "queue": "Approval queue",
-      "links": "Links"
-    },
-    "rail": {
-      "header": "Queue — {{n}} universities",
-      "chipRed": "Needs fixing",
-      "chipAmber": "Check",
-      "chipGreen": "Ready",
-      "done": "Completed",
-      "sub": "{{n}} section(s) · min. confidence {{p}}%",
-      "subNoConf": "{{n}} section(s)",
-      "docs": "{{n}} documents"
-    },
-    "detail": {
-      "sourcePage": "Source page",
-      "openPdf": "Open PDF",
-      "noPdf": "No stored PDF for this guideline yet.",
-      "pdfError": "Could not open the PDF.",
-      "progress": "{{decided}}/{{total}} decided",
-      "allDone": "All sections for this university have been decided.",
-      "next": "Next →",
-      "docUnclassified": "Cycle not classified",
-      "docSections": "{{n}} sections"
-    },
-    "section": {
-      "calendar": "Deadlines & application fee",
-      "requirements": "Admission requirements",
-      "tuition": "Faculties & tuition",
-      "documents_required": "Required documents",
-      "scholarships": "Scholarships",
-      "unknown": "Other section",
-      "documentFlag": "Document needs splitting",
-      "documentCheck": "Document needs a check"
-    },
-    "rel": {
-      "red": "Needs fixing",
-      "amber": "Check carefully",
-      "green": "Checks passed"
-    },
-    "confidence": "confidence {{p}}",
-    "laneFailed": "Extraction failed",
-    "laneFailedTitle": "Extraction errored for this section — it needs re-extraction, not review",
-    "minConfidence": "min confidence {{p}}",
-    "cycle": {
-      "title": "Admission cycle this document describes",
-      "staleTitle": "Document describes an older cycle than the crawl target — stale data",
-      "stale": "stale"
-    },
-    "actions": {
-      "approve": "Approve",
-      "approveTitle": "Approve and publish to students",
-      "reject": "Reject",
-      "rejectReason": "Rejection reason:",
-      "confirmReject": "Confirm rejection",
-      "cancel": "Cancel",
-      "flagSource": "Wrong source — reject every section from this PDF",
-      "edit": "Edit",
-      "editTitle": "Correct the extracted data before approving",
-      "saveEdit": "Save",
-      "editInvalidJson": "Invalid JSON — fix the syntax before saving",
-      "editPayloadEmpty": "The corrected payload can't be empty",
-      "editSchemaInvalid": "This doesn't match the {{section}} format: {{detail}}",
-      "savedNotApproved": "Correction saved — not approved yet"
-    },
-    "decided": {
-      "approved": "Approved — published to students",
-      "rejected": "Rejected — {{reason}}",
-      "sourceWrong": "Wrong source (bad PDF)"
-    },
-    "toast": {
-      "approved": "Approved — {{uni}}: {{section}}",
-      "rejected": "Rejected — {{uni}}: {{section}}",
-      "flagged": "{{n}} section(s) rejected — source flagged as wrong",
-      "saved": "Saved"
-    },
-    "reasons": {
-      "wrong_year": "Wrong year / cycle",
-      "wrong_archetype": "Wrong document type",
-      "hallucinated_field": "Wrong / fabricated data",
-      "ocr_garbled": "OCR text garbled",
-      "source_404": "Source won't open",
-      "other": "Other",
-      "wrong_source": "Wrong source PDF",
-      "auto_no_data": "Automatic: no data found",
-      "empty_extraction": "Extraction returned nothing (source is fine)"
-    },
-    "ns": "Not specified",
-    "cal": {
-      "fee": "Application fee (전형료)",
-      "tentative": "(tentative)",
-      "applyOpen": "Applications open",
-      "applyClose": "Applications close",
-      "docsDeadline": "Document deadline",
-      "firstStage": "First-stage results",
-      "interview": "Interview",
-      "results": "Final results",
-      "regOpen": "Registration opens",
-      "regClose": "Registration closes",
-      "orientation": "Orientation day",
-      "offline": "Offline application",
-      "supplementary": "Supplementary admission (추가합격)",
-      "supplementaryWaves": "{{count}} waves"
-    },
-    "req": {
-      "foreignTrack": "International applicants ({{cat}})",
-      "defaultCat": "외국인전형",
-      "topik": "TOPIK",
-      "english": "IELTS / English",
-      "gpa": "GPA",
-      "interview": "Interview",
-      "practical": "Practical exam",
-      "yes": "Yes",
-      "no": "No",
-      "notRequired": "Not required",
-      "deferred": "Can submit later",
-      "topikLevel": "Level {{n}}+",
-      "gpaMin": "Above {{p}}%",
-      "majors": "Majors:",
-      "heritageShow": "Show: {{n}} Korean-heritage track(s) (not for foreign applicants)",
-      "heritageHide": "Hide: {{n}} Korean-heritage track(s) (not for foreign applicants)",
-      "otherTest": "Other exam",
-      "noThreshold": "the guideline states no minimum score"
-    },
-    "tui": {
-      "faculty": "Faculty",
-      "perSemester": "Tuition / semester",
-      "admissionFee": "Admission fee",
-      "fac": {
-        "medicine": "Medicine",
-        "dentistry": "Dentistry",
-        "veterinary": "Veterinary",
-        "pharmacy": "Pharmacy",
-        "theology": "Theology",
-        "interdisciplinary": "Interdisciplinary",
-        "humanities": "Humanities",
-        "social": "Social sciences",
-        "natural_science": "Natural sciences",
-        "engineering": "Engineering",
-        "arts_pe": "Arts & PE"
-      }
-    },
-    "docs": {
-      "required": "Required",
-      "optional": "Optional",
-      "apostille": "Apostille",
-      "noDeadline": "deadline: not specified"
-    },
-    "sch": {
-      "waiverPct": "{{pct}}% tuition discount",
-      "waiver": "Tuition discount",
-      "stipendMonthly": "{{amount}} per month",
-      "stipend": "Monthly stipend",
-      "airfare": "Airfare"
-    },
-    "states": {
-      "error": "Could not load the data: {{message}}",
-      "retry": "Retry",
-      "emptyTitle": "Nothing awaiting approval",
-      "emptyBody": "The scanner found no new guidelines, or everything has been reviewed.",
-      "accessTitle": "Access restricted",
-      "accessBody": "You don't have permission to view university data."
-    },
-    "links": {
-      "banner": "The nightly scanner could not open these links (Korean sites block it). Open the original link by hand and upload the PDF if needed.",
-      "search": "Link, title or reason…",
-      "untitled": "Untitled link",
-      "fromRoutine": "Found by Routine",
-      "fromSearch": "Found by search",
-      "open": "Open link",
-      "dismiss": "Dismiss",
-      "dismissed": "Link removed from the list.",
-      "emptyTitle": "No unopened links",
-      "emptyBody": "The scanner reached every site — nothing is waiting.",
-      "emptyFiltered": "No link matches your search.",
-      "uploadPdf": "Upload PDF",
-      "uploadFailed": "Upload failed.",
-      "pickUni": "Pick a university",
-      "searchUni": "Search universities…",
-      "noUni": "No university found.",
-      "notPdf": "Please choose a PDF file.",
-      "tooLarge": "File too large: {{size}} MB. The limit is {{max}} MB.",
-      "uploaded": "PDF uploaded — queued for analysis for {{uni}}.",
-      "closedByPerson": "Closed earlier",
-      "closedByCrawler": "Could not be fetched",
-      "reopenedTitle": "This link was closed before — brought back for another look",
-      "reasonLabel": "Reason for closing:",
-      "confirmDismiss": "Close",
-      "detailPlaceholder": "Note (optional; required for \"Other\")",
-      "dismissedWithReason": "Link closed — {{reason}}",
-      "reasons": {
-        "not_2027": "Not 2027 (another year)",
-        "already_have": "Already in the database",
-        "uploaded": "PDF uploaded by hand",
-        "no_guideline": "Page has no admission guideline",
-        "site_dead": "Site or link is dead",
-        "not_relevant": "Not relevant to us",
-        "other": "Other"
-      }
-    },
-    "docFlag": {
-      "splitTitle": "This PDF mixes undergraduate and graduate admission",
-      "splitWhat": "One file carries the requirements and fees of two different degree levels side by side. Figures taken from it can cross over — a graduate tuition can surface as an undergraduate one.",
-      "genericTitle": "Warning about this document",
-      "genericWhat": "The parser found a problem with this PDF. Details below.",
-      "checkTitle": "A graduate programme is named, but no section header was found",
-      "checkWhat": "The document names a graduate programme, but no section header separating it from the undergraduate part was found. It may cover one level only, or the heading may have been missed.",
-      "checkAction": "No split boundary was found — there is nothing to split, so the document does not need to be divided. Read it before trusting the figures: if it covers a single level, clear it with \"Approve\"; if it really does mix two levels, press \"Reject\".",
-      "levels": "Levels found:",
-      "action": "This is not a data card — there is no figure to approve. Split the document into two separate admission cycles, then clear it with \"Approve\"; if the split was detected wrongly, press \"Reject\".",
-      "splitActionHint": "\"Split\" creates separate admission cycles for the undergraduate and graduate tracks and clears this card. Each track's data fills in during the next review pass.",
-      "splitAction": "Split",
-      "splitActionTitle": "Split this document into separate undergraduate and graduate admission cycles",
-      "splitDone": "Document split — two separate admission cycles created",
-      "rawToggle": "Technical detail",
-      "level": {
-        "associate": "Associate (전문학사)",
-        "bachelor": "Bachelor (학사)",
-        "master": "Master's (석사)",
-        "doctoral": "Doctoral (박사)"
-      }
-    },
-    "rejected": {
-      "badge": "Rejected",
-      "badgeTitle": "This section was rejected earlier. Approving reverses that decision.",
-      "note": "Rejected earlier — {{reason}}"
-    },
-    "edit": {
-      "form": "Form",
-      "rawJson": "Raw JSON",
-      "empty": "Nothing here yet.",
-      "event": "Event",
-      "row": "Row",
-      "remove": "Remove",
-      "addEvent": "Add event",
-      "addRow": "Add row",
-      "yes": "Yes",
-      "no": "No",
-      "invalid": "Invalid — fix before saving:",
-      "f": {
-        "applicantCategory": "Applicant category (track)",
-        "topikStatus": "TOPIK status",
-        "topikMinLevel": "TOPIK min level",
-        "englishStatus": "English status",
-        "gpaStatus": "GPA status",
-        "gpaFloorPct": "GPA floor (%)",
-        "interviewRequired": "Interview required?",
-        "practicalExamRequired": "Practical exam?",
-        "proseKo": "Eligibility (Korean)",
-        "documentType": "Document type",
-        "isRequired": "Required?",
-        "apostilleRequired": "Apostille required?",
-        "appliesToRound": "Applies to round",
-        "deadline": "Deadline",
-        "notesKo": "Notes (Korean)",
-        "nameKo": "Name (Korean)",
-        "nameEn": "Name (English)",
-        "scope": "Scope",
-        "awardType": "Award type",
-        "awardValue": "Award value",
-        "facultyGroup": "Faculty group",
-        "academicYear": "Academic year",
-        "semesterNumber": "Semester",
-        "amountKrw": "Tuition (KRW)",
-        "admissionFeeKrw": "Admission fee (KRW)",
-        "isFirstSemester": "First semester?",
-        "eventType": "Event type",
-        "startsAt": "Starts (Korea time)",
-        "endsAt": "Ends (Korea time)",
-        "isTentative": "Tentative?",
-        "roundLabel": "Round label",
-        "roundKind": "Round kind"
-      },
-      "o": {
-        "required": "Required",
-        "not_required": "Not required",
-        "not_stated": "Not stated",
-        "apply_open": "Applications open",
-        "apply_close": "Applications close",
-        "document_submission_deadline": "Document deadline",
-        "first_stage_results": "First-stage results",
-        "interview": "Interview",
-        "practical_exam": "Practical exam",
-        "final_results": "Final results",
-        "additional_admit": "Supplementary admission",
-        "registration_open": "Registration opens",
-        "registration_close": "Registration closes",
-        "orientation": "Orientation",
-        "semester_start": "Semester start",
-        "other": "Other",
-        "application": "Application round",
-        "supplementary": "Supplementary wave",
-        "season": "Admission season (수시/정시)",
-        "term": "Semester (전기/후기)"
-      },
-      "emptyHint": "Nothing was extracted for this section. Open the PDF and enter it by hand, or reject the card."
-    }
-  },
   "linkContact": {
     "title": "Attach {{name}} to…",
     "hintPhone": "Pick the student or lead this number belongs to. Future calls will link automatically.",
@@ -2349,7 +2179,12 @@
       "interviewTest": "Interview test",
       "studyPlanTest": "Study Plan test",
       "walkaround": "360° campus",
-      "visa": "Will I get the visa?"
+      "visa": "Will I get the visa?",
+      "surveyDetail": "Survey",
+      "guestPush": "Notification permission prompt",
+      "guestShell": "Guest · bottom menu",
+      "clientShell": "Client · bottom menu",
+      "shellTab": "{{shell}} · {{tab}}"
     },
     "tabs": {
       "universities": "Universities",
@@ -2477,12 +2312,24 @@
     "emptyLead": "No device is linked to this lead yet. A device is linked when the lead sends the app's “Contact a consultant” form.",
     "emptyStudent": "The student has not signed in to the app with their client code yet.",
     "picked_one": "{{count}} university picked (♥)",
-    "picked_other": "{{count}} universities picked (♥)"
+    "picked_other": "{{count}} universities picked (♥)",
+    "shells": {
+      "guest": "Guest",
+      "client": "Client"
+    },
+    "forms": {
+      "lead": "consultant form",
+      "quiz_contact": "call-back form",
+      "client_code": "client code",
+      "survey": "survey",
+      "visa": "«Will I get the visa?»",
+      "university": "university assessment"
+    }
   },
   "applicationFeeAccess": {
     "title": "Separate permissions",
     "label": "Application fee section",
-    "hint": "Opens only the Application fee section without a role: view and add payments.",
+    "hint": "Opens only the Application fee block on the Universitet tanlash page without a role: view and add payments.",
     "viaRole": "Already has it through a role (owner, admin or document handler).",
     "granted": "Application fee access granted",
     "revoked": "Application fee access removed",
@@ -2613,7 +2460,8 @@
       "report": "report",
       "request": "sent a request",
       "test": "test",
-      "more": "{{shown}} of {{total}} shown"
+      "more": "{{shown}} of {{total}} shown",
+      "scoreHint": "0–100: how far the person got in the app — opening a university 10, ♥ 15, assessment 15, report 20, consultant form 10, a request or contact 10, preparing (Study Plan, interview, AI) 10, coming back 5 + 5. Last seen over 7 days ago ×0.7, over 30 days ×0.4."
     }
   },
   "appLink": {
@@ -2809,7 +2657,7 @@
       "university": "University",
       "devices": "Devices",
       "opens": "Opened",
-      "position": "List position",
+      "position": "Average list position",
       "seen": "Saw the card"
     },
     "questions": {
@@ -2819,7 +2667,32 @@
       "bank": "Money in the bank",
       "income": "Parents' income",
       "income_documented": "Documented income",
-      "age": "Age"
+      "age": "Age",
+      "education": "Your last education",
+      "gpa": "Certificate / diploma average",
+      "gap_years": "Time since graduating",
+      "topik_fresh": "TOPIK certificate",
+      "sponsor": "Who is the sponsor",
+      "relation_doc": "Kinship certificate (apostilled)",
+      "income_stability": "How long the income has been steady",
+      "property": "Property in your parents' name (house, flat, land)",
+      "car": "A car in your parents' name",
+      "business": "Your parents' business / registered company",
+      "visa_refused": "Has a visa been refused before",
+      "korea_before": "Have you been to Korea before",
+      "illegal_relatives": "Any close relatives staying illegally in South Korea",
+      "legal_relatives": "Relatives living legally in Korea",
+      "experience": "Experience in your chosen field",
+      "olympiad": "Olympiad / contest results",
+      "motivation": "Motivation letter",
+      "recommendation": "Recommendation (from a teacher)",
+      "portfolio": "Portfolio (design, art, projects)",
+      "activity": "Extra activities",
+      "study_plan": "Study Plan",
+      "interview_prep": "Interview practice",
+      "degree": "Which level are you applying for",
+      "for_whom": "For whom",
+      "how_heard": "How did you hear about us"
     },
     "bands": {
       "none": "none",
@@ -2871,7 +2744,9 @@
       "save": "Save",
       "saved": "Saved",
       "removed": "Removed",
-      "failed": "Could not save"
+      "failed": "Could not save",
+      "add": "+ Add spend",
+      "cancel": "Cancel"
     },
     "test": {
       "show": "Show test devices too",
@@ -2922,6 +2797,25 @@
       "age": {
         "new": "New",
         "returning": "Returning"
+      }
+    },
+    "filterValues": {
+      "field": {
+        "it": "IT",
+        "business": "Business",
+        "engineering": "Engineering",
+        "medicine": "Medicine",
+        "design": "Design",
+        "tourism": "Tourism",
+        "education": "Education"
+      },
+      "degree": {
+        "bakalavr": "Bachelor",
+        "magistratura": "Master"
+      },
+      "type": {
+        "state": "State",
+        "private": "Private"
       }
     }
   },
@@ -2975,7 +2869,8 @@
     "offersNote": "Over 48 hours is red: the documents team gets a task and the student a reminder push by itself (once per offer).",
     "noOffers": "No offer is waiting for an answer",
     "noDocuments": "Everyone's documents are complete",
-    "noInactive": "Everyone opened the app in the last 7 days"
+    "noInactive": "Everyone opened the app in the last 7 days",
+    "seasonNote": "Only {{season}} students — without cancelled contracts and those who left for Korea. Change the season in the top bar."
   },
   "guestPush": {
     "title": "Push to guests",
@@ -3207,14 +3102,14 @@
       "noAppsYet": "No applications yet.",
       "otherUnis_one": "{{n}} other university",
       "otherUnis_other": "{{n}} other universities",
-      "acceptanceNote": "Acceptance rates need an offer decision on each application, which the CRM does not record yet.",
+      "acceptanceNote": "Acceptance is counted over applications with a recorded university answer (CRM → Online application → Results).",
       "seasonHealth": "Season Health",
       "submitted": "Submitted",
       "ofAllOpened": "of all applications opened",
       "acceptanceRate": "Acceptance rate",
-      "needsOffer": "needs an offer decision per application",
+      "needsOffer": "accepted among applications with an answer",
       "visaRate": "Visa approval rate",
-      "needsVisa": "needs a visa stage per application",
+      "needsVisa": "visas received among final universities",
       "noMovement": "Applications with no movement",
       "nothingTouched": "Nothing touched in {{days}} days",
       "nameNotSet": "Name not set",
@@ -3230,7 +3125,16 @@
       "university_response": "University response",
       "visa_documents": "Visa documents",
       "completed": "Completed",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "chosen": "Chosen",
+      "online": "Submitted online",
+      "offline": "Sent offline",
+      "interview": "Interview",
+      "accepted": "Accepted",
+      "final": "Final university",
+      "visa_process": "Visa process",
+      "visa_waiting": "Awaiting visa",
+      "visa_received": "Visa received"
     },
     "degree": {
       "bachelor": "Bachelor",
@@ -3301,5 +3205,40 @@
       "today": "Today",
       "yesterday": "Yesterday"
     }
+  },
+  "pipeline": {
+    "stage": {
+      "new": "New",
+      "docs_ready": "Documents ready",
+      "online": "Online application",
+      "offline": "Offline application",
+      "interview": "Interview",
+      "result": "Result",
+      "visa_process": "Visa process",
+      "visa_waiting": "Awaiting visa",
+      "visa_received": "Visa received"
+    },
+    "step": {
+      "chosen": "Chosen",
+      "online": "Submitted online",
+      "offline": "Sent offline",
+      "interview": "Interview scheduled",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "final": "Final university",
+      "visa_process": "Visa process",
+      "visa_waiting": "Awaiting visa",
+      "visa_received": "Visa received"
+    },
+    "stageTitle": "Stage",
+    "docsPack": "Document pack",
+    "universities": "Universities and submissions",
+    "contractDate": "Contract date",
+    "online": "Online",
+    "offline": "Offline",
+    "interview": "Interview",
+    "result": "Result",
+    "noUniversities": "No university chosen or submitted yet.",
+    "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board."
   }
 }

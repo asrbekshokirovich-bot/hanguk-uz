@@ -51,6 +51,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { useMessages } from '@/hooks/useMessages';
+import { countWaiting } from '@/components/crm/messages/inboxCounts';
 
 export interface SidebarGroup {
   id: string;
@@ -63,6 +65,8 @@ export interface SidebarGroup {
     icon: React.ComponentType<{ className?: string }>;
     visible: boolean;
     highlight?: boolean;
+    /** Live count drawn as a pill (Xabarlar: conversations waiting for a reply). */
+    badge?: number;
   }[];
 }
 
@@ -73,9 +77,6 @@ interface CRMSidebarProps {
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
-  canReviewUniDb?: boolean;
-  /** "Application fee": owner/admin/document handler, plus application_fee_access. */
-  canSeeApplicationFees?: boolean;
   user: User | null;
   onSignOut: () => void;
 }
@@ -85,10 +86,9 @@ function buildGroups(
   isAdmin: boolean,
   isCallOperator: boolean,
   isDocumentHandler: boolean,
-  canReviewUniDb: boolean,
   t: (key: string) => string,
   lang: string,
-  canSeeApplicationFees: boolean = isDocumentHandler,
+  inboxWaiting = 0,
 ): SidebarGroup[] {
   return [
     {
@@ -107,7 +107,6 @@ function buildGroups(
         { title: 'Onlayn ariza', url: '/crm/online-application', icon: Send, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Oflayn ariza', url: '/crm/offline-application', icon: Package, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: 'Ilova analitikasi', url: '/crm/app-analytics', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler },
-        { title: 'Application fee', url: '/crm/application-fees', icon: Receipt, visible: canSeeApplicationFees },
         { title: "So'rovnomalar", url: '/crm/surveys', icon: ClipboardCheck, visible: isCallOperator || isDocumentHandler },
       ],
     },
@@ -117,7 +116,7 @@ function buildGroups(
       icon: Headphones,
       visible: true,
       items: [
-        { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
+        { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true, badge: inboxWaiting },
         // Investor writes to a staff member; that person answers here (owner also records payouts).
         { title: t('crm.investorDesk.nav'), url: '/crm/investor-desk', icon: Briefcase, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
@@ -164,13 +163,6 @@ function buildGroups(
       visible: isAdmin,
       items: [
         { title: t('navigation.staff'), url: '/crm/staff', icon: Users, visible: isAdmin },
-        {
-          title: 'Review',
-          url: '/crm/admin/uni-db-review',
-          icon: ClipboardCheck,
-          visible: canReviewUniDb && isAdmin,
-          highlight: true,
-        },
         // uni_db bazasini boshqarish (hamkor/xarita bayroqlari, PDF guideline).
         // Xodimlar ko'radigan katalog — "Asosiy" guruhidagi Universitetlar.
         { title: 'Institutions (uni_db)', url: '/crm/admin/institutions', icon: Building2, visible: isAdmin },
@@ -186,27 +178,29 @@ export function CRMSidebar({
   isAdmin,
   isCallOperator,
   isDocumentHandler,
-  canReviewUniDb = false,
-  canSeeApplicationFees = isDocumentHandler,
   user,
   onSignOut,
 }: CRMSidebarProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Conversations waiting for a reply — the same number as the "Kutmoqda"
+  // tab, live over realtime (MessagesProvider wraps the whole CRM shell).
+  const { threads } = useMessages();
+  const inboxWaiting = countWaiting(threads);
 
   const groups = buildGroups(
     canSeeFinance,
     isAdmin,
     isCallOperator,
     isDocumentHandler,
-    canReviewUniDb,
     t,
     lang,
-    canSeeApplicationFees,
+    inboxWaiting,
   );
 
   // Whether an item's URL matches the current route (most-specific match wins
@@ -272,7 +266,12 @@ export function CRMSidebar({
                           <span className="pointer-events-none absolute bottom-2 left-0 top-2 z-10 w-[3px] rounded-full bg-sidebar-primary" />
                         )}
                         <SidebarMenuButton
-                          onClick={() => navigate(item.url)}
+                          onClick={() => {
+                            navigate(item.url);
+                            // On a phone the sidebar is a sheet over the page; leave it open
+                            // and the page the operator just chose stays hidden behind it.
+                            if (isMobile) setOpenMobile(false);
+                          }}
                           isActive={active}
                           tooltip={item.title}
                           className={cn(
@@ -287,7 +286,18 @@ export function CRMSidebar({
                               AI
                             </span>
                           )}
-                          {!isAI && item.highlight && !collapsed && (
+                          {!!item.badge && item.badge > 0 && (
+                            <span
+                              className={cn(
+                                'flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-sidebar-primary px-1.5 text-[10px] font-bold leading-none text-sidebar-primary-foreground',
+                                collapsed && 'absolute right-1 top-1 h-4 min-w-4 px-1 text-[9px]',
+                              )}
+                              aria-label={t('messages.alerts.badge', { count: item.badge })}
+                            >
+                              {item.badge > 99 ? '99+' : item.badge}
+                            </span>
+                          )}
+                          {!isAI && !item.badge && item.highlight && !collapsed && (
                             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary" />
                           )}
                         </SidebarMenuButton>
@@ -339,17 +349,13 @@ export function useSidebarGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
-  canReviewUniDb = false,
-  canSeeApplicationFees: boolean = isDocumentHandler,
 ): SidebarGroup[] {
   return buildGroups(
     canSeeFinance,
     isAdmin,
     isCallOperator,
     isDocumentHandler,
-    canReviewUniDb,
     t,
     lang,
-    canSeeApplicationFees,
   );
 }

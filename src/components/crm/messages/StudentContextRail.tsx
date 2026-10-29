@@ -1,13 +1,19 @@
 import { useTranslation } from 'react-i18next';
-import { Check, UserPlus } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatDayMonth } from './queueLogic';
+import { LeadContextCard } from './LeadContextCard';
+import type { LeadContextVM } from './useLeadContext';
 import type { ConversationVM, StudentContextVM } from './types';
 
 interface StudentContextRailProps {
   conversation: ConversationVM;
   student: StudentContextVM | null;
   loading: boolean;
+  lead: LeadContextVM | null;
+  leadLoading: boolean;
+  onLeadCreated: () => void;
 }
 
 /**
@@ -20,22 +26,30 @@ interface StudentContextRailProps {
  * Hidden below the xl breakpoint; the thread pane keeps its 520px minimum and
  * the workspace row scrolls instead of compressing.
  */
-export function StudentContextRail({ conversation, student, loading }: StudentContextRailProps) {
+export function StudentContextRail({
+  conversation,
+  student,
+  loading,
+  lead,
+  leadLoading,
+  onLeadCreated,
+}: StudentContextRailProps) {
   const { t, i18n } = useTranslation();
 
   return (
     <aside
       aria-label={t('messages.rail.label')}
-      className="hidden w-[320px] shrink-0 overflow-y-auto border-l border-border bg-card px-4 pb-7 pt-4 xl:block"
+      className="hidden w-[300px] shrink-0 overflow-y-auto border-l border-border bg-card px-4 pb-7 pt-4 xl:block 2xl:w-[320px]"
     >
       {!conversation.studentId ? (
-        <div className="flex flex-col items-center gap-3 px-2 py-10 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <UserPlus className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <p className="text-sm font-semibold text-foreground">{t('messages.rail.noStudentTitle')}</p>
-          <p className="text-xs text-muted-foreground">{t('messages.rail.noStudentBody')}</p>
-        </div>
+        // Not a student: the lead behind the chat (79% of conversations),
+        // or a one-click "create a lead" for a stranger.
+        <LeadContextCard
+          conversation={conversation}
+          lead={lead}
+          loading={leadLoading}
+          onLeadCreated={onLeadCreated}
+        />
       ) : loading || !student ? (
         <div className="space-y-4">
           <Skeleton className="mx-auto h-14 w-14 rounded-full" />
@@ -140,10 +154,7 @@ export function StudentContextRail({ conversation, student, loading }: StudentCo
               {student.payment.nextDue && (
                 <p className="mt-1.5 text-[11.5px] text-muted-foreground">
                   {t('messages.rail.nextInstalment', {
-                    date: new Date(student.payment.nextDue).toLocaleDateString(i18n.language, {
-                      day: 'numeric',
-                      month: 'short',
-                    }),
+                    date: formatDayMonth(new Date(student.payment.nextDue), i18n.language),
                   })}
                 </p>
               )}
@@ -160,10 +171,7 @@ export function StudentContextRail({ conversation, student, loading }: StudentCo
                     <span className="min-w-0">
                       <span className="block text-[12.5px] font-medium text-foreground/75">{a.text}</span>
                       <span className="block text-[11px] text-muted-foreground">
-                        {new Date(a.at).toLocaleDateString(i18n.language, {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
+                        {formatDayMonth(new Date(a.at), i18n.language)}
                       </span>
                     </span>
                   </li>

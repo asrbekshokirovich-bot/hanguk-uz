@@ -6,9 +6,12 @@ import { useVoiceRecorder, type VoiceRecording } from '@/hooks/useVoiceRecorder'
 import { SavedRepliesPanel } from './SavedRepliesPanel';
 import { SEND_LANGUAGES } from './languages';
 import { SendLanguageChips } from './SendLanguageChips';
-import type { SavedReply, SendLanguage } from './types';
+import { fillReply, matchReplies, useSavedReplies, type SavedReplyRow } from './useSavedReplies';
+import type { SendLanguage } from './types';
 
 interface ComposerProps {
+  /** The person's name, for {{ism}} in saved replies. */
+  recipientName?: string | null;
   onSend: (
     text: string,
     options: {
@@ -44,8 +47,9 @@ const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
  * Internal-note mode paints the composer amber and switches the send path to a
  * note write, which is stored on the thread but never relayed to the channel.
  */
-export function Composer({ onSend }: ComposerProps) {
+export function Composer({ onSend, recipientName }: ComposerProps) {
   const { t } = useTranslation();
+  const { replies } = useSavedReplies();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState('');
   const [noteMode, setNoteMode] = useState(false);
@@ -167,9 +171,16 @@ export function Composer({ onSend }: ComposerProps) {
     else setFile(wasFile);
   };
 
+  const shownReplies = matchReplies(replies, draft);
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      // "/docs" + Enter inserts the template instead of sending the key.
+      if (showSnippets && draft.trim().startsWith('/') && shownReplies.length === 1) {
+        pickReply(shownReplies[0]);
+        return;
+      }
       void submit();
     }
     if (e.key === 'Escape' && showSnippets) {
@@ -178,8 +189,20 @@ export function Composer({ onSend }: ComposerProps) {
     }
   };
 
-  const pickReply = (reply: SavedReply) => {
-    setDraft(reply.body);
+  // Escape closes the saved-replies panel wherever the focus is. It used to
+  // work only inside the textarea, so a panel opened with the button stayed
+  // open while the operator moved on (audit 2026-10-29, finding 17).
+  useEffect(() => {
+    if (!showSnippets) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSnippets(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showSnippets]);
+
+  const pickReply = (reply: SavedReplyRow) => {
+    setDraft(fillReply(reply.body, recipientName));
     setShowSnippets(false);
     textareaRef.current?.focus();
   };
@@ -187,8 +210,14 @@ export function Composer({ onSend }: ComposerProps) {
   const languageName = t(SEND_LANGUAGES.find((l) => l.code === language)?.nameKey ?? 'messages.languages.uz');
 
   return (
-    <div className="shrink-0 border-t border-border bg-card px-6 pb-4 pt-3">
-      {showSnippets && <SavedRepliesPanel onPick={pickReply} />}
+    <div className="relative shrink-0 border-t border-border bg-card px-2 pb-2 pt-2 sm:px-6 sm:pb-4 sm:pt-3">
+      {/* Floats ABOVE the composer instead of growing it: a panel inside the
+          flow pushed the Send button below the fold (finding 17). */}
+      {showSnippets && (
+        <div className="absolute bottom-full left-2 right-2 z-20 mb-1 sm:left-6 sm:right-6">
+          <SavedRepliesPanel replies={shownReplies} onPick={pickReply} onClose={() => setShowSnippets(false)} />
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-card focus-within:ring-2 focus-within:ring-ring">
         {noteMode && (
@@ -275,12 +304,13 @@ export function Composer({ onSend }: ComposerProps) {
 
         <textarea
           ref={textareaRef}
-          rows={3}
+          rows={2}
           value={draft}
           onChange={(e) => {
             const value = e.target.value;
             setDraft(value);
             if (value.trim() === '/') setShowSnippets(true);
+            else if (showSnippets && !value.trim().startsWith('/') && value.trim() !== '') setShowSnippets(false);
           }}
           onKeyDown={handleKeyDown}
           placeholder={t('messages.composer.placeholder')}
@@ -350,7 +380,7 @@ export function Composer({ onSend }: ComposerProps) {
           {!noteMode && <SendLanguageChips value={language} onChange={setLanguage} />}
 
           <div className="ml-auto flex items-center gap-2.5">
-            <span className="text-[11.5px] text-muted-foreground">
+            <span className="hidden text-[11.5px] text-muted-foreground md:inline">
               {noteMode
                 ? t('messages.composer.hintNote')
                 : t('messages.composer.hintSend', { language: languageName })}

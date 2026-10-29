@@ -1,6 +1,6 @@
 import type { Tables } from '@/integrations/supabase/types';
-import { buildApplicationPack } from '@/lib/studentDocSlots';
-import { pipelineStage, PIPELINE_STAGES, type PipelineStage } from '@/lib/applicationPipeline';
+import { PIPELINE_STAGES, type PipelineStage } from '@/lib/applicationPipeline';
+import { buildStudentPipeline } from '@/lib/studentPipeline';
 
 /**
  * CRM dashboard numbers, computed the same way as the Arizalar board
@@ -111,16 +111,11 @@ export function computeDashboard(input: DashboardInput): DashboardNumbers {
   const stageCount = new Map<PipelineStage, number>(PIPELINE_STAGES.map((s) => [s, 0]));
   for (const m of active) {
     const own = subsByStudent.get(m.student_id) ?? [];
-    const pack = buildApplicationPack((docsByStudent.get(m.student_id) ?? []) as Tables<'documents'>[]);
-    const stage = pipelineStage({
-      docsReady: !!m.docs_ready || (pack.requiredTotal > 0 && pack.requiredVerified === pack.requiredTotal),
-      onlineSubmitted: own.some((s) => s.online_submitted_at),
-      offlineSent: own.some((s) => s.offline_sent_at),
-      hasInterview: own.some((s) => s.interview_at),
-      visaProcess: own.some((s) => s.final_at && s.visa_status === 'process'),
-      visaWaiting: own.some((s) => s.final_at && s.visa_status === 'waiting'),
-      visaReceived: own.some((s) => s.final_at && s.visa_status === 'received'),
-      hasResult: own.some((s) => s.result),
+    // The one rule every CRM screen uses (src/lib/studentPipeline.ts).
+    const { stage } = buildStudentPipeline({
+      docsReady: m.docs_ready,
+      documents: (docsByStudent.get(m.student_id) ?? []) as Tables<'documents'>[],
+      submissions: own,
     });
     stageCount.set(stage, (stageCount.get(stage) ?? 0) + 1);
   }

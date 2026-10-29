@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
-import { arrivalDate, lastDispatchDate, parseDay, planPost, toIsoDay } from '../postSchedule';
+import { arrivalDate, finalDispatchDate, lastDispatchDate, parseDay, planPost, toIsoDay } from '../postSchedule';
 
 const last = (iso: string) => toIsoDay(lastDispatchDate(parseDay(iso)));
 
@@ -30,9 +30,28 @@ describe('postSchedule', () => {
     expect(toIsoDay(plan.nextDispatch!)).toBe('2026-10-14'); // a Wednesday
     expect(plan.daysLeft).toBe(7);
 
+    expect(plan.reserve).toBe(false);
+    expect(plan.passed).toBe(false);
+  });
+
+  it('after the recommended day, the two reserve posts still count (owner, 2026-10-28)', () => {
+    expect(toIsoDay(finalDispatchDate(parseDay('2026-10-31')))).toBe('2026-10-28');
+
     const late = planPost('2026-10-31', new Date('2026-10-22T09:00:00Z'));
-    expect(late.nextDispatch).toBeNull();
     expect(late.daysLeft).toBe(-1);
+    expect(late.reserve).toBe(true);
+    expect(late.passed).toBe(false);
+    expect(toIsoDay(late.nextDispatch!)).toBe('2026-10-26');
+    expect(toIsoDay(late.finalDispatch)).toBe('2026-10-28');
+
+    const lastDay = planPost('2026-10-31', new Date('2026-10-28T09:00:00Z'));
+    expect(lastDay.reserve).toBe(true);
+    expect(toIsoDay(lastDay.nextDispatch!)).toBe('2026-10-28');
+
+    const gone = planPost('2026-10-31', new Date('2026-10-29T09:00:00Z'));
+    expect(gone.passed).toBe(true);
+    expect(gone.reserve).toBe(false);
+    expect(gone.nextDispatch).toBeNull();
   });
 });
 

@@ -1,6 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { CheckCheck, Languages, PanelRight, UserPlus } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, Languages, MoreHorizontal, PanelRight, RotateCcw, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { THREAD_KINDS, type ThreadKind } from '@/contexts/MessagesContext';
 import { CHANNELS } from './channels';
 import { ChannelAvatar } from './ChannelAvatar';
 import { formatWait } from './queueLogic';
@@ -14,9 +23,13 @@ interface ThreadHeaderProps {
   onClaim: () => void;
   onToggleAutoTranslate: () => void;
   onMarkDone: () => void;
+  onReopen: () => void;
+  onKindChange: (kind: ThreadKind) => void;
   onToggleContext: () => void;
   /** Opens the attach-to-person dialog. Absent for channels we cannot key on. */
   onLinkContact?: () => void;
+  /** Single-pane layout: back to the list. */
+  onBack?: () => void;
 }
 
 /**
@@ -40,11 +53,22 @@ export function ThreadHeader({
   onClaim,
   onToggleAutoTranslate,
   onMarkDone,
+  onReopen,
+  onKindChange,
   onToggleContext,
   onLinkContact,
+  onBack,
 }: ThreadHeaderProps) {
   const { t } = useTranslation();
-  const meta = `${t(CHANNELS[c.channel].labelKey)} · ${c.handle} · ${c.stage}`;
+  // The handle is shown only when the person has one; a numeric chat id is
+  // not a handle and is left out (it used to read "@1819638515").
+  const meta = [
+    t(CHANNELS[c.channel].labelKey),
+    c.handle || null,
+    c.kind === 'lead' ? c.stage : t(`messages.kind.${c.kind}`),
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const autoTrLabel = autoTranslate
     ? t('messages.thread.autoTranslateOn')
     : t('messages.thread.autoTranslateOff');
@@ -54,7 +78,18 @@ export function ThreadHeader({
       : t('messages.thread.unassigned');
 
   return (
-    <header className="flex h-[68px] shrink-0 items-center gap-3 overflow-hidden border-b border-border bg-card px-4">
+    <header className="flex h-[68px] shrink-0 items-center gap-2 overflow-hidden border-b border-border bg-card px-2 sm:gap-3 sm:px-4">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          title={t('messages.thread.back')}
+          className="flex h-9 w-9 min-h-0 min-w-0 shrink-0 items-center justify-center rounded-md text-foreground/75 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">{t('messages.thread.back')}</span>
+        </button>
+      )}
       <ChannelAvatar channel={c.channel} initials={c.initials} avatarUrl={c.avatarUrl} size={40} />
 
       <div className="min-w-0 flex-1">
@@ -63,13 +98,26 @@ export function ThreadHeader({
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
-        {!c.isAssigned && !c.isDone ? (
+        {c.isDone ? (
+          <button
+            type="button"
+            onClick={onReopen}
+            className={cn(
+              'flex h-9 min-h-0 items-center gap-1.5 whitespace-nowrap rounded-pill bg-accent px-3.5 text-xs font-bold text-accent-foreground transition',
+              'hover:brightness-105',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+            )}
+          >
+            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('messages.thread.reopen')}
+          </button>
+        ) : !c.isAssigned ? (
           <div
             className="flex items-center gap-1.5 rounded-pill bg-warning/10 py-1 pl-2.5 pr-1"
             title={unassignedLabel}
           >
-            <span className="whitespace-nowrap text-xs font-semibold text-warning">
-              {c.waitingMinutes > 0 ? formatWait(c.waitingMinutes) : t('messages.thread.unassigned')}
+            <span className="hidden whitespace-nowrap text-xs font-semibold text-warning sm:inline">
+              {c.isWaiting && c.waitingMinutes > 0 ? formatWait(c.waitingMinutes) : t('messages.thread.unassigned')}
             </span>
             <button
               type="button"
@@ -91,25 +139,28 @@ export function ThreadHeader({
           >
             {t('messages.thread.assignedToYou')}
           </span>
-        ) : c.isAssigned && !c.isDone ? (
+        ) : (
           <span className="whitespace-nowrap rounded-pill bg-muted px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">
             {t('messages.thread.assignedToOther')}
           </span>
-        ) : null}
+        )}
 
         {onLinkContact && (
+          <span className="hidden sm:inline-flex">
           <IconAction
             label={
               c.studentId
                 ? t('messages.thread.relinkContact')
                 : t('messages.thread.linkContact')
             }
-            active={!c.studentId}
+            active={!c.studentId && !c.leadId}
             onClick={onLinkContact}
             icon={<UserPlus className="h-4 w-4" aria-hidden="true" />}
           />
+          </span>
         )}
 
+        <span className="hidden sm:inline-flex">
         <IconAction
           label={autoTrLabel}
           active={autoTranslate}
@@ -117,14 +168,68 @@ export function ThreadHeader({
           onClick={onToggleAutoTranslate}
           icon={<Languages className="h-4 w-4" aria-hidden="true" />}
         />
+        </span>
 
         {!c.isDone && (
+          <span className="hidden sm:inline-flex">
           <IconAction
             label={t('messages.thread.markDone')}
             onClick={onMarkDone}
             icon={<CheckCheck className="h-4 w-4" aria-hidden="true" />}
           />
+          </span>
         )}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              title={t('messages.thread.more')}
+              className={cn(
+                'flex h-9 w-9 min-h-0 min-w-0 shrink-0 items-center justify-center rounded-md border border-border bg-card text-foreground/75 transition-colors',
+                'hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              )}
+            >
+              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+              <span className="sr-only">{t('messages.thread.more')}</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {/* On a phone the icon row is hidden; its actions live here. */}
+            <div className="sm:hidden">
+              {!c.isDone && (
+                <DropdownMenuItem onSelect={onMarkDone} className="gap-2">
+                  <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t('messages.thread.markDone')}
+                </DropdownMenuItem>
+              )}
+              {onLinkContact && (
+                <DropdownMenuItem onSelect={onLinkContact} className="gap-2">
+                  <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
+                  {c.studentId ? t('messages.thread.relinkContact') : t('messages.thread.linkContact')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={onToggleAutoTranslate} className="gap-2">
+                <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+                {autoTrLabel}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </div>
+            <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+              {t('messages.thread.kindLabel')}
+            </DropdownMenuLabel>
+            {THREAD_KINDS.map((kind) => (
+              <DropdownMenuItem key={kind} onSelect={() => onKindChange(kind)} className="gap-2">
+                <Check className={cn('h-3.5 w-3.5', c.kind === kind ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
+                <span className="flex-1">{t(`messages.kind.${kind}`)}</span>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <p className="px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
+              {t('messages.thread.kindHint')}
+            </p>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <span className="hidden xl:inline-flex">
           <IconAction

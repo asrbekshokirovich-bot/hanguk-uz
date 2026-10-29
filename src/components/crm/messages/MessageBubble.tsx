@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertCircle, Check, Clock, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessageAttachment } from './MessageAttachment';
+import { deliveryErrorKey } from './deliveryErrors';
 import type { MessageVM } from './types';
 
 interface MessageBubbleProps {
@@ -31,7 +32,7 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
 
   return (
     <div className={cn('flex', outbound ? 'justify-end' : 'justify-start')}>
-      <div className="max-w-[560px]">
+      <div className="min-w-0 max-w-[85%] xl:max-w-[560px]">
         <div
           className={cn(
             'px-3.5 py-2.5 shadow-card transition-opacity',
@@ -91,16 +92,21 @@ export function MessageBubble({ message: m, expanded, translating, onToggleTrans
         </div>
 
         {failed && (
-          <div className="mt-1.5 flex items-center justify-end gap-2 px-0.5">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" aria-hidden="true" />
-            <span className="max-w-[380px] truncate text-[11px] font-medium text-destructive">
-              {m.deliveryError || t('messages.thread.sendFailed', 'Not delivered')}
+          <div className="mt-1.5 flex items-start justify-end gap-2 px-0.5">
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" aria-hidden="true" />
+            {/* The channel's raw reason ("PEER_FLOOD", Meta's German text) is
+                kept in the tooltip; what the operator reads says what to do. */}
+            <span
+              className="max-w-[420px] text-right text-[11px] font-medium leading-snug text-destructive"
+              title={m.deliveryError ?? undefined}
+            >
+              {m.deliveryError ? t(deliveryErrorKey(m.deliveryError)) : t('messages.thread.sendFailed', 'Not delivered')}
             </span>
             {onRetry && (
               <button
                 type="button"
                 onClick={onRetry}
-                className="flex min-h-0 min-w-0 items-center gap-1 rounded-sm border border-destructive/40 px-1.5 py-0.5 text-[11px] font-semibold text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-0 min-w-0 shrink-0 items-center gap-1 rounded-sm border border-destructive/40 px-1.5 py-0.5 text-[11px] font-semibold text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <RefreshCw className="h-3 w-3" aria-hidden="true" />
                 {t('messages.thread.retry', 'Retry')}

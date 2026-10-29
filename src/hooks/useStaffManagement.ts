@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 import { useCommandCenterSync } from '@/hooks/useCommandCenterSync';
+import { edgeFunctionErrorMessage } from '@/lib/edgeFunctionError';
+import i18n from '@/lib/i18n';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -190,17 +192,20 @@ export function useStaffManagement() {
     });
 
     if (error || data?.error) {
+      const fallback = i18n.t('crm.staffDelete.failed');
+      const description = error
+        ? await edgeFunctionErrorMessage(error, fallback)
+        : String(data.error);
       toast({
-        title: 'Error',
-        description: data?.error || 'Failed to delete staff account',
+        title: fallback,
+        description,
         variant: 'destructive',
       });
       return false;
     }
 
     toast({
-      title: 'Success',
-      description: 'Staff account deleted successfully',
+      title: i18n.t('crm.staffDelete.success'),
     });
 
     await fetchStaff(true);

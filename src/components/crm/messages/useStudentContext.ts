@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
-import { initialsOf } from './queueLogic';
-import { STAGE_KEYS, mostAdvancedStatus, stageIndexFor } from './stages';
+import { formatDayMonth, initialsOf } from './queueLogic';
+import { STAGE_KEYS, stageIndexFor } from './stages';
+import { loadStudentPipelines } from '@/lib/loadStudentPipelines';
+import type { StudentPipeline } from '@/lib/studentPipeline';
 import type { ActivityVM, DocumentVM, ProgressStepVM, StudentContextVM } from './types';
 
 /**
@@ -24,7 +26,7 @@ export function useStudentContext(studentId: string | null) {
   const load = useCallback(
     async (id: string) => {
       setLoading(true);
-      const [profileRes, docsRes, appsRes, paymentsRes, callsRes] = await Promise.all([
+      const [profileRes, docsRes, pipelines, paymentsRes, callsRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('user_id, full_name, phone, payment_plan, magic_code')
@@ -35,10 +37,7 @@ export function useStudentContext(studentId: string | null) {
           .select('id, name, status, created_at, reviewed_at')
           .eq('student_id', id)
           .order('created_at', { ascending: false }),
-        supabase
-          .from('applications')
-          .select('id, status, submitted_at, decision, decision_at')
-          .eq('student_id', id),
+        loadStudentPipelines([id]),
         supabase
           .from('payments')
           .select('id, amount, paid_amount, currency, status, due_date, paid_at')
@@ -53,16 +52,16 @@ export function useStudentContext(studentId: string | null) {
 
       const profile = profileRes.data;
       const docs = docsRes.data ?? [];
-      const apps = appsRes.data ?? [];
+      const pipeline = pipelines.get(id) ?? null;
       const payments = paymentsRes.data ?? [];
       const calls = callsRes.data ?? [];
 
       const name = profile?.full_name ?? '';
-      const currentStage = stageIndexFor(mostAdvancedStatus(apps.map((a) => a.status)));
+      const currentStage = stageIndexFor(pipeline?.stage);
 
       const steps: ProgressStepVM[] = STAGE_KEYS.map((key, index) => ({
         label: t(key),
-        note: stepNote(index, currentStage, apps, docs, i18n.language, t),
+        note: stepNote(index, currentStage, pipeline, docs, i18n.language, t),
         state: index < currentStage ? 'done' : index === currentStage ? 'current' : 'todo',
       }));
 
@@ -121,7 +120,6 @@ function documentState(status: string | null): DocumentVM['state'] {
   return 'missing';
 }
 
-type AppRow = { status: string; submitted_at: string | null; decision: string | null };
 type DocRow = { status: string | null };
 type PaymentRow = { amount: number | null; paid_amount: number | null; paid_at: string | null; currency: string | null };
 type CallRow = { id: string; direction: string; duration: number | null; started_at: string | null };
@@ -131,7 +129,7 @@ type TFn = (key: string, options?: Record<string, unknown>) => string;
 function stepNote(
   index: number,
   currentStage: number,
-  apps: AppRow[],
+  pipeline: StudentPipeline | null,
   docs: DocRow[],
   locale: string,
   t: TFn,
@@ -142,8 +140,11 @@ function stepNote(
     return docs.length > 0 ? t('messages.rail.complete') : '—';
   }
   if (index === 2) {
-    const submitted = apps.find((a) => a.submitted_at)?.submitted_at;
-    if (submitted) return new Date(submitted).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+    const submitted = (pipeline?.submissions ?? [])
+      .map((s) => s.online_submitted_at ?? s.offline_sent_at)
+      .filter((d): d is string => !!d)
+      .sort()[0];
+    if (submitted) return formatDayMonth(new Date(submitted), locale);
   }
   if (index < currentStage) return t('messages.rail.complete');
   return '—';

@@ -95,27 +95,23 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    // Get student's applications with university and program info
-    const { data: applications } = await adminClient
-      .from("applications")
-      .select(`
-        id,
-        status,
-        university_id,
-        universities:university_id (
-          id,
-          name_ko,
-          name_en,
-          city_en,
-          city_ko,
-          ranking,
-          description_en,
-          description_ko,
-          website
-        )
-      `)
+    // The student's universities: confirmed choices (Universitet tanlash). The
+    // legacy applications table is not read — this query used a university_id
+    // column and a universities table that do not exist, so it was always empty.
+    const { data: choiceRows } = await adminClient
+      .from("student_university_choices")
+      .select("institution_id, rank")
       .eq("student_id", user.id)
-      .in("status", ["pending", "submitted", "in_review"]);
+      .eq("status", "confirmed")
+      .order("rank", { ascending: true });
+    const choiceIds = (choiceRows ?? []).map((c: { institution_id: string }) => c.institution_id);
+    const { data: choiceUnis } = choiceIds.length
+      ? await adminClient.from("institutions").select("id, name_en, name_ko, city_ko").in("id", choiceIds)
+      : { data: [] as { id: string; name_en: string | null; name_ko: string | null; city_ko: string | null }[] };
+    const applications = choiceIds
+      .map((id: string) => (choiceUnis ?? []).find((u: { id: string }) => u.id === id))
+      .filter(Boolean)
+      .map((u: any) => ({ universities: { id: u.id, name_en: u.name_en, name_ko: u.name_ko, city_ko: u.city_ko } }));
 
     // Build applications context for personalized examples
     let applicationsContext = "";
@@ -146,19 +142,17 @@ serve(async (req) => {
     let selectedUniversityName = "";
     if (targetUniversityId) {
       const { data: university } = await adminClient
-        .from("universities")
-        .select("*")
+        // public.universities does not exist; universities live in institutions.
+        .from("institutions")
+        .select("name_en, name_ko, city_ko")
         .eq("id", targetUniversityId)
-        .single();
-      
+        .maybeSingle();
+
       if (university) {
         selectedUniversityName = university.name_en || university.name_ko || '';
         universityContext = `
 TARGET UNIVERSITY: ${university.name_ko || university.name_en}
-Location: ${university.city_en || university.city_ko || 'South Korea'}
-Ranking: ${university.ranking ? `#${university.ranking} in Korea` : 'Respected institution'}
-Description: ${university.description_en || university.description_ko || ''}
-Website: ${university.website || ''}
+Location: ${university.city_ko || 'South Korea'}
 `;
 
         // Get programs

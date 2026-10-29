@@ -7,12 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { paymentTint, TINT_CLASS } from '@/lib/paymentTint';
-import { buildApplicationPack } from '@/lib/studentDocSlots';
+import { buildStudentPipeline } from '@/lib/studentPipeline';
 import { formatInterview } from '@/lib/interviewTime';
 import {
   PIPELINE_LABELS,
   PIPELINE_STAGES,
-  pipelineStage,
   type PipelineStage,
 } from '@/lib/applicationPipeline';
 import { getInitials } from '@/hooks/useChosenUniversityGroups';
@@ -77,30 +76,26 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
 
   const columns = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const byStage = new Map<PipelineStage, { student: S; detail: string | null; accepted: boolean | null }[]>(
+    const byStage = new Map<PipelineStage, { key: string; student: S; detail: string | null; accepted: boolean | null }[]>(
       PIPELINE_STAGES.map((s) => [s, []]),
     );
     for (const student of students) {
       if (q && !`${student.full_name ?? ''} ${student.magic_code ?? ''}`.toLowerCase().includes(q)) continue;
       const subs = subsByStudent.get(student.user_id) ?? [];
-      const pack = buildApplicationPack(student.documents ?? []);
-      const stage = pipelineStage({
-        docsReady: !!student.docsReady || (pack.requiredTotal > 0 && pack.requiredVerified === pack.requiredTotal),
-        onlineSubmitted: subs.some((s) => s.online_submitted_at),
-        offlineSent: subs.some((s) => s.offline_sent_at),
-        hasInterview: subs.some((s) => s.interview_at),
-        visaProcess: subs.some((s) => s.final_at && s.visa_status === 'process'),
-        visaWaiting: subs.some((s) => s.final_at && s.visa_status === 'waiting'),
-        visaReceived: subs.some((s) => s.final_at && s.visa_status === 'received'),
-        hasResult: subs.some((s) => s.result),
-      });
+      // The one rule every CRM screen uses (src/lib/studentPipeline.ts).
+      const pipeline = buildStudentPipeline({ docsReady: student.docsReady, documents: student.documents, submissions: subs });
+      const { stage } = pipeline;
+      const pack = { requiredVerified: pipeline.docsVerified, requiredTotal: pipeline.docsRequired };
       let detail: string | null = null;
       let accepted: boolean | null = null;
+      // A student applying to several universities gets one card per
+      // university in these columns (Asrbek, 2026-10-29: "alohida karta").
+      let perUniversity: string[] | null = null;
       if (stage === 'docs_ready' || stage === 'new') {
         detail = `Hujjatlar ${pack.requiredVerified}/${pack.requiredTotal}`;
       } else if (stage === 'online' || stage === 'offline') {
         const ids = subs.filter((s) => (stage === 'online' ? s.online_submitted_at : s.offline_sent_at)).map((s) => s.institution_id);
-        detail = ids.length > 1 ? `${uniName(ids[0])} +${ids.length - 1}` : uniName(ids[0]);
+        perUniversity = ids.map(uniName);
       } else if (stage === 'visa_process' || stage === 'visa_waiting' || stage === 'visa_received') {
         const final = subs.find((s) => s.final_at);
         detail = final ? uniName(final.institution_id) : null;
@@ -108,7 +103,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
         const next = subs
           .filter((s) => s.interview_at)
           .sort((a, b) => a.interview_at!.localeCompare(b.interview_at!));
-        detail = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`).join(', ');
+        perUniversity = next.map((s) => `${uniName(s.institution_id)} · ${formatInterview(s.interview_at!)}`);
       } else if (stage === 'result') {
         const final = subs.find((s) => s.final_at);
         const admitted = subs.filter((s) => s.result === 'accepted');
@@ -118,7 +113,7 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
           detail = `Yakuniy: ${uniName(final.institution_id)}`;
         } else if (admitted.length > 0) {
           accepted = true;
-          detail = `Kirdi: ${admitted.map((s) => uniName(s.institution_id)).join(', ')}`;
+          perUniversity = admitted.map((s) => `Kirdi: ${uniName(s.institution_id)}`);
         } else if (waiting) {
           detail = 'Kirmadi · boshqalari kutilmoqda';
         } else {
@@ -126,7 +121,13 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
           detail = 'Hammasidan kirmadi';
         }
       }
-      byStage.get(stage)!.push({ student, detail, accepted });
+      if (perUniversity && perUniversity.length > 0) {
+        perUniversity.forEach((line, i) =>
+          byStage.get(stage)!.push({ key: `${student.user_id}:${i}`, student, detail: line, accepted }),
+        );
+      } else {
+        byStage.get(stage)!.push({ key: student.user_id, student, detail, accepted });
+      }
     }
     return byStage;
   }, [students, subsByStudent, search, uniName]);
@@ -167,11 +168,11 @@ export default function ApplicationsPipeline<S extends PipelineStudent>({
                 <Badge variant="neutral" className="text-[10px]">{items.length}</Badge>
               </div>
               <div className="flex min-h-[120px] flex-col gap-2">
-                {items.map(({ student, detail, accepted }) => {
+                {items.map(({ key, student, detail, accepted }) => {
                   const tint = paymentTint(student);
                   return (
                     <button
-                      key={student.user_id}
+                      key={key}
                       type="button"
                       data-testid="pipeline-card"
                       onClick={() => onOpenStudent(student)}

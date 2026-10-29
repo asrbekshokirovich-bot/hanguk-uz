@@ -1,31 +1,40 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useActiveIntake } from '@/contexts/IntakeContext';
 import { plan } from './planUi';
-import { whenLabel } from './person';
-import { slotName, studentPath, useClientsActivity, waited } from './clients';
+import { dayLabel, whenLabel } from './person';
+import { slotName, studentPath, useClientsActivity, useSeasonRoster, waited } from './clients';
 
 /**
  * «Mijozlar faolligi» (plan v2, stage 5): for the documents team, the
  * students who are waiting on something they have to do in the app — an
  * offer to answer (over 48 hours red; the reminder push goes by itself), a
  * document to upload or upload again, or the app itself, not opened for a
- * week. A row opens the student.
+ * week. A row opens the student. Only the season picked in the top bar, as
+ * on the other CRM pages: students who went to Korea seasons ago no longer
+ * have documents to upload.
  */
 export default function ClientsTab() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { data, error } = useClientsActivity();
+  const { data: all, error } = useClientsActivity();
+  const { activeIntake, activeIntakeId } = useActiveIntake();
+  const roster = useSeasonRoster(activeIntakeId);
   const open = (id: string) => navigate(studentPath(id));
   const lang = i18n.language?.slice(0, 2) || 'uz';
 
-  if (error && !data) return <p className={cn('text-[13px]', plan.bad)}>{t('appActivity.error')}</p>;
-  if (!data) return <p className={plan.note}>{t('appActivity.loading')}</p>;
+  if (error && !all) return <p className={cn('text-[13px]', plan.bad)}>{t('appActivity.error')}</p>;
+  if (!all || roster === undefined) return <p className={plan.note}>{t('appActivity.loading')}</p>;
 
+  const inSeason = <R extends { user_id: string }>(rows: R[]) => (roster ? rows.filter((r) => roster.has(r.user_id)) : rows);
+  const data = { offers: inSeason(all.offers), documents: inSeason(all.documents), inactive: inSeason(all.inactive) };
+  const season = activeIntake ? `${t(`intake.season.${activeIntake.season}`)} ${activeIntake.year}` : null;
   const seen = (iso: string | null) => (iso ? whenLabel(iso, t) : t('clients.never'));
 
   return (
     <div className="space-y-4">
+      {roster && season && <p className={plan.note}>{t('clients.seasonNote', { season })}</p>}
       <section className={plan.frame}>
         <div className={plan.bar}>
           <span>{t('clients.offers')}</span>
@@ -88,7 +97,7 @@ export default function ClientsTab() {
                   {data.documents.map((d) => (
                     <tr key={d.user_id} onClick={() => open(d.user_id)} className="cursor-pointer hover:bg-[#EEF2F9] dark:hover:bg-[#17235F]">
                       <td className={cn(plan.td, 'font-semibold')}>{d.name || '—'}</td>
-                      <td className={cn(plan.td, 'whitespace-nowrap')}>{d.contract_date ?? '—'}</td>
+                      <td className={cn(plan.td, 'whitespace-nowrap')}>{dayLabel(d.contract_date)}</td>
                       <td className={plan.td}>
                         <div className={plan.chips}>
                           {d.gaps.map((g) => (
@@ -132,7 +141,7 @@ export default function ClientsTab() {
                   {data.inactive.map((s) => (
                     <tr key={s.user_id} onClick={() => open(s.user_id)} className="cursor-pointer hover:bg-[#EEF2F9] dark:hover:bg-[#17235F]">
                       <td className={cn(plan.td, 'font-semibold')}>{s.name || '—'}</td>
-                      <td className={cn(plan.td, 'whitespace-nowrap')}>{s.contract_date ?? '—'}</td>
+                      <td className={cn(plan.td, 'whitespace-nowrap')}>{dayLabel(s.contract_date)}</td>
                       <td className={cn(plan.td, s.last_seen_at ? plan.muted : plan.bad)}>
                         {s.last_seen_at ? `${whenLabel(s.last_seen_at, t)} · ${waited(s.last_seen_at, t)}` : t('clients.never')}
                       </td>

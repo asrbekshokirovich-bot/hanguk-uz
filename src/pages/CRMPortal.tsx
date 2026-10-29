@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useCanReviewUniDb } from '@/hooks/useCanReviewUniDb';
-import { useCRMData } from '@/hooks/useCRMData';
+import { useCRMData, type CRMStudent } from '@/hooks/useCRMData';
 import { usePayments } from '@/hooks/usePayments';
 import { CRMSidebar, useSidebarGroups } from '@/components/crm/CRMSidebar';
 import { CRMCommandMenu } from '@/components/crm/CRMCommandMenu';
@@ -23,6 +22,7 @@ import { IntercomProvider } from '@/components/intercom/IntercomProvider';
 import { LeadsProvider } from '@/contexts/LeadsContext';
 import { CallsProvider } from '@/contexts/CallsContext';
 import { MessagesProvider } from '@/contexts/MessagesContext';
+import { InboxAlerts } from '@/components/crm/messages/InboxAlerts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import {
@@ -69,12 +69,10 @@ const LeadProfileContent = lazy(() => import('@/components/crm/pages/LeadProfile
 const CalendarContent = lazy(() => import('@/components/crm/pages/CalendarContent'));
 const SettingsContent = lazy(() => import('@/components/crm/pages/SettingsContent'));
 const KakaoMapContent = lazy(() => import('@/components/crm/pages/KakaoMapContent'));
-const UniDbReviewContent = lazy(() => import('@/components/crm/pages/UniDbReviewContent'));
 const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageIntakesContent'));
 const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
 const InvestorDeskContent = lazy(() => import('@/components/crm/pages/InvestorDeskContent'));
 const LearningCentersContent = lazy(() => import('@/components/crm/pages/LearningCentersContent'));
-const ApplicationFeeContent = lazy(() => import('@/components/crm/pages/ApplicationFeeContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -87,12 +85,27 @@ const AccessDenied = () => (
   </Card>
 );
 
-type StudentProfile = Tables<'profiles'> & {
-  applications?: (Tables<'applications'> & {
-    university?: Tables<'universities'>;
-  })[];
-  documents?: Tables<'documents'>[];
-};
+const ContentLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
+
+// Defined here, not inside CRMPortal: a component declared in the render body
+// is a new type on every render, so React threw the whole page away and
+// mounted it again each time CRMPortal re-rendered — and it re-renders every
+// time the browser tab comes back into view (supabase-js reports SIGNED_IN
+// then and AuthContext sets a new user object). Pages lost what was typed,
+// filters reset, the scroll jumped to the top and everything loaded again.
+const SafeSuspense = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<ContentLoader />}>
+      {children}
+    </Suspense>
+  </ErrorBoundary>
+);
+
+type StudentProfile = CRMStudent;
 
 export default function CRMPortal() {
   const { t, i18n } = useTranslation();
@@ -111,13 +124,10 @@ export default function CRMPortal() {
     canSeeApplicationFees,
     loading: roleLoading,
   } = useUserRole();
-  const { canReview: canReviewUniDb } = useCanReviewUniDb();
   const {
     students,
     universities,
     loading: studentsLoading,
-    updateApplicationStatus,
-    createApplication,
     updateDocumentStatus,
     setDocsReady,
     refetchStudents
@@ -149,8 +159,6 @@ export default function CRMPortal() {
     isDocumentHandler,
     t,
     currentLang,
-    canReviewUniDb,
-    canSeeApplicationFees,
   );
 
   // Determine current view from URL
@@ -177,12 +185,14 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
+    // "Application fee" is a block of the selected student on Universitet
+    // tanlash now (StudentFeePanel); old links land there (see the redirect below).
+    if (currentPath.startsWith('/crm/application-fees')) return 'university-selection';
     if (currentPath.startsWith('/crm/online-application')) return 'online-application';
     if (currentPath.startsWith('/crm/offline-application')) return 'offline-application';
     // "Ilova faolligi" became a tab of "Ilova analitikasi"; old links still open it.
     if (currentPath.startsWith('/crm/app-activity')) return 'app-analytics';
     if (currentPath.startsWith('/crm/app-analytics')) return 'app-analytics';
-    if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
@@ -200,7 +210,6 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/intakes')) return 'intakes';
     if (currentPath.startsWith('/crm/translation')) return 'translation';
     if (currentPath.startsWith('/crm/kakao-map')) return 'kakao-map';
-    if (currentPath.startsWith('/crm/admin/uni-db-review')) return 'uni-db-review';
     if (currentPath.startsWith('/crm/admin/institutions')) return 'institutions';
     if (currentPath.startsWith('/crm/surveys')) return 'surveys';
     if (currentPath.startsWith('/crm/investor-desk')) return 'investor-desk';
@@ -209,6 +218,13 @@ export default function CRMPortal() {
   };
 
   const activeView = getActiveView();
+
+  // Old bookmarks of the removed "Application fee" page open Universitet tanlash.
+  useEffect(() => {
+    if (currentPath.startsWith('/crm/application-fees')) {
+      navigate('/crm/university-selection', { replace: true });
+    }
+  }, [currentPath, navigate]);
 
   // Top-bar title: the most specific nav item matching the current route,
   // reusing the existing i18n labels so the header stays in sync with the nav.
@@ -253,45 +269,6 @@ export default function CRMPortal() {
     }
   }, [user, isStaff, authLoading, roleLoading, navigate]);
 
-  const ContentLoader = () => (
-    <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-    </div>
-  );
-
-  const SafeSuspense = ({ children }: { children: React.ReactNode }) => (
-    <ErrorBoundary>
-      <Suspense fallback={<ContentLoader />}>
-        {children}
-      </Suspense>
-    </ErrorBoundary>
-  );
-
-  // Wrapper components for finance pages that need data from hooks
-  const FinanceStudentsWrapper = React.memo(function FinanceStudentsWrapper() {
-    return (
-      <Suspense fallback={<ContentLoader />}>
-        <FinanceStudentsContent students={students} payments={payments} onRefresh={fetchPayments} />
-      </Suspense>
-    );
-  });
-
-  const TransactionsWrapper = React.memo(function TransactionsWrapper() {
-    return (
-      <Suspense fallback={<ContentLoader />}>
-        <TransactionsContent payments={payments} loading={loading} />
-      </Suspense>
-    );
-  });
-
-  const FinanceReportsWrapper = React.memo(function FinanceReportsWrapper() {
-    return (
-      <Suspense fallback={<ContentLoader />}>
-        <FinanceReportsContent students={students} payments={payments} />
-      </Suspense>
-    );
-  });
-
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -316,7 +293,6 @@ export default function CRMPortal() {
     <StudentDetail
       student={selectedStudent}
       onBack={() => setSelectedStudent(null)}
-      onUpdateApplicationStatus={updateApplicationStatus}
       onUpdateDocumentStatus={updateDocumentStatus}
       currentLang={currentLang}
       isDocumentHandler={isDocumentHandler}
@@ -385,7 +361,6 @@ export default function CRMPortal() {
               loading={loading}
               currentLang={currentLang}
               onUpdateDocumentStatus={updateDocumentStatus}
-              onUpdateApplicationStatus={updateApplicationStatus}
               onSetDocsReady={setDocsReady}
               canApproveDocuments={canApproveDocuments}
               onDocumentsChanged={refetchStudents}
@@ -401,7 +376,11 @@ export default function CRMPortal() {
         );
       case 'finance-students':
         if (!canSeeFinance) return <AccessDenied />;
-        return <FinanceStudentsWrapper />;
+        return (
+          <Suspense fallback={<ContentLoader />}>
+            <FinanceStudentsContent students={students} payments={payments} onRefresh={fetchPayments} />
+          </Suspense>
+        );
       case 'finance-budgets':
         if (!canSeeFinance) return <AccessDenied />;
         return (
@@ -425,7 +404,11 @@ export default function CRMPortal() {
         );
       case 'finance-transactions':
         if (!canSeeFinance) return <AccessDenied />;
-        return <TransactionsWrapper />;
+        return (
+          <Suspense fallback={<ContentLoader />}>
+            <TransactionsContent payments={payments} loading={loading} />
+          </Suspense>
+        );
       case 'finance-distribution':
         if (!canSeeFinance) return <AccessDenied />;
         return (
@@ -442,7 +425,11 @@ export default function CRMPortal() {
         );
       case 'finance-reports':
         if (!canSeeFinance) return <AccessDenied />;
-        return <FinanceReportsWrapper />;
+        return (
+          <Suspense fallback={<ContentLoader />}>
+            <FinanceReportsContent students={students} payments={payments} />
+          </Suspense>
+        );
       case 'universities':
         return <SafeSuspense><UniversityCatalogContent /></SafeSuspense>;
       case 'university-selection':
@@ -452,7 +439,7 @@ export default function CRMPortal() {
             <UniversitySelectionContent
               students={students}
               loading={loading}
-              onCreateApplication={createApplication}
+              canSeeApplicationFees={canSeeApplicationFees}
             />
           </SafeSuspense>
         );
@@ -474,9 +461,6 @@ export default function CRMPortal() {
             <OfflineApplicationContent students={students} loading={loading} />
           </SafeSuspense>
         );
-      case 'application-fees':
-        if (!canSeeApplicationFees) return <AccessDenied />;
-        return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;
       case 'institutions':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':
@@ -515,8 +499,6 @@ export default function CRMPortal() {
         return <SafeSuspense><ManageIntakesContent /></SafeSuspense>;
       case 'kakao-map':
         return <SafeSuspense><KakaoMapContent /></SafeSuspense>;
-      case 'uni-db-review':
-        return <SafeSuspense><UniDbReviewContent /></SafeSuspense>;
       case 'surveys':
         return <SafeSuspense><SurveysContent /></SafeSuspense>;
       case 'investor-desk':
@@ -542,6 +524,8 @@ export default function CRMPortal() {
         defaultOpen={true}
         style={{ '--sidebar-width': '248px', '--sidebar-width-icon': '72px' } as React.CSSProperties}
       >
+        <MessagesProvider>
+        <InboxAlerts />
         <div className="flex min-h-screen w-full">
           <CRMSidebar
             isOwner={isOwner}
@@ -549,8 +533,6 @@ export default function CRMPortal() {
             isAdmin={isAdmin}
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
-            canReviewUniDb={canReviewUniDb}
-            canSeeApplicationFees={canSeeApplicationFees}
             user={user}
             onSignOut={handleSignOut}
           />
@@ -578,7 +560,6 @@ export default function CRMPortal() {
             {/* Main Content */}
             <LeadsProvider>
               <CallsProvider>
-                <MessagesProvider>
                   <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
                     {/* The lead lists are twelve-column tables; on a wide monitor
                         they get the room to show every column at once instead of
@@ -593,7 +574,6 @@ export default function CRMPortal() {
                       {renderContent()}
                     </div>
                   </main>
-                </MessagesProvider>
               </CallsProvider>
             </LeadsProvider>
           </div>
@@ -601,6 +581,7 @@ export default function CRMPortal() {
           {/* Hanguk AI Chat */}
           <HangukAIChat userType="staff" language={currentLang} />
         </div>
+        </MessagesProvider>
       </SidebarProvider>
     </IntercomProvider>
   );

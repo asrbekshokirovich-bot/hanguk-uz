@@ -450,6 +450,23 @@
       "errPeriod": "Davrni yozing (masalan, Q4 2026)",
       "errAmount": "Summa musbat son bo'lishi kerak",
       "errPaidAt": "To'langan sanani kiriting"
+    },
+    "staffDelete": {
+      "title": "Akkauntni o'chirish",
+      "hint": "Xodimni va uning tizimga kirish huquqini butunlay olib tashlash",
+      "button": "O'chirish",
+      "deleting": "O'chirilmoqda...",
+      "confirmTitle": "Xodim akkauntini o'chirish",
+      "confirmText": "«{{name}}» akkauntini butunlay o'chirmoqchimisiz?",
+      "itemRoles": "Barcha rollari va ruxsatlari olib tashlanadi",
+      "itemLogin": "Akkaunti o'chiriladi, tizimga kira olmaydi",
+      "itemHistory": "U kiritgan yozuvlar (to'lovlar, hujjatlar, vazifalar) o'chmaydi",
+      "irreversible": "Bu amalni qaytarib bo'lmaydi.",
+      "cancel": "Bekor qilish",
+      "confirm": "Ha, o'chirish",
+      "success": "Xodim akkaunti o'chirildi",
+      "failed": "Xodim akkauntini o'chirib bo'lmadi",
+      "fallbackName": "bu xodim"
     }
   },
   "leads": {
@@ -1231,7 +1248,8 @@
           "no": "yo'q",
           "unknown": "bilmaydi"
         }
-      }
+      },
+      "openChat": "Chatni ochish"
     }
   },
   "universities": {
@@ -1402,26 +1420,37 @@
     "audioUnavailable": "Ovozli xabar mavjud emas",
     "tabs": {
       "label": "Navbat filtri",
-      "unassigned": "Biriktirilmagan",
       "mine": "Meniki",
-      "all": "Barchasi",
-      "done": "Yakunlangan"
+      "all": "Hammasi",
+      "done": "Yopilgan",
+      "waiting": "Kutmoqda"
     },
     "channels": {
       "all": "Barcha kanallar",
       "telegram": "Telegram",
       "instagram": "Instagram",
-      "app": "Ilova"
+      "app": "Ilova",
+      "internal": "Ichki"
     },
     "queue": {
       "label": "Suhbatlar navbati",
-      "searchPlaceholder": "Talaba va xabarlarni qidirish",
+      "searchPlaceholder": "Ism, telefon yoki xabar",
       "shown": "{{count}} ta ko‘rsatilgan",
       "waiting": "{{time}} kutmoqda",
       "mine": "Meniki",
       "noPreview": "Hozircha xabar yo‘q",
       "emptyTitle": "Suhbatlar yo‘q",
-      "emptyBody": "Boshqa bo‘lim, kanal yoki qidiruv so‘zini sinab ko‘ring."
+      "emptyBody": "Boshqa bo‘lim, kanal yoki qidiruv so‘zini sinab ko‘ring.",
+      "unknownName": "Noma’lum",
+      "showStale": "30 kundan eski suhbatlar ({{count}}) — ko‘rsatish",
+      "searchAllTabs": "Qidiruv barcha bo‘limlarda",
+      "match": {
+        "phone": "Telefon:",
+        "lead": "Lid:",
+        "student": "Talaba:",
+        "message": "Xabarda:"
+      },
+      "showMore": "Yana {{count}} ta ko‘rsatish"
     },
     "thread": {
       "streamLabel": "Xabarlar tarixi",
@@ -1444,7 +1473,19 @@
       "deleted": "o‘chirilgan",
       "internalNoteLabel": "Ichki eslatma · talabaga yuborilmaydi",
       "linkContact": "Talaba yoki lidga biriktirish",
-      "relinkContact": "Biriktirishni o'zgartirish"
+      "relinkContact": "Biriktirishni o'zgartirish",
+      "reopen": "Qayta ochish",
+      "more": "Boshqa amallar",
+      "kindLabel": "Suhbat turi",
+      "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Ichki” filtrida turadi.",
+      "fromPhone": "telefondan",
+      "autoReply": "avto-javob",
+      "back": "Ro‘yxatga qaytish",
+      "retry": "Qayta yuborish",
+      "sendFailed": "Yuborilmadi",
+      "sent": "Yuborildi",
+      "loadEarlier": "Oldingi xabarlar",
+      "jumpToLatest": "Oxirgi xabarga"
     },
     "composer": {
       "label": "Javob yozing",
@@ -1467,7 +1508,8 @@
       "removeVoice": "Ovozli xabarni olib tashlash",
       "micDenied": "Mikrofonga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.",
       "voiceUnsupported": "Bu brauzer ovoz yozishni qo‘llab-quvvatlamaydi.",
-      "voiceFailed": "Ovoz yozib olinmadi. Qayta urinib ko‘ring."
+      "voiceFailed": "Ovoz yozib olinmadi. Qayta urinib ko‘ring.",
+      "noSavedReplies": "Tayyor javob yo‘q. Sozlamalar → Tayyor javoblar bo‘limida qo‘shing."
     },
     "savedReplies": {
       "docs": "Hujjatlar ro‘yxati",
@@ -1515,15 +1557,33 @@
         "received": "Qabul qilindi",
         "review": "Tekshiruvda",
         "missing": "Yo‘q"
-      }
+      },
+      "noLeadTitle": "Lid yo‘q",
+      "noLeadBody": "Bu suhbat hali hech qaysi lid yoki talabaga bog‘lanmagan.",
+      "createLead": "Lid yaratish",
+      "createLeadFailed": "Lid yaratishning iloji bo‘lmadi.",
+      "leadCreated": "Lid yaratildi va suhbatga bog‘landi",
+      "noPhone": "Telefon raqami yo‘q",
+      "leadLabel": "Lid",
+      "openLead": "Lid profili",
+      "call": "Qo‘ng‘iroq",
+      "leadSource": "Manba",
+      "leadCity": "Shahar",
+      "leadProgram": "Yo‘nalish",
+      "leadOwner": "Mas’ul",
+      "leadFollowUp": "Keyingi aloqa",
+      "leadCreatedAt": "Lid sanasi",
+      "leadNotes": "Izohlar"
     },
     "empty": {
       "title": "Navbat bo‘sh",
-      "body": "Bu filtrda kutayotgan suhbat yo‘q. Boshqa bo‘limni tanlang yoki Biriktirilmagan navbatdan keyingisini oling.",
-      "cta": "Biriktirilmaganga o‘tish"
+      "body": "Bu filtrda javob kutayotgan suhbat yo‘q. Boshqa bo‘limni tanlang.",
+      "cta": "“Kutmoqda” bo‘limiga o‘tish",
+      "pickTitle": "Suhbatni tanlang",
+      "pickBody": "Chap tomondagi ro‘yxatdan suhbatni bosing. Hech narsa o‘z-o‘zidan ochilmaydi va o‘qilgan deb belgilanmaydi."
     },
     "header": {
-      "summary": "Umumiy navbat · {{unassigned}} biriktirilmagan · {{mine}} sizda"
+      "summary": "Navbat · {{waiting}} javob kutmoqda · {{mine}} sizda"
     },
     "toast": {
       "claimFailed": "Suhbatni olishning iloji bo‘lmadi.",
@@ -1535,7 +1595,11 @@
       "translationUnavailableTitle": "Tarjima mavjud emas",
       "translationUnavailableBody": "Tarjima xizmati hali sozlanmagan. Saqlangan tarjimalar ko‘rinishda qoladi.",
       "translateFailed": "Tarjima qilinmadi",
-      "sentUntranslated": "Xabar asl tilida yuborildi."
+      "sentUntranslated": "Xabar asl tilida yuborildi.",
+      "reopenFailed": "Suhbatni qayta ochishning iloji bo‘lmadi.",
+      "reopened": "Suhbat qayta ochildi",
+      "kindFailed": "Suhbat turini o‘zgartirishning iloji bo‘lmadi.",
+      "kindChanged": "Suhbat turi: {{kind}}"
     },
     "media": {
       "voice": "Ovozli xabar",
@@ -1547,6 +1611,50 @@
     "day": {
       "today": "Bugun",
       "yesterday": "Kecha"
+    },
+    "kind": {
+      "lead": "Lid",
+      "staff": "Xodim",
+      "partner": "Hamkor",
+      "service": "Xizmat"
+    },
+    "deliveryErrors": {
+      "peerFlood": "Telegram akkaunti vaqtincha cheklangan (PEER_FLOOD) — telefondan yozing, @SpamBot’ni tekshiring.",
+      "windowExpired": "Mijoz 24 soatdan beri yozmagan — Instagram bu yerdan yuborishga ruxsat bermaydi. Instagram ilovasidan yozing.",
+      "userbotDown": "Telegram akkaunt ulanishi ishlamayapti — xabar yuborilmadi. Qayta urinib ko‘ring yoki administratorga ayting.",
+      "tooLong": "Xabar juda uzun (Instagram 1000 belgigacha) — qisqartiring yoki bo‘lib yuboring.",
+      "unsupportedMedia": "Instagram faqat rasm, video va audio qabul qiladi — hujjatni Telegram orqali yuboring.",
+      "blocked": "Bu foydalanuvchi bizni bloklagan yoki akkaunti o‘chirilgan.",
+      "unknown": "Yuborilmadi — sabab ustiga kursorni olib boring."
+    },
+    "alerts": {
+      "newMessage": "Yangi xabar",
+      "badge": "{{count}} ta suhbat javob kutmoqda",
+      "soundOn": "Ovoz yoqilgan",
+      "soundOff": "Ovoz o‘chirilgan",
+      "desktopEnable": "Bildirishnomalarni yoqish",
+      "desktopOn": "Bildirishnoma yoqilgan",
+      "desktopOff": "Bildirishnoma o‘chirilgan",
+      "desktopDenied": "Brauzer bildirishnomani bloklagan",
+      "desktopUnsupported": "Brauzer bildirishnomani qo‘llamaydi"
+    },
+    "savedRepliesSettings": {
+      "hint": "Operatorlar xabar yozishda \"/\" yoki \"Tayyor javoblar\" tugmasi bilan shu matnlarni qo‘yadi.",
+      "add": "Yangi javob",
+      "edit": "Tahrirlash",
+      "delete": "O‘chirish",
+      "deleteTitle": "Tayyor javobni o‘chirasizmi?",
+      "key": "Kalit",
+      "title": "Nomi",
+      "body": "Matn",
+      "order": "Tartib",
+      "activeLabel": "Faol",
+      "inactive": "nofaol",
+      "saved": "Saqlandi",
+      "badKey": "Kalit \"/\" bilan boshlansin va faqat kichik lotin harf, raqam, \"-\" yoki \"_\" bo‘lsin (masalan /docs).",
+      "required": "Nomi va matni to‘ldirilishi shart.",
+      "duplicate": "Bu kalit allaqachon bor.",
+      "variables": "{{ism}} — mijozning ismi bilan almashtiriladi (ism bo‘lmasa olib tashlanadi)."
     }
   },
   "errors": {
@@ -1596,7 +1704,41 @@
     "noIssues": "Hozircha shoshilinch masalalar yoki tavsiyalar yo'q.",
     "askAI": "Hanguk AI dan yordam so'rang",
     "yourUpdates": "Sizning yangilanishlaringiz",
-    "askForHelp": "AI dan yordam so'rang"
+    "askForHelp": "AI dan yordam so'rang",
+    "history": "Tarix",
+    "historyTitle": "Suhbatlar tarixi",
+    "historyEmpty": "Hali suhbat yo'q.",
+    "greeting": "Salom, {{name}}. Nimadan boshlaymiz?",
+    "greetingNoName": "Salom! Nimadan boshlaymiz?",
+    "greetingHint": "Talaba, lead, hujjat yoki to'lov haqida so'rang.",
+    "recentTitle": "Oxirgi suhbatlar",
+    "seeAll": "Barchasi · {{count}}",
+    "continue": "Davom etish",
+    "messagesCount": "{{count}} xabar",
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "pin": "Qadash",
+    "unpin": "Qadashni olib tashlash",
+    "moreActions": "Boshqa amallar",
+    "send": "Yuborish",
+    "indexDocuments": "Barcha hujjatlarni o'qish (AI)",
+    "indexDocumentsHint": "AI har bir fayl ichidagi ma'lumot bo'yicha javob bera oladi. Fonda ishlaydi — sahifani yopmang.",
+    "enrichLeads": "Lidlarni boyitish (AI)",
+    "enrichLeadsHint": "Har bir lidning chat va qo'ng'iroqlarini o'qib, imtihon sanasi, mavsum, yo'nalish, ustuvorlik va qisqa xulosani to'ldiradi.",
+    "indexing": "Fayllar o'qilmoqda… {{count}} ta qoldi",
+    "enriching": "Lidlar boyitilmoqda… {{count}} ta qoldi",
+    "indexDoneTitle": "Hujjatlar o'qildi",
+    "indexDone": "{{count}} ta fayl o'qildi. Endi Hanguk AI ularning ichidagi ma'lumot bo'yicha javob beradi.",
+    "enrichDoneTitle": "Lidlar boyitildi",
+    "enrichDone": "{{count}} ta lid tahlil qilindi.",
+    "jobStopped": "Jarayon to'xtadi",
+    "deleteThread": "Suhbatni o'chirish",
+    "deleteConfirmTitle": "Rostdan ham o'chirasizmi?",
+    "deleteConfirmText": "Bu suhbat va undagi barcha xabarlar butunlay o'chadi. Qaytarib bo'lmaydi.",
+    "delete": "O'chirish",
+    "cancel": "Bekor qilish",
+    "threadDeleted": "Suhbat o'chirildi",
+    "deleteFailed": "O'chirib bo'lmadi"
   },
   "room": {
     "status": "Holat",
@@ -2039,322 +2181,6 @@
     "ctaSub": "Maslahatchidan kirish kodingizni oling va bugunoq boshlang.",
     "getApp": "Ilovani o'rnatish"
   },
-  "uniReview": {
-    "title": "Universitet bazasi — tekshiruv",
-    "subtitle": "Avto-yig'ilgan qabul yo'riqnomalari talabalarga chiqishidan oldin shu yerda tasdiqlanadi. Hech narsa sizning ruxsatingizsiz e'lon qilinmaydi.",
-    "refresh": "Yangilash",
-    "crawl": {
-      "label": "Avto-skaner mavsumi",
-      "helper": "Tungi skaner har bir universitetning shu mavsum uchun yo'riqnomasini qidiradi.",
-      "noDefault": "Asosiy mavsum tanlanmagan — skaner keyingi yilga mo'ljal oladi",
-      "updated": "Skaner maqsadi: {{label}}",
-      "adminsOnly": "Buni faqat egalar va adminlar o'zgartira oladi.",
-      "placeholder": "Mavsumni tanlang",
-      "planning": "rejalashtirilmoqda",
-      "spring": "Bahor",
-      "fall": "Kuz"
-    },
-    "tabs": {
-      "queue": "Tasdiqlash navbati",
-      "links": "Havolalar"
-    },
-    "rail": {
-      "header": "Navbat — {{n}} universitet",
-      "chipRed": "Tuzatish kerak",
-      "chipAmber": "Tekshiring",
-      "chipGreen": "Tayyor",
-      "done": "Yakunlandi",
-      "sub": "{{n}} bo'lim · min. ishonch {{p}}%",
-      "subNoConf": "{{n}} bo'lim",
-      "docs": "{{n}} ta hujjat"
-    },
-    "detail": {
-      "sourcePage": "Manba sahifa",
-      "openPdf": "PDF ochish",
-      "noPdf": "Bu yo'riqnoma uchun saqlangan PDF hali yo'q.",
-      "pdfError": "PDFni ochib bo'lmadi.",
-      "progress": "{{decided}}/{{total}} hal qilindi",
-      "allDone": "Bu universitet bo'yicha barcha bo'limlar hal qilindi.",
-      "next": "Keyingisi →",
-      "docUnclassified": "Mavsum aniqlanmagan",
-      "docSections": "{{n}} bo'lim"
-    },
-    "section": {
-      "calendar": "Muddatlar va ariza to'lovi",
-      "requirements": "Kirish talablari",
-      "tuition": "Fakultetlar va kontrakt",
-      "documents_required": "Kerakli hujjatlar",
-      "scholarships": "Stipendiyalar",
-      "unknown": "Boshqa bo'lim",
-      "documentFlag": "Hujjatni bo'lish kerak",
-      "documentCheck": "Hujjatni tekshirish kerak"
-    },
-    "rel": {
-      "red": "Tuzatish kerak",
-      "amber": "Diqqat bilan tekshiring",
-      "green": "Tekshiruvlar o'tdi"
-    },
-    "confidence": "ishonch {{p}}",
-    "laneFailed": "Ma'lumot olishda xatolik",
-    "laneFailedTitle": "Bu bo'lim uchun ma'lumot olish xatoga uchradi — tekshirish emas, qayta ishga tushirish kerak",
-    "minConfidence": "eng past ishonch {{p}}",
-    "cycle": {
-      "title": "Ushbu hujjat qaysi qabul mavsumiga tegishli",
-      "staleTitle": "Hujjat maqsadli mavsumdan eskiroq mavsumga tegishli — eskirgan ma'lumot",
-      "stale": "eskirgan"
-    },
-    "actions": {
-      "approve": "Tasdiqlash",
-      "approveTitle": "Tasdiqlash va talabalarga e'lon qilish",
-      "reject": "Rad etish",
-      "rejectReason": "Rad etish sababi:",
-      "confirmReject": "Rad etishni tasdiqlash",
-      "cancel": "Bekor qilish",
-      "flagSource": "Manba noto'g'ri — bu PDFdagi barcha bo'limlarni rad etish",
-      "edit": "Tahrirlash",
-      "editTitle": "Tasdiqlashdan oldin chiqarilgan ma'lumotni to'g'rilash",
-      "saveEdit": "Saqlash",
-      "editInvalidJson": "JSON noto'g'ri — saqlashdan oldin sintaksisni tuzating",
-      "editPayloadEmpty": "To'g'irlangan ma'lumot bo'sh bo'lishi mumkin emas",
-      "editSchemaInvalid": "{{section}} formatiga mos kelmaydi: {{detail}}",
-      "savedNotApproved": "Tuzatish saqlandi — tasdiqlash kutilmoqda"
-    },
-    "decided": {
-      "approved": "Tasdiqlandi — talabalarga e'lon qilindi",
-      "rejected": "Rad etildi — {{reason}}",
-      "sourceWrong": "Manba noto'g'ri (PDF xato)"
-    },
-    "toast": {
-      "approved": "Tasdiqlandi — {{uni}}: {{section}}",
-      "rejected": "Rad etildi — {{uni}}: {{section}}",
-      "flagged": "{{n}} ta bo'lim rad etildi — manba xato deb belgilandi",
-      "saved": "Saqlandi"
-    },
-    "reasons": {
-      "wrong_year": "Noto'g'ri yil / mavsum",
-      "wrong_archetype": "Noto'g'ri hujjat turi",
-      "hallucinated_field": "Xato / to'qilgan ma'lumot",
-      "ocr_garbled": "OCR matni buzilgan",
-      "source_404": "Manba ochilmadi",
-      "other": "Boshqa",
-      "wrong_source": "Manba PDF noto'g'ri",
-      "auto_no_data": "Avtomatik: ma'lumot topilmadi",
-      "empty_extraction": "AI hech narsa chiqarmadi (manba joyida)"
-    },
-    "ns": "Ko'rsatilmagan",
-    "cal": {
-      "fee": "Ariza to'lovi (전형료)",
-      "tentative": "(taxminiy)",
-      "applyOpen": "Ariza ochilishi",
-      "applyClose": "Ariza yopilishi",
-      "docsDeadline": "Hujjat topshirish muddati",
-      "firstStage": "Birinchi bosqich natijalari",
-      "interview": "Suhbat",
-      "results": "Yakuniy natijalar",
-      "regOpen": "Ro'yxatdan o'tish boshlanishi",
-      "regClose": "Ro'yxatdan o'tish tugashi",
-      "orientation": "Tanishtiruv kuni",
-      "offline": "Oflayn ariza",
-      "supplementary": "Qo'shimcha qabul (추가합격)",
-      "supplementaryWaves": "{{count}} to'lqin"
-    },
-    "req": {
-      "foreignTrack": "Xorijiy fuqarolar ({{cat}})",
-      "defaultCat": "외국인전형",
-      "topik": "TOPIK",
-      "english": "IELTS / ingliz",
-      "gpa": "GPA",
-      "interview": "Suhbat",
-      "practical": "Amaliy imtihon",
-      "yes": "Ha",
-      "no": "Yo'q",
-      "notRequired": "Talab qilinmaydi",
-      "deferred": "Keyin topshirish mumkin",
-      "topikLevel": "{{n}}-daraja+",
-      "gpaMin": "{{p}}% dan yuqori",
-      "majors": "Yo'nalishlar:",
-      "heritageShow": "Ko'rsatish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)",
-      "heritageHide": "Yashirish: {{n}} ta koreys-diaspora yo'nalishi (xorijliklarga tegishli emas)",
-      "otherTest": "Boshqa imtihon",
-      "noThreshold": "hujjatda aniq ball ko'rsatilmagan"
-    },
-    "tui": {
-      "faculty": "Fakultet",
-      "perSemester": "Kontrakt / semestr",
-      "admissionFee": "Kirish to'lovi",
-      "fac": {
-        "social": "Ijtimoiy fanlar",
-        "arts_pe": "San'at va jismoniy tarbiya",
-        "humanities": "Gumanitar fanlar",
-        "engineering": "Muhandislik",
-        "natural_science": "Tabiiy fanlar",
-        "medicine": "Tibbiyot",
-        "dentistry": "Stomatologiya",
-        "veterinary": "Veterinariya",
-        "pharmacy": "Farmatsevtika",
-        "theology": "Ilohiyot",
-        "interdisciplinary": "Fanlararo"
-      }
-    },
-    "docs": {
-      "required": "Majburiy",
-      "optional": "Ixtiyoriy",
-      "apostille": "Apostil",
-      "noDeadline": "muddat: ko'rsatilmagan"
-    },
-    "sch": {
-      "waiverPct": "{{pct}}% chegirma",
-      "waiver": "Kontrakt chegirmasi",
-      "stipendMonthly": "Oyiga {{amount}}",
-      "stipend": "Oylik stipendiya",
-      "airfare": "Aviachipta",
-      "awardType": {
-        "other": "Boshqa"
-      }
-    },
-    "states": {
-      "error": "Ma'lumotni yuklab bo'lmadi: {{message}}",
-      "retry": "Qayta urinish",
-      "emptyTitle": "Tasdiqlash uchun hech narsa yo'q",
-      "emptyBody": "Skaner yangi yo'riqnoma topmadi yoki hammasi ko'rib chiqilgan.",
-      "accessTitle": "Ruxsat yo'q",
-      "accessBody": "Universitet ma'lumotlarini ko'rish uchun sizda ruxsat yo'q."
-    },
-    "links": {
-      "banner": "Bu havolalarni tungi skaner ocholmadi (koreys saytlari bloklamoqda). Original havolani qo'lda oching va kerak bo'lsa PDF'ni yuklang.",
-      "search": "Havola, sarlavha yoki sabab…",
-      "untitled": "Sarlavhasiz havola",
-      "fromRoutine": "Routine topgan",
-      "fromSearch": "Qidiruv topgan",
-      "open": "Havolani ochish",
-      "dismiss": "Yopish",
-      "dismissed": "Havola ro'yxatdan olib tashlandi.",
-      "emptyTitle": "Ochilmagan havola yo'q",
-      "emptyBody": "Skaner hamma saytga kira oldi — kutayotgan havola yo'q.",
-      "emptyFiltered": "Qidiruvga mos havola topilmadi.",
-      "uploadPdf": "PDF yuklash",
-      "uploadFailed": "PDF yuklanmadi.",
-      "pickUni": "Universitetni tanlang",
-      "searchUni": "Universitet qidirish…",
-      "noUni": "Universitet topilmadi.",
-      "notPdf": "Faqat PDF fayl yuklang.",
-      "tooLarge": "Fayl juda katta: {{size}} MB. Chegara — {{max}} MB.",
-      "uploaded": "PDF yuklandi — {{uni}} uchun tahlilga navbatga qo'yildi.",
-      "closedByPerson": "Avval yopilgan",
-      "closedByCrawler": "Yuklab bo'lmagan",
-      "reopenedTitle": "Bu havola avval yopilgan edi — qayta ko'rib chiqish uchun chiqarildi",
-      "reasonLabel": "Yopish sababi:",
-      "confirmDismiss": "Yopish",
-      "detailPlaceholder": "Izoh (ixtiyoriy; \"Boshqa\" uchun majburiy)",
-      "dismissedWithReason": "Havola yopildi — {{reason}}",
-      "reasons": {
-        "not_2027": "2027 emas (boshqa yil)",
-        "already_have": "Bu hujjat bazada bor",
-        "uploaded": "PDF qo'lda yuklandi",
-        "no_guideline": "Sahifada qabul qo'llanmasi yo'q",
-        "site_dead": "Sayt/havola ishlamaydi",
-        "not_relevant": "Bizga tegishli emas",
-        "other": "Boshqa"
-      }
-    },
-    "docFlag": {
-      "splitTitle": "Bu PDF ichida bakalavr va magistratura qabuli aralash",
-      "splitWhat": "Bitta faylda ikki xil bosqichning shartlari va narxlari yonma-yon turibdi. Ulardan olingan raqamlar aralashib ketishi mumkin — masalan magistratura kontrakti bakalavrniki bo'lib chiqishi.",
-      "genericTitle": "Bu hujjat bo'yicha ogohlantirish",
-      "genericWhat": "Tizim bu PDFda muammo topdi. Tafsiloti quyida.",
-      "checkTitle": "Magistratura eslatilgan, lekin bo'lim sarlavhasi topilmadi",
-      "checkWhat": "Hujjatda magistratura dasturi nomi uchraydi, lekin uni bakalavrdan ajratadigan bo'lim sarlavhasi topilmadi. Ehtimol hujjat faqat bitta bosqichga tegishli, yoki sarlavha e'tibordan chetda qolgan.",
-      "checkAction": "Bo'linish nuqtasi topilmadi — bo'linadigan joy yo'q, hujjatni bo'lish shart emas. Raqamlarga ishonishdan oldin hujjatni ko'zdan kechiring: agar u bitta bosqichga tegishli bo'lsa, \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar ichida haqiqatan ikki bosqich aralash bo'lsa, \"Rad etish\" ni bosing.",
-      "levels": "Topilgan bosqichlar:",
-      "action": "Bu karta ma'lumot kartasi emas — tasdiqlaydigan raqam yo'q. Hujjatni ikkita alohida qabul mavsumiga bo'lgandan keyin \"Tasdiqlash\" bilan ro'yxatdan olib tashlang; agar bo'linish noto'g'ri aniqlangan bo'lsa, \"Rad etish\" ni bosing.",
-      "splitActionHint": "\"Bo'lish\" tugmasi bakalavr va magistratura uchun alohida qabul mavsumlarini yaratadi va bu kartani yopadi. Har bir bosqichning aniq ma'lumotlari keyingi tekshiruv bosqichida to'ldiriladi.",
-      "splitAction": "Bo'lish",
-      "splitActionTitle": "Hujjatni bakalavr va magistratura uchun alohida qabul mavsumlariga bo'lish",
-      "splitDone": "Hujjat bo'lindi — ikkita alohida qabul mavsumi yaratildi",
-      "rawToggle": "Texnik tafsilot",
-      "level": {
-        "associate": "Kollej (전문학사)",
-        "bachelor": "Bakalavr (학사)",
-        "master": "Magistratura (석사)",
-        "doctoral": "Doktorantura (박사)"
-      }
-    },
-    "rejected": {
-      "badge": "Rad etilgan",
-      "badgeTitle": "Bu bo'lim avval rad etilgan. Tasdiqlash bosilsa, qaror bekor qilinadi.",
-      "note": "Avval rad etilgan — {{reason}}"
-    },
-    "edit": {
-      "form": "Forma",
-      "rawJson": "JSON ko'rinishi",
-      "empty": "Hozircha yozuv yo'q.",
-      "event": "Hodisa",
-      "row": "Qator",
-      "remove": "O'chirish",
-      "addEvent": "Hodisa qo'shish",
-      "addRow": "Qator qo'shish",
-      "yes": "Ha",
-      "no": "Yo'q",
-      "invalid": "Xato — saqlashdan oldin tuzating:",
-      "f": {
-        "applicantCategory": "Nomzod toifasi (yo'nalish)",
-        "topikStatus": "TOPIK holati",
-        "topikMinLevel": "TOPIK minimal daraja",
-        "englishStatus": "Ingliz tili holati",
-        "gpaStatus": "GPA holati",
-        "gpaFloorPct": "GPA minimal (%)",
-        "interviewRequired": "Suhbat talab qilinadimi?",
-        "practicalExamRequired": "Amaliy imtihon bormi?",
-        "proseKo": "Talablar matni (koreyscha)",
-        "documentType": "Hujjat turi",
-        "isRequired": "Majburiymi?",
-        "apostilleRequired": "Apostil kerakmi?",
-        "appliesToRound": "Qaysi raundga tegishli",
-        "deadline": "Muddat",
-        "notesKo": "Izoh (koreyscha)",
-        "nameKo": "Nomi (koreyscha)",
-        "nameEn": "Nomi (inglizcha)",
-        "scope": "Qamrovi",
-        "awardType": "Mukofot turi",
-        "awardValue": "Mukofot miqdori",
-        "facultyGroup": "Fakultet guruhi",
-        "academicYear": "O'quv yili",
-        "semesterNumber": "Semestr",
-        "amountKrw": "Kontrakt (KRW)",
-        "admissionFeeKrw": "Qabul to'lovi (KRW)",
-        "isFirstSemester": "Birinchi semestrmi?",
-        "eventType": "Hodisa turi",
-        "startsAt": "Boshlanishi (Koreya vaqti)",
-        "endsAt": "Tugashi (Koreya vaqti)",
-        "isTentative": "Taxminiymi?",
-        "roundLabel": "Raund yorlig'i",
-        "roundKind": "Raund turi"
-      },
-      "o": {
-        "required": "Talab qilinadi",
-        "not_required": "Talab qilinmaydi",
-        "not_stated": "Ko'rsatilmagan",
-        "apply_open": "Ariza ochilishi",
-        "apply_close": "Ariza yopilishi",
-        "document_submission_deadline": "Hujjat topshirish muddati",
-        "first_stage_results": "Birinchi bosqich natijalari",
-        "interview": "Suhbat",
-        "practical_exam": "Amaliy imtihon",
-        "final_results": "Yakuniy natijalar",
-        "additional_admit": "Qo'shimcha qabul",
-        "registration_open": "Ro'yxatdan o'tish boshlanishi",
-        "registration_close": "Ro'yxatdan o'tish tugashi",
-        "orientation": "Tanishtiruv kuni",
-        "semester_start": "Semestr boshlanishi",
-        "other": "Boshqa",
-        "application": "Qabul raundi",
-        "supplementary": "Qo'shimcha qabul to'lqini",
-        "season": "Qabul mavsumi (수시/정시)",
-        "term": "Semestr (전기/후기)"
-      },
-      "emptyHint": "Bu bo'limdan hech narsa chiqarilmagan. PDF ni ochib qo'lda kiritishingiz yoki kartochkani rad etishingiz mumkin."
-    }
-  },
   "linkContact": {
     "title": "{{name}} — kimga biriktiramiz?",
     "hintPhone": "Bu raqam qaysi talaba yoki lidga tegishli ekanini tanlang. Keyingi qo'ng'iroqlar avtomatik bog'lanadi.",
@@ -2413,7 +2239,12 @@
       "interviewTest": "Suhbat testi",
       "studyPlanTest": "Study Plan testi",
       "walkaround": "360° kampus",
-      "visa": "Vizam chiqadimi?"
+      "visa": "Vizam chiqadimi?",
+      "surveyDetail": "So'rovnoma",
+      "guestPush": "Bildirishnomaga ruxsat so'rovi",
+      "guestShell": "Mehmon · pastki menyu",
+      "clientShell": "Mijoz · pastki menyu",
+      "shellTab": "{{shell}} · {{tab}}"
     },
     "tabs": {
       "universities": "Universitetlar",
@@ -2541,12 +2372,24 @@
     "emptyLead": "Bu lidga hali hech qaysi qurilma bog'lanmagan. Qurilma lid ilovadagi «Konsultant bog'lansin» formasini yuborganda bog'lanadi.",
     "emptyStudent": "Talaba ilovaga hali mijoz kodi bilan kirmagan.",
     "picked_one": "{{count}} ta universitet tanlangan (♥)",
-    "picked_other": "{{count}} ta universitet tanlangan (♥)"
+    "picked_other": "{{count}} ta universitet tanlangan (♥)",
+    "shells": {
+      "guest": "Mehmon",
+      "client": "Mijoz"
+    },
+    "forms": {
+      "lead": "konsultant formasi",
+      "quiz_contact": "qo'ng'iroq formasi",
+      "client_code": "mijoz kodi",
+      "survey": "so'rovnoma",
+      "visa": "«Vizam chiqadimi?»",
+      "university": "universitet bo'yicha baholash"
+    }
   },
   "applicationFeeAccess": {
     "title": "Alohida ruxsatlar",
     "label": "Application fee bo'limi",
-    "hint": "Rol bermasdan faqat Application fee bo'limini ochadi: ko'rish va to'lov qo'shish.",
+    "hint": "Rol bermasdan faqat Universitet tanlash sahifasidagi Application fee blokini ochadi: ko'rish va to'lov qo'shish.",
     "viaRole": "Roli orqali allaqachon bor (owner, admin yoki document handler).",
     "granted": "Application fee bo'limiga ruxsat berildi",
     "revoked": "Application fee bo'limiga ruxsat olib tashlandi",
@@ -2677,7 +2520,8 @@
       "report": "hisobot",
       "request": "so'rov yubordi",
       "test": "test",
-      "more": "{{total}} tadan {{shown}} tasi ko'rsatildi"
+      "more": "{{total}} tadan {{shown}} tasi ko'rsatildi",
+      "scoreHint": "0–100: ilovada qanchalik oldinga borgani — universitet ochish 10, ♥ 15, baholash 15, hisobot 20, konsultant formasi 10, murojaat yoki bog'lanish 10, tayyorgarlik (Study Plan, suhbat, AI) 10, qaytib kelish 5 + 5. Oxirgi kirish 7 kundan eski bo'lsa ×0,7, 30 kundan eski bo'lsa ×0,4."
     }
   },
   "appLink": {
@@ -2873,7 +2717,7 @@
       "university": "Universitet",
       "devices": "Qurilma",
       "opens": "Ochildi",
-      "position": "Ro'yxatdagi o'rni",
+      "position": "O'rtacha o'rni (ro'yxatda)",
       "seen": "Kartasini ko'rgan"
     },
     "questions": {
@@ -2883,7 +2727,32 @@
       "bank": "Bankdagi pul",
       "income": "Ota-ona daromadi",
       "income_documented": "Rasmiy daromad",
-      "age": "Yosh"
+      "age": "Yosh",
+      "education": "Oxirgi ma'lumotingiz",
+      "gpa": "Attestat / diplom o'rtacha bali",
+      "gap_years": "Bitirgandan keyin o'tgan vaqt",
+      "topik_fresh": "TOPIK sertifikati",
+      "sponsor": "Sponsor kim",
+      "relation_doc": "Qarindoshlik hujjati (apostil bilan)",
+      "income_stability": "Daromad necha vaqtdan beri barqaror",
+      "property": "Ota-onangiz nomida ko'chmas mulk bormi (uy, kvartira, yer)",
+      "car": "Ota-onangiz nomida avtomobil bormi",
+      "business": "Ota-onangizning biznesi / ro'yxatdan o'tgan kompaniyasi bormi",
+      "visa_refused": "Oldin viza rad etilganmi",
+      "korea_before": "Koreyada oldin bo'lganmisiz",
+      "illegal_relatives": "Yaqin qarindoshlaringizdan Janubiy Koreyada noqonuniy (nelegal) bo'lganlar bormi",
+      "legal_relatives": "Koreyada qonuniy yashovchi qarindoshlaringiz bormi",
+      "experience": "Tanlagan yo'nalish bo'yicha tajriba",
+      "olympiad": "Olimpiada / musobaqa yutuqlari",
+      "motivation": "Motivatsiya xati",
+      "recommendation": "Tavsiyanoma (o'qituvchidan)",
+      "portfolio": "Portfolio (dizayn, san'at, loyiha)",
+      "activity": "Qo'shimcha faoliyat",
+      "study_plan": "Study Plan (o'qish rejasi)",
+      "interview_prep": "Suhbatga tayyorgarlik",
+      "degree": "Qaysi darajaga topshirasiz",
+      "for_whom": "Kim uchun",
+      "how_heard": "Qayerdan topdingiz"
     },
     "bands": {
       "none": "yo'q",
@@ -2935,7 +2804,9 @@
       "save": "Saqlash",
       "saved": "Saqlandi",
       "removed": "O'chirildi",
-      "failed": "Saqlab bo'lmadi"
+      "failed": "Saqlab bo'lmadi",
+      "add": "+ Xarajat kiritish",
+      "cancel": "Bekor qilish"
     },
     "test": {
       "show": "Test qurilmalarni ham ko'rsatish",
@@ -2986,6 +2857,25 @@
       "age": {
         "new": "Yangi",
         "returning": "Qaytgan"
+      }
+    },
+    "filterValues": {
+      "field": {
+        "it": "IT",
+        "business": "Biznes",
+        "engineering": "Muhandislik",
+        "medicine": "Tibbiyot",
+        "design": "Dizayn",
+        "tourism": "Turizm",
+        "education": "Pedagogika"
+      },
+      "degree": {
+        "bakalavr": "Bakalavr",
+        "magistratura": "Magistr"
+      },
+      "type": {
+        "state": "Davlat",
+        "private": "Xususiy"
       }
     }
   },
@@ -3039,7 +2929,8 @@
     "offersNote": "48 soatdan oshgani qizil: hujjatlar xodimiga vazifa tushadi, talabaga eslatma push o'zi ketadi (har taklifga bir marta).",
     "noOffers": "Javob kutayotgan taklif yo'q",
     "noDocuments": "Hammasining hujjatlari to'liq",
-    "noInactive": "Hamma 7 kun ichida ilovaga kirgan"
+    "noInactive": "Hamma 7 kun ichida ilovaga kirgan",
+    "seasonNote": "Faqat {{season}} mavsumi talabalari — shartnomasi bekor qilinganlar va Koreyaga ketganlarsiz. Mavsumni tepadagi tanlovdan almashtiring."
   },
   "guestPush": {
     "title": "Mehmonlarga push",
@@ -3271,14 +3162,14 @@
       "noAppsYet": "Hali arizalar yo'q.",
       "otherUnis_one": "yana {{n}} ta universitet",
       "otherUnis_other": "yana {{n}} ta universitet",
-      "acceptanceNote": "Qabul ko'rsatkichi uchun har bir ariza bo'yicha universitet qarori kerak, CRM esa buni hali qayd etmaydi.",
+      "acceptanceNote": "Qabul ko'rsatkichi universitet natijasi kiritilgan arizalar bo'yicha hisoblanadi (CRM → Onlayn ariza → Natijalar).",
       "seasonHealth": "Mavsum holati",
       "submitted": "Topshirilgan",
       "ofAllOpened": "ochilgan barcha arizalardan",
       "acceptanceRate": "Qabul ko'rsatkichi",
-      "needsOffer": "har bir ariza bo'yicha universitet qarori kerak",
+      "needsOffer": "natija kiritilgan arizalardan qabul qilinganlar ulushi",
       "visaRate": "Viza tasdiqlanish ko'rsatkichi",
-      "needsVisa": "har bir ariza bo'yicha viza bosqichi kerak",
+      "needsVisa": "yakuniy universitetlardan viza olganlar ulushi",
       "noMovement": "Harakatsiz arizalar",
       "nothingTouched": "{{days}} kun davomida o'zgarish yo'q",
       "nameNotSet": "Ism kiritilmagan",
@@ -3294,7 +3185,16 @@
       "university_response": "Universitet javobi",
       "visa_documents": "Viza hujjatlari",
       "completed": "Yakunlangan",
-      "rejected": "Rad etilgan"
+      "rejected": "Rad etildi",
+      "chosen": "Tanlangan",
+      "online": "Onlayn topshirildi",
+      "offline": "Oflayn yuborildi",
+      "interview": "Suhbat",
+      "accepted": "Qabul qilindi",
+      "final": "Yakuniy universitet",
+      "visa_process": "Viza jarayonlari",
+      "visa_waiting": "Viza natijasini kutyapti",
+      "visa_received": "Viza oldi"
     },
     "degree": {
       "bachelor": "Bakalavr",
@@ -3365,5 +3265,40 @@
       "today": "Bugun",
       "yesterday": "Kecha"
     }
+  },
+  "pipeline": {
+    "stage": {
+      "new": "Yangi",
+      "docs_ready": "Hujjat tayyor",
+      "online": "Onlayn ariza",
+      "offline": "Oflayn ariza",
+      "interview": "Suhbat",
+      "result": "Natija",
+      "visa_process": "Viza jarayonlari",
+      "visa_waiting": "Viza natijasini kutyapti",
+      "visa_received": "Viza oldi"
+    },
+    "step": {
+      "chosen": "Tanlangan",
+      "online": "Onlayn topshirildi",
+      "offline": "Oflayn yuborildi",
+      "interview": "Suhbat belgilangan",
+      "accepted": "Qabul qilindi",
+      "rejected": "Rad etildi",
+      "final": "Yakuniy universitet",
+      "visa_process": "Viza jarayonlari",
+      "visa_waiting": "Viza natijasini kutyapti",
+      "visa_received": "Viza oldi"
+    },
+    "stageTitle": "Jarayon",
+    "docsPack": "Hujjat paketi",
+    "universities": "Universitetlar va topshiruvlar",
+    "contractDate": "Shartnoma sanasi",
+    "online": "Onlayn",
+    "offline": "Oflayn",
+    "interview": "Suhbat",
+    "result": "Natija",
+    "noUniversities": "Hali universitet tanlanmagan yoki topshirilmagan.",
+    "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil."
   }
 }
