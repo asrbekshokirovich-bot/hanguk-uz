@@ -23,12 +23,14 @@ export function sanitizeQuery(message: string): string {
 
 // Hybrid (semantic + lexical) search over chats / calls / documents. Falls back
 // to the lexical search while content_embeddings is empty (it is, 2026-10-29).
-async function searchCommunicationsHybrid(service: any, query: string, limit: number, studentId?: string | null) {
+// hybrid_search_content checks ai_is_staff(auth.uid()), so it runs as the
+// staff member (it used to go through the service client and always failed).
+async function searchCommunicationsHybrid(user: any, service: any, query: string, limit: number, studentId?: string | null) {
   const q = sanitizeQuery(query);
   if (q.length < 3) return [];
   try {
     const embedding = await embedContent001(q, "RETRIEVAL_QUERY", 1536);
-    const { data, error } = await service.rpc("hybrid_search_content", {
+    const { data, error } = await user.rpc("hybrid_search_content", {
       query_text: q,
       query_embedding: embedding,
       match_count: limit,
@@ -142,5 +144,5 @@ export const CRM_TOOLS: AgentTool[] = [
     (c) => rpc(c.user, "ai_finance_summary", { p_intake_id: null })),
   t("search_communications", "Hybrid (semantic + keyword) search across Telegram chats, call summaries/transcripts and documents. Use for 'what did we discuss about X' / 'who asked about X' / topical questions. Returns the most relevant snippets with the student they belong to.",
     obj({ query: str(), limit: int(), student_id: str("optional: restrict to one student's user_id") }, ["query"]),
-    (c, a) => searchCommunicationsHybrid(c.service, a.query ?? "", a.limit ?? 12, a.student_id ?? null)),
+    (c, a) => searchCommunicationsHybrid(c.user, c.service, a.query ?? "", a.limit ?? 12, a.student_id ?? null)),
 ];

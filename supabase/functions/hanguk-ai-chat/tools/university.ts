@@ -163,4 +163,5 @@ export const UNIVERSITY_RULES = `## UNIVERSITY QUESTIONS
 - "Can I / can he get in with TOPIK N?" → uni_eligibility or uni_faculties(max_topik). Say it checks only the language minimum.
 - Deadlines across universities → uni_deadlines. Comparisons → uni_compare.
 - Quote the guideline's page (sahifa) when the row has one. Amounts in the guideline's currency.
+- Questions the tables do not answer (interview format, dormitory, evaluation, exceptions) → guideline_text_search with Korean keywords; quote the page.
 - A university without a guideline in the database: say "bazada yo'riqnomasi yo'q" and give its admissions_url if the tool returned one.`;

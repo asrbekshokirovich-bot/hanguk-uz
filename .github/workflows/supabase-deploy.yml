@@ -136,6 +136,7 @@ jobs:
           # production — identical to this repo's copy before the staff-delete fix
           # (cleanup via prepare_staff_deletion RPC, auth user deleted first).
           # verify_jwt stays true (default; live is true).
+          # guideline-index is new (Hanguk AI 2.0, 2026-10-31): no live copy existed.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -167,6 +168,7 @@ jobs:
             interview-ai
             study-plan-trainer
             delete-staff
+            guideline-index
           "
 
           for fn in $FUNCTIONS; do
