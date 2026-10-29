@@ -30,6 +30,7 @@ import {
   matchesSearch,
   operatorCities,
 } from '@/components/crm/pages/university-catalog/format';
+import { StudentFeePanel } from '@/components/crm/pages/application-fees/StudentFeePanel';
 
 type StudentProfile = Tables<'profiles'> & {
   /** From useCRMData (src/lib/studentPipeline.ts). */
@@ -40,7 +41,12 @@ type StudentProfile = Tables<'profiles'> & {
 interface UniversitySelectionContentProps {
   students: StudentProfile[];
   loading: boolean;
-  /** Turns a choice into a real application row (status 'pending'). */
+  /**
+   * Shows the "Application fee" block of the selected student (payments per
+   * university). useUserRole().canSeeApplicationFees: owner, admin, document
+   * handler, plus whoever application_fee_access names.
+   */
+  canSeeApplicationFees?: boolean;
 }
 
 const PAGE = 40;
@@ -50,7 +56,11 @@ function getInitials(name: string | null) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function UniversitySelectionContent({ students, loading }: UniversitySelectionContentProps) {
+export default function UniversitySelectionContent({
+  students,
+  loading,
+  canSeeApplicationFees = false,
+}: UniversitySelectionContentProps) {
   const catalog = useUniversityCatalog();
   const choices = useUniversityChoices();
 
@@ -303,6 +313,9 @@ export default function UniversitySelectionContent({ students, loading }: Univer
                 </div>
               )}
             </div>
+
+            {/* ---- application fee (was its own sidebar page) ---- */}
+            {canSeeApplicationFees && <StudentFeePanel key={student.user_id} studentId={student.user_id} />}
           </Card>
 
           {/* ---- catalog ---- */}

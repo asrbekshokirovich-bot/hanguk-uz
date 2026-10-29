@@ -74,7 +74,6 @@ const ManageIntakesContent = lazy(() => import('@/components/crm/pages/ManageInt
 const SurveysContent = lazy(() => import('@/components/crm/pages/SurveysContent'));
 const InvestorDeskContent = lazy(() => import('@/components/crm/pages/InvestorDeskContent'));
 const LearningCentersContent = lazy(() => import('@/components/crm/pages/LearningCentersContent'));
-const ApplicationFeeContent = lazy(() => import('@/components/crm/pages/ApplicationFeeContent'));
 
 // Access denied component
 const AccessDenied = () => (
@@ -143,7 +142,6 @@ export default function CRMPortal() {
     t,
     currentLang,
     canReviewUniDb,
-    canSeeApplicationFees,
   );
 
   // Determine current view from URL
@@ -170,12 +168,14 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/payments')) return 'finance'; // Legacy redirect
     if (currentPath.startsWith('/crm/universities')) return 'universities';
     if (currentPath.startsWith('/crm/university-selection')) return 'university-selection';
+    // "Application fee" is a block of the selected student on Universitet
+    // tanlash now (StudentFeePanel); old links land there (see the redirect below).
+    if (currentPath.startsWith('/crm/application-fees')) return 'university-selection';
     if (currentPath.startsWith('/crm/online-application')) return 'online-application';
     if (currentPath.startsWith('/crm/offline-application')) return 'offline-application';
     // "Ilova faolligi" became a tab of "Ilova analitikasi"; old links still open it.
     if (currentPath.startsWith('/crm/app-activity')) return 'app-analytics';
     if (currentPath.startsWith('/crm/app-analytics')) return 'app-analytics';
-    if (currentPath.startsWith('/crm/application-fees')) return 'application-fees';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
@@ -202,6 +202,13 @@ export default function CRMPortal() {
   };
 
   const activeView = getActiveView();
+
+  // Old bookmarks of the removed "Application fee" page open Universitet tanlash.
+  useEffect(() => {
+    if (currentPath.startsWith('/crm/application-fees')) {
+      navigate('/crm/university-selection', { replace: true });
+    }
+  }, [currentPath, navigate]);
 
   // Top-bar title: the most specific nav item matching the current route,
   // reusing the existing i18n labels so the header stays in sync with the nav.
@@ -443,6 +450,7 @@ export default function CRMPortal() {
             <UniversitySelectionContent
               students={students}
               loading={loading}
+              canSeeApplicationFees={canSeeApplicationFees}
             />
           </SafeSuspense>
         );
@@ -464,9 +472,6 @@ export default function CRMPortal() {
             <OfflineApplicationContent students={students} loading={loading} />
           </SafeSuspense>
         );
-      case 'application-fees':
-        if (!canSeeApplicationFees) return <AccessDenied />;
-        return <SafeSuspense><ApplicationFeeContent /></SafeSuspense>;
       case 'institutions':
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':
@@ -540,7 +545,6 @@ export default function CRMPortal() {
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
             canReviewUniDb={canReviewUniDb}
-            canSeeApplicationFees={canSeeApplicationFees}
             user={user}
             onSignOut={handleSignOut}
           />
