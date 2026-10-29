@@ -1096,11 +1096,11 @@
       "telegram": "텔레그램",
       "instagram": "인스타그램",
       "app": "앱",
-      "internal": "직원"
+      "internal": "내부"
     },
     "queue": {
       "label": "대화 대기열",
-      "searchPlaceholder": "이름, 전화번호, @username 또는 메시지",
+      "searchPlaceholder": "이름, 전화 또는 메시지",
       "shown": "{{count}}건 표시",
       "waiting": "{{time}} 대기",
       "mine": "내 담당",
@@ -1115,7 +1115,8 @@
         "lead": "리드:",
         "student": "학생:",
         "message": "메시지:"
-      }
+      },
+      "showMore": "{{count}}개 더 보기"
     },
     "thread": {
       "streamLabel": "메시지 기록",
@@ -1142,9 +1143,15 @@
       "reopen": "다시 열기",
       "more": "기타 작업",
       "kindLabel": "대화 유형",
-      "kindHint": "대기열에는 “리드” 대화만 표시됩니다. 직원·파트너·서비스 채팅은 “직원” 필터에 있습니다.",
+      "kindHint": "대기열에는 “리드” 대화만 표시됩니다. 직원·파트너·서비스 채팅은 “내부” 필터에 있습니다.",
       "fromPhone": "휴대폰에서",
-      "autoReply": "자동 응답"
+      "autoReply": "자동 응답",
+      "back": "목록으로",
+      "retry": "다시 보내기",
+      "sendFailed": "전송 안 됨",
+      "sent": "전송됨",
+      "loadEarlier": "이전 메시지",
+      "jumpToLatest": "최신 메시지로"
     },
     "composer": {
       "label": "답장 작성",

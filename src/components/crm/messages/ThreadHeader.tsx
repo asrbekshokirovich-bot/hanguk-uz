@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Check, CheckCheck, Languages, MoreHorizontal, PanelRight, RotateCcw, UserPlus } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, Languages, MoreHorizontal, PanelRight, RotateCcw, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -28,6 +28,8 @@ interface ThreadHeaderProps {
   onToggleContext: () => void;
   /** Opens the attach-to-person dialog. Absent for channels we cannot key on. */
   onLinkContact?: () => void;
+  /** Single-pane layout: back to the list. */
+  onBack?: () => void;
 }
 
 /**
@@ -55,6 +57,7 @@ export function ThreadHeader({
   onKindChange,
   onToggleContext,
   onLinkContact,
+  onBack,
 }: ThreadHeaderProps) {
   const { t } = useTranslation();
   // The handle is shown only when the person has one; a numeric chat id is
@@ -75,7 +78,18 @@ export function ThreadHeader({
       : t('messages.thread.unassigned');
 
   return (
-    <header className="flex h-[68px] shrink-0 items-center gap-3 overflow-hidden border-b border-border bg-card px-4">
+    <header className="flex h-[68px] shrink-0 items-center gap-2 overflow-hidden border-b border-border bg-card px-2 sm:gap-3 sm:px-4">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          title={t('messages.thread.back')}
+          className="flex h-9 w-9 min-h-0 min-w-0 shrink-0 items-center justify-center rounded-md text-foreground/75 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">{t('messages.thread.back')}</span>
+        </button>
+      )}
       <ChannelAvatar channel={c.channel} initials={c.initials} avatarUrl={c.avatarUrl} size={40} />
 
       <div className="min-w-0 flex-1">
@@ -102,7 +116,7 @@ export function ThreadHeader({
             className="flex items-center gap-1.5 rounded-pill bg-warning/10 py-1 pl-2.5 pr-1"
             title={unassignedLabel}
           >
-            <span className="whitespace-nowrap text-xs font-semibold text-warning">
+            <span className="hidden whitespace-nowrap text-xs font-semibold text-warning sm:inline">
               {c.isWaiting && c.waitingMinutes > 0 ? formatWait(c.waitingMinutes) : t('messages.thread.unassigned')}
             </span>
             <button
@@ -132,6 +146,7 @@ export function ThreadHeader({
         )}
 
         {onLinkContact && (
+          <span className="hidden sm:inline-flex">
           <IconAction
             label={
               c.studentId
@@ -142,8 +157,10 @@ export function ThreadHeader({
             onClick={onLinkContact}
             icon={<UserPlus className="h-4 w-4" aria-hidden="true" />}
           />
+          </span>
         )}
 
+        <span className="hidden sm:inline-flex">
         <IconAction
           label={autoTrLabel}
           active={autoTranslate}
@@ -151,13 +168,16 @@ export function ThreadHeader({
           onClick={onToggleAutoTranslate}
           icon={<Languages className="h-4 w-4" aria-hidden="true" />}
         />
+        </span>
 
         {!c.isDone && (
+          <span className="hidden sm:inline-flex">
           <IconAction
             label={t('messages.thread.markDone')}
             onClick={onMarkDone}
             icon={<CheckCheck className="h-4 w-4" aria-hidden="true" />}
           />
+          </span>
         )}
 
         <DropdownMenu>
@@ -175,6 +195,26 @@ export function ThreadHeader({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            {/* On a phone the icon row is hidden; its actions live here. */}
+            <div className="sm:hidden">
+              {!c.isDone && (
+                <DropdownMenuItem onSelect={onMarkDone} className="gap-2">
+                  <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t('messages.thread.markDone')}
+                </DropdownMenuItem>
+              )}
+              {onLinkContact && (
+                <DropdownMenuItem onSelect={onLinkContact} className="gap-2">
+                  <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
+                  {c.studentId ? t('messages.thread.relinkContact') : t('messages.thread.linkContact')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={onToggleAutoTranslate} className="gap-2">
+                <Languages className="h-3.5 w-3.5" aria-hidden="true" />
+                {autoTrLabel}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </div>
             <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
               {t('messages.thread.kindLabel')}
             </DropdownMenuLabel>

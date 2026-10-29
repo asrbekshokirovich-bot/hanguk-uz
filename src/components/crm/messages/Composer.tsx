@@ -210,11 +210,11 @@ export function Composer({ onSend, recipientName }: ComposerProps) {
   const languageName = t(SEND_LANGUAGES.find((l) => l.code === language)?.nameKey ?? 'messages.languages.uz');
 
   return (
-    <div className="relative shrink-0 border-t border-border bg-card px-6 pb-4 pt-3">
+    <div className="relative shrink-0 border-t border-border bg-card px-2 pb-2 pt-2 sm:px-6 sm:pb-4 sm:pt-3">
       {/* Floats ABOVE the composer instead of growing it: a panel inside the
           flow pushed the Send button below the fold (finding 17). */}
       {showSnippets && (
-        <div className="absolute bottom-full left-6 right-6 z-20 mb-1">
+        <div className="absolute bottom-full left-2 right-2 z-20 mb-1 sm:left-6 sm:right-6">
           <SavedRepliesPanel replies={shownReplies} onPick={pickReply} onClose={() => setShowSnippets(false)} />
         </div>
       )}
@@ -304,7 +304,7 @@ export function Composer({ onSend, recipientName }: ComposerProps) {
 
         <textarea
           ref={textareaRef}
-          rows={3}
+          rows={2}
           value={draft}
           onChange={(e) => {
             const value = e.target.value;
@@ -380,7 +380,7 @@ export function Composer({ onSend, recipientName }: ComposerProps) {
           {!noteMode && <SendLanguageChips value={language} onChange={setLanguage} />}
 
           <div className="ml-auto flex items-center gap-2.5">
-            <span className="text-[11.5px] text-muted-foreground">
+            <span className="hidden text-[11.5px] text-muted-foreground md:inline">
               {noteMode
                 ? t('messages.composer.hintNote')
                 : t('messages.composer.hintSend', { language: languageName })}

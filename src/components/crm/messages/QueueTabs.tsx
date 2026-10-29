@@ -43,14 +43,14 @@ export function QueueTabs({ value, onChange, conversations }: QueueTabsProps) {
             onClick={() => onChange(tab.id)}
             title={`${t(tab.labelKey)} · ${count}`}
             className={cn(
-              'flex h-9 min-h-0 min-w-0 flex-1 items-center justify-center gap-1 rounded-sm px-0.5 text-[11.5px] transition-colors',
+              'flex h-9 min-h-0 min-w-0 flex-auto items-center justify-center gap-1 rounded-sm px-1 text-[11.5px] transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card',
               active
                 ? 'bg-card font-semibold text-foreground shadow-card'
                 : 'font-medium text-muted-foreground hover:text-foreground/80',
             )}
           >
-            <span className="truncate">{t(tab.labelKey)}</span>
+            <span className="whitespace-nowrap">{t(tab.labelKey)}</span>
             <span className={cn('font-mono text-[10px] font-bold', active ? 'text-primary' : 'text-muted-foreground')}>
               {count}
             </span>

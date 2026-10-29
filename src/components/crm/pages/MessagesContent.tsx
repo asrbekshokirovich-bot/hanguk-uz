@@ -20,6 +20,7 @@ import { useMessagesQueue } from '@/components/crm/messages/useMessagesQueue';
 import { useStudentContext } from '@/components/crm/messages/useStudentContext';
 import { useLeadContext } from '@/components/crm/messages/useLeadContext';
 import { useThreadSearch } from '@/components/crm/messages/useThreadSearch';
+import { useSinglePane } from '@/components/crm/messages/useSinglePane';
 import { InboxAlertControls } from '@/components/crm/messages/InboxAlertControls';
 import { useThreadMessages } from '@/components/crm/messages/useThreadMessages';
 import { useThreadTranslation } from '@/components/crm/messages/useThreadTranslation';
@@ -91,10 +92,20 @@ export default function MessagesContent() {
   const [query, setQuery] = useState('');
   const [showStale, setShowStale] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [contextOpen, setContextOpen] = useState(true);
+  // The rail opens by itself only where it fits beside a readable thread
+  // (2xl); between xl and 2xl it is one click on the panel button away.
+  const [contextOpen, setContextOpen] = useState(() => {
+    try {
+      return window.matchMedia('(min-width: 1536px)').matches;
+    } catch {
+      return true;
+    }
+  });
   const [claiming, setClaiming] = useState(false);
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
+  // Phone / tablet: list OR conversation, never both squeezed side by side.
+  const singlePane = useSinglePane();
 
   const { hits: searchHits, searching } = useThreadSearch(query);
   const serverMatches = useMemo(() => new Set(searchHits.keys()), [searchHits]);
@@ -469,11 +480,12 @@ export default function MessagesContent() {
       ? (selectedThread.source as 'telegram' | 'instagram' | 'whatsapp')
       : null;
 
-  const waitingCount = conversations.filter((c) => c.kind === 'lead' && c.isWaiting && !c.isDone).length;
+  // Same rule as the tab and the sidebar badge: recent lead conversations only.
+  const waitingCount = conversations.filter((c) => c.kind === 'lead' && c.isWaiting && !c.isDone && !c.isStale).length;
   const mineCount = conversations.filter((c) => c.kind === 'lead' && c.isMine && !c.isDone).length;
 
   return (
-    <div className="flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col">
+    <div className="flex h-[calc(100dvh-8rem)] min-h-[420px] flex-col sm:h-[calc(100dvh-9rem)] sm:min-h-[520px]">
       <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2">
         <p className="mr-auto text-xs text-muted-foreground">
           {t('messages.header.summary', { waiting: waitingCount, mine: mineCount })}
@@ -481,7 +493,8 @@ export default function MessagesContent() {
         <InboxAlertControls />
       </div>
 
-      <div className="flex min-h-0 flex-1 overflow-x-auto rounded-lg border border-border">
+      <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-border">
+        {(!singlePane || !active) && (
         <MessagesQueue
           conversations={conversations}
           visible={visible}
@@ -498,7 +511,9 @@ export default function MessagesContent() {
           onChannelChange={changeChannel}
           onQueryChange={setQuery}
           onSelect={handleSelect}
+          fullWidth={singlePane}
         />
+        )}
 
         {active ? (
           <>
@@ -523,8 +538,9 @@ export default function MessagesContent() {
               onKindChange={handleKindChange}
               onSend={handleSend}
               onLinkContact={linkChannel ? () => setLinkOpen(true) : undefined}
+              onBack={singlePane ? () => setSelectedId(null) : undefined}
             />
-            {contextOpen && (
+            {contextOpen && !singlePane && (
               <StudentContextRail
                 conversation={active}
                 student={student}
@@ -545,8 +561,8 @@ export default function MessagesContent() {
               />
             )}
           </>
-        ) : (
-          <section className="flex min-w-[520px] flex-1 flex-col bg-background">
+        ) : singlePane ? null : (
+          <section className="flex min-w-0 flex-1 flex-col bg-background">
             <QueueClearState
               variant={visible.length === 0 ? 'empty' : 'pick'}
               onGoToWaiting={() => {

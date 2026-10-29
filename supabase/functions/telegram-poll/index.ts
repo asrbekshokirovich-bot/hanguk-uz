@@ -64,6 +64,16 @@ const OUTBOX_EVERY_MS = 3_000;
  *  ingestMessages), so a large one costs only its own file, never the message. */
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const MAX_OUTBOUND_BYTES = 50 * 1024 * 1024;
+/** Space between two replies sent as the account. Bursts are what Telegram's
+ *  anti-spam counts; a person typing never sends two messages a second. */
+const OUTBOX_SEND_GAP_MS = 1_500;
+/** Telegram's service account: login codes and security notices. */
+const TELEGRAM_SERVICE_ID = "777000";
+
+/** A refusal that a retry would only make worse. */
+function isFloodError(error: string): boolean {
+  return /PEER_FLOOD|FLOOD_WAIT|SLOWMODE_WAIT/i.test(error);
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -281,6 +291,8 @@ async function ingestMessages(
     if (m.peerId?.className !== "PeerUser") continue; // private chats only
     const peerId = String(m.peerId.userId);
     if (peerId === selfId) continue; // Saved Messages
+    // Login codes and security notices must not land in a shared CRM inbox.
+    if (peerId === TELEGRAM_SERVICE_ID) continue;
     const peer = byId.get(peerId);
     if (!peer || peer.className !== "User" || peer.bot) continue;
     if (!m.message && !mediaType(m)) continue;
@@ -311,6 +323,7 @@ async function recoverGap(client: TelegramClient, supabase: Supabase, selfId: st
     for (const d of dialogs as any[]) {
       const peer = d?.entity;
       if (!peer || peer.className !== "User" || peer.bot || String(peer.id) === selfId) continue;
+      if (String(peer.id) === TELEGRAM_SERVICE_ID) continue;
       if (Number(d?.message?.date ?? 0) < sinceUnix) continue;
       const history = await client.getMessages(peer, { limit: 100 });
       const missed = (history as any[]).filter((m) => Number(m?.date ?? 0) >= sinceUnix).reverse();
@@ -515,17 +528,37 @@ async function postOutbox(action: string, payload: Record<string, unknown>): Pro
  * Send what the CRM queued, reporting each row on its own so one bad reply
  * never stalls the ones behind it. Same contract as the userbot's drain.
  */
+/** Set when Telegram answered PEER_FLOOD / FLOOD_WAIT: no more sends this run. */
+let floodedUntil = 0;
+
 async function drainOutbox(client: TelegramClient, supabase: Supabase) {
-  const claimed = await postOutbox("claim", { account_label: LABEL, limit: 10 });
-  for (const row of claimed?.rows ?? []) {
+  // After a flood refusal every further send in the same minute is refused
+  // too and extends the restriction; wait for the next run instead.
+  if (Date.now() < floodedUntil) return;
+  const claimed = await postOutbox("claim", { account_label: LABEL, limit: 5 });
+  const rows = claimed?.rows ?? [];
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (Date.now() < floodedUntil) {
+      // Claimed but not attempted: hand it back for the next run.
+      await postOutbox("complete", { id: row.id, ok: false, error: "Paused after a Telegram flood limit" }).catch(() => {});
+      continue;
+    }
     try {
       const tgMessageId = await sendOutboxRow(client, supabase, row);
       await postOutbox("complete", { id: row.id, ok: true, tg_message_id: tgMessageId });
     } catch (e) {
       const error = (e as any)?.errorMessage || errText(e);
-      await postOutbox("complete", { id: row.id, ok: false, error }).catch(() => {});
+      const flood = isFloodError(String(error));
+      if (flood) {
+        const wait = Number((e as any)?.seconds ?? 0);
+        floodedUntil = Date.now() + Math.max(60, Number.isFinite(wait) ? wait : 0) * 1000;
+      }
+      // A flood refusal is final: the operator is told to reply from the phone.
+      await postOutbox("complete", { id: row.id, ok: false, error, final: flood }).catch(() => {});
       console.error(`telegram-poll: outbox ${row.id} failed:`, error);
     }
+    if (i < rows.length - 1) await new Promise((r) => setTimeout(r, OUTBOX_SEND_GAP_MS));
   }
 }
 

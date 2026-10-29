@@ -64,7 +64,7 @@ export function InboxAlertControls() {
         className={chip(prefs.sound)}
       >
         {prefs.sound ? <Volume2 className="h-3.5 w-3.5" aria-hidden /> : <VolumeX className="h-3.5 w-3.5" aria-hidden />}
-        <span>{prefs.sound ? t('messages.alerts.soundOn') : t('messages.alerts.soundOff')}</span>
+        <span className="hidden sm:inline">{prefs.sound ? t('messages.alerts.soundOn') : t('messages.alerts.soundOff')}</span>
       </button>
       <button
         type="button"
@@ -75,7 +75,7 @@ export function InboxAlertControls() {
         className={cn(chip(desktopOn), permission === 'default' && 'border-accent bg-accent/15 text-foreground')}
       >
         {desktopOn ? <Bell className="h-3.5 w-3.5" aria-hidden /> : <BellOff className="h-3.5 w-3.5" aria-hidden />}
-        <span>{desktopLabel}</span>
+        <span className="hidden sm:inline">{desktopLabel}</span>
       </button>
     </div>
   );

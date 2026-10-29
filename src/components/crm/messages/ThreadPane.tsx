@@ -24,6 +24,8 @@ interface ThreadPaneProps {
   onReopen: () => void;
   onKindChange: (kind: ThreadKind) => void;
   onLinkContact?: () => void;
+  /** Single-pane layout: back to the list. */
+  onBack?: () => void;
   onSend: (
     text: string,
     options: {
@@ -56,10 +58,11 @@ export function ThreadPane({
   onReopen,
   onKindChange,
   onLinkContact,
+  onBack,
   onSend,
 }: ThreadPaneProps) {
   return (
-    <section className="flex min-h-0 min-w-[520px] flex-1 flex-col bg-background">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background lg:min-w-[420px] 2xl:min-w-[520px]">
       <ThreadHeader
         conversation={conversation}
         autoTranslate={autoTranslate}
@@ -72,6 +75,7 @@ export function ThreadPane({
         onKindChange={onKindChange}
         onToggleContext={onToggleContext}
         onLinkContact={onLinkContact}
+        onBack={onBack}
       />
       <MessageStream
         messages={messages}

@@ -46,3 +46,10 @@ Ilgari kechasi ketgan avto-javob ertalabgacha badge'ni o'chirib qo'yardi.
 | Birinchi javob bergan **ma'lum** xodim suhbatga avtomatik biriktiriladi (`trg_assign_thread_on_reply`). Umumiy akkauntdan telefondan yozilgan javobda odam noma'lum — xabar ostida "telefondan" yoziladi. | migr., `useThreadMessages.ts` |
 | Tarjima: `translate-message` Cerebras → Groq (Hanguk AI kalitlari), Anthropic faqat zaxira. "Tarjima qilish" faqat xabar interfeys tilidan boshqa tilda bo'lsa chiqadi; natija interfeys tiliga. | `translate-message/index.ts`, `detectLanguage.ts` |
 | Suhbat almashganda yozilayotgan matn tozalanadi (avval boshqa odamga ketib qolishi mumkin edi). | `ThreadPane.tsx` (`key`) |
+
+## Kanal va mobil (migr. `20261031120000`)
+
+- Telegram: `PEER_FLOOD` / `FLOOD_WAIT` qayta urinilmaydi (`complete_telegram_outbox(p_final)`), shu aylanishda boshqa yuborishlar to'xtaydi; yuborishlar orasida 1,5 s. Operatorga "telefondan yozing, @SpamBot'ni tekshiring".
+- Telegram xizmat akkaunti (777000 — kirish kodlari) CRM'ga yozilmaydi.
+- Instagram 24 soat oynasi: CRM'dan yuborib bo'lmaydi (Meta qoidasi). `HUMAN_AGENT` tegi uchun Meta app review kerak — tekshirilmagan API'ga taxmin bilan kod yozilmadi.
+- Telefon/planshet (<1024 px): bitta panel — ro'yxat yoki suhbat (orqaga tugmasi bilan). Ro'yxat 120 tadan ko'rsatiladi ("Yana N ta").
