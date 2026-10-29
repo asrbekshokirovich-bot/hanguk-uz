@@ -8,26 +8,76 @@ import { columnIndex, readXlsx } from '../xlsxReader';
 import {
   contractFromNote,
   DARAJALAR,
+  GUIDELINE_SHEETS,
   parseGuidelineWorkbook,
   SEMESTRLAR,
   SUPPORTED_FORMAT_VERSION,
+  TEMPLATE_COLUMNS,
 } from '../universityGuidelineExcel';
 
 const fixtureDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 /**
- * Haqiqiy, xodim to'ldirgan guideline fayli (JBNU 2027 bahor, bakalavr).
+ * Haqiqiy, xodim to'ldirgan guideline fayli (JBNU 2027 bahor, bakalavr) —
+ * eski v2 formatda, grantlar varag'isiz.
  *
  * Baytlar jsdom realm'ida yangi ArrayBuffer'ga ko'chiriladi: Node'ning
  * Buffer'i ortidagi ArrayBuffer jszip'ning `instanceof ArrayBuffer`
  * tekshiruvidan o'tmaydi. Brauzerda File.arrayBuffer() shundoq ham
  * bir realm'da bo'ladi.
  */
-function jbnuWorkbook(): ArrayBuffer {
+function jbnuV2Workbook(): ArrayBuffer {
   const buf = readFileSync(join(fixtureDir, 'jbnu_2027_bahor_bakalavr.xlsx'));
   const out = new ArrayBuffer(buf.byteLength);
   new Uint8Array(out).set(buf);
   return out;
+}
+
+const REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+/** inlineStr kataklardan iborat varaq (A, B, C ... ustunlar). */
+function inlineSheetXml(rows: string[][]): string {
+  const cell = (value: string, col: number, row: number) =>
+    `<c r="${String.fromCharCode(65 + col)}${row}" t="inlineStr"><is><t>${value}</t></is></c>`;
+  const body = rows
+    .map((values, i) => `<row r="${i + 1}">${values.map((v, col) => cell(v, col, i + 1)).join('')}</row>`)
+    .join('');
+  return `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${body}</sheetData></worksheet>`;
+}
+
+/** Zip ichidagi XML'ni almashtiradi; almashtirish ishlamasa — test o'zi yiqiladi. */
+async function replaceIn(zip: JSZip, path: string, from: string | RegExp, to: string): Promise<void> {
+  const xml = await zip.file(path)!.async('string');
+  const next = xml.replace(from, to);
+  if (next === xml) throw new Error(`${path}: "${from}" topilmadi`);
+  zip.file(path, next);
+}
+
+/**
+ * JBNU fayli v4 shablonga o'tkazilgan — xodim qiladigandek: format_versiya = 4
+ * va grantlar varag'i ("Guideline'da yo'q." qatori bilan). Sayt faqat v4 ni
+ * qabul qiladi, shuning uchun to'g'ri fayl testlari shu nusxada.
+ */
+async function jbnuWorkbook(): Promise<ArrayBuffer> {
+  const zip = await JSZip.loadAsync(jbnuV2Workbook());
+  await replaceIn(zip, 'xl/worksheets/sheet1.xml', '<c r="AO2" s="6" t="n"><v>2</v></c>', '<c r="AO2" s="6" t="n"><v>4</v></c>');
+  zip.file(
+    'xl/worksheets/sheet6.xml',
+    inlineSheetXml([[...TEMPLATE_COLUMNS.grantlar], ['jbnu_2027_bahor_bakalavr', '1', "Guideline'da yo'q."]]),
+  );
+  await replaceIn(
+    zip,
+    'xl/workbook.xml',
+    /(<sheet [^>]*name="qollanma")/,
+    `<sheet xmlns:r="${REL_NS}" name="grantlar" sheetId="6" state="visible" r:id="rId8"/>$1`,
+  );
+  await replaceIn(
+    zip,
+    'xl/_rels/workbook.xml.rels',
+    '</Relationships>',
+    `<Relationship Type="${REL_NS}/worksheet" Target="/xl/worksheets/sheet6.xml" Id="rId8"/></Relationships>`,
+  );
+  return zip.generateAsync({ type: 'arraybuffer' });
 }
 
 /**
@@ -37,7 +87,7 @@ function jbnuWorkbook(): ArrayBuffer {
 async function patchedWorkbook(
   patch: (xml: string, path: string) => string,
 ): Promise<ArrayBuffer> {
-  const zip = await JSZip.loadAsync(jbnuWorkbook());
+  const zip = await JSZip.loadAsync(await jbnuWorkbook());
   for (const path of Object.keys(zip.files)) {
     if (!path.endsWith('.xml')) continue;
     const xml = await zip.file(path)!.async('string');
@@ -58,7 +108,7 @@ describe('columnIndex', () => {
 
 describe('readXlsx', () => {
   it('barcha 5 varaqni nomi bo‘yicha o‘qiydi', async () => {
-    const sheets = await readXlsx(jbnuWorkbook());
+    const sheets = await readXlsx(jbnuV2Workbook());
     expect([...sheets.keys()]).toEqual([
       'universitet',
       'muddatlar',
@@ -69,7 +119,7 @@ describe('readXlsx', () => {
   });
 
   it('inlineStr kataklarni va koreyscha matnni saqlaydi', async () => {
-    const sheets = await readXlsx(jbnuWorkbook());
+    const sheets = await readXlsx(jbnuV2Workbook());
     const universitet = sheets.get('universitet')!;
     expect(universitet[0][0]).toBe('guideline_id');
     expect(universitet[1][2]).toBe('Jeonbuk National University');
@@ -85,8 +135,8 @@ describe('readXlsx', () => {
 });
 
 describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
-  it('to‘rtala varaqni to‘liq o‘qiydi', async () => {
-    const result = await parseGuidelineWorkbook(jbnuWorkbook(), 'jbnu_2027_bahor_bakalavr.xlsx');
+  it('beshala varaqni to‘liq o‘qiydi', async () => {
+    const result = await parseGuidelineWorkbook(await jbnuWorkbook(), 'jbnu_2027_bahor_bakalavr.xlsx');
 
     expect(result.errors).toEqual([]);
     expect(result.ok).toBe(true);
@@ -96,10 +146,12 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
     expect(p.muddatlar).toHaveLength(22); // 2 bosqich x 11 etap
     expect(p.fakultetlar).toHaveLength(64);
     expect(p.hujjatlar).toHaveLength(16);
+    // "Guideline'da yo'q." — grant yo'q, qoidalar bo'sh
+    expect(p.grantlar?.qoidalar).toEqual([]);
   });
 
   it('universitet qatorini tiplari bilan o‘giradi', async () => {
-    const { payload } = await parseGuidelineWorkbook(jbnuWorkbook(), 'f.xlsx');
+    const { payload } = await parseGuidelineWorkbook(await jbnuWorkbook(), 'f.xlsx');
     const u = payload!.universitet;
 
     expect(u.guideline_id).toBe('jbnu_2027_bahor_bakalavr');
@@ -118,13 +170,12 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
     expect(u.ariza_tolovi).toBe(80000);
     expect(u.bank_summa).toBe(16000000);
     expect(u.tahlil_sanasi).toBe('2026-09-21');
-    // JBNU fayli v2 — eski formatlar ham o'qiladi.
-    expect(u.format_versiya).toBe(2);
+    expect(u.format_versiya).toBe(4);
     expect(SUPPORTED_FORMAT_VERSION).toBe(4);
   });
 
   it('bo‘sh kataklarni kalitsiz qoldiradi (NULL bo‘lib tushsin)', async () => {
-    const { payload } = await parseGuidelineWorkbook(jbnuWorkbook(), 'f.xlsx');
+    const { payload } = await parseGuidelineWorkbook(await jbnuWorkbook(), 'f.xlsx');
     // kampus va kirish_tolovi faylda bo'sh — bo'sh matn sifatida ketsa
     // ''::numeric import'ni yiqitardi.
     expect(payload!.universitet).not.toHaveProperty('kampus');
@@ -132,7 +183,7 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
   });
 
   it('fakultet nomlarini ikkala tilda va narxi bilan beradi', async () => {
-    const { payload } = await parseGuidelineWorkbook(jbnuWorkbook(), 'f.xlsx');
+    const { payload } = await parseGuidelineWorkbook(await jbnuWorkbook(), 'f.xlsx');
     const first = payload!.fakultetlar[0];
 
     expect(first.track).toBe('english');
@@ -144,7 +195,7 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
   });
 
   it('sana va vaqtlarni saqlaydi, bo‘shini tashlab ketadi', async () => {
-    const { payload } = await parseGuidelineWorkbook(jbnuWorkbook(), 'f.xlsx');
+    const { payload } = await parseGuidelineWorkbook(await jbnuWorkbook(), 'f.xlsx');
     const birinchi = payload!.muddatlar[0];
 
     expect(birinchi.bosqich).toBe(1);
@@ -159,7 +210,7 @@ describe('parseGuidelineWorkbook — haqiqiy fayl', () => {
   });
 
   it('to‘g‘ri faylda ogohlantirish chiqarmaydi', async () => {
-    const { warnings } = await parseGuidelineWorkbook(jbnuWorkbook(), 'f.xlsx');
+    const { warnings } = await parseGuidelineWorkbook(await jbnuWorkbook(), 'f.xlsx');
     expect(warnings).toEqual([]);
   });
 });
@@ -244,7 +295,7 @@ describe('parseGuidelineWorkbook — til kursi', () => {
 
 describe('parseGuidelineWorkbook — xatolar', () => {
   it('varaq yetishmasa aytadi', async () => {
-    const zip = await JSZip.loadAsync(jbnuWorkbook());
+    const zip = await JSZip.loadAsync(await jbnuWorkbook());
     const workbookXml = await zip.file('xl/workbook.xml')!.async('string');
     zip.file('xl/workbook.xml', workbookXml.replace('name="fakultetlar"', 'name="boshqa"'));
     const buf = await zip.generateAsync({ type: 'arraybuffer' });
@@ -303,6 +354,111 @@ describe('parseGuidelineWorkbook — xatolar', () => {
     const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
     expect(result.ok).toBe(false);
     expect(result.errors.join(' ')).toContain("universitet varag'i bo'sh");
+  });
+});
+
+describe('parseGuidelineWorkbook — faqat HANGUK shabloni (v4)', () => {
+  /** Zip ichida o'zgartirib, qayta yig'adi (v4 nusxa ustida). */
+  async function edited(edit: (zip: JSZip) => Promise<void>): Promise<ArrayBuffer> {
+    const zip = await JSZip.loadAsync(await jbnuWorkbook());
+    await edit(zip);
+    return zip.generateAsync({ type: 'arraybuffer' });
+  }
+
+  it('sayt beradigan shablon aynan shu format: 5 varaq + qollanma, ustunlari tartibi bilan', async () => {
+    const buf = readFileSync(join(fixtureDir, '../../../../public/templates/universitet-guideline-shablon.xlsx'));
+    const bytes = new ArrayBuffer(buf.byteLength);
+    new Uint8Array(bytes).set(buf);
+    const sheets = await readXlsx(bytes);
+    expect([...sheets.keys()]).toEqual([...GUIDELINE_SHEETS, 'qollanma']);
+    for (const sheet of GUIDELINE_SHEETS) {
+      expect(sheets.get(sheet)![0].filter((name) => name !== '')).toEqual([...TEMPLATE_COLUMNS[sheet]]);
+    }
+    // Bo'sh shablon — faqat "universitet bo'sh" xatosi, format xatosi emas
+    const result = await parseGuidelineWorkbook(bytes, 'shablon.xlsx');
+    expect(result.notTemplate).toBeFalsy();
+    expect(result.errors).toEqual([expect.stringContaining("universitet varag'i bo'sh")]);
+  });
+
+  it('eski (v2) fayl — grantlar varag‘isiz — qabul qilinmaydi', async () => {
+    const result = await parseGuidelineWorkbook(jbnuV2Workbook(), 'f.xlsx');
+    expect(result.ok).toBe(false);
+    expect(result.notTemplate).toBe(true);
+    expect(result.errors).toEqual(['Faylda varaq yetishmaydi: grantlar']);
+  });
+
+  it('format_versiya 4 bo‘lmasa yoki bo‘sh bo‘lsa — qabul qilinmaydi', async () => {
+    const v3 = await edited((zip) =>
+      replaceIn(zip, 'xl/worksheets/sheet1.xml', '<c r="AO2" s="6" t="n"><v>4</v></c>', '<c r="AO2" s="6" t="n"><v>3</v></c>'),
+    );
+    const r3 = await parseGuidelineWorkbook(v3, 'f.xlsx');
+    expect(r3.ok).toBe(false);
+    expect(r3.notTemplate).toBe(true);
+    expect(r3.errors).toEqual(['universitet 2-qator, format_versiya: 3 — sayt faqat 4-versiyani qabul qiladi']);
+
+    const empty = await edited((zip) =>
+      replaceIn(zip, 'xl/worksheets/sheet1.xml', '<c r="AO2" s="6" t="n"><v>4</v></c>', ''),
+    );
+    const r0 = await parseGuidelineWorkbook(empty, 'f.xlsx');
+    expect(r0.ok).toBe(false);
+    expect(r0.notTemplate).toBe(true);
+    expect(r0.errors).toEqual(['universitet 2-qator: "format_versiya" to\'ldirilmagan']);
+  });
+
+  it('shablonda yo‘q ustun qo‘shilsa — qabul qilinmaydi', async () => {
+    const buf = await edited((zip) =>
+      replaceIn(
+        zip,
+        'xl/worksheets/sheet3.xml',
+        /(<row r="1"[^>]*>.*?)(<\/row>)/s,
+        '$1<c r="P1" t="inlineStr"><is><t>reyting</t></is></c>$2',
+      ),
+    );
+    const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
+    expect(result.ok).toBe(false);
+    expect(result.notTemplate).toBe(true);
+    expect(result.errors).toEqual(['"fakultetlar" varag\'ida shablonda yo\'q ustun: reyting']);
+  });
+
+  it('ustun nomi o‘zgartirilsa — yetishmaydigan va ortiqcha ustun aytiladi', async () => {
+    const buf = await edited((zip) => replaceIn(zip, 'xl/worksheets/sheet1.xml', '<t>shahar</t>', '<t>city</t>'));
+    const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
+    expect(result.ok).toBe(false);
+    expect(result.errors).toEqual([
+      '"universitet" varag\'ida ustun yetishmaydi: shahar',
+      '"universitet" varag\'ida shablonda yo\'q ustun: city',
+    ]);
+  });
+
+  it('ustunlar tartibi o‘zgarsa — qabul qilinmaydi', async () => {
+    const buf = await edited((zip) =>
+      replaceIn(zip, 'xl/worksheets/sheet1.xml', /<t>univ_nomi_en<\/t>(.*?)<t>univ_nomi_kr<\/t>/s, '<t>univ_nomi_kr</t>$1<t>univ_nomi_en</t>'),
+    );
+    const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
+    expect(result.ok).toBe(false);
+    expect(result.notTemplate).toBe(true);
+    expect(result.errors).toEqual([
+      '"universitet" varag\'ida ustunlar tartibi shablondagidek emas: 3-ustun "univ_nomi_en" bo\'lishi kerak, faylda "univ_nomi_kr"',
+    ]);
+  });
+
+  it('shablonda yo‘q varaq bo‘lsa — qabul qilinmaydi; qollanma varag‘isiz esa bo‘ladi', async () => {
+    const extra = await edited((zip) => replaceIn(zip, 'xl/workbook.xml', 'name="qollanma"', 'name="Sheet1"'));
+    const r1 = await parseGuidelineWorkbook(extra, 'f.xlsx');
+    expect(r1.ok).toBe(false);
+    expect(r1.errors).toEqual(["Shablonda yo'q varaq: Sheet1 — o'chirib, qayta yuklang"]);
+
+    const noGuide = await edited((zip) => replaceIn(zip, 'xl/workbook.xml', /<sheet [^>]*name="qollanma"[^>]*\/>/, ''));
+    const r2 = await parseGuidelineWorkbook(noGuide, 'f.xlsx');
+    expect(r2.errors).toEqual([]);
+    expect(r2.ok).toBe(true);
+  });
+
+  it('muddatlarda etap nomi shablondagidek bo‘lmasa — xato', async () => {
+    const buf = await edited((zip) => replaceIn(zip, 'xl/worksheets/sheet2.xml', '<t>Intervyu</t>', '<t>Suhbat</t>'));
+    const result = await parseGuidelineWorkbook(buf, 'f.xlsx');
+    expect(result.ok).toBe(false);
+    expect(result.errors).toEqual(['muddatlar: 1-bosqich 5-etap nomi "Suhbat" — shablonda "Intervyu"']);
   });
 });
 

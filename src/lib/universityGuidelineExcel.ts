@@ -1,5 +1,9 @@
 /**
- * Universitet guideline Excel shabloni (format v2–v4) — o'qish va tekshirish.
+ * Universitet guideline Excel'i — o'qish va tekshirish.
+ *
+ * Sayt faqat HANGUK guideline shablonining 4-versiyasini qabul qiladi
+ * (egasi, 2026-10-29): boshqa jadval, o'zgartirilgan shablon yoki eski
+ * (v2/v3) fayl qatorlari o'qilmaydi — xodim shablonga ko'chirib qayta yuklaydi.
  *
  * Shablon xodimlar tomonidan qo'lda to'ldiriladi, shuning uchun bu yerdagi
  * asosiy ish — xatoni saytga emas, xodimga qaytarish: qaysi varaq, qaysi
@@ -7,9 +11,12 @@
  * import_university_guideline() RPC'siga yuboriladigan JSON bo'ladi.
  *
  * Qoidalar manbai — faylning "qollanma" varag'i:
- *   - 4 ta majburiy varaq: universitet, muddatlar, fakultetlar, hujjatlar;
- *     v4 fayllarda 5-varaq — grantlar (v3 va undan oldingilarida yo'q)
- *   - 1-qator sarlavha, ma'lumot 2-qatordan
+ *   - 5 ta majburiy varaq: universitet, muddatlar, fakultetlar, hujjatlar,
+ *     grantlar; "qollanma" — faqat odam uchun; boshqa varaq bo'lmaydi
+ *   - 1-qator sarlavha — shablondagi ustunlar, xuddi o'sha tartibda;
+ *     ma'lumot 2-qatordan
+ *   - universitet.format_versiya = 4
+ *   - muddatlar: har bir bosqichda 11 ta etap, nomlari qollanmadagidek
  *   - bo'sh katak = "guideline'da ko'rsatilmagan" (NULL), "yoq" = aniq yo'q
  *   - sanalar YYYY-MM-DD matn, vaqt HH:MM matn, pul va ballar — raqam
  *   - universitet varag'ida doim 1 qator; bitta fayl = bitta guideline_id
@@ -18,16 +25,17 @@
 import { readXlsx } from './xlsxReader';
 import { buildGrantImport, type GrantImport } from './universityGuidelineGrants';
 
-/** Sayt tushunadigan eng yangi format: v4 = grantlar varag'i bor. */
+/** Sayt qabul qiladigan yagona format: HANGUK shabloni v4 (grantlar varag'i bilan). */
 export const SUPPORTED_FORMAT_VERSION = 4;
-/** v2 va v3 fayllar ham to'liq o'qiladi — ular faqat grantlar varag'isiz. */
-const OLDEST_FORMAT_VERSION = 2;
 
-/** Har bir faylda bo'lishi shart bo'lgan varaqlar. */
-export const GUIDELINE_SHEETS = ['universitet', 'muddatlar', 'fakultetlar', 'hujjatlar'] as const;
-/** v4 dan boshlab — grantlar. Eski fayllarda yo'q, shuning uchun majburiy emas. */
-export const GRANTS_SHEET = 'grantlar' as const;
-export type GuidelineSheet = (typeof GUIDELINE_SHEETS)[number] | typeof GRANTS_SHEET;
+/** Shablondagi ma'lumot varaqlari — hammasi majburiy. */
+export const GUIDELINE_SHEETS = ['universitet', 'muddatlar', 'fakultetlar', 'hujjatlar', 'grantlar'] as const;
+export type GuidelineSheet = (typeof GUIDELINE_SHEETS)[number];
+/** Shablondagi yo'riqnoma — faqat odam uchun, sayt o'qimaydi. */
+const GUIDE_SHEET = 'qollanma';
+/** Xatoda ko'rsatiladigan shablon nomi va uni yuklab olish manzili (public/templates). */
+export const TEMPLATE_NAME = 'HANGUK guideline shabloni (v4)';
+export const TEMPLATE_URL = '/templates/universitet-guideline-shablon.xlsx';
 
 type ColType = 'matn' | 'raqam' | 'butun' | 'sana' | 'vaqt' | 'tanlov' | 'bool';
 
@@ -145,7 +153,7 @@ const SCHEMA: Record<GuidelineSheet, readonly ColSpec[]> = {
     c('sahifalar'),
     c('izoh'),
     c('tahlil_sanasi', 'sana'),
-    c('format_versiya', 'butun', { min: 1 }),
+    c('format_versiya', 'butun', { required: true, min: 1 }),
   ],
   muddatlar: [
     c('guideline_id', 'matn', { required: true }),
@@ -216,6 +224,16 @@ const SCHEMA: Record<GuidelineSheet, readonly ColSpec[]> = {
   ],
 };
 
+/** Har bir varaqning shablondagi ustunlari — xuddi shu tartibda bo'lishi shart. */
+const columnNames = (sheet: GuidelineSheet): readonly string[] => SCHEMA[sheet].map((spec) => spec.name);
+export const TEMPLATE_COLUMNS: Readonly<Record<GuidelineSheet, readonly string[]>> = {
+  universitet: columnNames('universitet'),
+  muddatlar: columnNames('muddatlar'),
+  fakultetlar: columnNames('fakultetlar'),
+  hujjatlar: columnNames('hujjatlar'),
+  grantlar: columnNames('grantlar'),
+};
+
 export type CellValue = string | number | boolean;
 export type GuidelineRow = Record<string, CellValue>;
 
@@ -226,8 +244,8 @@ export interface GuidelinePayload {
   fakultetlar: GuidelineRow[];
   hujjatlar: GuidelineRow[];
   /**
-   * Faqat grantlar varag'i bor (v4) faylda. Bo'lsa — guideline'ning grantlari
-   * shu bilan to'liq almashtiriladi; bo'lmasa — bazadagi grantlarga tegilmaydi.
+   * grantlar varag'ida qator bo'lsa — guideline'ning grantlari shu bilan to'liq
+   * almashtiriladi; varaq bo'sh bo'lsa — bazadagi grantlarga tegilmaydi.
    */
   grantlar?: GrantImport;
 }
@@ -240,6 +258,8 @@ export interface ParseResult {
   errors: string[];
   /** Import'ga xalaqit bermaydigan, lekin ko'rsatishga arziydigan holatlar. */
   warnings: string[];
+  /** Fayl shablon formatida emas (varaq, ustun yoki versiya) — xodimga shablonni berish kerak. */
+  notTemplate?: boolean;
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -351,26 +371,60 @@ function isBlankRow(row: string[] | undefined): boolean {
   return !row || row.every((cell) => (cell ?? '').trim() === '');
 }
 
-function readSheetRows(
-  sheet: GuidelineSheet,
-  rows: string[][],
-  errors: string[],
-  warnings: string[],
-): GuidelineRow[] {
+/** Sarlavha qatori oxiridagi bo'sh kataklarsiz (Excel ularni ham saqlab qo'yadi). */
+function headerNames(row: string[] | undefined): string[] {
+  const names = (row ?? []).map((cell) => (cell ?? '').trim());
+  while (names.length > 0 && names[names.length - 1] === '') names.pop();
+  return names;
+}
+
+/**
+ * Fayl shablon formatidami: varaqlar va har bir varaqning ustunlari
+ * shablondagidek — nomi ham, tartibi ham. Mos kelmasa — qatorlar o'qilmaydi:
+ * boshqa jadvaldan bir nechta ustun tasodifan mos kelib qolsa ham, ma'lumot
+ * aralashib ketmasin.
+ */
+function checkTemplate(sheets: Map<string, string[][]>): string[] {
+  const errors: string[] = [];
+
+  const missingSheets = GUIDELINE_SHEETS.filter((name) => !sheets.has(name));
+  if (missingSheets.length > 0) errors.push(`Faylda varaq yetishmaydi: ${missingSheets.join(', ')}`);
+  const known = new Set<string>([...GUIDELINE_SHEETS, GUIDE_SHEET]);
+  const unknownSheets = [...sheets.keys()].filter((name) => !known.has(name));
+  if (unknownSheets.length > 0) {
+    errors.push(`Shablonda yo'q varaq: ${unknownSheets.join(', ')} — o'chirib, qayta yuklang`);
+  }
+
+  for (const sheet of GUIDELINE_SHEETS) {
+    const rows = sheets.get(sheet);
+    if (!rows) continue;
+    const expected = TEMPLATE_COLUMNS[sheet];
+    const actual = headerNames(rows[0]);
+
+    const missing = expected.filter((name) => !actual.includes(name));
+    const extra = actual
+      .map((name, i) => (expected.includes(name) ? null : name || `${i + 1}-ustun (nomsiz)`))
+      .filter((name): name is string => name !== null);
+    if (missing.length > 0) errors.push(`"${sheet}" varag'ida ustun yetishmaydi: ${missing.join(', ')}`);
+    if (extra.length > 0) errors.push(`"${sheet}" varag'ida shablonda yo'q ustun: ${extra.join(', ')}`);
+    if (missing.length === 0 && extra.length === 0) {
+      const i = expected.findIndex((name, idx) => actual[idx] !== name);
+      if (i >= 0 || actual.length !== expected.length) {
+        const at = i >= 0 ? i : expected.length;
+        errors.push(
+          `"${sheet}" varag'ida ustunlar tartibi shablondagidek emas: ${at + 1}-ustun ` +
+            `"${expected[at] ?? '—'}" bo'lishi kerak, faylda "${actual[at] ?? '—'}"`,
+        );
+      }
+    }
+  }
+  return errors;
+}
+
+function readSheetRows(sheet: GuidelineSheet, rows: string[][], errors: string[]): GuidelineRow[] {
   const specs = SCHEMA[sheet];
+  // Ustunlar checkTemplate'da tekshirilgan — shablondagidek, shu tartibda.
   const header = headerMap(rows[0]);
-
-  const missing = specs.filter((s) => !header.has(s.name)).map((s) => s.name);
-  if (missing.length > 0) {
-    errors.push(`"${sheet}" varag'ida ustun yetishmaydi: ${missing.join(', ')}`);
-    return [];
-  }
-
-  const known = new Set(specs.map((s) => s.name));
-  const extra = [...header.keys()].filter((name) => !known.has(name));
-  if (extra.length > 0) {
-    warnings.push(`"${sheet}" varag'idagi notanish ustunlar e'tiborsiz qoldirildi: ${extra.join(', ')}`);
-  }
 
   const out: GuidelineRow[] = [];
   for (let r = 1; r < rows.length; r += 1) {
@@ -395,8 +449,8 @@ function readSheetRows(
   return out;
 }
 
-/** muddatlar varag'i qollanma talabiga mos kelishini yumshoq tekshirish. */
-function checkRounds(rounds: GuidelineRow[], warnings: string[]): void {
+/** muddatlar varag'i qollanmadagidek: har bir bosqichda 11 ta etap, nomlari ro'yxatdagidek. */
+function checkRounds(rounds: GuidelineRow[], errors: string[]): void {
   const byStage = new Map<number, Set<number>>();
   for (const row of rounds) {
     const stage = row.bosqich as number;
@@ -406,15 +460,15 @@ function checkRounds(rounds: GuidelineRow[], warnings: string[]): void {
 
     const expected = ETAPLAR[step - 1];
     if (expected && row.etap_nomi !== expected) {
-      warnings.push(
-        `muddatlar: ${stage}-bosqich ${step}-etap nomi "${row.etap_nomi}" — kutilgani "${expected}"`,
+      errors.push(
+        `muddatlar: ${stage}-bosqich ${step}-etap nomi "${row.etap_nomi}" — shablonda "${expected}"`,
       );
     }
   }
   for (const [stage, steps] of byStage) {
     if (steps.size !== ETAPLAR.length) {
-      warnings.push(
-        `muddatlar: ${stage}-bosqichda ${steps.size} ta etap bor, qollanma bo'yicha ${ETAPLAR.length} ta bo'lishi kerak`,
+      errors.push(
+        `muddatlar: ${stage}-bosqichda ${steps.size} ta etap bor, shablon bo'yicha ${ETAPLAR.length} ta bo'lishi kerak`,
       );
     }
   }
@@ -476,23 +530,16 @@ export async function parseGuidelineWorkbook(
     };
   }
 
-  const missingSheets = GUIDELINE_SHEETS.filter((name) => !sheets.has(name));
-  if (missingSheets.length > 0) {
-    return {
-      ok: false,
-      payload: null,
-      errors: [`Faylda varaq yetishmaydi: ${missingSheets.join(', ')}`],
-      warnings,
-    };
+  const templateErrors = checkTemplate(sheets);
+  if (templateErrors.length > 0) {
+    return { ok: false, payload: null, errors: templateErrors, warnings, notTemplate: true };
   }
 
-  const universitetRows = readSheetRows('universitet', sheets.get('universitet') ?? [], errors, warnings);
-  const muddatlar = readSheetRows('muddatlar', sheets.get('muddatlar') ?? [], errors, warnings);
-  const fakultetlar = readSheetRows('fakultetlar', sheets.get('fakultetlar') ?? [], errors, warnings);
-  const hujjatlar = readSheetRows('hujjatlar', sheets.get('hujjatlar') ?? [], errors, warnings);
-  const grantRows = sheets.has(GRANTS_SHEET)
-    ? readSheetRows(GRANTS_SHEET, sheets.get(GRANTS_SHEET) ?? [], errors, warnings)
-    : null;
+  const universitetRows = readSheetRows('universitet', sheets.get('universitet') ?? [], errors);
+  const muddatlar = readSheetRows('muddatlar', sheets.get('muddatlar') ?? [], errors);
+  const fakultetlar = readSheetRows('fakultetlar', sheets.get('fakultetlar') ?? [], errors);
+  const hujjatlar = readSheetRows('hujjatlar', sheets.get('hujjatlar') ?? [], errors);
+  const grantRows = readSheetRows('grantlar', sheets.get('grantlar') ?? [], errors);
 
   if (universitetRows.length === 0) {
     errors.push("universitet varag'i bo'sh — bitta ma'lumot qatori bo'lishi kerak");
@@ -503,17 +550,17 @@ export async function parseGuidelineWorkbook(
   }
 
   const universitet = universitetRows[0];
+  let wrongVersion = false;
   if (universitet) {
+    // Bo'sh bo'lsa "to'ldirilmagan" xatosi readSheetRows'da chiqqan.
     const version = universitet.format_versiya as number | undefined;
-    if (version !== undefined && (version < OLDEST_FORMAT_VERSION || version > SUPPORTED_FORMAT_VERSION)) {
-      warnings.push(
-        `Fayl formati v${version}, sayt v${OLDEST_FORMAT_VERSION}–v${SUPPORTED_FORMAT_VERSION} ni tushunadi — ustunlar mos kelmasligi mumkin`,
-      );
-    }
-    if (version !== undefined && version >= 4 && grantRows === null) {
-      warnings.push(
-        `Fayl formati v${version}, lekin "${GRANTS_SHEET}" varag'i yo'q — bazadagi grantlar o'zgarmadi`,
-      );
+    if (version !== SUPPORTED_FORMAT_VERSION) {
+      wrongVersion = true;
+      if (version !== undefined) {
+        errors.push(
+          `universitet 2-qator, format_versiya: ${version} — sayt faqat ${SUPPORTED_FORMAT_VERSION}-versiyani qabul qiladi`,
+        );
+      }
     }
 
     // Bolalar varaqlari boshqa guideline'dan ko'chirib qo'yilgan bo'lsa,
@@ -524,7 +571,7 @@ export async function parseGuidelineWorkbook(
         ['muddatlar', muddatlar],
         ['fakultetlar', fakultetlar],
         ['hujjatlar', hujjatlar],
-        [GRANTS_SHEET, grantRows ?? []],
+        ['grantlar', grantRows],
       ] as const
     ).filter(([, rows]) => rows.some((row) => row.guideline_id !== gid));
     for (const [sheet] of mismatched) {
@@ -541,12 +588,12 @@ export async function parseGuidelineWorkbook(
     }
   }
 
-  checkRounds(muddatlar, warnings);
+  checkRounds(muddatlar, errors);
   fillContractFromNotes(fakultetlar, warnings);
-  const grantlar = grantRows === null ? undefined : buildGrantImport(grantRows, faylNomi, errors, warnings);
+  const grantlar = buildGrantImport(grantRows, faylNomi, errors, warnings);
 
   if (errors.length > 0 || !universitet) {
-    return { ok: false, payload: null, errors, warnings };
+    return { ok: false, payload: null, errors, warnings, ...(wrongVersion ? { notTemplate: true } : {}) };
   }
 
   return {
