@@ -136,6 +136,8 @@ jobs:
           # production — identical to this repo's copy before the staff-delete fix
           # (cleanup via prepare_staff_deletion RPC, auth user deleted first).
           # verify_jwt stays true (default; live is true).
+          # staff-bot (added 2026-10-29) is new — no live version to compare;
+          # verify_jwt = false comes from config.toml (Telegram secret header).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -167,6 +169,7 @@ jobs:
             interview-ai
             study-plan-trainer
             delete-staff
+            staff-bot
           "
 
           for fn in $FUNCTIONS; do
