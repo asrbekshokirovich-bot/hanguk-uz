@@ -1179,7 +1179,8 @@
           "no": "no",
           "unknown": "not sure"
         }
-      }
+      },
+      "openChat": "Open chat"
     }
   },
   "universities": {
@@ -1364,7 +1365,7 @@
     },
     "queue": {
       "label": "Conversation queue",
-      "searchPlaceholder": "Search students & messages",
+      "searchPlaceholder": "Name, phone, @username or message text",
       "shown": "{{count}} shown",
       "waiting": "{{time}} waiting",
       "mine": "Mine",
@@ -1372,7 +1373,14 @@
       "emptyTitle": "No conversations",
       "emptyBody": "Try another tab, channel, or search term.",
       "unknownName": "Unknown",
-      "showStale": "Conversations older than 30 days ({{count}}) — show"
+      "showStale": "Conversations older than 30 days ({{count}}) — show",
+      "searchAllTabs": "Searching every tab",
+      "match": {
+        "phone": "Phone:",
+        "lead": "Lead:",
+        "student": "Student:",
+        "message": "In message:"
+      }
     },
     "thread": {
       "streamLabel": "Message history",
@@ -1399,7 +1407,9 @@
       "reopen": "Reopen",
       "more": "More actions",
       "kindLabel": "Conversation type",
-      "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Staff” filter."
+      "kindHint": "Only “Lead” conversations are in the queue. Staff, partner and service chats live under the “Staff” filter.",
+      "fromPhone": "from phone",
+      "autoReply": "auto-reply"
     },
     "composer": {
       "label": "Write a reply",
@@ -1422,7 +1432,8 @@
       "removeVoice": "Remove voice message",
       "micDenied": "Microphone access was denied. Allow it in your browser settings.",
       "voiceUnsupported": "This browser cannot record voice messages.",
-      "voiceFailed": "The recording failed. Try again."
+      "voiceFailed": "The recording failed. Try again.",
+      "noSavedReplies": "No saved replies. Add them in Settings → Saved replies."
     },
     "savedReplies": {
       "docs": "Document checklist",
@@ -1470,7 +1481,23 @@
         "received": "Received",
         "review": "In review",
         "missing": "Missing"
-      }
+      },
+      "noLeadTitle": "No lead",
+      "noLeadBody": "This conversation is not linked to a lead or a student yet.",
+      "createLead": "Create lead",
+      "createLeadFailed": "Could not create the lead.",
+      "leadCreated": "Lead created and linked to the conversation",
+      "noPhone": "No phone number",
+      "leadLabel": "Lead",
+      "openLead": "Lead profile",
+      "call": "Call",
+      "leadSource": "Source",
+      "leadCity": "City",
+      "leadProgram": "Program",
+      "leadOwner": "Owner",
+      "leadFollowUp": "Next contact",
+      "leadCreatedAt": "Lead since",
+      "leadNotes": "Notes"
     },
     "empty": {
       "title": "Queue is clear",
@@ -1523,6 +1550,35 @@
       "unsupportedMedia": "Instagram accepts only images, video and audio — send the document via Telegram.",
       "blocked": "This user has blocked us or their account is gone.",
       "unknown": "Not delivered — hover to see the reason."
+    },
+    "alerts": {
+      "newMessage": "New message",
+      "badge": "{{count}} conversations waiting for a reply",
+      "soundOn": "Sound on",
+      "soundOff": "Sound off",
+      "desktopEnable": "Enable notifications",
+      "desktopOn": "Notifications on",
+      "desktopOff": "Notifications off",
+      "desktopDenied": "Notifications blocked by the browser",
+      "desktopUnsupported": "Browser has no notifications"
+    },
+    "savedRepliesSettings": {
+      "hint": "Operators insert these texts with \"/\" or the \"Saved replies\" button.",
+      "add": "New reply",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteTitle": "Delete this saved reply?",
+      "key": "Key",
+      "title": "Title",
+      "body": "Text",
+      "order": "Order",
+      "activeLabel": "Active",
+      "inactive": "inactive",
+      "saved": "Saved",
+      "badKey": "The key starts with \"/\" and uses only lowercase latin letters, digits, \"-\" or \"_\" (e.g. /docs).",
+      "required": "Title and text are required.",
+      "duplicate": "This key already exists.",
+      "variables": "{{ism}} — replaced with the customer’s first name (removed when there is none)."
     }
   },
   "errors": {

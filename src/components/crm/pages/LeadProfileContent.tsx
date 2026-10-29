@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Phone } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Phone } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -68,6 +69,22 @@ function findEvidenceEntry(entries: TimelineEntry[], suggestion: Suggestion): st
 export default function LeadProfileContent({ leadId }: LeadProfileContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  // The newest conversation with this person, for "Chatni ochish". Answering
+  // from the lead's page used to mean finding them again in Xabarlar by hand.
+  const [chatThreadId, setChatThreadId] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setChatThreadId(null);
+    void (supabase.rpc as any)('lead_threads', { p_lead_id: leadId }).then(
+      ({ data }: { data: { thread_id: string }[] | null }) => {
+        if (!cancelled) setChatThreadId(data?.[0]?.thread_id ?? null);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [leadId]);
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const {
@@ -153,6 +170,19 @@ export default function LeadProfileContent({ leadId }: LeadProfileContentProps) 
             {[lead.phone, lead.city, lead.preferred_program].filter(Boolean).join(' · ') || '—'}
           </p>
         </div>
+        {chatThreadId && (
+          <button
+            type="button"
+            onClick={() => navigate(`/crm/messages?thread=${chatThreadId}`)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-md border border-border bg-card px-3.5 py-2',
+              'text-[12.5px] font-semibold text-foreground hover:bg-muted',
+            )}
+          >
+            <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+            {t('leads.profile.openChat')}
+          </button>
+        )}
         {lead.phone && (
           <a
             href={`tel:${lead.phone}`}

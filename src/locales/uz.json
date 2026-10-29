@@ -1248,7 +1248,8 @@
           "no": "yo'q",
           "unknown": "bilmaydi"
         }
-      }
+      },
+      "openChat": "Chatni ochish"
     }
   },
   "universities": {
@@ -1433,7 +1434,7 @@
     },
     "queue": {
       "label": "Suhbatlar navbati",
-      "searchPlaceholder": "Talaba va xabarlarni qidirish",
+      "searchPlaceholder": "Ism, telefon, @username yoki xabar matni",
       "shown": "{{count}} ta ko‘rsatilgan",
       "waiting": "{{time}} kutmoqda",
       "mine": "Meniki",
@@ -1441,7 +1442,14 @@
       "emptyTitle": "Suhbatlar yo‘q",
       "emptyBody": "Boshqa bo‘lim, kanal yoki qidiruv so‘zini sinab ko‘ring.",
       "unknownName": "Noma’lum",
-      "showStale": "30 kundan eski suhbatlar ({{count}}) — ko‘rsatish"
+      "showStale": "30 kundan eski suhbatlar ({{count}}) — ko‘rsatish",
+      "searchAllTabs": "Qidiruv barcha bo‘limlarda",
+      "match": {
+        "phone": "Telefon:",
+        "lead": "Lid:",
+        "student": "Talaba:",
+        "message": "Xabarda:"
+      }
     },
     "thread": {
       "streamLabel": "Xabarlar tarixi",
@@ -1468,7 +1476,9 @@
       "reopen": "Qayta ochish",
       "more": "Boshqa amallar",
       "kindLabel": "Suhbat turi",
-      "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Xodimlar” filtrida turadi."
+      "kindHint": "Faqat “Lid” suhbatlari navbatda ko‘rinadi. Xodim, hamkor va xizmat chatlari “Xodimlar” filtrida turadi.",
+      "fromPhone": "telefondan",
+      "autoReply": "avto-javob"
     },
     "composer": {
       "label": "Javob yozing",
@@ -1491,7 +1501,8 @@
       "removeVoice": "Ovozli xabarni olib tashlash",
       "micDenied": "Mikrofonga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.",
       "voiceUnsupported": "Bu brauzer ovoz yozishni qo‘llab-quvvatlamaydi.",
-      "voiceFailed": "Ovoz yozib olinmadi. Qayta urinib ko‘ring."
+      "voiceFailed": "Ovoz yozib olinmadi. Qayta urinib ko‘ring.",
+      "noSavedReplies": "Tayyor javob yo‘q. Sozlamalar → Tayyor javoblar bo‘limida qo‘shing."
     },
     "savedReplies": {
       "docs": "Hujjatlar ro‘yxati",
@@ -1539,7 +1550,23 @@
         "received": "Qabul qilindi",
         "review": "Tekshiruvda",
         "missing": "Yo‘q"
-      }
+      },
+      "noLeadTitle": "Lid yo‘q",
+      "noLeadBody": "Bu suhbat hali hech qaysi lid yoki talabaga bog‘lanmagan.",
+      "createLead": "Lid yaratish",
+      "createLeadFailed": "Lid yaratishning iloji bo‘lmadi.",
+      "leadCreated": "Lid yaratildi va suhbatga bog‘landi",
+      "noPhone": "Telefon raqami yo‘q",
+      "leadLabel": "Lid",
+      "openLead": "Lid profili",
+      "call": "Qo‘ng‘iroq",
+      "leadSource": "Manba",
+      "leadCity": "Shahar",
+      "leadProgram": "Yo‘nalish",
+      "leadOwner": "Mas’ul",
+      "leadFollowUp": "Keyingi aloqa",
+      "leadCreatedAt": "Lid sanasi",
+      "leadNotes": "Izohlar"
     },
     "empty": {
       "title": "Navbat bo‘sh",
@@ -1592,6 +1619,35 @@
       "unsupportedMedia": "Instagram faqat rasm, video va audio qabul qiladi — hujjatni Telegram orqali yuboring.",
       "blocked": "Bu foydalanuvchi bizni bloklagan yoki akkaunti o‘chirilgan.",
       "unknown": "Yuborilmadi — sabab ustiga kursorni olib boring."
+    },
+    "alerts": {
+      "newMessage": "Yangi xabar",
+      "badge": "{{count}} ta suhbat javob kutmoqda",
+      "soundOn": "Ovoz yoqilgan",
+      "soundOff": "Ovoz o‘chirilgan",
+      "desktopEnable": "Bildirishnomalarni yoqish",
+      "desktopOn": "Bildirishnoma yoqilgan",
+      "desktopOff": "Bildirishnoma o‘chirilgan",
+      "desktopDenied": "Brauzer bildirishnomani bloklagan",
+      "desktopUnsupported": "Brauzer bildirishnomani qo‘llamaydi"
+    },
+    "savedRepliesSettings": {
+      "hint": "Operatorlar xabar yozishda \"/\" yoki \"Tayyor javoblar\" tugmasi bilan shu matnlarni qo‘yadi.",
+      "add": "Yangi javob",
+      "edit": "Tahrirlash",
+      "delete": "O‘chirish",
+      "deleteTitle": "Tayyor javobni o‘chirasizmi?",
+      "key": "Kalit",
+      "title": "Nomi",
+      "body": "Matn",
+      "order": "Tartib",
+      "activeLabel": "Faol",
+      "inactive": "nofaol",
+      "saved": "Saqlandi",
+      "badKey": "Kalit \"/\" bilan boshlansin va faqat kichik lotin harf, raqam, \"-\" yoki \"_\" bo‘lsin (masalan /docs).",
+      "required": "Nomi va matni to‘ldirilishi shart.",
+      "duplicate": "Bu kalit allaqachon bor.",
+      "variables": "{{ism}} — mijozning ismi bilan almashtiriladi (ism bo‘lmasa olib tashlanadi)."
     }
   },
   "errors": {

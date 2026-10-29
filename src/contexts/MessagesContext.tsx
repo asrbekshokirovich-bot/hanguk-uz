@@ -80,7 +80,15 @@ interface MessagesContextType {
   reopenThread: (threadId: string) => Promise<{ error: Error | null }>;
   setThreadKind: (threadId: string, kind: ThreadKind) => Promise<{ error: Error | null }>;
   assignThread: (threadId: string, userId: string) => Promise<{ error: Error | null }>;
+  /**
+   * Called for every new INCOMING message that arrives over realtime, with the
+   * thread it belongs to when it is already known. Returns an unsubscribe.
+   * The sidebar badge, the sound and the browser notification hang off this.
+   */
+  onIncoming: (listener: IncomingListener) => () => void;
 }
+
+export type IncomingListener = (message: Message, thread: MessageThread | undefined) => void;
 
 const MessagesContext = createContext<MessagesContextType | undefined>(undefined);
 
@@ -245,6 +253,15 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
   const selectedThreadRef = useRef(selectedThread);
   selectedThreadRef.current = selectedThread;
+  const threadsRef = useRef<MessageThread[]>([]);
+  threadsRef.current = threads;
+  const incomingListeners = useRef(new Set<IncomingListener>());
+  const onIncoming = useCallback((listener: IncomingListener) => {
+    incomingListeners.current.add(listener);
+    return () => {
+      incomingListeners.current.delete(listener);
+    };
+  }, []);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
 
@@ -631,6 +648,16 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         const row = payload.new as Message;
         upsertRef.current(row);
         bumpRef.current(row);
+        if (row.direction === 'incoming') {
+          const thread = threadsRef.current.find((t) => t.source === row.source && t.sender_id === row.sender_id);
+          incomingListeners.current.forEach((listener) => {
+            try {
+              listener(row, thread);
+            } catch (e) {
+              console.error('incoming listener failed', e);
+            }
+          });
+        }
         const sel = selectedThreadRef.current;
         if (
           sel &&
@@ -751,6 +778,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         reopenThread,
         setThreadKind,
         assignThread,
+        onIncoming,
       }}
     >
       {children}

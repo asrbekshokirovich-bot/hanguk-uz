@@ -18,6 +18,9 @@ import {
 } from '@/components/crm/messages/queueLogic';
 import { useMessagesQueue } from '@/components/crm/messages/useMessagesQueue';
 import { useStudentContext } from '@/components/crm/messages/useStudentContext';
+import { useLeadContext } from '@/components/crm/messages/useLeadContext';
+import { useThreadSearch } from '@/components/crm/messages/useThreadSearch';
+import { InboxAlertControls } from '@/components/crm/messages/InboxAlertControls';
 import { useThreadMessages } from '@/components/crm/messages/useThreadMessages';
 import { useThreadTranslation } from '@/components/crm/messages/useThreadTranslation';
 import { translateMessage, translateTexts } from '@/components/crm/messages/translateMessage';
@@ -93,9 +96,15 @@ export default function MessagesContent() {
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
 
+  const { hits: searchHits, searching } = useThreadSearch(query);
+  const serverMatches = useMemo(() => new Set(searchHits.keys()), [searchHits]);
   const filtered = useMemo(
-    () => sortConversations(filterConversations(conversations, tab, channel, query, { includeStale: showStale }), tab),
-    [conversations, tab, channel, query, showStale],
+    () =>
+      sortConversations(
+        filterConversations(conversations, tab, channel, query, { includeStale: showStale, serverMatches }),
+        query.trim() ? 'all' : tab,
+      ),
+    [conversations, tab, channel, query, showStale, serverMatches],
   );
   const hiddenStale = useMemo(
     () => (tab === 'waiting' && !showStale && !query.trim() ? countHiddenStale(conversations, channel) : 0),
@@ -187,6 +196,7 @@ export default function MessagesContent() {
   const threadMessages = useThreadMessages(activeMessages);
   const { autoTranslate, toggleAuto, isExpanded, toggleMessage } = useThreadTranslation(activeId);
   const { student, loading: studentLoading } = useStudentContext(active?.studentId ?? null);
+  const { lead, loading: leadLoading } = useLeadContext(active && !active.studentId ? active.leadId : null);
 
   const handleSelect = useCallback((conversation: ConversationVM) => {
     setSelectedId(conversation.threadId);
@@ -464,9 +474,12 @@ export default function MessagesContent() {
 
   return (
     <div className="flex h-[calc(100dvh-9rem)] min-h-[520px] flex-col">
-      <p className="mb-3 shrink-0 text-xs text-muted-foreground">
-        {t('messages.header.summary', { waiting: waitingCount, mine: mineCount })}
-      </p>
+      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2">
+        <p className="mr-auto text-xs text-muted-foreground">
+          {t('messages.header.summary', { waiting: waitingCount, mine: mineCount })}
+        </p>
+        <InboxAlertControls />
+      </div>
 
       <div className="flex min-h-0 flex-1 overflow-x-auto rounded-lg border border-border">
         <MessagesQueue
@@ -479,6 +492,8 @@ export default function MessagesContent() {
           query={query}
           hiddenStale={hiddenStale}
           onShowStale={() => setShowStale(true)}
+          searchHits={searchHits}
+          searching={searching}
           onTabChange={changeTab}
           onChannelChange={changeChannel}
           onQueryChange={setQuery}
@@ -510,7 +525,14 @@ export default function MessagesContent() {
               onLinkContact={linkChannel ? () => setLinkOpen(true) : undefined}
             />
             {contextOpen && (
-              <StudentContextRail conversation={active} student={student} loading={studentLoading} />
+              <StudentContextRail
+                conversation={active}
+                student={student}
+                loading={studentLoading}
+                lead={lead}
+                leadLoading={leadLoading}
+                onLeadCreated={() => void refreshAssignments()}
+              />
             )}
             {linkChannel && selectedThread && (
               <LinkContactDialog

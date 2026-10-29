@@ -54,24 +54,31 @@ export function countForTab(list: ConversationVM[], tab: QueueTab): number {
 }
 
 /**
- * Tab AND channel AND query — the three filters compose. The query matches
- * name, handle, preview and stage; everything else goes through the server
- * search, which the page runs when the query is long enough.
+ * Tab AND channel AND query.
+ *
+ * A search is a question about EVERY conversation: while a query is typed the
+ * tab (and the 30-day rule) no longer narrow the list — "where is the girl
+ * with 94 164 39 00?" has to find her whether she is waiting, answered or
+ * closed (audit 2026-10-29, finding 5). The local match covers name, handle,
+ * preview and stage; `serverMatches` adds what only the database knows — the
+ * lead's phone, older messages — from `search_threads`.
  */
 export function filterConversations(
   list: ConversationVM[],
   tab: QueueTab,
   channel: ChannelFilter,
   query: string,
-  options: { includeStale?: boolean } = {},
+  options: { includeStale?: boolean; serverMatches?: ReadonlySet<string> } = {},
 ): ConversationVM[] {
   const q = query.trim().toLowerCase();
   return list.filter((c) => {
-    if (!matchesTab(c, tab)) return false;
     if (!matchesChannel(c, channel)) return false;
-    // A search is a question about everything, old threads included.
-    if (tab === 'waiting' && c.isStale && !options.includeStale && !q) return false;
-    if (q && !`${c.name} ${c.handle} ${c.preview} ${c.stage}`.toLowerCase().includes(q)) return false;
+    if (q) {
+      if (options.serverMatches?.has(c.threadId)) return true;
+      return `${c.name} ${c.handle} ${c.preview} ${c.stage}`.toLowerCase().includes(q);
+    }
+    if (!matchesTab(c, tab)) return false;
+    if (tab === 'waiting' && c.isStale && !options.includeStale) return false;
     return true;
   });
 }

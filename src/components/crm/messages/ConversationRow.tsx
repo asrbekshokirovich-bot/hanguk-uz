@@ -3,11 +3,14 @@ import { cn } from '@/lib/utils';
 import { ChannelAvatar } from './ChannelAvatar';
 import { formatRowTime, formatWait, isOverdue } from './queueLogic';
 import type { ConversationVM } from './types';
+import type { ThreadSearchHit } from './useThreadSearch';
 
 interface ConversationRowProps {
   conversation: ConversationVM;
   selected: boolean;
   onSelect: (conversation: ConversationVM) => void;
+  /** While searching: what the database matched in this conversation. */
+  searchHit?: ThreadSearchHit | null;
 }
 
 /**
@@ -19,7 +22,7 @@ interface ConversationRowProps {
  * while the person is waiting for a reply written by a person; an automatic
  * reply does not make it go away.
  */
-export function ConversationRow({ conversation: c, selected, onSelect }: ConversationRowProps) {
+export function ConversationRow({ conversation: c, selected, onSelect, searchHit }: ConversationRowProps) {
   const { t, i18n } = useTranslation();
   const overdue = isOverdue(c);
   const showWait = c.isWaiting && !c.isDone;
@@ -58,7 +61,14 @@ export function ConversationRow({ conversation: c, selected, onSelect }: Convers
         </span>
 
         <span className="mt-0.5 block truncate text-[12.5px] text-foreground/75">
-          {c.preview || t('messages.queue.noPreview')}
+          {searchHit?.snippet && searchHit.matched !== 'name' ? (
+            <>
+              <span className="font-semibold text-primary">{t(`messages.queue.match.${searchHit.matched}`, '')}</span>{' '}
+              {searchHit.snippet}
+            </>
+          ) : (
+            c.preview || t('messages.queue.noPreview')
+          )}
         </span>
 
         <span className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
@@ -80,6 +90,12 @@ export function ConversationRow({ conversation: c, selected, onSelect }: Convers
               )}
             >
               {t('messages.queue.waiting', { time: formatWait(c.waitingMinutes) })}
+            </span>
+          )}
+
+          {c.isDone && (
+            <span className="whitespace-nowrap rounded-pill bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              {t('messages.tabs.done')}
             </span>
           )}
 

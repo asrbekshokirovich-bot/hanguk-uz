@@ -22,6 +22,7 @@ import { IntercomProvider } from '@/components/intercom/IntercomProvider';
 import { LeadsProvider } from '@/contexts/LeadsContext';
 import { CallsProvider } from '@/contexts/CallsContext';
 import { MessagesProvider } from '@/contexts/MessagesContext';
+import { InboxAlerts } from '@/components/crm/messages/InboxAlerts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import {
@@ -523,6 +524,8 @@ export default function CRMPortal() {
         defaultOpen={true}
         style={{ '--sidebar-width': '248px', '--sidebar-width-icon': '72px' } as React.CSSProperties}
       >
+        <MessagesProvider>
+        <InboxAlerts />
         <div className="flex min-h-screen w-full">
           <CRMSidebar
             isOwner={isOwner}
@@ -557,7 +560,6 @@ export default function CRMPortal() {
             {/* Main Content */}
             <LeadsProvider>
               <CallsProvider>
-                <MessagesProvider>
                   <main className="flex-1 overflow-auto bg-background p-4 pb-safe sm:p-6">
                     {/* The lead lists are twelve-column tables; on a wide monitor
                         they get the room to show every column at once instead of
@@ -572,7 +574,6 @@ export default function CRMPortal() {
                       {renderContent()}
                     </div>
                   </main>
-                </MessagesProvider>
               </CallsProvider>
             </LeadsProvider>
           </div>
@@ -580,6 +581,7 @@ export default function CRMPortal() {
           {/* Hanguk AI Chat */}
           <HangukAIChat userType="staff" language={currentLang} />
         </div>
+        </MessagesProvider>
       </SidebarProvider>
     </IntercomProvider>
   );

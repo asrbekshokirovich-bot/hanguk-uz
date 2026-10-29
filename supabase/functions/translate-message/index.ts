@@ -14,8 +14,16 @@
 //
 // Auth: staff JWT (owner / admin / call_operator), the same roles that may
 // read the conversation being translated.
+//
+// PROVIDERS (2026-10-29). Anthropic answered 401 "invalid x-api-key" for every
+// request, so both inbox features built on this function — "Tarjima qilish"
+// and the send-language chips — were dead. It now uses the same free
+// providers as Hanguk AI (Cerebras → Groq, `../hanguk-ai-chat/llm.ts`, keys
+// already in the project secrets), and Anthropic only as a last resort while
+// its key is set.
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { chatCompletion, chatProviders } from "../hanguk-ai-chat/llm.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -78,6 +86,22 @@ function buildSystem(target: string): string {
   ].join(" ");
 }
 
+/** One request through the free OpenAI-compatible providers. */
+async function callFree(system: string, texts: string[]): Promise<{ text: string; model: string }> {
+  const { response, provider } = await chatCompletion({
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: JSON.stringify({ texts }) },
+    ],
+    temperature: 0,
+    stream: false,
+  });
+  const d = await response.json();
+  const text = String(d?.choices?.[0]?.message?.content ?? "").trim();
+  if (!text) throw new Error(`${provider.name} empty response`);
+  return { text, model: `${provider.name}:${provider.model}` };
+}
+
 async function callAnthropic(model: string, system: string, texts: string[]): Promise<string> {
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -128,7 +152,7 @@ Deno.serve(async (req) => {
 
   const uid = await staffUserId(req.headers.get("Authorization"));
   if (!uid) return json(403, { error: "forbidden" });
-  if (!ANTHROPIC_API_KEY) return json(500, { error: "ai_not_configured" });
+  if (!ANTHROPIC_API_KEY && chatProviders().length === 0) return json(500, { error: "ai_not_configured" });
 
   let body: any;
   try { body = await req.json(); } catch { return json(400, { error: "invalid_json" }); }
@@ -144,7 +168,15 @@ Deno.serve(async (req) => {
 
   const system = buildSystem(target);
   const errors: string[] = [];
-  for (const model of MODELS) {
+  if (chatProviders().length > 0) {
+    try {
+      const { text, model } = await callFree(system, texts);
+      return json(200, { translations: parseTranslations(text, texts.length), target_lang: target, model });
+    } catch (e) {
+      errors.push(String(e).slice(0, 200));
+    }
+  }
+  for (const model of ANTHROPIC_API_KEY ? MODELS : []) {
     try {
       const raw = await callAnthropic(model, system, texts);
       return json(200, {

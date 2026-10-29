@@ -953,6 +953,9 @@
         "body": "{{name}} 기록이 완전히 삭제됩니다. 되돌릴 수 없습니다.",
         "confirm": "예, 삭제합니다"
       }
+    },
+    "profile": {
+      "openChat": "채팅 열기"
     }
   },
   "universities": {
@@ -1097,7 +1100,7 @@
     },
     "queue": {
       "label": "대화 대기열",
-      "searchPlaceholder": "학생 및 메시지 검색",
+      "searchPlaceholder": "이름, 전화번호, @username 또는 메시지",
       "shown": "{{count}}건 표시",
       "waiting": "{{time}} 대기",
       "mine": "내 담당",
@@ -1105,7 +1108,14 @@
       "emptyTitle": "대화가 없습니다",
       "emptyBody": "다른 탭, 채널 또는 검색어를 사용해 보세요.",
       "unknownName": "이름 없음",
-      "showStale": "30일 이상 지난 대화 ({{count}}) — 보기"
+      "showStale": "30일 이상 지난 대화 ({{count}}) — 보기",
+      "searchAllTabs": "모든 탭에서 검색 중",
+      "match": {
+        "phone": "전화:",
+        "lead": "리드:",
+        "student": "학생:",
+        "message": "메시지:"
+      }
     },
     "thread": {
       "streamLabel": "메시지 기록",
@@ -1132,7 +1142,9 @@
       "reopen": "다시 열기",
       "more": "기타 작업",
       "kindLabel": "대화 유형",
-      "kindHint": "대기열에는 “리드” 대화만 표시됩니다. 직원·파트너·서비스 채팅은 “직원” 필터에 있습니다."
+      "kindHint": "대기열에는 “리드” 대화만 표시됩니다. 직원·파트너·서비스 채팅은 “직원” 필터에 있습니다.",
+      "fromPhone": "휴대폰에서",
+      "autoReply": "자동 응답"
     },
     "composer": {
       "label": "답장 작성",
@@ -1155,7 +1167,8 @@
       "removeVoice": "음성 메시지 제거",
       "micDenied": "마이크 접근이 거부되었습니다. 브라우저 설정에서 허용해 주세요.",
       "voiceUnsupported": "이 브라우저는 음성 녹음을 지원하지 않습니다.",
-      "voiceFailed": "녹음에 실패했습니다. 다시 시도해 주세요."
+      "voiceFailed": "녹음에 실패했습니다. 다시 시도해 주세요.",
+      "noSavedReplies": "저장된 답장이 없습니다. 설정 → 저장된 답장에서 추가하세요."
     },
     "savedReplies": {
       "docs": "서류 체크리스트",
@@ -1203,7 +1216,23 @@
         "received": "접수됨",
         "review": "검토 중",
         "missing": "미제출"
-      }
+      },
+      "noLeadTitle": "리드 없음",
+      "noLeadBody": "이 대화는 아직 리드나 학생과 연결되지 않았습니다.",
+      "createLead": "리드 생성",
+      "createLeadFailed": "리드를 생성할 수 없습니다.",
+      "leadCreated": "리드를 생성하고 대화에 연결했습니다",
+      "noPhone": "전화번호 없음",
+      "leadLabel": "리드",
+      "openLead": "리드 프로필",
+      "call": "전화",
+      "leadSource": "출처",
+      "leadCity": "도시",
+      "leadProgram": "전공",
+      "leadOwner": "담당자",
+      "leadFollowUp": "다음 연락",
+      "leadCreatedAt": "리드 날짜",
+      "leadNotes": "메모"
     },
     "empty": {
       "title": "대기열이 비었습니다",
@@ -1256,6 +1285,35 @@
       "unsupportedMedia": "Instagram은 이미지·동영상·오디오만 받습니다 — 문서는 Telegram으로 보내세요.",
       "blocked": "이 사용자가 우리를 차단했거나 계정이 삭제되었습니다.",
       "unknown": "전송되지 않음 — 이유를 보려면 마우스를 올리세요."
+    },
+    "alerts": {
+      "newMessage": "새 메시지",
+      "badge": "답장 대기 중인 대화 {{count}}개",
+      "soundOn": "소리 켜짐",
+      "soundOff": "소리 꺼짐",
+      "desktopEnable": "알림 켜기",
+      "desktopOn": "알림 켜짐",
+      "desktopOff": "알림 꺼짐",
+      "desktopDenied": "브라우저가 알림을 차단함",
+      "desktopUnsupported": "브라우저가 알림을 지원하지 않음"
+    },
+    "savedRepliesSettings": {
+      "hint": "상담원은 \"/\" 또는 \"저장된 답장\" 버튼으로 이 문구를 넣습니다.",
+      "add": "새 답장",
+      "edit": "편집",
+      "delete": "삭제",
+      "deleteTitle": "이 저장된 답장을 삭제할까요?",
+      "key": "키",
+      "title": "제목",
+      "body": "내용",
+      "order": "순서",
+      "activeLabel": "활성",
+      "inactive": "비활성",
+      "saved": "저장됨",
+      "badKey": "키는 \"/\"로 시작하고 소문자 영문, 숫자, \"-\", \"_\"만 사용합니다 (예: /docs).",
+      "required": "제목과 내용은 필수입니다.",
+      "duplicate": "이미 있는 키입니다.",
+      "variables": "{{ism}} — 고객 이름으로 바뀝니다(이름이 없으면 삭제)."
     }
   },
   "errors": {

@@ -32,3 +32,17 @@ o'qilmaganlarni tozalamaydi (`mark_answered_on_outgoing`), preview'da chiqmaydi.
 
 `mark_answered_on_outgoing` endi faqat odam yozgan javobda `unread → read` qiladi.
 Ilgari kechasi ketgan avto-javob ertalabgacha badge'ni o'chirib qo'yardi.
+
+## Operator oqimi (migr. `20261031110000`)
+
+| Narsa | Qayerda |
+|---|---|
+| Yangi kiruvchi xabarda ovoz + (sahifa fonda yoki boshqa bo'limda bo'lsa) brauzer bildirishnomasi; sarlavhada "(N)"; sidebar'dagi "Xabarlar" yonida kutayotganlar soni. `MessagesProvider` butun CRM'ni o'raydi. | `InboxAlerts.tsx`, `inboxCounts.ts`, `CRMSidebar.tsx` |
+| Ovoz / bildirishnoma kaliti — har brauzerda (localStorage `hanguk-inbox-alerts`). | `InboxAlertControls.tsx` |
+| O'ng panel: talaba bo'lmasa lid kartasi (telefon, holat, manba, mas'ul, izohlar, "Lid profili"); lid ham bo'lmasa "Lid yaratish" (`create_lead_from_thread` — chatdagi raqam bilan). | `LeadContextCard.tsx` |
+| Lid profilida "Chatni ochish" → `/crm/messages?thread=<id>` (`lead_threads`). | `LeadProfileContent.tsx` |
+| Qidiruv: lokal (ism, @username, preview) + server `search_threads` (lid/talaba ismi va telefoni — oxirgi 4+ raqam, xabar matni), **barcha tablar bo'ylab**. | `useThreadSearch.ts` |
+| Tayyor javoblar `saved_replies` jadvalida; Sozlamalar → Tayyor javoblar (owner/admin tahrirlaydi). `{{ism}}` → mijozning ismi. "/do" yozilsa ro'yxat torayadi, bitta qolsa Enter qo'yadi. | `useSavedReplies.ts`, `SavedRepliesSettings.tsx` |
+| Birinchi javob bergan **ma'lum** xodim suhbatga avtomatik biriktiriladi (`trg_assign_thread_on_reply`). Umumiy akkauntdan telefondan yozilgan javobda odam noma'lum — xabar ostida "telefondan" yoziladi. | migr., `useThreadMessages.ts` |
+| Tarjima: `translate-message` Cerebras → Groq (Hanguk AI kalitlari), Anthropic faqat zaxira. "Tarjima qilish" faqat xabar interfeys tilidan boshqa tilda bo'lsa chiqadi; natija interfeys tiliga. | `translate-message/index.ts`, `detectLanguage.ts` |
+| Suhbat almashganda yozilayotgan matn tozalanadi (avval boshqa odamga ketib qolishi mumkin edi). | `ThreadPane.tsx` (`key`) |

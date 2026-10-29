@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Search } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
+import type { ThreadSearchHit } from './useThreadSearch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChannelFilterChips } from './ChannelFilterChips';
 import { ConversationRow } from './ConversationRow';
@@ -17,6 +18,9 @@ interface MessagesQueueProps {
   /** Waiting rows older than STALE_AFTER_DAYS the list is not showing. */
   hiddenStale: number;
   onShowStale: () => void;
+  /** Why the database matched a row (phone, message text…), by thread id. */
+  searchHits: ReadonlyMap<string, ThreadSearchHit>;
+  searching: boolean;
   onTabChange: (tab: QueueTab) => void;
   onChannelChange: (channel: ChannelFilter) => void;
   onQueryChange: (query: string) => void;
@@ -39,6 +43,8 @@ export function MessagesQueue({
   query,
   hiddenStale,
   onShowStale,
+  searchHits,
+  searching,
   onTabChange,
   onChannelChange,
   onQueryChange,
@@ -64,7 +70,11 @@ export function MessagesQueue({
             aria-label={t('messages.queue.searchPlaceholder')}
             className="min-w-0 flex-1 bg-transparent text-[13px] text-foreground outline-none placeholder:text-muted-foreground"
           />
+          {searching && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" aria-hidden="true" />}
         </div>
+        {query.trim() && (
+          <p className="mt-1.5 px-0.5 text-[11px] text-muted-foreground">{t('messages.queue.searchAllTabs')}</p>
+        )}
 
         <ChannelFilterChips value={channel} onChange={onChannelChange} visibleCount={visible.length} />
       </div>
@@ -98,6 +108,7 @@ export function MessagesQueue({
                 conversation={c}
                 selected={c.threadId === selectedThreadId}
                 onSelect={onSelect}
+                searchHit={query.trim() ? searchHits.get(c.threadId) ?? null : null}
               />
             ))}
             {hiddenStale > 0 && (

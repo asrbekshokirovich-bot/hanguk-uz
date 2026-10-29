@@ -83,7 +83,7 @@ export function ThreadPane({
         translatingId={translatingId}
         onToggleTranslation={onToggleTranslation}
       />
-      <Composer onSend={onSend} />
+      <Composer key={conversation.threadId} onSend={onSend} recipientName={conversation.name} />
     </section>
   );
 }

@@ -51,6 +51,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { useMessages } from '@/hooks/useMessages';
+import { countWaiting } from '@/components/crm/messages/inboxCounts';
 
 export interface SidebarGroup {
   id: string;
@@ -63,6 +65,8 @@ export interface SidebarGroup {
     icon: React.ComponentType<{ className?: string }>;
     visible: boolean;
     highlight?: boolean;
+    /** Live count drawn as a pill (Xabarlar: conversations waiting for a reply). */
+    badge?: number;
   }[];
 }
 
@@ -84,6 +88,7 @@ function buildGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
+  inboxWaiting = 0,
 ): SidebarGroup[] {
   return [
     {
@@ -111,7 +116,7 @@ function buildGroups(
       icon: Headphones,
       visible: true,
       items: [
-        { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true },
+        { title: t('navigation.messages'), url: '/crm/messages', icon: MessageSquare, visible: true, badge: inboxWaiting },
         // Investor writes to a staff member; that person answers here (owner also records payouts).
         { title: t('crm.investorDesk.nav'), url: '/crm/investor-desk', icon: Briefcase, visible: true },
         { title: t('common.phone'), url: '/crm/calls', icon: Phone, visible: isAdmin },
@@ -183,6 +188,11 @@ export function CRMSidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Conversations waiting for a reply — the same number as the "Kutmoqda"
+  // tab, live over realtime (MessagesProvider wraps the whole CRM shell).
+  const { threads } = useMessages();
+  const inboxWaiting = countWaiting(threads);
+
   const groups = buildGroups(
     canSeeFinance,
     isAdmin,
@@ -190,6 +200,7 @@ export function CRMSidebar({
     isDocumentHandler,
     t,
     lang,
+    inboxWaiting,
   );
 
   // Whether an item's URL matches the current route (most-specific match wins
@@ -270,7 +281,18 @@ export function CRMSidebar({
                               AI
                             </span>
                           )}
-                          {!isAI && item.highlight && !collapsed && (
+                          {!!item.badge && item.badge > 0 && (
+                            <span
+                              className={cn(
+                                'flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-sidebar-primary px-1.5 text-[10px] font-bold leading-none text-sidebar-primary-foreground',
+                                collapsed && 'absolute right-1 top-1 h-4 min-w-4 px-1 text-[9px]',
+                              )}
+                              aria-label={t('messages.alerts.badge', { count: item.badge })}
+                            >
+                              {item.badge > 99 ? '99+' : item.badge}
+                            </span>
+                          )}
+                          {!isAI && !item.badge && item.highlight && !collapsed && (
                             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sidebar-primary" />
                           )}
                         </SidebarMenuButton>
