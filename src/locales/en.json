@@ -403,6 +403,23 @@
       "errPeriod": "Enter the period (e.g. Q4 2026)",
       "errAmount": "Amount must be a positive number",
       "errPaidAt": "Enter the paid date"
+    },
+    "staffDelete": {
+      "title": "Delete account",
+      "hint": "Permanently remove this staff member and their access",
+      "button": "Delete",
+      "deleting": "Deleting...",
+      "confirmTitle": "Delete staff account",
+      "confirmText": "Permanently delete «{{name}}»?",
+      "itemRoles": "All roles and permissions are removed",
+      "itemLogin": "The account is deleted and can no longer log in",
+      "itemHistory": "Records they entered (payments, documents, tasks) are kept",
+      "irreversible": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Yes, delete",
+      "success": "Staff account deleted",
+      "failed": "Could not delete the staff account",
+      "fallbackName": "this staff member"
     }
   },
   "leads": {
