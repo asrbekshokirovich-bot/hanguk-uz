@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-30T01:02:18+00:00",
+ "last_run": "2026-10-30T07:09:48+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -322,7 +322,9 @@
    "19bce2bed89ea898",
    "1d5b1c60c2d394bd"
   ],
-  "https://enter.dcu.ac.kr/": [],
+  "https://enter.dcu.ac.kr/": [
+   "6116718a00a5e056"
+  ],
   "https://enter.duksung.ac.kr/sub/?m_type=JEOEGUK": [
    "dd9f15b5b924b382",
    "fb2a8671f60aeeba",
@@ -394,6 +396,7 @@
    "12bb95ddbcbd27ad"
   ],
   "https://go.khcu.ac.kr/": [
+   "c861e047871e4120",
    "f9f85f740c851b14",
    "1267ff8c19803b4e",
    "542bb98d0becc52d",
@@ -1401,7 +1404,9 @@
   ],
   "https://www.world.ac.kr/": [],
   "https://www.yewon.ac.kr/": [],
-  "https://www.yncu.ac.kr/": [],
+  "https://www.yncu.ac.kr/": [
+   "96dde4d395c251dc"
+  ],
   "https://www.ysu.ac.kr/ipsi/Main.do": [],
   "https://ycc.ac.kr": [],
   "https://yongin.ac.kr": []
