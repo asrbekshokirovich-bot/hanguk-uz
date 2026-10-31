@@ -1,7 +1,7 @@
 # Ochilmagan universitet saytlari
 
-Oxirgi tekshiruv: 2026-10-31T12:31:21+00:00
-Tekshirildi: 408 ta · Ochilmadi: 99 ta
+Oxirgi tekshiruv: 2026-10-31T17:46:57+00:00
+Tekshirildi: 408 ta · Ochilmadi: 102 ta
 
 Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`
 faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda
@@ -26,6 +26,7 @@ bu ro'yxatdan tushadi.
 | 광양대학교 (Gwangyang University) | https://www.gwangyang-c.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 광양보건대학교 (Gwangyang Health Sciences University) | https://www.gyhu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 광주가톨릭대학교 (Gwangju Catholic University) | https://www.gjcatholic.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
+| 광주과학기술원 (Gwangju Institute of Science and Technology (GIST)) | https://www.gist.ac.kr/gadm/ | ConnectTimeout:  |
 | 광주대학교 (Gwangju University) | https://iphak.gwangju.ac.kr/ | ConnectTimeout:  |
 | 광주보건대학교 (Gwangju Health University) | https://ipsi.ghu.ac.kr/ | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 국제사이버대학교 (International Cyber University) | https://www.icu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
@@ -51,6 +52,7 @@ bu ro'yxatdan tushadi.
 | 서울보건대학교 (Seoul Health College) | https://www.shjc.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 서울성경신학대학원대학교 (Seoul Bible Graduate School of Theology) | https://sbgst.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 서울한영대학교 (Seoul Hanyoung University) | https://ipsi.hytu.ac.kr/ | ConnectTimeout:  |
+| 선린대학교 (Sunlin University) | https://admission.sunlin.ac.kr/ | ReadTimeout:  |
 | 선학유피대학원대학교 (Sunhak Universal Peace Graduate University) | https://supu.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 성공회대학교 (Sungkonghoe University) | https://enter.skhu.ac.kr/ | ConnectError: [SSL: WRONG_SIGNATURE_TYPE] wrong signature type (_ssl.c:1010) |
 | 성균관대학교 (Sungkyunkwan University) | https://admission.skku.edu/admission/html/abroad/notice.html | HTTPStatusError: Client error '404 Not Found' for url 'https://admission.skku.edu/admission/html/abroad/notice |
@@ -67,7 +69,8 @@ bu ro'yxatdan tushadi.
 | 아시아라이프대학교 (Asia LIFE University) | https://asialife.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 아주대학교 (Ajou University) | https://www.ajou.ac.kr/kr/admission/list01.do | ConnectTimeout:  |
 | 영남신학대학교 (Youngnam Theological University) | https://www.yntu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
-| 영동대학교 (Youngdong University) | https://ipsi.youngdong.ac.kr/ | ConnectError: All connection attempts failed |
+| 영남이공대학교 (Yeungnam University College) | https://exam.ync.ac.kr/ | ConnectTimeout:  |
+| 영동대학교 (Youngdong University) | https://ipsi.youngdong.ac.kr/ | ConnectTimeout:  |
 | 영산선학대학교 (Youngsan University of Son Studies) | https://www.yss.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 예명대학원대학교 (Yemyung Graduate University) | https://yemyung.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 예수대학교 (Jesus University) | https://jesus.ac.kr | ReadTimeout:  |
