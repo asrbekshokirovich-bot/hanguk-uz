@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-01T07:35:29+00:00",
+ "last_run": "2026-11-01T15:11:01+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -1176,6 +1176,8 @@
   ],
   "https://www.dgist.ac.kr/gadm/": [],
   "https://www.dist.ac.kr/": [
+   "2ac6fcbcae42180f",
+   "828e3902212a323a",
    "8da32baced4ca786",
    "3e6364adf88c3bd7"
   ],
