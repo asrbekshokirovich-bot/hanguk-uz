@@ -7,7 +7,9 @@
 // ertalab 09:00 ro'yxat (cron → ?action=morning, Supabase secret key bilan).
 // PR-4: kunlik hisobot — 17:00 so'rov, 17:30/18:00 eslatma, 18:15 ownerlarga xulosa
 // (cron → ?action=report&kind=ask|remind|summary); «📝 Hisobot» tugmasi; AI 3 qismga ajratadi.
-// Keyingi PR'lar: guruh tahlili (PR-7/8), Hanguk AI (PR-10).
+// PR-7: xodimlar guruhi — xabarlar saqlanadi (soya rejimi, PR-8 AI uchun); «#vazifa @odam matn» → vazifa
+// va guruhga karta; kartaga «✅»/«bajarildi» javobi → bajarildi.
+// Keyingi PR'lar: guruh AI tahlili (PR-8), Hanguk AI (PR-10).
 //
 // Sozlash (bir marta): secrets STAFF_BOT_TOKEN va STAFF_BOT_WEBHOOK_SECRET,
 // keyin `<function url>?action=setup` ochiladi — webhook, buyruqlar ro'yxati
@@ -23,6 +25,10 @@ import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shar
 import { generateJSON } from "../_shared/gemini.ts";
 import {
   escapeHtml,
+  GROUP_HELP,
+  isDoneReply,
+  parseGroupCommand,
+  type TgEntity,
   groupTasks,
   HELP_TEXT,
   parseTaskText,
@@ -356,7 +362,8 @@ async function onCallback(cq: Any) {
   if (data.startsWith("td:") || data.startsWith("ts:")) {
     const taskId = data.slice(3);
     const status = data.startsWith("td:") ? "completed" : "in_progress";
-    const { data: res, error } = await db.rpc("bot_set_task_status", { p_actor: staff.user_id, p_task: taskId, p_status: status });
+    const via = cq.message?.chat?.type === "private" ? "dm" : "group";
+    const { data: res, error } = await db.rpc("bot_set_task_status", { p_actor: staff.user_id, p_task: taskId, p_status: status, p_via: via });
     const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; created_by: string; assigned_to: string } | undefined;
     if (error || !r) { console.error("bot_set_task_status:", error?.message); await answerCallbackQuery(BOT_TOKEN, cq.id, "Xatolik"); return; }
     if (r.result === "not_found") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Vazifa topilmadi"); return; }
@@ -488,6 +495,125 @@ async function reportCron(kind: string) {
     sent++;
   }
   return json({ ok: true, kind, sent });
+}
+
+// ── xodimlar guruhi ───────────────────────────────────────────────────────
+
+async function configuredGroupId(): Promise<string> {
+  const { data } = await db.from("bot_settings").select("value").eq("key", "group_chat_id").maybeSingle();
+  return String(data?.value ?? "");
+}
+
+const reply = (chatId: number, replyTo: number, text: string, extra: Record<string, unknown> = {}) =>
+  send(chatId, text, { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true }, ...extra });
+
+async function logGroupMessage(msg: Any, staff: Staff | null, kind: string, taskId: string | null = null) {
+  const media = msg.voice ? "voice" : msg.photo ? "photo" : msg.document ? "document" : msg.video ? "video"
+    : msg.audio ? "audio" : msg.sticker ? "sticker" : null;
+  const { error } = await db.from("staff_group_messages").upsert({
+    chat_id: msg.chat.id, message_id: msg.message_id, tg_user_id: msg.from?.id ?? null,
+    user_id: staff?.user_id ?? null, text: (msg.text ?? msg.caption ?? null)?.slice(0, 8000) ?? null,
+    reply_to_message_id: msg.reply_to_message?.message_id ?? null, media, kind, task_id: taskId,
+  }, { onConflict: "chat_id,message_id" });
+  if (error) console.error("staff_group_messages:", error.message);
+}
+
+/** Vazifa kimga: text_mention → @username → javob berilgan xabar muallifi. */
+async function resolveAssignee(cmd: { usernames: string[]; userIds: number[] }, msg: Any):
+  Promise<{ user_id: string; full_name: string } | "unknown" | null> {
+  if (cmd.userIds.length) {
+    const s = await resolveStaff(cmd.userIds[0]);
+    return s ? { user_id: s.user_id, full_name: s.full_name } : "unknown";
+  }
+  if (cmd.usernames.length) {
+    const { data } = await db.rpc("bot_resolve_username", { p_username: cmd.usernames[0] });
+    const row = (Array.isArray(data) ? data[0] : data) as { user_id: string; full_name: string } | undefined;
+    return row ?? "unknown";
+  }
+  const target = msg.reply_to_message?.from;
+  if (target && !target.is_bot) {
+    const s = await resolveStaff(target.id);
+    return s ? { user_id: s.user_id, full_name: s.full_name } : "unknown";
+  }
+  return null;
+}
+
+async function onGroupMessage(msg: Any) {
+  const chatId: number = msg.chat.id;
+  const groupId = await configuredGroupId();
+  if (!groupId || String(chatId) !== groupId) return; // boshqa guruhlar e'tiborsiz
+  if (msg.from?.is_bot) return;
+
+  const text: string = msg.text ?? msg.caption ?? "";
+  const staff = msg.from ? await resolveStaff(msg.from.id) : null;
+
+  // 1) Bot kartasiga «✅» javobi → bajarildi
+  const replyTo = msg.reply_to_message;
+  if (replyTo?.from?.is_bot && isDoneReply(text)) {
+    const { data: card } = await db.from("bot_group_cards").select("task_id")
+      .eq("chat_id", chatId).eq("message_id", replyTo.message_id).maybeSingle();
+    if (card?.task_id) {
+      await logGroupMessage(msg, staff, "close", card.task_id);
+      if (!staff) { await reply(chatId, msg.message_id, "Avval botga ulaning (CRM → Xodimlar → Telegram)."); return; }
+      const { data: res, error } = await db.rpc("bot_set_task_status",
+        { p_actor: staff.user_id, p_task: card.task_id, p_status: "completed", p_via: "group" });
+      const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; created_by: string } | undefined;
+      if (error || !r) { console.error("bot_set_task_status:", error?.message); return; }
+      if (r.result === "not_allowed") { await reply(chatId, msg.message_id, "Bu vazifani faqat mas'ul, bergan odam yoki owner yopadi."); return; }
+      if (r.result === "same") { await reply(chatId, msg.message_id, "Bu vazifa allaqachon yopilgan."); return; }
+      if (r.result !== "ok") return;
+      await callTelegram(BOT_TOKEN, "editMessageReplyMarkup", { chat_id: chatId, message_id: replyTo.message_id, reply_markup: { inline_keyboard: [] } });
+      await reply(chatId, msg.message_id, `✅ Bajarildi: <s>${escapeHtml(r.title)}</s>`);
+      if (r.created_by && r.created_by !== staff.user_id) {
+        await notifyUser(r.created_by, `✅ <b>${escapeHtml(staff.full_name)}</b> vazifani bajardi:\n${escapeHtml(r.title)}`);
+      }
+      return;
+    }
+  }
+
+  // 2) #vazifa / /vazifa
+  const cmd = parseGroupCommand(text, (msg.entities ?? msg.caption_entities ?? []) as TgEntity[]);
+  if (!cmd) { await logGroupMessage(msg, staff, "message"); return; }
+
+  if (!staff) {
+    await logGroupMessage(msg, null, "command");
+    await reply(chatId, msg.message_id, "Avval botga ulaning (CRM → Xodimlar → Telegram), keyin vazifa bera olasiz.");
+    return;
+  }
+  const who = await resolveAssignee(cmd, msg);
+  if (who === null || !cmd.body) {
+    await logGroupMessage(msg, staff, "command");
+    await reply(chatId, msg.message_id, GROUP_HELP);
+    return;
+  }
+  if (who === "unknown") {
+    await logGroupMessage(msg, staff, "command");
+    await reply(chatId, msg.message_id, "Bu odam botga ulanmagan yoki xodim emas. Avval CRM'dan ulang.");
+    return;
+  }
+  const draft = parseTaskText(cmd.body, Date.now());
+  const { data: taskId, error } = await db.rpc("bot_create_task", {
+    p_actor: staff.user_id, p_assignee: who.user_id, p_title: draft.title, p_description: null,
+    p_due: draft.due, p_priority: draft.priority, p_via: "group",
+  });
+  if (error || !taskId) {
+    console.error("bot_create_task(group):", error?.message);
+    await logGroupMessage(msg, staff, "command");
+    await reply(chatId, msg.message_id, "Vazifani saqlab bo'lmadi, qayta urinib ko'ring.");
+    return;
+  }
+  await logGroupMessage(msg, staff, "command", String(taskId));
+  const card: TaskRow = { id: String(taskId), title: draft.title, status: "todo", priority: draft.priority, due_date: draft.due };
+  const sent = await reply(chatId, msg.message_id,
+    `🆕 <b>${escapeHtml(who.full_name)}</b> uchun vazifa (${escapeHtml(staff.full_name)}dan):\n\n${renderTaskCard(card)}\n\n<i>Bajarilganda shu xabarga «✅» deb javob yozing.</i>`,
+    { reply_markup: taskButtons(card) });
+  // deno-lint-ignore no-explicit-any
+  const sentId = (sent as any)?.result?.message_id ?? (sent as any)?.message_id;
+  if (sentId) await db.from("bot_group_cards").insert({ chat_id: chatId, message_id: sentId, task_id: String(taskId) });
+  if (who.user_id !== staff.user_id) {
+    await notifyUser(who.user_id, `🆕 <b>${escapeHtml(staff.full_name)}</b> guruhda vazifa berdi:\n\n${renderTaskCard(card)}`,
+      { reply_markup: taskButtons(card) });
+  }
 }
 
 // ── guruh a'zoligi ────────────────────────────────────────────────────────
@@ -668,7 +794,7 @@ Deno.serve(async (req) => {
     const message = update.message;
     if (!message?.from) return json({ ok: true });
     if (message.chat?.type === "private") await onPrivateMessage(message);
-    // Guruh xabarlari PR-7 dan boshlab saqlanadi; hozircha e'tiborsiz.
+    else if (["group", "supergroup"].includes(message.chat?.type)) await onGroupMessage(message);
   } catch (error) {
     // 200 qaytaramiz: aks holda Telegram shu update'ni qayta-qayta yuboradi.
     console.error("staff-bot error:", error instanceof Error ? error.message : error);

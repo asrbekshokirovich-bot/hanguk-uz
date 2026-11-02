@@ -309,3 +309,63 @@ export function renderSummary(rows: SummaryRow[], dateStr: string): string {
   }
   return out.join("\n");
 }
+
+// ── PR-7: guruhdagi aniq buyruqlar ────────────────────────────────────────
+
+export interface TgEntity {
+  type: string;
+  offset: number;
+  length: number;
+  user?: { id: number };
+}
+
+export interface GroupCommand {
+  /** Buyruq va eslatmalardan tozalangan vazifa matni. */
+  body: string;
+  /** @username'lar (@ siz). */
+  usernames: string[];
+  /** Username'i yo'q odamlar (text_mention) — Telegram user id. */
+  userIds: number[];
+}
+
+const CMD_RE = /^\s*(?:#vazifa|\/vazifa(?:@\w+)?)(?=\s|$|[:,.])/i;
+
+/** «#vazifa @diyora apostil ertaga» yoki «/vazifa ...». Buyruq bo'lmasa null. */
+export function parseGroupCommand(text: string | null | undefined, entities: TgEntity[] = []): GroupCommand | null {
+  if (!text || !CMD_RE.test(text)) return null;
+  const usernames: string[] = [];
+  const userIds: number[] = [];
+  // Eslatmalarni kesish uchun belgilar oralig'i (UTF-16 offset — JS satri bilan bir xil).
+  const cut: [number, number][] = [];
+  for (const e of entities) {
+    if (e.type === "mention") {
+      usernames.push(text.substr(e.offset + 1, e.length - 1));
+      cut.push([e.offset, e.offset + e.length]);
+    } else if (e.type === "text_mention" && e.user) {
+      userIds.push(e.user.id);
+      cut.push([e.offset, e.offset + e.length]);
+    }
+  }
+  let body = "";
+  let pos = 0;
+  for (const [a, b] of cut.sort((x, y) => x[0] - y[0])) {
+    body += text.slice(pos, a);
+    pos = b;
+  }
+  body += text.slice(pos);
+  body = body.replace(CMD_RE, "").replace(/^[\s:,.\-—]+/, "").replace(/\s+/g, " ").trim();
+  return { body, usernames, userIds };
+}
+
+/** Bot kartasiga javob: vazifa bajarildi deb belgilashmi. */
+export function isDoneReply(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const t = text.trim().toLowerCase().replace(/[ʻʼ‘’`]/g, "'");
+  if (/^[✅✔️☑️👍+]+$/u.test(t.replace(/\s/g, ""))) return true;
+  return /^(✅\s*)?(bajarildi|bajardim|tayyor|qildim|bo'ldi|done|готово|сделано|выполнено)[!.\s]*$/u.test(t);
+}
+
+export const GROUP_HELP =
+  "Guruhda vazifa berish:\n<code>#vazifa @username nima qilish kerak, ertaga 15:00, zarur</code>\n" +
+  "yoki odamning xabariga javob qilib: <code>#vazifa matn</code>\n" +
+  "Bajarilganda bot kartasiga «✅» yoki «bajarildi» deb javob yozing.";
