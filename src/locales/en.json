@@ -444,6 +444,28 @@
       "unlinked": "Telegram unlinked",
       "unlinkFailed": "Could not unlink",
       "cancel": "Cancel"
+    },
+    "dailyReports": {
+      "nav": "Daily reports",
+      "title": "Daily reports",
+      "subtitle": "Reports staff submit every day at 17:00 via the Telegram bot",
+      "prev": "Previous day",
+      "next": "Next day",
+      "today": "Today",
+      "dayOff": "Sunday — day off, no report is requested.",
+      "submitted": "Submitted",
+      "missing": "Missing",
+      "blockers": "Blockers",
+      "tasksDone": "Tasks completed",
+      "blockersTitle": "Blockers and problems",
+      "tasksCount": "{{count}} tasks",
+      "notLinked": "Not linked to bot",
+      "noReport": "No report",
+      "done": "Done",
+      "blocker": "Blocker",
+      "plan": "Tomorrow",
+      "original": "Original text",
+      "loadFailed": "Could not load reports"
     }
   },
   "leads": {
