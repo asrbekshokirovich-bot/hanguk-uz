@@ -13,7 +13,9 @@
 */
 
 @layer base {
-  :root {
+  /* .theme-light: a light island inside the dark theme (Hanguk AI chat). */
+  :root,
+  .theme-light {
     /* ---- surfaces ---- */
     --background: 216 38% 97%;        /* #F6F8FB app canvas */
     --foreground: 217 62% 12%;        /* #0C1B33 ink */

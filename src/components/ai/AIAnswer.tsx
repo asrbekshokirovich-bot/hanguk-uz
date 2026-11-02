@@ -25,7 +25,7 @@ const KIND_ICON: Record<SourceKind, { Icon: typeof BookOpen; className: string }
   guideline: { Icon: BookOpen, className: 'text-[#2447D6]' },
   pdf: { Icon: FileText, className: 'text-[#DC2626]' },
   crm: { Icon: ContactRound, className: 'text-[#7FA11A]' },
-  web: { Icon: Globe, className: 'text-slate-500' },
+  web: { Icon: Globe, className: 'text-muted-foreground' },
 };
 
 const KIND_ORDER: SourceKind[] = ['guideline', 'pdf', 'crm', 'web'];
@@ -61,7 +61,7 @@ function Sources({ sources }: { sources: AnswerSource[] }) {
       <button
         type="button"
         onClick={() => open(s)}
-        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-xs font-medium text-foreground/80 hover:bg-muted"
       >
         <SourceIcon kind={s.kind} />
         {label(s)}
@@ -75,20 +75,20 @@ function Sources({ sources }: { sources: AnswerSource[] }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-8 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50"
+          className="inline-flex h-8 items-center gap-2 rounded-full border border-border bg-background px-3 text-xs font-medium text-foreground/80 hover:bg-muted"
         >
           <span className="flex items-center -space-x-0.5">
             {kinds.map((k) => (
-              <span key={k} className="flex h-4 w-4 items-center justify-center rounded bg-white">
+              <span key={k} className="flex h-4 w-4 items-center justify-center rounded bg-background">
                 <SourceIcon kind={k} />
               </span>
             ))}
           </span>
           {t('ai.answer.sources', { count: sources.length, defaultValue: '{{count}} manba' })}
-          <ChevronDown className="h-3.5 w-3.5 text-slate-400" aria-hidden />
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 p-1">
+      <PopoverContent align="start" className="theme-light w-80 p-1">
         {sources.map((s, i) => {
           const link = sourceHref(s);
           const extra = [s.page, s.kind === 'web' ? hostOf(s.url) : null, s.date ? dmy(s.date) : null].filter(Boolean).join(' · ');
@@ -98,12 +98,12 @@ function Sources({ sources }: { sources: AnswerSource[] }) {
               type="button"
               disabled={!link}
               onClick={() => open(s)}
-              className="flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-slate-50 disabled:cursor-default disabled:hover:bg-transparent"
+              className="flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-muted disabled:cursor-default disabled:hover:bg-transparent"
             >
               <SourceIcon kind={s.kind} className="mt-0.5 shrink-0" />
               <span className="min-w-0">
-                <span className="block font-medium text-slate-800">{label(s)}</span>
-                {extra && <span className="block text-slate-500">{extra}</span>}
+                <span className="block font-medium text-foreground">{label(s)}</span>
+                {extra && <span className="block text-muted-foreground">{extra}</span>}
               </span>
             </button>
           );
@@ -120,7 +120,7 @@ function LeadSourceText({ sources }: { sources: AnswerSource[] }) {
   const text = s.kind === 'web'
     ? [hostOf(s.url), dmy(s.date)].filter(Boolean).join(' · ')
     : s.kind === 'pdf' ? [s.label, s.page].filter(Boolean).join(' · ') : '';
-  return text ? <span className="truncate text-xs text-slate-500">{text}</span> : null;
+  return text ? <span className="truncate text-xs text-muted-foreground">{text}</span> : null;
 }
 
 function Feedback({ runId }: { runId?: string }) {
@@ -132,13 +132,13 @@ function Feedback({ runId }: { runId?: string }) {
     const { error } = await db.rpc('ai_run_feedback', { p_run: runId, p_value: v, p_note: null });
     if (error) setValue(null);
   };
-  const btn = 'flex h-8 w-8 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800';
+  const btn = 'flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground';
   return (
     <div className="flex items-center gap-0.5">
-      <button type="button" className={cn(btn, value === 1 && 'text-[#16A34A]')} aria-label={t('ai.answer.good', 'Yaxshi javob')} onClick={() => void send(1)}>
+      <button type="button" className={cn(btn, value === 1 && 'text-success')} aria-label={t('ai.answer.good', 'Yaxshi javob')} onClick={() => void send(1)}>
         <ThumbsUp className="h-4 w-4" fill={value === 1 ? 'currentColor' : 'none'} />
       </button>
-      <button type="button" className={cn(btn, value === -1 && 'text-[#DC2626]')} aria-label={t('ai.answer.bad', 'Yomon javob')} onClick={() => void send(-1)}>
+      <button type="button" className={cn(btn, value === -1 && 'text-destructive')} aria-label={t('ai.answer.bad', 'Yomon javob')} onClick={() => void send(-1)}>
         <ThumbsDown className="h-4 w-4" fill={value === -1 ? 'currentColor' : 'none'} />
       </button>
     </div>
@@ -155,7 +155,7 @@ function Steps({ steps, running }: { steps: string[]; running: boolean }) {
         const busy = running && i === keys.length - 1;
         return (
           <span key={k} className="flex items-center gap-2">
-            {i > 0 && <ArrowRight className="h-3.5 w-3.5 text-slate-400" aria-hidden />}
+            {i > 0 && <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />}
             <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[#EEF6C8] px-3 text-xs font-semibold text-[#7FA11A]">
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               {t(`ai.answer.step.${k}`)}
@@ -174,10 +174,10 @@ function DocsRing({ entity }: { entity: StudentEntity }) {
   return (
     <div
       className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full"
-      style={{ background: `conic-gradient(#CCE33A ${pct * 360}deg, #E5E7EB 0deg)` }}
+      style={{ background: `conic-gradient(#CCE33A ${pct * 360}deg, hsl(var(--border)) 0deg)` }}
       aria-hidden
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-[#0A1A34]">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-sm font-bold text-card-foreground">
         {entity.initials}
       </div>
     </div>
@@ -191,17 +191,17 @@ function StudentCard({ entity }: { entity: StudentEntity }) {
   const tone = {
     good: 'bg-emerald-50 text-emerald-700',
     bad: 'bg-red-50 text-red-700',
-    neutral: 'bg-slate-100 text-slate-600',
+    neutral: 'bg-muted text-muted-foreground',
   } as const;
-  const dot = { good: 'bg-emerald-500', bad: 'bg-red-500', neutral: 'bg-slate-400' } as const;
+  const dot = { good: 'bg-emerald-500', bad: 'bg-red-500', neutral: 'bg-muted-foreground' } as const;
   return (
-    <div className="flex gap-4 rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+    <div className="flex gap-4 rounded-xl border border-border bg-muted/40 p-4">
       <DocsRing entity={entity} />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate font-bold text-[#0A1A34]">{entity.name}</p>
-            <p className="text-xs text-slate-500">
+            <p className="truncate font-bold text-foreground">{entity.name}</p>
+            <p className="text-xs text-muted-foreground">
               {t('ai.answer.student', 'Talaba')}
               {season && <> · {season.year} {t(`ai.answer.${season.term}`)}</>}
               {entity.docsApproved != null && (
@@ -214,7 +214,7 @@ function StudentCard({ entity }: { entity: StudentEntity }) {
           <button
             type="button"
             onClick={() => navigate(`/crm/students?student=${encodeURIComponent(entity.id)}`)}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-[#0A1A34] hover:bg-slate-50"
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-xs font-semibold text-foreground hover:bg-muted"
           >
             {t('ai.answer.openCard', 'Kartani ochish')}
             <ArrowRight className="h-3.5 w-3.5" />
@@ -250,18 +250,18 @@ export function AIAnswer({ content, meta = {}, running = false, onPick, interact
   const steps = meta.steps ?? [];
   const text = content
     ? <AIMessageContent content={content} onPick={onPick} interactive={interactive} />
-    : <p className="text-sm text-slate-500">{t('ai.thinking', 'Thinking...')}</p>;
+    : <p className="text-sm text-muted-foreground">{t('ai.thinking', 'Thinking...')}</p>;
 
   if (meta.entity || (running && steps.length)) {
     return (
-      <div className="w-full max-w-[680px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-[#0A1A34] shadow-sm">
+      <div className="w-full max-w-[680px] overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-sm">
         <Steps steps={steps} running={running} />
-        <div className={cn('space-y-4 px-4 pb-4', steps.length ? 'border-t border-slate-100 pt-4' : 'pt-4')}>
+        <div className={cn('space-y-4 px-4 pb-4', steps.length ? 'border-t border-border pt-4' : 'pt-4')}>
           {text}
           {meta.entity && <StudentCard entity={meta.entity} />}
         </div>
         {!running && (sources.length > 0 || meta.runId) && (
-          <div className="flex items-center gap-3 border-t border-slate-100 px-4 py-2.5">
+          <div className="flex items-center gap-3 border-t border-border px-4 py-2.5">
             <Sources sources={sources} />
             <LeadSourceText sources={sources} />
             <div className="ml-auto">
@@ -275,7 +275,7 @@ export function AIAnswer({ content, meta = {}, running = false, onPick, interact
 
   return (
     <div className="max-w-[680px] space-y-1.5">
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[#0A1A34] shadow-sm">{text}</div>
+      <div className="rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground shadow-sm">{text}</div>
       {!running && (sources.length > 0 || meta.runId) && (
         <div className="flex items-center gap-2">
           <Sources sources={sources} />

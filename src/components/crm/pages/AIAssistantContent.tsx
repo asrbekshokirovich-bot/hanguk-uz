@@ -321,7 +321,12 @@ export default function AIAssistantContent() {
           className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.35),transparent_70%)]"
         />
 
-        <ScrollArea className="relative flex-1" ref={scrollRef}>
+        {/* The conversation is a light panel (Asrbek, 2026-11-02): white answer
+            cards on the dark page were hard to read. The home screen stays dark. */}
+        <ScrollArea
+          className={cn('relative flex-1', !empty && 'theme-light m-2 mb-0 rounded-xl bg-background text-foreground')}
+          ref={scrollRef}
+        >
           {empty ? (
             <div className="flex min-h-full flex-col items-center px-6 pt-16 pb-6">
               <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-primary/60 bg-primary/40 shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
@@ -370,8 +375,8 @@ export default function AIAssistantContent() {
                 return (
                   <div key={idx} className={cn('flex items-start gap-3', msg.role === 'user' && 'flex-row-reverse')}>
                     {msg.role === 'user' ? (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50">
-                        <User className="h-4 w-4 text-slate-500" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted">
+                        <User className="h-4 w-4 text-muted-foreground" />
                       </div>
                     ) : (
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B]">
@@ -400,10 +405,10 @@ export default function AIAssistantContent() {
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B]">
                     <Sparkle className="h-4 w-4 text-[#D4E94C]" />
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <div className="rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground shadow-sm">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
-                      <span className="text-sm text-slate-500">{t('ai.thinking', 'Thinking...')}</span>
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">{t('ai.thinking', 'Thinking...')}</span>
                     </div>
                   </div>
                 </div>
