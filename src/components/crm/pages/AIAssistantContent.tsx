@@ -370,8 +370,8 @@ export default function AIAssistantContent() {
                 return (
                   <div key={idx} className={cn('flex items-start gap-3', msg.role === 'user' && 'flex-row-reverse')}>
                     {msg.role === 'user' ? (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50">
-                        <User className="h-4 w-4 text-slate-500" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-muted">
+                        <User className="h-4 w-4 text-muted-foreground" />
                       </div>
                     ) : (
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B]">
@@ -400,10 +400,10 @@ export default function AIAssistantContent() {
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B]">
                     <Sparkle className="h-4 w-4 text-[#D4E94C]" />
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                  <div className="rounded-2xl border border-border bg-card px-4 py-3 text-card-foreground shadow-sm">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
-                      <span className="text-sm text-slate-500">{t('ai.thinking', 'Thinking...')}</span>
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">{t('ai.thinking', 'Thinking...')}</span>
                     </div>
                   </div>
                 </div>
