@@ -139,6 +139,7 @@ jobs:
           # guideline-index is new (Hanguk AI 2.0, 2026-10-31): no live copy existed.
           # staff-bot (added 2026-10-29) is new — no live version to compare;
           # verify_jwt = false comes from config.toml (Telegram secret header).
+          # tv-board (2026-11-03) is new in Hanguk (old one lived in Orbit); verify_jwt = false, key in ?k=.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -172,6 +173,7 @@ jobs:
             delete-staff
             guideline-index
             staff-bot
+            tv-board
           "
 
           for fn in $FUNCTIONS; do

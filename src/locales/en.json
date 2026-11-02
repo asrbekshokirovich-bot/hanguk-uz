@@ -502,7 +502,10 @@
       "aiHint": "AI spots task assignments and completions in group messages. It never creates anything on its own: a task is created only after the author taps ✅. In “Shadow” mode proposals are only recorded, not posted — to check accuracy.",
       "ai_off": "Off",
       "ai_shadow": "Shadow",
-      "ai_on": "On"
+      "ai_on": "On",
+      "tvTitle": "Office TV",
+      "tvHint": "The task screen shows CRM tasks. Open this link once in the TV browser, or type the key with the remote.",
+      "tvKey": "Key: {{key}}"
     }
   },
   "leads": {

@@ -146,6 +146,18 @@ export function BotSettingsCard() {
           {errors.includes('workdays') && <p className="text-xs text-destructive">{t('crm.botSettings.needDay')}</p>}
         </div>
 
+        {/* Ofis TV */}
+        {s.tv_key && (
+          <div className="space-y-1">
+            <Label className="text-base">{t('crm.botSettings.tvTitle')}</Label>
+            <p className="text-xs text-muted-foreground">{t('crm.botSettings.tvHint')}</p>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <code className="rounded bg-muted px-2 py-1 break-all">{`https://hanguk.uz/tv#k=${s.tv_key}`}</code>
+              <Badge variant="outline">{t('crm.botSettings.tvKey', { key: s.tv_key })}</Badge>
+            </div>
+          </div>
+        )}
+
         {/* Guruh AI tahlili */}
         <div className="space-y-2">
           <Label className="text-base">{t('crm.botSettings.aiTitle')}</Label>
