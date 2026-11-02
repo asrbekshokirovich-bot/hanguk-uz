@@ -19,10 +19,14 @@
 // a document is "done" with chunk_meta.embedded = false. Every run then
 // embeds up to BACKFILL such chunks while Gemini answers, so the vectors catch
 // up once the quota is back. Anthropic has no embedding model of its own.
+//
+// {"mode":"claude"} (cron guideline-claude-3min): Claude reads the PDFs pdf.js
+// could not — scans, CPU-heavy files, files over 40 MB — see claude.ts.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as unpdf from "npm:unpdf@0.12.1";
 import { chunkPages } from "./chunk.ts";
 import { extractPages } from "./pdf.ts";
+import { claudeTranscribe, PAGES_PER_CALL, parseProgress, parseTranscript } from "./claude.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -30,6 +34,8 @@ const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") || "";
 const DIMS = 1024;
 const MAX_BYTES = 40e6;
 const BACKFILL = 100;
+const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
+const OCR_MODEL = Deno.env.get("GUIDELINE_OCR_MODEL") || "claude-sonnet-5-5";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -182,10 +188,88 @@ async function backfillEmbeddings(db: any): Promise<{ embedded: number; error: s
   return { embedded: rows.length, error: null };
 }
 
+/** One Claude call: the next PAGES_PER_CALL pages of one PDF pdf.js could not read. */
+async function claudeRead(db: any): Promise<Record<string, unknown>> {
+  if (!ANTHROPIC_KEY) return { status: "skipped", error: "ANTHROPIC_API_KEY is not configured" };
+  const { data: next, error } = await db.rpc("ai_guideline_claude_next");
+  if (error) return { status: "failed", error: error.message };
+  const doc = next?.[0];
+  if (!doc) return { status: "nothing to do" };
+
+  const prog = parseProgress(doc.error);
+  const from = prog.done + 1;
+  const to = prog.total ? Math.min(prog.total, from + PAGES_PER_CALL - 1) : from + PAGES_PER_CALL - 1;
+  const setError = (text: string, extra: Record<string, unknown> = {}) =>
+    db.from("guideline_index_state").update({ error: text, indexed_at: new Date().toISOString(), ...extra })
+      .eq("guideline_document_id", doc.id);
+
+  try {
+    const { data: signed, error: sErr } = await db.storage.from("guideline-blobs").createSignedUrl(doc.storage_path, 3600);
+    if (sErr || !signed?.signedUrl) throw new Error(`signed url: ${sErr?.message ?? "none"}`);
+    const { text, usage } = await claudeTranscribe(signed.signedUrl, from, to, ANTHROPIC_KEY, OCR_MODEL);
+    const parsed = parseTranscript(text);
+    const total = parsed.total ?? prog.total;
+    if (!total) throw new Error("no TOTAL_PAGES in the transcript");
+    const last = Math.min(to, total);
+
+    // Page texts in order; chunkPages numbers pages from 1, so shift by from - 1.
+    const texts: string[] = [];
+    for (let p = from; p <= last; p++) texts.push(parsed.pages.get(p) ?? "");
+    if (from === 1) await db.from("embedding_chunks").delete().eq("guideline_document_id", doc.id);
+    const { data: maxRow } = await db.from("embedding_chunks").select("chunk_index")
+      .eq("guideline_document_id", doc.id).order("chunk_index", { ascending: false }).limit(1).maybeSingle();
+    const base = (maxRow?.chunk_index ?? -1) + 1;
+    const chunks = chunkPages(texts).map((c) => ({ ...c, page: c.page + from - 1, index: c.index + base }));
+
+    let vectors: number[][] | null = null;
+    if (GEMINI_KEY && chunks.length) {
+      try { vectors = await embedBatch(chunks.map((c) => c.text)); } catch { vectors = null; }
+    }
+    if (chunks.length) {
+      const rows = chunks.map((c, k) => ({
+        guideline_document_id: doc.id,
+        institution_id: doc.institution_id,
+        chunk_text_ko: c.text,
+        embedding: vectors ? JSON.stringify(vectors[k]) : null,
+        page: c.page,
+        chunk_index: c.index,
+        chunk_meta: {
+          page: c.page, academic_year: doc.academic_year, semester: doc.semester, reader: "claude", ocr_model: OCR_MODEL,
+          embedded: !!vectors, model: vectors ? "gemini-embedding-001" : null, dims: vectors ? DIMS : null,
+        },
+      }));
+      const { error: insErr } = await db.from("embedding_chunks").insert(rows);
+      if (insErr) throw new Error(`insert: ${insErr.message}`);
+    }
+
+    const chars = texts.reduce((n, t) => n + t.length, 0);
+    if (last >= total) {
+      const { count } = await db.from("embedding_chunks").select("id", { count: "exact", head: true })
+        .eq("guideline_document_id", doc.id);
+      await setError(`claude: done ${total}/${total}`, { status: "done", pages: total, chunks: count ?? null });
+    } else {
+      await setError(`claude: ${last}/${total}`, { pages: total });
+    }
+    return { id: doc.id, status: "ok", pages: `${from}-${last}/${total}`, chunks: chunks.length, chars, usage };
+  } catch (e) {
+    const msg = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    const k = prog.failures + 1;
+    await setError(`claude failed (${k}): ${msg}${prog.done ? ` [${prog.done}/${prog.total ?? "?"}]` : ""}`);
+    return { id: doc.id, status: "failed", error: msg };
+  }
+}
+
 Deno.serve(async (req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+  const body = await req.json().catch(() => ({}));
+  if (body?.mode === "claude") {
+    const t0 = Date.now();
+    const r = await claudeRead(db);
+    console.log(`[guideline-index] claude ${r.status} ${r.pages ?? ""} ${r.error ?? ""} in ${Date.now() - t0} ms`);
+    return json(r);
+  }
   const started = Date.now();
   const results: Record<string, unknown>[] = [];
 
