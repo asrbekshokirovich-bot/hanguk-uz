@@ -137,3 +137,27 @@ Deno.test("renderSummary: topshirgan/topshirmagan, to'siqlar", () => {
   assertEquals(s.indexOf("Diyora</b>") < s.indexOf("Madina</b>"), true); // avval topshirganlar, alifbo
   assertEquals(s.indexOf("Madina</b>") < s.indexOf("Olmos</b>"), true);
 });
+
+import { isDoneReply, parseGroupCommand } from "./core.ts";
+
+Deno.test("parseGroupCommand: #vazifa, /vazifa@bot, eslatmalar", () => {
+  const t = "#vazifa @diyora_h apostil hujjatlari, ertaga 15:00";
+  const r = parseGroupCommand(t, [{ type: "hashtag", offset: 0, length: 7 }, { type: "mention", offset: 8, length: 9 }]);
+  assertEquals(r, { body: "apostil hujjatlari, ertaga 15:00", usernames: ["diyora_h"], userIds: [] });
+  const t2 = "/vazifa@STAFF_HANGUK_BOT Madina: qo'ng'iroq qil";
+  const r2 = parseGroupCommand(t2, [{ type: "bot_command", offset: 0, length: 24 }, { type: "text_mention", offset: 25, length: 6, user: { id: 42 } }]);
+  assertEquals(r2, { body: "qo'ng'iroq qil", usernames: [], userIds: [42] });
+  assertEquals(parseGroupCommand("#vazifa", []), { body: "", usernames: [], userIds: [] });
+  assertEquals(parseGroupCommand("bugun vazifa ko'p", []), null);
+  assertEquals(parseGroupCommand("#vazifalar ro'yxati", []), null);
+  assertEquals(parseGroupCommand(null, []), null);
+});
+
+Deno.test("isDoneReply", () => {
+  for (const s of ["✅", "✅✅", "+", "👍", "Bajarildi", "bajardim!", "tayyor", "bo‘ldi", "done", "Готово"]) {
+    assertEquals(isDoneReply(s), true, s);
+  }
+  for (const s of ["bajarildimi?", "hali tayyor emas", "ok", "", "ertaga bajaraman"]) {
+    assertEquals(isDoneReply(s), false, s);
+  }
+});
