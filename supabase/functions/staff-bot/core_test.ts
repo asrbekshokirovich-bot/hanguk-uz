@@ -161,3 +161,59 @@ Deno.test("isDoneReply", () => {
     assertEquals(isDoneReply(s), false, s);
   }
 });
+
+import { type AiAnalysis, type CtxStaff, interpretAnalysis, matchStaff, renderProposal, shouldAnalyze, similarTitle } from "./core.ts";
+
+const STAFF: CtxStaff[] = [
+  { user_id: "u-d", name: "Diyora", username: "drantares", tasks: [{ id: "t1", title: "Kim Minsu apostil hujjatlari" }] },
+  { user_id: "u-m", name: "Madina", username: "rashidova017", tasks: [] },
+  { user_id: "u-o", name: "Omina", username: null, tasks: [{ id: "t2", title: "Toshkent lidlariga qo'ng'iroq" }, { id: "t3", title: "Sumka buyurtma" }] },
+];
+const ai = (p: Partial<AiAnalysis>): AiAnalysis => ({
+  action: "create_task", assignee: "Madina", title: "Ali ga qo'ng'iroq qilish", due_text: "ertaga 15:00",
+  priority: "normal", task_ref: 0, confidence: 0.9, reason: "aniq topshiriq", ...p,
+});
+const NOW = Date.parse("2026-11-02T06:00:00Z");
+
+Deno.test("shouldAnalyze", () => {
+  assertEquals(shouldAnalyze("Madina, ertaga Aliga qo'ng'iroq qil"), true);
+  assertEquals(shouldAnalyze("ok"), false);
+  assertEquals(shouldAnalyze("#vazifa @x biror ish qilish kerak"), false);
+  assertEquals(shouldAnalyze("👍👍👍👍👍👍👍👍👍👍👍👍"), false);
+  assertEquals(shouldAnalyze(null), false);
+});
+
+Deno.test("matchStaff: username, ism, noaniq", () => {
+  assertEquals(matchStaff("@drantares", STAFF)?.user_id, "u-d");
+  assertEquals(matchStaff("madina", STAFF)?.user_id, "u-m");
+  assertEquals(matchStaff("Kimdir", STAFF), null);
+  assertEquals(matchStaff("", STAFF), null);
+});
+
+Deno.test("similarTitle", () => {
+  assertEquals(similarTitle("Kim Minsu apostil hujjatlari", "Kim Minsu apostil hujjatlarini topshirish"), true);
+  assertEquals(similarTitle("Sumka buyurtma", "Toshkent lidlariga qo'ng'iroq"), false);
+});
+
+Deno.test("interpretAnalysis: yaratish, past ishonch, dublikat, yopish, o'ylab topilgan raqam", () => {
+  const p = interpretAnalysis(ai({}), STAFF, NOW)!;
+  assertEquals(p.kind, "create");
+  assertEquals(p.assignee_user_id, "u-m");
+  assertEquals(p.due, "2026-11-03T10:00:00.000Z");
+  assertEquals(interpretAnalysis(ai({ confidence: 0.6 }), STAFF, NOW), null);
+  assertEquals(interpretAnalysis(ai({ assignee: "Noma'lum" }), STAFF, NOW), null);
+  assertEquals(interpretAnalysis(ai({ assignee: "Diyora", title: "Kim Minsu apostil hujjatlari" }), STAFF, NOW), null);
+  assertEquals(interpretAnalysis(ai({ action: "none" }), STAFF, NOW), null);
+  const c = interpretAnalysis(ai({ action: "close_task", assignee: "Omina", task_ref: 2 }), STAFF, NOW)!;
+  assertEquals([c.kind, c.task_id, c.title], ["close", "t3", "Sumka buyurtma"]);
+  assertEquals(interpretAnalysis(ai({ action: "close_task", assignee: "Omina", task_ref: 9 }), STAFF, NOW), null);
+  assertEquals(interpretAnalysis(null, STAFF, NOW), null);
+});
+
+Deno.test("renderProposal", () => {
+  const p = interpretAnalysis(ai({ priority: "urgent" }), STAFF, NOW)!;
+  const t = renderProposal(p, "Asrbek");
+  assertEquals(t.includes("Madina uchun vazifa"), true);
+  assertEquals(t.includes("muddat 03.11 15:00 · zarur"), true);
+  assertEquals(t.includes("Asrbek tasdiqlasin"), true);
+});

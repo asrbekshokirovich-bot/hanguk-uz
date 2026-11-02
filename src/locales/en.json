@@ -497,7 +497,12 @@
       "save": "Save",
       "saved": "Settings saved, schedule updated",
       "saveFailed": "Could not save",
-      "loadFailed": "Could not load bot settings"
+      "loadFailed": "Could not load bot settings",
+      "aiTitle": "AI analysis of group chat",
+      "aiHint": "AI spots task assignments and completions in group messages. It never creates anything on its own: a task is created only after the author taps ✅. In “Shadow” mode proposals are only recorded, not posted — to check accuracy.",
+      "ai_off": "Off",
+      "ai_shadow": "Shadow",
+      "ai_on": "On"
     }
   },
   "leads": {

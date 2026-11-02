@@ -19,8 +19,9 @@ const sb = supabase as unknown as { rpc: (fn: string, args?: Record<string, unkn
 
 const EDITABLE = [
   'report_enabled', 'report_time', 'reminder_times', 'digest_time',
-  'morning_enabled', 'morning_time', 'workdays', 'digest_user_ids',
+  'morning_enabled', 'morning_time', 'workdays', 'digest_user_ids', 'group_ai_mode',
 ] as const;
+const AI_MODES = ['off', 'shadow', 'on'] as const;
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
 
 /** Xodim boti sozlamalari (faqat owner): vaqtlar, ish kunlari, xulosa oluvchilar, holat. */
@@ -143,6 +144,20 @@ export function BotSettingsCard() {
             ))}
           </div>
           {errors.includes('workdays') && <p className="text-xs text-destructive">{t('crm.botSettings.needDay')}</p>}
+        </div>
+
+        {/* Guruh AI tahlili */}
+        <div className="space-y-2">
+          <Label className="text-base">{t('crm.botSettings.aiTitle')}</Label>
+          <p className="text-xs text-muted-foreground">{t('crm.botSettings.aiHint')}</p>
+          <div className="flex flex-wrap gap-2">
+            {AI_MODES.map((m) => (
+              <Button key={m} type="button" size="sm" variant={(form.group_ai_mode || 'shadow') === m ? 'default' : 'outline'}
+                onClick={() => set('group_ai_mode', m)}>
+                {t(`crm.botSettings.ai_${m}`)}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Xulosa oluvchilar */}

@@ -544,7 +544,12 @@
       "save": "Saqlash",
       "saved": "Sozlamalar saqlandi, jadval yangilandi",
       "saveFailed": "Saqlab bo'lmadi",
-      "loadFailed": "Bot sozlamalarini yuklab bo'lmadi"
+      "loadFailed": "Bot sozlamalarini yuklab bo'lmadi",
+      "aiTitle": "Guruh suhbatini AI tahlili",
+      "aiHint": "AI guruhdagi xabarlardan vazifa berish yoki bajarilganini topadi. Hech narsani o'zi yaratmaydi: yozgan odam ✅ bossagina vazifa yaratiladi. «Kuzatish» rejimida takliflar faqat bazaga yoziladi, guruhga chiqmaydi — aniqlikni tekshirish uchun.",
+      "ai_off": "O'chiq",
+      "ai_shadow": "Kuzatish",
+      "ai_on": "Yoqilgan"
     }
   },
   "leads": {

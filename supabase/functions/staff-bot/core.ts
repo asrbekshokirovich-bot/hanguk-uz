@@ -369,3 +369,140 @@ export const GROUP_HELP =
   "Guruhda vazifa berish:\n<code>#vazifa @username nima qilish kerak, ertaga 15:00, zarur</code>\n" +
   "yoki odamning xabariga javob qilib: <code>#vazifa matn</code>\n" +
   "Bajarilganda bot kartasiga «✅» yoki «bajarildi» deb javob yozing.";
+
+// ── PR-8: guruh suhbati AI tahlili (faqat taklif) ─────────────────────────
+
+export interface CtxStaff {
+  user_id: string;
+  name: string;
+  username: string | null;
+  tasks: { id: string; title: string }[];
+}
+
+export interface AiAnalysis {
+  action: "none" | "create_task" | "close_task";
+  assignee: string; // ism yoki @username
+  title: string;
+  due_text: string;
+  priority: string;
+  task_ref: number; // close_task: ochiq vazifalar ro'yxatidagi raqam (1 dan)
+  confidence: number;
+  reason: string;
+}
+
+export interface Proposal {
+  kind: "create" | "close";
+  assignee_user_id: string;
+  assignee_name: string;
+  task_id: string | null;
+  title: string;
+  due: string | null;
+  priority: Priority;
+  confidence: number;
+  reason: string;
+}
+
+export const MIN_CONFIDENCE = 0.75;
+
+/** Tahlilga arziydimi: buyruq emas, juda qisqa emas, faqat emoji emas. */
+export function shouldAnalyze(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const t = text.trim();
+  if (t.length < 12 || t.startsWith("/") || /^#vazifa/i.test(t)) return false;
+  return /\p{L}{3,}/u.test(t);
+}
+
+const norm = (s: string) =>
+  s.toLowerCase().replace(/[ʻʼ‘’`']/g, "").replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+
+/** Ism yoki @username bo'yicha xodimni topish (aniq moslik; noaniq bo'lsa null). */
+export function matchStaff(ref: string, staff: CtxStaff[]): CtxStaff | null {
+  const r = norm(ref.replace(/^@/, ""));
+  if (!r) return null;
+  const byUser = staff.filter((s) => s.username && norm(s.username) === r);
+  if (byUser.length === 1) return byUser[0];
+  const byName = staff.filter((s) => norm(s.name) === r || norm(s.name).split(" ")[0] === r);
+  return byName.length === 1 ? byName[0] : null;
+}
+
+/** Sarlavhalar deyarli bir xilmi (so'zlar ustma-ust tushishi ≥ 0.7). */
+export function similarTitle(a: string, b: string): boolean {
+  const wa = new Set(norm(a).split(" ").filter((w) => w.length > 2));
+  const wb = new Set(norm(b).split(" ").filter((w) => w.length > 2));
+  if (!wa.size || !wb.size) return norm(a) === norm(b);
+  let common = 0;
+  for (const w of wa) if (wb.has(w)) common++;
+  return common / Math.min(wa.size, wb.size) >= 0.7;
+}
+
+/**
+ * AI javobini tekshirib, ishonchli taklifga aylantiradi. Har qanday shubha — null.
+ * Vazifa id'si AI'dan emas, berilgan ro'yxatdagi raqamdan olinadi (o'ylab topilgan id bo'lmaydi).
+ */
+export function interpretAnalysis(ai: AiAnalysis | null, staff: CtxStaff[], nowMs: number): Proposal | null {
+  if (!ai || ai.action === "none") return null;
+  if (typeof ai.confidence !== "number" || ai.confidence < MIN_CONFIDENCE) return null;
+  const who = matchStaff(ai.assignee ?? "", staff);
+  if (!who) return null;
+  const reason = String(ai.reason ?? "").slice(0, 300);
+
+  if (ai.action === "close_task") {
+    const t = who.tasks[Math.trunc(ai.task_ref) - 1];
+    if (!t) return null;
+    return { kind: "close", assignee_user_id: who.user_id, assignee_name: who.name, task_id: t.id, title: t.title,
+      due: null, priority: "normal", confidence: ai.confidence, reason };
+  }
+  if (ai.action !== "create_task") return null;
+  const title = String(ai.title ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+  if (title.length < 4) return null;
+  if (who.tasks.some((t) => similarTitle(t.title, title))) return null; // allaqachon bor
+  const parsed = parseTaskText(`${title} ${ai.due_text ?? ""}`, nowMs);
+  const pr = ["urgent", "high", "normal", "low"].includes(ai.priority) ? ai.priority as Priority : parsed.priority;
+  return { kind: "create", assignee_user_id: who.user_id, assignee_name: who.name, task_id: null, title,
+    due: parsed.due, priority: pr, confidence: ai.confidence, reason };
+}
+
+/** AI uchun so'rov matni. */
+export function buildAnalysisPrompt(staff: CtxStaff[], history: { name: string; text: string }[], target: { name: string; text: string }): string {
+  const people = staff.map((s) => {
+    const tasks = s.tasks.map((t, i) => `    ${i + 1}. ${t.title}`).join("\n") || "    (ochiq vazifa yo'q)";
+    return `- ${s.name}${s.username ? ` (@${s.username})` : ""}\n${tasks}`;
+  }).join("\n");
+  const hist = history.map((m) => `${m.name}: ${m.text}`).join("\n");
+  return `Xodimlar va ularning ochiq vazifalari:\n${people}\n\nOldingi xabarlar:\n${hist || "(yo'q)"}\n\nTAHLIL QILINADIGAN XABAR:\n${target.name}: ${target.text}`;
+}
+
+export const ANALYSIS_SYSTEM =
+  "You watch a Telegram work group of an Uzbek education consulting company (staff write in Uzbek, sometimes Russian). " +
+  "Decide if the LAST message clearly (1) assigns a concrete new task to a specific staff member, or (2) says a specific " +
+  "existing open task of a staff member is finished. Be conservative: questions, discussions, chit-chat, vague plans, " +
+  "past events and tasks someone gives to themselves without a clear owner are action=none. " +
+  "assignee: the staff member's name or @username exactly as listed. title: short imperative task in the message's language, " +
+  "no dates. due_text: the deadline words from the message (e.g. 'ertaga 15:00') or empty. priority: urgent|high|normal|low. " +
+  "task_ref: for close_task, the number of the task in that person's list, else 0. confidence 0..1. reason: one short sentence.";
+
+export const ANALYSIS_SCHEMA = {
+  type: "object",
+  properties: {
+    action: { type: "string", enum: ["none", "create_task", "close_task"] },
+    assignee: { type: "string" },
+    title: { type: "string" },
+    due_text: { type: "string" },
+    priority: { type: "string", enum: ["urgent", "high", "normal", "low"] },
+    task_ref: { type: "integer" },
+    confidence: { type: "number" },
+    reason: { type: "string" },
+  },
+  required: ["action", "assignee", "title", "due_text", "priority", "task_ref", "confidence", "reason"],
+};
+
+/** Guruhdagi taklif kartasi. */
+export function renderProposal(p: Proposal, authorName: string): string {
+  if (p.kind === "close") {
+    return `🤖 <b>Taklif:</b> «${escapeHtml(p.title)}» vazifasi (${escapeHtml(p.assignee_name)}) bajarildimi?\n` +
+      `<i>Tasdiqlash: ${escapeHtml(p.assignee_name)}, vazifa bergan yoki owner.</i>`;
+  }
+  const meta = [p.due ? `muddat ${fmtDue(p.due)}` : "", p.priority !== "normal" ? PRIORITY_UZ[p.priority] : ""].filter(Boolean).join(" · ");
+  return `🤖 <b>Taklif:</b> ${escapeHtml(p.assignee_name)} uchun vazifa\n• ${escapeHtml(p.title)}${meta ? `\n${meta}` : ""}\n` +
+    `<i>Yaratish uchun ${escapeHtml(authorName)} tasdiqlasin.</i>`;
+}
