@@ -68,3 +68,31 @@ copyright; permission should be obtained before public release.
 | 한국학중앙연구원 | `f19dfeba-23cb-49a8-8a6f-668828574556.jpg` | Wikimedia Commons | 최광모 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:2015%EB%85%84_1%EC%9B%94_8%EC%9D%BC_%ED%95%9C%EA%B5%AD%ED%95%99%EC%A4%91%EC%95%99%EC%97%B0%EA%B5%AC%EC%9B%9077.jpg |
 | 한남대학교 | `c7730462-efda-495e-8743-043ef12d9665.jpg` | Wikimedia Commons | Jinjin2222 | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:%ED%95%9C%EB%82%A8%EB%8C%80%ED%95%99%EA%B5%90_%EB%B4%84%EC%82%AC%EC%A7%84.jpg |
 | 한양대학교 | `bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb.jpg` | Wikimedia Commons | 최광모 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:20150228%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90_%EA%B2%BD%EC%98%81%EB%8C%80%ED%95%99140.jpg |
+| KDI국제정책대학원 | `cfb49bb5-2b72-4458-9891-369f93504117.jpg` | Wikimedia Commons | KDI School of Public Policy and Management | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:KDI_School_Image.jpg |
+| 경기대학교 | `e136f638-44f9-434e-8978-3fe035273ffb.jpg` | Wikimedia Commons | 경기대예술 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%EA%B2%BD%EA%B8%B0%EB%8C%80%ED%95%99%EA%B5%90_%EC%88%98%EC%9B%90%EC%BA%A0%ED%8D%BC%EC%8A%A4_1%EA%B0%95%EC%9D%98%EB%8F%99_(%EC%A7%84%EB%A6%AC%EA%B4%80).jpg |
+| 국립금오공과대학교 | `2ed00bc7-9b24-4c8c-b305-be38f7486364.jpg` | Wikimedia Commons | Mv.prof | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%EA%B8%88%EC%98%A4%EA%B3%B5%EB%8C%80_%EC%A0%95%EB%AC%B8.jpg |
+| 김천대학교 | `32a5a6cb-9389-496a-96ea-5d6c57a3b0d0.jpg` | Wikimedia Commons | Bucksup | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Gimcheon-university-mainbuilding.jpg |
+| 나사렛대학교 | `6ed3a892-c00c-4891-9f66-f8a3390b6e18.jpg` | Wikimedia Commons | Bongsun | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%EB%82%98%EC%9E%90%EB%A0%9B%EB%8C%80%ED%95%99%EA%B5%9020200529_181501.jpg |
+| 동서울대학교 | `15d3106f-5b7a-48aa-bf99-46683edd0e8c.jpg` | Wikimedia Commons | Dalgial | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Dong_Seoul_College_2.JPG |
+| 명지전문대학 | `849dd52c-7590-4c20-82c8-7d103cdb9a8c.jpg` | Wikimedia Commons | Chu | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:20100831_myongji_college.jpg |
+| 목포해양대학교 | `e427db9e-c4ec-40d4-8287-5a4592418026.jpg` | Wikimedia Commons | Ubigis | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%EA%B5%AD%EB%A6%BD%EB%AA%A9%ED%8F%AC%ED%95%B4%EC%96%91%EB%8C%80_%EB%B3%B8%EA%B4%80.jpg |
+| 백석대학교 | `aa85fe0e-82b0-4abb-80c3-e80e429193ce.jpg` | Wikimedia Commons | 백석대학교 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:%ED%95%99%EC%88%A0_%EC%A0%95%EB%B3%B4%EA%B4%80.JPG |
+| 부산대학교 | `981124c6-2aa2-4ccb-aea9-8072820f8182.jpg` | Wikimedia Commons | RedMosQ | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:PNU_Busan_campus_1.JPG |
+| 서울여자대학교 | `a909788e-5ab0-4fbc-b70f-fb01a385e17e.jpg` | Wikimedia Commons | hyolee2 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Seoul_Women%27s_University_2.JPG |
+| 세종대학교 | `694d7fa4-a402-4122-81eb-1906d320bb66.jpg` | Wikimedia Commons | Crimsonmaster | CC0 | https://commons.wikimedia.org/wiki/File:Sejong_University_Gate.jpg |
+| 순천대학교 | `e225b7ce-5be3-4b9e-9165-7c6329408598.jpg` | Wikimedia Commons | hyolee2 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Suncheon_National_University.JPG |
+| 연암공과대학교 | `6d776bed-3b4f-4082-89c1-862d45dc5ea5.jpg` | Wikimedia Commons | hyolee2 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Yonam_Institute_of_Digital_Technology_3.JPG |
+| 오산대학교 | `4fb9f5a1-2653-4801-a104-03df842113f3.jpg` | Wikimedia Commons | hyolee2 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Osan_University_1.JPG |
+| 우송대학교 | `0a063a19-b2dc-43f0-992e-28f40ae41f58.jpg` | Wikimedia Commons | *Youngjin | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Woosong_University_West_Campus_20190608_A01.jpg |
+| 울산과학대학교 | `556d0c9f-70b7-48ff-9e95-a0dde979daf9.jpg` | Wikimedia Commons | 울산과학대학교 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:%EC%9A%B8%EC%82%B0%EA%B3%BC%ED%95%99%EB%8C%80%ED%95%99%EA%B5%90-%EB%B3%B8%EA%B4%80.jpg |
+| 을지대학교 | `173c6b2f-a890-43ea-8797-745e00330bcb.jpg` | Wikimedia Commons | Jocelyndurrey | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:%EC%9D%84%EC%A7%80%EB%8C%80%ED%95%99%EA%B5%90_(1).JPG |
+| 인하공업전문대학 | `f67b1a34-be58-4672-9dc7-b977c5ecc7a7.jpg` | Wikimedia Commons | Ifflies | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:%EC%9D%B8%ED%95%98%EA%B3%B5%EC%97%85%EC%A0%84%EB%AC%B8%EB%8C%80%ED%95%99_%EB%B3%B8%EA%B4%80.jpg |
+| 제주대학교 | `aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.jpg` | Wikimedia Commons | imagejeju | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Jnuimage.jpg |
+| 포항공과대학교 | `4dbe3360-8e85-42dd-b70d-1f17cd7a89d8.jpg` | Wikimedia Commons | My own work | Public domain | https://commons.wikimedia.org/wiki/File:POSTECH_plaza.jpg |
+| 한국교원대학교 | `5cb91654-78c9-4eda-8ed2-25db16ad319e.jpg` | Wikimedia Commons | Clean&Clear | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:KNUE_campus_view.jpg |
+| 한국성서대학교 | `9bc89a49-bcec-4502-b356-daa3b3c845f3.jpg` | Wikimedia Commons | Bigsmile20 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Korean_Bible_University.jpg |
+| 한국항공대학교 | `b0f8d5eb-344f-4bf2-87df-6510e7dba8c5.jpg` | Wikimedia Commons | Kaupr | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:KAU_main_building.jpg |
+| 한국해양대학교 | `e5e344a3-e592-477a-9bca-f7a77bada978.jpg` | Wikimedia Commons | Rémi Cormier | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Korea_Maritime_University.jpg |
+| 한양사이버대학교 | `7df46afe-292c-4620-a031-6372b62146f6.jpg` | Wikimedia Commons | Piotrus | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Hanyang_Cyber_University.jpg |
+| 홍익대학교 | `aca61dee-fc98-42fd-966f-62dd2fb75dee.jpg` | Wikimedia Commons | Minseong Kim | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Hongik_University_Seoul.jpg |
+| 횃불트리니티신학대학원대학교 | `610edb4a-0112-4446-bbbc-e133a99e8a7c.jpg` | Wikimedia Commons | Gjunker570 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:AcademicBuildingTTGU.jpg |
