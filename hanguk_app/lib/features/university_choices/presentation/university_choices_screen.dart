@@ -645,7 +645,7 @@ class _FacultyPickerSheetState extends State<FacultyPickerSheet> {
                           selected: false,
                           height: 44,
                           padding: const EdgeInsets.symmetric(horizontal: 24),
-                          onTap: () => setState(() => _future = widget.load()),
+                          onTap: tracked('university_choices.uc_faculty_retry', () => setState(() => _future = widget.load())),
                         ),
                       );
                     }
@@ -672,7 +672,7 @@ class _FacultyPickerSheetState extends State<FacultyPickerSheet> {
                           'korean' => l.ucTrackKorean,
                           _ => null,
                         },
-                        onTap: () => setState(() => _picked = f.id),
+                        onTap: tracked('university_choices.uc_faculty_tile', () => setState(() => _picked = f.id)),
                       ));
                       children.add(const SizedBox(height: 8));
                     }
@@ -709,7 +709,7 @@ class _FacultyTile extends StatelessWidget {
     selected: selected,
     child: GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
+      onTap: tracked('faculty_tile', onTap),
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
