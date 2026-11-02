@@ -71,6 +71,7 @@ class UniversityChoicesScreen extends ConsumerWidget {
                   data: (choices) {
                     if (choices.isEmpty) return _Message(text: l.ucEmpty);
                     final waiting = choices.where((c) => c.canAnswer).length;
+                    final needFaculty = choices.where((c) => c.needsFaculty).length;
                     final admitted = choices.where((c) => c.outcome == AdmissionOutcome.accepted).length;
                     return RefreshIndicator(
                       color: FdColors.navy,
@@ -84,6 +85,10 @@ class UniversityChoicesScreen extends ConsumerWidget {
                           ],
                           if (waiting > 0) ...[
                             _NeedsAnswerBanner(count: waiting),
+                            const SizedBox(height: 12),
+                          ],
+                          if (needFaculty > 0) ...[
+                            const _FacultyBanner(),
                             const SizedBox(height: 12),
                           ],
                           for (final c in choices) ...[
@@ -154,6 +159,24 @@ class _NeedsAnswerBanner extends StatelessWidget {
   }
 }
 
+class _FacultyBanner extends StatelessWidget {
+  const _FacultyBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: FdColors.warn, width: 1.5),
+      ),
+      child: Text(l.ucFacultyBanner, style: fdText(13, FontWeight.w800, FdColors.ink)),
+    );
+  }
+}
+
 class _CongratsBanner extends StatelessWidget {
   const _CongratsBanner({required this.count});
 
@@ -220,6 +243,33 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
     }
   }
 
+  /// The separate "Fakultet tanlang" step: the list of the university's
+  /// faculties, then the pick goes to the consultant for confirmation.
+  Future<void> _pickFaculty() async {
+    final l = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final facultyId = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: FdColors.page,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => FacultyPickerSheet(
+        universityName: widget.choice.name,
+        load: () => fetchChoiceFaculties(widget.choice.id),
+      ),
+    );
+    if (facultyId == null || !mounted) return;
+    setState(() => _sending = true);
+    try {
+      await chooseChoiceFaculty(choiceId: widget.choice.id, facultyId: facultyId);
+      ref.invalidate(myUniversityChoicesProvider);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l.ucSendError)));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
   Future<void> _askForChange() async {
     final result = await showModalBottomSheet<({ChangeReason reason, String note})>(
       context: context,
@@ -247,7 +297,7 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
 
     return HardShadowBox(
       radius: 16,
-      offset: c.canAnswer || c.needsFinalConfirm ? 4 : 0,
+      offset: c.canAnswer || c.needsFinalConfirm || c.needsFaculty ? 4 : 0,
       border: c.outcome == AdmissionOutcome.rejected
           ? FdColors.bad
           : c.status == UniversityChoiceStatus.confirmed
@@ -342,6 +392,57 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
           if (c.status == UniversityChoiceStatus.changeRequested) ...[
             const SizedBox(height: 8),
             Text(l.ucChangeSentNote, style: fdText(12, FontWeight.w400, FdColors.muted)),
+          ],
+          if (c.needsFaculty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7E8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: FdColors.warn, width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(l.ucFacultyStepTitle, style: fdText(13, FontWeight.w800, FdColors.ink)),
+                  const SizedBox(height: 2),
+                  Text(l.ucFacultyStepBody, style: fdText(12, FontWeight.w400, FdColors.muted, height: 1.4)),
+                  const SizedBox(height: 10),
+                  HardButton(
+                    label: l.ucFacultyPick,
+                    loading: _sending,
+                    onPressed: tracked('university_choices.uc_faculty_pick', _sending ? null : _pickFaculty),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (c.facultyName != null) ...[
+            const SizedBox(height: 10),
+            Text(l.ucFacultyValue(c.facultyName!), style: fdText(13, FontWeight.w800, FdColors.ink)),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    c.facultyConfirmed ? l.ucFacultyConfirmed : l.ucFacultyPending,
+                    style: fdText(12, FontWeight.w600, c.facultyConfirmed ? FdColors.good : FdColors.muted),
+                  ),
+                ),
+                if (c.canChangeFaculty)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: tracked('university_choices.uc_faculty_change', _sending ? null : _pickFaculty),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                      child: Text(
+                        l.ucFacultyChange,
+                        style: fdText(12, FontWeight.w800, FdColors.navy).copyWith(decoration: TextDecoration.underline),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ],
         ],
       ),
@@ -465,4 +566,179 @@ class _ChangeRequestSheetState extends State<ChangeRequestSheet> {
       ),
     );
   }
+}
+
+/// "Fakultet tanlang": the university's faculties grouped by degree, with a
+/// search; pops with the chosen faculty's id, or null when dismissed.
+class FacultyPickerSheet extends StatefulWidget {
+  const FacultyPickerSheet({super.key, required this.universityName, required this.load});
+
+  final String universityName;
+  final Future<List<ChoiceFaculty>> Function() load;
+
+  @override
+  State<FacultyPickerSheet> createState() => _FacultyPickerSheetState();
+}
+
+class _FacultyPickerSheetState extends State<FacultyPickerSheet> {
+  late Future<List<ChoiceFaculty>> _future = widget.load();
+  final _search = TextEditingController();
+  String? _picked;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  String _degree(AppLocalizations l, String? d) => switch (d) {
+    'magistratura' => l.ucDegreeMaster,
+    'kasbiy' => l.ucDegreeVocational,
+    _ => l.ucDegreeBachelor,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.85,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 18, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l.ucFacultyStepTitle, style: fdText(18, FontWeight.w800, FdColors.onPage)),
+              Text(widget.universityName, style: fdText(12, FontWeight.w400, FdColors.pageMuted)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _search,
+                onChanged: (_) => setState(() {}),
+                style: fdText(14, FontWeight.w500, FdColors.ink),
+                cursorColor: FdColors.ink,
+                decoration: InputDecoration(
+                  hintText: l.ucFacultySearch,
+                  hintStyle: fdText(14, FontWeight.w500, FdColors.muted),
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Lucide(LucideIcons.search, size: 18, color: FdColors.muted),
+                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: FutureBuilder<List<ChoiceFaculty>>(
+                  future: _future,
+                  builder: (context, snap) {
+                    if (snap.connectionState != ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator(color: FdColors.lime));
+                    }
+                    if (snap.hasError) {
+                      return Center(
+                        child: HardChoice(
+                          label: l.commonRetry,
+                          selected: false,
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          onTap: tracked('university_choices.uc_faculty_retry', () => setState(() => _future = widget.load())),
+                        ),
+                      );
+                    }
+                    final list = (snap.data ?? const <ChoiceFaculty>[]).where((f) => f.matches(_search.text)).toList();
+                    if (list.isEmpty) {
+                      return Center(child: Text(l.ucFacultyEmpty, style: fdText(13, FontWeight.w700, FdColors.onPage)));
+                    }
+                    final children = <Widget>[];
+                    String? group;
+                    for (final f in list) {
+                      final g = _degree(l, f.degree);
+                      if (g != group) {
+                        group = g;
+                        children.add(Padding(
+                          padding: const EdgeInsets.fromLTRB(2, 8, 2, 6),
+                          child: Text(g.toUpperCase(), style: fdText(11, FontWeight.w800, FdColors.pageMuted)),
+                        ));
+                      }
+                      children.add(_FacultyTile(
+                        faculty: f,
+                        selected: _picked == f.id,
+                        trackLabel: switch (f.track) {
+                          'english' => l.ucTrackEnglish,
+                          'korean' => l.ucTrackKorean,
+                          _ => null,
+                        },
+                        onTap: tracked('university_choices.uc_faculty_tile', () => setState(() => _picked = f.id)),
+                      ));
+                      children.add(const SizedBox(height: 8));
+                    }
+                    return ListView(children: children);
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              HardButton(
+                label: l.ucFacultyChoose,
+                onPressed: tracked('university_choices.uc_faculty_choose', _picked == null
+                    ? null
+                    : () => Navigator.of(context).pop(_picked)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FacultyTile extends StatelessWidget {
+  const _FacultyTile({required this.faculty, required this.selected, required this.trackLabel, required this.onTap});
+
+  final ChoiceFaculty faculty;
+  final bool selected;
+  final String? trackLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: selected,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: tracked('faculty_tile', onTap),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          color: selected ? FdColors.lime : FdColors.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: FdColors.ink, width: selected ? 2 : 1.2),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(faculty.name, style: fdText(13, FontWeight.w800, FdColors.ink, height: 1.25)),
+                  if (faculty.nameKo != null || faculty.college != null)
+                    Text(
+                      [faculty.nameKo, faculty.college].whereType<String>().join(' · '),
+                      style: fdText(11, FontWeight.w400, FdColors.muted, height: 1.3),
+                    ),
+                ],
+              ),
+            ),
+            if (trackLabel != null) ...[
+              const SizedBox(width: 8),
+              _Pill(text: trackLabel!, fill: FdColors.tint, fg: FdColors.navy),
+            ],
+          ],
+        ),
+      ),
+    ),
+  );
 }

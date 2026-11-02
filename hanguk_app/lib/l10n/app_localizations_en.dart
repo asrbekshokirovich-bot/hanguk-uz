@@ -4305,6 +4305,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ucFinalChosen => '✓ You chose this university';
 
   @override
+  String get ucFacultyStepTitle => 'Choose your faculty';
+
+  @override
+  String get ucFacultyStepBody =>
+      'Pick the faculty you want to study at this university. Your consultant will confirm it.';
+
+  @override
+  String get ucFacultyPick => 'Choose faculty';
+
+  @override
+  String ucFacultyValue(String name) {
+    return 'Faculty: $name';
+  }
+
+  @override
+  String get ucFacultyPending => 'Waiting for your consultant to confirm';
+
+  @override
+  String get ucFacultyConfirmed => '✓ Faculty confirmed';
+
+  @override
+  String get ucFacultyChange => 'Change';
+
+  @override
+  String get ucFacultySearch => 'Search faculty';
+
+  @override
+  String get ucFacultyEmpty => 'Nothing found';
+
+  @override
+  String get ucFacultyChoose => 'Choose this faculty';
+
+  @override
+  String get ucFacultyBanner =>
+      'Choose a faculty for the universities you accepted';
+
+  @override
+  String get ucDegreeBachelor => 'Bachelor';
+
+  @override
+  String get ucDegreeMaster => 'Master';
+
+  @override
+  String get ucDegreeVocational => 'College';
+
+  @override
+  String get ucTrackKorean => 'Korean';
+
+  @override
+  String get ucTrackEnglish => 'English';
+
+  @override
   String get fdNavAssess => 'ASSESS';
 
   @override

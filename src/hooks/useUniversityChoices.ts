@@ -35,7 +35,32 @@ export interface UniversityChoice {
   change_reason: string | null;
   change_note: string | null;
   confirmed_at: string | null;
+  /** Faculty the student chose in the app (migration 20261102200000_choice_faculty.sql). */
+  faculty_name: string | null;
+  faculty_daraja: string | null;
+  faculty_chosen_at: string | null;
+  faculty_confirmed_at: string | null;
 }
+
+export type FacultyState = 'none' | 'waiting' | 'chosen' | 'confirmed';
+
+/**
+ * The faculty step (Asrbek, 2026-10-29): after "Roziman" the student picks a
+ * faculty in the app, then staff confirm it. 'none' — not yet the student's
+ * turn (offer unanswered or change requested).
+ */
+export function facultyState(
+  choice: Pick<UniversityChoice, 'status' | 'faculty_name' | 'faculty_confirmed_at'>,
+): FacultyState {
+  if (choice.faculty_name) return choice.faculty_confirmed_at ? 'confirmed' : 'chosen';
+  return choice.status === 'accepted' || choice.status === 'confirmed' ? 'waiting' : 'none';
+}
+
+export const FACULTY_DEGREE_LABELS: Record<string, string> = {
+  bakalavr: 'Bakalavr',
+  magistratura: 'Magistratura',
+  kasbiy: 'Kasbiy',
+};
 
 /** Reason codes the mobile app sends with "O'zgartirish so'rayman". */
 export const CHANGE_REASON_LABELS: Record<string, string> = {
@@ -98,7 +123,10 @@ export function useUniversityChoices() {
       ((await run(
         db
           .from('student_university_choices')
-          .select('id, student_id, institution_id, rank, created_at, status, responded_at, change_reason, change_note, confirmed_at')
+          .select(
+            'id, student_id, institution_id, rank, created_at, status, responded_at, change_reason, change_note, confirmed_at,' +
+              ' faculty_name, faculty_daraja, faculty_chosen_at, faculty_confirmed_at',
+          )
           .order('rank'),
       )) ?? []) as UniversityChoice[],
   });
@@ -208,6 +236,41 @@ export function useUniversityChoices() {
     onSettled: invalidate,
   });
 
+  /** Staff accept the faculty the student chose. */
+  const confirmFaculty = useMutation({
+    mutationFn: async (choice: UniversityChoice) => {
+      if (facultyState(choice) !== 'chosen') throw new Error('Talaba hali fakultet tanlamagan');
+      const { data: auth } = await supabase.auth.getUser();
+      await run(
+        db
+          .from('student_university_choices')
+          .update({ faculty_confirmed_at: new Date().toISOString(), faculty_confirmed_by: auth.user?.id ?? null })
+          .eq('id', choice.id),
+      );
+    },
+    onSettled: invalidate,
+  });
+
+  /** "Qayta tanlasin": clears the faculty so the student picks again in the app. */
+  const resetFaculty = useMutation({
+    mutationFn: async (choice: UniversityChoice) => {
+      await run(
+        db
+          .from('student_university_choices')
+          .update({
+            faculty_id: null,
+            faculty_name: null,
+            faculty_daraja: null,
+            faculty_chosen_at: null,
+            faculty_confirmed_at: null,
+            faculty_confirmed_by: null,
+          })
+          .eq('id', choice.id),
+      );
+    },
+    onSettled: invalidate,
+  });
+
   const remove = useMutation({
     mutationFn: async (choice: UniversityChoice) => {
       await run(db.from('student_university_choices').delete().eq('id', choice.id));
@@ -256,6 +319,8 @@ export function useUniversityChoices() {
     remove,
     move,
     confirm,
+    confirmFaculty,
+    resetFaculty,
     unlockConfirmed,
     canChangeConfirmed: canChangeQuery.data === true,
     changedStudents: changesQuery.data ?? new Set<string>(),

@@ -7712,6 +7712,102 @@ abstract class AppLocalizations {
   /// **'✓ You chose this university'**
   String get ucFinalChosen;
 
+  /// Step on an accepted university card: choose a faculty.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your faculty'**
+  String get ucFacultyStepTitle;
+
+  /// Explains the faculty step; the consultant confirms the choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the faculty you want to study at this university. Your consultant will confirm it.'**
+  String get ucFacultyStepBody;
+
+  /// Button that opens the faculty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose faculty'**
+  String get ucFacultyPick;
+
+  /// The chosen faculty on a university card.
+  ///
+  /// In en, this message translates to:
+  /// **'Faculty: {name}'**
+  String ucFacultyValue(String name);
+
+  /// The chosen faculty waits for the consultant's confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your consultant to confirm'**
+  String get ucFacultyPending;
+
+  /// The consultant confirmed the chosen faculty.
+  ///
+  /// In en, this message translates to:
+  /// **'✓ Faculty confirmed'**
+  String get ucFacultyConfirmed;
+
+  /// Link to pick a different faculty before it is confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get ucFacultyChange;
+
+  /// Search field hint in the faculty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Search faculty'**
+  String get ucFacultySearch;
+
+  /// The faculty search found nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found'**
+  String get ucFacultyEmpty;
+
+  /// Confirm button in the faculty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose this faculty'**
+  String get ucFacultyChoose;
+
+  /// Banner when accepted universities still need a faculty.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a faculty for the universities you accepted'**
+  String get ucFacultyBanner;
+
+  /// Degree group in the faculty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor'**
+  String get ucDegreeBachelor;
+
+  /// Degree group in the faculty list.
+  ///
+  /// In en, this message translates to:
+  /// **'Master'**
+  String get ucDegreeMaster;
+
+  /// Degree group in the faculty list (vocational college).
+  ///
+  /// In en, this message translates to:
+  /// **'College'**
+  String get ucDegreeVocational;
+
+  /// Chip: the faculty teaches in Korean.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean'**
+  String get ucTrackKorean;
+
+  /// Chip: the faculty teaches in English.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get ucTrackEnglish;
+
   /// Label under the percentage on the round button of the bottom nav.
   ///
   /// In en, this message translates to:

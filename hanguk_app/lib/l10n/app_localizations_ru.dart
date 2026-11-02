@@ -4309,6 +4309,57 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ucFinalChosen => '✓ Вы выбрали этот университет';
 
   @override
+  String get ucFacultyStepTitle => 'Выберите факультет';
+
+  @override
+  String get ucFacultyStepBody =>
+      'Выберите факультет, на котором хотите учиться в этом университете. Консультант подтвердит выбор.';
+
+  @override
+  String get ucFacultyPick => 'Выбрать факультет';
+
+  @override
+  String ucFacultyValue(String name) {
+    return 'Факультет: $name';
+  }
+
+  @override
+  String get ucFacultyPending => 'Ждёт подтверждения консультанта';
+
+  @override
+  String get ucFacultyConfirmed => '✓ Факультет подтверждён';
+
+  @override
+  String get ucFacultyChange => 'Изменить';
+
+  @override
+  String get ucFacultySearch => 'Поиск факультета';
+
+  @override
+  String get ucFacultyEmpty => 'Ничего не найдено';
+
+  @override
+  String get ucFacultyChoose => 'Выбрать этот факультет';
+
+  @override
+  String get ucFacultyBanner => 'Выберите факультет для принятых университетов';
+
+  @override
+  String get ucDegreeBachelor => 'Бакалавриат';
+
+  @override
+  String get ucDegreeMaster => 'Магистратура';
+
+  @override
+  String get ucDegreeVocational => 'Колледж';
+
+  @override
+  String get ucTrackKorean => 'На корейском';
+
+  @override
+  String get ucTrackEnglish => 'На английском';
+
+  @override
   String get fdNavAssess => 'ОЦЕНКА';
 
   @override

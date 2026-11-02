@@ -4301,6 +4301,58 @@ class AppLocalizationsUz extends AppLocalizations {
   String get ucFinalChosen => '✓ Siz shu universitetni tanladingiz';
 
   @override
+  String get ucFacultyStepTitle => 'Fakultet tanlang';
+
+  @override
+  String get ucFacultyStepBody =>
+      'Bu universitetda qaysi fakultetda o\'qimoqchisiz — tanlang. Konsultant tasdiqlaydi.';
+
+  @override
+  String get ucFacultyPick => 'Fakultet tanlash';
+
+  @override
+  String ucFacultyValue(String name) {
+    return 'Fakultet: $name';
+  }
+
+  @override
+  String get ucFacultyPending => 'Konsultant tasdig\'i kutilmoqda';
+
+  @override
+  String get ucFacultyConfirmed => '✓ Fakultet tasdiqlandi';
+
+  @override
+  String get ucFacultyChange => 'O\'zgartirish';
+
+  @override
+  String get ucFacultySearch => 'Fakultetni qidirish';
+
+  @override
+  String get ucFacultyEmpty => 'Hech narsa topilmadi';
+
+  @override
+  String get ucFacultyChoose => 'Shu fakultetni tanlash';
+
+  @override
+  String get ucFacultyBanner =>
+      'Rozi bo\'lgan universitetlaringiz uchun fakultet tanlang';
+
+  @override
+  String get ucDegreeBachelor => 'Bakalavr';
+
+  @override
+  String get ucDegreeMaster => 'Magistratura';
+
+  @override
+  String get ucDegreeVocational => 'Kasbiy';
+
+  @override
+  String get ucTrackKorean => 'Koreys tilida';
+
+  @override
+  String get ucTrackEnglish => 'Ingliz tilida';
+
+  @override
   String get fdNavAssess => 'BAHOLASH';
 
   @override

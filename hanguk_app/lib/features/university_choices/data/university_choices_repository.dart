@@ -65,3 +65,24 @@ Future<void> respondToUniversityChoice({
       )
       .timeout(const Duration(seconds: 20));
 }
+
+/// The faculties the student can pick at one of their offered universities
+/// (`my_choice_faculties`, migration 20261102200000_choice_faculty.sql): the
+/// newest guideline of each degree, bachelor first.
+Future<List<ChoiceFaculty>> fetchChoiceFaculties(String choiceId) async {
+  final data = await Supabase.instance.client
+      .rpc('my_choice_faculties', params: {'p_choice_id': choiceId})
+      .timeout(const Duration(seconds: 20));
+  return [
+    for (final row in (data as List? ?? const []))
+      ChoiceFaculty.fromJson(Map<String, dynamic>.from(row as Map)),
+  ];
+}
+
+/// The student's faculty at an accepted university; staff confirm it in the
+/// CRM. The server refuses once staff have confirmed it.
+Future<void> chooseChoiceFaculty({required String choiceId, required String facultyId}) async {
+  await Supabase.instance.client
+      .rpc('choose_choice_faculty', params: {'p_choice_id': choiceId, 'p_faculty_id': facultyId})
+      .timeout(const Duration(seconds: 20));
+}
