@@ -506,3 +506,36 @@ export function renderProposal(p: Proposal, authorName: string): string {
   return `🤖 <b>Taklif:</b> ${escapeHtml(p.assignee_name)} uchun vazifa\n• ${escapeHtml(p.title)}${meta ? `\n${meta}` : ""}\n` +
     `<i>Yaratish uchun ${escapeHtml(authorName)} tasdiqlasin.</i>`;
 }
+
+// ── PR-10: Hanguk AI («🤖 Savol») ──────────────────────────────────────────
+
+/** hanguk-ai-chat SSE oqimidan javob matnini yig'ish (hanguk voqealari tashlanadi). */
+export function parseAiStream(raw: string): string {
+  let out = "";
+  for (const line of raw.split("\n")) {
+    if (!line.startsWith("data: ")) continue;
+    const payload = line.slice(6).trim();
+    if (!payload || payload === "[DONE]") continue;
+    try {
+      const j = JSON.parse(payload);
+      const piece = j?.choices?.[0]?.delta?.content;
+      if (typeof piece === "string") out += piece;
+    } catch { /* qisman qator — tashlanadi */ }
+  }
+  return out.trim();
+}
+
+/** Markdown'ni Telegram oddiy matniga yaqinlashtirish (** va ## belgilarini olib tashlash). */
+export function mdToPlain(s: string): string {
+  return s
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, "$1 ($2)")
+    .trim();
+}
+
+export const ASK_PROMPT =
+  "🤖 <b>Hanguk AI</b>\nSavolingizni yozing yoki ovozli xabar yuboring — talabalar, lidlar, arizalar, vazifalar, universitetlar bo'yicha.\n" +
+  "Javobdan keyin yana savol berishingiz mumkin. Chiqish: /cancel yoki menyu tugmasi.";

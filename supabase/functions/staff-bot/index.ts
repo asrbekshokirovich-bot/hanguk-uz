@@ -11,7 +11,9 @@
 // va guruhga karta; kartaga «✅»/«bajarildi» javobi → bajarildi.
 // PR-8: guruh suhbati AI tahlili — faqat taklif kartasi; yozgan odam (yoki mas'ul/owner) ✅ bossa yaratiladi/yopiladi.
 // Rejim bot_settings.group_ai_mode: off | shadow (faqat bot_proposals'ga yoziladi) | on.
-// Keyingi PR'lar: Hanguk AI (PR-10).
+// PR-10: «🤖 Savol» → Hanguk AI (hanguk-ai-chat). Bot xodim nomidan qisqa muddatli haqiqiy sessiya ochadi
+// (admin.generateLink → verifyOtp, email yuborilmaydi), shu JWT bilan so'raydi — AI xodimning o'z ruxsatlari
+// (RLS) doirasida javob beradi; javobdan keyin sessiya yopiladi.
 //
 // Sozlash (bir marta): secrets STAFF_BOT_TOKEN va STAFF_BOT_WEBHOOK_SECRET,
 // keyin `<function url>?action=setup` ochiladi — webhook, buyruqlar ro'yxati
@@ -28,6 +30,9 @@ import { structuredJSON } from "./ai.ts";
 import {
   escapeHtml,
   ANALYSIS_SCHEMA,
+  ASK_PROMPT,
+  mdToPlain,
+  parseAiStream,
   ANALYSIS_SYSTEM,
   type AiAnalysis,
   buildAnalysisPrompt,
@@ -639,6 +644,53 @@ async function onGroupMessage(msg: Any) {
   }
 }
 
+// ── Hanguk AI (PR-10) ─────────────────────────────────────────────────────
+
+/** Xodim nomidan vaqtinchalik sessiya: faqat shu so'rov uchun. */
+async function staffSession(userId: string): Promise<string | null> {
+  const { data: u, error: uErr } = await db.auth.admin.getUserById(userId);
+  const email = u?.user?.email;
+  if (uErr || !email) { console.error("staffSession user:", uErr?.message ?? "no email"); return null; }
+  const { data: link, error: lErr } = await db.auth.admin.generateLink({ type: "magiclink", email });
+  const hash = link?.properties?.hashed_token;
+  if (lErr || !hash) { console.error("staffSession link:", lErr?.message); return null; }
+  const anon = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  const { data: v, error: vErr } = await anon.auth.verifyOtp({ token_hash: hash, type: "magiclink" });
+  if (vErr || !v?.session?.access_token) { console.error("staffSession verify:", vErr?.message); return null; }
+  return v.session.access_token;
+}
+
+async function askHanguk(staff: Staff, question: string): Promise<string> {
+  const jwt = await staffSession(staff.user_id);
+  if (!jwt) return "Hanguk AI'ga ulanib bo'lmadi. Birozdan keyin qayta urinib ko'ring.";
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/hanguk-ai-chat`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${jwt}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ message: question.slice(0, 4000), language: "uz" }),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      console.error("hanguk-ai-chat:", res.status, t.slice(0, 200));
+      return res.status === 429 ? "Savollar limiti hozircha tugadi. Keyinroq urinib ko'ring." : "Hanguk AI javob bermadi. Qayta urinib ko'ring.";
+    }
+    const answer = mdToPlain(parseAiStream(await res.text()));
+    return answer || "Javob bo'sh keldi. Savolni boshqacha yozib ko'ring.";
+  } finally {
+    await db.auth.admin.signOut(jwt).catch(() => {});
+  }
+}
+
+async function onAskText(chatId: number, staff: Staff, question: string, heard: string | null) {
+  await callTelegram(BOT_TOKEN, "sendChatAction", { chat_id: chatId, action: "typing" });
+  const answer = await askHanguk(staff, question);
+  const head = heard ? `🎙 «${heard}»\n\n` : "";
+  // Javob oddiy matn bilan (AI matnidagi < > belgilar HTML'ni buzmasligi uchun).
+  for (const part of splitMessage(head + answer, 3900)) {
+    await sendTelegramMessage(BOT_TOKEN, chatId, part, {});
+  }
+}
+
 // ── guruh: AI tahlili (PR-8) ──────────────────────────────────────────────
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
@@ -848,6 +900,21 @@ async function onPrivateMessage(msg: Any) {
       }
       if (text.trim()) { await onAssignText(chatId, from.id, st, text, null); return; }
     }
+    if (st && st.step === "ask") {
+      const voice = msg.voice ?? msg.audio;
+      let q = text.trim();
+      let heard: string | null = null;
+      if (voice) {
+        heard = await transcribeVoice(voice.file_id);
+        if (!heard) { await send(chatId, "Ovozni tushunib bo'lmadi. Matn bilan yozing."); return; }
+        q = heard;
+      }
+      if (q) {
+        await setState(from.id, { step: "ask" }); // muloqot davom etadi, muddat yangilanadi
+        background(onAskText(chatId, staff, q, heard));
+        return;
+      }
+    }
     if (st && st.step === "report") {
       const voice = msg.voice ?? msg.audio;
       if (voice) {
@@ -901,7 +968,8 @@ async function onPrivateMessage(msg: Any) {
       await startReport(chatId, from.id);
       return;
     case MENU.ask:
-      await send(chatId, "Bu bo'lim keyingi yangilanishda ulanadi.", { reply_markup: MENU_KEYBOARD });
+      await setState(from.id, { step: "ask" });
+      await send(chatId, ASK_PROMPT, { reply_markup: MENU_KEYBOARD });
       return;
   }
 

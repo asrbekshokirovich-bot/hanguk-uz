@@ -217,3 +217,21 @@ Deno.test("renderProposal", () => {
   assertEquals(t.includes("muddat 03.11 15:00 · zarur"), true);
   assertEquals(t.includes("Asrbek tasdiqlasin"), true);
 });
+
+import { mdToPlain, parseAiStream } from "./core.ts";
+
+Deno.test("parseAiStream: delta'lar yig'iladi, hanguk voqealari tashlanadi", () => {
+  const raw = [
+    ": hanguk-ai", "",
+    'data: {"hanguk":{"type":"step","tools":["search_students"]}}', "",
+    'data: {"choices":[{"delta":{"content":"Salom, "}}]}', "",
+    'data: {"choices":[{"delta":{"content":"3 ta talaba."}}]}', "",
+    "data: [DONE]", "data: {buzilgan",
+  ].join("\n");
+  assertEquals(parseAiStream(raw), "Salom, 3 ta talaba.");
+  assertEquals(parseAiStream(""), "");
+});
+
+Deno.test("mdToPlain", () => {
+  assertEquals(mdToPlain("## Natija\n**3 ta** talaba, `kod` [havola](https://x.uz)"), "Natija\n3 ta talaba, kod havola (https://x.uz)");
+});
