@@ -20,8 +20,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { SavedRepliesSettings } from '@/components/crm/messages/SavedRepliesSettings';
+import { BotSettingsCard } from '@/components/crm/settings/BotSettingsCard';
 import { supabase } from '@/integrations/supabase/client';
 import { 
+  Bot,
   Settings, 
   User, 
   Bell, 
@@ -187,7 +189,7 @@ export default function SettingsContent() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -208,6 +210,12 @@ export default function SettingsContent() {
             <Palette className="h-4 w-4" />
             <span className="hidden sm:inline">Appearance</span>
           </TabsTrigger>
+          {isOwner && (
+            <TabsTrigger value="bot" className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('crm.botSettings.tab')}</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             <span className="hidden sm:inline">Security</span>
@@ -426,6 +434,12 @@ export default function SettingsContent() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isOwner && (
+          <TabsContent value="bot" className="space-y-6">
+            <BotSettingsCard />
+          </TabsContent>
+        )}
 
         {/* Saved replies (CRM → Xabarlar composer) */}
         <TabsContent value="saved-replies" className="space-y-6">
