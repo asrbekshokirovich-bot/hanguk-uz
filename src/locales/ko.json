@@ -431,6 +431,28 @@
       "unlinked": "텔레그램 연결이 해제되었습니다",
       "unlinkFailed": "해제할 수 없습니다",
       "cancel": "취소"
+    },
+    "dailyReports": {
+      "nav": "일일 보고",
+      "title": "일일 보고",
+      "subtitle": "직원이 매일 17:00에 텔레그램 봇으로 제출하는 보고",
+      "prev": "이전 날",
+      "next": "다음 날",
+      "today": "오늘",
+      "dayOff": "일요일 — 휴무일, 보고를 요청하지 않습니다.",
+      "submitted": "제출",
+      "missing": "미제출",
+      "blockers": "문제",
+      "tasksDone": "완료한 업무",
+      "blockersTitle": "문제 및 장애",
+      "tasksCount": "업무 {{count}}건",
+      "notLinked": "봇 미연결",
+      "noReport": "보고 없음",
+      "done": "완료",
+      "blocker": "문제",
+      "plan": "내일",
+      "original": "원문",
+      "loadFailed": "보고를 불러오지 못했습니다"
     }
   },
   "leads": {

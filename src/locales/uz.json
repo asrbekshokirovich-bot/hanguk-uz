@@ -491,6 +491,28 @@
       "unlinked": "Telegram uzildi",
       "unlinkFailed": "Uzib bo'lmadi",
       "cancel": "Bekor qilish"
+    },
+    "dailyReports": {
+      "nav": "Kunlik hisobotlar",
+      "title": "Kunlik hisobotlar",
+      "subtitle": "Xodimlar har kuni 17:00 da Telegram bot orqali topshiradigan hisobotlar",
+      "prev": "Oldingi kun",
+      "next": "Keyingi kun",
+      "today": "Bugun",
+      "dayOff": "Yakshanba — dam olish kuni, hisobot so'ralmaydi.",
+      "submitted": "Topshirdi",
+      "missing": "Topshirmadi",
+      "blockers": "To'siqlar",
+      "tasksDone": "Bajarilgan vazifalar",
+      "blockersTitle": "To'siq va muammolar",
+      "tasksCount": "{{count}} ta vazifa",
+      "notLinked": "Botga ulanmagan",
+      "noReport": "Hisobot yo'q",
+      "done": "Bajarildi",
+      "blocker": "To'siq",
+      "plan": "Ertaga",
+      "original": "Asl matn",
+      "loadFailed": "Hisobotlarni yuklab bo'lmadi"
     }
   },
   "leads": {

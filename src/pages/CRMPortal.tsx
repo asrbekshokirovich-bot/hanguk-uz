@@ -53,6 +53,7 @@ const AppAnalyticsContent = lazy(() => import('@/components/crm/pages/AppAnalyti
 const TodayInAppContent = lazy(() => import('@/components/crm/pages/TodayInAppContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
+const DailyReportsContent = lazy(() => import('@/components/crm/pages/DailyReportsContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
 const CallsContent = lazy(() => import('@/components/crm/pages/CallsContent'));
 const StaffContent = lazy(() => import('@/components/crm/pages/StaffContent'));
@@ -194,6 +195,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/app-activity')) return 'app-analytics';
     if (currentPath.startsWith('/crm/app-analytics')) return 'app-analytics';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
+    if (currentPath.startsWith('/crm/daily-reports')) return 'daily-reports';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
     if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
@@ -465,6 +467,8 @@ export default function CRMPortal() {
         return <SafeSuspense><UniversitiesContent /></SafeSuspense>;
       case 'tasks':
         return <SafeSuspense><TasksContent /></SafeSuspense>;
+      case 'daily-reports':
+        return <SafeSuspense><DailyReportsContent /></SafeSuspense>;
       case 'messages':
         return <SafeSuspense><MessagesContent /></SafeSuspense>;
       case 'calls':

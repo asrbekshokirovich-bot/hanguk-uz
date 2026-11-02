@@ -26,6 +26,7 @@ import {
   Smartphone,
   MessageSquare,
   ClipboardList,
+  NotebookPen,
   Calendar,
   Settings,
   Phone,
@@ -134,6 +135,7 @@ function buildGroups(
       visible: true,
       items: [
         { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
+        { title: t('crm.dailyReports.nav'), url: '/crm/daily-reports', icon: NotebookPen, visible: isAdmin },
         { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: isAdmin },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: isAdmin, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: isAdmin, highlight: true },
