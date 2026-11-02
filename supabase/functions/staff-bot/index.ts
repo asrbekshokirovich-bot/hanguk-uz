@@ -5,7 +5,9 @@
 // (hamkasb → matn yoki ovoz → muddat/muhimlik ajratiladi → tasdiq → CRM),
 // bildirishnomalar (yangi vazifa — mas'ulga, bajarildi — beruvchiga),
 // ertalab 09:00 ro'yxat (cron → ?action=morning, Supabase secret key bilan).
-// Keyingi PR'lar: 17:00 hisobot (PR-4), guruh tahlili (PR-7/8), Hanguk AI (PR-10).
+// PR-4: kunlik hisobot — 17:00 so'rov, 17:30/18:00 eslatma, 18:15 ownerlarga xulosa
+// (cron → ?action=report&kind=ask|remind|summary); «📝 Hisobot» tugmasi; AI 3 qismga ajratadi.
+// Keyingi PR'lar: guruh tahlili (PR-7/8), Hanguk AI (PR-10).
 //
 // Sozlash (bir marta): secrets STAFF_BOT_TOKEN va STAFF_BOT_WEBHOOK_SECRET,
 // keyin `<function url>?action=setup` ochiladi — webhook, buyruqlar ro'yxati
@@ -18,11 +20,18 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
+import { generateJSON } from "../_shared/gemini.ts";
 import {
   escapeHtml,
   groupTasks,
   HELP_TEXT,
   parseTaskText,
+  REPORT_PROMPT,
+  renderReport,
+  renderSummary,
+  type ReportParts,
+  type SummaryRow,
+  tashkentDate,
   type ParsedTask,
   renderDraft,
   renderTaskCard,
@@ -45,6 +54,7 @@ const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/staff-bot`;
 const BOT_ID = "staff-bot";
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const STATE_TTL_MS = 60 * 60_000;
+const REPORT_STATE_TTL_MS = 8 * 60 * 60_000; // 17:00 so'rovga kechroq javob ham qabul qilinadi
 const MAX_CARDS = 10;
 
 const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
@@ -181,7 +191,8 @@ type State = Record<string, any>;
 async function getState(tgId: number): Promise<State | null> {
   const { data } = await db.from("bot_state").select("state, updated_at").eq("telegram_user_id", tgId).maybeSingle();
   if (!data) return null;
-  if (Date.now() - Date.parse(data.updated_at) > STATE_TTL_MS) {
+  const ttl = (data.state as State)?.step === "report" ? REPORT_STATE_TTL_MS : STATE_TTL_MS;
+  if (Date.now() - Date.parse(data.updated_at) > ttl) {
     await setState(tgId, null);
     return null;
   }
@@ -395,6 +406,90 @@ async function morning() {
   return json({ ok: true, sent });
 }
 
+// ── kunlik hisobot ────────────────────────────────────────────────────────
+
+async function startReport(chatId: number, tgId: number, intro = "") {
+  await setState(tgId, { step: "report" });
+  await send(chatId, (intro ? intro + "\n\n" : "") + REPORT_PROMPT, { reply_markup: MENU_KEYBOARD });
+}
+
+/** Hisobotni 3 qismga ajratish (Gemini). Ishlamasa null — asl matn saqlanadi. */
+async function splitReport(raw: string): Promise<ReportParts | null> {
+  if (!GEMINI_KEY) return null;
+  try {
+    const r = await generateJSON<ReportParts>({
+      systemInstruction:
+        "You split a staff member's end-of-day work report into three parts. The report is in Uzbek (Latin), " +
+        "maybe mixed with Russian. Keep the author's own words and language; shorten only by removing filler. " +
+        "Do not invent anything. If a part is not mentioned, return an empty string for it.",
+      prompt: `Report:\n"""${raw.slice(0, 6000)}"""\n\nReturn done (what was done today), blockers (problems, blockers, help needed), plan (plans for tomorrow).`,
+      schema: {
+        type: "object",
+        properties: { done: { type: "string" }, blockers: { type: "string" }, plan: { type: "string" } },
+        required: ["done", "blockers", "plan"],
+      },
+      temperature: 0,
+    });
+    if (!r) return null;
+    const clean = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 3000) : null);
+    const parts = { done: clean(r.done), blockers: clean(r.blockers), plan: clean(r.plan) };
+    return parts.done || parts.blockers || parts.plan ? parts : null;
+  } catch (e) {
+    console.error("splitReport:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+async function onReportText(chatId: number, tgId: number, staff: Staff, raw: string, heard: string | null) {
+  const parts = await splitReport(raw);
+  const { data, error } = await db.rpc("bot_save_report", {
+    p_actor: staff.user_id, p_raw: raw, p_done: parts?.done ?? null, p_blockers: parts?.blockers ?? null,
+    p_plan: parts?.plan ?? null, p_ai: parts !== null,
+  });
+  if (error) {
+    console.error("bot_save_report:", error.message);
+    await send(chatId, "Hisobotni saqlab bo'lmadi. Birozdan keyin qayta yuboring.");
+    return;
+  }
+  await setState(tgId, null);
+  const r = (Array.isArray(data) ? data[0] : data) as { was_update: boolean } | undefined;
+  const head = r?.was_update ? "✏️ Hisobot yangilandi." : "✅ Hisobot qabul qilindi. Rahmat!";
+  const heardLine = heard ? `🎙 «${escapeHtml(heard)}»\n\n` : "";
+  await sendLong(chatId, `${head}\n\n${heardLine}${renderReport(raw, parts)}\n\n<i>O'zgartirish uchun «📝 Hisobot» tugmasini qayta bosing.</i>`,
+    { reply_markup: MENU_KEYBOARD });
+}
+
+function fmtDay(ms: number): string {
+  const [y, m, d] = tashkentDate(ms).split("-");
+  return `${d}.${m}.${y}`;
+}
+
+async function reportCron(kind: string) {
+  if (kind === "summary") {
+    const { data, error } = await db.rpc("bot_report_summary");
+    if (error) { console.error("bot_report_summary:", error.message); return json({ error: error.message }, 500); }
+    const text = renderSummary((data ?? []) as SummaryRow[], fmtDay(Date.now()));
+    const { data: owners } = await db.rpc("bot_owner_chats");
+    let sent = 0;
+    for (const o of (owners ?? []) as { dm_chat_id: number }[]) { await sendLong(o.dm_chat_id, text); sent++; }
+    return json({ ok: true, kind, sent });
+  }
+  if (kind !== "ask" && kind !== "remind") return json({ error: "bad kind" }, 400);
+  const { data, error } = await db.rpc("bot_report_targets");
+  if (error) { console.error("bot_report_targets:", error.message); return json({ error: error.message }, 500); }
+  let sent = 0;
+  for (const t of (data ?? []) as { full_name: string; dm_chat_id: number; has_report: boolean }[]) {
+    if (t.has_report) continue;
+    // Shaxsiy chatda telegram_user_id = chat id
+    const intro = kind === "ask"
+      ? `🕔 Ish kuni tugayapti${t.full_name ? ", " + escapeHtml(t.full_name.split(" ")[0]) : ""}.`
+      : "⏰ Bugungi hisobotingiz hali kelmadi.";
+    await startReport(t.dm_chat_id, t.dm_chat_id, intro);
+    sent++;
+  }
+  return json({ ok: true, kind, sent });
+}
+
 // ── guruh a'zoligi ────────────────────────────────────────────────────────
 
 async function onMyChatMember(upd: Any) {
@@ -461,6 +556,17 @@ async function onPrivateMessage(msg: Any) {
       }
       if (text.trim()) { await onAssignText(chatId, from.id, st, text, null); return; }
     }
+    if (st && st.step === "report") {
+      const voice = msg.voice ?? msg.audio;
+      if (voice) {
+        await send(chatId, "🎧 Tinglayapman…");
+        const heard = await transcribeVoice(voice.file_id);
+        if (!heard) { await send(chatId, "Ovozni tushunib bo'lmadi. Matn bilan yozing."); return; }
+        await onReportText(chatId, from.id, staff, heard, heard);
+        return;
+      }
+      if (text.trim()) { await onReportText(chatId, from.id, staff, text, null); return; }
+    }
   }
 
   if (cmd) {
@@ -500,6 +606,8 @@ async function onPrivateMessage(msg: Any) {
       await startAssign(chatId, from.id, staff);
       return;
     case MENU.report:
+      await startReport(chatId, from.id);
+      return;
     case MENU.ask:
       await send(chatId, "Bu bo'lim keyingi yangilanishda ulanadi.", { reply_markup: MENU_KEYBOARD });
       return;
@@ -532,6 +640,10 @@ Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get("action") === "morning") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
     return await morning();
+  }
+  if (new URL(req.url).searchParams.get("action") === "report") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return await reportCron(new URL(req.url).searchParams.get("kind") ?? "");
   }
 
   if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {

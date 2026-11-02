@@ -244,3 +244,68 @@ export function renderTaskCard(t: TaskRow): string {
   const st = t.status === "in_progress" ? "▶ " : "";
   return `${st}${escapeHtml(t.title)}${due ? `\n⏰ ${due}` : ""}${pr}`;
 }
+
+// ── kunlik hisobot (PR-4) ─────────────────────────────────────────────────
+
+export const REPORT_PROMPT =
+  "📝 <b>Kunlik hisobot</b>\n\nBitta xabarda (matn yoki ovoz) yozing:\n" +
+  "1) Bugun nima qildingiz?\n2) Muammo yoki to'siq bormi?\n3) Ertaga nima qilasiz?\n\n/cancel — bekor qilish";
+
+export interface ReportParts {
+  done: string | null;
+  blockers: string | null;
+  plan: string | null;
+}
+
+/** Saqlangan hisobotni ko'rsatish. AI ajratmagan bo'lsa — asl matn. */
+export function renderReport(raw: string, p: ReportParts | null): string {
+  if (!p || (!p.done && !p.blockers && !p.plan)) return `📝 ${escapeHtml(raw)}`;
+  const lines: string[] = [];
+  if (p.done) lines.push(`✅ <b>Bajarildi:</b> ${escapeHtml(p.done)}`);
+  if (p.blockers) lines.push(`⚠️ <b>To'siq:</b> ${escapeHtml(p.blockers)}`);
+  if (p.plan) lines.push(`🗓 <b>Ertaga:</b> ${escapeHtml(p.plan)}`);
+  return lines.join("\n");
+}
+
+export interface SummaryRow {
+  full_name: string;
+  is_linked: boolean;
+  has_report: boolean;
+  done: string | null;
+  blockers: string | null;
+  plan: string | null;
+  raw_text: string | null;
+  completed_today: number;
+  overdue: number;
+}
+
+const short = (s: string, n = 300) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+
+/** 18:15 ownerlarga xulosa. */
+export function renderSummary(rows: SummaryRow[], dateStr: string): string {
+  const sorted = [...rows].sort((a, b) =>
+    Number(b.has_report) - Number(a.has_report) || a.full_name.localeCompare(b.full_name)
+  );
+  const got = rows.filter((r) => r.has_report).length;
+  const out = [`📊 <b>Kunlik hisobotlar — ${dateStr}</b>`, `Topshirdi: ${got} / ${rows.length}`];
+  const blockers = rows.filter((r) => r.blockers);
+  if (blockers.length) {
+    out.push("", "⚠️ <b>To'siqlar</b>");
+    for (const r of blockers) out.push(`• ${escapeHtml(r.full_name)}: ${escapeHtml(short(r.blockers!, 200))}`);
+  }
+  for (const r of sorted) {
+    const stats = `bajarilgan vazifa: ${r.completed_today}` + (r.overdue ? ` · kechikkan: ${r.overdue}` : "");
+    if (!r.has_report) {
+      out.push("", `❌ <b>${escapeHtml(r.full_name)}</b> — hisobot yo'q${r.is_linked ? "" : " (botga ulanmagan)"}`, `   ${stats}`);
+      continue;
+    }
+    out.push("", `✅ <b>${escapeHtml(r.full_name)}</b> — ${stats}`);
+    if (r.done || r.plan) {
+      if (r.done) out.push(`   Bajardi: ${escapeHtml(short(r.done))}`);
+      if (r.plan) out.push(`   Ertaga: ${escapeHtml(short(r.plan, 200))}`);
+    } else if (r.raw_text) {
+      out.push(`   ${escapeHtml(short(r.raw_text))}`);
+    }
+  }
+  return out.join("\n");
+}
