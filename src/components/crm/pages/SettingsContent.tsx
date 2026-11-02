@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { SavedRepliesSettings } from '@/components/crm/messages/SavedRepliesSettings';
 import { BotSettingsCard } from '@/components/crm/settings/BotSettingsCard';
+import { BotProposalsCard } from '@/components/crm/settings/BotProposalsCard';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Bot,
@@ -438,6 +439,7 @@ export default function SettingsContent() {
         {isOwner && (
           <TabsContent value="bot" className="space-y-6">
             <BotSettingsCard />
+            <BotProposalsCard />
           </TabsContent>
         )}
 

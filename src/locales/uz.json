@@ -553,6 +553,31 @@
       "tvTitle": "Ofis TV",
       "tvHint": "Vazifalar ekrani CRM vazifalaridan. TV brauzerida shu havolani bir marta oching yoki pult bilan kalitni kiriting.",
       "tvKey": "Kalit: {{key}}"
+    },
+    "botQuality": {
+      "title": "AI takliflari",
+      "subtitle": "Guruh suhbatidan AI topgan vazifalar. Har birini ✅ to'g'ri / ❌ noto'g'ri deb belgilang — aniqlik {{target}}% dan oshsa «Yoqilgan» rejimga o'tish mumkin.",
+      "messages": "guruh xabari (7 kun)",
+      "proposals": "taklif",
+      "judged": "baholangan",
+      "unjudged": "baholanmagan",
+      "precision": "aniqlik",
+      "ready": "Aniqlik yetarli — Sozlamalarda AI rejimini «Yoqilgan»ga o'tkazish mumkin.",
+      "notReady": "Hali erta: kamida 20 ta baholangan taklif va 90% aniqlik kerak.",
+      "empty": "Hozircha taklif yo'q.",
+      "kindCreate": "Yangi vazifa",
+      "kindClose": "Bajarildi",
+      "status_pending": "kutilmoqda",
+      "status_accepted": "tasdiqlandi",
+      "status_rejected": "rad etildi",
+      "status_expired": "eskirdi",
+      "status_shadow": "kuzatish",
+      "auto_correct": "xodim tasdiqlagan",
+      "auto_wrong": "xodim rad etgan",
+      "correct": "To'g'ri",
+      "wrong": "Noto'g'ri",
+      "loadFailed": "AI takliflarini yuklab bo'lmadi",
+      "saveFailed": "Bahoni saqlab bo'lmadi"
     }
   },
   "leads": {
