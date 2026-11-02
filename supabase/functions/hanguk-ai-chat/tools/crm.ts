@@ -4,7 +4,8 @@
 //
 // deno-lint-ignore-file no-explicit-any
 import { embedContent001 } from "../../_shared/gemini.ts";
-import { type AgentTool, rpc, type ToolCtx } from "./types.ts";
+import { studentEntity } from "../entity.ts";
+import { type AgentTool, rpc, type Source, type ToolCtx, type ToolResult } from "./types.ts";
 
 const obj = (properties: Record<string, unknown> = {}, required: string[] = []) =>
   ({ type: "object", properties, ...(required.length ? { required } : {}) });
@@ -58,13 +59,21 @@ const t = (
   description: string,
   parameters: Record<string, unknown>,
   run: (ctx: ToolCtx, a: any) => Promise<unknown>,
+  extras?: (a: any, data: any) => Omit<ToolResult, "data">,
 ): AgentTool => ({
   name,
   description,
   parameters,
   audiences: [...staff],
-  run: async (ctx, a) => ({ data: await run(ctx, a ?? {}) }),
+  run: async (ctx, a) => {
+    const data = await run(ctx, a ?? {});
+    const failed = !data || (typeof data === "object" && "error" in (data as any));
+    return { data, ...(extras && !failed ? extras(a ?? {}, data) : {}) };
+  },
 });
+
+// CRM pages an answer can point to (the "CRM sahifasi" chip).
+const crm = (label: string, url: string): Source => ({ kind: "crm", label, url });
 
 export const CRM_TOOLS: AgentTool[] = [
   t("get_stats", "Quick CRM counts: students, leads, documents (total/pending/approved), overdue payments, open tasks, new leads.", obj(),
@@ -77,7 +86,8 @@ export const CRM_TOOLS: AgentTool[] = [
     (c, a) => rpc(c.user, "ai_list_payments", { p_status: a.status ?? null, p_student_id: a.student_id ?? null, p_overdue_only: a.overdue_only ?? false, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 })),
   t("list_tasks", "List staff tasks.",
     obj({ status: str("todo | in_progress | completed | cancelled"), priority: str("urgent | high | normal | low"), limit: int(), offset: int() }),
-    (c, a) => rpc(c.user, "ai_list_tasks", { p_status: a.status ?? null, p_priority: a.priority ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 })),
+    (c, a) => rpc(c.user, "ai_list_tasks", { p_status: a.status ?? null, p_priority: a.priority ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 }),
+    () => ({ sources: [crm("Vazifalar", "/crm/tasks")] })),
   t("list_leads", "List/filter the leads pipeline.",
     obj({ query: str("name or phone substring"), status: str("new | contacted | qualified | converted | lost"), source: str("manual | telegram | instagram | call | ai_detected"), exam_type: str("TOPIK | IELTS | none"), city: str(), interest_level: str("low | medium | high"), from_exam_date: str("ISO date"), to_exam_date: str("ISO date"), limit: int(), offset: int() }),
     (c, a) => rpc(c.user, "ai_list_leads", { p_query: a.query ?? null, p_status: a.status ?? null, p_source: a.source ?? null, p_exam_type: a.exam_type ?? null, p_city: a.city ?? null, p_interest_level: a.interest_level ?? null, p_from_exam_date: a.from_exam_date ?? null, p_to_exam_date: a.to_exam_date ?? null, p_limit: a.limit ?? 50, p_offset: a.offset ?? 0 })),
@@ -91,19 +101,26 @@ export const CRM_TOOLS: AgentTool[] = [
     (c, a) => rpc(c.service, "search_students", { p_query: a.query ?? "", p_limit: a.limit ?? 6 })),
   t("get_student_card", "EVERYTHING about one student, exactly as the CRM shows it: seasons with contract status (active / cancelled), Arizalar board stage, tariff, payments per currency ('X to'langan, Z qoldi'), the 8-document application pack (which are approved / under review / missing), chosen universities with online/offline submission, interview, result, final choice and visa, open tasks, last call summaries. Call this after search_students for ANY question about a named student.",
     obj({ student_id: str("the student's user_id from search_students") }, ["student_id"]),
-    (c, a) => rpc(c.user, "ai_student_card", { p_student_id: a.student_id ?? null })),
+    (c, a) => rpc(c.user, "ai_student_card", { p_student_id: a.student_id ?? null }),
+    (a, d) => ({
+      sources: [crm("Talaba kartasi", `/crm/students?student=${a.student_id}`)],
+      entity: studentEntity(String(a.student_id), d),
+    })),
   t("season_pipeline", "The CRM Arizalar board for a season: number of active students, cancelled contracts, and each stage (Yangi, Hujjat tayyor, Onlayn ariza, Oflayn ariza, Suhbat, Natija, Viza…) with the students' names. Use for 'how many students have documents ready / submitted / got results' and similar season questions. Defaults to the current season.",
     obj({ intake_id: str("optional intake id; omit for the current season") }),
-    (c, a) => rpc(c.user, "ai_season_pipeline", { p_intake_id: a.intake_id ?? null })),
+    (c, a) => rpc(c.user, "ai_season_pipeline", { p_intake_id: a.intake_id ?? null }),
+    () => ({ sources: [crm("Arizalar taxtasi", "/crm/applications")] })),
   t("leads_overview", "Leads pages exactly as the CRM counts them for a day (default today, Tashkent): 'Yangi lid' (nobody answered yet, with waiting minutes), 'Bugungi lidlar' (arrived that day and answered, by channel / call result / outcome, with names and phones), 'Lidlar' pipeline totals, and all-season counts by source. Use for ANY question about new leads, today's leads, leads from the site / Instagram / Telegram / app, how many leads came on a date.",
     obj({ day: str("YYYY-MM-DD; omit for today") }),
-    (c, a) => rpc(c.user, "ai_leads_overview", { p_day: a.day ?? null, p_intake_id: null })),
+    (c, a) => rpc(c.user, "ai_leads_overview", { p_day: a.day ?? null, p_intake_id: null }),
+    () => ({ sources: [crm("Lidlar", "/crm/leads")] })),
   t("search_leads", "Find LEADS (potential clients, not yet students) by name, phone, Telegram or Instagram handle. Spelling-tolerant (x/kh, q/k). Also finds leads by what they wrote in their Telegram/Instagram chat (many leads are saved only under a first name and typed their full name in the chat), and by part of the name. Each result says how it matched. Use when a person is not found among students, or the question says lid / lead / mijoz.",
     obj({ query: str(), limit: int() }, ["query"]),
     (c, a) => rpc(c.user, "ai_search_leads", { p_query: a.query ?? "", p_limit: a.limit ?? 8 })),
   t("get_lead_card", "Everything about one lead: contact, status, call result, channel, how they heard, education and language levels, wishes, next follow-up, assignee, latest staff notes with who wrote them, calls, and the Telegram/Instagram chat (same as the CRM Muloqot oqimi: total count and the latest 30 messages, mijoz = client, otherwise the staff member). Read the chat to answer what the client asked, agreed or promised.",
     obj({ lead_id: str() }, ["lead_id"]),
-    (c, a) => rpc(c.user, "ai_lead_card", { p_lead_id: a.lead_id ?? null })),
+    (c, a) => rpc(c.user, "ai_lead_card", { p_lead_id: a.lead_id ?? null }),
+    (a) => ({ sources: [crm("Lid kartasi", `/crm/leads/${a.lead_id}`)] })),
   t("staff_activity", "What staff members did in a date range (default today): leads contacted (lead notes by type and outcome, with lead names), phone calls, chat replies, open chats assigned, leads created, tasks done and open, documents reviewed, online/offline submissions recorded. Use for 'X bugun nechta lid bilan gaplashdi', 'kim nima qildi', staff performance. The team list is in the system prompt.",
     obj({ staff: str("staff name; omit for everyone"), from: str("YYYY-MM-DD"), to: str("YYYY-MM-DD") }),
     (c, a) => rpc(c.user, "ai_staff_activity", { p_staff: a.staff ?? null, p_from: a.from ?? null, p_to: a.to ?? null })),
@@ -111,7 +128,8 @@ export const CRM_TOOLS: AgentTool[] = [
     obj({ from: str(), to: str() }),
     (c, a) => rpc(c.user, "ai_calls_summary", { p_from: a.from ?? null, p_to: a.to ?? null })),
   t("messages_queue", "Xabarlar page: open chats, unassigned, unread, by source and assignee, chats waiting for a reply longer than 10 minutes (longest first), today's incoming/outgoing message counts.", obj(),
-    (c) => rpc(c.user, "ai_messages_queue", {})),
+    (c) => rpc(c.user, "ai_messages_queue", {}),
+    () => ({ sources: [crm("Xabarlar", "/crm/messages")] })),
   t("university_selection", "Universitet tanlash page for the season: students with and without chosen universities, choice statuses (offered/accepted/change_requested/confirmed), confirmed students per university, change requests.", obj(),
     (c) => rpc(c.user, "ai_university_selection", { p_intake_id: null })),
   t("application_fees", "Application fee page for the season: payments, students paid, total and expense in KRW, by university, list.", obj(),

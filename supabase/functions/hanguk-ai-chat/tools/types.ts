@@ -40,6 +40,8 @@ export interface ToolCtx {
 export interface ToolResult {
   data: unknown;
   sources?: Source[];
+  /** A card the CRM shows above the answer (e.g. the student asked about). */
+  entity?: import("../entity.ts").Entity | null;
 }
 
 export interface AgentTool {

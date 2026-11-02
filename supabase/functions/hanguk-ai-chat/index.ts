@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getAiSchema } from "./analytics.ts";
-import { runAgent, sourcesFooter, type AgentEvent, type AgentResult } from "./agent.ts";
+import { runAgent, sourcesFooter, uniqueSources, type AgentEvent, type AgentResult } from "./agent.ts";
 import { answeredHistory, type StoredTurn } from "./history.ts";
 import { CallerError, quotaFor, resolveCaller } from "./identity.ts";
 import { guestSystem, staffSystem, studentSystem } from "./prompts.ts";
@@ -152,6 +152,10 @@ serve(async (req) => {
   }
 
   const threadId = caller.userId ? await ownThread(service, body?.thread_id, caller.userId) : null;
+  // The CRM (rich: true) draws steps, sources and the student card itself, so
+  // the sources are sent as an event instead of a Markdown list in the text.
+  const rich = body?.rich === true;
+  const runId = crypto.randomUUID();
   const enc = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -166,6 +170,7 @@ serve(async (req) => {
       sendRaw(": hanguk-ai\n\n");
 
       let result: AgentResult | null = null;
+      const steps: string[] = [];
       let outcome: string = "ok";
       let text = "";
       try {
@@ -200,14 +205,17 @@ serve(async (req) => {
           result = await runAgent({
             system, history, message, tools,
             ctx,
-            onEvent: (e: AgentEvent) => sendEvent(e),
+            onEvent: (e: AgentEvent) => {
+              for (const name of e.tools) if (!steps.includes(name)) steps.push(name);
+              sendEvent(e);
+            },
           });
           outcome = result.outcome;
           text = result.text;
           if (result.outcome === "error" || result.outcome === "empty") {
             console.error("[hanguk-ai] agent:", result.outcome, result.error ?? "");
             text = fallbackText(language);
-          } else if (result.outcome === "ok") {
+          } else if (result.outcome === "ok" && !rich) {
             text += sourcesFooter(result.sources, language);
           }
         }
@@ -222,13 +230,22 @@ serve(async (req) => {
       // Bookkeeping before the stream closes (work after the response ends may
       // be cut off by the runtime). The answer is stored only when it came from
       // the model, so a limit message never enters the history.
+      const answered = outcome === "ok" || outcome === "clarify";
+      const meta = {
+        run_id: runId,
+        steps,
+        sources: answered ? uniqueSources(result?.sources ?? []).slice(0, 12) : [],
+        entity: answered ? result?.entity ?? null : null,
+      };
       try {
-        if (caller.userId && (outcome === "ok" || outcome === "clarify")) {
+        if (caller.userId && answered) {
           await service.from("ai_conversations").insert({
             user_id: caller.userId, user_type: caller.audience, role: "assistant", content: text, thread_id: threadId,
+            context_snapshot: meta,
           });
         }
         await service.from("ai_runs").insert({
+          id: runId,
           user_id: caller.userId,
           audience: caller.audience,
           thread_id: threadId,
@@ -250,6 +267,7 @@ serve(async (req) => {
       } catch (e) {
         console.error("[hanguk-ai] bookkeeping failed:", e);
       }
+      if (rich) sendEvent({ type: "meta", ...meta });
       sendRaw("data: [DONE]\n\n");
       controller.close();
     },

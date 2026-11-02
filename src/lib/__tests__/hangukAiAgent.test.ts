@@ -225,3 +225,27 @@ describe('Tool access', () => {
     expect(names(staff)).not.toContain('my_card');
   });
 });
+
+describe('Student card for the CRM answer', async () => {
+  const { studentEntity, shortUniversity } = await import('../../../supabase/functions/hanguk-ai-chat/entity.ts');
+  it('builds the card from ai_student_card, furthest step per university', () => {
+    const e = studentEntity('s1', {
+      student: { full_name: 'MURATOV SHOKHRUKH ULUGBEKOVICH' },
+      seasons: [{ season: 'Spring 2027', contract_status: 'faol' }],
+      document_pack: { approved: 8, required: 8 },
+      universities: [
+        { university: 'Hanyang University', online_submitted_at: '2026-10-27' },
+        { university: 'Ajou University', online_submitted_at: '2026-10-27', offline_sent_at: '2026-10-27' },
+        { university: 'Pusan National University', result: 'rad etildi' },
+      ],
+    });
+    expect(e).toMatchObject({ name: 'Muratov Shokhrukh', initials: 'MS', season: 'spring 2027', docsApproved: 8 });
+    expect(e?.universities).toEqual([
+      { name: 'Hanyang', status: 'online', tone: 'good' },
+      { name: 'Ajou', status: 'offline', tone: 'good' },
+      { name: 'Pusan National', status: 'rejected', tone: 'bad' },
+    ]);
+    expect(studentEntity('x', { error: 'student not found' })).toBeNull();
+    expect(shortUniversity('University of Seoul')).toBe('Seoul');
+  });
+});

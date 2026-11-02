@@ -6,6 +6,7 @@ import {
   User,
   Trash2,
   Loader2,
+  Sparkle,
   Sparkles,
   FileText,
   History,
@@ -36,7 +37,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
-import { AIMessageContent } from '@/components/ai/AIMessageContent';
+import { AIAnswer } from '@/components/ai/AIAnswer';
 import { useHangukAI } from '@/hooks/useHangukAI';
 import { useAiThreads } from '@/hooks/useAiThreads';
 import { useAuth } from '@/contexts/AuthContext';
@@ -131,7 +132,7 @@ export default function AIAssistantContent() {
   const [input, setInput] = useState('');
   const { threads, refresh, togglePin, deleteThread } = useAiThreads();
   const { messages, isLoading, error, sendMessage, clearMessages, openThread, threadId } =
-    useHangukAI('staff', currentLang, { threads: true, onSaved: refresh });
+    useHangukAI('staff', currentLang, { threads: true, onSaved: refresh, rich: true });
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -364,48 +365,45 @@ export default function AIAssistantContent() {
             </div>
           ) : (
             <div className="space-y-4 p-4 md:p-6">
-              {messages.map((msg, idx) => (
-                <div key={idx} className={cn('flex gap-3', msg.role === 'user' && 'flex-row-reverse')}>
-                  <div
-                    className={cn(
-                      'h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0',
-                      msg.role === 'user' ? 'bg-secondary' : 'bg-primary/50 ring-1 ring-primary/60',
-                    )}
-                  >
+              {messages.map((msg, idx) => {
+                const last = idx === messages.length - 1;
+                return (
+                  <div key={idx} className={cn('flex items-start gap-3', msg.role === 'user' && 'flex-row-reverse')}>
                     {msg.role === 'user' ? (
-                      <User className="h-4 w-4 text-secondary-foreground" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50">
+                        <User className="h-4 w-4 text-slate-500" />
+                      </div>
                     ) : (
-                      <Bot className="h-4 w-4 text-white" />
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B]">
+                        <Sparkle className="h-4 w-4 text-[#D4E94C]" />
+                      </div>
                     )}
-                  </div>
-                  <div
-                    className={cn(
-                      'rounded-xl px-4 py-3 max-w-[85%]',
-                      msg.role === 'user' ? 'bg-primary text-primary-foreground ml-auto' : 'bg-white/[0.04] border border-border/70',
-                    )}
-                  >
                     {msg.role === 'assistant' ? (
-                      <AIMessageContent
+                      <AIAnswer
                         content={msg.content}
+                        meta={msg.meta}
+                        running={last && isLoading}
                         onPick={sendMessage}
-                        interactive={idx === messages.length - 1 && !isLoading}
+                        interactive={last && !isLoading}
                       />
                     ) : (
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                      <div className="ml-auto max-w-[85%] rounded-2xl bg-[#1B3A6B] px-4 py-3 text-white">
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                <div className="flex gap-3">
-                  <div className="h-9 w-9 rounded-full bg-primary/50 ring-1 ring-primary/60 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-4 w-4 text-white" />
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1B3A6B]">
+                    <Sparkle className="h-4 w-4 text-[#D4E94C]" />
                   </div>
-                  <div className="rounded-xl border border-border/70 bg-white/[0.04] px-4 py-3">
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">{t('ai.thinking', 'Thinking...')}</span>
+                      <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                      <span className="text-sm text-slate-500">{t('ai.thinking', 'Thinking...')}</span>
                     </div>
                   </div>
                 </div>

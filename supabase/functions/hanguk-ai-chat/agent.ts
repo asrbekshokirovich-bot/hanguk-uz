@@ -9,6 +9,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { chatCompletion as defaultComplete, LimitReachedError, limitMessage } from "./llm.ts";
 import { costUsd, type Usage } from "./pricing.ts";
+import type { Entity } from "./entity.ts";
 import { type AgentTool, declare, type Source, type ToolCtx } from "./tools/types.ts";
 
 export type AgentEvent = { type: "step"; tools: string[] };
@@ -32,6 +33,8 @@ export interface AgentResult {
   provider: string | null;
   model: string | null;
   sources: Source[];
+  /** The last card a tool produced (shown above the answer in the CRM). */
+  entity: Entity | null;
   error?: string;
 }
 
@@ -67,7 +70,7 @@ export async function runAgent(o: {
 
   const res: AgentResult = {
     text: "", outcome: "ok", steps: 0, toolCalls: [], tokensIn: 0, tokensOut: 0, tokensCached: 0,
-    costUsd: 0, provider: null, model: null, sources: [],
+    costUsd: 0, provider: null, model: null, sources: [], entity: null,
   };
 
   const account = (providerName: string, model: string, usage: Usage | undefined) => {
@@ -122,6 +125,7 @@ export async function runAgent(o: {
           try {
             const out = await tool.run(o.ctx, args);
             if (out.sources?.length) res.sources.push(...out.sources);
+            if (out.entity) res.entity = out.entity;
             ok = !(out.data && typeof out.data === "object" && "error" in (out.data as any));
             content = safeJson(out.data);
           } catch (e) {
@@ -166,6 +170,17 @@ const SOURCES_TITLE: Record<string, string> = {
  * deduplicated, as a short list under the answer. CRM rows are not listed: the
  * answer names them itself.
  */
+/** Sources without repeats, in the order the tools returned them. */
+export function uniqueSources(sources: Source[]): Source[] {
+  const seen = new Set<string>();
+  return sources.filter((s) => {
+    const key = `${s.kind}|${s.label}|${s.page ?? ""}|${s.url ?? ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function sourcesFooter(sources: Source[], language: string, max = 6): string {
   const seen = new Set<string>();
   const lines: string[] = [];

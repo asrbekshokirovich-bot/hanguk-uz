@@ -3,13 +3,16 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { threadTitleFrom } from '@/lib/aiThreads';
+import { applyEvent, fromSnapshot, type AnswerMeta } from '@/lib/hangukAiAnswer';
 
 // ai_threads is newer than the generated types.
 const db = supabase as unknown as SupabaseClient;
 
-type Message = {
+export type Message = {
   role: 'user' | 'assistant';
   content: string;
+  /** Steps, sources, student card and run id (CRM answers only). */
+  meta?: AnswerMeta;
 };
 
 type UserType = 'student' | 'staff';
@@ -21,6 +24,8 @@ interface Options {
   threads?: boolean;
   /** Called after an answer is saved, e.g. to refresh the conversation list. */
   onSaved?: () => void;
+  /** Ask for steps / sources / card as events (the CRM answer card draws them). */
+  rich?: boolean;
 }
 
 export function useHangukAI(userType: UserType, language: string = 'en', options: Options = {}) {
@@ -30,7 +35,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
   const [error, setError] = useState<string | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   const threadRef = useRef<string | null>(null);
-  const { threads = false, onSaved } = options;
+  const { threads = false, onSaved, rich = false } = options;
 
   const sendMessage = useCallback(async (input: string) => {
     if (!user || !input.trim()) return;
@@ -41,18 +46,28 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
     setIsLoading(true);
 
     let assistantSoFar = '';
-    
-    const upsertAssistant = (nextChunk: string) => {
-      assistantSoFar += nextChunk;
+    let meta: AnswerMeta = {};
+
+    // The answer message appears with the first step or the first word.
+    const writeAssistant = () => {
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant') {
-          return prev.map((m, i) => 
-            i === prev.length - 1 ? { ...m, content: assistantSoFar } : m
+          return prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: assistantSoFar, meta } : m
           );
         }
-        return [...prev, { role: 'assistant', content: assistantSoFar }];
+        return [...prev, { role: 'assistant', content: assistantSoFar, meta }];
       });
+    };
+    const upsertAssistant = (nextChunk: string) => {
+      assistantSoFar += nextChunk;
+      writeAssistant();
+    };
+    const onEvent = (e: unknown) => {
+      if (!rich) return;
+      meta = applyEvent(meta, e);
+      writeAssistant();
     };
 
     try {
@@ -88,6 +103,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
           user_type: userType,
           language,
           thread_id: threads ? threadRef.current : undefined,
+          rich: rich || undefined,
         }),
       });
 
@@ -133,6 +149,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
 
           try {
             const parsed = JSON.parse(jsonStr);
+            if (parsed.hanguk) onEvent(parsed.hanguk);
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) upsertAssistant(content);
           } catch {
@@ -153,6 +170,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
           if (jsonStr === '[DONE]') continue;
           try {
             const parsed = JSON.parse(jsonStr);
+            if (parsed.hanguk) onEvent(parsed.hanguk);
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) upsertAssistant(content);
           } catch { /* ignore */ }
@@ -169,7 +187,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
       setIsLoading(false);
       onSaved?.();
     }
-  }, [user, userType, language, threads, onSaved]);
+  }, [user, userType, language, threads, onSaved, rich]);
 
   /** Start a new conversation (the next question opens a new thread). */
   const clearMessages = useCallback(() => {
@@ -184,7 +202,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
     setError(null);
     const { data, error: loadErr } = await db
       .from('ai_conversations')
-      .select('role, content')
+      .select('role, content, context_snapshot')
       .eq('thread_id', id)
       .order('created_at', { ascending: true })
       .limit(200);
@@ -197,7 +215,11 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
     setMessages(
       (data ?? [])
         .filter((r: { role: string; content: string }) => (r.role === 'user' || r.role === 'assistant') && r.content)
-        .map((r: { role: string; content: string }) => ({ role: r.role as Message['role'], content: r.content })),
+        .map((r: { role: string; content: string; context_snapshot?: unknown }) => ({
+          role: r.role as Message['role'],
+          content: r.content,
+          meta: r.role === 'assistant' ? fromSnapshot(r.context_snapshot) : undefined,
+        })),
     );
   }, []);
 
