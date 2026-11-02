@@ -81,3 +81,32 @@ Deno.test("linkResultText", () => {
   assertEquals(linkResultText("expired", "").includes("muddati o'tgan"), true);
   assertEquals(linkResultText("nimadir", "").includes("noto'g'ri"), true);
 });
+
+import { parseTaskText, renderDraft } from "./core.ts";
+
+Deno.test("parseTaskText: ertaga, soat, zarur", () => {
+  const now = Date.parse("2026-11-02T06:00:00Z"); // Du 11:00 Toshkent
+  const p = parseTaskText("Kim Minsu apostil hujjatlarini ertaga soat 15:00 gacha topshir, zarur", now);
+  assertEquals(p.due, "2026-11-03T10:00:00.000Z");
+  assertEquals(p.priority, "urgent");
+  assertEquals(p.title.startsWith("Kim Minsu"), true);
+});
+
+Deno.test("parseTaskText: sana, hafta kuni, muddatsiz", () => {
+  const now = Date.parse("2026-11-02T06:00:00Z"); // dushanba
+  assertEquals(parseTaskText("05.11 gacha paket yig'", now).due, "2026-11-05T13:00:00.000Z"); // 18:00
+  assertEquals(parseTaskText("jumagacha hisobot", now).due, "2026-11-06T13:00:00.000Z");
+  assertEquals(parseTaskText("dushanba kuni qo'ng'iroq", now).due, "2026-11-09T13:00:00.000Z"); // keyingi dushanba
+  assertEquals(parseTaskText("indinga tarjima", now).due, "2026-11-04T13:00:00.000Z");
+  assertEquals(parseTaskText("01.01 dan keyin", now).due, "2027-01-01T13:00:00.000Z");
+  const n = parseTaskText("Muratovga qo'ng'iroq qil, muhim", now);
+  assertEquals(n.due, null);
+  assertEquals(n.priority, "high");
+});
+
+Deno.test("renderDraft", () => {
+  const t = renderDraft("Diyora", { title: "a<b", due: "2026-11-03T10:00:00.000Z", priority: "urgent" });
+  assertEquals(t.includes("<b>Diyora</b>ga vazifa"), true);
+  assertEquals(t.includes("a&lt;b"), true);
+  assertEquals(t.includes("Muddat: 03.11 15:00 · Muhimlik: zarur"), true);
+});
