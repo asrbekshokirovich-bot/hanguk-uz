@@ -42,6 +42,7 @@ import { Database } from '@/integrations/supabase/types';
 import { IntercomButton } from '@/components/intercom/IntercomButton';
 import { useIntercom } from '@/components/intercom/IntercomProvider';
 import { ApplicationFeeAccessCard } from '@/components/staff/ApplicationFeeAccessCard';
+import { StaffTelegramCard } from '@/components/staff/StaffTelegramCard';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -403,6 +404,8 @@ export function StaffDetail({
 
         {/* "Application fee" section without the document_handler role (owner/admin only) */}
         <ApplicationFeeAccessCard userId={staff.user_id} roles={staff.roles} />
+
+        <StaffTelegramCard userId={staff.user_id} />
 
         {/* University Assignment - Issue 10 */}
         {isOwner && isUniversityStaff && (

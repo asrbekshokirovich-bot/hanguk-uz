@@ -467,6 +467,30 @@
       "success": "Xodim akkaunti o'chirildi",
       "failed": "Xodim akkauntini o'chirib bo'lmadi",
       "fallbackName": "bu xodim"
+    },
+    "staffTelegram": {
+      "title": "Telegram bot",
+      "hint": "Xodim botga ulansa, vazifalari va 17:00 hisoboti Telegram'da ishlaydi. Havola 15 daqiqa amal qiladi va bir marta ishlaydi — uni xodimga yuboring, u ochsa bot o'zi ulaydi.",
+      "linked": "Ulangan",
+      "notLinked": "Ulanmagan",
+      "pending": "Havola yuborilgan, {{minutes}} daqiqa amal qiladi",
+      "createLink": "Ulash havolasi",
+      "newLink": "Yangi havola",
+      "copy": "Nusxalash",
+      "copied": "Nusxalandi",
+      "copyFailed": "Nusxalab bo'lmadi — havolani qo'lda ko'chiring",
+      "openInTelegram": "Telegram'da ochish",
+      "expiresIn": "{{minutes}} daqiqa amal qiladi, bir marta ishlaydi",
+      "expired": "Havola muddati o'tdi — yangisini yarating",
+      "botNotSetUp": "Bot hali sozlanmagan (bot_username bo'sh): avval staff-bot ?action=setup ochilsin. Hozircha xodim botga /start va shu kodni yuborishi mumkin.",
+      "linkFailed": "Havola yaratib bo'lmadi",
+      "unlink": "Uzish",
+      "unlinkTitle": "Telegram'dan uzish",
+      "unlinkText": "Xodim botdan foydalana olmay qoladi. Qayta ulash uchun yangi havola kerak bo'ladi.",
+      "unlinkConfirm": "Uzish",
+      "unlinked": "Telegram uzildi",
+      "unlinkFailed": "Uzib bo'lmadi",
+      "cancel": "Bekor qilish"
     }
   },
   "leads": {
