@@ -12,6 +12,12 @@
 //
 // A PDF with no extractable text (a scan) is marked no_text and left for the
 // OCR decision (plan D6). A failure is retried up to three times.
+//
+// Embeddings are optional (2026-11-02): when Gemini refuses (quota 429) or has
+// no key, the page text is still saved without a vector, so the keyword half
+// of guideline_text_search (PGroonga, Korean terms from Claude) finds it. Such
+// a document is "done" with chunk_meta.embedded = false and can be embedded
+// later. Anthropic has no embedding model of its own.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as unpdf from "npm:unpdf@0.12.1";
 import { chunkPages } from "./chunk.ts";
@@ -108,23 +114,35 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
       return { id: doc.id, status: "no_text", pages: pages.length };
     }
 
-    const vectors = await embedBatch(chunks.map((c) => c.text));
+    let vectors: number[][] | null = null;
+    let embedError: string | null = GEMINI_KEY ? null : "GEMINI_API_KEY is not configured";
+    if (GEMINI_KEY) {
+      try {
+        vectors = await embedBatch(chunks.map((c) => c.text));
+      } catch (e) {
+        embedError = (e instanceof Error ? e.message : String(e)).slice(0, 200);
+      }
+    }
     await db.from("embedding_chunks").delete().eq("guideline_document_id", doc.id);
     for (let i = 0; i < chunks.length; i += 200) {
       const rows = chunks.slice(i, i + 200).map((c, k) => ({
         guideline_document_id: doc.id,
         institution_id: doc.institution_id,
         chunk_text_ko: c.text,
-        embedding: JSON.stringify(vectors[i + k]),
+        embedding: vectors ? JSON.stringify(vectors[i + k]) : null,
         page: c.page,
         chunk_index: c.index,
-        chunk_meta: { page: c.page, academic_year: doc.academic_year, semester: doc.semester, model: "gemini-embedding-001", dims: DIMS },
+        chunk_meta: {
+          page: c.page, academic_year: doc.academic_year, semester: doc.semester,
+          embedded: !!vectors, model: vectors ? "gemini-embedding-001" : null, dims: vectors ? DIMS : null,
+        },
       }));
       const { error: insErr } = await db.from("embedding_chunks").insert(rows);
       if (insErr) throw new Error(`insert: ${insErr.message}`);
     }
-    await save({ status: "done", pages: pages.length, chunks: chunks.length, chars, error: null });
-    return { id: doc.id, status: "done", pages: pages.length, chunks: chunks.length };
+    const note = embedError ? `text only, no embedding: ${embedError}` : null;
+    await save({ status: "done", pages: pages.length, chunks: chunks.length, chars, error: note });
+    return { id: doc.id, status: "done", pages: pages.length, chunks: chunks.length, embedded: !!vectors };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await save({ status: "failed", error: msg.slice(0, 500) });
@@ -134,7 +152,6 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
 
 Deno.serve(async (req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
-  if (!GEMINI_KEY) return json({ error: "GEMINI_API_KEY is not configured" }, 500);
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const started = Date.now();
