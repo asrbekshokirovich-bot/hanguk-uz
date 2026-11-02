@@ -24,7 +24,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
-import { generateJSON } from "../_shared/gemini.ts";
+import { structuredJSON } from "./ai.ts";
 import {
   escapeHtml,
   ANALYSIS_SCHEMA,
@@ -439,11 +439,9 @@ async function startReport(chatId: number, tgId: number, intro = "") {
 
 /** Hisobotni 3 qismga ajratish (Gemini). Ishlamasa null — asl matn saqlanadi. */
 async function splitReport(raw: string): Promise<ReportParts | null> {
-  if (!GEMINI_KEY) return null;
   try {
-    const r = await generateJSON<ReportParts>({
-      model: GEMINI_MODEL,
-      systemInstruction:
+    const { data: r } = await structuredJSON<ReportParts>({
+      system:
         "You split a staff member's end-of-day work report into three parts. The report is in Uzbek (Latin), " +
         "maybe mixed with Russian. Keep the author's own words and language; shorten only by removing filler. " +
         "Do not invent anything. If a part is not mentioned, return an empty string for it.",
@@ -658,7 +656,7 @@ async function settingValue(key: string): Promise<string> {
 
 async function analyzeGroupMessage(msg: Any, staff: Staff, text: string) {
   const mode = (await settingValue("group_ai_mode")) || "shadow";
-  if (mode === "off" || !GEMINI_KEY) return;
+  if (mode === "off") return;
   const { data: ctxData, error: ctxErr } = await db.rpc("bot_group_context");
   if (ctxErr) { console.error("bot_group_context:", ctxErr.message); return; }
   const ctx = (ctxData ?? []) as CtxStaff[];
@@ -670,13 +668,13 @@ async function analyzeGroupMessage(msg: Any, staff: Staff, text: string) {
   const history = ((hist ?? []) as { user_id: string | null; text: string }[]).reverse()
     .map((h) => ({ name: (h.user_id && names.get(h.user_id)) || "Noma'lum", text: h.text.slice(0, 500) }));
 
-  const ai = await generateJSON<AiAnalysis>({
-    model: GEMINI_MODEL,
-    systemInstruction: ANALYSIS_SYSTEM,
+  const { data: ai, provider } = await structuredJSON<AiAnalysis>({
+    system: ANALYSIS_SYSTEM,
     prompt: buildAnalysisPrompt(ctx, history, { name: staff.full_name, text: text.slice(0, 2000) }),
     schema: ANALYSIS_SCHEMA,
     temperature: 0,
-  }).catch((e) => { console.error("group analysis:", e instanceof Error ? e.message : e); return null; });
+  });
+  if (provider) console.log(`staff-bot: group analysis via ${provider}`);
 
   const p = interpretAnalysis(ai, ctx, Date.now());
   if (!p) return;
