@@ -45,6 +45,7 @@ import {
   parseGroupCommand,
   type TgEntity,
   groupTasks,
+  HELP_GUIDE,
   HELP_TEXT,
   parseTaskText,
   REPORT_PROMPT,
@@ -593,6 +594,11 @@ async function onGroupMessage(msg: Any) {
   }
 
   // 2) #vazifa / /vazifa
+  if (/^\/(help|yordam)(@\w+)?\s*$/i.test(text.trim())) {
+    await reply(chatId, msg.message_id, GROUP_HELP);
+    return;
+  }
+
   const cmd = parseGroupCommand(text, (msg.entities ?? msg.caption_entities ?? []) as TgEntity[]);
   if (!cmd) {
     // Tizim xabarlari (kimdir qo'shildi/chiqdi va h.k.) saqlanmaydi.
@@ -942,7 +948,7 @@ async function onPrivateMessage(msg: Any) {
         return;
       }
       case "help":
-        await send(chatId, HELP_TEXT, { reply_markup: MENU_KEYBOARD });
+        await sendLong(chatId, HELP_GUIDE, { reply_markup: MENU_KEYBOARD });
         return;
       case "bugun":
         await showTasks(chatId, staff, true);

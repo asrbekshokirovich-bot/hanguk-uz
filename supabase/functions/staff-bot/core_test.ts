@@ -235,3 +235,17 @@ Deno.test("parseAiStream: delta'lar yig'iladi, hanguk voqealari tashlanadi", () 
 Deno.test("mdToPlain", () => {
   assertEquals(mdToPlain("## Natija\n**3 ta** talaba, `kod` [havola](https://x.uz)"), "Natija\n3 ta talaba, kod havola (https://x.uz)");
 });
+
+import { HELP_GUIDE } from "./core.ts";
+
+Deno.test("HELP_GUIDE: barcha bo'limlar va HTML teglari yopiq", () => {
+  for (const k of ["Vazifalarim", "Vazifa berish", "Hisobot", "Savol", "#vazifa", "/bugun", "/cancel", "09:00", "17:00"]) {
+    assertEquals(HELP_GUIDE.includes(k), true, k);
+  }
+  for (const tag of ["b", "i", "code"]) {
+    const open = (HELP_GUIDE.match(new RegExp(`<${tag}>`, "g")) ?? []).length;
+    const close = (HELP_GUIDE.match(new RegExp(`</${tag}>`, "g")) ?? []).length;
+    assertEquals(open, close, tag);
+  }
+  assertEquals(HELP_GUIDE.length < 4000, true);
+});
