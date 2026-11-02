@@ -16,8 +16,9 @@
 // Embeddings are optional (2026-11-02): when Gemini refuses (quota 429) or has
 // no key, the page text is still saved without a vector, so the keyword half
 // of guideline_text_search (PGroonga, Korean terms from Claude) finds it. Such
-// a document is "done" with chunk_meta.embedded = false and can be embedded
-// later. Anthropic has no embedding model of its own.
+// a document is "done" with chunk_meta.embedded = false. Every run then
+// embeds up to BACKFILL such chunks while Gemini answers, so the vectors catch
+// up once the quota is back. Anthropic has no embedding model of its own.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as unpdf from "npm:unpdf@0.12.1";
 import { chunkPages } from "./chunk.ts";
@@ -28,6 +29,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") || "";
 const DIMS = 1024;
 const MAX_BYTES = 40e6;
+const BACKFILL = 100;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -150,6 +152,36 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
   }
 }
 
+/** Adds vectors to chunks saved without one (Gemini quota was out then). */
+async function backfillEmbeddings(db: any): Promise<{ embedded: number; error: string | null }> {
+  const { data: rows, error } = await db
+    .from("embedding_chunks")
+    .select("id, guideline_document_id, institution_id, chunk_text_ko, page, chunk_index, chunk_meta")
+    .is("embedding", null)
+    .not("guideline_document_id", "is", null)
+    .order("created_at", { ascending: true })
+    .limit(BACKFILL);
+  if (error) return { embedded: 0, error: `select: ${error.message}` };
+  if (!rows?.length) return { embedded: 0, error: null };
+
+  let vectors: number[][];
+  try {
+    vectors = await embedBatch(rows.map((r: any) => r.chunk_text_ko));
+  } catch (e) {
+    return { embedded: 0, error: (e instanceof Error ? e.message : String(e)).slice(0, 120) };
+  }
+  const { error: upErr } = await db.from("embedding_chunks").upsert(
+    rows.map((r: any, i: number) => ({
+      ...r,
+      embedding: JSON.stringify(vectors[i]),
+      chunk_meta: { ...(r.chunk_meta ?? {}), embedded: true, model: "gemini-embedding-001", dims: DIMS },
+    })),
+    { onConflict: "id" },
+  );
+  if (upErr) return { embedded: 0, error: `update: ${upErr.message}` };
+  return { embedded: rows.length, error: null };
+}
+
 Deno.serve(async (req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
 
@@ -162,6 +194,13 @@ Deno.serve(async (req) => {
   const doc = next?.[0];
   if (doc) results.push(await indexOne(db, doc));
 
-  console.log(`[guideline-index] ${results.map((r) => `${r.status}`).join(",") || "nothing to do"} in ${Date.now() - started} ms`);
-  return json({ processed: results.length, results });
+  // Skip the backfill when this run's own document just met the quota.
+  const quotaHit = results.some((r) => r.status === "done" && r.embedded === false);
+  const backfill = GEMINI_KEY && !quotaHit ? await backfillEmbeddings(db) : { embedded: 0, error: null };
+
+  console.log(
+    `[guideline-index] ${results.map((r) => `${r.status}`).join(",") || "nothing to do"}; ` +
+      `backfill ${backfill.embedded}${backfill.error ? ` (${backfill.error})` : ""} in ${Date.now() - started} ms`,
+  );
+  return json({ processed: results.length, results, backfill });
 });
