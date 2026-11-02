@@ -15,16 +15,16 @@ import {
 } from '@/lib/hangukAiAnswer';
 
 // One Hanguk AI answer in the CRM, as in Asrbek's design (2026-10-29):
-//  - with a student card: one card (white in light theme, dark in dark theme) — the steps the agent took (lime
+//  - with a student card: one white card — the steps the agent took (lime
 //    chips), the text, the student card, then sources and 👍/👎 in a footer;
 //  - otherwise: a plain bubble with the source chip and 👍/👎 under it.
 
 const db = supabase as unknown as SupabaseClient;
 
 const KIND_ICON: Record<SourceKind, { Icon: typeof BookOpen; className: string }> = {
-  guideline: { Icon: BookOpen, className: 'text-[#2447D6] dark:text-[#8FADFF]' },
-  pdf: { Icon: FileText, className: 'text-[#DC2626] dark:text-[#F2685E]' },
-  crm: { Icon: ContactRound, className: 'text-[#7FA11A] dark:text-accent' },
+  guideline: { Icon: BookOpen, className: 'text-[#2447D6]' },
+  pdf: { Icon: FileText, className: 'text-[#DC2626]' },
+  crm: { Icon: ContactRound, className: 'text-[#7FA11A]' },
   web: { Icon: Globe, className: 'text-muted-foreground' },
 };
 
@@ -88,7 +88,7 @@ function Sources({ sources }: { sources: AnswerSource[] }) {
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 p-1">
+      <PopoverContent align="start" className="theme-light w-80 p-1">
         {sources.map((s, i) => {
           const link = sourceHref(s);
           const extra = [s.page, s.kind === 'web' ? hostOf(s.url) : null, s.date ? dmy(s.date) : null].filter(Boolean).join(' · ');
@@ -156,7 +156,7 @@ function Steps({ steps, running }: { steps: string[]; running: boolean }) {
         return (
           <span key={k} className="flex items-center gap-2">
             {i > 0 && <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />}
-            <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[#EEF6C8] px-3 text-xs font-semibold text-[#7FA11A] dark:bg-accent/15 dark:text-accent">
+            <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[#EEF6C8] px-3 text-xs font-semibold text-[#7FA11A]">
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               {t(`ai.answer.step.${k}`)}
             </span>
@@ -189,8 +189,8 @@ function StudentCard({ entity }: { entity: StudentEntity }) {
   const navigate = useNavigate();
   const season = parseSeason(entity.season);
   const tone = {
-    good: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-    bad: 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+    good: 'bg-emerald-50 text-emerald-700',
+    bad: 'bg-red-50 text-red-700',
     neutral: 'bg-muted text-muted-foreground',
   } as const;
   const dot = { good: 'bg-emerald-500', bad: 'bg-red-500', neutral: 'bg-muted-foreground' } as const;
@@ -206,7 +206,7 @@ function StudentCard({ entity }: { entity: StudentEntity }) {
               {season && <> · {season.year} {t(`ai.answer.${season.term}`)}</>}
               {entity.docsApproved != null && (
                 <> · {t('ai.answer.documents', 'Hujjatlar')}{' '}
-                  <span className="font-semibold text-[#7FA11A] dark:text-accent">{entity.docsApproved}/{entity.docsRequired ?? 8}</span>
+                  <span className="font-semibold text-[#7FA11A]">{entity.docsApproved}/{entity.docsRequired ?? 8}</span>
                 </>
               )}
             </p>

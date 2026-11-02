@@ -321,7 +321,12 @@ export default function AIAssistantContent() {
           className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.35),transparent_70%)]"
         />
 
-        <ScrollArea className="relative flex-1" ref={scrollRef}>
+        {/* The conversation is a light panel (Asrbek, 2026-11-02): white answer
+            cards on the dark page were hard to read. The home screen stays dark. */}
+        <ScrollArea
+          className={cn('relative flex-1', !empty && 'theme-light m-2 mb-0 rounded-xl bg-background text-foreground')}
+          ref={scrollRef}
+        >
           {empty ? (
             <div className="flex min-h-full flex-col items-center px-6 pt-16 pb-6">
               <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-primary/60 bg-primary/40 shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
