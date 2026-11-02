@@ -178,9 +178,11 @@ jobs:
 
           for fn in $FUNCTIONS; do
             echo "::group::$fn"
+            # --yes: yangi CLI (2026-11) tasdiq so'raydi; CI'da terminal yo'q — usiz hech narsa joylanmaydi.
             supabase functions deploy "$fn" \
               --project-ref "$SUPABASE_PROJECT_ID" \
-              --use-api
+              --use-api \
+              --yes
             echo "::endgroup::"
           done
 
