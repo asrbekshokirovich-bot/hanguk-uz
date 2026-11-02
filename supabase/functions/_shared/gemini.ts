@@ -8,6 +8,7 @@
 //
 // deno-lint-ignore-file no-explicit-any
 
+import { geminiFetch } from "./claude-fallback.ts";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 function apiKey(): string {
@@ -110,7 +111,7 @@ export async function generateJSON<T = any>(args: {
     body.systemInstruction = { parts: [{ text: args.systemInstruction }] };
   }
 
-  const res = await fetch(
+  const res = await geminiFetch(
     `${GEMINI_BASE}/models/${model}:generateContent?key=${apiKey()}`,
     {
       method: "POST",

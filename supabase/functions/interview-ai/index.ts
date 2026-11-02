@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { ApiError, handleError } from "../_shared/error-handler.ts";
-import { fetchWithRetry } from "../_shared/api-utils.ts";
 import { ipLimiter } from "../_shared/rate-limiter.ts";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 interface InterviewMessage {
   role: "interviewer" | "student";
@@ -388,8 +388,8 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
       throw new ApiError(500, "AI service not configured");
     }
 
-    // Leveraging fetchWithRetry to gracefully handle Gemini 429 quota spikes behind the scenes
-    const aiResponse = await fetchWithRetry("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    // geminiFetch: on a Gemini 429/503 the same request goes to Claude (2026-11-02)
+    const aiResponse = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${geminiApiKey}`,
@@ -404,7 +404,7 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
         ],
         max_tokens: 300,
       }),
-    }, 4); // Optional 4 retries for robustness
+    });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();

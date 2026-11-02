@@ -23,6 +23,7 @@
 // POST { lead_id } with the service key or an sb_secret_ key in `apikey`.
 // { dry: true } returns the proposal and the material it read, writing nothing.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -242,7 +243,7 @@ Deno.serve(async (req) => {
 
     const window = { from: pieces[0]?.when ?? null, to: pieces[pieces.length - 1]?.when ?? null };
 
-    const res = await fetch(
+    const res = await geminiFetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(GEMINI_KEY)}`,
       {
         method: "POST",

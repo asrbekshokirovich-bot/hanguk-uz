@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -241,7 +242,7 @@ Include message_scores for EVERY student response in the transcript.`;
     };
 
     const callModel = async (sys: string, maxTokens: number) => {
-      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+      const res = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${geminiApiKey}`,

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -332,7 +333,7 @@ Provide a concise summary focusing on:
 
 Keep response under 100 words, in a professional CRM tone.`;
 
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+  const response = await geminiFetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

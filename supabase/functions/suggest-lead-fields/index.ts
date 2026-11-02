@@ -16,6 +16,7 @@
 // POST { call_id } with the service key or an sb_secret_ key in `apikey`.
 // Add { dry: true } to get the proposal back without writing anything.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -162,7 +163,7 @@ Deno.serve(async (req) => {
     }
     if (!text.trim()) return json({ error: "No transcript for this call" }, 404);
 
-    const res = await fetch(
+    const res = await geminiFetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(GEMINI_KEY)}`,
       {
         method: "POST",

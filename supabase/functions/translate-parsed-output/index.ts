@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,7 +53,7 @@ serve(async (req) => {
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
     if (!geminiApiKey) return json({ error: "Translation is not configured" }, 500);
 
-    const aiResponse = await fetch(GEMINI_AI_URL, {
+    const aiResponse = await geminiFetch(GEMINI_AI_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
