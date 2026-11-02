@@ -70,16 +70,16 @@ function ThreadCard({
       onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter') onOpen(); }}
       className={cn(
-        'group flex flex-[1_1_auto] min-w-[200px] flex-col gap-2 rounded-xl border bg-white/[0.03] p-3 text-left transition-colors cursor-pointer',
-        'hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-        highlighted ? 'border-accent/60' : 'border-border/70',
+        'group flex flex-[1_1_auto] min-w-[200px] flex-col gap-2 rounded-xl border bg-card p-3 text-left shadow-sm transition-colors cursor-pointer',
+        'hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        highlighted ? 'border-accent' : 'border-border',
       )}
     >
       <div className="flex items-center gap-2 min-w-0">
         <span
           className={cn(
             'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold',
-            highlighted ? 'bg-accent text-accent-foreground' : 'bg-primary/40 text-white',
+            highlighted ? 'bg-accent text-accent-foreground' : 'bg-primary/10 text-primary',
           )}
         >
           {threadInitials(thread.title)}
@@ -92,7 +92,7 @@ function ThreadCard({
           onClick={(e) => { e.stopPropagation(); onPin(); }}
           className={cn(
             'shrink-0 rounded p-0.5 transition-opacity',
-            thread.pinned ? 'text-accent' : 'text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100',
+            thread.pinned ? 'text-primary' : 'text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100',
           )}
         >
           <Pin className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ function ThreadCard({
         <span className="truncate text-muted-foreground">
           {dayLabel} · {t('ai.messagesCount', { count: thread.message_count })}
         </span>
-        <span className="flex shrink-0 items-center gap-1 whitespace-nowrap font-semibold text-accent">
+        <span className="flex shrink-0 items-center gap-1 whitespace-nowrap font-semibold text-primary">
           {t('ai.continue')} <ArrowRight className="h-3 w-3" />
         </span>
       </div>
@@ -248,11 +248,12 @@ export default function AIAssistantContent() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-120px)] min-h-[560px] rounded-3xl border border-border/70 bg-card/40 p-4">
+    // The whole Hanguk AI page is light, also when the CRM is dark (Asrbek, 2026-11-02).
+    <div className="theme-light flex flex-col h-[calc(100dvh-120px)] min-h-[560px] rounded-3xl border border-border bg-card p-4 text-foreground">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-11 w-11 shrink-0 rounded-full bg-primary/50 ring-1 ring-primary/60 flex items-center justify-center">
+          <div className="h-11 w-11 shrink-0 rounded-full bg-primary flex items-center justify-center">
             <Bot className="h-5 w-5 text-white" />
           </div>
           <div className="min-w-0">
@@ -290,7 +291,7 @@ export default function AIAssistantContent() {
                 {indexing || enriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuContent align="end" className="theme-light w-80">
               <DropdownMenuItem onClick={indexDocuments} disabled={indexing} className="items-start gap-3 py-2.5">
                 {indexing ? <Loader2 className="h-4 w-4 mt-0.5 animate-spin" /> : <FileText className="h-4 w-4 mt-0.5 text-info" />}
                 <div>
@@ -315,21 +316,16 @@ export default function AIAssistantContent() {
       </div>
 
       {/* Body */}
-      <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-background/60">
+      <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden rounded-2xl border border-border bg-background">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.35),transparent_70%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.10),transparent_70%)]"
         />
 
-        {/* The conversation is a light panel (Asrbek, 2026-11-02): white answer
-            cards on the dark page were hard to read. The home screen stays dark. */}
-        <ScrollArea
-          className={cn('relative flex-1', !empty && 'theme-light m-2 mb-0 rounded-xl bg-background text-foreground')}
-          ref={scrollRef}
-        >
+        <ScrollArea className="relative flex-1" ref={scrollRef}>
           {empty ? (
             <div className="flex min-h-full flex-col items-center px-6 pt-16 pb-6">
-              <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-primary/60 bg-primary/40 shadow-[0_0_40px_hsl(var(--primary)/0.45)]">
+              <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-primary shadow-[0_8px_30px_hsl(var(--primary)/0.30)]">
                 <Logo variant="glyph" className="h-14 w-14" alt="" />
               </div>
               <h2 className="mt-6 text-center text-2xl font-bold">
@@ -347,7 +343,7 @@ export default function AIAssistantContent() {
                     <button
                       type="button"
                       onClick={() => setHistoryOpen(true)}
-                      className="flex items-center gap-1 text-xs font-semibold text-accent hover:underline"
+                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                     >
                       {t('ai.seeAll', { count: threads.length })} <ArrowRight className="h-3 w-3" />
                     </button>
@@ -429,7 +425,7 @@ export default function AIAssistantContent() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t('ai.placeholder', 'Type your message... (Press Enter to send, Shift+Enter for new line)')}
-              className="min-h-[52px] max-h-40 resize-none rounded-xl bg-white/[0.04] py-[15px] leading-5"
+              className="min-h-[52px] max-h-40 resize-none rounded-xl bg-card py-[15px] leading-5"
               rows={1}
             />
             <Button
@@ -448,7 +444,7 @@ export default function AIAssistantContent() {
 
       {/* History */}
       <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+        <SheetContent side="right" className="theme-light w-full sm:max-w-md overflow-y-auto text-foreground">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <History className="h-4 w-4" />
@@ -474,7 +470,7 @@ export default function AIAssistantContent() {
       </Sheet>
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => { if (!o) setToDelete(null); }}>
-        <AlertDialogContent>
+        <AlertDialogContent className="theme-light text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('ai.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>{t('ai.deleteConfirmText')}</AlertDialogDescription>
