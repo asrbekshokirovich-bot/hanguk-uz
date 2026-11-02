@@ -150,3 +150,97 @@ export const NOT_LINKED_TEXT =
 
 export const HELP_TEXT =
   `${MENU.tasks} — ochiq vazifalaringiz (muddati o'tgan / bugun / keyingi)\n${MENU.assign} — hamkasbga vazifa (matn yoki ovoz)\n${MENU.report} — kunlik hisobot; har ish kuni 17:00 da o'zim so'rayman\n${MENU.ask} — Hanguk AI'ga savol\n\n/bugun — bugungi va kechikkan vazifalar\n/cancel — boshlangan amalni bekor qilish`;
+
+// ── PR-3: vazifa matnini ajratish (deterministik; AI faqat sarlavhani tozalaydi) ──
+
+export type Priority = "urgent" | "high" | "normal" | "low";
+
+export interface ParsedTask {
+  title: string;
+  due: string | null; // ISO (UTC)
+  priority: Priority;
+}
+
+const WEEKDAYS: Record<string, number> = {
+  dushanba: 1, seshanba: 2, chorshanba: 3, payshanba: 4, juma: 5, shanba: 6, yakshanba: 7,
+};
+
+/** Toshkent mahalliy sana+vaqtni UTC ISO'ga. */
+export function tashkentToIso(y: number, m: number, d: number, hh: number, mi: number): string {
+  return new Date(Date.UTC(y, m - 1, d, hh, mi) - TZ_OFFSET_MIN * 60_000).toISOString();
+}
+
+/** Matndan muddat va muhimlikni topadi. Topilmasa due=null, priority=normal. */
+export function parseTaskText(raw: string, nowMs: number): ParsedTask {
+  const text = raw.replace(/\s+/g, " ").trim();
+  const low = text.toLowerCase().replace(/[ʻʼ‘’`]/g, "'");
+  const local = new Date(nowMs + TZ_OFFSET_MIN * 60_000);
+  let y = local.getUTCFullYear(), m = local.getUTCMonth() + 1, d = local.getUTCDate();
+  let found = false;
+
+  const addDays = (n: number) => {
+    const t = new Date(Date.UTC(y, m - 1, d + n));
+    y = t.getUTCFullYear(); m = t.getUTCMonth() + 1; d = t.getUTCDate();
+  };
+
+  const dm = low.match(/\b(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?\b/);
+  if (dm) {
+    const dd = +dm[1], mm = +dm[2];
+    if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12) {
+      let yy = dm[3] ? +dm[3] : y;
+      if (yy < 100) yy += 2000;
+      if (!dm[3] && (mm < m || (mm === m && dd < d))) yy += 1; // o'tib ketgan sana → keyingi yil
+      y = yy; m = mm; d = dd; found = true;
+    }
+  }
+  if (!found) {
+    if (/\bindin(ga)?\b/.test(low)) { addDays(2); found = true; }
+    else if (/\bertaga\b|\bertangi\b/.test(low)) { addDays(1); found = true; }
+    else if (/\bbugun\b|\bbugungi\b/.test(low)) { found = true; }
+    else {
+      for (const [name, wd] of Object.entries(WEEKDAYS)) {
+        if (new RegExp(`\\b${name}(ga|gacha|kuni)?\\b`).test(low)) {
+          const cur = local.getUTCDay() === 0 ? 7 : local.getUTCDay();
+          let diff = (wd - cur + 7) % 7;
+          if (diff === 0) diff = 7;
+          addDays(diff); found = true; break;
+        }
+      }
+    }
+  }
+
+  let hh = 18, mi = 0, hasTime = false;
+  const tm = low.match(/\b(?:soat\s*)?([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+  if (tm && !(dm && tm.index === dm.index)) { hh = +tm[1]; mi = +tm[2]; hasTime = true; }
+  else {
+    const sm = low.match(/\bsoat\s*([01]?\d|2[0-3])\b/);
+    if (sm) { hh = +sm[1]; mi = 0; hasTime = true; }
+  }
+  if (hasTime && !found) found = true; // faqat vaqt aytilgan → bugun
+
+  let priority: Priority = "normal";
+  if (/\b(zarur|shoshilinch|tezda|tezroq|darhol|srochno|urgent)\b/.test(low)) priority = "urgent";
+  else if (/\b(muhim|important)\b/.test(low)) priority = "high";
+
+  return {
+    title: text.slice(0, 200),
+    due: found ? tashkentToIso(y, m, d, hh, mi) : null,
+    priority,
+  };
+}
+
+export const PRIORITY_UZ: Record<string, string> = { urgent: "zarur", high: "yuqori", normal: "o'rta", low: "past" };
+
+/** Tasdiq kartasi matni (HTML). */
+export function renderDraft(assigneeName: string, p: ParsedTask): string {
+  const due = p.due ? fmtDue(p.due) : "—";
+  return `📝 <b>${escapeHtml(assigneeName)}</b>ga vazifa\n\n${escapeHtml(p.title)}\n\nMuddat: ${due} · Muhimlik: ${PRIORITY_UZ[p.priority] ?? "o'rta"}`;
+}
+
+/** Bitta vazifa kartasi (tugmalar bilan yuboriladi). */
+export function renderTaskCard(t: TaskRow): string {
+  const due = fmtDue(t.due_date);
+  const pr = t.priority === "urgent" || t.priority === "high" ? " ❗" : "";
+  const st = t.status === "in_progress" ? "▶ " : "";
+  return `${st}${escapeHtml(t.title)}${due ? `\n⏰ ${due}` : ""}${pr}`;
+}
