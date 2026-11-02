@@ -4125,6 +4125,56 @@ class AppLocalizationsKo extends AppLocalizations {
   String get ucFinalChosen => '✓ 이 대학을 선택했습니다';
 
   @override
+  String get ucFacultyStepTitle => '학과를 선택하세요';
+
+  @override
+  String get ucFacultyStepBody => '이 대학에서 공부하고 싶은 학과를 선택하세요. 상담사가 확인합니다.';
+
+  @override
+  String get ucFacultyPick => '학과 선택';
+
+  @override
+  String ucFacultyValue(String name) {
+    return '학과: $name';
+  }
+
+  @override
+  String get ucFacultyPending => '상담사 확인 대기 중';
+
+  @override
+  String get ucFacultyConfirmed => '✓ 학과 확정';
+
+  @override
+  String get ucFacultyChange => '변경';
+
+  @override
+  String get ucFacultySearch => '학과 검색';
+
+  @override
+  String get ucFacultyEmpty => '검색 결과가 없습니다';
+
+  @override
+  String get ucFacultyChoose => '이 학과 선택';
+
+  @override
+  String get ucFacultyBanner => '수락한 대학의 학과를 선택하세요';
+
+  @override
+  String get ucDegreeBachelor => '학사';
+
+  @override
+  String get ucDegreeMaster => '석사';
+
+  @override
+  String get ucDegreeVocational => '전문학사';
+
+  @override
+  String get ucTrackKorean => '한국어 트랙';
+
+  @override
+  String get ucTrackEnglish => '영어 트랙';
+
+  @override
   String get fdNavAssess => '평가';
 
   @override

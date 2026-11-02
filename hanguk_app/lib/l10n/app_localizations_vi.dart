@@ -4283,6 +4283,57 @@ class AppLocalizationsVi extends AppLocalizations {
   String get ucFinalChosen => '✓ Bạn đã chọn trường này';
 
   @override
+  String get ucFacultyStepTitle => 'Chọn ngành học';
+
+  @override
+  String get ucFacultyStepBody =>
+      'Chọn ngành bạn muốn học tại trường này. Tư vấn viên sẽ xác nhận.';
+
+  @override
+  String get ucFacultyPick => 'Chọn ngành';
+
+  @override
+  String ucFacultyValue(String name) {
+    return 'Ngành: $name';
+  }
+
+  @override
+  String get ucFacultyPending => 'Đang chờ tư vấn viên xác nhận';
+
+  @override
+  String get ucFacultyConfirmed => '✓ Đã xác nhận ngành';
+
+  @override
+  String get ucFacultyChange => 'Đổi';
+
+  @override
+  String get ucFacultySearch => 'Tìm ngành';
+
+  @override
+  String get ucFacultyEmpty => 'Không tìm thấy';
+
+  @override
+  String get ucFacultyChoose => 'Chọn ngành này';
+
+  @override
+  String get ucFacultyBanner => 'Chọn ngành cho các trường bạn đã đồng ý';
+
+  @override
+  String get ucDegreeBachelor => 'Cử nhân';
+
+  @override
+  String get ucDegreeMaster => 'Thạc sĩ';
+
+  @override
+  String get ucDegreeVocational => 'Cao đẳng';
+
+  @override
+  String get ucTrackKorean => 'Tiếng Hàn';
+
+  @override
+  String get ucTrackEnglish => 'Tiếng Anh';
+
+  @override
   String get fdNavAssess => 'ĐÁNH GIÁ';
 
   @override

@@ -5579,6 +5579,75 @@
   "@ucFinalChosen": {
     "description": "Note on the final university after the student confirmed it."
   },
+  "ucFacultyStepTitle": "Choose your faculty",
+  "@ucFacultyStepTitle": {
+    "description": "Step on an accepted university card: choose a faculty."
+  },
+  "ucFacultyStepBody": "Pick the faculty you want to study at this university. Your consultant will confirm it.",
+  "@ucFacultyStepBody": {
+    "description": "Explains the faculty step; the consultant confirms the choice."
+  },
+  "ucFacultyPick": "Choose faculty",
+  "@ucFacultyPick": {
+    "description": "Button that opens the faculty list."
+  },
+  "ucFacultyValue": "Faculty: {name}",
+  "@ucFacultyValue": {
+    "description": "The chosen faculty on a university card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ucFacultyPending": "Waiting for your consultant to confirm",
+  "@ucFacultyPending": {
+    "description": "The chosen faculty waits for the consultant's confirmation."
+  },
+  "ucFacultyConfirmed": "✓ Faculty confirmed",
+  "@ucFacultyConfirmed": {
+    "description": "The consultant confirmed the chosen faculty."
+  },
+  "ucFacultyChange": "Change",
+  "@ucFacultyChange": {
+    "description": "Link to pick a different faculty before it is confirmed."
+  },
+  "ucFacultySearch": "Search faculty",
+  "@ucFacultySearch": {
+    "description": "Search field hint in the faculty list."
+  },
+  "ucFacultyEmpty": "Nothing found",
+  "@ucFacultyEmpty": {
+    "description": "The faculty search found nothing."
+  },
+  "ucFacultyChoose": "Choose this faculty",
+  "@ucFacultyChoose": {
+    "description": "Confirm button in the faculty list."
+  },
+  "ucFacultyBanner": "Choose a faculty for the universities you accepted",
+  "@ucFacultyBanner": {
+    "description": "Banner when accepted universities still need a faculty."
+  },
+  "ucDegreeBachelor": "Bachelor",
+  "@ucDegreeBachelor": {
+    "description": "Degree group in the faculty list."
+  },
+  "ucDegreeMaster": "Master",
+  "@ucDegreeMaster": {
+    "description": "Degree group in the faculty list."
+  },
+  "ucDegreeVocational": "College",
+  "@ucDegreeVocational": {
+    "description": "Degree group in the faculty list (vocational college)."
+  },
+  "ucTrackKorean": "Korean",
+  "@ucTrackKorean": {
+    "description": "Chip: the faculty teaches in Korean."
+  },
+  "ucTrackEnglish": "English",
+  "@ucTrackEnglish": {
+    "description": "Chip: the faculty teaches in English."
+  },
   "fdNavAssess": "ASSESS",
   "@fdNavAssess": {
     "description": "Label under the percentage on the round button of the bottom nav."

@@ -9,6 +9,7 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 const choice = (student_id: string, institution_id: string, rank: number): UniversityChoice => ({
   id: `${student_id}-${institution_id}`, student_id, institution_id, rank, created_at: '', status: 'confirmed',
   responded_at: null, change_reason: null, change_note: null, confirmed_at: null,
+  faculty_name: null, faculty_daraja: null, faculty_chosen_at: null, faculty_confirmed_at: null,
 });
 const sub = (student_id: string, institution_id: string, extra: Partial<UniversitySubmission> = {}): UniversitySubmission => ({
   id: `${student_id}:${institution_id}`, student_id, institution_id, online_submitted_at: '2026-10-12T00:00:00Z',

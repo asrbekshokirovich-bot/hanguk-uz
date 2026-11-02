@@ -50,6 +50,10 @@ class UniversityChoice {
     this.outcome,
     this.isFinal = false,
     this.finalConfirmed = false,
+    this.facultyName,
+    this.facultyDegree,
+    this.facultyConfirmed = false,
+    this.hasFaculties = false,
   });
 
   final String id;
@@ -79,6 +83,31 @@ class UniversityChoice {
 
   bool get needsFinalConfirm => isFinal && !finalConfirmed;
 
+  /// The faculty the student chose at this university (`faculty_name`,
+  /// "English / 한국어"), null until chosen; and its degree (bakalavr,
+  /// magistratura, kasbiy).
+  final String? facultyName;
+  final String? facultyDegree;
+
+  /// Staff confirmed the chosen faculty in the CRM.
+  final bool facultyConfirmed;
+
+  /// The university's guideline lists faculties to choose from.
+  final bool hasFaculties;
+
+  /// After "Roziman" (or once staff confirmed the university) the student
+  /// picks a faculty — a separate step (Asrbek, 2026-10-29) — unless the
+  /// university turned them down.
+  bool get needsFaculty =>
+      hasFaculties &&
+      facultyName == null &&
+      outcome != AdmissionOutcome.rejected &&
+      (status == UniversityChoiceStatus.accepted || status == UniversityChoiceStatus.confirmed);
+
+  /// The student may still change a chosen faculty until staff confirm it.
+  bool get canChangeFaculty =>
+      hasFaculties && facultyName != null && !facultyConfirmed && outcome != AdmissionOutcome.rejected;
+
   /// The same choice with its admission result from `my_admission_results()`.
   UniversityChoice withResult(Map<String, dynamic>? r) => r == null
       ? this
@@ -101,6 +130,10 @@ class UniversityChoice {
           outcome: parseAdmissionOutcome(r['result'] as String?),
           isFinal: r['is_final'] == true,
           finalConfirmed: r['student_confirmed_at'] != null,
+          facultyName: facultyName,
+          facultyDegree: facultyDegree,
+          facultyConfirmed: facultyConfirmed,
+          hasFaculties: hasFaculties,
         );
 
   /// Rank of the partner-university slot (PARTNER_RANK in the CRM).
@@ -143,6 +176,67 @@ class UniversityChoice {
       onlineDeadline: deadline == null ? null : DateTime.tryParse(deadline),
       studentIelts: _num(j['student_ielts']),
       studentTopik: _num(j['student_topik']),
+      facultyName: _text(j['faculty_name']),
+      facultyDegree: _text(j['faculty_daraja']),
+      facultyConfirmed: j['faculty_confirmed_at'] != null,
+      hasFaculties: j['has_faculties'] == true,
     );
+  }
+
+  static String? _text(Object? v) {
+    final t = (v as String?)?.trim();
+    return t == null || t.isEmpty ? null : t;
+  }
+}
+
+/// One faculty of a university's guideline (`my_choice_faculties`), offered
+/// in the "Fakultet tanlang" list.
+class ChoiceFaculty {
+  const ChoiceFaculty({
+    required this.id,
+    required this.name,
+    this.nameKo,
+    this.college,
+    this.degree,
+    this.track,
+  });
+
+  final String id;
+
+  /// The English name, or the Korean one when the guideline has no English.
+  final String name;
+
+  /// The Korean name when it differs from [name].
+  final String? nameKo;
+  final String? college;
+
+  /// bakalavr, magistratura or kasbiy.
+  final String? degree;
+
+  /// korean or english.
+  final String? track;
+
+  factory ChoiceFaculty.fromJson(Map<String, dynamic> j) {
+    String? t(String k) {
+      final v = (j[k] as String?)?.trim();
+      return v == null || v.isEmpty ? null : v;
+    }
+
+    final en = t('fakultet_en');
+    final ko = t('fakultet_kr');
+    return ChoiceFaculty(
+      id: j['id'] as String,
+      name: en ?? ko ?? '',
+      nameKo: en == null ? null : ko,
+      college: t('kollej_en') ?? t('kollej_kr'),
+      degree: t('daraja'),
+      track: t('track'),
+    );
+  }
+
+  bool matches(String query) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    return [name, nameKo, college].whereType<String>().any((s) => s.toLowerCase().contains(q));
   }
 }

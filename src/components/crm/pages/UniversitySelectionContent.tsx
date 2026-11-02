@@ -27,6 +27,8 @@ import { useUniversityCatalog, type CatalogEntry } from '@/hooks/useUniversityCa
 import {
   canConfirm,
   CHANGE_REASON_LABELS,
+  FACULTY_DEGREE_LABELS,
+  facultyState,
   MAX_CHOICES,
   MAX_REGULAR,
   PARTNER_RANK,
@@ -41,6 +43,7 @@ import {
   operatorCities,
 } from '@/components/crm/pages/university-catalog/format';
 import { StudentFeePanel } from '@/components/crm/pages/application-fees/StudentFeePanel';
+import { isOnePercent } from '@/lib/onePercentUniversities';
 
 type StudentProfile = Tables<'profiles'> & {
   /** From useCRMData (src/lib/studentPipeline.ts). */
@@ -79,6 +82,8 @@ export default function UniversitySelectionContent({
   const [uniSearch, setUniSearch] = useState('');
   const [city, setCity] = useState<string | null>(null);
   const [onlyFit, setOnlyFit] = useState(false);
+  // "1% universitetlar" (Asrbek, 2026-10-29).
+  const [onePercent, setOnePercent] = useState(false);
   const [visible, setVisible] = useState(PAGE);
 
   const filteredStudents = useMemo(() => {
@@ -125,10 +130,11 @@ export default function UniversitySelectionContent({
       if (!matchesSearch(e, uniSearch)) return false;
       if (city && cityLabel(e) !== city) return false;
       if (onlyFit && student && languageFit(student, e.latest).state !== 'ok') return false;
+      if (onePercent && !isOnePercent(e.institution)) return false;
       return true;
     });
     return list.sort((a, b) => Number(!!b.latest) - Number(!!a.latest));
-  }, [catalog.entries, uniSearch, city, onlyFit, student]);
+  }, [catalog.entries, uniSearch, city, onlyFit, onePercent, student]);
 
   const choose = (entry: CatalogEntry, partner = false) => {
     if (!student) return;
@@ -258,7 +264,14 @@ export default function UniversitySelectionContent({
                     first={i === 0}
                     last={c.rank === PARTNER_RANK || i === regularChoices.length - 1}
                     applied={appliedIds.has(c.institution_id)}
-                    busy={choices.move.isPending || choices.remove.isPending || choices.confirm.isPending || choices.unlockConfirmed.isPending}
+                    busy={
+                      choices.move.isPending ||
+                      choices.remove.isPending ||
+                      choices.confirm.isPending ||
+                      choices.unlockConfirmed.isPending ||
+                      choices.confirmFaculty.isPending ||
+                      choices.resetFaculty.isPending
+                    }
                     changeOnce={
                       c.status !== 'confirmed' || !choices.canChangeConfirmed
                         ? 'none'
@@ -271,6 +284,15 @@ export default function UniversitySelectionContent({
                     onRemove={() => choices.remove.mutate(c, { onError })}
                     onConfirm={() =>
                       choices.confirm.mutate(c, { onSuccess: () => toast.success('Yakuniy tasdiqlandi'), onError })
+                    }
+                    onConfirmFaculty={() =>
+                      choices.confirmFaculty.mutate(c, { onSuccess: () => toast.success('Fakultet tasdiqlandi'), onError })
+                    }
+                    onResetFaculty={() =>
+                      choices.resetFaculty.mutate(c, {
+                        onSuccess: () => toast.success('Talaba fakultetni qayta tanlaydi'),
+                        onError,
+                      })
                     }
                   />
                 ))}
@@ -380,6 +402,18 @@ export default function UniversitySelectionContent({
                 <CheckCircle2 className="h-4 w-4" />
                 Faqat mos keladigan
               </Button>
+              <Button
+                variant={onePercent ? 'default' : 'outline'}
+                size="sm"
+                className="h-10"
+                aria-pressed={onePercent}
+                onClick={() => {
+                  setOnePercent((v) => !v);
+                  setVisible(PAGE);
+                }}
+              >
+                1% universitetlar
+              </Button>
             </div>
 
             {universities.length === 0 ? (
@@ -484,6 +518,8 @@ interface ChoiceRowProps {
   /** Confirmed choices: may this user use the student's one change? */
   changeOnce: 'none' | 'available' | 'used';
   onChangeConfirmed: () => void;
+  onConfirmFaculty: () => void;
+  onResetFaculty: () => void;
 }
 
 function fmtDay(iso: string | null) {
@@ -528,7 +564,21 @@ function StatusBadge({ choice }: { choice: UniversityChoice }) {
   }
 }
 
-function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm, changeOnce, onChangeConfirmed }: ChoiceRowProps) {
+function ChoiceRow({
+  choice,
+  entry,
+  first,
+  last,
+  applied,
+  busy,
+  onMove,
+  onRemove,
+  onConfirm,
+  changeOnce,
+  onChangeConfirmed,
+  onConfirmFaculty,
+  onResetFaculty,
+}: ChoiceRowProps) {
   const name = entry ? displayName(entry) : { primary: '—', secondary: null };
   const isPartner = choice.rank === PARTNER_RANK;
   const confirmed = choice.status === 'confirmed';
@@ -603,6 +653,7 @@ function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove
           </Button>
         </div>
       )}
+      <FacultyLine choice={choice} busy={busy} onConfirm={onConfirmFaculty} onReset={onResetFaculty} />
       {canConfirm(choice) && (
         <div className="pl-10">
           <Button size="sm" variant="highlight" className="h-7 gap-1 text-xs" disabled={busy} onClick={onConfirm}>
@@ -611,6 +662,60 @@ function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The faculty step under a choice: the student picks it in the app after
+ * "Roziman", staff confirm it here or send it back ("Qayta tanlasin").
+ */
+function FacultyLine({
+  choice,
+  busy,
+  onConfirm,
+  onReset,
+}: {
+  choice: UniversityChoice;
+  busy: boolean;
+  onConfirm: () => void;
+  onReset: () => void;
+}) {
+  const state = facultyState(choice);
+  if (state === 'none') return null;
+  if (state === 'waiting') {
+    return (
+      <div data-testid="faculty-line" data-state={state} className="pl-10 text-xs text-muted-foreground">
+        <GraduationCap className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
+        Fakultet: talaba ilovada tanlashi kutilmoqda
+      </div>
+    );
+  }
+  const degree = choice.faculty_daraja ? FACULTY_DEGREE_LABELS[choice.faculty_daraja] ?? choice.faculty_daraja : null;
+  return (
+    <div data-testid="faculty-line" data-state={state} className="flex flex-wrap items-center gap-2 pl-10 text-xs">
+      <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
+      <span className="text-muted-foreground">Fakultet:</span>
+      <span className="font-semibold text-foreground">{choice.faculty_name}</span>
+      {degree && <Badge variant="neutral" className="text-[10px]">{degree}</Badge>}
+      {state === 'confirmed' ? (
+        <Badge variant="successSoft" className="gap-1 text-[10px]">
+          <CheckCircle2 className="h-3 w-3" />
+          Fakultet tasdiqlandi · {fmtDay(choice.faculty_confirmed_at)}
+        </Badge>
+      ) : (
+        <>
+          <Badge variant="warning" className="text-[10px]">Tasdiq kutilmoqda · {fmtDay(choice.faculty_chosen_at)}</Badge>
+          <Button size="sm" variant="highlight" className="h-7 gap-1 text-xs" disabled={busy} onClick={onConfirm}>
+            <CheckCircle2 className="h-3 w-3" />
+            Fakultetni tasdiqlash
+          </Button>
+        </>
+      )}
+      <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled={busy} onClick={onReset}>
+        <RefreshCw className="h-3 w-3" />
+        Qayta tanlasin
+      </Button>
     </div>
   );
 }

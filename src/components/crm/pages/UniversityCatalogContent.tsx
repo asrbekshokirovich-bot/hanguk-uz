@@ -73,6 +73,7 @@ import {
   type PanelFilter,
   type SortKey,
 } from './university-catalog/sorting';
+import { isOnePercent } from '@/lib/onePercentUniversities';
 
 const PAGE_SIZE = 48;
 
@@ -140,6 +141,8 @@ export default function UniversityCatalogContent() {
   const [level, setLevel] = useState<LevelFilter>('hammasi');
   const [filter, setFilter] = useState<CatalogFilter>('hammasi');
   const [panel, setPanel] = useState<PanelFilter>(EMPTY_PANEL);
+  // "1% universitetlar" (Asrbek, 2026-10-29) — hamma rolda, boshqa filtrlar bilan birga.
+  const [onePercent, setOnePercent] = useState(false);
   const [sort, setSort] = useState<SortKey>('nom');
   const [visible, setVisible] = useState(PAGE_SIZE);
   // Tanlangan universitet id bo'yicha saqlanadi: Excel yuklangandan keyin
@@ -164,8 +167,9 @@ export default function UniversityCatalogContent() {
       matchesLevel(e, lvl) &&
       (operatorView ? guidelinesForLevel(e, lvl).length > 0 : matchesFilter(e, filter, lvl)) &&
       (!showPanel || matchesPanel(e, panel, lvl, extras)) &&
+      (!onePercent || isOnePercent(e.institution)) &&
       matchesSearch(e, search),
-    [filter, search, operatorView, showPanel, panel, extras],
+    [filter, search, operatorView, showPanel, panel, extras, onePercent],
   );
 
   const filtered = useMemo(() => {
@@ -413,9 +417,20 @@ export default function UniversityCatalogContent() {
         />
       )}
 
-      {!operatorView && (
-        <div className="flex flex-wrap gap-1.5">
-          {FILTERS.map((f) => (
+      <div className="flex flex-wrap gap-1.5">
+        <Button
+          variant={onePercent ? 'default' : 'outline'}
+          size="sm"
+          aria-pressed={onePercent}
+          onClick={() => {
+            setOnePercent((v) => !v);
+            resetPaging();
+          }}
+        >
+          1% universitetlar
+        </Button>
+        {!operatorView &&
+          FILTERS.map((f) => (
             <Button
               key={f.key}
               variant={filter === f.key ? 'default' : 'outline'}
@@ -428,8 +443,7 @@ export default function UniversityCatalogContent() {
               {f.label}
             </Button>
           ))}
-        </div>
-      )}
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-16">

@@ -8,16 +8,20 @@ const remove = vi.fn();
 const move = vi.fn();
 const confirm = vi.fn();
 const unlockConfirmed = vi.fn();
+const confirmFaculty = vi.fn();
+const resetFaculty = vi.fn();
 let canChangeConfirmed = false;
 let changedStudents = new Set<string>();
 type Choice = {
   id: string; student_id: string; institution_id: string; rank: number; created_at: string;
   status: string; responded_at: string | null; change_reason: string | null; change_note: string | null; confirmed_at: string | null;
+  faculty_name: string | null; faculty_daraja: string | null; faculty_chosen_at: string | null; faculty_confirmed_at: string | null;
 };
 let choices: Choice[] = [];
 const choice = (id: string, institution_id: string, rank: number, status = 'offered', extra: Partial<Choice> = {}): Choice => ({
   id, student_id: 'u1', institution_id, rank, created_at: '', status,
-  responded_at: null, change_reason: null, change_note: null, confirmed_at: null, ...extra,
+  responded_at: null, change_reason: null, change_note: null, confirmed_at: null,
+  faculty_name: null, faculty_daraja: null, faculty_chosen_at: null, faculty_confirmed_at: null, ...extra,
 });
 
 vi.mock('@/hooks/useUniversityChoices', async (orig) => {
@@ -38,6 +42,8 @@ vi.mock('@/hooks/useUniversityChoices', async (orig) => {
         move: { mutate: move, isPending: false },
         confirm: { mutate: confirm, isPending: false },
         unlockConfirmed: { mutate: unlockConfirmed, isPending: false },
+        confirmFaculty: { mutate: confirmFaculty, isPending: false },
+        resetFaculty: { mutate: resetFaculty, isPending: false },
         canChangeConfirmed,
         changedStudents,
       };
@@ -75,10 +81,10 @@ const guideline = (institution_id: string, ielts_min: number | null, topik_min: 
   toefl_ibt_min: null, narx_valyuta: 'KRW', kirish_tolovi: null, kontrakt_min: null, kontrakt_max: null,
   kontrakt_davri: null, fakultet_soni: 0, fayl_nomi: null, updated_at: '2026-10-01',
 });
-const entry = (id: string, name: string, ielts_min: number | null, topik_min: number | null, is_partner = false) => {
+const entry = (id: string, name: string, ielts_min: number | null, topik_min: number | null, is_partner = false, name_ko = name) => {
   const g = guideline(id, ielts_min, topik_min);
   return {
-    institution: { id, name_ko: name, name_en: name, name_ko_short: null, city_ko: 'Seoul', region_code: null, primary_domain: `${id}.ac.kr`, institution_type: 'university', tier: null, is_partner, logo_url: null, primary_admissions_url_ko: null },
+    institution: { id, name_ko, name_en: name, name_ko_short: null, city_ko: 'Seoul', region_code: null, primary_domain: `${id}.ac.kr`, institution_type: 'university', tier: null, is_partner, logo_url: null, primary_admissions_url_ko: null },
     guidelines: [g],
     latest: g,
   };
@@ -89,7 +95,7 @@ vi.mock('@/hooks/useUniversityCatalog', () => ({
     entries: [
       entry('ku', 'Korea University', 6, null),
       entry('yu', 'Yonsei University', 6.5, null),
-      entry('pn', 'Pusan National', null, 3),
+      entry('pn', 'Pusan National', null, 3, false, '부산대학교'),
       entry('dh', 'Daegu Haany University', 5.5, null, true),
     ],
     loading: false,
@@ -113,7 +119,9 @@ describe('UniversitySelectionContent', () => {
     canChangeConfirmed = false;
     changedStudents = new Set();
     feePayments = [];
-    [add, remove, move, confirm, unlockConfirmed, addFee, updateFee, deleteFee].forEach((m) => m.mockReset());
+    [add, remove, move, confirm, unlockConfirmed, confirmFaculty, resetFaculty, addFee, updateFee, deleteFee].forEach((m) =>
+      m.mockReset(),
+    );
     addFee.mockResolvedValue(undefined);
     updateFee.mockResolvedValue(undefined);
   });
@@ -188,6 +196,48 @@ describe('UniversitySelectionContent', () => {
     expect(screen.getByText('Almashtirish ishlatilgan')).toBeInTheDocument();
   });
 
+  it('shows the faculty step: waiting for the student, then confirm or send back', () => {
+    choices = [
+      choice('c1', 'ku', 1, 'offered'),
+      choice('c2', 'pn', 2, 'accepted'),
+      choice('c3', 'dh', 3, 'confirmed', {
+        faculty_name: 'Fine Arts / 회화과',
+        faculty_daraja: 'bakalavr',
+        faculty_chosen_at: '2026-10-29T00:00:00Z',
+      }),
+    ];
+    setup();
+    const rows = screen.getAllByTestId('choice-row');
+    // Not yet the student's turn on an unanswered offer.
+    expect(within(rows[0]).queryByTestId('faculty-line')).not.toBeInTheDocument();
+    expect(within(rows[1]).getByTestId('faculty-line')).toHaveAttribute('data-state', 'waiting');
+    expect(within(rows[1]).getByText(/talaba ilovada tanlashi kutilmoqda/)).toBeInTheDocument();
+    expect(within(rows[1]).queryByText('Fakultetni tasdiqlash')).not.toBeInTheDocument();
+
+    expect(within(rows[2]).getByText('Fine Arts / 회화과')).toBeInTheDocument();
+    expect(within(rows[2]).getByText('Bakalavr')).toBeInTheDocument();
+    fireEvent.click(within(rows[2]).getByText('Fakultetni tasdiqlash'));
+    expect(confirmFaculty).toHaveBeenCalledWith(choices[2], expect.anything());
+    fireEvent.click(within(rows[2]).getByText('Qayta tanlasin'));
+    expect(resetFaculty).toHaveBeenCalledWith(choices[2], expect.anything());
+  });
+
+  it('a confirmed faculty says so and is not asked again', () => {
+    choices = [
+      choice('c1', 'ku', 1, 'confirmed', {
+        faculty_name: 'MBA',
+        faculty_daraja: 'magistratura',
+        faculty_chosen_at: '2026-10-28T00:00:00Z',
+        faculty_confirmed_at: '2026-10-29T00:00:00Z',
+      }),
+    ];
+    setup();
+    const row = screen.getByTestId('choice-row');
+    expect(within(row).getByTestId('faculty-line')).toHaveAttribute('data-state', 'confirmed');
+    expect(within(row).getByText(/Fakultet tasdiqlandi/)).toBeInTheDocument();
+    expect(within(row).queryByText('Fakultetni tasdiqlash')).not.toBeInTheDocument();
+  });
+
   it('lets staff confirm the partner slot without waiting for the student', () => {
     choices = [choice('c1', 'ku', 1, 'offered'), choice('c3', 'dh', 3, 'offered')];
     setup();
@@ -213,6 +263,16 @@ describe('UniversitySelectionContent', () => {
     fireEvent.click(screen.getByText('Faqat mos keladigan'));
     expect(screen.getByText('Korea University')).toBeInTheDocument();
     expect(screen.queryByText('Yonsei University')).not.toBeInTheDocument();
+  });
+
+  it('filters to the 1% universities', () => {
+    setup();
+    expect(screen.getByText('Korea University')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('1% universitetlar'));
+    // 부산대학교 is on the list; the other rows here carry English names only.
+    expect(screen.getByText('Pusan National')).toBeInTheDocument();
+    expect(screen.queryByText('Yonsei University')).not.toBeInTheDocument();
+    expect(screen.queryByText('Korea University')).not.toBeInTheDocument();
   });
 
   describe('Application fee block', () => {
