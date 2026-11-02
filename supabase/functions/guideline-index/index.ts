@@ -4,8 +4,9 @@
 //
 // Called by pg_cron every 10 minutes (guideline-index-10min) with the project
 // secret key in `apikey`, or by staff with the service-role key. Each run takes
-// the next documents from ai_guideline_index_next() — current season first —
-// until ~100 s have passed:
+// ONE document from ai_guideline_index_next() — current season first. PDF
+// parsing is CPU-heavy: on 2026-11-02 the third PDF of one run hit the edge
+// CPU limit ("CPU Time exceeded", 546), so a run never takes a second one.
 //   download (guideline-blobs) → text per page (unpdf + CMaps) → chunks
 //   → gemini-embedding-001 @1024 (batch) → embedding_chunks, guideline_index_state
 //
@@ -19,7 +20,6 @@ import { extractPages } from "./pdf.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") || "";
-const BUDGET_MS = 100_000;
 const DIMS = 1024;
 const MAX_BYTES = 40e6;
 
@@ -140,13 +140,10 @@ Deno.serve(async (req) => {
   const started = Date.now();
   const results: Record<string, unknown>[] = [];
 
-  while (Date.now() - started < BUDGET_MS && results.length < 10) {
-    const { data: next, error } = await db.rpc("ai_guideline_index_next", { p_limit: 1 });
-    if (error) return json({ error: error.message, results }, 500);
-    const doc = next?.[0];
-    if (!doc) break;
-    results.push(await indexOne(db, doc));
-  }
+  const { data: next, error } = await db.rpc("ai_guideline_index_next", { p_limit: 1 });
+  if (error) return json({ error: error.message }, 500);
+  const doc = next?.[0];
+  if (doc) results.push(await indexOne(db, doc));
 
   console.log(`[guideline-index] ${results.map((r) => `${r.status}`).join(",") || "nothing to do"} in ${Date.now() - started} ms`);
   return json({ processed: results.length, results });
