@@ -506,6 +506,31 @@
       "tvTitle": "Office TV",
       "tvHint": "The task screen shows CRM tasks. Open this link once in the TV browser, or type the key with the remote.",
       "tvKey": "Key: {{key}}"
+    },
+    "botQuality": {
+      "title": "AI proposals",
+      "subtitle": "Tasks the AI spotted in the group chat. Mark each ✅ correct / ❌ wrong — once precision is above {{target}}% you can switch to “On”.",
+      "messages": "group messages (7 days)",
+      "proposals": "proposals",
+      "judged": "judged",
+      "unjudged": "not judged",
+      "precision": "precision",
+      "ready": "Precision is good enough — you can switch the AI mode to “On” in Settings.",
+      "notReady": "Too early: needs at least 20 judged proposals and 90% precision.",
+      "empty": "No proposals yet.",
+      "kindCreate": "New task",
+      "kindClose": "Done",
+      "status_pending": "pending",
+      "status_accepted": "accepted",
+      "status_rejected": "rejected",
+      "status_expired": "expired",
+      "status_shadow": "shadow",
+      "auto_correct": "accepted by staff",
+      "auto_wrong": "rejected by staff",
+      "correct": "Correct",
+      "wrong": "Wrong",
+      "loadFailed": "Could not load AI proposals",
+      "saveFailed": "Could not save the verdict"
     }
   },
   "leads": {

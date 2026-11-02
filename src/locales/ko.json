@@ -493,6 +493,31 @@
       "tvTitle": "사무실 TV",
       "tvHint": "업무 화면은 CRM 업무를 표시합니다. TV 브라우저에서 이 링크를 한 번 열거나 리모컨으로 키를 입력하세요.",
       "tvKey": "키: {{key}}"
+    },
+    "botQuality": {
+      "title": "AI 제안",
+      "subtitle": "AI가 그룹 대화에서 찾은 업무입니다. 각각 ✅ 맞음 / ❌ 틀림으로 표시하세요 — 정확도가 {{target}}%를 넘으면 «켬»으로 전환할 수 있습니다.",
+      "messages": "그룹 메시지 (7일)",
+      "proposals": "제안",
+      "judged": "평가됨",
+      "unjudged": "미평가",
+      "precision": "정확도",
+      "ready": "정확도가 충분합니다 — 설정에서 AI 모드를 «켬»으로 바꿀 수 있습니다.",
+      "notReady": "아직 이릅니다: 평가된 제안 20개 이상, 정확도 90%가 필요합니다.",
+      "empty": "아직 제안이 없습니다.",
+      "kindCreate": "새 업무",
+      "kindClose": "완료",
+      "status_pending": "대기",
+      "status_accepted": "수락",
+      "status_rejected": "거절",
+      "status_expired": "만료",
+      "status_shadow": "관찰",
+      "auto_correct": "직원이 수락",
+      "auto_wrong": "직원이 거절",
+      "correct": "맞음",
+      "wrong": "틀림",
+      "loadFailed": "AI 제안을 불러오지 못했습니다",
+      "saveFailed": "평가를 저장하지 못했습니다"
     }
   },
   "leads": {
