@@ -9,7 +9,9 @@
 // (cron → ?action=report&kind=ask|remind|summary); «📝 Hisobot» tugmasi; AI 3 qismga ajratadi.
 // PR-7: xodimlar guruhi — xabarlar saqlanadi (soya rejimi, PR-8 AI uchun); «#vazifa @odam matn» → vazifa
 // va guruhga karta; kartaga «✅»/«bajarildi» javobi → bajarildi.
-// Keyingi PR'lar: guruh AI tahlili (PR-8), Hanguk AI (PR-10).
+// PR-8: guruh suhbati AI tahlili — faqat taklif kartasi; yozgan odam (yoki mas'ul/owner) ✅ bossa yaratiladi/yopiladi.
+// Rejim bot_settings.group_ai_mode: off | shadow (faqat bot_proposals'ga yoziladi) | on.
+// Keyingi PR'lar: Hanguk AI (PR-10).
 //
 // Sozlash (bir marta): secrets STAFF_BOT_TOKEN va STAFF_BOT_WEBHOOK_SECRET,
 // keyin `<function url>?action=setup` ochiladi — webhook, buyruqlar ro'yxati
@@ -25,7 +27,15 @@ import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shar
 import { generateJSON } from "../_shared/gemini.ts";
 import {
   escapeHtml,
+  ANALYSIS_SCHEMA,
+  ANALYSIS_SYSTEM,
+  type AiAnalysis,
+  buildAnalysisPrompt,
+  type CtxStaff,
   GROUP_HELP,
+  interpretAnalysis,
+  renderProposal,
+  shouldAnalyze,
   isDoneReply,
   parseGroupCommand,
   type TgEntity,
@@ -59,6 +69,8 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/staff-bot`;
 const BOT_ID = "staff-bot";
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
+// Google eski modellarni yangi kalitlar uchun o'chirib boryapti — kerak bo'lsa secret bilan almashtiriladi.
+const GEMINI_MODEL = Deno.env.get("STAFF_BOT_GEMINI_MODEL") || "gemini-2.5-flash";
 const STATE_TTL_MS = 60 * 60_000;
 const REPORT_STATE_TTL_MS = 8 * 60 * 60_000; // 17:00 so'rovga kechroq javob ham qabul qilinadi
 const MAX_CARDS = 10;
@@ -247,7 +259,7 @@ async function transcribeVoice(fileId: string): Promise<string | null> {
     let bin = "";
     for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
     const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -338,6 +350,11 @@ async function onCallback(cq: Any) {
     return;
   }
 
+  if (data.startsWith("pr:y:") || data.startsWith("pr:n:")) {
+    await onProposalCallback(cq, staff, data.startsWith("pr:y:"), data.slice(5));
+    return;
+  }
+
   if (data.startsWith("as:")) {
     const st = await getState(cq.from.id);
     if (!st || st.step !== "pick") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Eskirgan tugma"); return; }
@@ -425,6 +442,7 @@ async function splitReport(raw: string): Promise<ReportParts | null> {
   if (!GEMINI_KEY) return null;
   try {
     const r = await generateJSON<ReportParts>({
+      model: GEMINI_MODEL,
       systemInstruction:
         "You split a staff member's end-of-day work report into three parts. The report is in Uzbek (Latin), " +
         "maybe mixed with Russian. Keep the author's own words and language; shorten only by removing filler. " +
@@ -573,7 +591,14 @@ async function onGroupMessage(msg: Any) {
 
   // 2) #vazifa / /vazifa
   const cmd = parseGroupCommand(text, (msg.entities ?? msg.caption_entities ?? []) as TgEntity[]);
-  if (!cmd) { await logGroupMessage(msg, staff, "message"); return; }
+  if (!cmd) {
+    // Tizim xabarlari (kimdir qo'shildi/chiqdi va h.k.) saqlanmaydi.
+    const hasContent = text || msg.voice || msg.photo || msg.document || msg.video || msg.audio || msg.sticker;
+    if (!hasContent) return;
+    await logGroupMessage(msg, staff, "message");
+    if (staff && shouldAnalyze(text)) background(analyzeGroupMessage(msg, staff, text));
+    return;
+  }
 
   if (!staff) {
     await logGroupMessage(msg, null, "command");
@@ -613,6 +638,149 @@ async function onGroupMessage(msg: Any) {
   if (who.user_id !== staff.user_id) {
     await notifyUser(who.user_id, `🆕 <b>${escapeHtml(staff.full_name)}</b> guruhda vazifa berdi:\n\n${renderTaskCard(card)}`,
       { reply_markup: taskButtons(card) });
+  }
+}
+
+// ── guruh: AI tahlili (PR-8) ──────────────────────────────────────────────
+
+declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
+
+/** Javobni kutmasdan fonda bajarish (Telegram'ga darhol 200). */
+function background(p: Promise<unknown>) {
+  const safe = p.catch((e) => console.error("background:", e instanceof Error ? e.message : e));
+  if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) EdgeRuntime.waitUntil(safe);
+}
+
+async function settingValue(key: string): Promise<string> {
+  const { data } = await db.from("bot_settings").select("value").eq("key", key).maybeSingle();
+  return String(data?.value ?? "");
+}
+
+async function analyzeGroupMessage(msg: Any, staff: Staff, text: string) {
+  const mode = (await settingValue("group_ai_mode")) || "shadow";
+  if (mode === "off" || !GEMINI_KEY) return;
+  const { data: ctxData, error: ctxErr } = await db.rpc("bot_group_context");
+  if (ctxErr) { console.error("bot_group_context:", ctxErr.message); return; }
+  const ctx = (ctxData ?? []) as CtxStaff[];
+  const names = new Map(ctx.map((c) => [c.user_id, c.name]));
+
+  const { data: hist } = await db.from("staff_group_messages").select("user_id, text")
+    .eq("chat_id", msg.chat.id).lt("message_id", msg.message_id).not("text", "is", null)
+    .order("message_id", { ascending: false }).limit(15);
+  const history = ((hist ?? []) as { user_id: string | null; text: string }[]).reverse()
+    .map((h) => ({ name: (h.user_id && names.get(h.user_id)) || "Noma'lum", text: h.text.slice(0, 500) }));
+
+  const ai = await generateJSON<AiAnalysis>({
+    model: GEMINI_MODEL,
+    systemInstruction: ANALYSIS_SYSTEM,
+    prompt: buildAnalysisPrompt(ctx, history, { name: staff.full_name, text: text.slice(0, 2000) }),
+    schema: ANALYSIS_SCHEMA,
+    temperature: 0,
+  }).catch((e) => { console.error("group analysis:", e instanceof Error ? e.message : e); return null; });
+
+  const p = interpretAnalysis(ai, ctx, Date.now());
+  if (!p) return;
+  if (p.kind === "close") {
+    const { count } = await db.from("bot_proposals").select("id", { count: "exact", head: true })
+      .eq("task_id", p.task_id).eq("kind", "close").eq("status", "pending");
+    if (count) return;
+  }
+
+  const { data: row, error } = await db.from("bot_proposals").insert({
+    chat_id: msg.chat.id, source_message_id: msg.message_id, kind: p.kind,
+    author_user_id: staff.user_id, assignee_user_id: p.assignee_user_id, task_id: p.task_id,
+    title: p.title, due_date: p.due, priority: p.priority, confidence: p.confidence, reason: p.reason,
+    mode, status: mode === "on" ? "pending" : "shadow",
+  }).select("id").single();
+  if (error || !row) { if (error?.code !== "23505") console.error("bot_proposals:", error?.message); return; }
+  console.log(`staff-bot: proposal ${p.kind} (${mode}) conf=${p.confidence} for ${p.assignee_name}`);
+  if (mode !== "on") return;
+
+  const sent = await reply(msg.chat.id, msg.message_id, renderProposal(p, staff.full_name), {
+    reply_markup: { inline_keyboard: [[
+      { text: p.kind === "close" ? "✅ Ha, bajarildi" : "✅ Yaratish", callback_data: `pr:y:${row.id}` },
+      { text: "❌ Yo'q", callback_data: `pr:n:${row.id}` },
+    ]] },
+  });
+  // deno-lint-ignore no-explicit-any
+  const cardId = (sent as any)?.result?.message_id;
+  if (cardId) await db.from("bot_proposals").update({ card_message_id: cardId }).eq("id", row.id);
+}
+
+interface ProposalRow {
+  id: string; kind: "create" | "close"; status: string; author_user_id: string | null;
+  assignee_user_id: string | null; task_id: string | null; title: string; due_date: string | null;
+  priority: string; chat_id: number;
+}
+
+async function onProposalCallback(cq: Any, staff: Staff, yes: boolean, id: string) {
+  const chatId = cq.message?.chat?.id;
+  const msgId = cq.message?.message_id;
+  const { data } = await db.from("bot_proposals").select("*").eq("id", id).maybeSingle();
+  const p = data as ProposalRow | null;
+  if (!p || p.status !== "pending") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Bu taklif endi amal qilmaydi"); return; }
+
+  const isOwner = staff.roles?.includes("owner");
+  let allowed = isOwner || staff.user_id === p.author_user_id;
+  if (p.kind === "close" && !allowed && p.task_id) {
+    const { data: t } = await db.from("tasks").select("assigned_to, created_by").eq("id", p.task_id).maybeSingle();
+    allowed = !!t && (t.assigned_to === staff.user_id || t.created_by === staff.user_id);
+  }
+  if (!allowed) {
+    await answerCallbackQuery(BOT_TOKEN, cq.id, p.kind === "create" ? "Faqat xabar yozgan odam yoki owner tasdiqlaydi" : "Faqat mas'ul, bergan yoki owner");
+    return;
+  }
+
+  const finish = async (status: string, text: string, extra: Record<string, unknown> = {}) => {
+    await db.from("bot_proposals").update({ status, decided_by: staff.user_id, decided_at: new Date().toISOString(), ...extra }).eq("id", id);
+    if (chatId && msgId) {
+      await callTelegram(BOT_TOKEN, "editMessageText", { chat_id: chatId, message_id: msgId, parse_mode: "HTML", text });
+    }
+  };
+
+  if (!yes) {
+    await answerCallbackQuery(BOT_TOKEN, cq.id, "Rad etildi");
+    await finish("rejected", `❌ <s>${escapeHtml(p.title)}</s> — taklif rad etildi (${escapeHtml(staff.full_name)}).`);
+    return;
+  }
+
+  if (p.kind === "close") {
+    const { data: res, error } = await db.rpc("bot_set_task_status",
+      { p_actor: staff.user_id, p_task: p.task_id, p_status: "completed", p_via: "group" });
+    const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; created_by: string } | undefined;
+    if (error || !r || !["ok", "same"].includes(r.result)) {
+      console.error("proposal close:", error?.message ?? r?.result);
+      await answerCallbackQuery(BOT_TOKEN, cq.id, "Yopib bo'lmadi");
+      return;
+    }
+    await answerCallbackQuery(BOT_TOKEN, cq.id, "✅ Bajarildi");
+    await finish("accepted", `✅ Bajarildi: <s>${escapeHtml(r.title)}</s> (${escapeHtml(staff.full_name)} tasdiqladi)`);
+    if (r.result === "ok" && r.created_by && r.created_by !== staff.user_id) {
+      await notifyUser(r.created_by, `✅ <b>${escapeHtml(staff.full_name)}</b> vazifani bajarildi deb belgiladi:\n${escapeHtml(r.title)}`);
+    }
+    return;
+  }
+
+  const actor = p.author_user_id ?? staff.user_id;
+  const { data: taskId, error } = await db.rpc("bot_create_task", {
+    p_actor: actor, p_assignee: p.assignee_user_id, p_title: p.title, p_description: null,
+    p_due: p.due_date, p_priority: p.priority, p_via: "group",
+  });
+  if (error || !taskId) {
+    console.error("proposal create:", error?.message);
+    await answerCallbackQuery(BOT_TOKEN, cq.id, "Saqlab bo'lmadi");
+    return;
+  }
+  await answerCallbackQuery(BOT_TOKEN, cq.id, "✅ Yaratildi");
+  const card: TaskRow = { id: String(taskId), title: p.title, status: "todo", priority: p.priority, due_date: p.due_date };
+  await finish("accepted", `✅ Vazifa yaratildi:\n\n${renderTaskCard(card)}\n\n<i>Bajarilganda shu xabarga «✅» deb javob yozing.</i>`,
+    { created_task_id: String(taskId) });
+  if (chatId && msgId) {
+    await callTelegram(BOT_TOKEN, "editMessageReplyMarkup", { chat_id: chatId, message_id: msgId, reply_markup: taskButtons(card) });
+    await db.from("bot_group_cards").insert({ chat_id: chatId, message_id: msgId, task_id: String(taskId) });
+  }
+  if (p.assignee_user_id && p.assignee_user_id !== actor) {
+    await notifyUser(p.assignee_user_id, `🆕 Guruhdan yangi vazifa:\n\n${renderTaskCard(card)}`, { reply_markup: taskButtons(card) });
   }
 }
 
