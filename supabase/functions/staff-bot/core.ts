@@ -151,6 +151,36 @@ export const NOT_LINKED_TEXT =
 export const HELP_TEXT =
   `${MENU.tasks} — ochiq vazifalaringiz (muddati o'tgan / bugun / keyingi)\n${MENU.assign} — hamkasbga vazifa (matn yoki ovoz)\n${MENU.report} — kunlik hisobot; har ish kuni 17:00 da o'zim so'rayman\n${MENU.ask} — Hanguk AI'ga savol\n\n/bugun — bugungi va kechikkan vazifalar\n/cancel — boshlangan amalni bekor qilish`;
 
+/** /help — to'liq qo'llanma (HTML). */
+export const HELP_GUIDE = [
+  "📖 <b>Hanguk xodim boti — qo'llanma</b>",
+  "",
+  `<b>${MENU.tasks}</b>`,
+  "Ochiq vazifalaringiz: kechikkan, bugungi, keyingi. Har birida ▶ <i>Boshladim</i> va ✅ <i>Bajardim</i> tugmasi bor — CRM'da ham shu zahoti yangilanadi.",
+  "",
+  `<b>${MENU.assign}</b>`,
+  "Hamkasbni tanlang → vazifani yozing yoki ovozli xabar yuboring → tekshirib ✅ <i>Yaratish</i>.",
+  "Muddat va muhimlikni gapning o'zida ayting: «ertaga soat 15:00», «juma», «05.11», «indinga», «zarur», «muhim».",
+  "Vazifa olgan odamga darhol xabar boradi; bajarilganda sizga xabar keladi.",
+  "",
+  `<b>${MENU.report}</b>`,
+  "Har ish kuni 17:00 da so'rayman (topshirmasangiz 17:30 va 18:00 da eslataman). Bitta xabarda yozing: bugun nima qildingiz, muammo bormi, ertaga nima qilasiz. Qayta yozsangiz — yangilanadi.",
+  "",
+  `<b>${MENU.ask}</b>`,
+  "Hanguk AI'ga savol: talabalar, lidlar, arizalar, vazifalar, universitetlar. Faqat CRM'da sizga ochiq ma'lumot bo'yicha javob beradi.",
+  "",
+  "<b>Guruhda</b>",
+  "<code>#vazifa @username nima qilish kerak, ertaga 15:00</code> — vazifa beradi (yoki odamning xabariga javob qilib <code>#vazifa matn</code>).",
+  "Bot kartasiga «✅» yoki «bajarildi» deb javob — vazifa yopiladi.",
+  "",
+  "<b>Buyruqlar</b>",
+  "/bugun — bugungi va kechikkan vazifalar",
+  "/cancel — boshlangan amalni bekor qilish",
+  "/help — shu qo'llanma",
+  "",
+  "Har kuni 09:00 da (Du–Sha) kechikkan va bugungi vazifalaringizni yuboraman.",
+].join("\n");
+
 // ── PR-3: vazifa matnini ajratish (deterministik; AI faqat sarlavhani tozalaydi) ──
 
 export type Priority = "urgent" | "high" | "normal" | "low";

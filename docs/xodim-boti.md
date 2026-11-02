@@ -1,59 +1,67 @@
-# Xodim boti (staff-bot)
+# Xodim boti (@STAFF_HANGUK_BOT)
 
-Hanguk xodimlari uchun Telegram bot: vazifalar, 17:00 kunlik hisobot, xodimlar
-guruhi tahlili, Hanguk AI. Reja va bosqichlar: loyiha hujjati
-`claude/xodim-boti-reja.md` (to'liq: claude.ai/artifact/76EhC3E9Lnkc2Dr5kgAF1v).
+Orbit o'rniga Hanguk saytining o'zida ishlaydigan Telegram bot: xodimlar bir-biriga vazifa beradi,
+17:00 da kunlik hisobot topshiradi, guruhdagi suhbatdan vazifa takliflari chiqadi, Hanguk AI'ga savol beriladi.
+Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohida baza yo'q.
 
-Hozirgi holat (PR-1): ulash, DM menyusi, «Vazifalarim» (faqat o'qish),
-guruhga qo'shilganda guruh id'sini eslab qolish.
+## Xodim uchun (qisqa)
 
-## Bir martalik sozlash
+| Qayerda | Nima | Qanday |
+|---|---|---|
+| DM | 📋 Vazifalarim | ochiq vazifalar; ▶ Boshladim / ✅ Bajardim |
+| DM | ➕ Vazifa berish | hamkasb → matn/ovoz → tasdiq; «ertaga 15:00», «juma», «05.11», «zarur» |
+| DM | 📝 Hisobot | 17:00 da so'raladi; bitta xabar (matn/ovoz); qayta yozsa yangilanadi |
+| DM | 🤖 Savol | Hanguk AI; xodimning CRM ruxsatlari doirasida |
+| Guruh | `#vazifa @username matn` | vazifa + karta; kartaga «✅»/«bajarildi» → yopiladi |
+| Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
 
-1. BotFather'da bot yarating (masalan `@HangukTeamBot`). `/setprivacy → Disable`
-   (guruhdagi hamma xabarni ko'rishi uchun; keyin botni guruhga qayta qo'shish kerak).
-2. Supabase → Edge Functions → Secrets:
-   - `STAFF_BOT_TOKEN` — BotFather bergan token
-   - `STAFF_BOT_WEBHOOK_SECRET` — istalgan uzun tasodifiy satr
-3. Funksiya deploy bo'lgach brauzerda bir marta oching:
-   `https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/staff-bot?action=setup`
-   Javobda `ok: true` va `bot: "<username>"` bo'lishi kerak. Bu webhook'ni
-   ro'yxatdan o'tkazadi, buyruqlar ro'yxatini qo'yadi va `bot_settings.bot_username`
-   ni yozadi (CRM'dagi ulash havolasi shunga tayanadi).
-   Tekshirish: `...?action=status`.
-4. Botni xodimlar guruhiga qo'shib **admin** qiling — bot guruh id'sini
-   `bot_settings.group_chat_id` ga o'zi yozadi (faqat birinchi guruh).
+To'liq qo'llanma botda: `/help`.
 
-## Xodimni ulash
+## Ulash
+CRM → Xodimlar → xodim → **Telegram bot** kartasi → «Ulash havolasi» (15 daqiqa, bir martalik) → xodimga yuboriladi → u Start bosadi.
+Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir marta Start bosishi shart.
 
-CRM → Xodimlar → xodim → «Telegram'ga ulash» (PR-2). Havola
-`https://t.me/<bot>?start=KOD` 15 daqiqa amal qiladi, bir marta ishlaydi.
-Xodim havolani ochadi — bot uni `staff_telegram_links` ga yozadi. Uzish — o'sha
-sahifada; xodim CRM'dan o'chirilsa bog'lanish ham o'chadi.
+## Jadval (Toshkent, Du–Sha; CRM → Sozlamalar → Bot'da o'zgaradi)
+| Vaqt | Ish | cron |
+|---|---|---|
+| 09:00 | ertalabki ro'yxat (kechikkan + bugungi) | `staff-bot-morning` |
+| 17:00 | hisobot so'rovi | `staff-bot-report-ask` |
+| 17:30, 18:00 | eslatma (topshirmaganlarga) | `staff-bot-report-remind1..3` |
+| 18:15 | ownerlarga (yoki tanlanganlarga) xulosa | `staff-bot-report-summary` |
+| har soat | 24 soatlik takliflar → expired | `staff-bot-proposals-expire` |
+| 02:30 | 90 kundan eski guruh xabarlari o'chiriladi | `staff-bot-group-retention` |
 
-Bitta Telegram akkaunti bir vaqtda faqat bitta faol xodimga ulanadi.
+Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida).
 
-## Jadvallar (migratsiya `20261031130000_staff_bot_core.sql`)
+## Arxitektura
+- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (Gemini → Claude zaxira).
+- Edge: `tv-board` — ofis TV (hanguk.uz/tv) ma'lumoti, `?k=` kalit (`bot_settings.tv_key`, faqat owner ko'radi).
+- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report`) — Supabase secret key (`apikey`).
+- Secrets: `STAFF_BOT_TOKEN`, `STAFF_BOT_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`; ixtiyoriy `STAFF_BOT_GEMINI_MODEL` (standart gemini-2.5-flash), `STAFF_BOT_CLAUDE_MODEL` (standart claude-haiku-5-5).
+- AI: hisobotni 3 qismga ajratish va guruh tahlili — avval Gemini, ishlamasa Claude (`tool_use` bilan aniq JSON). Ovozni matnga faqat Gemini aylantiradi.
+- «Savol»: bot xodim nomidan qisqa sessiya ochadi (`auth.admin.generateLink` → `verifyOtp`, email yuborilmaydi), `hanguk-ai-chat`ga shu JWT bilan so'raydi, keyin `auth.admin.signOut`.
 
-| Jadval | Nima |
-|---|---|
-| `staff_telegram_links` | xodim ↔ Telegram (user_id PK, telegram_user_id, dm_chat_id, is_active) |
-| `staff_link_codes` | ulash kodlari (15 daqiqa, used_at) |
-| `bot_settings` | sozlamalar: bot_username, group_chat_id, report_time 17:00, reminder_times, digest_time, morning_time, workdays 1–6, auto_create_policy, group_retention_days, digest_user_ids |
-| `bot_state` | DM'dagi ko'p bosqichli oqim holati |
-| `telegram_updates_seen` | takror update himoyasi |
-| `task_events` | vazifa o'zgarishlari jurnali (trigger `trg_task_events`; via: crm / dm / group / cron / system) |
+## Baza (migratsiyalar 2026-10-31 … 2026-11-03)
+| Jadval | Vazifasi | O'qiydi |
+|---|---|---|
+| `staff_telegram_links`, `staff_link_codes` | xodim ↔ Telegram | o'zi, owner, admin |
+| `bot_settings` | vaqtlar, guruh, AI rejimi, TV kaliti | xodimlar (`tv_key` — faqat owner) |
+| `bot_state`, `telegram_updates_seen` | ko'p bosqichli oqim, dublikat himoya | faqat service |
+| `task_events` | vazifa voqealari (via crm/dm/group/cron) | vazifani ko'ra oladigan |
+| `daily_reports` | kunlik hisobot (bir kunga bitta) | o'zi, owner, admin |
+| `staff_group_messages` | guruh xabarlari (90 kun) | owner |
+| `bot_group_cards` | guruh kartasi → vazifa | faqat service |
+| `bot_proposals` | AI takliflari (shadow/on, holati) | owner |
 
-RPC: `staff_telegram_link_code(user_id)` va `staff_telegram_unlink(user_id)` —
-CRM (o'zi, owner, admin); `bot_link_telegram`, `bot_resolve_staff` — faqat
-service_role. View `v_staff_telegram` — Xodimlar sahifasi uchun holat.
+Bot RPC'lari (`bot_*`) faqat `service_role` uchun; CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
 
-Bot yoki cron vazifani RPC orqali o'zgartirganda `app.task_via` / `app.task_actor`
-GUC'larini o'rnatadi — trigger voqeani to'g'ri manba bilan yozadi (PR-3).
+## Guruh AI ishonchliligi
+1. Aniq buyruqlar (`#vazifa`, kartaga ✅) — deterministik.
+2. AI faqat taklif: ishonch ≥ 0.75, xodim aniq mos kelishi, mavjud vazifaga o'xshamasligi; yopishda vazifa id'si AI'dan emas, ro'yxatdagi raqamdan.
+3. Tasdiqsiz hech narsa yaratilmaydi/yopilmaydi; 24 soatda tasdiqlanmasa — expired.
+Rejim: `off` | `shadow` (standart — faqat `bot_proposals`, guruhga chiqmaydi) | `on`.
 
-## Sinov
-
-```
-deno test supabase/functions/staff-bot/core_test.ts
-```
-Migratsiya lokal PG16 da stub sxema bilan sinaldi (kod → ulash → takror kod «used»
-→ uzish → operator boshqaga kod bera olmaydi → trigger CRM/DM manbasi).
+## Orbit
+Orbit loyihasi (zqpglkxbtpkvyraxquao) 2026-10-28 dan to'xtatilgan. Hanguk'dagi Orbit triggerlari
+(`tasks`: `trg_orbit_instant_sync`, `trg_orbit_signal`; `leads`, `payments`: `trg_orbit_signal`) **DISABLE** qilingan —
+qayta yoqish: `alter table public.<jadval> enable trigger <nom>;`.
