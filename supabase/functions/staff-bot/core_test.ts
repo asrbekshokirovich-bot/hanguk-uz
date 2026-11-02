@@ -110,3 +110,30 @@ Deno.test("renderDraft", () => {
   assertEquals(t.includes("a&lt;b"), true);
   assertEquals(t.includes("Muddat: 03.11 15:00 · Muhimlik: zarur"), true);
 });
+
+import { renderReport, renderSummary, type SummaryRow } from "./core.ts";
+
+Deno.test("renderReport: AI qismlari yoki asl matn", () => {
+  assertEquals(renderReport("a<b", null), "📝 a&lt;b");
+  assertEquals(renderReport("x", { done: null, blockers: null, plan: null }), "📝 x");
+  const t = renderReport("x", { done: "3 ta qo'ng'iroq", blockers: null, plan: "apostil" });
+  assertEquals(t, "✅ <b>Bajarildi:</b> 3 ta qo'ng'iroq\n🗓 <b>Ertaga:</b> apostil");
+});
+
+Deno.test("renderSummary: topshirgan/topshirmagan, to'siqlar", () => {
+  const base = { done: null, blockers: null, plan: null, raw_text: null, completed_today: 0, overdue: 0 };
+  const rows: SummaryRow[] = [
+    { ...base, full_name: "Omina", is_linked: true, has_report: false, overdue: 2 },
+    { ...base, full_name: "Diyora", is_linked: true, has_report: true, done: "hujjat", blockers: "printer buzuq", completed_today: 3 },
+    { ...base, full_name: "Olmos", is_linked: false, has_report: false },
+    { ...base, full_name: "Madina", is_linked: true, has_report: true, raw_text: "erkin matn" },
+  ];
+  const s = renderSummary(rows, "02.11");
+  assertEquals(s.includes("Topshirdi: 2 / 4"), true);
+  assertEquals(s.includes("• Diyora: printer buzuq"), true);
+  assertEquals(s.includes("❌ <b>Olmos</b> — hisobot yo'q (botga ulanmagan)"), true);
+  assertEquals(s.includes("kechikkan: 2"), true);
+  assertEquals(s.includes("   erkin matn"), true);
+  assertEquals(s.indexOf("Diyora</b>") < s.indexOf("Madina</b>"), true); // avval topshirganlar, alifbo
+  assertEquals(s.indexOf("Madina</b>") < s.indexOf("Olmos</b>"), true);
+});
