@@ -1670,7 +1670,45 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "threadDeleted": "Conversation deleted",
-    "deleteFailed": "Couldn't delete"
+    "deleteFailed": "Couldn't delete",
+    "answer": {
+      "crmPage": "CRM page",
+      "sources_one": "{{count}} source",
+      "sources_other": "{{count}} sources",
+      "good": "Good answer",
+      "bad": "Bad answer",
+      "student": "Student",
+      "documents": "Documents",
+      "openCard": "Open card",
+      "spring": "spring",
+      "fall": "fall",
+      "step": {
+        "searchStudent": "Finding the student",
+        "readCard": "Reading the card",
+        "searchLead": "Finding the lead",
+        "readLead": "Reading the lead card",
+        "pipeline": "Reading the applications board",
+        "guideline": "Reading the guideline",
+        "guidelinePdf": "Reading the guideline PDF",
+        "web": "Opening the official site",
+        "compute": "Calculating",
+        "myCard": "Checking your application",
+        "memory": "Updating memory",
+        "data": "Reading CRM data"
+      },
+      "uni": {
+        "chosen": "Chosen",
+        "online": "Applied online",
+        "offline": "Sent offline",
+        "interview": "Interview",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "final": "Final choice",
+        "visa_process": "Visa in progress",
+        "visa_waiting": "Awaiting visa",
+        "visa_received": "Visa received"
+      }
+    }
   },
   "room": {
     "status": "Status",

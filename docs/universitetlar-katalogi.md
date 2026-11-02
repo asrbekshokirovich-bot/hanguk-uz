@@ -140,12 +140,13 @@ Fayl ichida 6 ta varaq bor, sayt shundan 5 tasini o'qiydi:
 | `muddatlar` | Har bir bosqich uchun 11 ta etap (online ariza → vizaga hujjat topshirish) | bosqich × 11 |
 | `fakultetlar` | Fakultet nomi (EN + KR), track, til talabi, kontrakt | har bir fakultet |
 | `hujjatlar` | Talab qilinadigan hujjatlar cheklisti | har bir hujjat |
-| `grantlar` | TOPIK / IELTS / ... darajasiga qarab grantlar (v4 dan) | har bir daraja |
+| `grantlar` | TOPIK / IELTS / ... darajasiga qarab grantlar | har bir daraja |
 | `qollanma` | Ustunlar ta'rifi va ruxsat etilgan qiymatlar — **faqat odam uchun**, sayt o'qimaydi | — |
 
 Asosiy qoidalar (to'lig'i `qollanma` varag'ida):
 
 - 1-qator — ustun nomlari, ma'lumot 2-qatordan. Birlashtirilgan katak bo'lmasin.
+- `muddatlar`: har bir bosqichda 11 ta etap, nomlari `qollanma`dagidek.
 - **Bo'sh katak** = guideline'da ko'rsatilmagan. **`yoq`** = guideline'da aniq
   "yo'q" deb yozilgan. Bu ikkisi bir xil emas.
 - Sanalar — matn, `YYYY-MM-DD`. Vaqt — matn, `HH:MM`, Koreya vaqti (KST).
@@ -154,9 +155,24 @@ Asosiy qoidalar (to'lig'i `qollanma` varag'ida):
   (`jbnu.ac.kr` → `jbnu`). Fayl shu kod orqali universitetga bog'lanadi.
 - Fayl nomi: `guideline_id.xlsx`.
 
-Format o'zgarsa `format_versiya` oshiriladi. Sayt **v2–v4** ni tushunadi
-(v2/v3 — grantlar varag'isiz); boshqa versiya kelsa import to'xtamaydi, lekin
-ogohlantirish chiqadi.
+Sayt **faqat shu shablonni (v4)** qabul qiladi (egasi, 2026-10-29):
+
+- 5 ta varaq — `universitet`, `muddatlar`, `fakultetlar`, `hujjatlar`,
+  `grantlar` — hammasi bo'lishi shart. `qollanma` bo'lmasa ham bo'ladi,
+  boshqa varaq bo'lmasin.
+- Har bir varaqda ustunlar shablondagidek: nomi ham, tartibi ham. Ortiqcha,
+  yetishmaydigan yoki nomi o'zgargan ustun bo'lsa fayl o'qilmaydi.
+- `format_versiya` = `4`. Eski (v2/v3) fayllar qabul qilinmaydi — ma'lumotni
+  yangi shablonga ko'chirib yuklash kerak. Bazadagi eski yuklamalar o'z
+  joyida qoladi.
+
+Fayl shablonga mos kelmasa, yuklash oynasida xato bilan birga **"Shablonni
+yuklab olish"** havolasi chiqadi. `grantlar` varag'i bo'sh bo'lsa, bazadagi
+grantlar o'zgarmaydi. Guideline'da grant yo'q bo'lsa, bitta qator yoziladi:
+`grant_nomi` = "Guideline'da yo'q.".
+
+Format o'zgarsa `format_versiya` oshiriladi, sayt kodi va shablon birga
+yangilanadi.
 
 ## Yuklash
 

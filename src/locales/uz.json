@@ -1738,7 +1738,45 @@
     "delete": "O'chirish",
     "cancel": "Bekor qilish",
     "threadDeleted": "Suhbat o'chirildi",
-    "deleteFailed": "O'chirib bo'lmadi"
+    "deleteFailed": "O'chirib bo'lmadi",
+    "answer": {
+      "crmPage": "CRM sahifasi",
+      "sources_one": "{{count}} manba",
+      "sources_other": "{{count}} manba",
+      "good": "Yaxshi javob",
+      "bad": "Yomon javob",
+      "student": "Talaba",
+      "documents": "Hujjatlar",
+      "openCard": "Kartani ochish",
+      "spring": "bahor",
+      "fall": "kuz",
+      "step": {
+        "searchStudent": "Talabani qidiryapman",
+        "readCard": "Kartasini o'qiyapman",
+        "searchLead": "Lidni qidiryapman",
+        "readLead": "Lid kartasini o'qiyapman",
+        "pipeline": "Arizalar taxtasini o'qiyapman",
+        "guideline": "Yo'riqnomani o'qiyapman",
+        "guidelinePdf": "Yo'riqnoma PDF'ini o'qiyapman",
+        "web": "Rasmiy saytni ochyapman",
+        "compute": "Hisoblayapman",
+        "myCard": "Arizangizni tekshiryapman",
+        "memory": "Xotirani yangilayapman",
+        "data": "CRM ma'lumotini o'qiyapman"
+      },
+      "uni": {
+        "chosen": "Tanlangan",
+        "online": "Onlayn topshirildi",
+        "offline": "Oflayn yuborildi",
+        "interview": "Suhbat",
+        "accepted": "Qabul qilindi",
+        "rejected": "Rad etildi",
+        "final": "Yakuniy tanlov",
+        "visa_process": "Viza jarayonida",
+        "visa_waiting": "Viza kutilmoqda",
+        "visa_received": "Viza olindi"
+      }
+    }
   },
   "room": {
     "status": "Holat",

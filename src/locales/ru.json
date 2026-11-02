@@ -1480,7 +1480,47 @@
     "delete": "Удалить",
     "cancel": "Отмена",
     "threadDeleted": "Разговор удалён",
-    "deleteFailed": "Не удалось удалить"
+    "deleteFailed": "Не удалось удалить",
+    "answer": {
+      "crmPage": "Страница CRM",
+      "sources_one": "{{count}} источник",
+      "sources_few": "{{count}} источника",
+      "sources_many": "{{count}} источников",
+      "sources_other": "{{count}} источника",
+      "good": "Хороший ответ",
+      "bad": "Плохой ответ",
+      "student": "Студент",
+      "documents": "Документы",
+      "openCard": "Открыть карточку",
+      "spring": "весна",
+      "fall": "осень",
+      "step": {
+        "searchStudent": "Ищу студента",
+        "readCard": "Читаю карточку",
+        "searchLead": "Ищу лида",
+        "readLead": "Читаю карточку лида",
+        "pipeline": "Читаю доску заявок",
+        "guideline": "Читаю правила приёма",
+        "guidelinePdf": "Читаю PDF правил приёма",
+        "web": "Открываю официальный сайт",
+        "compute": "Считаю",
+        "myCard": "Проверяю вашу заявку",
+        "memory": "Обновляю память",
+        "data": "Читаю данные CRM"
+      },
+      "uni": {
+        "chosen": "Выбран",
+        "online": "Подано онлайн",
+        "offline": "Отправлено офлайн",
+        "interview": "Собеседование",
+        "accepted": "Принят",
+        "rejected": "Отказ",
+        "final": "Окончательный выбор",
+        "visa_process": "Виза в процессе",
+        "visa_waiting": "Ожидает визу",
+        "visa_received": "Виза получена"
+      }
+    }
   },
   "room": {
     "status": "Статус",

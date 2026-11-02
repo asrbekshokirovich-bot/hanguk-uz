@@ -241,3 +241,6 @@ verify_jwt = false
 
 [functions.app-journey-summary]
 verify_jwt = true
+
+[functions.guideline-index]
+verify_jwt = false

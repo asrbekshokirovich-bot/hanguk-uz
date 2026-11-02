@@ -1,5 +1,5 @@
 {
- "last_run": "2026-10-29T07:08:41+00:00",
+ "last_run": "2026-11-02T06:05:18+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -99,6 +99,8 @@
    "0e2c9bcfd6024495"
   ],
   "https://admission.kaist.ac.kr/intl-undergraduate/notice": [
+   "e995a2bb9fe6d9f0",
+   "74d3c6f94fe9e8ce",
    "bcaaeccecbd06d27",
    "43ebd8a3fafe3608"
   ],
@@ -164,6 +166,7 @@
   "https://admission.snue.ac.kr/": [],
   "https://admission.sookmyung.ac.kr/": [],
   "https://admission.ssu.ac.kr/": [
+   "46bfdddbdcb71738",
    "d8a5a4213d5e3c74",
    "14af5c06fca86aa8",
    "3154078e9a1e300a",
@@ -232,6 +235,7 @@
   "https://aks.ac.kr": [],
   "https://apply.dhc.ac.kr/main": [],
   "https://apply.iscu.ac.kr/": [
+   "968e2d3e19a16b15",
    "86cc3acc9aeffc17"
   ],
   "https://apply.sau.ac.kr/": [
@@ -320,7 +324,9 @@
    "19bce2bed89ea898",
    "1d5b1c60c2d394bd"
   ],
-  "https://enter.dcu.ac.kr/": [],
+  "https://enter.dcu.ac.kr/": [
+   "6116718a00a5e056"
+  ],
   "https://enter.duksung.ac.kr/sub/?m_type=JEOEGUK": [
    "dd9f15b5b924b382",
    "fb2a8671f60aeeba",
@@ -370,7 +376,9 @@
   "https://gknu.ac.kr": [],
   "https://global.kduniv.ac.kr/iphak/": [],
   "https://global.kosin.ac.kr/ia/bbs/board.php?bo_table=contents&wr_id=6": [],
-  "https://go.cufs.ac.kr/": [],
+  "https://go.cufs.ac.kr/": [
+   "d6489abed39878e4"
+  ],
   "https://go.cuk.edu/index.do": [],
   "https://go.global.ac.kr/": [
    "7d8779abbb2fb997",
@@ -390,6 +398,7 @@
    "12bb95ddbcbd27ad"
   ],
   "https://go.khcu.ac.kr/": [
+   "c861e047871e4120",
    "f9f85f740c851b14",
    "1267ff8c19803b4e",
    "542bb98d0becc52d",
@@ -697,6 +706,7 @@
    "ee0b1b5d620ee938"
   ],
   "https://ipsi.cku.ac.kr/sites/iphak/index.do": [
+   "fd7efc1b49db8149",
    "0d7fb908a732fe56",
    "878edd048b4e42bc",
    "324c8641ad8055fb",
@@ -930,6 +940,7 @@
    "e11a666391a09c69"
   ],
   "https://ipsi.scau.ac.kr/Default.aspx": [
+   "e83d58c058156f4f",
    "e1bb3754284c4aaa",
    "5545e3eacca26f66"
   ],
@@ -1165,7 +1176,12 @@
    "5b6bf9ace4be5076"
   ],
   "https://www.dgist.ac.kr/gadm/": [],
-  "https://www.dist.ac.kr/": [],
+  "https://www.dist.ac.kr/": [
+   "2ac6fcbcae42180f",
+   "828e3902212a323a",
+   "8da32baced4ca786",
+   "3e6364adf88c3bd7"
+  ],
   "https://www.dit.ac.kr/ipsi/": [
    "307ba6909e1718a2",
    "c6bcc74e9b93e162",
@@ -1393,7 +1409,9 @@
   ],
   "https://www.world.ac.kr/": [],
   "https://www.yewon.ac.kr/": [],
-  "https://www.yncu.ac.kr/": [],
+  "https://www.yncu.ac.kr/": [
+   "96dde4d395c251dc"
+  ],
   "https://www.ysu.ac.kr/ipsi/Main.do": [],
   "https://ycc.ac.kr": [],
   "https://yongin.ac.kr": []
