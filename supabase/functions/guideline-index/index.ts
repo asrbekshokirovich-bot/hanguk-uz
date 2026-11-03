@@ -204,9 +204,14 @@ async function claudeRead(db: any): Promise<Record<string, unknown>> {
       .eq("guideline_document_id", doc.id);
 
   try {
-    const { data: signed, error: sErr } = await db.storage.from("guideline-blobs").createSignedUrl(doc.storage_path, 3600);
-    if (sErr || !signed?.signedUrl) throw new Error(`signed url: ${sErr?.message ?? "none"}`);
-    const { text, usage } = await claudeTranscribe(signed.signedUrl, from, to, ANTHROPIC_KEY, OCR_MODEL);
+    let url = prog.url;
+    if (!url) {
+      const { data: signed, error: sErr } = await db.storage.from("guideline-blobs")
+        .createSignedUrl(doc.storage_path, 7 * 24 * 3600);
+      if (sErr || !signed?.signedUrl) throw new Error(`signed url: ${sErr?.message ?? "none"}`);
+      url = signed.signedUrl as string;
+    }
+    const { text, usage } = await claudeTranscribe(url, from, to, ANTHROPIC_KEY, OCR_MODEL);
     const parsed = parseTranscript(text);
     const total = parsed.total ?? prog.total;
     if (!total) throw new Error("no TOTAL_PAGES in the transcript");
@@ -248,7 +253,7 @@ async function claudeRead(db: any): Promise<Record<string, unknown>> {
         .eq("guideline_document_id", doc.id);
       await setError(`claude: done ${total}/${total}`, { status: "done", pages: total, chunks: count ?? null });
     } else {
-      await setError(`claude: ${last}/${total}`, { pages: total });
+      await setError(`claude: ${last}/${total} url=${url}`, { pages: total });
     }
     return { id: doc.id, status: "ok", pages: `${from}-${last}/${total}`, chunks: chunks.length, chars, usage };
   } catch (e) {

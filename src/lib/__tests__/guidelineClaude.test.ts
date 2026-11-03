@@ -5,14 +5,15 @@ import {
 
 describe('parseProgress', () => {
   it('starts from page 1 for a fresh document', () => {
-    expect(parseProgress('started; the run ended before it finished')).toEqual({ done: 0, total: null, failures: 0 });
-    expect(parseProgress('larger than 40 MB')).toEqual({ done: 0, total: null, failures: 0 });
-    expect(parseProgress(null)).toEqual({ done: 0, total: null, failures: 0 });
+    expect(parseProgress('started; the run ended before it finished')).toEqual({ done: 0, total: null, failures: 0, url: null });
+    expect(parseProgress('larger than 40 MB')).toEqual({ done: 0, total: null, failures: 0, url: null });
+    expect(parseProgress(null)).toEqual({ done: 0, total: null, failures: 0, url: null });
   });
   it('continues where it stopped, also after a failure', () => {
-    expect(parseProgress('claude: 8/60')).toEqual({ done: 8, total: 60, failures: 0 });
-    expect(parseProgress('claude failed (2): claude 529: overloaded [8/60]')).toEqual({ done: 8, total: 60, failures: 2 });
-    expect(parseProgress('claude failed (1): no TOTAL_PAGES')).toEqual({ done: 0, total: null, failures: 1 });
+    expect(parseProgress('claude: 8/60')).toEqual({ done: 8, total: 60, failures: 0, url: null });
+    expect(parseProgress('claude: 8/60 url=https://x.co/s/a.pdf?token=t')).toEqual({ done: 8, total: 60, failures: 0, url: 'https://x.co/s/a.pdf?token=t' });
+    expect(parseProgress('claude failed (2): claude 529: overloaded [8/60]')).toEqual({ done: 8, total: 60, failures: 2, url: null });
+    expect(parseProgress('claude failed (1): no TOTAL_PAGES')).toEqual({ done: 0, total: null, failures: 1, url: null });
   });
 });
 
