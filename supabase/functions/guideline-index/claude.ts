@@ -11,22 +11,64 @@
 // failures stop it. The signed URL (7 days) is kept so every call of one PDF
 // sends the same document block; a failure drops it and the next call signs anew.
 //
+// Files over FILES_OVER (2026-11-03): Claude refused the 54 MB and 63 MB PDFs
+// by URL ("The file exceeds the maximum allowed size"), so such a PDF is
+// uploaded once to the Claude Files API (500 MB per file, kept 7 days) and
+// sent as {source: {type: "file", file_id}}; progress then keeps
+// "file=<file_id>" instead of the URL.
+//
 // deno-lint-ignore-file no-explicit-any
 
 export const PAGES_PER_CALL = 4;
 
-export interface Progress { done: number; total: number | null; failures: number; url: string | null }
+/** Above this size a PDF goes through the Files API (30 MB by URL worked, 54 MB did not). */
+export const FILES_OVER = 30e6;
 
-/** "claude: 8/60 url=…" → { done: 8, total: 60, url }; "claude failed (2): …" → failures. */
+export interface Progress {
+  done: number; total: number | null; failures: number; url: string | null; file: string | null;
+}
+
+/** "claude: 8/60 url=…" or "claude: 8/60 file=file_…" → progress; "claude failed (2): …" → failures. */
 export function parseProgress(error: string | null | undefined): Progress {
   const e = error ?? "";
-  const ok = e.match(/^claude: (\d+)\/(\d+)(?: url=(\S+))?/);
-  if (ok) return { done: Number(ok[1]), total: Number(ok[2]), failures: 0, url: ok[3] ?? null };
+  const ok = e.match(/^claude: (\d+)\/(\d+)(?: url=(\S+))?(?: file=(\S+))?/);
+  if (ok) return { done: Number(ok[1]), total: Number(ok[2]), failures: 0, url: ok[3] ?? null, file: ok[4] ?? null };
   const bad = e.match(/^claude failed \((\d+)\)(?:.*?\[(\d+)\/(\d+)\])?/);
   if (bad) {
-    return { done: bad[2] ? Number(bad[2]) : 0, total: bad[3] ? Number(bad[3]) : null, failures: Number(bad[1]), url: null };
+    return {
+      done: bad[2] ? Number(bad[2]) : 0, total: bad[3] ? Number(bad[3]) : null, failures: Number(bad[1]),
+      url: null, file: null,
+    };
   }
-  return { done: 0, total: null, failures: 0, url: null };
+  return { done: 0, total: null, failures: 0, url: null, file: null };
+}
+
+/** The document block: a Files API id ("file_…") or a URL. */
+export function documentSource(ref: string): Record<string, string> {
+  return ref.startsWith("file_") ? { type: "file", file_id: ref } : { type: "url", url: ref };
+}
+
+/** Uploads the PDF behind `url` to the Claude Files API; returns the file id. */
+export async function uploadToFiles(
+  url: string,
+  name: string,
+  key: string,
+  doFetch: typeof fetch = fetch,
+): Promise<string> {
+  const src = await doFetch(url);
+  if (!src.ok) throw new Error(`download ${src.status}`);
+  const form = new FormData();
+  form.append("file", new Blob([await src.arrayBuffer()], { type: "application/pdf" }), name);
+  form.append("expires_in_seconds", String(7 * 24 * 3600));
+  const res = await doFetch("https://api.anthropic.com/v1/files", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: form,
+  });
+  if (!res.ok) throw new Error(`files ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const data = await res.json();
+  if (!data?.id) throw new Error("files: no id");
+  return String(data.id);
 }
 
 export function transcribePrompt(from: number, to: number): string {
@@ -57,7 +99,8 @@ export function parseTranscript(text: string): { total: number | null; pages: Ma
 }
 
 export async function claudeTranscribe(
-  url: string,
+  ref: string, // signed URL or Files API id
+
   from: number,
   to: number,
   key: string,
@@ -75,7 +118,7 @@ export async function claudeTranscribe(
       messages: [{
         role: "user",
         content: [
-          { type: "document", source: { type: "url", url }, cache_control: { type: "ephemeral" } },
+          { type: "document", source: documentSource(ref), cache_control: { type: "ephemeral" } },
           { type: "text", text: transcribePrompt(from, to) },
         ],
       }],
