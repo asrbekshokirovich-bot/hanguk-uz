@@ -48,6 +48,7 @@ describe('University tools', () => {
     ]) {
       expect(p).toContain('RELIABILITY RULES');
       expect(p).toContain('UNIVERSITY QUESTIONS');
+      expect(p).toContain('Never say a university fact is not in the database before guideline_text_search was tried');
     }
     expect(guestSystem({ language: 'vi', today: 'x' })).toContain('tiếng Việt');
   });

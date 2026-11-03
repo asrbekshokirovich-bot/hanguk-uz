@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const { chunkPages, cleanText } = await import('../../../supabase/functions/guideline-index/chunk.ts');
 const { makeCMapReader, CMAP_BASE } = await import('../../../supabase/functions/guideline-index/pdf.ts');
-const { GUIDELINE_TEXT_TOOL } = await import('../../../supabase/functions/hanguk-ai-chat/tools/guideline_text.ts');
+const { GUIDELINE_TEXT_TOOL, guidelineKeywords, guidelineKeywordQuery } = await import('../../../supabase/functions/hanguk-ai-chat/tools/guideline_text.ts');
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -54,7 +54,44 @@ describe('guideline_text_search tool', () => {
       error: null,
     });
     const out = await GUIDELINE_TEXT_TOOL.run({ user: { rpc }, service: {}, caller: {}, language: 'uz' }, { query: 'suhbat', query_ko: '면접' });
-    expect(rpc.mock.calls[0][1]).toMatchObject({ p_query: 'suhbat', p_query_ko: '면접', p_embedding: null });
+    expect(rpc.mock.calls[0][1]).toMatchObject({ p_query: 'suhbat', p_query_ko: '"면접" OR "suhbat"', p_embedding: null });
     expect(out.sources).toEqual([{ kind: 'pdf', label: "Yo'riqnoma PDF: Ajou University 2027", page: '7-bet', url: 'https://www.ajou.ac.kr/x.pdf' }]);
+  });
+
+  it('sends one OR keyword query built from query_ko and query, so one missing word does not empty the result', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status: 503 })));
+    const rpc = vi.fn().mockResolvedValue({ data: { results: [] }, error: null });
+    await GUIDELINE_TEXT_TOOL.run(
+      { user: { rpc }, service: {}, caller: {}, language: 'uz' },
+      { query: 'online application website', query_ko: '원서접수 사이트', institution_id: 'i1' },
+    );
+    expect(rpc.mock.calls[0][1]).toMatchObject({
+      p_query: 'online application website',
+      p_query_ko: '"원서접수" OR "원서" OR "접수" OR "사이트" OR "online" OR "application" OR "website"',
+      p_institution_id: 'i1',
+    });
+  });
+});
+
+describe('guideline keyword query', () => {
+  it('splits into single lower-case keywords, Korean first, without stopwords or duplicates', () => {
+    expect(guidelineKeywords("Seoul Women's University dormitory: how many rooms?", '기숙사, 수용인원 기숙사')).toEqual([
+      '기숙사', '수용인원', '수용', '인원', 'seoul', 'women', 'dormitory', 'rooms',
+    ]);
+  });
+
+  it('adds the halves of a 4-syllable Korean word (the PDF may write 원서 접수)', () => {
+    expect(guidelineKeywords('', '인터넷원서접수 원서접수')).toEqual(['인터넷원서접수', '원서접수', '원서', '접수']);
+  });
+
+  it('reads an already-built OR query back into the same keywords', () => {
+    const q = guidelineKeywordQuery('dormitory', '기숙사 호실');
+    expect(q).toBe('"기숙사" OR "호실" OR "dormitory"');
+    expect(guidelineKeywordQuery('', q)).toBe(q);
+  });
+
+  it('returns null when nothing searchable is left, and caps the keyword count', () => {
+    expect(guidelineKeywordQuery('va pdf ?', '')).toBeNull();
+    expect(guidelineKeywords(Array.from({ length: 40 }, (_, i) => `word${i}`).join(' '))).toHaveLength(24);
   });
 });
