@@ -390,7 +390,7 @@ async function onCallback(cq: Any) {
     const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; created_by: string; assigned_to: string } | undefined;
     if (error || !r) { console.error("bot_set_task_status:", error?.message); await answerCallbackQuery(BOT_TOKEN, cq.id, "Xatolik"); return; }
     if (r.result === "not_found") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Vazifa topilmadi"); return; }
-    if (r.result === "not_allowed") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Bu vazifa sizniki emas"); return; }
+    if (r.result === "not_allowed") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Faqat mas'ul belgilay oladi"); return; }
     const done = status === "completed";
     await answerCallbackQuery(BOT_TOKEN, cq.id, done ? "✅ Bajarildi" : "▶ Boshlandi");
     await callTelegram(BOT_TOKEN, "editMessageText", {
@@ -581,7 +581,7 @@ async function onGroupMessage(msg: Any) {
         { p_actor: staff.user_id, p_task: card.task_id, p_status: "completed", p_via: "group" });
       const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; created_by: string } | undefined;
       if (error || !r) { console.error("bot_set_task_status:", error?.message); return; }
-      if (r.result === "not_allowed") { await reply(chatId, msg.message_id, "Bu vazifani faqat mas'ul, bergan odam yoki owner yopadi."); return; }
+      if (r.result === "not_allowed") { await reply(chatId, msg.message_id, "Bu vazifani botda faqat mas'ul yopadi (CRM'da — ruxsati borlar)."); return; }
       if (r.result === "same") { await reply(chatId, msg.message_id, "Bu vazifa allaqachon yopilgan."); return; }
       if (r.result !== "ok") return;
       await callTelegram(BOT_TOKEN, "editMessageReplyMarkup", { chat_id: chatId, message_id: replyTo.message_id, reply_markup: { inline_keyboard: [] } });
@@ -777,13 +777,14 @@ async function onProposalCallback(cq: Any, staff: Staff, yes: boolean, id: strin
   if (!p || p.status !== "pending") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Bu taklif endi amal qilmaydi"); return; }
 
   const isOwner = staff.roles?.includes("owner");
-  let allowed = isOwner || staff.user_id === p.author_user_id;
-  if (p.kind === "close" && !allowed && p.task_id) {
-    const { data: t } = await db.from("tasks").select("assigned_to, created_by").eq("id", p.task_id).maybeSingle();
-    allowed = !!t && (t.assigned_to === staff.user_id || t.created_by === staff.user_id);
+  let allowed = p.kind === "create" && (isOwner || staff.user_id === p.author_user_id);
+  if (p.kind === "close" && p.task_id) {
+    // yopishni faqat mas'ul tasdiqlaydi (bot_set_task_status ham shuni tekshiradi)
+    const { data: t } = await db.from("tasks").select("assigned_to").eq("id", p.task_id).maybeSingle();
+    allowed = !!t && t.assigned_to === staff.user_id;
   }
   if (!allowed) {
-    await answerCallbackQuery(BOT_TOKEN, cq.id, p.kind === "create" ? "Faqat xabar yozgan odam yoki owner tasdiqlaydi" : "Faqat mas'ul, bergan yoki owner");
+    await answerCallbackQuery(BOT_TOKEN, cq.id, p.kind === "create" ? "Faqat xabar yozgan odam yoki owner tasdiqlaydi" : "Faqat mas'ul yopa oladi");
     return;
   }
 
@@ -806,7 +807,7 @@ async function onProposalCallback(cq: Any, staff: Staff, yes: boolean, id: strin
     const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; created_by: string } | undefined;
     if (error || !r || !["ok", "same"].includes(r.result)) {
       console.error("proposal close:", error?.message ?? r?.result);
-      await answerCallbackQuery(BOT_TOKEN, cq.id, "Yopib bo'lmadi");
+      await answerCallbackQuery(BOT_TOKEN, cq.id, r?.result === "not_allowed" ? "Faqat mas'ul yopa oladi" : "Yopib bo'lmadi");
       return;
     }
     await answerCallbackQuery(BOT_TOKEN, cq.id, "✅ Bajarildi");

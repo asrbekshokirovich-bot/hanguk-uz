@@ -171,7 +171,7 @@ export const HELP_GUIDE = [
   "",
   "<b>Guruhda</b>",
   "<code>#vazifa @username nima qilish kerak, ertaga 15:00</code> — vazifa beradi (yoki odamning xabariga javob qilib <code>#vazifa matn</code>).",
-  "Bot kartasiga «✅» yoki «bajarildi» deb javob — vazifa yopiladi.",
+  "Bot kartasiga mas'ul «✅» yoki «bajarildi» deb javob yozsa — vazifa yopiladi (boshqalar yopa olmaydi; CRM'dan yopish mumkin).",
   "",
   "<b>Buyruqlar</b>",
   "/bugun — bugungi va kechikkan vazifalar",
