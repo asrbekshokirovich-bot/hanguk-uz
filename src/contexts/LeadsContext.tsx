@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
+import { edgeFunctionError } from '@/lib/edgeFunctionError';
+import { edgeFunctionStatus } from '@/lib/sessionCheck';
 import { toast } from 'sonner';
 
 export interface Lead {
@@ -114,7 +116,7 @@ const LeadsContext = createContext<LeadsContextType | undefined>(undefined);
 export const LeadsProvider = ({ children }: { children: ReactNode }) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, verifySession } = useAuth();
   const { activeIntakeId } = useActiveIntake();
   const convertingIds = useRef(new Set<string>());
   const fetchLeadsRef = useRef<() => Promise<void>>();
@@ -349,7 +351,11 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
         result = await tryCreateStudent(false);
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        // 401 = session revoked elsewhere → show the "session ended" dialog.
+        if (edgeFunctionStatus(result.error) === 401) void verifySession();
+        throw await edgeFunctionError(result.error, 'Failed to create student');
+      }
 
       if (!result.data?.success) {
         throw new Error(result.data?.error || 'Failed to create student');

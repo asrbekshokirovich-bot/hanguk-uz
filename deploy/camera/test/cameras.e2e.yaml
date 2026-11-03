@@ -1,0 +1,6 @@
+# e2e: ishlab chiqarishdagi cameras.yaml o'rnida. kirish — soxta kamera, zal — o'chiq kamera.
+streams:
+  kirish: rtsp://admin:${KIRISH_KOD}@127.0.0.1:18554/cam_main#media=video
+  kirish_sub: rtsp://admin:${KIRISH_KOD}@127.0.0.1:18554/cam_sub#media=video
+  zal: rtsp://admin:${KIRISH_KOD}@127.0.0.1:18599/cam_main#media=video
+  zal_sub: rtsp://admin:${KIRISH_KOD}@127.0.0.1:18599/cam_sub#media=video

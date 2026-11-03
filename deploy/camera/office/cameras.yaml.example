@@ -1,0 +1,18 @@
+# Ofisdagi kameralar. Nusxa: cp cameras.yaml.example cameras.yaml (install.sh o'zi qiladi).
+#
+# Har kamera uchun ikki oqim:
+#   <nom>      — katta oqim (101), to'liq ekranda jonli
+#   <nom>_sub  — kichik oqim (102), rasm va «Hammasi jonli»
+# Nom: kichik lotin harf, raqam va "-" (masalan: kirish, zal, ofis-1).
+# Xuddi shu nomlar secrets/gate.env dagi CAMERAS ga va CRM → Sozlamalar → Kameralar ga yoziladi.
+#
+# Kod (kamera yorlig'idagi 6 ta katta harf) bu faylga yozilmaydi: secrets/cameras.env da turadi.
+# IP — routerda kameraga biriktirilgan doimiy manzil.
+# Yo'l ishlamasa (VLC'da sinang): /h264_stream yoki /h264/ch1/main/av_stream
+# #media=video — ovoz kameradan olinmaydi.
+
+streams:
+  kirish: rtsp://admin:${KIRISH_KOD}@192.168.1.21:554/Streaming/Channels/101#media=video
+  kirish_sub: rtsp://admin:${KIRISH_KOD}@192.168.1.21:554/Streaming/Channels/102#media=video
+  zal: rtsp://admin:${ZAL_KOD}@192.168.1.22:554/Streaming/Channels/101#media=video
+  zal_sub: rtsp://admin:${ZAL_KOD}@192.168.1.22:554/Streaming/Channels/102#media=video

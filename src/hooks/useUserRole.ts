@@ -16,6 +16,7 @@ export function useUserRole() {
   const [hasFinanceAccess, setHasFinanceAccess] = useState(false);
   const [isDocumentApprover, setIsDocumentApprover] = useState(false);
   const [hasApplicationFeeAccess, setHasApplicationFeeAccess] = useState(false);
+  const [hasCameraAccess, setHasCameraAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export function useUserRole() {
         setHasFinanceAccess(false);
         setIsDocumentApprover(false);
         setHasApplicationFeeAccess(false);
+        setHasCameraAccess(false);
         setLoading(false);
         return;
       }
@@ -39,13 +41,16 @@ export function useUserRole() {
       // 20261014120000_document_approvers.sql), which names who besides the
       // owners approves documents. Nor is application_fee_access (migration
       // 20261026120100_application_fee_access.sql), which opens "Application fee"
-      // to named staff without the document_handler role.
+      // to named staff without the document_handler role. Nor is camera_access
+      // (migration 20261103120000_cameras.sql): whom the owner let watch the
+      // office cameras.
       const [
         { data, error },
         { data: center },
         { data: finance },
         { data: approver },
         { data: feeAccess },
+        { data: cameraAccess },
       ] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', user.id),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,6 +78,12 @@ export function useUserRole() {
           .select('user_id')
           .eq('user_id', user.id)
           .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as unknown as { from: (n: string) => any })
+          .from('camera_access')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
       ]);
 
       if (!error && data) {
@@ -82,6 +93,7 @@ export function useUserRole() {
       setHasFinanceAccess(Boolean(finance));
       setIsDocumentApprover(Boolean(approver));
       setHasApplicationFeeAccess(Boolean(feeAccess));
+      setHasCameraAccess(Boolean(cameraAccess));
       setLoading(false);
     };
 
@@ -116,6 +128,9 @@ export function useUserRole() {
   // roles can_edit_application_fees() admits), plus whoever
   // application_fee_access names. Must match has_application_fee_access().
   const canSeeApplicationFees = isDocumentHandler || hasApplicationFeeAccess;
+  // "Kameralar": every owner, plus whoever camera_access names (admins are not
+  // added automatically — owner's decision 2026-11-03). Must match has_camera_access().
+  const canSeeCameras = isOwner || hasCameraAccess;
 
   return {
     roles,
@@ -132,5 +147,6 @@ export function useUserRole() {
     canSeeFinance,
     canApproveDocuments,
     canSeeApplicationFees,
+    canSeeCameras,
   };
 }
