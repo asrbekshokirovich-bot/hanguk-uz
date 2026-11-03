@@ -27,7 +27,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendAfterHoursReplies } from "./after_hours.ts";
 import { runWatchdogs, watchdogChats } from "./watchdog.ts";
-import { sendAppSignalAlerts } from "./app_signals.ts";
+import { sendAppSignalAlerts, sendHandoffAlerts } from "./app_signals.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -150,9 +150,10 @@ serve(async (req) => {
     const overdue = (data ?? []) as OverdueLead[];
     const fromApp = await appLeads(supabase, overdue);
     const app = await sendAppSignalAlerts(supabase, dry, sendTelegram, () => recipients(supabase), () => watchdogChats(supabase));
+    const handoff = await sendHandoffAlerts(supabase, dry, sendTelegram, () => recipients(supabase), () => watchdogChats(supabase));
 
     if (dry) {
-      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [], watchdogs, app_signals: app.alerts ?? [] });
+      return json({ ok: true, dry: true, overdue, after_hours: afterHours.leads ?? [], watchdogs, app_signals: app.alerts ?? [], handoffs: handoff.alerts ?? [] });
     }
 
     const chats = overdue.length ? await recipients(supabase) : [];
@@ -185,6 +186,8 @@ serve(async (req) => {
       daily_report_sent: watchdogs.report_sent,
       app_signals_due: app.due,
       app_signals_sent: app.sent,
+      handoffs_due: handoff.due,
+      handoffs_sent: handoff.sent,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

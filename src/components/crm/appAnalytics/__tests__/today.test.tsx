@@ -72,3 +72,15 @@ describe('«Bugun ilovada» (the plan\'s mock-up)', () => {
     expect(signalWhen(new Date(at - 3 * 60_000).toISOString(), at, t)).toBe('3 daqiqa oldin');
   });
 });
+
+describe('signalText — Hanguk AI handoff', async () => {
+  const { signalText } = await import('../today');
+  const t = (k: string) => (k === 'todayInApp.signals.aiHandoff' ? "Hanguk AI orqali xodim so'radi" : k);
+  it('shows the last question the student asked', () => {
+    const row = { rule: 'ai_handoff', detail: { questions: ['birinchi', 'Kontraktimni bo\'lib to\'lasam bo\'ladimi?'] } } as never;
+    expect(signalText(row, t as never)).toBe("Hanguk AI orqali xodim so'radi: «Kontraktimni bo'lib to'lasam bo'ladimi?»");
+  });
+  it('works without a question', () => {
+    expect(signalText({ rule: 'ai_handoff', detail: {} } as never, t as never)).toBe("Hanguk AI orqali xodim so'radi");
+  });
+});

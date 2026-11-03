@@ -2851,7 +2851,8 @@
       "report": "Hisobotni ko'rdi",
       "picks_one": "{{count}} ta ♥",
       "picks_other": "{{count}} ta ♥",
-      "offer": "Universitet taklifiga 48 soat javob yo'q"
+      "offer": "Universitet taklifiga 48 soat javob yo'q",
+      "aiHandoff": "Hanguk AI orqali xodim so'radi"
     },
     "left": "{{value}} qoldi",
     "late": "{{value}} kechikdi",

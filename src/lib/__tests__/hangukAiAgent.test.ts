@@ -223,6 +223,20 @@ describe('Tool access', () => {
       expect(names(staff)).toContain(n);
     }
     expect(names(staff)).not.toContain('my_card');
+    // Only a signed-in student can put a request in the operators' queue.
+    expect(names(student)).toContain('handoff_to_staff');
+    expect(names(guest)).not.toContain('handoff_to_staff');
+    expect(names(staff)).not.toContain('handoff_to_staff');
+  });
+
+  it('passes the question to ai_request_handoff as the student, trimmed', async () => {
+    const tool = ALL_TOOLS.find((t) => t.name === 'handoff_to_staff')!;
+    const calls: [string, Record<string, unknown>][] = [];
+    const user = { rpc: async (fn: string, p: Record<string, unknown>) => { calls.push([fn, p]); return { data: { ok: true }, error: null }; } };
+    const out = await tool.run({ user, service: null, caller: { audience: 'student', userId: 'u', name: '', roles: [], guestKey: null }, language: 'uz' }, { question: 'x'.repeat(600) });
+    expect(calls[0][0]).toBe('ai_request_handoff');
+    expect(String(calls[0][1].p_question)).toHaveLength(500);
+    expect(out.data).toEqual({ ok: true });
   });
 });
 
