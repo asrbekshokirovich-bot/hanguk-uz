@@ -7,10 +7,15 @@ export interface Chunk {
   text: string;
 }
 
-/** Whitespace tidy-up: pdf.js leaves runs of spaces and empty lines. */
+/**
+ * Whitespace tidy-up: pdf.js leaves runs of spaces and empty lines. Also drops
+ * NUL and lone UTF-16 surrogates — Postgres rejects both ("invalid input syntax
+ * for type json" on 2026-11-02 for one PDF).
+ */
 export function cleanText(s: string): string {
   return s
     .split(String.fromCharCode(0)).join("")
+    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
     .replace(/[ \t ]+/g, " ")
     .replace(/ *\n */g, "\n")
     .replace(/\n{3,}/g, "\n\n")
