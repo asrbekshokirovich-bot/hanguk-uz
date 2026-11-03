@@ -1,7 +1,7 @@
 # Hanguk AI golden-question eval (plan §10.2). Manual for now: it calls the
 # deployed function with real models, so every run costs tokens.
 #
-# Secrets: SUPABASE_DB_URL (read-only use), SUPABASE_PUBLISHABLE_KEY,
+# Secrets: SUPABASE_ACCESS_TOKEN (Management API read-only query; or SUPABASE_DB_URL), SUPABASE_PUBLISHABLE_KEY,
 # EVAL_STAFF_EMAIL / EVAL_STAFF_PASSWORD, EVAL_STUDENT_EMAIL / EVAL_STUDENT_PASSWORD
 # (test accounts, not real staff or students).
 name: Hanguk AI eval
@@ -27,7 +27,7 @@ jobs:
       - name: Run
         env:
           SUPABASE_URL: https://lysjdtyanhdfphqyijsr.supabase.co
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           EVAL_STAFF_EMAIL: ${{ secrets.EVAL_STAFF_EMAIL }}
           EVAL_STAFF_PASSWORD: ${{ secrets.EVAL_STAFF_PASSWORD }}
