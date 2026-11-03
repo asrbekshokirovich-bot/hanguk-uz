@@ -347,3 +347,41 @@ describe('edge cases (TypeScript port)', () => {
     expect(o.chances[0].percent).toBe(55);
   });
 });
+
+describe('assess_chances tool', async () => {
+  const { ASSESS_TOOL, inputFromArgs } = await import('../../../supabase/functions/hanguk-ai-chat/tools/assess.ts');
+  const { assess, groupCatalogRows } = await import('../../../supabase/functions/hanguk-ai-chat/assess.ts');
+  const rows = [{
+    guideline_id: 'g1', institution_id: 'u1', name_en: 'Ajou University', name_ko: '아주대학교', daraja: 'bakalavr',
+    topik_min: 3, is_partner: true, region_code: '경기', is_active: true, visa_restricted: false, english_track: false,
+  }];
+  const service = (catalog: unknown[]) => ({
+    from: (t: string) => ({
+      select: () => (t === 'eligibility_rules'
+        ? Promise.resolve({ data: [], error: null })
+        : { or: () => ({ limit: () => Promise.resolve({ data: catalog, error: null }) }) }),
+    }),
+  });
+  const ctx = (catalog: unknown[]) => ({ user: null, service: service(catalog), caller: { audience: 'guest', userId: null, name: '', roles: [], guestKey: 'g' }, language: 'uz' }) as never;
+
+  it('maps snake_case answers and route words to the app input', () => {
+    expect(inputFromArgs({ route: 'Bakalavr', topik: 4, topik_fresh: false, bank_krw: 20000000, gap_years: 2, study_plan: 2 }, ['u1']))
+      .toEqual({ universityIds: ['u1'], route: 'bachelor', topik: 4, topikFresh: false, bankKrw: 20000000, gapYears: 2, studyPlan: 2 });
+    expect(inputFromArgs({ route: 'til kursi' }, []).route).toBe('languageCourse');
+  });
+
+  it('gives exactly what the app formula gives', async () => {
+    const args = { universities: ['Ajou'], route: 'bachelor', topik: 4, gpa: 4.5, bank_krw: 25000000, age: 19 };
+    const out = await ASSESS_TOOL.run(ctx(rows), args);
+    const expected = assess(inputFromArgs(args, ['u1']), groupCatalogRows(rows));
+    const d = out.data as { universities: { percent: number }[]; visa_percent: number; required_bank_krw: number };
+    expect(d.universities[0].percent).toBe(expected.chances[0].percent);
+    expect(d.visa_percent).toBe(expected.visaPercent);
+    expect(d.required_bank_krw).toBe(expected.requiredBankKrw);
+  });
+
+  it('says so when the university is not in the catalogue', async () => {
+    const out = await ASSESS_TOOL.run(ctx([]), { universities: ['Nowhere'] });
+    expect(out.data).toMatchObject({ error: 'no such university in the catalogue' });
+  });
+});
