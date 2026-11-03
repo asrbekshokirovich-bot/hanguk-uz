@@ -140,6 +140,7 @@ jobs:
           # staff-bot (added 2026-10-29) is new — no live version to compare;
           # verify_jwt = false comes from config.toml (Telegram secret header).
           # tv-board (2026-11-03) is new in Hanguk (old one lived in Orbit); verify_jwt = false, key in ?k=.
+          # camera-session (2026-11-03) is new: CRM camera key; verify_jwt = true (config.toml).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -174,6 +175,7 @@ jobs:
             guideline-index
             staff-bot
             tv-board
+            camera-session
           "
 
           for fn in $FUNCTIONS; do

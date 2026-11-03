@@ -6,7 +6,8 @@
 //
 // GATE_SECRET ikki joyda bir xil turadi: Supabase secrets (CAMERA_GATE_SECRET) va
 // ofis serveridagi secrets/gate.env. Internetda faqat shu qisqa muddatli kalitlar yuradi.
-// Tashqi kutubxona yo'q — Deno ham, Supabase edge ham shu faylni o'zgartirmasdan ishlatadi.
+// Tashqi kutubxona yo'q. Bir xil ikki nusxa: deploy/camera/gate/token.ts va
+// supabase/functions/_shared/camera-token.ts — farq bo'lsa gate/token_sync_test.ts yiqiladi.
 
 export const TOKEN_VERSION = "v1";
 /** Kalitning eng uzun umri, soniya. camera-session 300 s beradi. */
