@@ -19,6 +19,8 @@ const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
 const FALLBACK_STATUS = new Set([429, 503]);
 const MAX_TOKENS_CAP = 32000;
+// No temperature / top_p / top_k in the Claude request: claude-sonnet-5-5 rejects
+// them with HTTP 400 ("`temperature` is deprecated for this model").
 
 const env = (k: string): string => {
   try {
@@ -92,7 +94,6 @@ export function geminiToAnthropic(body: any, model: string): { req: any; json: b
 
   const req: any = { model, max_tokens: maxTokens(cfg.maxOutputTokens ?? cfg.max_output_tokens), messages };
   if (system.length) req.system = system.join("\n\n");
-  if (typeof cfg.temperature === "number") req.temperature = Math.min(1, Math.max(0, cfg.temperature));
   return { req, json };
 }
 
@@ -162,7 +163,6 @@ export function openaiToAnthropic(body: any, model: string): { req: any; json: b
 
   const req: any = { model, max_tokens: maxTokens(body?.max_completion_tokens ?? body?.max_tokens), messages };
   if (system.length) req.system = system.join("\n\n");
-  if (typeof body?.temperature === "number") req.temperature = Math.min(1, Math.max(0, body.temperature));
   if (Array.isArray(body?.tools) && body.tools.length) {
     req.tools = body.tools.map((t: any) => ({
       name: t.function?.name,

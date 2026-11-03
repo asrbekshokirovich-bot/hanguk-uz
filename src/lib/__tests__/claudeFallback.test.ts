@@ -29,7 +29,7 @@ describe('native Gemini → Claude', () => {
     expect(json).toBe(true);
     expect(req.model).toBe('claude-x');
     expect(req.max_tokens).toBe(32000);
-    expect(req.temperature).toBe(0);
+    expect(req).not.toHaveProperty('temperature');
     expect(req.system).toContain('You extract.');
     expect(req.system).toContain('"type":"OBJECT"');
     expect(req.messages).toEqual([{ role: 'user', content: [
@@ -60,7 +60,11 @@ describe('OpenAI-compatible → Claude', () => {
       ],
       tools: [{ type: 'function', function: { name: 'validate_document', parameters: { type: 'object', properties: {} } } }],
       tool_choice: { type: 'function', function: { name: 'validate_document' } },
+      temperature: 0.2, top_p: 0.9, top_k: 40,
     }, 'claude-x');
+    expect(req).not.toHaveProperty('temperature');
+    expect(req).not.toHaveProperty('top_p');
+    expect(req).not.toHaveProperty('top_k');
     expect(req.system).toBe('Check documents.');
     expect(req.messages[0].content[1]).toEqual({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: 'AAAA' } });
     expect(req.tool_choice).toEqual({ type: 'tool', name: 'validate_document' });
@@ -79,7 +83,10 @@ describe('geminiFetch', () => {
   });
   afterEach(() => { delete (globalThis as any).Deno; });
 
-  const body = JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'salom' }] }] });
+  const body = JSON.stringify({
+    contents: [{ role: 'user', parts: [{ text: 'salom' }] }],
+    generationConfig: { temperature: 0.3, topP: 0.9, topK: 40 },
+  });
 
   it('passes a good Gemini answer through untouched', async () => {
     const f = vi.fn().mockResolvedValue(new Response('{"candidates":[]}', { status: 200 }));
@@ -95,6 +102,12 @@ describe('geminiFetch', () => {
     const r = await geminiFetch(NATIVE, { method: 'POST', body }, f);
     expect(f.mock.calls[1][0]).toBe('https://api.anthropic.com/v1/messages');
     expect(f.mock.calls[1][1].headers['x-api-key']).toBe('sk-test');
+    // claude-sonnet-5-5 rejects temperature (HTTP 400) — the body must not carry it
+    const sent = JSON.parse(f.mock.calls[1][1].body);
+    expect(sent.model).toBe('claude-sonnet-5-5');
+    expect(sent).not.toHaveProperty('temperature');
+    expect(sent).not.toHaveProperty('top_p');
+    expect(sent).not.toHaveProperty('top_k');
     expect(r.status).toBe(200);
     expect(r.headers.get('x-ai-fallback')).toBe('anthropic');
     expect((await r.json()).candidates[0].content.parts[0].text).toBe('Salom!');
