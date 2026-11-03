@@ -263,3 +263,11 @@ describe('Student card for the CRM answer', async () => {
     expect(shortUniversity('University of Seoul')).toBe('Seoul');
   });
 });
+
+describe('toAnthropicRequest without temperature', () => {
+  it('never sends temperature (claude-sonnet-5-5 answers 400)', () => {
+    const out = toAnthropicRequest({ messages: [{ role: 'user', content: 'salom' }], temperature: 0.2 }, 'claude-sonnet-5-5');
+    expect(out).not.toHaveProperty('temperature');
+    expect(out.model).toBe('claude-sonnet-5-5');
+  });
+});

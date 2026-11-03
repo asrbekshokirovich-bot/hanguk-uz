@@ -156,7 +156,8 @@ export function toAnthropicRequest(body: Record<string, any>, model: string): Re
     if (body.tool_choice === "none") out.tool_choice = { type: "none" };
     else out.tool_choice = { type: "auto" };
   }
-  if (typeof body.temperature === "number") out.temperature = body.temperature;
+  // No temperature: claude-sonnet-5-5 rejects it with HTTP 400 ("`temperature` is
+  // deprecated for this model", 2026-11-03); the OpenAI-shaped callers may still send one.
   return out;
 }
 
