@@ -29,6 +29,8 @@ import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shar
 import { structuredJSON } from "./ai.ts";
 import {
   escapeHtml,
+  type MorningBrief,
+  renderBrief,
   ANALYSIS_SCHEMA,
   ASK_PROMPT,
   mdToPlain,
@@ -421,15 +423,21 @@ function cronAuthorized(req: Request): boolean {
   return bearer !== "" && bearer === SERVICE_ROLE_KEY;
 }
 
+// Har xodimga (Telegram'ni ulagan) 09:00: brifing + bugungi va kechikkan
+// vazifalar (2026-11-03: oldin faqat vazifasi borlarga borardi).
 async function morning() {
-  const { data, error } = await db.rpc("bot_morning_targets");
-  if (error) { console.error("bot_morning_targets:", error.message); return json({ error: error.message }, 500); }
+  const { data, error } = await db.rpc("bot_brief_targets");
+  if (error) { console.error("bot_brief_targets:", error.message); return json({ error: error.message }, 500); }
   let sent = 0;
-  for (const t of (data ?? []) as { user_id: string; full_name: string; dm_chat_id: number; overdue: number; today: number }[]) {
+  for (const t of (data ?? []) as { user_id: string; full_name: string; dm_chat_id: number }[]) {
     const all = await myOpenTasks(t.user_id);
     const g = groupTasks(all, Date.now());
     const head = `☀️ Xayrli tong${t.full_name ? ", " + escapeHtml(t.full_name.split(" ")[0]) : ""}!`;
-    await sendLong(t.dm_chat_id, head + "\n\n" + renderTaskList({ ...g, upcoming: [], nodate: [] }), { reply_markup: MENU_KEYBOARD });
+    const { data: brief, error: bErr } = await db.rpc("bot_morning_brief", { p_user: t.user_id });
+    if (bErr) console.error("bot_morning_brief:", bErr.message);
+    const tasks = g.overdue.length || g.today.length ? renderTaskList({ ...g, upcoming: [], nodate: [] }) : "";
+    const body = [head, brief ? renderBrief(brief as MorningBrief) : "", tasks].filter(Boolean).join("\n\n");
+    await sendLong(t.dm_chat_id, body, { reply_markup: MENU_KEYBOARD });
     for (const task of [...g.overdue, ...g.today].slice(0, MAX_CARDS)) await sendTaskCard(t.dm_chat_id, task);
     sent++;
   }
