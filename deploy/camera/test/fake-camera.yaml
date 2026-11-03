@@ -1,0 +1,11 @@
+# e2e: EZVIZ kamera o'rnida soxta kamera — ffmpeg test tasviri (H.264), RTSP 127.0.0.1:18554.
+# cam_main — katta oqim (720p), cam_sub — kichik oqim (360p). Ishlab chiqarishda ishlatilmaydi.
+api:
+  listen: "127.0.0.1:11984"
+rtsp:
+  listen: "127.0.0.1:18554"
+webrtc:
+  listen: ""
+streams:
+  cam_main: exec:ffmpeg -hide_banner -loglevel error -re -f lavfi -i testsrc2=size=1280x720:rate=15 -c:v libx264 -preset ultrafast -tune zerolatency -g 15 -pix_fmt yuv420p -f rtsp {output}
+  cam_sub: exec:ffmpeg -hide_banner -loglevel error -re -f lavfi -i testsrc2=size=640x360:rate=15 -c:v libx264 -preset ultrafast -tune zerolatency -g 15 -pix_fmt yuv420p -f rtsp {output}

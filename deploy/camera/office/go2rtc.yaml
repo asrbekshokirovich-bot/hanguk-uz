@@ -1,0 +1,28 @@
+# Hanguk kamera serveri — go2rtc xavfsizlik sozlamalari. Bu faylni o'zgartirmang.
+# Kameralar ro'yxati alohida faylda: cameras.yaml (namuna: cameras.yaml.example).
+# Fayl deploy/camera/test/e2e.sh da aynan shu holida haqiqiy go2rtc bilan sinaladi.
+
+app:
+  # Faqat kerakli modullar: kameradan RTSP olish, jonli video (MSE), HLS va rasm.
+  # exec, echo, webrtc, homekit va boshqalar yuklanmaydi — API orqali buyruq
+  # ishga tushirib ham, ofisdan UDP ochib ham bo'lmaydi.
+  modules: [api, ws, rtsp, mp4, hls, mjpeg]
+
+api:
+  # Faqat shu kompyuter ichida. Tashqaridan go2rtc'ga faqat camera-gate orqali yetiladi.
+  listen: "127.0.0.1:1984"
+  # Veb-interfeys, /api/streams, /api/config va boshqa sozlash yo'llari umuman ochilmaydi.
+  allow_paths:
+    - /api/ws
+    - /api/frame.jpeg
+    - /api/hls/playlist.m3u8
+    - /api/hls/init.mp4
+    - /api/hls/segment.m4s
+    - /api/hls/segment.ts
+
+rtsp:
+  # go2rtc'ning o'z RTSP serveri kerak emas (kameralardan olish baribir ishlaydi).
+  listen: ""
+
+log:
+  format: text

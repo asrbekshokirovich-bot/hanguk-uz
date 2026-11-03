@@ -1,0 +1,52 @@
+name: camera-gate
+
+on:
+  pull_request:
+    paths:
+      - "deploy/camera/**"
+      - ".github/workflows/camera-gate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "deploy/camera/**"
+      - ".github/workflows/camera-gate.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deno 2.9.8
+        run: |
+          curl -fsSL -o /tmp/deno.zip https://github.com/denoland/deno/releases/download/v2.9.8/deno-x86_64-unknown-linux-gnu.zip
+          sudo unzip -o -q /tmp/deno.zip -d /usr/local/bin
+          deno --version
+
+      - name: Lint, format, types
+        working-directory: deploy/camera/gate
+        run: deno lint && deno fmt --check && deno task check
+
+      - name: Unit tests
+        working-directory: deploy/camera/gate
+        run: deno task test
+
+      - name: Scripts
+        run: |
+          bash -n deploy/camera/office/install.sh
+          bash -n deploy/camera/vps/setup.sh
+          bash -n deploy/camera/test/e2e.sh
+          T=$(mktemp -d)
+          bash deploy/camera/office/install.sh --skip-system --dir "$T/opt" --wg-dir "$T/wg" \
+            --vps-endpoint 203.0.113.10:51820 --vps-pubkey AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          test -f "$T/opt/gate/main.ts" && test -f "$T/opt/secrets/gate.env" && grep -q "Endpoint = 203.0.113.10:51820" "$T/wg/hanguk-cam.conf"
+          bash deploy/camera/vps/setup.sh --skip-system --root "$T/vps" --domain cam.hanguk.uz
+          grep -q "reverse_proxy 10.8.0.2:8080" "$T/vps/etc/caddy/Caddyfile"
+
+      - name: e2e — haqiqiy go2rtc 1.9.15 va ffmpeg soxta kamera
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+          curl -fsSL -o /tmp/go2rtc https://github.com/AlexxIT/go2rtc/releases/download/v1.9.15/go2rtc_linux_amd64
+          chmod +x /tmp/go2rtc
+          GO2RTC_BIN=/tmp/go2rtc bash deploy/camera/test/e2e.sh

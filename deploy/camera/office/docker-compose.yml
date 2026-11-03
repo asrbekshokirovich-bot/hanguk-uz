@@ -1,0 +1,30 @@
+# Hanguk kamera serveri (ofis). O'rnatish: deploy/camera/README.md
+# Ishga tushirish: cd /opt/hanguk-camera && sudo docker compose up -d
+name: hanguk-camera
+
+services:
+  go2rtc:
+    image: alexxit/go2rtc:1.9.15 # ichida ffmpeg bor (rasm uchun)
+    network_mode: host # kameralar ofis tarmog'ida; API faqat 127.0.0.1:1984 (go2rtc.yaml)
+    restart: unless-stopped
+    env_file: secrets/cameras.env # kamera kodlari — faqat shu serverda
+    volumes:
+      - ./go2rtc.yaml:/config/go2rtc.yaml:ro
+      - ./cameras.yaml:/config/cameras.yaml:ro
+    command: ["go2rtc", "-config", "/config/go2rtc.yaml", "-config", "/config/cameras.yaml"]
+
+  camera-gate:
+    image: denoland/deno:2.9.8
+    network_mode: host # GATE_LISTEN: WireGuard manzili (10.8.0.2:8080) yoki 127.0.0.1:8080
+    restart: unless-stopped
+    env_file: secrets/gate.env # GATE_SECRET, HEALTH_KEY, CAMERAS ...
+    working_dir: /app
+    volumes:
+      - ./gate:/app:ro
+    command:
+      - run
+      - --allow-net
+      - --allow-env=GATE_LISTEN,GO2RTC_URL,GATE_SECRET,HEALTH_KEY,GATE_ORIGINS,CAMERAS,SESSION_MAX_SEC,MAX_SESSIONS,MAX_SESSIONS_PER_USER,SNAPSHOT_CACHE
+      - main.ts
+    depends_on:
+      - go2rtc
