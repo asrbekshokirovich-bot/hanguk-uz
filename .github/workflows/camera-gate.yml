@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - "deploy/camera/**"
+      - "supabase/functions/camera-session/**"
+      - "supabase/functions/_shared/camera-token.ts"
       - ".github/workflows/camera-gate.yml"
   push:
     branches: [main]
     paths:
       - "deploy/camera/**"
+      - "supabase/functions/camera-session/**"
+      - "supabase/functions/_shared/camera-token.ts"
       - ".github/workflows/camera-gate.yml"
 
 jobs:
@@ -31,6 +35,11 @@ jobs:
       - name: Unit tests
         working-directory: deploy/camera/gate
         run: deno task test
+
+      - name: camera-session (Supabase) — kalit gate bilan mos
+        run: |
+          deno check supabase/functions/camera-session/session.ts supabase/functions/camera-session/session_test.ts
+          deno test supabase/functions/camera-session/session_test.ts
 
       - name: Scripts
         run: |

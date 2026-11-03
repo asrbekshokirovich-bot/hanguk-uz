@@ -247,3 +247,8 @@ verify_jwt = true
 
 [functions.guideline-index]
 verify_jwt = false
+
+# Kameralar (2026-11-03): CRM xodimiga 5 daqiqalik kamera kaliti beradi.
+# Ruxsat funksiya ichida (has_camera_access), JWT shlyuzda ham tekshiriladi.
+[functions.camera-session]
+verify_jwt = true

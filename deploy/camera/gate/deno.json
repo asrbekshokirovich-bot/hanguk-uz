@@ -3,9 +3,9 @@
   "compilerOptions": { "strict": true },
   "tasks": {
     "start": "deno run --allow-net --allow-env=GATE_LISTEN,GO2RTC_URL,GATE_SECRET,HEALTH_KEY,GATE_ORIGINS,CAMERAS,SESSION_MAX_SEC,MAX_SESSIONS,MAX_SESSIONS_PER_USER,SNAPSHOT_CACHE main.ts",
-    "test": "deno test --allow-net --allow-env token_test.ts config_test.ts gate_test.ts",
+    "test": "deno test --allow-net --allow-env --allow-read token_test.ts config_test.ts gate_test.ts token_sync_test.ts",
     "e2e": "deno test --allow-net --allow-env e2e_test.ts",
-    "check": "deno check main.ts token_test.ts config_test.ts gate_test.ts e2e_test.ts"
+    "check": "deno check main.ts token_test.ts config_test.ts gate_test.ts token_sync_test.ts e2e_test.ts"
   },
   "fmt": { "lineWidth": 120 },
   "lint": { "rules": { "tags": ["recommended"] } }
