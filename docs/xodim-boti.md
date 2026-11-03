@@ -12,7 +12,7 @@ Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohid
 | DM | ➕ Vazifa berish | hamkasb → matn/ovoz → tasdiq; «ertaga 15:00», «juma», «05.11», «zarur» |
 | DM | 📝 Hisobot | 17:00 da so'raladi; bitta xabar (matn/ovoz); qayta yozsa yangilanadi |
 | DM | 🤖 Savol | Hanguk AI; xodimning CRM ruxsatlari doirasida |
-| Guruh | `#vazifa @username matn` | vazifa + karta; kartaga «✅»/«bajarildi» → yopiladi |
+| Guruh | `#vazifa @username matn` | vazifa + karta; mas'ul kartaga «✅»/«bajarildi» → yopiladi |
 | Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
 
 To'liq qo'llanma botda: `/help`.
@@ -59,6 +59,7 @@ Bot RPC'lari (`bot_*`) faqat `service_role` uchun; CRM RPC'lari: `crm_daily_repo
 1. Aniq buyruqlar (`#vazifa`, kartaga ✅) — deterministik.
 2. AI faqat taklif: ishonch ≥ 0.75, xodim aniq mos kelishi, mavjud vazifaga o'xshamasligi; yopishda vazifa id'si AI'dan emas, ro'yxatdagi raqamdan.
 3. Tasdiqsiz hech narsa yaratilmaydi/yopilmaydi; 24 soatda tasdiqlanmasa — expired.
+4. Vazifa holatini botda (▶/✅, guruhda ✅, AI yopish taklifi) **faqat mas'ul** o'zgartiradi; bergan odam va owner CRM orqali yopadi.
 Rejim: `off` | `shadow` (standart — faqat `bot_proposals`, guruhga chiqmaydi) | `on`.
 
 ## Orbit
