@@ -2791,7 +2791,8 @@
       "report": "Saw the report",
       "picks_one": "{{count}} ♥",
       "picks_other": "{{count}} ♥",
-      "offer": "No answer to a university offer for 48 hours"
+      "offer": "No answer to a university offer for 48 hours",
+      "aiHandoff": "Asked for a consultant via Hanguk AI"
     },
     "left": "{{value}} left",
     "late": "{{value}} late",

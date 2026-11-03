@@ -74,3 +74,64 @@ export async function sendAppSignalAlerts(
   }
   return { due: alerts.length, sent };
 }
+
+// Hanguk AI handoff (20261103140000_ai_handoff.sql): a student asked the AI
+// for a person, and nobody closed the request within 10 minutes. Same
+// recipients and hours as the app's HOZIR signal above.
+interface HandoffAlert {
+  id: number;
+  user_id: string;
+  full_name: string | null;
+  phone: string | null;
+  questions: (string | null)[];
+  target: "operators" | "boss";
+  asked_at: string;
+  minutes_waiting: number;
+}
+
+export function composeHandoffAlert(a: HandoffAlert): string {
+  const name = a.full_name || "(ismsiz talaba)";
+  const phone = a.phone ? `\nTelefon: ${a.phone}` : "";
+  const qs = (a.questions ?? []).filter((q): q is string => !!q && q.trim() !== "");
+  const asked = qs.length ? `\n\nSo'radi:\n${qs.slice(-3).map((q) => `• ${q}`).join("\n")}` : "";
+  return [
+    `🙋 Talaba Hanguk AI orqali xodim so'radi — ${a.minutes_waiting} daqiqadan beri javob yo'q!`,
+    ``,
+    `${name}${phone}${asked}`,
+    ``,
+    `CRM → Bugun ilovada bo'limida ko'ring.`,
+  ].join("\n");
+}
+
+export async function sendHandoffAlerts(
+  supabase: Admin,
+  dry: boolean,
+  send: Send,
+  everyone: () => Promise<string[]>,
+  boss: () => Promise<string[]>,
+): Promise<{ due: number; sent: number; alerts?: HandoffAlert[] }> {
+  const { data, error } = await supabase.rpc("app_handoff_alerts", { p_dry: dry });
+  if (error) {
+    // The migration may not be applied yet; the rest goes on regardless.
+    console.error("lead-sla-check: app_handoff_alerts:", error.message);
+    return { due: 0, sent: 0 };
+  }
+  const alerts = (data ?? []) as HandoffAlert[];
+  if (dry || !alerts.length) return { due: alerts.length, sent: 0, alerts: dry ? alerts : undefined };
+
+  const chats = {
+    operators: alerts.some((a) => a.target === "operators") ? await everyone() : [],
+    boss: alerts.some((a) => a.target === "boss") ? await boss() : [],
+  };
+  let sent = 0;
+  for (const a of alerts) {
+    const to = chats[a.target] ?? [];
+    if (!to.length) console.warn(`lead-sla-check: no recipient for the AI handoff (${a.target})`);
+    let delivered = false;
+    for (const chat of to) {
+      if (await send(chat, composeHandoffAlert(a))) delivered = true;
+    }
+    if (delivered) sent++;
+  }
+  return { due: alerts.length, sent };
+}

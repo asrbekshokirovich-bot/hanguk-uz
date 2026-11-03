@@ -11,4 +11,18 @@ export const STUDENT_TOOLS: AgentTool[] = [
     audiences: ["student"],
     run: async (ctx) => ({ data: await rpc(ctx.user, "ai_my_card", {}) }),
   },
+  {
+    name: "handoff_to_staff",
+    description:
+      "Pass the student's question to a Hanguk consultant (operators' queue in the CRM; if nobody answers within 10 minutes the operators get a Telegram alert). Use it when the student asks to talk to a person/consultant/operator, or when they need something you cannot do (payments, contract, a decision about their case, data you cannot see) and they want help. Put the student's request in their own words in `question`. Do not use it for questions you can answer. Returns alert_at and working_hours_now: tell the student a consultant will contact them (soon if working_hours_now, otherwise on the next working morning — working days Mon–Sat 09:00–18:00).",
+    parameters: {
+      type: "object",
+      properties: { question: { type: "string", description: "What the student wants, in their words (max 500 chars)" } },
+      required: ["question"],
+    },
+    audiences: ["student"],
+    run: async (ctx, a) => ({
+      data: await rpc(ctx.user, "ai_request_handoff", { p_question: String(a?.question ?? "").slice(0, 500) }),
+    }),
+  },
 ];

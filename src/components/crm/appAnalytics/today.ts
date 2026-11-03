@@ -12,13 +12,13 @@ const db = supabase as unknown as {
 
 export interface TodayRow {
   id: number;
-  rule: 'new_app_request' | 'came_back' | 'report_or_picks' | 'offer_unanswered' | string;
+  rule: 'new_app_request' | 'came_back' | 'report_or_picks' | 'offer_unanswered' | 'ai_handoff' | string;
   queue: 'now' | 'today';
   target: 'operators' | 'boss' | 'owner' | 'documents';
   asked_at: string;
   due_at: string | null;
   day: string;
-  detail: { via?: string; days?: number; report?: boolean; picks?: number; offers?: number };
+  detail: { via?: string; days?: number; report?: boolean; picks?: number; offers?: number; questions?: (string | null)[] };
   lead_id: string | null;
   user_id: string | null;
   kind: 'lead' | 'student';
@@ -108,6 +108,11 @@ export function signalText(r: TodayRow, t: T): string {
     }
     case 'offer_unanswered':
       return t('todayInApp.signals.offer');
+    case 'ai_handoff': {
+      const qs = Array.isArray(r.detail.questions) ? r.detail.questions.filter(Boolean) : [];
+      const last = qs.length ? String(qs[qs.length - 1]) : '';
+      return last ? `${t('todayInApp.signals.aiHandoff')}: «${last.length > 80 ? `${last.slice(0, 80)}…` : last}»` : t('todayInApp.signals.aiHandoff');
+    }
     default:
       return r.rule;
   }
