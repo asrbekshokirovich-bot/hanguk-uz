@@ -263,3 +263,15 @@ describe('Student card for the CRM answer', async () => {
     expect(shortUniversity('University of Seoul')).toBe('Seoul');
   });
 });
+
+describe('refusal rules in prompts', async () => {
+  const P = await import('../../../supabase/functions/hanguk-ai-chat/prompts');
+  it('tells students it cannot see other students and never guarantees', () => {
+    const s = P.studentSystem({ language: 'uz', today: '2026-11-03', name: 'Ali' } as any);
+    expect(s).toContain("Boshqa talabalarning ma'lumotlarini ko'ra olmayman");
+    expect(s).toContain('Kafolat bera olmaymiz');
+  });
+  it('guests get the no-guarantee rule too', () => {
+    expect(P.guestSystem({ language: 'uz', today: '2026-11-03' })).toContain('Kafolat bera olmaymiz');
+  });
+});
