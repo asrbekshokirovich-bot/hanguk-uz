@@ -29,6 +29,9 @@ describe('Guideline PDF chunks', () => {
   it('drops pages without text and tidies whitespace', () => {
     expect(chunkPages(['   ', 'abc'])).toEqual([]);
     expect(cleanText('a   b \n\n\n\n c')).toBe('a b\n\nc');
+    // lone surrogates break the jsonb insert; a real pair (emoji) stays
+    expect(cleanText('기\uD835숙\uDC00사 😀')).toBe('기숙사 😀');
+    expect(() => JSON.parse(JSON.stringify(cleanText('x\uDBFF')))).not.toThrow();
   });
 
   it('loads each CMap once from the pinned pdfjs-dist CDN path', async () => {
