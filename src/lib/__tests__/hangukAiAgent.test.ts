@@ -273,5 +273,10 @@ describe('refusal rules in prompts', async () => {
   });
   it('guests get the no-guarantee rule too', () => {
     expect(P.guestSystem({ language: 'uz', today: '2026-11-03' })).toContain('Kafolat bera olmaymiz');
+describe('toAnthropicRequest without temperature', () => {
+  it('never sends temperature (claude-sonnet-5-5 answers 400)', () => {
+    const out = toAnthropicRequest({ messages: [{ role: 'user', content: 'salom' }], temperature: 0.2 }, 'claude-sonnet-5-5');
+    expect(out).not.toHaveProperty('temperature');
+    expect(out.model).toBe('claude-sonnet-5-5');
   });
 });
