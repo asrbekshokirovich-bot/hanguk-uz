@@ -22,9 +22,12 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { SavedRepliesSettings } from '@/components/crm/messages/SavedRepliesSettings';
 import { BotSettingsCard } from '@/components/crm/settings/BotSettingsCard';
 import { BotProposalsCard } from '@/components/crm/settings/BotProposalsCard';
+import { CameraSettingsCard } from '@/components/crm/settings/CameraSettingsCard';
 import { supabase } from '@/integrations/supabase/client';
-import { 
+import { useSearchParams } from 'react-router-dom';
+import {
   Bot,
+  Cctv,
   Settings, 
   User, 
   Bell, 
@@ -58,6 +61,17 @@ interface UserProfile {
   preferred_language: string | null;
 }
 
+const SETTINGS_TABS = [
+  'profile',
+  'notifications',
+  'integrations',
+  'saved-replies',
+  'appearance',
+  'bot',
+  'cameras',
+  'security',
+];
+
 export default function SettingsContent() {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
@@ -66,6 +80,10 @@ export default function SettingsContent() {
   const isOwner = hasRole('owner');
   const role = roles[0] || 'staff';
   const { theme, setTheme } = useTheme();
+  // /crm/settings?tab=cameras — boshqa sahifadan to'g'ri bo'limga ochish uchun.
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const initialTab = requestedTab && SETTINGS_TABS.includes(requestedTab) ? requestedTab : 'profile';
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -189,8 +207,8 @@ export default function SettingsContent() {
         </p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
+      <Tabs defaultValue={initialTab} className="space-y-6">
+        <TabsList className={`grid w-full ${isOwner ? 'grid-cols-8' : 'grid-cols-6'} lg:w-auto lg:inline-flex`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -215,6 +233,12 @@ export default function SettingsContent() {
             <TabsTrigger value="bot" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
               <span className="hidden sm:inline">{t('crm.botSettings.tab')}</span>
+            </TabsTrigger>
+          )}
+          {isOwner && (
+            <TabsTrigger value="cameras" className="flex items-center gap-2">
+              <Cctv className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('crm.cameras.settings.tab')}</span>
             </TabsTrigger>
           )}
           <TabsTrigger value="security" className="flex items-center gap-2">
@@ -440,6 +464,12 @@ export default function SettingsContent() {
           <TabsContent value="bot" className="space-y-6">
             <BotSettingsCard />
             <BotProposalsCard />
+          </TabsContent>
+        )}
+
+        {isOwner && (
+          <TabsContent value="cameras" className="space-y-6">
+            <CameraSettingsCard />
           </TabsContent>
         )}
 

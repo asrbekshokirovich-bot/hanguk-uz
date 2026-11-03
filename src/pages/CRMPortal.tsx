@@ -54,6 +54,7 @@ const TodayInAppContent = lazy(() => import('@/components/crm/pages/TodayInAppCo
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const DailyReportsContent = lazy(() => import('@/components/crm/pages/DailyReportsContent'));
+const CamerasContent = lazy(() => import('@/components/crm/pages/CamerasContent'));
 const MessagesContent = lazy(() => import('@/components/crm/pages/MessagesContent'));
 const CallsContent = lazy(() => import('@/components/crm/pages/CallsContent'));
 const StaffContent = lazy(() => import('@/components/crm/pages/StaffContent'));
@@ -123,6 +124,7 @@ export default function CRMPortal() {
     canSeeFinance,
     canApproveDocuments,
     canSeeApplicationFees,
+    canSeeCameras,
     loading: roleLoading,
   } = useUserRole();
   const {
@@ -160,6 +162,7 @@ export default function CRMPortal() {
     isDocumentHandler,
     t,
     currentLang,
+    canSeeCameras,
   );
 
   // Determine current view from URL
@@ -196,6 +199,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/app-analytics')) return 'app-analytics';
     if (currentPath.startsWith('/crm/tasks')) return 'tasks';
     if (currentPath.startsWith('/crm/daily-reports')) return 'daily-reports';
+    if (currentPath.startsWith('/crm/cameras')) return 'cameras';
     if (currentPath.startsWith('/crm/messages')) return 'messages';
     if (currentPath.startsWith('/crm/calls')) return 'calls';
     if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
@@ -469,6 +473,9 @@ export default function CRMPortal() {
         return <SafeSuspense><TasksContent /></SafeSuspense>;
       case 'daily-reports':
         return <SafeSuspense><DailyReportsContent /></SafeSuspense>;
+      case 'cameras':
+        if (!canSeeCameras) return <AccessDenied />;
+        return <SafeSuspense><CamerasContent /></SafeSuspense>;
       case 'messages':
         return <SafeSuspense><MessagesContent /></SafeSuspense>;
       case 'calls':
@@ -537,6 +544,7 @@ export default function CRMPortal() {
             isAdmin={isAdmin}
             isCallOperator={isCallOperator}
             isDocumentHandler={isDocumentHandler}
+            canSeeCameras={canSeeCameras}
             user={user}
             onSignOut={handleSignOut}
           />

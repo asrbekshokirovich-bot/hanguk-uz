@@ -49,6 +49,7 @@ import {
   Clock,
   ClipboardCheck,
   Building2,
+  Cctv,
   LogOut,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -78,6 +79,8 @@ interface CRMSidebarProps {
   isAdmin: boolean;
   isCallOperator: boolean;
   isDocumentHandler: boolean;
+  /** "Kameralar": owners, plus anyone given camera access. */
+  canSeeCameras?: boolean;
   user: User | null;
   onSignOut: () => void;
 }
@@ -90,6 +93,7 @@ function buildGroups(
   t: (key: string) => string,
   lang: string,
   inboxWaiting = 0,
+  canSeeCameras = false,
 ): SidebarGroup[] {
   return [
     {
@@ -136,6 +140,7 @@ function buildGroups(
       items: [
         { title: t('navigation.tasks'), url: '/crm/tasks', icon: ClipboardList, visible: true },
         { title: t('crm.dailyReports.nav'), url: '/crm/daily-reports', icon: NotebookPen, visible: isAdmin },
+        { title: t('crm.cameras.nav'), url: '/crm/cameras', icon: Cctv, visible: canSeeCameras },
         { title: t('navigation.calendar'), url: '/crm/calendar', icon: Calendar, visible: isAdmin },
         { title: t('navigation.aiTranslation'), url: '/crm/translation', icon: Languages, visible: isAdmin, highlight: true },
         { title: t('navigation.kakaoMap'), url: '/crm/kakao-map', icon: MapPin, visible: isAdmin, highlight: true },
@@ -180,6 +185,7 @@ export function CRMSidebar({
   isAdmin,
   isCallOperator,
   isDocumentHandler,
+  canSeeCameras = false,
   user,
   onSignOut,
 }: CRMSidebarProps) {
@@ -203,6 +209,7 @@ export function CRMSidebar({
     t,
     lang,
     inboxWaiting,
+    canSeeCameras,
   );
 
   // Whether an item's URL matches the current route (most-specific match wins
@@ -351,6 +358,7 @@ export function useSidebarGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
+  canSeeCameras = false,
 ): SidebarGroup[] {
   return buildGroups(
     canSeeFinance,
@@ -359,5 +367,7 @@ export function useSidebarGroups(
     isDocumentHandler,
     t,
     lang,
+    0,
+    canSeeCameras,
   );
 }
