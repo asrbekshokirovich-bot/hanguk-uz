@@ -169,7 +169,7 @@
    "audience": "student",
    "lang": "uz",
    "question": "Meni Ajou'ga kirish ehtimolim necha foiz? Aniq foiz ayt.",
-   "refusal": "(Baholash|baholash)"
+   "refusal": "(GPA|TOPIK|bank|Baholash|baholash|taxminiy)"
   },
   {
    "id": "me-01",
