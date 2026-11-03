@@ -2353,5 +2353,19 @@
     "result": "결과",
     "noUniversities": "아직 선택되거나 제출된 대학이 없습니다.",
     "whereToEdit": "서류, 대학 선택, 온라인·오프라인 지원 섹션에서 자동으로 가져옵니다 — 지원 보드와 동일합니다."
+  },
+  "sessionExpired": {
+    "title": "세션이 종료되었습니다",
+    "body": "다른 컴퓨터나 탭에서 이 계정이 로그아웃되었거나 비밀번호가 변경되었습니다. 계속하려면 다시 로그인하세요.",
+    "button": "다시 로그인"
+  },
+  "addStudentError": {
+    "sessionExpired": "세션이 종료되었습니다 — 다시 로그인하세요. 학생이 추가되지 않았습니다.",
+    "noPermission": "학생을 추가할 권한이 없습니다.",
+    "phoneExists": "전화번호 {{phone}}(으)로 등록된 학생이 이미 있습니다.",
+    "phoneStaff": "전화번호 {{phone}}은(는) 직원 계정에 속합니다.",
+    "nameExists": "같은 이름의 학생이 이미 있습니다.",
+    "missingFields": "필수 항목이 입력되지 않았습니다.",
+    "generic": "학생이 추가되지 않았습니다. {{detail}}"
   }
 }

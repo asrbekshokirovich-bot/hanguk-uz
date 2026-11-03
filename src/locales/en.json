@@ -3389,5 +3389,19 @@
     "result": "Result",
     "noUniversities": "No university chosen or submitted yet.",
     "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board."
+  },
+  "sessionExpired": {
+    "title": "Session ended",
+    "body": "This account was signed out on another computer or tab, or its password changed. Sign in again to continue.",
+    "button": "Sign in again"
+  },
+  "addStudentError": {
+    "sessionExpired": "Your session has ended — sign in again. The student was not added.",
+    "noPermission": "You don't have permission to add students.",
+    "phoneExists": "A student with phone {{phone}} already exists.",
+    "phoneStaff": "Phone {{phone}} belongs to a staff account.",
+    "nameExists": "A student with this name already exists.",
+    "missingFields": "Required fields are missing.",
+    "generic": "The student was not added. {{detail}}"
   }
 }

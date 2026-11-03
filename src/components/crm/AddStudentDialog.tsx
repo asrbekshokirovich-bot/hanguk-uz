@@ -20,6 +20,10 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveIntake } from '@/contexts/IntakeContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { edgeFunctionErrorMessage } from '@/lib/edgeFunctionError';
+import { edgeFunctionStatus } from '@/lib/sessionCheck';
+import { createStudentErrorInfo } from '@/lib/createStudentError';
 import { User, Phone, Calendar, CreditCard, KeyRound, Copy, CheckCircle, Crown, AlertCircle, GraduationCap, Plus, Trash2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -124,6 +128,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
   const { t } = useTranslation();
   const { toast } = useToast();
   const { activeIntakeId } = useActiveIntake();
+  const { verifySession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [createdMagicCode, setCreatedMagicCode] = useState('');
@@ -196,7 +201,20 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
       });
 
       if (createError || createResponse?.error) {
-        throw new Error(createResponse?.error || createError?.message || 'Failed to create student');
+        const status = createError ? edgeFunctionStatus(createError) : null;
+        const raw = createError
+          ? await edgeFunctionErrorMessage(createError, '')
+          : String(createResponse?.error ?? '');
+        const info = createStudentErrorInfo(raw, status);
+        // 401 = the session was revoked elsewhere; the auth check shows the
+        // "session ended" dialog. The form stays filled in.
+        if (info.key === 'sessionExpired') void verifySession();
+        throw new Error(
+          t(`addStudentError.${info.key}`, {
+            ...info.params,
+            detail: info.params?.detail || raw || `HTTP ${status ?? '?'}`,
+          }),
+        );
       }
 
       // The create-student edge function enrolls the student in the active intake
@@ -214,7 +232,9 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
     } catch (error) {
       toast({
         title: t('common.error'),
-        description: (error instanceof Error ? error.message : '') || 'Failed to add student',
+        description:
+          (error instanceof Error ? error.message : '') ||
+          t('addStudentError.generic', { detail: '' }),
         variant: 'destructive',
       });
     } finally {

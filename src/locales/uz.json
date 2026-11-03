@@ -3449,5 +3449,19 @@
     "result": "Natija",
     "noUniversities": "Hali universitet tanlanmagan yoki topshirilmagan.",
     "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil."
+  },
+  "sessionExpired": {
+    "title": "Sessiya tugadi",
+    "body": "Bu akkauntdan boshqa kompyuter yoki oynada chiqilgan, yoki parol o'zgargan. Davom etish uchun qaytadan kiring.",
+    "button": "Qayta kirish"
+  },
+  "addStudentError": {
+    "sessionExpired": "Sessiya tugagan — qaytadan kiring. Talaba qo'shilmadi.",
+    "noPermission": "Talaba qo'shishga ruxsatingiz yo'q.",
+    "phoneExists": "{{phone}} raqami bilan talaba allaqachon bor.",
+    "phoneStaff": "{{phone}} raqami xodim akkauntiga tegishli.",
+    "nameExists": "Bu ism bilan talaba allaqachon bor.",
+    "missingFields": "Majburiy maydonlar to'ldirilmagan.",
+    "generic": "Talaba qo'shilmadi. {{detail}}"
   }
 }

@@ -1,6 +1,22 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { isSessionGoneError } from '@/lib/sessionCheck';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+/** How often an open tab re-checks that its session still exists server-side. */
+const SESSION_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+/** Minimum gap between focus/visibility-triggered checks. */
+const SESSION_CHECK_THROTTLE_MS = 30 * 1000;
 
 interface AuthContextType {
   user: User | null;
@@ -12,6 +28,12 @@ interface AuthContextType {
   signUpOwner: (username: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   createStaffAccount: (username: string, password: string, fullName: string, roles: string[]) => Promise<{ error: Error | null; userId?: string }>;
   signOut: () => Promise<void>;
+  /**
+   * Ask the auth server whether this tab's session still exists. Returns false
+   * (and shows the "session ended" dialog) when it was revoked elsewhere.
+   * Call it after an edge function answers 401.
+   */
+  verifySession: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +42,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const lastCheckRef = useRef(0);
+  const { t } = useTranslation();
+
+  // A session can be revoked server-side (same account signed out on another
+  // computer, password changed, account deleted) while this tab still holds a
+  // valid-looking access token for up to an hour. Ask the server.
+  const verifySession = useCallback(async (): Promise<boolean> => {
+    lastCheckRef.current = Date.now();
+    const { data: { session: current } } = await supabase.auth.getSession();
+    if (!current) return false;
+    const { error } = await supabase.auth.getUser();
+    if (isSessionGoneError(error)) {
+      setSessionExpired(true);
+      return false;
+    }
+    return true;
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    const check = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastCheckRef.current < SESSION_CHECK_THROTTLE_MS) return;
+      void verifySession();
+    };
+    const interval = window.setInterval(check, SESSION_CHECK_INTERVAL_MS);
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+    };
+  }, [session, verifySession]);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -176,7 +233,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setUser(null);
       localStorage.removeItem('guest_session');
-      await supabase.auth.signOut();
+      // 'local' = sign out of THIS browser only. The supabase-js default
+      // ('global') revoked every session of the account, so one person
+      // pressing "Chiqish" on a shared login broke the other open tabs
+      // (create-student 401 on 2026-10-29).
+      await supabase.auth.signOut({ scope: 'local' });
     } catch (err) {
       console.error('[AuthContext] Sign out error:', err);
     } finally {
@@ -195,9 +256,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUpGuest,
       signUpOwner, 
       createStaffAccount,
-      signOut 
+      signOut,
+      verifySession,
     }}>
       {children}
+      <AlertDialog open={sessionExpired}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('sessionExpired.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('sessionExpired.body')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={async () => {
+                await signOut();
+                setSessionExpired(false);
+                window.location.assign('/auth');
+              }}
+            >
+              {t('sessionExpired.button')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AuthContext.Provider>
   );
 }
