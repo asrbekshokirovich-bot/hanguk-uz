@@ -70,7 +70,8 @@ export async function claudeTranscribe(
     body: JSON.stringify({
       model,
       max_tokens: 12000,
-      temperature: 0,
+      // No temperature: claude-sonnet-5-5 rejects it ("`temperature` is deprecated
+      // for this model", 400, 2026-11-03).
       messages: [{
         role: "user",
         content: [

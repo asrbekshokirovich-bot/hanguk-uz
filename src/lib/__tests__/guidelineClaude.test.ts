@@ -41,6 +41,7 @@ describe('claudeTranscribe', () => {
     const r = await claudeTranscribe('https://x.supabase.co/storage/v1/object/sign/a.pdf?token=t', 1, 4, 'sk', 'claude-x', f);
     const body = JSON.parse(f.mock.calls[0][1].body);
     expect(body.model).toBe('claude-x');
+    expect(body).not.toHaveProperty('temperature');
     expect(body.messages[0].content[0]).toEqual({
       type: 'document', source: { type: 'url', url: 'https://x.supabase.co/storage/v1/object/sign/a.pdf?token=t' },
       cache_control: { type: 'ephemeral' },
