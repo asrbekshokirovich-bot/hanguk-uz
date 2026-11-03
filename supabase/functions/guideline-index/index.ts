@@ -2,7 +2,7 @@
 // guideline-index — turns the guideline PDFs in Storage into searchable,
 // page-numbered text for Hanguk AI (plan §5.2).
 //
-// Called by pg_cron every 10 minutes (guideline-index-10min) with the project
+// Called by pg_cron every minute, 3 calls at once ({"slot": 0..2}, guideline-index-10min), with the project
 // secret key in `apikey`, or by staff with the service-role key. Each run takes
 // ONE document from ai_guideline_index_next() — current season first. PDF
 // parsing is CPU-heavy: on 2026-11-02 the third PDF of one run hit the edge
@@ -26,7 +26,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as unpdf from "npm:unpdf@0.12.1";
 import { chunkPages } from "./chunk.ts";
 import { extractPages } from "./pdf.ts";
-import { claudeTranscribe, PAGES_PER_CALL, parseProgress, parseTranscript } from "./claude.ts";
+import {
+  claudeTranscribe, FILES_OVER, PAGES_PER_CALL, parseProgress, parseTranscript, uploadToFiles,
+} from "./claude.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -34,6 +36,7 @@ const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") || "";
 const DIMS = 1024;
 const MAX_BYTES = 40e6;
 const BACKFILL = 100;
+const SLOTS = 3;
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
 const OCR_MODEL = Deno.env.get("GUIDELINE_OCR_MODEL") || "claude-sonnet-5-5";
 
@@ -189,11 +192,11 @@ async function backfillEmbeddings(db: any): Promise<{ embedded: number; error: s
 }
 
 /** One Claude call: the next PAGES_PER_CALL pages of one PDF pdf.js could not read. */
-async function claudeRead(db: any): Promise<Record<string, unknown>> {
+async function claudeRead(db: any, slot: number): Promise<Record<string, unknown>> {
   if (!ANTHROPIC_KEY) return { status: "skipped", error: "ANTHROPIC_API_KEY is not configured" };
-  const { data: next, error } = await db.rpc("ai_guideline_claude_next");
+  const { data: next, error } = await db.rpc("ai_guideline_claude_next", { p_limit: slot + 1 });
   if (error) return { status: "failed", error: error.message };
-  const doc = next?.[0];
+  const doc = next?.[slot];
   if (!doc) return { status: "nothing to do" };
 
   const prog = parseProgress(doc.error);
@@ -204,14 +207,21 @@ async function claudeRead(db: any): Promise<Record<string, unknown>> {
       .eq("guideline_document_id", doc.id);
 
   try {
-    let url = prog.url;
-    if (!url) {
+    // ref: the signed URL, or the Files API id for a PDF over FILES_OVER.
+    let ref = prog.file ?? prog.url;
+    if (!ref) {
       const { data: signed, error: sErr } = await db.storage.from("guideline-blobs")
         .createSignedUrl(doc.storage_path, 7 * 24 * 3600);
       if (sErr || !signed?.signedUrl) throw new Error(`signed url: ${sErr?.message ?? "none"}`);
-      url = signed.signedUrl as string;
+      ref = signed.signedUrl as string;
+      const head = await fetch(ref, { method: "HEAD" });
+      const size = Number(head.headers.get("content-length") ?? 0);
+      if (size > FILES_OVER) {
+        const name = String(doc.storage_path).split("/").pop() || "guideline.pdf";
+        ref = await uploadToFiles(ref, name, ANTHROPIC_KEY);
+      }
     }
-    const { text, usage } = await claudeTranscribe(url, from, to, ANTHROPIC_KEY, OCR_MODEL);
+    const { text, usage } = await claudeTranscribe(ref, from, to, ANTHROPIC_KEY, OCR_MODEL);
     const parsed = parseTranscript(text);
     const total = parsed.total ?? prog.total;
     if (!total) throw new Error("no TOTAL_PAGES in the transcript");
@@ -253,7 +263,8 @@ async function claudeRead(db: any): Promise<Record<string, unknown>> {
         .eq("guideline_document_id", doc.id);
       await setError(`claude: done ${total}/${total}`, { status: "done", pages: total, chunks: count ?? null });
     } else {
-      await setError(`claude: ${last}/${total} url=${url}`, { pages: total });
+      const keep = ref.startsWith("file_") ? `file=${ref}` : `url=${ref}`;
+      await setError(`claude: ${last}/${total} ${keep}`, { pages: total });
     }
     return { id: doc.id, status: "ok", pages: `${from}-${last}/${total}`, chunks: chunks.length, chars, usage };
   } catch (e) {
@@ -269,23 +280,28 @@ Deno.serve(async (req) => {
 
   const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
   const body = await req.json().catch(() => ({}));
+  // Cron runs SLOTS calls at once (2026-11-03, "tezlashtir"): call k takes the
+  // k-th document of the queue, so parallel calls never read the same PDF.
+  const slot = Math.max(0, Math.min(SLOTS - 1, Math.floor(Number(body?.slot) || 0)));
   if (body?.mode === "claude") {
     const t0 = Date.now();
-    const r = await claudeRead(db);
+    const r = await claudeRead(db, slot);
     console.log(`[guideline-index] claude ${r.status} ${r.pages ?? ""} ${r.error ?? ""} in ${Date.now() - t0} ms`);
     return json(r);
   }
   const started = Date.now();
   const results: Record<string, unknown>[] = [];
 
-  const { data: next, error } = await db.rpc("ai_guideline_index_next", { p_limit: 1 });
+  const { data: next, error } = await db.rpc("ai_guideline_index_next", { p_limit: slot + 1 });
   if (error) return json({ error: error.message }, 500);
-  const doc = next?.[0];
+  const doc = next?.[slot];
   if (doc) results.push(await indexOne(db, doc));
 
-  // Skip the backfill when this run's own document just met the quota.
+  // Only slot 0 backfills, and not when this run's own document just met the quota.
   const quotaHit = results.some((r) => r.status === "done" && r.embedded === false);
-  const backfill = GEMINI_KEY && !quotaHit ? await backfillEmbeddings(db) : { embedded: 0, error: null };
+  const backfill = GEMINI_KEY && !quotaHit && slot === 0
+    ? await backfillEmbeddings(db)
+    : { embedded: 0, error: null };
 
   console.log(
     `[guideline-index] ${results.map((r) => `${r.status}`).join(",") || "nothing to do"}; ` +
