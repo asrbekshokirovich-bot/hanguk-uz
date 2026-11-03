@@ -9,7 +9,10 @@ export type StageKind =
   | "offline_sent"
   | "admission_accepted"
   | "final_university"
-  | "offer_reminder";
+  | "offer_reminder"
+  | "deadline_7"
+  | "deadline_3"
+  | "deadline_1";
 
 export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
 
@@ -105,7 +108,38 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     ko: (n) => ({ title: "답변을 기다리고 있습니다", body: `상담사가 추천한 대학: ${list(n, "ko")}. 앱에서 확인하고 답변해 주세요.` }),
     vi: (n) => ({ title: "Chúng tôi đang chờ bạn trả lời", body: `Tư vấn viên đã chọn ${list(n, "vi")} cho bạn. Hãy xem trong ứng dụng và trả lời.` }),
   },
+  // Onlayn ariza muddati (20261103150000_deadline_reminders.sql): 7, 3 va 1 kun
+  // oldin, talaba tanlagan va onlayn arizasi hali topshirilmagan universitetlar.
+  deadline_7: deadline(7),
+  deadline_3: deadline(3),
+  deadline_1: deadline(1),
 };
+
+function deadline(days: number): Record<Lang, Builder> {
+  const last = days === 1;
+  return {
+    uz: (n) => ({
+      title: last ? "Ertaga onlayn ariza muddati tugaydi ⏰" : `Onlayn arizaga ${days} kun qoldi ⏰`,
+      body: `${list(n, "uz")}: onlayn ariza topshirish muddati ${last ? "ertaga" : `${days} kundan keyin`} tugaydi. Hujjatlaringiz tayyorligini tekshiring, savol bo'lsa konsultantingizga yozing.`,
+    }),
+    ru: (n) => ({
+      title: last ? "Завтра заканчивается онлайн-подача ⏰" : `До конца онлайн-подачи ${days} ${days === 3 ? "дня" : "дней"} ⏰`,
+      body: `${list(n, "ru")}: онлайн-подача документов заканчивается ${last ? "завтра" : `через ${days} ${days === 3 ? "дня" : "дней"}`}. Проверьте, готовы ли документы; вопросы — консультанту.`,
+    }),
+    en: (n) => ({
+      title: last ? "Online application closes tomorrow ⏰" : `${days} days left to apply online ⏰`,
+      body: `${list(n, "en")}: the online application closes ${last ? "tomorrow" : `in ${days} days`}. Check that your documents are ready and ask your consultant if anything is unclear.`,
+    }),
+    ko: (n) => ({
+      title: last ? "온라인 지원 마감 하루 전 ⏰" : `온라인 지원 마감 ${days}일 전 ⏰`,
+      body: `${list(n, "ko")}: 온라인 지원이 ${last ? "내일" : `${days}일 후`} 마감됩니다. 서류가 준비되었는지 확인하고 궁금한 점은 상담사에게 문의하세요.`,
+    }),
+    vi: (n) => ({
+      title: last ? "Ngày mai hết hạn nộp hồ sơ trực tuyến ⏰" : `Còn ${days} ngày để nộp hồ sơ trực tuyến ⏰`,
+      body: `${list(n, "vi")}: hạn nộp hồ sơ trực tuyến kết thúc ${last ? "vào ngày mai" : `sau ${days} ngày`}. Hãy kiểm tra hồ sơ của bạn và hỏi tư vấn viên nếu cần.`,
+    }),
+  };
+}
 
 /**
  * The kind the app is told: a reminder opens the same screen as the offer
@@ -113,9 +147,11 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
  * — push_opened records it.
  */
 export function pushData(kind: StageKind): Record<string, string> {
-  return kind === "offer_reminder"
-    ? { type: "stage", kind: "university_offered", campaign: "offer_reminder" }
-    : { type: "stage", kind };
+  if (kind === "offer_reminder") return { type: "stage", kind: "university_offered", campaign: "offer_reminder" };
+  // The app opens its home screen for an unknown stage kind; the campaign
+  // tells push_opened which reminder it was.
+  if (kind.startsWith("deadline_")) return { type: "stage", kind: "deadline", campaign: kind };
+  return { type: "stage", kind };
 }
 
 export function normalizeLang(raw: string | null | undefined): Lang {
