@@ -86,6 +86,7 @@ async function teamLine(service: any): Promise<string> {
 }
 
 async function takeQuota(service: any, caller: Caller): Promise<boolean> {
+  if (caller.quotaExempt) return true;
   const { key, limit } = quotaFor(caller);
   const { data, error } = await service.rpc("ai_take_quota", { p_key: key, p_limit: limit });
   if (error) {

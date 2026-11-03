@@ -283,3 +283,14 @@ describe('toAnthropicRequest without temperature', () => {
     expect(out.model).toBe('claude-sonnet-5-5');
   });
 });
+
+describe('eval test accounts have no question limit', async () => {
+  const { isEvalAccount } = await import('../../../supabase/functions/hanguk-ai-chat/identity.ts');
+  it('matches only the two eval accounts', () => {
+    expect(isEvalAccount('ai-eval-staff@hanguk.local')).toBe(true);
+    expect(isEvalAccount('ai-eval-student@hanguk.local')).toBe(true);
+    expect(isEvalAccount('asrbek@hanguk.local')).toBe(false);
+    expect(isEvalAccount('ai-eval-staff@hanguk.local.evil.com')).toBe(false);
+    expect(isEvalAccount(null)).toBe(false);
+  });
+});

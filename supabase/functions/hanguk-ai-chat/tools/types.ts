@@ -17,6 +17,8 @@ export interface Caller {
   roles: string[];
   /** Guests: the app install id, or a hash of the IP. Used for limits only. */
   guestKey: string | null;
+  /** The two eval test accounts (ai-eval-staff/student@hanguk.local): no question limit. */
+  quotaExempt?: boolean;
 }
 
 /** A knowledge source the answer can cite (guideline, PDF page, web page). */

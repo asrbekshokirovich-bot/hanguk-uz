@@ -71,9 +71,16 @@ export async function resolveCaller(req: Request, body: any, deps: IdentityDeps)
       name: prof?.full_name || "",
       roles: staffRoles,
       guestKey: null,
+      quotaExempt: isEvalAccount(user.email),
     },
     client,
   };
+}
+
+/** The golden-question eval signs in as these test accounts (2026-11-03): a full
+ * run asks ~36 staff questions, so two runs in an hour hit the staff limit. */
+export function isEvalAccount(email: string | null | undefined): boolean {
+  return /^ai-eval-(staff|student)@hanguk\.local$/i.test(String(email ?? ""));
 }
 
 /** Limits per audience (plan §9). Env overrides: AI_LIMIT_STAFF_HOUR, AI_LIMIT_STUDENT_DAY, AI_LIMIT_GUEST_DAY. */
