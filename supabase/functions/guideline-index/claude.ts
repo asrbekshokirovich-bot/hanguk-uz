@@ -5,24 +5,28 @@
 // transcribes a few pages per call; the document block is prompt-cached, so the
 // following calls of the same PDF (every 3 minutes) read it from the cache.
 //
-// Progress lives in guideline_index_state.error as "claude: <done>/<total>"
-// (the status check allows no new status), "claude: done <n>/<n>" at the end,
-// and "claude failed (<k>): …" after a failure — three failures stop it.
+// Progress lives in guideline_index_state.error as "claude: <done>/<total>
+// url=<signed URL>" (the status check allows no new status), "claude: done
+// <n>/<n>" at the end, and "claude failed (<k>): …" after a failure — three
+// failures stop it. The signed URL (7 days) is kept so every call of one PDF
+// sends the same document block; a failure drops it and the next call signs anew.
 //
 // deno-lint-ignore-file no-explicit-any
 
 export const PAGES_PER_CALL = 4;
 
-/** "claude: 8/60" → { done: 8, total: 60 }; "claude failed (2): …" → failures. */
-export function parseProgress(error: string | null | undefined): { done: number; total: number | null; failures: number } {
+export interface Progress { done: number; total: number | null; failures: number; url: string | null }
+
+/** "claude: 8/60 url=…" → { done: 8, total: 60, url }; "claude failed (2): …" → failures. */
+export function parseProgress(error: string | null | undefined): Progress {
   const e = error ?? "";
-  const ok = e.match(/^claude: (\d+)\/(\d+)/);
-  if (ok) return { done: Number(ok[1]), total: Number(ok[2]), failures: 0 };
+  const ok = e.match(/^claude: (\d+)\/(\d+)(?: url=(\S+))?/);
+  if (ok) return { done: Number(ok[1]), total: Number(ok[2]), failures: 0, url: ok[3] ?? null };
   const bad = e.match(/^claude failed \((\d+)\)(?:.*?\[(\d+)\/(\d+)\])?/);
   if (bad) {
-    return { done: bad[2] ? Number(bad[2]) : 0, total: bad[3] ? Number(bad[3]) : null, failures: Number(bad[1]) };
+    return { done: bad[2] ? Number(bad[2]) : 0, total: bad[3] ? Number(bad[3]) : null, failures: Number(bad[1]), url: null };
   }
-  return { done: 0, total: null, failures: 0 };
+  return { done: 0, total: null, failures: 0, url: null };
 }
 
 export function transcribePrompt(from: number, to: number): string {
