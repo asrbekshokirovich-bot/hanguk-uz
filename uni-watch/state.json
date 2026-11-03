@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-02T23:33:07+00:00",
+ "last_run": "2026-11-03T06:51:03+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -325,6 +325,8 @@
    "1d5b1c60c2d394bd"
   ],
   "https://enter.dcu.ac.kr/": [
+   "76bf4a0ff8412ee6",
+   "851da6de5913ba7b",
    "6116718a00a5e056"
   ],
   "https://enter.duksung.ac.kr/sub/?m_type=JEOEGUK": [
@@ -423,6 +425,13 @@
    "5e92e18c31f346cf"
   ],
   "https://go.skuniv.ac.kr/": [
+   "03344830eba5161a",
+   "0a0185f96764013e",
+   "81f545be80043020",
+   "8c6023ded2a9a146",
+   "6e81c4da297abca9",
+   "ec0eb0b2616ac1dd",
+   "261d9fdb16fee747",
    "73ba7fdf55c2b8b5",
    "2b03f13ac879eae8",
    "2329755617f5b65b",
@@ -554,6 +563,8 @@
    "f816ace8755efd9e"
   ],
   "https://ilove.sunmoon.ac.kr/main.do": [
+   "e8e0aa6c10c4d24b",
+   "730fa88ba7b41158",
    "0e37a77635641c11",
    "c5f8929eb5a7cbd5"
   ],
@@ -1152,6 +1163,7 @@
   ],
   "https://www.cnsu.ac.kr/": [],
   "https://www.cnue.ac.kr/": [
+   "7203cb44d6313aff",
    "ec981e2bf7308e95",
    "fe194b4ef583e607"
   ],
