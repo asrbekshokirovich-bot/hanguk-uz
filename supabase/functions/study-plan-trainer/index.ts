@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -497,7 +498,7 @@ ${studentContext}`;
       );
     }
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const aiResponse = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${geminiApiKey}`,

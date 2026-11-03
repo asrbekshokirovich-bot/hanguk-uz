@@ -32,6 +32,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseTermsReply, queryKey } from "./search.ts";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -107,7 +108,7 @@ async function readTerms(query: string): Promise<string[] | null> {
   if (!GEMINI_API_KEY) return null;
   for (const model of MODELS) {
     try {
-      const res = await fetch(
+      const res = await geminiFetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: "POST",

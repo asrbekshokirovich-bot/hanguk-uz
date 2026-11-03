@@ -11,6 +11,7 @@
 // deno-lint-ignore-file no-explicit-any
 // @ts-ignore: esm.sh types
 import JSZip from "https://esm.sh/jszip@3.10.1";
+import { geminiFetch } from "./claude-fallback.ts";
 
 // Native Gemini endpoint (NOT the OpenAI-compat one): the OpenAI-compat
 // image_url path rasterises a PDF to a single image (first page only), which
@@ -470,7 +471,7 @@ First block must be "title". Use "field" for label/value pairs, "table" for grid
     { text: "Translate the MAIN document (the first file) into English — EVERY page, including all transcript/supplement pages, not just the first. Extract names from the supporting identity documents. Return the JSON object." },
   ];
 
-  const aiResponse = await fetch(`${GEMINI_AI_URL}?key=${geminiApiKey}`, {
+  const aiResponse = await geminiFetch(`${GEMINI_AI_URL}?key=${geminiApiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

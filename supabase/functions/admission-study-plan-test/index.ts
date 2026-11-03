@@ -13,6 +13,7 @@
 //   language    20 — clarity, grammar and register of the writing
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -101,7 +102,7 @@ Empty, off-topic or copied-template answers score near 0 on their items. Do not 
 Write strengths, improvements and summary in ${LANGS[language] ?? LANGS.uz}; 2-3 short items each, summary one sentence.
 Reply with JSON only: {"motivation":n,"plan":n,"career":n,"language":n,"strengths":[...],"improvements":[...],"summary":"..."}`;
       const user_ = `1) Why this university and this major?\n${texts[0]}\n\n2) What and how will you study in Korea?\n${texts[1]}\n\n3) What will you do after graduating?\n${texts[2]}`;
-      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+      const res = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({

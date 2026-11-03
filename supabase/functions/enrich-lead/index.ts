@@ -5,6 +5,7 @@
 // staff-entered values). Internal-only (service-role bearer).
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,7 +80,7 @@ Deno.serve(async (req) => {
 
     const prompt = "You are analysing a sales lead for a Korean university admissions agency in Uzbekistan. Based ONLY on the information below (profile, notes, chats, call summaries — mostly Uzbek), extract what you can. Leave a field empty if it is not mentioned. Use YYYY-MM-DD for dates. Also write a 2-3 sentence summary.\n\n" + ctx;
 
-    const res = await fetch(`${GEMINI_BASE}/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+    const res = await geminiFetch(`${GEMINI_BASE}/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1, responseMimeType: "application/json", responseSchema: SCHEMA } }),
     });

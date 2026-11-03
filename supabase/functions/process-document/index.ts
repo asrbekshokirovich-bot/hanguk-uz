@@ -4,6 +4,7 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { regionFromIssuingAuthority } from "../_shared/regions.ts";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
     const mimeType = doc.file_type || "application/pdf";
     const prompt = "You are extracting data from a document for a Korean university admissions agency in Uzbekistan. The file may be a scan or photo, in Uzbek, Russian, Korean or English. Read ALL text carefully. Identify doc_type, the language, the full_text (everything readable), and fields (important values such as full name, passport/ID number, date of birth, issue/expiry dates, institution, degree, GPA, amounts). For passports/ID cards also return birth_date as a strict ISO date (YYYY-MM-DD) and issuing_authority (the 'given by' / 'berilgan' / 'выдан' authority that issued the document). If it is only a photo with no text, set full_text to a short description.";
 
-    const res = await fetch(`${GEMINI_BASE}/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+    const res = await geminiFetch(`${GEMINI_BASE}/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }, { inlineData: { mimeType, data: bytesToBase64(bytes) } }] }],

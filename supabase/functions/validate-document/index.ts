@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { geminiFetch } from "../_shared/claude-fallback.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,7 +143,7 @@ IMPORTANT QUALITY CRITERIA:
 
 Respond in ${language === 'ru' ? 'Russian' : language === 'en' ? 'English' : 'Uzbek'} language.`;
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const response = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${GEMINI_API_KEY}`,
