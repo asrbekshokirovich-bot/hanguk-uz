@@ -3,7 +3,7 @@
 //
 //   SUPABASE_URL=https://lysjdtyanhdfphqyijsr.supabase.co \
 //   SUPABASE_DB_URL=postgres://...        # read-only use: expected values, or
-//   SUPABASE_ACCESS_TOKEN=sbp_...         # Management API read-only query (no DB password needed)
+//   SUPABASE_ACCESS_TOKEN=sbp_...         # Management API query in a READ ONLY transaction (no DB password needed)
 //   EVAL_STAFF_JWT=...  EVAL_STUDENT_JWT=...   # access tokens of test accounts
 //   node scripts/ai-eval.mjs [--only uni-] [--out eval-report.json]
 //
@@ -86,16 +86,18 @@ async function ask(q) {
   return { status: res.status, text, steps };
 }
 
-// Expected values: the Management API read-only query when an access token is
+// Expected values: the Management API query in a READ ONLY transaction when an access token is
 // given (2026-11-03: GitHub runners cannot reach the IPv6-only direct DB host and
 // nobody had the DB password), otherwise a read-only pg connection.
 let db = null;
 async function runSql(sql) {
   if (SUPABASE_ACCESS_TOKEN) {
-    const res = await fetch(`https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query/read-only`, {
+    const res = await fetch(`https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: `set search_path = public, extensions; ${sql}` }),
+      // The read-only endpoint's role may not run our security-definer RPCs
+      // (ai_default_intake: 42501), so: the normal endpoint inside a READ ONLY transaction.
+      body: JSON.stringify({ query: `set transaction read only; set local search_path = public, extensions; ${sql}` }),
     });
     const text = await res.text();
     if (!res.ok) throw new Error(`query ${res.status}: ${text.slice(0, 300)}`);
