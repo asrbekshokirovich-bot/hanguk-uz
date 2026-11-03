@@ -3391,6 +3391,7 @@
     "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board."
   },
   "appLeads": {
+    "forbidden": "This section is open only to the operators it was granted to.",
     "nav": "App leads",
     "title": "App leads",
     "lede": "People who came from the student app: those waiting for an answer first, the longest wait on top. Open a card to see what they did in the app, which universities they liked, what is still open for them, and a ready first message.",

@@ -9,9 +9,39 @@
 -- operator_app_leads(days) — ilovaga bog'langan lidlar navbati: kim yozgan va
 --   javob kutyapti, qancha kutgan, issiq/iliq/ma'lumot yig'yapti.
 --
--- Faqat o'qish. Ruxsat — analytics_person bilan bir xil
--- (app_events_staff_can_read: owner, admin, call_operator, document_handler),
+-- Faqat o'qish. Ruxsat — app_leads_access ro'yxatidagilar (can_see_app_leads),
 -- har o'qish analytics_access_log'ga yoziladi.
+
+-- Kim ko'radi: faqat ro'yxatdagilar (Asrbek, 2026-11-03: «faqat operator
+-- Madinaga ko'rinsin»). Boshqa xodimga ochish — shu jadvalga qator qo'shish.
+create table if not exists public.app_leads_access (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  granted_at timestamptz not null default now()
+);
+alter table public.app_leads_access enable row level security;
+create policy app_leads_access_read on public.app_leads_access
+  for select to authenticated
+  using (user_id = (select auth.uid()) or public.has_role((select auth.uid()), 'owner'::public.app_role));
+
+create or replace function public.can_see_app_leads()
+returns boolean
+language sql
+stable
+security definer
+set search_path to 'pg_catalog', 'public'
+as $$
+  select auth.uid() is not null
+     and not public.is_investor()
+     and exists (select 1 from public.app_leads_access a where a.user_id = auth.uid());
+$$;
+
+revoke all on function public.can_see_app_leads() from public, anon;
+grant execute on function public.can_see_app_leads() to authenticated;
+
+-- Madina (call_operator).
+insert into public.app_leads_access (user_id)
+values ('42d0c8db-17d0-4824-9ad5-7b01e4829ad2')
+on conflict (user_id) do nothing;
 
 -- Bitta universitetning hozirgi qabuli: eng yaqin onlayn topshirish muddati
 -- (bugundan keyin) yoki, hammasi o'tgan bo'lsa, oxirgi yopilgan sana.
@@ -61,7 +91,7 @@ declare
   v_ielts   numeric;
   v_topik   numeric;
 begin
-  if not public.app_events_staff_can_read() then
+  if not public.can_see_app_leads() then
     raise exception 'forbidden' using errcode = '42501';
   end if;
   select * into v_lead from public.leads where id = p_lead_id;
@@ -293,7 +323,7 @@ security definer
 set search_path to 'pg_catalog', 'public'
 as $$
 begin
-  if not public.app_events_staff_can_read() then
+  if not public.can_see_app_leads() then
     raise exception 'forbidden' using errcode = '42501';
   end if;
   return query

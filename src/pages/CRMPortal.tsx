@@ -38,6 +38,7 @@ const FinanceOverviewContent = lazy(() => import('@/components/finance/FinanceOv
 import { StudentFinanceList as FinanceStudentsContent } from '@/components/finance/StudentFinanceList';
 import { TransactionList as TransactionsContent } from '@/components/finance/TransactionList';
 import { FinanceReports as FinanceReportsContent } from '@/components/finance/FinanceReports';
+import { useCanSeeAppLeads } from '@/components/crm/appLeads/brief';
 
 // Lazy load components that don't need external props
 const BudgetsContent = lazy(() => import('@/components/finance/BudgetOverviewPanel').then(m => ({ default: m.BudgetOverviewPanel })));
@@ -154,6 +155,7 @@ export default function CRMPortal() {
   }, [studentParam, students, location.pathname, searchParams, setSearchParams]);
 
   // Sidebar groups (role-filtered) power the ⌘K command menu in the header.
+  const canSeeAppLeads = useCanSeeAppLeads();
   const sidebarGroups = useSidebarGroups(
     canSeeFinance,
     isAdmin,
@@ -161,6 +163,7 @@ export default function CRMPortal() {
     isDocumentHandler,
     t,
     currentLang,
+    canSeeAppLeads,
   );
 
   // Determine current view from URL

@@ -3451,6 +3451,7 @@
     "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil."
   },
   "appLeads": {
+    "forbidden": "Bu bo'lim faqat ruxsat berilgan operatorga ko'rinadi.",
     "nav": "Ilova lidlari",
     "title": "Ilova lidlari",
     "lede": "Ilovadan kelgan mijozlar: javob kutayotganlar birinchi, eng uzoq kutgan tepada. Kartani oching — u ilovada nima qilgani, qaysi universitetlarni yoqtirgani, unga hali ochiq qabullar va tayyor birinchi xabar.",

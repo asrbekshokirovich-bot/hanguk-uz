@@ -333,3 +333,26 @@ export const ROUTE_KEY: Record<string, string> = {
   master: "appLeads.route.master",
   languageCourse: "appLeads.route.language",
 };
+
+/**
+ * Who sees «Ilova lidlari» and the chat block: the people on app_leads_access
+ * (Asrbek, 2026-11-03: only the operator Madina).
+ */
+export function useCanSeeAppLeads(): boolean {
+  const [can, setCan] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void db
+      .rpc("can_see_app_leads")
+      .then(({ data, error }) => {
+        if (alive) setCan(!error && data === true);
+      })
+      .catch(() => {
+        if (alive) setCan(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return can;
+}

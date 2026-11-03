@@ -54,6 +54,7 @@ import {
 import { Logo } from '@/components/Logo';
 import { useMessages } from '@/hooks/useMessages';
 import { countWaiting } from '@/components/crm/messages/inboxCounts';
+import { useCanSeeAppLeads } from '@/components/crm/appLeads/brief';
 
 export interface SidebarGroup {
   id: string;
@@ -90,6 +91,7 @@ function buildGroups(
   t: (key: string) => string,
   lang: string,
   inboxWaiting = 0,
+  canSeeAppLeads = false,
 ): SidebarGroup[] {
   return [
     {
@@ -124,7 +126,7 @@ function buildGroups(
         { title: t('navigation.newLeads'), url: '/crm/new-leads', icon: BellRing, visible: true, highlight: true },
         { title: t('navigation.todayLeads'), url: '/crm/today-leads', icon: CalendarCheck, visible: true, highlight: true },
         { title: 'Bugun ilovada', url: '/crm/today-in-app', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler, highlight: true },
-        { title: t('appLeads.nav'), url: '/crm/app-leads', icon: Smartphone, visible: isAdmin || isCallOperator || isDocumentHandler, highlight: true },
+        { title: t('appLeads.nav'), url: '/crm/app-leads', icon: Smartphone, visible: canSeeAppLeads, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
         { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
       ],
@@ -194,6 +196,7 @@ export function CRMSidebar({
   // Conversations waiting for a reply — the same number as the "Kutmoqda"
   // tab, live over realtime (MessagesProvider wraps the whole CRM shell).
   const { threads } = useMessages();
+  const canSeeAppLeads = useCanSeeAppLeads();
   const inboxWaiting = countWaiting(threads);
 
   const groups = buildGroups(
@@ -204,6 +207,7 @@ export function CRMSidebar({
     t,
     lang,
     inboxWaiting,
+    canSeeAppLeads,
   );
 
   // Whether an item's URL matches the current route (most-specific match wins
@@ -352,6 +356,7 @@ export function useSidebarGroups(
   isDocumentHandler: boolean,
   t: (key: string) => string,
   lang: string,
+  canSeeAppLeads = false,
 ): SidebarGroup[] {
   return buildGroups(
     canSeeFinance,
@@ -360,5 +365,7 @@ export function useSidebarGroups(
     isDocumentHandler,
     t,
     lang,
+    0,
+    canSeeAppLeads,
   );
 }
