@@ -58,7 +58,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.translate-parsed-output]
-verify_jwt = true
+verify_jwt = false
 
 [functions.sync-to-command-center]
 verify_jwt = false
@@ -109,7 +109,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.interview-feedback]
-verify_jwt = false
+verify_jwt = true
 
 [functions.elevenlabs-scribe-token]
 verify_jwt = false
@@ -251,4 +251,12 @@ verify_jwt = false
 # Kameralar (2026-11-03): CRM xodimiga 5 daqiqalik kamera kaliti beradi.
 # Ruxsat funksiya ichida (has_camera_access), JWT shlyuzda ham tekshiriladi.
 [functions.camera-session]
+verify_jwt = true
+
+# suggest-lead-profile: live verify_jwt=false (2026-11-03), kept as is.
+[functions.suggest-lead-profile]
+verify_jwt = false
+
+# admission-study-plan-test: live verify_jwt=true (2026-11-03).
+[functions.admission-study-plan-test]
 verify_jwt = true

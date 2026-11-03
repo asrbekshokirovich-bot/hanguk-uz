@@ -141,6 +141,14 @@ jobs:
           # verify_jwt = false comes from config.toml (Telegram secret header).
           # tv-board (2026-11-03) is new in Hanguk (old one lived in Orbit); verify_jwt = false, key in ?k=.
           # camera-session (2026-11-03) is new: CRM camera key; verify_jwt = true (config.toml).
+          # 2026-11-03 (Gemini→Claude fallback): the functions that call Gemini through
+          # _shared/claude-fallback.ts but were not deployed from here are added below.
+          # Live vs repo was compared on 2026-11-02: same code apart from the fallback
+          # (enrich-lead's live copy was older — deployed from main on 2026-11-03;
+          # process-call-recording differed only in a comment). verify_jwt in config.toml
+          # was set to the live value for each (interview-feedback true,
+          # translate-parsed-output false, suggest-lead-profile false,
+          # admission-study-plan-test true).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -176,6 +184,17 @@ jobs:
             staff-bot
             tv-board
             camera-session
+            admission-study-plan-test
+            analyze-lead
+            infer-student-track
+            interview-feedback
+            leads-intelligence
+            process-call-recording
+            process-document
+            suggest-lead-fields
+            suggest-lead-profile
+            translate-parsed-output
+            enrich-lead
           "
 
           for fn in $FUNCTIONS; do
