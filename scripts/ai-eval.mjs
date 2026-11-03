@@ -60,6 +60,9 @@ export function normalize(text) {
     .toLowerCase();
 }
 
+// Guests are limited per install_id (AI_LIMIT_GUEST_DAY, 10/day). A fixed id made
+// the eval hit that limit mid-run (trap-10 on 2026-11-03), so every question is a
+// fresh install, as a new phone would be.
 async function ask(q) {
   const token = q.audience === 'staff' ? EVAL_STAFF_JWT : q.audience === 'student' ? EVAL_STUDENT_JWT : '';
   const res = await fetch(`${SUPABASE_URL}/functions/v1/hanguk-ai-chat`, {
@@ -69,7 +72,7 @@ async function ask(q) {
       ...(SUPABASE_PUBLISHABLE_KEY ? { apikey: SUPABASE_PUBLISHABLE_KEY } : {}),
       Authorization: `Bearer ${token || ''}`,
     },
-    body: JSON.stringify({ message: q.question, language: q.lang ?? 'uz', install_id: '00000000-0000-4000-8000-00000000e7a1' }),
+    body: JSON.stringify({ message: q.question, language: q.lang ?? 'uz', install_id: crypto.randomUUID() }),
   });
   const raw = await res.text();
   let text = '';
