@@ -14,6 +14,7 @@
 //
 // deno-lint-ignore-file no-explicit-any
 import { embedContent001 } from "../../_shared/gemini.ts";
+import { voyageEmbed, voyageKey } from "../../_shared/voyage.ts";
 import type { AgentTool, Source } from "./types.ts";
 
 /** Words that only add noise to a keyword OR query (kept in sync with the SQL function). */
@@ -62,7 +63,9 @@ export const GUIDELINE_TEXT_TOOL: AgentTool = {
     const query = String(a?.query ?? "").slice(0, 500);
     let embedding: number[] | null = null;
     try {
-      embedding = await embedContent001(`${query} ${a?.query_ko ?? ""}`.trim(), "RETRIEVAL_QUERY", 1024);
+      const q = `${query} ${a?.query_ko ?? ""}`.trim();
+      // Same provider as the index (guideline-index): Voyage when its key is set.
+      embedding = voyageKey() ? (await voyageEmbed([q], "query"))[0] : await embedContent001(q, "RETRIEVAL_QUERY", 1024);
     } catch (e) {
       console.error("[hanguk-ai] guideline embedding failed:", e instanceof Error ? e.message : e);
     }
