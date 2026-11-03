@@ -53,3 +53,10 @@ describe('University tools', () => {
     expect(guestSystem({ language: 'vi', today: 'x' })).toContain('tiếng Việt');
   });
 });
+
+describe('uni_deadlines lists every university', async () => {
+  const U = await import('../../../supabase/functions/hanguk-ai-chat/tools/university');
+  it('tells the model to list all universities', () => {
+    expect(U.UNIVERSITY_RULES).toContain('list ALL names');
+  });
+});

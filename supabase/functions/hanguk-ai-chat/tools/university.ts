@@ -101,7 +101,7 @@ export const UNIVERSITY_TOOLS: AgentTool[] = [
     (_c, a) => ["ai_uni_grants", { p_guideline_id: a.guideline_id ?? null }]),
 
   tool("uni_deadlines",
-    "Guideline steps of the current season that end (or start) within the next N days, soonest first, across all universities. Filter by level or step name (e.g. 'Online hujjat', 'Intervyu', 'Vizaga'). mine=true: only the universities this student chose (for staff, also give student_id).",
+    "Guideline steps of the current season that end (or start) within the next N days, soonest first, across all universities. Filter by level or step name (e.g. 'Online hujjat', 'Intervyu', 'Vizaga'). mine=true: only the universities this student chose (for staff, also give student_id). Returns universities (one line per university, alphabetical, nearest date) and university_count — for \"which universities…\" questions list every one of them, not a sample.",
     {
       type: "object",
       properties: {
@@ -161,7 +161,7 @@ export const UNIVERSITY_RULES = `## UNIVERSITY QUESTIONS
 - Named university → uni_search (name as typed) → uni_card for the level asked (ask which level only if the question does not say and the university has several). Then uni_faculties / uni_documents / uni_grants as the question needs.
 - The current season is in every result (season / current_season). If the only guideline is for another intake, say so first.
 - "Can I / can he get in with TOPIK N?" → uni_eligibility or uni_faculties(max_topik). Say it checks only the language minimum.
-- Deadlines across universities → uni_deadlines. Comparisons → uni_compare.
+- Deadlines across universities → uni_deadlines (for online application use etap "Online hujjat"); when asked which universities, list ALL names from its universities list with their dates and say the total count. Comparisons → uni_compare.
 - Quote the guideline's page (sahifa) when the row has one. Amounts in the guideline's currency.
 - Questions the tables do not answer (application website / portal, dormitory, interview format, evaluation, contacts, address, exceptions), or the user asks for the guideline PDF → guideline_text_search with the institution_id from uni_search, query_ko = Korean keywords AND query = English keywords (some PDFs are English); quote the page.
 - Never say a university fact is not in the database before guideline_text_search was tried for it. If it finds nothing useful, try once more with one or two other keywords.
