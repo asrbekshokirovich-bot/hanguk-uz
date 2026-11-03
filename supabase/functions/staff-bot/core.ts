@@ -101,6 +101,43 @@ export function renderTaskList(g: GroupedTasks): string {
   return parts.join("\n");
 }
 
+export interface MorningBrief {
+  new_leads: number;
+  my_new_leads: number;
+  my_overdue_tasks: number;
+  docs_waiting: number;
+  deadlines: { university: string; date: string; days_left: number; students: number }[];
+}
+
+/** "2026-11-11" → "11.11". */
+function ddmm(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? `${m[3]}.${m[2]}` : iso;
+}
+
+/**
+ * Ertalabki brifing (bot_morning_brief, 20261103160000): yangi lidlar,
+ * kechikkan vazifalar, 7 kunlik onlayn ariza muddatlari, kutayotgan
+ * hujjatlar. Faqat RPC bergan sonlar; nol bo'lgan qatorlar ko'rsatilmaydi.
+ */
+export function renderBrief(b: MorningBrief): string {
+  const lines: string[] = ["📊 <b>Bugungi brifing</b>"];
+  if (b.new_leads > 0) {
+    lines.push(`• Yangi lidlar (24 soat): <b>${b.new_leads}</b>${b.my_new_leads > 0 ? `, sizga: <b>${b.my_new_leads}</b>` : ""}`);
+  }
+  if (b.my_overdue_tasks > 0) lines.push(`• Muddati o'tgan vazifalaringiz: <b>${b.my_overdue_tasks}</b>`);
+  if (b.docs_waiting > 0) lines.push(`• Tekshiruvni kutayotgan hujjatlar: <b>${b.docs_waiting}</b>`);
+  if (b.deadlines.length) {
+    lines.push("", "⏰ <b>7 kun ichida onlayn ariza muddati</b>");
+    for (const d of b.deadlines) {
+      const when = d.days_left === 0 ? "bugun" : d.days_left === 1 ? "ertaga" : `${d.days_left} kun`;
+      lines.push(`• ${escapeHtml(d.university)} — ${ddmm(d.date)} (${when}), talabalar: ${d.students}`);
+    }
+  }
+  if (lines.length === 1) lines.push("Hammasi joyida: yangi lid, kechikkan vazifa va yaqin muddat yo'q.");
+  return lines.join("\n");
+}
+
 /** Telegram bir xabarda 4096 belgi qabul qiladi; satr chegarasida bo'lamiz. */
 export function splitMessage(text: string, limit = 3800): string[] {
   if (text.length <= limit) return [text];
