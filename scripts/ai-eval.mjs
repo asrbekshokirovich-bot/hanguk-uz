@@ -2,7 +2,8 @@
 // Hanguk AI golden-question eval (plan §10.2).
 //
 //   SUPABASE_URL=https://lysjdtyanhdfphqyijsr.supabase.co \
-//   SUPABASE_DB_URL=postgres://...        # read-only use: expected values
+//   SUPABASE_DB_URL=postgres://...        # read-only use: expected values, or
+//   SUPABASE_ACCESS_TOKEN=sbp_...         # Management API read-only query (no DB password needed)
 //   EVAL_STAFF_JWT=...  EVAL_STUDENT_JWT=...   # access tokens of test accounts
 //   node scripts/ai-eval.mjs [--only uni-] [--out eval-report.json]
 //
@@ -12,17 +13,17 @@
 // any forbidden value (a leak) appears.
 import fs from 'node:fs';
 import path from 'node:path';
-import pg from 'pg';
 
 const args = process.argv.slice(2);
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
 const outFile = args.includes('--out') ? args[args.indexOf('--out') + 1] : null;
 
-const { SUPABASE_URL, SUPABASE_DB_URL, SUPABASE_PUBLISHABLE_KEY } = process.env;
-if (!SUPABASE_URL || !SUPABASE_DB_URL) {
-  console.error('SUPABASE_URL and SUPABASE_DB_URL are required');
+const { SUPABASE_URL, SUPABASE_DB_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_ACCESS_TOKEN } = process.env;
+if (!SUPABASE_URL || (!SUPABASE_DB_URL && !SUPABASE_ACCESS_TOKEN)) {
+  console.error('SUPABASE_URL and SUPABASE_DB_URL or SUPABASE_ACCESS_TOKEN are required');
   process.exit(2);
 }
+const PROJECT_REF = new URL(SUPABASE_URL).hostname.split('.')[0];
 
 // Access tokens expire within the hour, so CI signs in with test accounts
 // (EVAL_STAFF_EMAIL / EVAL_STAFF_PASSWORD, same for STUDENT) when no JWT is given.
@@ -85,9 +86,32 @@ async function ask(q) {
   return { status: res.status, text, steps };
 }
 
-const db = new pg.Client({ connectionString: SUPABASE_DB_URL });
-await db.connect();
-await db.query('set default_transaction_read_only = on');
+// Expected values: the Management API read-only query when an access token is
+// given (2026-11-03: GitHub runners cannot reach the IPv6-only direct DB host and
+// nobody had the DB password), otherwise a read-only pg connection.
+let db = null;
+async function runSql(sql) {
+  if (SUPABASE_ACCESS_TOKEN) {
+    const res = await fetch(`https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query/read-only`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${SUPABASE_ACCESS_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `set search_path = public, extensions; ${sql}` }),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`query ${res.status}: ${text.slice(0, 300)}`);
+    let rows = JSON.parse(text);
+    if (rows && !Array.isArray(rows)) rows = rows.result ?? rows.rows ?? [];
+    if (Array.isArray(rows[0])) rows = rows[rows.length - 1];
+    return rows ?? [];
+  }
+  if (!db) {
+    const pg = (await import('pg')).default;
+    db = new pg.Client({ connectionString: SUPABASE_DB_URL });
+    await db.connect();
+    await db.query('set default_transaction_read_only = on');
+  }
+  return (await db.query(sql)).rows;
+}
 
 const values = async (sql) => {
   if (!sql) return [];
@@ -95,8 +119,14 @@ const values = async (sql) => {
     if (!studentId) return null;
     sql = sql.replaceAll(':student', `'${studentId}'::uuid`);
   }
-  const r = await db.query(sql);
-  return r.rows.map((row) => String(row.v)).filter((v) => v && v !== 'null');
+  let rows;
+  try {
+    rows = await runSql(sql);
+  } catch (e) {
+    console.error(`expected-value SQL failed: ${e instanceof Error ? e.message : e}`);
+    return ['(expected-value SQL failed)']; // the question fails instead of passing unchecked
+  }
+  return rows.map((row) => String(row.v)).filter((v) => v && v !== 'null');
 };
 
 const report = [];
@@ -117,7 +147,7 @@ for (const q of questions) {
   report.push({ id: q.id, audience: q.audience, pass, ms, steps: answer.steps, missing, leaks, refusalOk, answer: answer.text.slice(0, 600) });
   console.log(`${pass ? 'PASS' : 'FAIL'} ${q.id} (${ms} ms) ${answer.steps.join('→')}${missing.length ? ` missing=${missing.join('|')}` : ''}${leaks.length ? ` LEAK=${leaks.join('|')}` : ''}${refusalOk ? '' : ' no-refusal'}`);
 }
-await db.end();
+if (db) await db.end();
 
 const passed = report.filter((r) => r.pass).length;
 const leaks = report.filter((r) => r.leaks.length).length;
