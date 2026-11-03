@@ -25,6 +25,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as unpdf from "npm:unpdf@0.12.1";
 import { chunkPages } from "./chunk.ts";
+import { VOYAGE_MODEL, voyageEmbed, voyageKey } from "../_shared/voyage.ts";
 import { extractPages } from "./pdf.ts";
 import {
   claudeTranscribe, FILES_OVER, PAGES_PER_CALL, parseProgress, parseTranscript, uploadToFiles,
@@ -33,9 +34,14 @@ import {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") || "";
+// Voyage when its key is set (2026-11-03), otherwise Gemini; EMBED_ON = some provider.
+const VOYAGE_KEY = voyageKey();
+const EMBED_MODEL = VOYAGE_KEY ? VOYAGE_MODEL : "gemini-embedding-001";
+const EMBED_ON = !!(VOYAGE_KEY || GEMINI_KEY);
+// Chunks embedded per run: Voyage takes 128 texts per call and has no 429 trouble.
+const BACKFILL = VOYAGE_KEY ? 300 : 100;
 const DIMS = 1024;
 const MAX_BYTES = 40e6;
-const BACKFILL = 100;
 const SLOTS = 3;
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
 const OCR_MODEL = Deno.env.get("GUIDELINE_OCR_MODEL") || "claude-sonnet-5-5";
@@ -66,6 +72,7 @@ function l2(v: number[]): number[] {
 }
 
 async function embedBatch(texts: string[]): Promise<number[][]> {
+  if (VOYAGE_KEY) return (await voyageEmbed(texts, "document", VOYAGE_KEY)).map(l2);
   const out: number[][] = [];
   for (let i = 0; i < texts.length; i += 100) {
     const part = texts.slice(i, i + 100);
@@ -126,8 +133,8 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
     }
 
     let vectors: number[][] | null = null;
-    let embedError: string | null = GEMINI_KEY ? null : "GEMINI_API_KEY is not configured";
-    if (GEMINI_KEY) {
+    let embedError: string | null = EMBED_ON ? null : "no embedding key (VOYAGE_API_KEY / GEMINI_API_KEY)";
+    if (EMBED_ON) {
       try {
         vectors = await embedBatch(chunks.map((c) => c.text));
       } catch (e) {
@@ -145,7 +152,7 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
         chunk_index: c.index,
         chunk_meta: {
           page: c.page, academic_year: doc.academic_year, semester: doc.semester,
-          embedded: !!vectors, model: vectors ? "gemini-embedding-001" : null, dims: vectors ? DIMS : null,
+          embedded: !!vectors, model: vectors ? EMBED_MODEL : null, dims: vectors ? DIMS : null,
         },
       }));
       const { error: insErr } = await db.from("embedding_chunks").insert(rows);
@@ -161,12 +168,14 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
   }
 }
 
-/** Adds vectors to chunks saved without one (Gemini quota was out then). */
+/** Adds vectors to chunks saved without one (Gemini quota was out then), and with
+ * Voyage on, replaces the Gemini ones. */
 async function backfillEmbeddings(db: any): Promise<{ embedded: number; error: string | null }> {
   const { data: rows, error } = await db
     .from("embedding_chunks")
     .select("id, guideline_document_id, institution_id, chunk_text_ko, page, chunk_index, chunk_meta")
-    .is("embedding", null)
+    // With Voyage, Gemini vectors are re-embedded too: one vector space per column.
+    .or(VOYAGE_KEY ? `embedding.is.null,chunk_meta->>model.neq.${VOYAGE_MODEL}` : "embedding.is.null")
     .not("guideline_document_id", "is", null)
     .order("created_at", { ascending: true })
     .limit(BACKFILL);
@@ -183,7 +192,7 @@ async function backfillEmbeddings(db: any): Promise<{ embedded: number; error: s
     rows.map((r: any, i: number) => ({
       ...r,
       embedding: JSON.stringify(vectors[i]),
-      chunk_meta: { ...(r.chunk_meta ?? {}), embedded: true, model: "gemini-embedding-001", dims: DIMS },
+      chunk_meta: { ...(r.chunk_meta ?? {}), embedded: true, model: EMBED_MODEL, dims: DIMS },
     })),
     { onConflict: "id" },
   );
@@ -237,7 +246,7 @@ async function claudeRead(db: any, slot: number): Promise<Record<string, unknown
     const chunks = chunkPages(texts).map((c) => ({ ...c, page: c.page + from - 1, index: c.index + base }));
 
     let vectors: number[][] | null = null;
-    if (GEMINI_KEY && chunks.length) {
+    if (EMBED_ON && chunks.length) {
       try { vectors = await embedBatch(chunks.map((c) => c.text)); } catch { vectors = null; }
     }
     if (chunks.length) {
@@ -250,7 +259,7 @@ async function claudeRead(db: any, slot: number): Promise<Record<string, unknown
         chunk_index: c.index,
         chunk_meta: {
           page: c.page, academic_year: doc.academic_year, semester: doc.semester, reader: "claude", ocr_model: OCR_MODEL,
-          embedded: !!vectors, model: vectors ? "gemini-embedding-001" : null, dims: vectors ? DIMS : null,
+          embedded: !!vectors, model: vectors ? EMBED_MODEL : null, dims: vectors ? DIMS : null,
         },
       }));
       const { error: insErr } = await db.from("embedding_chunks").insert(rows);
@@ -299,7 +308,7 @@ Deno.serve(async (req) => {
 
   // Only slot 0 backfills, and not when this run's own document just met the quota.
   const quotaHit = results.some((r) => r.status === "done" && r.embedded === false);
-  const backfill = GEMINI_KEY && !quotaHit && slot === 0
+  const backfill = EMBED_ON && !quotaHit && slot === 0
     ? await backfillEmbeddings(db)
     : { embedded: 0, error: null };
 
