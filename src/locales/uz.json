@@ -3449,5 +3449,155 @@
     "result": "Natija",
     "noUniversities": "Hali universitet tanlanmagan yoki topshirilmagan.",
     "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil."
+  },
+  "appLeads": {
+    "nav": "Ilova lidlari",
+    "title": "Ilova lidlari",
+    "lede": "Ilovadan kelgan mijozlar: javob kutayotganlar birinchi, eng uzoq kutgan tepada. Kartani oching — u ilovada nima qilgani, qaysi universitetlarni yoqtirgani, unga hali ochiq qabullar va tayyor birinchi xabar.",
+    "railTitle": "Ilovada",
+    "loading": "Ilova ma'lumoti yuklanmoqda…",
+    "error": "Ilova ma'lumotini yuklab bo'lmadi",
+    "noApp": "Bu lidga ilova qurilmasi bog'lanmagan.",
+    "stat": {
+      "waiting": "Javob kutmoqda",
+      "callBack": "Forma qoldirgan, qo'ng'iroq kerak",
+      "all": "Oxirgi {{days}} kunda ilova lidlari"
+    },
+    "filter": {
+      "waiting": "Kutmoqda",
+      "all": "Hammasi"
+    },
+    "period": "Davr",
+    "days_one": "{{count}} kun",
+    "days_other": "{{count}} kun",
+    "refresh": "Yangilash",
+    "tier": {
+      "hot": "Issiq",
+      "warm": "Iliq",
+      "cool": "Ma'lumot yig'yapti"
+    },
+    "tierRule": {
+      "hot": "til sertifikati + rasmiy daromad hujjati",
+      "warm": "sertifikat bor, moliya yoki yosh masalasi",
+      "cool": "sertifikat yo'q"
+    },
+    "emptyWaiting": "Hozir javob kutayotgan ilova lidi yo'q.",
+    "empty": "Bu davrda ilova lidi yo'q.",
+    "hasPhone": "raqam bor",
+    "noPhone": "raqam yo'q",
+    "waited": "{{time}} kutmoqda",
+    "formNeedsCall": "forma qoldirgan — qo'ng'iroq qiling",
+    "answered": "javob berilgan {{when}}",
+    "lastSeen": "ilovada {{when}}",
+    "openChat": "Chatni ochish",
+    "openLead": "Lid kartasi",
+    "expand": "Ochish",
+    "collapse": "Yopish",
+    "wait": {
+      "min_one": "{{count}} daqiqa",
+      "min_other": "{{count}} daqiqa",
+      "hour_one": "{{count}} soat",
+      "hour_other": "{{count}} soat",
+      "day_one": "{{count}} kun",
+      "day_other": "{{count}} kun"
+    },
+    "row": {
+      "age": "Yosh",
+      "route": "Yo'nalish",
+      "language": "Til",
+      "gpa": "Attestat / diplom",
+      "money": "Moliya",
+      "risk": "Viza xavfi",
+      "visaTest": "Viza testi",
+      "tariff": "Ilova tavsiyasi",
+      "activity": "Faollik"
+    },
+    "route": {
+      "bachelor": "Bakalavr",
+      "master": "Magistratura",
+      "language": "Til kursi",
+      "unknown": "Ko'rsatmagan (bakalavr bo'yicha ko'rsatildi)"
+    },
+    "fact": {
+      "none": "{{what}} yo'q",
+      "otherForm": "(boshqa testda {{value}})",
+      "topikOld": "TOPIK 2 yildan eski",
+      "incomeDoc": "Rasmiy daromad hujjati bor",
+      "noIncomeDoc": "Rasmiy daromad hujjati yo'q",
+      "property": "mulk bor",
+      "car": "mashina bor",
+      "business": "biznes bor",
+      "visaRefused": "Ilgari viza rad etilgan",
+      "illegalRelatives": "Koreyada noqonuniy qarindoshi bor",
+      "legalRelatives": "Koreyada qonuniy qarindoshi bor",
+      "overstayed": "Koreyada viza muddatidan oshib qolgan",
+      "beenToKorea": "Koreyada bo'lgan"
+    },
+    "income": {
+      "0": "oilaviy daromad $5k gacha",
+      "1": "oilaviy daromad $5–10k",
+      "2": "oilaviy daromad $10–20k",
+      "3": "oilaviy daromad $20k+"
+    },
+    "sponsor": {
+      "0": "o'zi to'laydi",
+      "1": "ota-ona to'laydi",
+      "2": "qarindosh to'laydi"
+    },
+    "band": {
+      "high": "Yuqori",
+      "mid": "O'rta",
+      "low": "Past"
+    },
+    "low": {
+      "language": "til",
+      "income": "daromad",
+      "deposit": "bank depoziti",
+      "gap": "tanaffus yillari",
+      "age": "yosh"
+    },
+    "weakest": "eng zaif joy: {{what}}",
+    "tariff": {
+      "hanbox": "Hanbox",
+      "standart": "Standart",
+      "premium": "Premium",
+      "no_risk": "NO RISK"
+    },
+    "visits_one": "{{count}} marta kirgan",
+    "visits_other": "{{count}} marta kirgan",
+    "minutes_one": "{{count}} daqiqa",
+    "minutes_other": "{{count}} daqiqa",
+    "universitiesTitle": "Yoqtirgan (♥) va ochgan universitetlari",
+    "noUniversities": "Universitet ochmagan.",
+    "uni": {
+      "picked": "Tanlagan",
+      "openUntil": "ochiq · {{date}} gacha",
+      "closed": "yopilgan · {{date}}",
+      "noDates": "muddat bazada yo'q",
+      "opens_one": "{{count}} marta ochgan",
+      "opens_other": "{{count}} marta ochgan",
+      "check": "kirish testi {{score}}%",
+      "studyPlan": "Study Plan testini ochgan",
+      "interview": "suhbat testini boshlagan"
+    },
+    "openNowTitle": "Unga hali ochiq qabullar (yo'nalishi va tili bo'yicha)",
+    "openNowNone": "Uning yo'nalishi va tiliga hozir ochiq qabul topilmadi.",
+    "friction": {
+      "codeNotFound_one": "Mijoz kodi bilan kirmoqchi bo'lgan, kod topilmagan ({{count}} marta)",
+      "codeNotFound_other": "Mijoz kodi bilan kirmoqchi bo'lgan, kod topilmagan ({{count}} marta)",
+      "contactTaps_one": "«Bog'lanish» tugmasini {{count}} marta bosgan",
+      "contactTaps_other": "«Bog'lanish» tugmasini {{count}} marta bosgan",
+      "noPhone": "Telefon raqami yo'q — chatda so'rang",
+      "searched": "Qidirgan: {{what}}",
+      "filtered": "Filtr: {{what}}"
+    },
+    "privacyHint": "Ilova ma'lumoti tayyorlanish uchun. O'zi tanlagan narsani (♥, test) aytish mumkin, kuzatuvni («3 marta ochibsiz») aytmang. Foiz — taxmin, «kafolat» demang.",
+    "starterTitle": "Tayyor birinchi xabar",
+    "starterMake": "Xabar tayyorlash",
+    "starterAgain": "Qayta tayyorlash",
+    "starterFailed": "Xabar tayyorlanmadi, qayta urining.",
+    "copy": "Nusxa olish",
+    "copied": "Nusxa olindi",
+    "copyFailed": "Nusxa olib bo'lmadi"
   }
 }

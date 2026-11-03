@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { AppBriefCard } from '@/components/crm/appLeads/AppBriefCard';
 import { formatDayMonth, initialsOf } from './queueLogic';
 import type { LeadContextVM } from './useLeadContext';
 import type { ConversationVM } from './types';
@@ -134,6 +135,11 @@ export function LeadContextCard({
             </a>
           )}
         </div>
+      </div>
+
+      {/* What the person did in the student app (Asrbek, 2026-11-03); nothing when no device is tied. */}
+      <div className="border-b border-border/60 py-4 empty:hidden">
+        <AppBriefCard leadId={lead.id} variant="rail" />
       </div>
 
       <section className="border-b border-border/60 py-4">

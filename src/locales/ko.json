@@ -2353,5 +2353,146 @@
     "result": "결과",
     "noUniversities": "아직 선택되거나 제출된 대학이 없습니다.",
     "whereToEdit": "서류, 대학 선택, 온라인·오프라인 지원 섹션에서 자동으로 가져옵니다 — 지원 보드와 동일합니다."
+  },
+  "appLeads": {
+    "nav": "앱 리드",
+    "title": "앱 리드",
+    "lede": "학생 앱에서 온 고객: 답변을 기다리는 사람이 먼저, 가장 오래 기다린 사람이 맨 위입니다. 카드를 열면 앱에서 한 일, 마음에 든 대학, 아직 열려 있는 모집, 바로 보낼 첫 메시지를 볼 수 있습니다.",
+    "railTitle": "앱에서",
+    "loading": "앱 정보를 불러오는 중…",
+    "error": "앱 정보를 불러오지 못했습니다",
+    "noApp": "이 리드에 연결된 앱 기기가 없습니다.",
+    "stat": {
+      "waiting": "답변 대기",
+      "callBack": "양식 제출, 전화 필요",
+      "all": "최근 {{days}}일 앱 리드"
+    },
+    "filter": {
+      "waiting": "대기 중",
+      "all": "전체"
+    },
+    "period": "기간",
+    "days_other": "{{count}}일",
+    "refresh": "새로고침",
+    "tier": {
+      "hot": "뜨거움",
+      "warm": "따뜻함",
+      "cool": "정보 수집 중"
+    },
+    "tierRule": {
+      "hot": "어학 성적 + 공식 소득 서류",
+      "warm": "성적은 있으나 재정 또는 나이 문제",
+      "cool": "성적 없음"
+    },
+    "emptyWaiting": "지금 답변을 기다리는 앱 리드가 없습니다.",
+    "empty": "이 기간에 앱 리드가 없습니다.",
+    "hasPhone": "전화번호 있음",
+    "noPhone": "전화번호 없음",
+    "waited": "{{time}} 대기",
+    "formNeedsCall": "양식 제출 — 전화하세요",
+    "answered": "{{when}} 답변함",
+    "lastSeen": "앱 접속 {{when}}",
+    "openChat": "채팅 열기",
+    "openLead": "리드 카드",
+    "expand": "열기",
+    "collapse": "닫기",
+    "wait": {
+      "min_other": "{{count}}분",
+      "hour_other": "{{count}}시간",
+      "day_other": "{{count}}일"
+    },
+    "row": {
+      "age": "나이",
+      "route": "과정",
+      "language": "어학",
+      "gpa": "성적",
+      "money": "재정",
+      "risk": "비자 위험",
+      "visaTest": "비자 테스트",
+      "tariff": "앱 추천",
+      "activity": "활동"
+    },
+    "route": {
+      "bachelor": "학사",
+      "master": "석사",
+      "language": "어학연수",
+      "unknown": "미입력 (학사 기준 표시)"
+    },
+    "fact": {
+      "none": "{{what}} 없음",
+      "otherForm": "(다른 테스트에서 {{value}})",
+      "topikOld": "TOPIK 2년 경과",
+      "incomeDoc": "공식 소득 서류 있음",
+      "noIncomeDoc": "공식 소득 서류 없음",
+      "property": "부동산",
+      "car": "자동차",
+      "business": "사업",
+      "visaRefused": "비자 거절 이력",
+      "illegalRelatives": "한국 불법체류 친척",
+      "legalRelatives": "한국 합법 거주 친척",
+      "overstayed": "한국 비자 기간 초과 체류",
+      "beenToKorea": "한국 방문 경험"
+    },
+    "income": {
+      "0": "가구 소득 $5k 미만",
+      "1": "가구 소득 $5–10k",
+      "2": "가구 소득 $10–20k",
+      "3": "가구 소득 $20k 이상"
+    },
+    "sponsor": {
+      "0": "본인 부담",
+      "1": "부모 부담",
+      "2": "친척 부담"
+    },
+    "band": {
+      "high": "높음",
+      "mid": "보통",
+      "low": "낮음"
+    },
+    "low": {
+      "language": "어학",
+      "income": "소득",
+      "deposit": "은행 잔고",
+      "gap": "공백 기간",
+      "age": "나이"
+    },
+    "weakest": "약점: {{what}}",
+    "tariff": {
+      "hanbox": "Hanbox",
+      "standart": "스탠다드",
+      "premium": "프리미엄",
+      "no_risk": "NO RISK"
+    },
+    "visits_other": "{{count}}회 방문",
+    "minutes_other": "{{count}}분",
+    "universitiesTitle": "찜한(♥) 대학과 열어 본 대학",
+    "noUniversities": "열어 본 대학이 없습니다.",
+    "uni": {
+      "picked": "선택함",
+      "openUntil": "모집 중 · {{date}}까지",
+      "closed": "마감 · {{date}}",
+      "noDates": "일정 정보 없음",
+      "opens_other": "{{count}}회 열람",
+      "check": "입학 테스트 {{score}}%",
+      "studyPlan": "학업계획서 테스트 열람",
+      "interview": "면접 테스트 시작"
+    },
+    "openNowTitle": "아직 지원 가능한 곳 (과정·어학 기준)",
+    "openNowNone": "지금 이 과정과 어학 수준으로 열려 있는 모집이 없습니다.",
+    "friction": {
+      "codeNotFound_other": "고객 코드로 로그인 시도, 코드 없음 ({{count}}회)",
+      "contactTaps_other": "«연락하기»를 {{count}}회 누름",
+      "noPhone": "전화번호 없음 — 채팅에서 물어보세요",
+      "searched": "검색: {{what}}",
+      "filtered": "필터: {{what}}"
+    },
+    "privacyHint": "앱 정보는 준비용입니다. 본인이 고른 것(♥, 테스트)은 말해도 되지만 추적한 내용(«3번 열어 보셨네요»)은 말하지 마세요. 퍼센트는 추정치이며 «보장»이라고 하지 마세요.",
+    "starterTitle": "바로 보낼 첫 메시지",
+    "starterMake": "메시지 작성",
+    "starterAgain": "다시 작성",
+    "starterFailed": "메시지를 작성하지 못했습니다. 다시 시도하세요.",
+    "copy": "복사",
+    "copied": "복사됨",
+    "copyFailed": "복사하지 못했습니다"
   }
 }

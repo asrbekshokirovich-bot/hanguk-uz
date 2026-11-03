@@ -3389,5 +3389,155 @@
     "result": "Result",
     "noUniversities": "No university chosen or submitted yet.",
     "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board."
+  },
+  "appLeads": {
+    "nav": "App leads",
+    "title": "App leads",
+    "lede": "People who came from the student app: those waiting for an answer first, the longest wait on top. Open a card to see what they did in the app, which universities they liked, what is still open for them, and a ready first message.",
+    "railTitle": "In the app",
+    "loading": "Loading app data…",
+    "error": "Could not load app data",
+    "noApp": "No app device is tied to this lead.",
+    "stat": {
+      "waiting": "Waiting for an answer",
+      "callBack": "Left the form, needs a call",
+      "all": "App leads, last {{days}} days"
+    },
+    "filter": {
+      "waiting": "Waiting",
+      "all": "All"
+    },
+    "period": "Period",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "refresh": "Refresh",
+    "tier": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cool": "Exploring"
+    },
+    "tierRule": {
+      "hot": "language certificate + official income papers",
+      "warm": "certificate, but money or age questions",
+      "cool": "no certificate"
+    },
+    "emptyWaiting": "No app lead is waiting for an answer.",
+    "empty": "No app leads in this period.",
+    "hasPhone": "has phone",
+    "noPhone": "no phone",
+    "waited": "waiting {{time}}",
+    "formNeedsCall": "left the form — call them",
+    "answered": "answered {{when}}",
+    "lastSeen": "in the app {{when}}",
+    "openChat": "Open chat",
+    "openLead": "Lead card",
+    "expand": "Open",
+    "collapse": "Close",
+    "wait": {
+      "min_one": "{{count}} min",
+      "min_other": "{{count}} min",
+      "hour_one": "{{count}} hour",
+      "hour_other": "{{count}} hours",
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days"
+    },
+    "row": {
+      "age": "Age",
+      "route": "Programme",
+      "language": "Language",
+      "gpa": "School / diploma GPA",
+      "money": "Money",
+      "risk": "Visa risk",
+      "visaTest": "Visa test",
+      "tariff": "App suggests",
+      "activity": "Activity"
+    },
+    "route": {
+      "bachelor": "Bachelor",
+      "master": "Master",
+      "language": "Language course",
+      "unknown": "Not given (shown for bachelor)"
+    },
+    "fact": {
+      "none": "no {{what}}",
+      "otherForm": "({{value}} in the other test)",
+      "topikOld": "TOPIK older than 2 years",
+      "incomeDoc": "Official income papers",
+      "noIncomeDoc": "No official income papers",
+      "property": "property",
+      "car": "car",
+      "business": "business",
+      "visaRefused": "Visa refused before",
+      "illegalRelatives": "Relative staying illegally in Korea",
+      "legalRelatives": "Relative living legally in Korea",
+      "overstayed": "Overstayed a Korean visa",
+      "beenToKorea": "Has been to Korea"
+    },
+    "income": {
+      "0": "family income under $5k",
+      "1": "family income $5–10k",
+      "2": "family income $10–20k",
+      "3": "family income $20k+"
+    },
+    "sponsor": {
+      "0": "pays themselves",
+      "1": "parents pay",
+      "2": "a relative pays"
+    },
+    "band": {
+      "high": "High",
+      "mid": "Medium",
+      "low": "Low"
+    },
+    "low": {
+      "language": "language",
+      "income": "income",
+      "deposit": "bank deposit",
+      "gap": "gap years",
+      "age": "age"
+    },
+    "weakest": "weakest point: {{what}}",
+    "tariff": {
+      "hanbox": "Hanbox",
+      "standart": "Standard",
+      "premium": "Premium",
+      "no_risk": "NO RISK"
+    },
+    "visits_one": "{{count}} visit",
+    "visits_other": "{{count}} visits",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "universitiesTitle": "Liked (♥) and opened universities",
+    "noUniversities": "Opened no university.",
+    "uni": {
+      "picked": "Picked",
+      "openUntil": "open · until {{date}}",
+      "closed": "closed · {{date}}",
+      "noDates": "no dates in the base",
+      "opens_one": "opened {{count}} time",
+      "opens_other": "opened {{count}} times",
+      "check": "admission check {{score}}%",
+      "studyPlan": "opened the Study Plan test",
+      "interview": "started the interview test"
+    },
+    "openNowTitle": "Still open for them (programme and language)",
+    "openNowNone": "No admission is open now for their programme and language.",
+    "friction": {
+      "codeNotFound_one": "Tried to sign in with a client code, code not found ({{count}} time)",
+      "codeNotFound_other": "Tried to sign in with a client code, code not found ({{count}} times)",
+      "contactTaps_one": "Tapped «Contact» {{count}} time",
+      "contactTaps_other": "Tapped «Contact» {{count}} times",
+      "noPhone": "No phone number — ask in the chat",
+      "searched": "Searched: {{what}}",
+      "filtered": "Filter: {{what}}"
+    },
+    "privacyHint": "App data is for preparing. You may mention what they chose (♥, tests), not the tracking («you opened it 3 times»). Percentages are estimates — never say «guaranteed».",
+    "starterTitle": "Ready first message",
+    "starterMake": "Write message",
+    "starterAgain": "Write again",
+    "starterFailed": "Could not write the message, try again.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Could not copy"
   }
 }

@@ -51,6 +51,7 @@ const OnlineApplicationContent = lazy(() => import('@/components/crm/pages/Onlin
 const OfflineApplicationContent = lazy(() => import('@/components/crm/pages/OfflineApplicationContent'));
 const AppAnalyticsContent = lazy(() => import('@/components/crm/pages/AppAnalyticsContent'));
 const TodayInAppContent = lazy(() => import('@/components/crm/pages/TodayInAppContent'));
+const AppLeadsContent = lazy(() => import('@/components/crm/pages/AppLeadsContent'));
 const UniversitiesContent = lazy(() => import('@/components/crm/pages/UniversitiesContent'));
 const TasksContent = lazy(() => import('@/components/crm/pages/TasksContent'));
 const DailyReportsContent = lazy(() => import('@/components/crm/pages/DailyReportsContent'));
@@ -201,6 +202,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/new-leads')) return 'new-leads';
     if (currentPath.startsWith('/crm/today-leads')) return 'today-leads';
     if (currentPath.startsWith('/crm/today-in-app')) return 'today-in-app';
+    if (currentPath.startsWith('/crm/app-leads')) return 'app-leads';
     // The profile check must come first: '/crm/leads/<id>' also starts with
     // '/crm/leads', and the list would otherwise swallow every detail URL.
     if (leadProfileId) return 'lead-profile';
@@ -483,6 +485,10 @@ export default function CRMPortal() {
         // The operators' list from the app's signals; every staff role (S6).
         if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
         return <SafeSuspense><TodayInAppContent /></SafeSuspense>;
+      case 'app-leads':
+        // «Ilova lidlari» — app leads for the operators; every staff role (S6).
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
+        return <SafeSuspense><AppLeadsContent /></SafeSuspense>;
       case 'lead-profile':
         return (
           <SafeSuspense>
