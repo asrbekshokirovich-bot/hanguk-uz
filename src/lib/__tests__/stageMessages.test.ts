@@ -46,3 +46,22 @@ describe('stage notification text', () => {
     expect(pushData('documents_ready')).toEqual({ type: 'stage', kind: 'documents_ready' });
   });
 });
+
+describe('deadline reminders (7, 3, 1 days)', () => {
+  it('says how many days are left, in every language', () => {
+    for (const lang of ['uz', 'ru', 'en', 'ko', 'vi']) {
+      for (const k of ['deadline_7', 'deadline_3', 'deadline_1'] as const) {
+        const m = stageMessage(k, ['Ajou University'], lang);
+        expect(m.title.length).toBeGreaterThan(0);
+        expect(m.body).toContain('Ajou University');
+      }
+    }
+    expect(stageMessage('deadline_7', ['Ajou University', 'Inha University'], 'uz').body)
+      .toBe("Ajou University va Inha University: onlayn ariza topshirish muddati 7 kundan keyin tugaydi. Hujjatlaringiz tayyorligini tekshiring, savol bo'lsa konsultantingizga yozing.");
+    expect(stageMessage('deadline_1', ['Ajou University'], 'uz').title).toBe('Ertaga onlayn ariza muddati tugaydi ⏰');
+    expect(stageMessage('deadline_3', ['Ajou University'], 'ru').title).toBe('До конца онлайн-подачи 3 дня ⏰');
+  });
+  it('opens the app home and names the reminder as the campaign', () => {
+    expect(pushData('deadline_3')).toEqual({ type: 'stage', kind: 'deadline', campaign: 'deadline_3' });
+  });
+});
