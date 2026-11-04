@@ -1,0 +1,42 @@
+# Converts the non-PDF guideline blobs (HWP, DOC, images) to PDF so Hanguk AI's
+# guideline-index can read them (2026-11-04). Manual only. Writes
+# guideline-blobs/converted/<id>.pdf and public.guideline_converted; the
+# original blob and guideline_documents row are not changed.
+name: Guideline non-PDF → PDF
+
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: 'guideline_documents ids, comma-separated'
+        required: true
+      dry_run:
+        description: 'Only print the detected format of each file'
+        type: boolean
+        default: true
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_app/services/uni_db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . pillow
+          if [ "${{ inputs.dry_run }}" != "true" ]; then sudo apt-get update -qq && sudo apt-get install -y -qq libreoffice-writer >/dev/null; fi
+      - name: Convert
+        env:
+          SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
+          CLOUDCONVERT_API_KEY: ${{ secrets.UNI_DB_CLOUDCONVERT_API_KEY }}
+          IDS: ${{ inputs.ids }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: python ../../../scripts/convert_nonpdf_guidelines.py
