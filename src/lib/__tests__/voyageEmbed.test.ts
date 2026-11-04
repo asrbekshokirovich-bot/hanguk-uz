@@ -27,3 +27,12 @@ describe('voyageEmbed', () => {
     await expect(voyageEmbed(['a'], 'query', '')).rejects.toThrow('VOYAGE_API_KEY');
   });
 });
+
+describe('fitBudget (Voyage free tier)', async () => {
+  const { fitBudget } = await import('../../../supabase/functions/_shared/voyage');
+  it('takes texts until the character budget, at least one', () => {
+    expect(fitBudget(['a'.repeat(1500), 'b'.repeat(1500), 'c'.repeat(1500), 'd'.repeat(1500), 'e'.repeat(1500)], 6000)).toBe(4);
+    expect(fitBudget(['x'.repeat(9000)], 6000)).toBe(1);
+    expect(fitBudget([], 6000)).toBe(0);
+  });
+});

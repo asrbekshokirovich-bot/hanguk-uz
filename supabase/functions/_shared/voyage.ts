@@ -43,3 +43,27 @@ export async function voyageEmbed(
   if (out.length !== texts.length) throw new Error(`voyage returned ${out.length}/${texts.length}`);
   return out;
 }
+
+/**
+ * How many of the texts (in order) fit in one request of at most `budget`
+ * characters — always at least one. Without a payment method Voyage gives
+ * "reduced rate limits" (429 on 2026-11-03 with 300 chunks per call; the exact
+ * numbers are not published), so the free-tier backfill sends small requests.
+ */
+export function fitBudget(texts: string[], budget: number): number {
+  let used = 0;
+  let n = 0;
+  for (const t of texts) {
+    const len = Math.min(t.length, 8000);
+    if (n > 0 && used + len > budget) break;
+    used += len;
+    n++;
+  }
+  return n;
+}
+
+/** Characters per Voyage request in the guideline backfill (VOYAGE_BATCH_CHARS, default 6000). */
+export function voyageBatchChars(): number {
+  const v = Number(env("VOYAGE_BATCH_CHARS"));
+  return Number.isFinite(v) && v > 0 ? v : 6000;
+}

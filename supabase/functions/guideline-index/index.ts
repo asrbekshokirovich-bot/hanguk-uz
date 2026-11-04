@@ -25,7 +25,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as unpdf from "npm:unpdf@0.12.1";
 import { chunkPages } from "./chunk.ts";
-import { VOYAGE_MODEL, voyageEmbed, voyageKey } from "../_shared/voyage.ts";
+import { fitBudget, VOYAGE_MODEL, voyageBatchChars, voyageEmbed, voyageKey } from "../_shared/voyage.ts";
 import { extractPages } from "./pdf.ts";
 import {
   claudeTranscribe, FILES_OVER, PAGES_PER_CALL, parseProgress, parseTranscript, uploadToFiles,
@@ -39,7 +39,9 @@ const VOYAGE_KEY = voyageKey();
 const EMBED_MODEL = VOYAGE_KEY ? VOYAGE_MODEL : "gemini-embedding-001";
 const EMBED_ON = !!(VOYAGE_KEY || GEMINI_KEY);
 // Chunks embedded per run: Voyage takes 128 texts per call and has no 429 trouble.
-const BACKFILL = VOYAGE_KEY ? 300 : 100;
+const BACKFILL = 100;
+// Voyage without a payment method: one small request per run (VOYAGE_BATCH_CHARS).
+const VOYAGE_CHARS = voyageBatchChars();
 const DIMS = 1024;
 const MAX_BYTES = 40e6;
 const SLOTS = 3;
@@ -134,7 +136,11 @@ async function indexOne(db: any, doc: any): Promise<Record<string, unknown>> {
 
     let vectors: number[][] | null = null;
     let embedError: string | null = EMBED_ON ? null : "no embedding key (VOYAGE_API_KEY / GEMINI_API_KEY)";
-    if (EMBED_ON) {
+    // Voyage free tier: a big PDF would only spend the request limit on a 429;
+    // its chunks are saved without vectors and the backfill embeds them.
+    const tooBig = VOYAGE_KEY && fitBudget(chunks.map((c) => c.text), VOYAGE_CHARS) < chunks.length;
+    if (tooBig) embedError = "vectors later by the backfill (Voyage without a payment method)";
+    if (EMBED_ON && !tooBig) {
       try {
         vectors = await embedBatch(chunks.map((c) => c.text));
       } catch (e) {
@@ -181,6 +187,7 @@ async function backfillEmbeddings(db: any): Promise<{ embedded: number; error: s
     .limit(BACKFILL);
   if (error) return { embedded: 0, error: `select: ${error.message}` };
   if (!rows?.length) return { embedded: 0, error: null };
+  if (VOYAGE_KEY) rows.splice(fitBudget(rows.map((r: any) => r.chunk_text_ko), VOYAGE_CHARS));
 
   let vectors: number[][];
   try {
@@ -246,7 +253,7 @@ async function claudeRead(db: any, slot: number): Promise<Record<string, unknown
     const chunks = chunkPages(texts).map((c) => ({ ...c, page: c.page + from - 1, index: c.index + base }));
 
     let vectors: number[][] | null = null;
-    if (EMBED_ON && chunks.length) {
+    if (EMBED_ON && chunks.length && !(VOYAGE_KEY && fitBudget(chunks.map((c) => c.text), VOYAGE_CHARS) < chunks.length)) {
       try { vectors = await embedBatch(chunks.map((c) => c.text)); } catch { vectors = null; }
     }
     if (chunks.length) {
