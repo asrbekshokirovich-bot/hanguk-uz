@@ -54,11 +54,32 @@ def libreoffice_to_pdf(data: bytes, ext: str) -> bytes:
         src = Path(d) / f"in.{ext}"
         src.write_bytes(data)
         subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", d, str(src)],
-                       check=True, capture_output=True, timeout=180)
+                       check=True, capture_output=True, timeout=300)
         pdf = Path(d) / "in.pdf"
         if not pdf.exists() or pdf.stat().st_size < 200:
             raise RuntimeError("libreoffice produced no pdf")
         return pdf.read_bytes()
+
+
+def pyhwp_to_pdf(data: bytes) -> tuple[bytes, str]:
+    """HWP 5.x via pyhwp: hwp5odt → LibreOffice → PDF (keeps tables); if that
+    fails, hwp5txt → plain text → LibreOffice → PDF (text only). CloudConvert
+    answered 403 "email address is not verified" and LibreOffice alone cannot
+    open HWP 5 (2026-11-04)."""
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d) / "in.hwp"
+        src.write_bytes(data)
+        odt = Path(d) / "in.odt"
+        try:
+            subprocess.run(["hwp5odt", "--output", str(odt), str(src)], check=True, capture_output=True, timeout=300)
+            if odt.exists() and odt.stat().st_size > 500:
+                return libreoffice_to_pdf(odt.read_bytes(), "odt"), "pyhwp hwp5odt + libreoffice"
+        except Exception:  # noqa: BLE001
+            pass
+        txt = subprocess.run(["hwp5txt", str(src)], check=True, capture_output=True, timeout=300).stdout
+        if len(txt.strip()) < 100:
+            raise RuntimeError("hwp5txt produced no text")
+        return libreoffice_to_pdf(txt, "txt"), "pyhwp hwp5txt + libreoffice"
 
 
 def convert(data: bytes, fmt: str) -> tuple[bytes, str]:
@@ -74,6 +95,11 @@ def convert(data: bytes, fmt: str) -> tuple[bytes, str]:
             return r.pdf_bytes, f"cloudconvert ({r.detected_format or fmt})"
         except convert_remote.RemoteConversionError as e:
             errors.append(str(e)[:200])
+    if fmt == "hwp":
+        try:
+            return pyhwp_to_pdf(data)
+        except Exception as e:  # noqa: BLE001
+            errors.append(f"pyhwp: {e}"[:200])
     try:
         return libreoffice_to_pdf(data, {"hwp": "hwp", "hwpx": "hwpx", "zip": "docx"}.get(fmt, "doc")), "libreoffice"
     except Exception as e:  # noqa: BLE001
