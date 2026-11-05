@@ -4,6 +4,7 @@ import 'dart:io' show File, Platform;
 import 'dart:math';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart' show FirebaseException;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -338,26 +339,63 @@ abstract final class AppEvents {
   static void installErrorHooks() {
     final previous = FlutterError.onError;
     FlutterError.onError = (details) {
-      _error(details.exception, details.library, fatal: false);
+      _error(details.exception, details.library, fatal: false, stack: details.stack);
       previous?.call(details);
     };
     final dispatcher = PlatformDispatcher.instance;
     final before = dispatcher.onError;
     dispatcher.onError = (error, stack) {
-      _error(error, 'platform', fatal: true);
+      _error(error, 'platform', fatal: true, stack: stack);
       return before?.call(error, stack) ?? false;
     };
   }
 
-  static void _error(Object error, String? library, {required bool fatal}) {
+  static void _error(Object error, String? library, {required bool fatal, StackTrace? stack}) {
     if (++_errors > 20) return;
     final type = error.runtimeType.toString();
+    final code = errorCode(error);
+    final at = stack == null ? null : errorAt(stack);
     track('app_error', props: {
       'type': type.length > 60 ? type.substring(0, 60) : type,
       'lib': ?library,
       'fatal': fatal,
+      'code': ?code,
+      'at': ?at,
     });
   }
+
+  /// What kind of failure it was, without its message (which can carry
+  /// user text): a Firebase plugin's code ("messaging/unknown"), an auth
+  /// error's HTTP status.
+  static String? errorCode(Object error) {
+    final String? c = switch (error) {
+      FirebaseException(:final plugin, :final code) => '$plugin/$code',
+      AuthException(:final statusCode) => statusCode,
+      PostgrestException(:final code) => code,
+      _ => null,
+    };
+    if (c == null || c.isEmpty) return null;
+    return c.length > 60 ? c.substring(0, 60) : c;
+  }
+
+  /// Where it was thrown: the first frame in the app's own code
+  /// ("lib/features/x.dart:12"), else the first package frame
+  /// ("firebase_messaging/…dart:40"). File and line only.
+  @visibleForTesting
+  static String? errorAt(StackTrace stack) {
+    final frame = RegExp(r'package:([\w_]+)/([^\s:)]+):(\d+)');
+    String? first;
+    for (final m in frame.allMatches(stack.toString())) {
+      final pkg = m.group(1)!;
+      if (pkg == 'flutter' || pkg == 'stack_trace') continue;
+      final where = pkg == 'hanguk_app' ? 'lib/${m.group(2)}:${m.group(3)}' : '$pkg/${m.group(2)}:${m.group(3)}';
+      if (pkg == 'hanguk_app') return _cut(where);
+      first ??= where;
+    }
+    return first == null ? null : _cut(first);
+  }
+
+  static String _cut(String s) => s.length > 80 ? s.substring(s.length - 80) : s;
 
   /// The first line of `main`: the launch is timed from here to [ready].
   static void launching() => _launch

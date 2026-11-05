@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/core/analytics/app_events.dart';
 import 'package:hanguk_app/core/cache/cached_rows.dart';
 import 'package:hanguk_app/core/cache/snapshot_queries.dart';
 
@@ -194,5 +195,32 @@ void main() {
   test('every snapshot read has its asset under assets/data/', () {
     expect(kSnapshotReads.keys, everyElement(startsWith('assets/data/')));
     expect(kSnapshotReads[kMapAsset], contains('is_visible_on_map=eq.true'));
+  });
+
+  test('data_ready says once where the first rows came from', () async {
+    final seen = <TrackedEvent>[];
+    AppEvents.debugOnTrack = seen.add;
+    addTearDown(() => AppEvents.debugOnTrack = null);
+    s.shipped['assets/data/t.json'] = jsonEncode([
+      {'id': 'shipped'},
+    ]);
+    final c = rows();
+    await c.load(() async => [
+      {'id': 'net'},
+    ]);
+    await pumpEventQueue();
+    await c.load(() async => []);
+    final ready = seen.where((e) => e.event == 'data_ready').toList();
+    expect(ready, hasLength(1));
+    expect(ready.single.props!['source'], 'shipped');
+    expect(ready.single.props!['rows'], 1);
+  });
+
+  test('data_ready: a network failure with nothing kept', () async {
+    final seen = <TrackedEvent>[];
+    AppEvents.debugOnTrack = seen.add;
+    addTearDown(() => AppEvents.debugOnTrack = null);
+    await expectLater(rows().load(() async => throw StateError('offline')), throwsStateError);
+    expect(seen.where((e) => e.event == 'data_ready').single.props!['source'], 'failed');
   });
 }

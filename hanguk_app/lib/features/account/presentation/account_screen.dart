@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../core/config/app_config.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
@@ -64,11 +65,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
 
       if (!mounted) return;
       final l = AppLocalizations.of(context)!;
-      await Share.shareXFiles(
+      final shared = await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/json')],
         subject: l.accountExportShareSubject,
         text: l.accountExportShareText,
       );
+      AppEvents.track('share', props: {'what': 'data_export', 'result': shared.status.name});
     } on FunctionException catch (e) {
       // The details are server text, not words for the student.
       debugPrint('export-my-data failed: ${e.details}');
@@ -96,6 +98,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   Future<void> _signOut() async {
     setState(() => _signingOut = true);
     try {
+      // Before the session goes, so the event is still the student's.
+      AppEvents.track('sign_out');
       await ref.read(authRepositoryProvider).signOut();
       if (!mounted) return;
       // The router's redirect rule will send the user back to /welcome
@@ -138,6 +142,8 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     } on Exception catch (e) {
       error = e.toString();
     }
+
+    AppEvents.track('account_delete', props: {'result': error == null ? 'ok' : 'failed'});
 
     // Tear down the progress dialog first, and unconditionally — see above.
     if (rootNavigator.canPop()) rootNavigator.pop();

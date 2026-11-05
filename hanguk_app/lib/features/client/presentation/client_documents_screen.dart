@@ -61,10 +61,16 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
       if (result != null && result.files.single.path != null) {
         setState(() => _busy[type.id] = true);
         await ref.read(documentsRepositoryProvider).uploadDocument(File(result.files.single.path!), type);
-        AppEvents.track('document_upload', props: {'type': type.id});
+        AppEvents.track('document_upload', props: {'type': type.id, 'result': 'ok'});
         ref.invalidate(documentsProvider);
       }
     } catch (e, st) {
+      AppEvents.track('document_upload', props: {
+        'type': type.id,
+        'result': 'failed',
+        'error': e.runtimeType.toString(),
+        'code': ?AppEvents.errorCode(e),
+      });
       await Sentry.captureException(e, stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.documentUploadFailed)));
