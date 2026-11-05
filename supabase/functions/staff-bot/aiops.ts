@@ -288,7 +288,10 @@ export function createAiOps(deps: AiOpsDeps) {
         console.error(`staff-bot: ${job.kind} ${st.attempts} urinishdan keyin bajarilmadi: ${err}`);
       } else rep.retry++;
     }
-    rep.alert = await alertCheck();
+    rep.alert = await alertCheck().catch((e) => {
+      console.error("ai alert:", errText(e));
+      return "none" as const;
+    });
     return rep;
   }
 
