@@ -14,7 +14,7 @@ Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohid
 | DM | 🤖 Savol | Hanguk AI; xodimning CRM ruxsatlari doirasida |
 | Guruh | `#vazifa @username matn` | vazifa + karta; mas'ul kartaga «✅»/«bajarildi» → yopiladi |
 | Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
-| Guruh | har ish kuni 09:00 | jamoa xulosasi: vazifalar (har xodim), lidlar, hujjatlar, ariza muddatlari, kechagi hisobotlar soni |
+| Guruh | har ish kuni 09:00 | jamoa xulosasi: har xodimning kechikkan va bugungi vazifalari (hammasi), lidlar, hujjatlar, ariza muddatlari, kechagi hisobot (topshirmaganlar ismi bilan) |
 
 To'liq qo'llanma botda: `/help`.
 

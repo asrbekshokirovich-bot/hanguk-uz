@@ -3,9 +3,9 @@
 --
 -- Xulosada (hammasi bazadan, AI emas):
 --   - vazifalar: ochiq / kechikkan / bugungi soni, oxirgi ish kunidan beri bajarilganlar;
---   - har xodimning kechikkan va bugungi vazifalari;
+--   - har xodimning kechikkan va bugungi vazifalari (hammasi);
 --   - bot_morning_brief'dagi umumiy qism: yangi lidlar, kutayotgan hujjatlar, 7 kunlik ariza muddatlari;
---   - oxirgi ish kunidagi kunlik hisobot: nechta xodim topshirdi (ism ko'rsatilmaydi).
+--   - oxirgi ish kunidagi kunlik hisobot: nechta xodim topshirdi va kim topshirmadi (ismi bilan).
 -- Yoqish/o'chirish: bot_settings.group_digest_enabled (CRM → Sozlamalar → Bot). Vaqt va kunlar —
 -- ertalabki ro'yxat bilan bir xil (morning_time, workdays), bitta cron (staff-bot-morning).
 
@@ -64,10 +64,11 @@ as $$
      group by h.assigned_to, p.full_name
   ), rep as (
     -- hisobot so'raladiganlar (bot_report_targets bilan bir xil): ulangan, owner emas, test emas
-    select count(*) as expected,
-           count(*) filter (where exists (select 1 from public.daily_reports d, b3
-                                           where d.user_id = l.user_id and d.report_date = b3.prev)) as submitted
+    select coalesce(nullif(trim(p.full_name), ''), '—') as name,
+           exists (select 1 from public.daily_reports d, b3
+                    where d.user_id = l.user_id and d.report_date = b3.prev) as has_report
       from public.staff_telegram_links l
+      left join public.profiles p on p.user_id = l.user_id
      where l.is_active and l.dm_chat_id is not null
        and public.is_staff_user(l.user_id)
        and not public.has_role(l.user_id, 'owner'::public.app_role)
@@ -91,7 +92,11 @@ as $$
                           from people), '[]'::jsonb),
     'brief', (select x - 'my_new_leads' - 'my_overdue_tasks' from public.bot_morning_brief(null) x),
     'reports', case when coalesce((select s.value from public.bot_settings s where s.key = 'report_enabled'), 'true') = 'true'
-                    then (select jsonb_build_object('submitted', submitted, 'expected', expected) from rep) end)
+                    then (select jsonb_build_object(
+                                   'submitted', count(*) filter (where has_report),
+                                   'expected', count(*),
+                                   'missing', coalesce(jsonb_agg(name order by name) filter (where not has_report), '[]'::jsonb))
+                            from rep) end)
   from b3;
 $$;
 

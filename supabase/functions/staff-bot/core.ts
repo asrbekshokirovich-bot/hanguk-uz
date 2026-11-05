@@ -181,7 +181,7 @@ export interface GroupDigest {
   people: DigestPerson[];
   brief: Omit<MorningBrief, "my_new_leads" | "my_overdue_tasks"> | null;
   /** Oxirgi ish kunidagi kunlik hisobot; hisobot o'chirilgan bo'lsa null. */
-  reports: { submitted: number; expected: number } | null;
+  reports: { submitted: number; expected: number; missing?: string[] } | null;
 }
 
 export const WEEKDAYS_UZ = ["", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"];
@@ -225,9 +225,10 @@ function digestTaskLine(t: DigestTask): string {
 
 /**
  * «Staff» guruhiga ertalabki xulosa (HTML). Faqat RPC bergan sonlar;
- * har xodimdan ko'pi bilan `maxPerPerson` ta vazifa, qolgani «yana N ta».
+ * har xodimning kechikkan va bugungi vazifalari hammasi (Asrbek, 2026-11-05).
+ * Uzun bo'lsa sendLong satr chegarasida bo'lib yuboradi.
  */
-export function renderGroupDigest(d: GroupDigest, maxPerPerson = 5): string {
+export function renderGroupDigest(d: GroupDigest, maxPerPerson = Infinity): string {
   const lines: string[] = [
     `☀️ <b>Xayrli tong, jamoa!</b> ${WEEKDAYS_UZ[d.weekday] ?? ""}, ${ddmm(d.date)}`.trimEnd(),
     "",
@@ -266,6 +267,8 @@ export function renderGroupDigest(d: GroupDigest, maxPerPerson = 5): string {
   if (d.reports && d.reports.expected > 0) {
     const label = yesterday ? "Kechagi" : `${WEEKDAYS_UZ[isoWeekday(d.prev_date)]} kungi`;
     lines.push("", `📝 ${label} kunlik hisobot: <b>${d.reports.submitted}/${d.reports.expected}</b> xodim topshirdi`);
+    const missing = d.reports.missing ?? [];
+    if (missing.length) lines.push(`Topshirmaganlar: ${missing.map(escapeHtml).join(", ")}`);
   }
   return lines.join("\n");
 }

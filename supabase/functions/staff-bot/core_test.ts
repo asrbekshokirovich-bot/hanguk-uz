@@ -273,7 +273,7 @@ const DIGEST: GroupDigest = {
     new_leads: 15, docs_waiting: 7, docs_waiting_student: 5, docs_waiting_ai: 2,
     deadlines: [{ university: "Gyeongsang", date: "2026-11-11", days_left: 6, students: 1 }],
   },
-  reports: { submitted: 1, expected: 6 },
+  reports: { submitted: 1, expected: 3, missing: ["Diyora", "Omina"] },
 };
 
 Deno.test("renderGroupDigest: sarlavha, sonlar, xodimlar, brifing, hisobot", () => {
@@ -285,15 +285,17 @@ Deno.test("renderGroupDigest: sarlavha, sonlar, xodimlar, brifing, hisobot", () 
   // HTML qochiriladi; kechikkan — sana va kun; bugungi — soat; ❗ va ▶ belgilari
   assertEquals(t.includes("🔴 Kamera &lt;integratsiya&gt; — 03.11, 2 kun kechikdi ▶"), true, t);
   assertEquals(t.includes("🟡 Rejani yakunla — 18:00 gacha ❗"), true, t);
-  // ko'pi bilan 5 ta, qolgani «yana»
-  assertEquals(t.includes("🔴 V4 —"), true);
-  assertEquals(t.includes("🔴 V5 —"), false);
-  assertEquals(t.includes("… yana 2 ta"), true);
+  // hammasi ko'rsatiladi (standart); cheklov berilsa — «yana N ta»
+  assertEquals(t.includes("🔴 V6 —"), true);
+  assertEquals(t.includes("… yana"), false);
+  const short = renderGroupDigest(DIGEST, 5);
+  assertEquals(short.includes("🔴 V5 —"), false);
+  assertEquals(short.includes("… yana 2 ta"), true);
   assertEquals(t.includes("👤 <b>Olmos</b> — 🔴 7"), true);
   assertEquals(t.includes("• Yangi lidlar (24 soat): <b>15</b>"), true);
   assertEquals(t.includes("• Tekshiruvni kutayotgan hujjatlar: <b>7</b> (talaba yuklagan: 5, AI tarjima: 2)"), true);
   assertEquals(t.includes("• Gyeongsang — 11.11 (6 kun), talabalar: 1"), true);
-  assertEquals(t.includes("📝 Kechagi kunlik hisobot: <b>1/6</b> xodim topshirdi"), true);
+  assertEquals(t.includes("📝 Kechagi kunlik hisobot: <b>1/3</b> xodim topshirdi\nTopshirmaganlar: Diyora, Omina"), true, t);
 });
 
 Deno.test("renderGroupDigest: dushanba — shanbadan beri; bo'sh kun", () => {
@@ -307,7 +309,7 @@ Deno.test("renderGroupDigest: dushanba — shanbadan beri; bo'sh kun", () => {
   assertEquals(t.includes("Ish holati"), false);
   assertEquals(t.includes("kunlik hisobot"), false); // kutilgan 0 — qator chiqmaydi
   const t2 = renderGroupDigest({ ...DIGEST, date: "2026-11-09", weekday: 1, prev_date: "2026-11-07" });
-  assertEquals(t2.includes("📝 Shanba kungi kunlik hisobot: <b>1/6</b>"), true);
+  assertEquals(t2.includes("📝 Shanba kungi kunlik hisobot: <b>1/3</b>"), true);
   // CRM sana tanlagichi (00:00 UTC) — soat ko'rsatilmaydi
   const t3 = renderGroupDigest({ ...DIGEST, people: [{ name: "A", overdue: 0, today: 1, tasks: [
     { title: "Sana", due: "2026-11-05T00:00:00+00:00", kind: "today", late_days: 0, wip: false, hi: false }] }] });
