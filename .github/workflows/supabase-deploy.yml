@@ -154,6 +154,8 @@ jobs:
           # endi auth/limit bilan shu yerdan joylanadi. test-push 410 qaytaradi.
           # 2026-11-05 (xavfsizlik): student-login-v2 live == repo tekshirildi; parol endi
           # tasodifiy. student-login (v1) chaqiruvchisiz — 410 qaytaradi.
+          # 2026-11-05: voip-webhook — live (v67) == repo (bir bo'sh qatordan tashqari);
+          # live'dagi _shared/identity.ts nusxasi voip-webhook/_shared/ ga qo'yildi.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -206,6 +208,7 @@ jobs:
             test-push
             student-login-v2
             student-login
+            voip-webhook
           "
 
           for fn in $FUNCTIONS; do

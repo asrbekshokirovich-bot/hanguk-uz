@@ -8,9 +8,14 @@
 
 export const APP_PACKAGE = 'com.hanguk.studentapp.hanguk_app';
 
-/** Where the student app's web build lives (GitHub Pages, web-app-pages.yml). */
+/**
+ * Where the student app's web build lives: hanguk.uz/ilova/app/, proxied by
+ * vercel.json to the separate Vercel project built by web-app-vercel.yml.
+ * (hanguk.uz/ilova/ is the desktop phone frame; the app itself is app/, which
+ * keeps the ?l=<code> query the frame's phone redirect would drop.)
+ */
 export const APP_WEB_URL: string =
-  (import.meta.env.VITE_APP_WEB_URL as string | undefined) || 'https://asrbekshokirovich-bot.github.io/hanguk-uz/app/';
+  (import.meta.env.VITE_APP_WEB_URL as string | undefined) || 'https://hanguk.uz/ilova/app/';
 
 /** The App Store page, once the app is there; no button without it. */
 export const APP_STORE_URL: string | null = (import.meta.env.VITE_APP_STORE_URL as string | undefined) || null;

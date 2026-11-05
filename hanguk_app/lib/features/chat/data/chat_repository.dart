@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/config/app_config.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../entry/data/entry_store.dart';
 import '../domain/chat_message.dart';
@@ -73,12 +74,17 @@ class ChatNotifier extends Notifier<ChatState> {
       final language = _language;
 
       final url = Uri.parse(
-        'https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/hanguk-ai-chat',
+        '${AppConfig.supabaseUrl}/functions/v1/hanguk-ai-chat',
       );
+      // The publishable key goes in `apikey` only (it is not a JWT); the
+      // bearer is the user's own token, or no Authorization header at all
+      // for a visitor (hanguk-ai-chat runs with verify_jwt = false).
+      final token = client.auth.currentSession?.accessToken;
+      final bearer = token == null ? null : 'Bearer $token';
       final headers = {
         'Content-Type': 'application/json',
-        'Authorization':
-            'Bearer ${client.auth.currentSession?.accessToken ?? ''}',
+        'apikey': AppConfig.supabasePublishableKey,
+        'Authorization': ?bearer,
       };
 
       final request = http.Request('POST', url);

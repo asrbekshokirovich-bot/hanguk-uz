@@ -1,0 +1,136 @@
+name: Student app on the web (Vercel, hanguk.uz/ilova)
+
+# Builds the Flutter student app (hanguk_app) for the web and deploys it as a
+# separate Vercel project ("hanguk-ilova"). The main site (vercel.json) proxies
+# hanguk.uz/ilova/* to that project's production domain, so students see:
+#
+#   https://hanguk.uz/ilova/       desktop: the app inside a phone frame
+#                                  (hanguk_app/web_frame/index.html);
+#                                  phones: redirects straight to app/
+#   https://hanguk.uz/ilova/app/   the app itself, full screen
+#
+# The files sit under /ilova/ inside the Vercel project too, so the proxied
+# path is the same on both sides and the absolute base href works.
+# The router uses the default hash URL strategy (/ilova/app/#/route): deep
+# links and reloads need no server-side rewrite.
+#
+# One-time setup: add a Vercel access token as the repository secret
+# VERCEL_TOKEN. Optional: VERCEL_ORG_ID + VERCEL_PROJECT_ID (both) to pin an
+# existing project; VERCEL_SCOPE (team slug/id) if the project should live in
+# a team. Without them the first run creates the project "hanguk-ilova".
+# Without VERCEL_TOKEN the job skips the build and exits green with a warning.
+
+on:
+  workflow_dispatch:
+    inputs:
+      flutter_version:
+        description: "Flutter version to build with. Blank = latest stable."
+        required: false
+        default: ""
+  push:
+    branches: [main]
+    paths:
+      - "hanguk_app/lib/**"
+      - "hanguk_app/assets/**"
+      - "hanguk_app/web/**"
+      - "hanguk_app/web_frame/**"
+      - "hanguk_app/pubspec.yaml"
+      - "hanguk_app/pubspec.lock"
+      - ".github/workflows/web-app-vercel.yml"
+
+concurrency:
+  group: web-app-vercel
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_PROJECT: hanguk-ilova
+  VERCEL_CLI: vercel@64.7.0
+  BASE_PATH: /ilova/
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: hanguk_app
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - name: Check Vercel token
+        id: token
+        working-directory: .
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::warning title=VERCEL_TOKEN yo'q::Repository secret VERCEL_TOKEN qo'shilmagan — veb ilova deploy qilinmadi (build ham o'tkazib yuborildi)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.token.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
+      - if: steps.token.outputs.ok == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ inputs.flutter_version }}
+          cache: true
+
+      - name: Resolve Dart dependencies
+        if: steps.token.outputs.ok == 'true'
+        run: flutter pub get
+
+      - name: Build web
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          flutter build web --release \
+            --base-href "${BASE_PATH}app/" \
+            --no-wasm-dry-run
+
+      - name: Assemble site
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          SITE="$RUNNER_TEMP/$VERCEL_PROJECT"
+          mkdir -p "$SITE$BASE_PATH"
+          cp -r build/web "$SITE${BASE_PATH}app"
+          cp web_frame/index.html "$SITE${BASE_PATH}index.html"
+          # Static project: no build step; the bare domain points to /ilova/.
+          cat > "$SITE/vercel.json" <<JSON
+          {
+            "framework": null,
+            "redirects": [
+              { "source": "/", "destination": "${BASE_PATH}", "permanent": false }
+            ]
+          }
+          JSON
+          echo "SITE=$SITE" >> "$GITHUB_ENV"
+
+      - name: Deploy to Vercel (production)
+        if: steps.token.outputs.ok == 'true'
+        working-directory: ${{ runner.temp }}
+        env:
+          ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SCOPE: ${{ secrets.VERCEL_SCOPE }}
+        run: |
+          cd "$SITE"
+          args=(deploy --prod --yes --token "$VERCEL_TOKEN")
+          if [ -n "$ORG_ID" ] && [ -n "$PROJECT_ID" ]; then
+            # Pinned project: the CLI links through these two env vars.
+            export VERCEL_ORG_ID="$ORG_ID" VERCEL_PROJECT_ID="$PROJECT_ID"
+          else
+            # By name; created on the first run.
+            args+=(--project "$VERCEL_PROJECT" --create-if-missing)
+            [ -n "$SCOPE" ] && args+=(--scope "$SCOPE")
+          fi
+          url=$(npx --yes "$VERCEL_CLI" "${args[@]}")
+          echo "Deployment: $url"
+          echo "### Veb ilova deploy qilindi" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Deployment: $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Ochiq manzil: https://hanguk.uz/ilova/ (ilova: https://hanguk.uz/ilova/app/)" >> "$GITHUB_STEP_SUMMARY"
