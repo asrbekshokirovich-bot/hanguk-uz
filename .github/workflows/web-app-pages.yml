@@ -15,17 +15,8 @@ name: Student app on the web (GitHub Pages)
 # and reloads work on Pages without any 404.html rewrite.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'hanguk_app/lib/**'
-      - 'hanguk_app/assets/**'
-      - 'hanguk_app/packages/**'
-      - 'hanguk_app/web/**'
-      - 'hanguk_app/web_frame/**'
-      - 'hanguk_app/pubspec.yaml'
-      - 'hanguk_app/pubspec.lock'
-      - '.github/workflows/web-app-pages.yml'
+  # 2026-11-05: repo private — GitHub Free'da Pages ishlamaydi, har push'da
+  # build behuda ketardi. Faqat qo'lda (web ilova boshqa joyga ko'chirilguncha).
   workflow_dispatch:
     inputs:
       flutter_version:

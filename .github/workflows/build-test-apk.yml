@@ -20,12 +20,9 @@ name: Build test APK
 # uninstall that first.
 
 on:
+  # Actions daqiqalari (2026-11-05): repo private bo'ldi — oyiga 2 000 daqiqa, macOS x10.
+  # Har push'da APK (~8 daqiqa) o'rniga faqat qo'lda: Actions → Run workflow.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'hanguk_app/**'
-      - '.github/workflows/build-test-apk.yml'
 
 concurrency:
   group: build-test-apk

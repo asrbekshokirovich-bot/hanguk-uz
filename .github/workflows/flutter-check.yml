@@ -12,16 +12,7 @@ name: Flutter analyze and test
 # instead of the narrow iOS path filter.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'hanguk_app/lib/**'
-      - 'hanguk_app/test/**'
-      - 'hanguk_app/packages/**'
-      - 'hanguk_app/pubspec.yaml'
-      - 'hanguk_app/pubspec.lock'
-      - 'hanguk_app/analysis_options.yaml'
-      - '.github/workflows/flutter-check.yml'
+  # 2026-11-05: faqat PR'da (main'ga push'da qayta ishlamaydi — o'sha kod PR'da tekshirilgan).
   pull_request:
     paths:
       - 'hanguk_app/lib/**'
