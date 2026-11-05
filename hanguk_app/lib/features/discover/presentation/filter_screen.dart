@@ -267,9 +267,21 @@ class _FilterUsage extends StatefulWidget {
 }
 
 class _FilterUsageState extends State<_FilterUsage> {
-  late final Map<String, Object?> _initial = filterEventProps(widget.filter, null);
-  late CatalogFilter _filter = widget.filter;
-  late int _results = widget.results;
+  // Set in initState. As `late final … = …` initializers they ran only when
+  // first read — in dispose — so "the choices as the screen opened" were the
+  // choices it closed with, nothing ever differed, and 1.1.2 sent no
+  // filter_apply at all.
+  late final Map<String, Object?> _initial;
+  late CatalogFilter _filter;
+  late int _results;
+
+  @override
+  void initState() {
+    super.initState();
+    _initial = filterEventProps(widget.filter, null);
+    _filter = widget.filter;
+    _results = widget.results;
+  }
 
   @override
   void didUpdateWidget(_FilterUsage old) {
