@@ -276,3 +276,7 @@ verify_jwt = false
 # aniq kalitni tekshiradi.
 [functions.telegram-poll]
 verify_jwt = false
+
+# student-login-v2: live verify_jwt=false (2026-11-05) — ilova tizimga kirmasdan chaqiradi.
+[functions.student-login-v2]
+verify_jwt = false
