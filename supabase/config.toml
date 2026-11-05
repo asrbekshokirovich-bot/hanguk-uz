@@ -261,6 +261,16 @@ verify_jwt = false
 [functions.admission-study-plan-test]
 verify_jwt = true
 
+# 2026-11-05 (xavfsizlik): live == repo tekshirildi, endi shu yerdan joylanadi.
+[functions.guest-test-session]
+verify_jwt = false
+
+[functions.send-mention-notification]
+verify_jwt = true
+
+[functions.test-push]
+verify_jwt = false
+
 # telegram-poll (2026-11-05): pg_cron endi vault'dagi secret_key'ni `apikey`da yuboradi
 # (JWT emas), shuning uchun shlyuz JWT talab qilmaydi; funksiya o'zi authorized()da
 # aniq kalitni tekshiradi.
