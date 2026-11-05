@@ -7,7 +7,7 @@ name: uni-db process uploads
 # uni-db-sync.yml.
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
-#   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
+#   SUPABASE_DB_PASSWORD, UNI_DB_SUPABASE_URL,
 #   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
 #   (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
 # Scheduled runs fire only from the DEFAULT branch — this activates once merged.
@@ -47,7 +47,8 @@ jobs:
       # Paid Claude extraction + translate. No crawl flag — we never scrape here.
       UNI_DB_LIVE_APIS: "true"
       UNI_DB_ENV: "production"
-      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      # 2026-11-05: manzil SUPABASE_DB_PASSWORD'dan yig'iladi — parol bitta joyda saqlanadi.
+      SUPABASE_DB_URL: postgresql://postgres.lysjdtyanhdfphqyijsr:${{ secrets.SUPABASE_DB_PASSWORD }}@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
       SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
       UNI_DB_LLM_BACKEND: "claude_cli"
@@ -88,7 +89,7 @@ jobs:
       - name: Check required secrets are set
         run: |
           if [ -z "${SUPABASE_DB_URL}" ]; then
-            echo "::error::Missing secret UNI_DB_SUPABASE_DB_URL (Settings → Secrets and variables → Actions)."
+            echo "::error::Missing secret SUPABASE_DB_PASSWORD (Settings → Secrets and variables → Actions)."
             exit 1
           fi
           if [ "${UNI_DB_LLM_BACKEND}" = "claude_cli" ]; then
