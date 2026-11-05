@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { requireCaller } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Xavfsizlik (2026-11-05): faqat kirgan foydalanuvchi.
+  const caller = await requireCaller(req, "user", corsHeaders);
+  if (!caller.ok) return caller.response;
 
   try {
     const { imageBase64, expectedDocumentType, language = "uz" } = await req.json();

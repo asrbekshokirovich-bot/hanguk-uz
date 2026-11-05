@@ -223,11 +223,10 @@ function authorized(req: Request): boolean {
   const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!bearer) return false;
   if (bearer === SERVICE_KEY) return true;
-  try {
-    const p = bearer.split(".")[1];
-    const pad = p + "=".repeat((4 - p.length % 4) % 4);
-    return JSON.parse(atob(pad.replace(/-/g, "+").replace(/_/g, "/")))?.role === "service_role";
-  } catch (_e) { return false; }
+  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
+  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
+  // Faqat aniq kalit solishtiriladi.
+  return false;
 }
 
 function knownSecretKeys(): string[] {

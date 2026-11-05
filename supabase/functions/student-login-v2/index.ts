@@ -220,6 +220,19 @@ async function withRetry<T>(
   throw new TransientUpstreamError(stage, summarize(last))
 }
 
+/**
+ * A one-off password nobody can work out (security audit 2026-11-05).
+ *
+ * The old `student-<uuid>-hanguk-A1!` could be computed from the account's own
+ * email (`student-<uuid>@hanguk.local`), so anyone who knew a student's email
+ * could sign in as them. Students never type a password — the magic code
+ * mints the session — so the stored one only has to be unguessable.
+ */
+function randomPassword(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32))
+  return btoa(String.fromCharCode(...bytes)).replace(/[^A-Za-z0-9]/g, '').slice(0, 36) + 'Aa1!'
+}
+
 function isDuplicateEmailError(err: unknown): boolean {
   if (!err) return false
   const message =
@@ -415,7 +428,7 @@ Deno.serve(async (req) => {
 
     // ---------- create branch (with race-safe fallback) ----------
     if (!authUser) {
-      const placeholderPassword = `student-${profile.user_id}-hanguk-A1!`
+      const placeholderPassword = randomPassword()
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email: deterministicEmail,
         password: placeholderPassword,
@@ -519,55 +532,48 @@ Deno.serve(async (req) => {
       // use is logged and should be treated as something to investigate, not
       // as normal operation.
       mintedBy = 'password'
-      const stablePassword = `student-${authUser.id}-hanguk-A1!`
+      // A fresh random password each time (was the guessable
+      // `student-<uuid>-hanguk-A1!`): set it, sign in with it, forget it.
+      const oneOffPassword = randomPassword()
 
-      let { data: sessionData, error: signInErr } = await withRetry('auth.signInWithPassword', () =>
-        signInClient.auth.signInWithPassword({
-          email: authUser!.email,
-          password: stablePassword,
-        }),
+      const { error: updateErr } = await withRetry('auth.updateUserById', () =>
+        admin.auth.admin.updateUserById(authUser!.id, { password: oneOffPassword }),
       )
-
-      if (signInErr) {
-        const { error: updateErr } = await withRetry('auth.updateUserById', () =>
-          admin.auth.admin.updateUserById(authUser!.id, { password: stablePassword }),
-        )
-        if (updateErr) {
-          logEvent({
-            result: 'AUTH_SIGNIN_FAILED',
-            code_mask: codeMask,
-            branch,
-            detail: `password reset failed: ${summarize(updateErr)}`,
-          })
-          return errorResponse(
-            'AUTH_SIGNIN_FAILED',
-            `Password reset failed: ${summarize(updateErr)}`,
-            500,
-          )
-        }
+      if (updateErr) {
         logEvent({
-          result: 'WARN',
+          result: 'AUTH_SIGNIN_FAILED',
           code_mask: codeMask,
           branch,
-          detail: 'OTP mint unavailable and stored password did not match — password was rewritten',
+          detail: `password reset failed: ${summarize(updateErr)}`,
         })
-        ;({ data: sessionData, error: signInErr } = await withRetry(
-          'auth.signInWithPassword.retry',
-          () =>
-            signInClient.auth.signInWithPassword({
-              email: authUser!.email,
-              password: stablePassword,
-            }),
-        ))
-        if (signInErr) {
-          logEvent({
-            result: 'AUTH_SIGNIN_FAILED',
-            code_mask: codeMask,
-            branch,
-            detail: summarize(signInErr),
-          })
-          return errorResponse('AUTH_SIGNIN_FAILED', summarize(signInErr), 500)
-        }
+        return errorResponse(
+          'AUTH_SIGNIN_FAILED',
+          `Password reset failed: ${summarize(updateErr)}`,
+          500,
+        )
+      }
+      logEvent({
+        result: 'WARN',
+        code_mask: codeMask,
+        branch,
+        detail: 'OTP mint unavailable — signed in with a one-off random password',
+      })
+      const { data: sessionData, error: signInErr } = await withRetry(
+        'auth.signInWithPassword',
+        () =>
+          signInClient.auth.signInWithPassword({
+            email: authUser!.email,
+            password: oneOffPassword,
+          }),
+      )
+      if (signInErr) {
+        logEvent({
+          result: 'AUTH_SIGNIN_FAILED',
+          code_mask: codeMask,
+          branch,
+          detail: summarize(signInErr),
+        })
+        return errorResponse('AUTH_SIGNIN_FAILED', summarize(signInErr), 500)
       }
       session = sessionData?.session ?? null
     }
