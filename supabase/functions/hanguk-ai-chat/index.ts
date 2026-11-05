@@ -11,6 +11,7 @@ import { memorySection } from "./tools/memory.ts";
 import { WEB_RULES } from "./tools/web.ts";
 import { SQL_TOOL } from "./tools/sql.ts";
 import { type Caller, toolsFor } from "./tools/types.ts";
+import { allPublicKeys, publishableKey, serviceKey } from "../_shared/keys.ts";
 
 // Hanguk AI 2.0 — one agent for staff (CRM), students and guests (app).
 // Plan: claude/hanguk-ai-reja.md. Who is asking comes from the JWT only
@@ -132,15 +133,15 @@ serve(async (req) => {
   const language = isUzbek(message) ? "uz" : requested;
 
   const url = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
-  const service = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const anonKey = publishableKey();
+  const service = createClient(url, serviceKey());
 
   let caller: Caller;
   let userClient: any;
   try {
     ({ caller, client: userClient } = await resolveCaller(req, body, {
       service,
-      publicKeys: [anonKey, Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || ""].filter(Boolean),
+      publicKeys: allPublicKeys(),
       userClient: (token) => createClient(url, anonKey, {
         global: { headers: { Authorization: `Bearer ${token}` } },
         auth: { persistSession: false, autoRefreshToken: false },

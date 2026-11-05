@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { normalizePhone } from "../_shared/identity.ts";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 interface PhoneInput {
   phone: string;
@@ -82,7 +83,7 @@ Deno.serve(async (req) => {
     // Create Supabase client with service role for admin operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      serviceKey(),
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
@@ -97,7 +98,7 @@ Deno.serve(async (req) => {
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } }
     );
 

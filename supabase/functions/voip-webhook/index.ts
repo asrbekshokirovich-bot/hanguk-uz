@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { resolveIdentity } from "./_shared/identity.ts";
+import { internalFunctionHeaders, serviceKey } from "./_shared/keys.ts";
 
 /**
  * Best-effort nudge to the call-intelligence worker. The DB trigger already
@@ -10,10 +11,9 @@ import { resolveIdentity } from "./_shared/identity.ts";
  */
 function invokeCallProcessor(callId: string): void {
   const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/process-call-recording`;
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const p = fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+    headers: internalFunctionHeaders(),
     body: JSON.stringify({ call_id: callId }),
   })
     .then((r) => (r.ok ? undefined : r.text().then((t) => console.error("processor invoke non-200:", r.status, t.slice(0, 200)))))
@@ -99,7 +99,7 @@ serve(async (req) => {
 
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    serviceKey()
   );
 
   const url = new URL(req.url);

@@ -3,8 +3,9 @@
 // Javob shakli avvalgi Orbit tv-board bilan bir xil, shuning uchun tv.html faqat manzilni almashtiradi.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { serviceKey } from "../_shared/keys.ts";
 
-const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+const db = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey(), {
   auth: { persistSession: false },
 });
 

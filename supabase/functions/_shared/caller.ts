@@ -10,6 +10,7 @@
 // `allowService: true` also lets server-side callers (cron, other functions)
 // through on "user" / "staff" functions.
 import { createClient, type User } from "https://esm.sh/@supabase/supabase-js@2";
+import { publishableKey, secretKeys } from "./keys.ts";
 
 export type CallerLevel = "user" | "staff" | "service";
 
@@ -33,23 +34,14 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** True when the request carries one of this project's server-side keys. */
+/** True when the request carries one of this project's server-side keys
+ *  (an sb_secret_ key or, during the transition, the legacy service_role key),
+ *  on `apikey` or as `Authorization: Bearer`. */
 export function isServiceRequest(req: Request): boolean {
   const candidates = [bearer(req), req.headers.get("apikey")?.trim()].filter((t): t is string => !!t);
   if (candidates.length === 0) return false;
   const keys = [Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), ...secretKeys()].filter((k): k is string => !!k);
   return candidates.some((t) => keys.some((k) => safeEqual(t, k)));
-}
-
-/** Every sb_secret_ key configured for this project, whatever it is named. */
-function secretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) {
-    return [];
-  }
 }
 
 export async function requireCaller(
@@ -75,7 +67,7 @@ export async function requireCaller(
   if (!token) return deny(401, "Missing authorization token");
 
   const url = Deno.env.get("SUPABASE_URL")!;
-  const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const anon = publishableKey();
   const client = createClient(url, anon, {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { autoRefreshToken: false, persistSession: false },

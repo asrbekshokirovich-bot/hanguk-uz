@@ -15,9 +15,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { sendTelegramMessage } from "../_shared/telegram.ts";
 import { alertText, type Alert } from "./alerts.ts";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const CRM_URL = (Deno.env.get("CRM_URL") || "https://hanguk.uz").replace(/\/+$/, "");
 
@@ -61,22 +63,10 @@ Deno.serve(async (req) => {
   return json({ ok: true, alerts: alerts.length, sent: sent.length });
 });
 
-/** A secret key in `apikey`, or the service-role key in `Authorization: Bearer`. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  return bearer !== "" && bearer === SERVICE_KEY;
-}
-
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) {
-    return [];
-  }
+  return isServiceRequest(req);
 }
 
 function json(body: unknown, status = 200): Response {

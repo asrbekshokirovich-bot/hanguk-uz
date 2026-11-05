@@ -6,6 +6,7 @@
 //
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { internalFunctionHeaders, publishableKey, serviceKey as getServiceKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,10 +25,10 @@ Deno.serve(async (req) => {
     if (!authHeader) return json({ error: "Unauthorized" }, 401);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceKey = getServiceKey();
 
     // Identify the caller from their JWT.
-    const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const supabaseUser = createClient(supabaseUrl, publishableKey(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
@@ -45,7 +46,7 @@ Deno.serve(async (req) => {
     // Invoke the worker server-side (it requires the service-role key).
     const res = await fetch(`${supabaseUrl}/functions/v1/process-call-recording`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
+      headers: internalFunctionHeaders(),
       body: JSON.stringify({ call_id, force: !!force }),
     });
     const out = await res.json().catch(() => ({}));

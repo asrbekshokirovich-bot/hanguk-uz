@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendTelegramMedia, sendTelegramMessage } from "../_shared/telegram.ts";
+import { serviceKey } from "../_shared/keys.ts";
 
 // Outgoing Telegram messages. Called by the CRM inbox (MessagesContext.sendMessage)
 // when staff reply to a Telegram thread.
@@ -17,7 +18,7 @@ const corsHeaders = {
 
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 
 const STAFF_ROLES = ["owner", "admin", "call_operator"];
 const CHAT_MEDIA_BUCKET = "chat-media";
@@ -116,7 +117,7 @@ serve(async (req) => {
     // is the point of it, and demanding one here would fail every reply on a
     // correctly configured install.
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     // --- Authenticate the caller and require a staff role ---
     const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "").trim();

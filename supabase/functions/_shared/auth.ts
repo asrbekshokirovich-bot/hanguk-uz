@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ApiError } from "./error-handler.ts";
+import { publishableKey } from "./keys.ts";
 
 export async function requireAuth(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -9,7 +10,7 @@ export async function requireAuth(req: Request) {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const supabaseAnonKey = publishableKey();
   
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new ApiError(500, "Supabase environment variables missing");
