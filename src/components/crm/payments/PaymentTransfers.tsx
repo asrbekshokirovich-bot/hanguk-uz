@@ -10,6 +10,7 @@ import { formatAmount } from '@/hooks/useStudentPlan';
 import { getPaymentMethodLabel } from '@/lib/paymentUtils';
 import { addReceiptsToTransfer } from '@/lib/recordInstallment';
 import { receiptsOf } from '@/lib/paymentBalance';
+import { SignedReceiptLink } from '@/components/payments/SignedReceipt';
 
 export interface TransferRow {
   id: string;
@@ -99,16 +100,14 @@ export function PaymentTransfers({
                 )}
                 <div className="ml-auto flex flex-wrap items-center gap-1.5">
                   {receipts.map((url, i) => (
-                    <a
+                    <SignedReceiptLink
                       key={url}
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
+                      url={url}
                       title={t('payments.installment.receiptN', { n: i + 1 })}
                       className="block h-9 w-9 overflow-hidden rounded border bg-muted"
                     >
-                      <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
-                    </a>
+                      {(href) => href && <img src={href} alt="" className="h-full w-full object-cover" loading="lazy" />}
+                    </SignedReceiptLink>
                   ))}
                   {receipts.length === 0 && (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">

@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FileText, Upload, X, Loader2 } from 'lucide-react';
 import { type FeeReceipt, MAX_FEE_RECEIPTS, addReceipts } from '@/lib/applicationFeeReceipts';
+import { SignedReceiptImg, SignedReceiptLink } from '@/components/payments/SignedReceipt';
 
 export type { FeeReceipt } from '@/lib/applicationFeeReceipts';
 
@@ -108,10 +109,8 @@ export function FeeReceiptUpload({ value, onChange, studentId, disabled }: FeeRe
               key={r.url}
               className="flex min-w-0 items-center justify-between gap-2 rounded-lg border bg-muted/30 px-2 py-1.5"
             >
-              <a
-                href={r.url}
-                target="_blank"
-                rel="noreferrer"
+              <SignedReceiptLink
+                url={r.url}
                 className="flex min-w-0 items-center gap-2 text-sm text-primary hover:underline"
               >
                 {isPdf(r) ? (
@@ -119,10 +118,10 @@ export function FeeReceiptUpload({ value, onChange, studentId, disabled }: FeeRe
                     <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   </span>
                 ) : (
-                  <img src={r.url} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+                  <SignedReceiptImg url={r.url} className="h-8 w-8 shrink-0 rounded object-cover" />
                 )}
                 <span className="shrink-0">{value.length > 1 ? `${i + 1}-chek` : "Chekni ko'rish"}</span>
-              </a>
+              </SignedReceiptLink>
               {!disabled && (
                 <Button
                   type="button"

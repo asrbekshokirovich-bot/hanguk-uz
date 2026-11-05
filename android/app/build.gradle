@@ -16,12 +16,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Xavfsizlik (2026-11-05): kalit va parollar repoda turmaydi. android/keystore.properties
+    // (gitignore'da) yoki muhit o'zgaruvchilari: ANDROID_KEYSTORE_FILE, ANDROID_KEYSTORE_PASSWORD,
+    // ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD.
+    def ksProps = new Properties()
+    def ksFile = rootProject.file('keystore.properties')
+    if (ksFile.exists()) { ksFile.withInputStream { ksProps.load(it) } }
+    def ks = { String k, String env -> ksProps.getProperty(k) ?: System.getenv(env) }
     signingConfigs {
         release {
-            storeFile file('upload-keystore.jks')
-            storePassword 'strongpassword123'
-            keyAlias 'upload'
-            keyPassword 'strongpassword123'
+            if (ks('storeFile', 'ANDROID_KEYSTORE_FILE')) {
+                storeFile file(ks('storeFile', 'ANDROID_KEYSTORE_FILE'))
+                storePassword ks('storePassword', 'ANDROID_KEYSTORE_PASSWORD')
+                keyAlias ks('keyAlias', 'ANDROID_KEY_ALIAS') ?: 'upload'
+                keyPassword ks('keyPassword', 'ANDROID_KEY_PASSWORD')
+            }
         }
     }
     buildTypes {

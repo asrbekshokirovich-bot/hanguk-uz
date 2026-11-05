@@ -43,7 +43,11 @@ on:
     #
     # Nothing depends on the exact minute — the watcher compares against its
     # own ledger, not against a clock.
-    - cron: "17 * * * *"
+    #
+    # 2026-11-05: har soat (oyiga ~2 900 daqiqa) o'rniga kuniga 4 marta —
+    # Toshkent 08:17, 12:17, 16:17, 20:17 (~480 daqiqa/oy). Private repo'da
+    # bepul limit oyiga 2 000 daqiqa.
+    - cron: "17 3,7,11,15 * * *"
   workflow_dispatch:
     inputs:
       limit:

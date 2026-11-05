@@ -662,18 +662,29 @@ async function status(missing: string[]) {
 
 // ------------------------------------------------------------------- helpers
 
-/** Service-role callers only: pg_cron with the vault JWT, or an operator. */
+/** Server callers only: pg_cron with the vault secret key (apikey), or the service key. */
 function authorized(req: Request): boolean {
+  const apikey = (req.headers.get("apikey") || "").trim();
+  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
+
   const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!bearer) return false;
   if (bearer === SUPABASE_SERVICE_ROLE_KEY) return true;
+  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
+  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
+  // Faqat aniq kalit solishtiriladi.
+  return false;
+}
+
+/** Every sb_secret_ key configured for this project, whatever it is named. */
+function knownSecretKeys(): string[] {
   try {
-    const payload = bearer.split(".")[1];
-    const pad = payload + "=".repeat((4 - payload.length % 4) % 4);
-    const claims = JSON.parse(atob(pad.replace(/-/g, "+").replace(/_/g, "/")));
-    return claims?.role === "service_role";
+    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Object.values(parsed).filter((v): v is string => typeof v === "string");
   } catch (_e) {
-    return false;
+    return [];
   }
 }
 

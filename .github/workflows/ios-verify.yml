@@ -56,21 +56,8 @@ name: iOS build verification
 # the Actions workflow parser does not support anchors, and a workflow that
 # fails to parse never runs at all.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'hanguk_app/ios/**'
-      - 'hanguk_app/pubspec.yaml'
-      - 'hanguk_app/pubspec.lock'
-      - 'hanguk_app/packages/vapi/**'
-      - '.github/workflows/ios-verify.yml'
-  pull_request:
-    paths:
-      - 'hanguk_app/ios/**'
-      - 'hanguk_app/pubspec.yaml'
-      - 'hanguk_app/pubspec.lock'
-      - 'hanguk_app/packages/vapi/**'
-      - '.github/workflows/ios-verify.yml'
+  # Actions daqiqalari (2026-11-05): repo private bo'ldi — oyiga 2 000 daqiqa, macOS x10.
+  # macOS daqiqasi x10 hisoblanadi (bitta tekshiruv ~8 daqiqa = ~84 hisob daqiqasi) — faqat qo'lda.
   workflow_dispatch:
     inputs:
       flutter_version:

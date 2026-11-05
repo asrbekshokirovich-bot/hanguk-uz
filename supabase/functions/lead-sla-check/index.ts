@@ -204,12 +204,10 @@ function authorized(req: Request): boolean {
   const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!bearer) return false;
   if (bearer === SUPABASE_SERVICE_ROLE_KEY) return true;
-  try {
-    const payload = bearer.split(".")[1];
-    const pad = payload + "=".repeat((4 - payload.length % 4) % 4);
-    const claims = JSON.parse(atob(pad.replace(/-/g, "+").replace(/_/g, "/")));
-    return claims?.role === "service_role";
-  } catch (_e) { return false; }
+  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
+  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
+  // Faqat aniq kalit solishtiriladi.
+  return false;
 }
 
 /** Every sb_secret_ key configured for this project, whatever it is named. */
