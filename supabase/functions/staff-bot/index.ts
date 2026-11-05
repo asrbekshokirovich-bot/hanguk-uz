@@ -29,6 +29,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
 import { structuredJSON } from "./ai.ts";
+import { runDeadlines, runNotify } from "./notify.ts";
 import {
   escapeHtml,
   type MorningBrief,
@@ -1043,6 +1044,12 @@ Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get("action") === "report") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
     return await reportCron(new URL(req.url).searchParams.get("kind") ?? "");
+  }
+  // Bildirishnomalar navbati (trigger darhol + cron) va muddat nazorati — notify.ts
+  const act = new URL(req.url).searchParams.get("action");
+  if (act === "notify" || act === "deadlines") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return json(await (act === "notify" ? runNotify : runDeadlines)({ db, send, taskButtons }));
   }
 
   if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {
