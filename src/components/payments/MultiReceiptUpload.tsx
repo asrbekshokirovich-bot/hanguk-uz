@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Image, X, Clipboard, Loader2, Plus } from 'lucide-react';
+import { SignedReceiptImg } from '@/components/payments/SignedReceipt';
 
 interface MultiReceiptUploadProps {
   value?: string[];
@@ -212,8 +213,8 @@ export function MultiReceiptUpload({
         <div className="grid grid-cols-3 gap-2">
           {value.map((url, index) => (
             <div key={index} className="relative rounded-lg border overflow-hidden aspect-square">
-              <img 
-                src={url} 
+              <SignedReceiptImg
+                url={url}
                 alt={`Receipt ${index + 1}`} 
                 className="w-full h-full object-cover"
               />

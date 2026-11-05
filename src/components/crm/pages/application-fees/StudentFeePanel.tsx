@@ -15,6 +15,7 @@ import {
 } from '@/hooks/useApplicationFeePayments';
 import { InstitutionPickerDialog } from './InstitutionPickerDialog';
 import { FeeReceiptUpload, type FeeReceipt } from './FeeReceiptUpload';
+import { SignedReceiptLink } from '@/components/payments/SignedReceipt';
 
 interface FeeBlock {
   key: string;
@@ -384,27 +385,23 @@ export function StudentFeePanel({ studentId }: Props) {
                           <>
                             {' · '}
                             {p.receipts.length === 1 ? (
-                              <a
-                                href={p.receipts[0].url}
-                                target="_blank"
-                                rel="noreferrer"
+                              <SignedReceiptLink
+                                url={p.receipts[0].url}
                                 className="text-primary hover:underline"
                               >
                                 chek
-                              </a>
+                              </SignedReceiptLink>
                             ) : (
                               <>
                                 {p.receipts.length} ta chek:{' '}
                                 {p.receipts.map((r, i) => (
-                                  <a
+                                  <SignedReceiptLink
                                     key={r.url}
-                                    href={r.url}
-                                    target="_blank"
-                                    rel="noreferrer"
+                                    url={r.url}
                                     className="mr-1 text-primary hover:underline"
                                   >
                                     {i + 1}
-                                  </a>
+                                  </SignedReceiptLink>
                                 ))}
                               </>
                             )}
