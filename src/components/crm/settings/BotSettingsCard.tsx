@@ -19,7 +19,7 @@ const sb = supabase as unknown as { rpc: (fn: string, args?: Record<string, unkn
 
 const EDITABLE = [
   'report_enabled', 'report_time', 'reminder_times', 'digest_time',
-  'morning_enabled', 'morning_time', 'workdays', 'digest_user_ids', 'group_ai_mode',
+  'morning_enabled', 'morning_time', 'group_digest_enabled', 'workdays', 'digest_user_ids', 'group_ai_mode',
 ] as const;
 const AI_MODES = ['off', 'shadow', 'on'] as const;
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
@@ -129,6 +129,14 @@ export function BotSettingsCard() {
           <div className="max-w-[200px] space-y-1">
             <Label className="text-xs text-muted-foreground">{t('crm.botSettings.morningTime')}</Label>
             <Input type="time" min="05:00" value={form.morning_time} onChange={(e) => set('morning_time', e.target.value)} className={err('morning_time')} />
+          </div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label>{t('crm.botSettings.groupDigest')}</Label>
+              <p className="text-xs text-muted-foreground">{t('crm.botSettings.groupDigestHint')}</p>
+            </div>
+            <Switch checked={form.group_digest_enabled !== 'false'} disabled={!s.group_chat_id}
+              onCheckedChange={(v) => set('group_digest_enabled', String(v))} />
           </div>
         </div>
 

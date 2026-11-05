@@ -481,6 +481,8 @@
       "digestTime": "Summary time",
       "morning": "Morning task list",
       "morningTime": "Time",
+      "groupDigest": "Team digest to the group",
+      "groupDigestHint": "At this time, to the staff group: overdue and today's tasks (per person), new leads, documents waiting, application deadlines in 7 days, yesterday's reports (with who didn't submit).",
       "workdays": "Workdays",
       "needDay": "Select at least one day",
       "day1": "Mon",

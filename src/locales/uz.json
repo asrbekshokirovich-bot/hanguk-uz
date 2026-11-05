@@ -528,6 +528,8 @@
       "digestTime": "Xulosa vaqti",
       "morning": "Ertalabki vazifalar ro'yxati",
       "morningTime": "Vaqt",
+      "groupDigest": "Guruhga jamoa xulosasi",
+      "groupDigestHint": "Shu vaqtda «Staff» guruhiga: kechikkan va bugungi vazifalar (har xodim bo'yicha), yangi lidlar, kutayotgan hujjatlar, 7 kunlik ariza muddatlari, kechagi hisobot (kim topshirmagani bilan).",
       "workdays": "Ish kunlari",
       "needDay": "Kamida bitta kun tanlang",
       "day1": "Du",

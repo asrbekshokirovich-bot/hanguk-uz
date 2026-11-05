@@ -249,3 +249,80 @@ Deno.test("HELP_GUIDE: barcha bo'limlar va HTML teglari yopiq", () => {
   }
   assertEquals(HELP_GUIDE.length < 4000, true);
 });
+
+import { type GroupDigest, renderBrief, renderGroupDigest } from "./core.ts";
+
+const DIGEST: GroupDigest = {
+  date: "2026-11-05", weekday: 4, prev_date: "2026-11-04",
+  counts: { open: 16, overdue: 6, today: 4, done: 1 },
+  people: [
+    {
+      name: "Xo'jamurod", overdue: 1, today: 1, tasks: [
+        { title: "Kamera <integratsiya>", due: "2026-11-03T17:00:00+00:00", kind: "overdue", late_days: 2, wip: true, hi: false },
+        { title: "Rejani yakunla", due: "2026-11-05T13:00:00+00:00", kind: "today", late_days: 0, wip: false, hi: true },
+      ],
+    },
+    {
+      name: "Olmos", overdue: 7, today: 0,
+      tasks: Array.from({ length: 7 }, (_, i) => ({
+        title: `V${i}`, due: "2026-10-15T00:00:00+00:00", kind: "overdue" as const, late_days: 21, wip: false, hi: false,
+      })),
+    },
+  ],
+  brief: {
+    new_leads: 15, docs_waiting: 7, docs_waiting_student: 5, docs_waiting_ai: 2,
+    deadlines: [{ university: "Gyeongsang", date: "2026-11-11", days_left: 6, students: 1 }],
+  },
+  reports: { submitted: 1, expected: 3, missing: ["Diyora", "Omina"] },
+};
+
+Deno.test("renderGroupDigest: sarlavha, sonlar, xodimlar, brifing, hisobot", () => {
+  const t = renderGroupDigest(DIGEST);
+  assertEquals(t.startsWith("☀️ <b>Xayrli tong, jamoa!</b> Payshanba, 05.11"), true, t);
+  assertEquals(t.includes("📋 <b>Vazifalar:</b> ochiq 16 · 🔴 kechikkan 6 · 🟡 bugun 4"), true);
+  assertEquals(t.includes("✅ Kecha bajarildi: 1"), true);
+  assertEquals(t.includes("👤 <b>Xo'jamurod</b> — 🔴 1 · 🟡 1"), true);
+  // HTML qochiriladi; kechikkan — sana va kun; bugungi — soat; ❗ va ▶ belgilari
+  assertEquals(t.includes("🔴 Kamera &lt;integratsiya&gt; — 03.11, 2 kun kechikdi ▶"), true, t);
+  assertEquals(t.includes("🟡 Rejani yakunla — 18:00 gacha ❗"), true, t);
+  // hammasi ko'rsatiladi (standart); cheklov berilsa — «yana N ta»
+  assertEquals(t.includes("🔴 V6 —"), true);
+  assertEquals(t.includes("… yana"), false);
+  const short = renderGroupDigest(DIGEST, 5);
+  assertEquals(short.includes("🔴 V5 —"), false);
+  assertEquals(short.includes("… yana 2 ta"), true);
+  assertEquals(t.includes("👤 <b>Olmos</b> — 🔴 7"), true);
+  assertEquals(t.includes("• Yangi lidlar (24 soat): <b>15</b>"), true);
+  assertEquals(t.includes("• Tekshiruvni kutayotgan hujjatlar: <b>7</b> (talaba yuklagan: 5, AI tarjima: 2)"), true);
+  assertEquals(t.includes("• Gyeongsang — 11.11 (6 kun), talabalar: 1"), true);
+  assertEquals(t.includes("📝 Kechagi kunlik hisobot: <b>1/3</b> xodim topshirdi\nTopshirmaganlar: Diyora, Omina"), true, t);
+});
+
+Deno.test("renderGroupDigest: dushanba — shanbadan beri; bo'sh kun", () => {
+  const t = renderGroupDigest({
+    ...DIGEST, date: "2026-11-09", weekday: 1, prev_date: "2026-11-07",
+    people: [], brief: { new_leads: 0, docs_waiting: 0, deadlines: [] }, reports: { submitted: 0, expected: 0 },
+  });
+  assertEquals(t.includes("Dushanba, 09.11"), true);
+  assertEquals(t.includes("✅ Shanbadan beri bajarildi: 1"), true);
+  assertEquals(t.includes("Kechikkan va bugungi vazifa yo'q"), true);
+  assertEquals(t.includes("Ish holati"), false);
+  assertEquals(t.includes("kunlik hisobot"), false); // kutilgan 0 — qator chiqmaydi
+  const t2 = renderGroupDigest({ ...DIGEST, date: "2026-11-09", weekday: 1, prev_date: "2026-11-07" });
+  assertEquals(t2.includes("📝 Shanba kungi kunlik hisobot: <b>1/3</b>"), true);
+  // CRM sana tanlagichi (00:00 UTC) — soat ko'rsatilmaydi
+  const t3 = renderGroupDigest({ ...DIGEST, people: [{ name: "A", overdue: 0, today: 1, tasks: [
+    { title: "Sana", due: "2026-11-05T00:00:00+00:00", kind: "today", late_days: 0, wip: false, hi: false }] }] });
+  assertEquals(t3.includes("🟡 Sana\n") || t3.endsWith("🟡 Sana"), true, t3);
+});
+
+Deno.test("renderBrief: muddatlar bo'limi o'zgarmadi", () => {
+  const t = renderBrief({ new_leads: 2, my_new_leads: 1, my_overdue_tasks: 0, docs_waiting: 0, deadlines: DIGEST.brief!.deadlines });
+  assertEquals(t, [
+    "📊 <b>Bugungi brifing</b>",
+    "• Yangi lidlar (24 soat): <b>2</b>, sizga: <b>1</b>",
+    "",
+    "⏰ <b>7 kun ichida onlayn ariza muddati</b>",
+    "• Gyeongsang — 11.11 (6 kun), talabalar: 1",
+  ].join("\n"));
+});
