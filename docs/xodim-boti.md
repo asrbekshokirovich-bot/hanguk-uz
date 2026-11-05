@@ -33,10 +33,10 @@ Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir mart
 | har soat | 24 soatlik takliflar → expired | `staff-bot-proposals-expire` |
 | 02:30 | 90 kundan eski guruh xabarlari o'chiriladi | `staff-bot-group-retention` |
 | darhol + har 5 daqiqa, 08:00–21:55 (har kuni) | bildirishnomalar navbati (`bot_notifications`) → DM; tunda yig'iladi, 08:00 da ketadi | `staff-bot-notify` |
-| har 15 daqiqa, 08:00–21:45 (har kuni) | muddat nazorati: 1 soat qoldi → mas'ul; o'tdi → mas'ul + beruvchi; 2 kundan oshdi → ownerlarga yig'ma | `staff-bot-deadlines` |
+| har 15 daqiqa, 08:00–21:45 (ish kunlari — `workdays`; yakshanbagisi dushanba 08:00 da) | muddat nazorati: 1 soat qoldi → mas'ul; o'tdi → mas'ul + beruvchi; 2 kundan oshdi → ownerlarga yig'ma | `staff-bot-deadlines` |
 
 Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida).
-`staff-bot-notify` va `staff-bot-deadlines` sozlamadan o'zgarmaydi (migratsiya `20261105150000`), `bot_apply_schedule()` ularga tegmaydi.
+`staff-bot-notify` va `staff-bot-deadlines` sozlamadan o'zgarmaydi (migratsiya `20261105153000`), `bot_apply_schedule()` ularga tegmaydi.
 
 ## Bildirishnomalar va muddat nazorati
 `task_events` → trigger `trg_task_events_notify` → `bot_notifications` (outbox) → shu zahoti `net.http_post(?action=notify)`; zaxira — cron.

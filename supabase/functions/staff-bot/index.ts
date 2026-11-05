@@ -1049,7 +1049,9 @@ Deno.serve(async (req) => {
   const act = new URL(req.url).searchParams.get("action");
   if (act === "notify" || act === "deadlines") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
-    return json(await (act === "notify" ? runNotify : runDeadlines)({ db, send, taskButtons }));
+    return json(await (act === "notify" ? runNotify : runDeadlines)({
+      db, send, taskButtons, workdays: () => settingValue("workdays"),
+    }));
   }
 
   if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {

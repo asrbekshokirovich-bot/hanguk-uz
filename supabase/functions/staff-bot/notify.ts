@@ -11,6 +11,8 @@
 //   escalation — 2 kundan ortiq kechikdi (D6): ownerlarga bitta yig'ma xabar.
 //   Har biri bir marta: task_reminders(task_id, kind, due_date) — muddat o'zgarsa qayta ishlaydi.
 // Tungi soatlar (22:00–08:00 Toshkent) — hech narsa yuborilmaydi, navbat ertalab yuboriladi.
+// Dam olish kuni (bot_settings.workdays'da yo'q kun, odatda yakshanba) muddat eslatmalari yuborilmaydi —
+// keyingi ish kuni 08:00 da ketadi. CRM voqealari (B1-1) — odam qilgan ish, ular har kuni boradi.
 // Sof qismlar (matnlar, tanlash qoidalari) notify_test.ts bilan sinaladi.
 
 import { escapeHtml, fmtDue, renderTaskCard, splitMessage, tashkentDayStart, type TaskRow, TZ_OFFSET_MIN } from "./core.ts";
@@ -29,6 +31,8 @@ export interface NotifyDeps {
   send: (chatId: number, text: string, extra?: Record<string, unknown>) => Promise<SendResult>;
   /** index.ts'dagi ▶/✅ tugmalari. */
   taskButtons: (t: TaskRow) => unknown;
+  /** bot_settings.workdays (masalan «1,2,3,4,5,6»). Berilmasa — har kuni. */
+  workdays?: () => Promise<string>;
   now?: () => number;
 }
 
@@ -46,6 +50,14 @@ const OPEN = new Set(["todo", "in_progress"]);
 export function isQuietHours(nowMs: number): boolean {
   const h = new Date(nowMs + TZ_OFFSET_MIN * 60_000).getUTCHours();
   return h >= 22 || h < 8;
+}
+
+/** Ish kunimi: workdays — ISO hafta kunlari (1 — dushanba … 7 — yakshanba), bo'sh bo'lsa har kuni. */
+export function isWorkday(nowMs: number, workdays: string | null | undefined): boolean {
+  const days = String(workdays ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (!days.length) return true;
+  const dow = new Date(nowMs + TZ_OFFSET_MIN * 60_000).getUTCDay() || 7;
+  return days.includes(String(dow));
 }
 
 const isUtcMidnight = (t: number) => t % DAY_MS === 0;
@@ -316,6 +328,7 @@ export function renderEscalation(tasks: DeadlineTask[], nowMs: number, max = 30)
 export async function runDeadlines(deps: NotifyDeps): Promise<Record<string, unknown>> {
   const now = (deps.now ?? Date.now)();
   if (isQuietHours(now)) return { ok: true, quiet: true };
+  if (deps.workdays && !isWorkday(now, await deps.workdays())) return { ok: true, offday: true };
   const { data, error } = await deps.db.rpc("bot_deadline_candidates");
   if (error) {
     console.error("bot_deadline_candidates:", error.message);

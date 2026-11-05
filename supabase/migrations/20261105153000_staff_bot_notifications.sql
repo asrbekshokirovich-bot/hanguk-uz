@@ -25,6 +25,8 @@
 --
 -- Tungi soatlar 22:00–08:00 (Toshkent): xabar yuborilmaydi — cron'lar faqat 08:00–21:55 ishlaydi,
 -- funksiya ham tunda navbatni ushlab turadi; ertalab birinchi chaqiruv yuboradi.
+-- Dam olish kuni (bot_settings.workdays'da yo'q, odatda yakshanba) muddat eslatmalari yuborilmaydi (notify.ts) —
+-- keyingi ish kuni 08:00 da ketadi.
 --
 -- BOSHLANG'ICH BELGILASH: prod'da Orbit'dan ko'chirilgan, 100 kundan ortiq kechikkan eski vazifalar bor.
 -- Birinchi ishga tushishda ular bo'yicha birdaniga xabar ketmasligi uchun migratsiya paytida allaqachon

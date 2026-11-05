@@ -9,6 +9,7 @@ import {
   escalationFor,
   failureOutcome,
   isQuietHours,
+  isWorkday,
   lateDays,
   type OutboxRow,
   overdueAt,
@@ -349,6 +350,30 @@ Deno.test("runDeadlines: band qilinganlarga bir marta — mas'ul, beruvchi, owne
     [900, null, "🚨 <b>Muddatidan 2 kundan ortiq o'tgan vazifalar: 1</b>"], // O1: o'z vazifasi (D5) kirmaydi
     [901, null, "🚨 <b>Muddatidan 2 kundan ortiq o'tgan vazifalar: 2</b>"],
   ]);
+});
+
+Deno.test("isWorkday: workdays bo'yicha (Toshkent kuni), bo'sh — har kuni", () => {
+  const W = "1,2,3,4,5,6";
+  assertEquals(isWorkday(T("2026-11-08T05:00:00Z"), W), false); // yakshanba 10:00
+  assertEquals(isWorkday(T("2026-11-07T18:59:00Z"), W), true); // shanba 23:59
+  assertEquals(isWorkday(T("2026-11-08T19:00:00Z"), W), true); // yakshanba 19:00 UTC = dushanba 00:00
+  assertEquals(isWorkday(T("2026-11-08T05:00:00Z"), ""), true);
+  assertEquals(isWorkday(T("2026-11-08T05:00:00Z"), "1,2,3,4,5,6,7"), true);
+});
+
+Deno.test("runDeadlines: dam olish kuni ishlamaydi (bazaga ham murojaat yo'q)", async () => {
+  const { db, log } = fakeDb({ bot_deadline_candidates: [task({ due_date: "2026-11-07T11:00:00+00:00" })] });
+  const { send, sent } = fakeSend();
+  const r = await runDeadlines({
+    db, send, taskButtons, workdays: () => Promise.resolve("1,2,3,4,5,6"), now: () => T("2026-11-08T05:00:00Z"),
+  });
+  assertEquals(r, { ok: true, offday: true });
+  assertEquals([log.length, sent.length], [0, 0]);
+  // ish kuni — odatdagidek
+  const r2 = await runDeadlines({
+    db, send, taskButtons, workdays: () => Promise.resolve("1,2,3,4,5,6"), now: () => DNOW,
+  });
+  assertEquals(r2.ok && !("offday" in r2), true);
 });
 
 Deno.test("runDeadlines: kerakli eslatma yo'q — band qilish ham, yuborish ham yo'q", async () => {

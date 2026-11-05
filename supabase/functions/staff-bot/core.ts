@@ -352,7 +352,7 @@ export const HELP_GUIDE = [
   "/help — shu qo'llanma",
   "",
   "Har kuni 09:00 da (Du–Sha) kechikkan va bugungi vazifalaringizni yuboraman.",
-  "🔔 CRM'da sizga vazifa berilsa yoki muddati o'zgarsa, bergan vazifangiz boshlansa yoki CRM'da yopilsa, muddatga 1 soat qolganda va muddat o'tganda ham yozaman (22:00–08:00 da yozmayman).",
+  "🔔 CRM'da sizga vazifa berilsa yoki muddati o'zgarsa, bergan vazifangiz boshlansa yoki CRM'da yopilsa, muddatga 1 soat qolganda va muddat o'tganda ham yozaman (22:00–08:00 da yozmayman; muddat eslatmalari — faqat ish kunlari).",
 ].join("\n");
 
 // ── PR-3: vazifa matnini ajratish (deterministik; AI faqat sarlavhani tozalaydi) ──
