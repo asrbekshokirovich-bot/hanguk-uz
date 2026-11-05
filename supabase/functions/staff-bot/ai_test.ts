@@ -46,3 +46,16 @@ Deno.test("Ikkalasi ham ishlamasa — null", async () => {
     stub(() => resp(500, {}), () => resp(529, {}), []));
   assertEquals(r, { data: null, provider: null });
 });
+
+Deno.test("Claude so'roviga temperature qo'shilmaydi (yangi modellar 400 beradi)", async () => {
+  let body: Record<string, unknown> = {};
+  const f = ((url: string | URL | Request, init?: RequestInit) => {
+    if (String(url).includes("generativelanguage")) return Promise.resolve(resp(429, {}));
+    body = JSON.parse(String(init?.body));
+    return Promise.resolve(claudeOk());
+  }) as typeof fetch;
+  const r = await structuredJSON({ ...ARGS, temperature: 0 }, env({ GEMINI_API_KEY: "g", ANTHROPIC_API_KEY: "c" }), f);
+  assertEquals(r.provider, "claude");
+  assertEquals("temperature" in body, false);
+  assertEquals(body.model, "claude-haiku-5-5");
+});
