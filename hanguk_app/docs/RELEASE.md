@@ -104,8 +104,11 @@ distribution.
 1. Bump `pubspec.yaml` — increment both the version (`x.y.z`) AND the
    build number after `+`. Build number must be monotonically increasing
    for Android to accept the update.
-2. Build:
+2. Build (the first command fills `assets/data/` with the current
+   catalogue rows a first launch shows while the network loads; CI runs it
+   in every build workflow — don't commit the filled files):
    ```bash
+   dart run tools/fetch_data_snapshots.dart
    flutter build apk --release --obfuscate \
      --split-debug-info=./debug-info/$(date +%Y%m%d-%H%M%S)/
    ```

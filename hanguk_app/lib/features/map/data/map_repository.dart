@@ -2,7 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/cache/cached_rows.dart';
+import '../../../core/cache/snapshot_queries.dart';
 import '../domain/university.dart';
+
+final _mapRows = CachedRows('map_universities', query: kSnapshotReads[kMapAsset]!, asset: kMapAsset);
 
 /// Audit K1 / M1 (2026-05-11): the legacy `universities` table this
 /// provider used to query was dropped on 2026-05-10 by
@@ -17,36 +21,34 @@ import '../domain/university.dart';
 /// catch blocks below preserve the structured `debugPrint` for
 /// diagnostics, then rethrow so the UI distinguishes "no
 /// institutions yet" from "the network is down."
+///
+/// The columns are [kMapColumns] (virtual_tour/walkaround_url: migration
+/// 20260512120000; primary_domain: 20260728120000; has_intake_data — a
+/// non-superseded cycle for the CRM's default intake, which guest Explore
+/// lists: 20260914000000). The last rows read, or the copy shipped in the
+/// app, show at once while the network brings the current ones
+/// ([CachedRows]).
 final universitiesProvider = FutureProvider<List<University>>((ref) async {
   try {
-    final data = await Supabase.instance.client
-        .from('v_institutions_for_map')
-        .select(
-          'id, name_ko, name_ko_short, name_en, name_uz, '
-          'city_ko, latitude, longitude, logo_url, tier, '
-          'ieqas_status, is_partner, is_visible_on_map, '
-          'last_verified_at, next_event_at, '
-          // Audit M17 / M18 (2026-05-12): pulled from
-          // migration 20260512120000_institutions_virtual_tour.sql.
-          'virtual_tour, walkaround_url, '
-          // primary_domain drives the "Visit University Website" button
-          // (migration 20260728120000). All institutions have it populated.
-          'primary_domain, '
-          // True when we hold a non-superseded admission cycle for the CRM's
-          // default intake (migration 20260914000000). Guest Explore lists
-          // only these, so the flag follows `intakes.is_default` rather than
-          // any hardcoded season.
-          'has_intake_data',
-        )
-        .eq('is_visible_on_map', true)
-        // No `ranking` column on the new view — `tier` is the closest
-        // proxy (0 = flagship, 4 = unclassified). NULLS LAST so
-        // unclassified institutions sort to the bottom.
-        .order('tier', ascending: true, nullsFirst: false)
-        // Weak-network guard: fail (→ Retry) instead of an endless spinner.
-        .timeout(const Duration(seconds: 20));
+    final data = await _mapRows.load(
+      () => Supabase.instance.client
+          .from(kMapView)
+          .select(kMapColumns)
+          .eq('is_visible_on_map', true)
+          // No `ranking` column on the new view — `tier` is the closest
+          // proxy (0 = flagship, 4 = unclassified). NULLS LAST so
+          // unclassified institutions sort to the bottom.
+          .order('tier', ascending: true, nullsFirst: false)
+          // Weak-network guard: fail (→ Retry) instead of an endless spinner.
+          .timeout(const Duration(seconds: 20)),
+      onFresh: () {
+        try {
+          ref.invalidateSelf();
+        } catch (_) {}
+      },
+    );
 
-    return (data as List).map((row) {
+    return data.map((row) {
       final map = row as Map<String, dynamic>;
 
       // Display-name resolution priority: en → uz → ko_short → ko.

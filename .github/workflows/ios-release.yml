@@ -215,6 +215,9 @@ jobs:
           set -euo pipefail
           flutter --version
           flutter pub get
+          # Catalogue copies for a first launch (lib/core/cache/cached_rows.dart);
+          # a failed read keeps the placeholder.
+          dart run tools/fetch_data_snapshots.dart || true
           # STORE_BUILD=true removes the in-app self-update path. Google Play
           # blocked a release over it once; an App Store binary without it
           # invites guideline 2.5.2.
