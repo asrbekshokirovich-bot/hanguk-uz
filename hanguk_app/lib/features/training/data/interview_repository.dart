@@ -820,7 +820,7 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
-          'apikey': AppConfig.supabaseAnonKey,
+          'apikey': AppConfig.supabasePublishableKey,
         },
         body: jsonEncode({'text': text, 'voiceId': voiceId}),
       );

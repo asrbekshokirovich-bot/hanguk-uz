@@ -7,10 +7,16 @@ class AppConfig {
   // ── Supabase ─────────────────────────────────────────────────────────────
   static const String supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
 
-  /// The Supabase anonymous key. This is intentionally a public key — it is
-  /// safe to ship in the client, but should never be a service_role key.
-  static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs';
+  /// The Supabase publishable key (`sb_publishable_…`). Public by design —
+  /// safe to ship in the client; it is never a secret/service_role key.
+  ///
+  /// It replaced the legacy anon JWT (2026-11-05) so the legacy keys can be
+  /// turned off. It is NOT a JWT: send it only in the `apikey` header, never
+  /// as `Authorization: Bearer` — that header carries the user's access token
+  /// when signed in, and is left out otherwise. supabase_flutter does this
+  /// itself; hand-written http calls must too.
+  static const String supabasePublishableKey =
+      'sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3';
 
   // ── Vapi (WebRTC voice AI) ────────────────────────────────────────────────
   /// Public key for the Vapi WebRTC service. Safe to include in client builds.

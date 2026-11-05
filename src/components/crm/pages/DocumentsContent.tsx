@@ -118,7 +118,9 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
   const [pendingDelete, setPendingDelete] = useState<Tables<'documents'> | null>(null);
 
   const packs = useMemo(() => {
-    return students.map((s) => {
+    // Test/demo profiles (e.g. the Google Play reviewer) are not real students;
+    // listing them first made them the silent upload target (2026-11-05).
+    return students.filter((s) => !(s as { is_demo?: boolean | null }).is_demo).map((s) => {
       const docs = s.documents ?? [];
       const { slots, requiredTotal, requiredVerified: verifiedCount } = buildApplicationPack(docs);
       // Final / first sent university, else the first confirmed choice.
@@ -164,7 +166,12 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
     });
   }, [packs, search, packFilter, stageFilter]);
 
-  const selected = filtered.find((p) => p.student.user_id === selectedId) ?? filtered[0] ?? null;
+  // Only the student the user clicked — never a silent fallback to the first
+  // card, which sent 6 uploads for a new student to another profile on
+  // 2026-11-05. A search that leaves exactly one card opens it.
+  const selected =
+    filtered.find((p) => p.student.user_id === selectedId) ??
+    (filtered.length === 1 ? filtered[0] : null);
 
   const stageLabel: Record<Stage, string> = {
     new_intake: 'New Intake',
@@ -204,7 +211,8 @@ export default function DocumentsContent({ students, loading, currentLang, onUpd
       toast.error(`Yuklab bo'lmadi: ${error.message}`);
       return;
     }
-    toast.success(target.existing ? 'Hujjat almashtirildi' : 'Hujjat yuklandi');
+    const who = students.find((s) => s.user_id === target.studentId)?.full_name ?? '';
+    toast.success(`${target.existing ? 'Hujjat almashtirildi' : 'Hujjat yuklandi'}${who ? `: ${who}` : ''}`);
     await onDocumentsChanged?.();
   };
   const confirmDelete = async () => {

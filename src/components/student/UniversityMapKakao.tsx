@@ -22,6 +22,7 @@ import {
   MapPin, X, ExternalLink, Star, Loader2, Plus, Check,
   BookOpen, Languages, Navigation, Eye, Search, ChevronUp, ChevronDown, Info, Map as MapIcon
 } from 'lucide-react';
+import { SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/keys';
 
 const KAKAO_APP_KEY = 'c695b428933e192ca1d8582e3aab14a4';
 const KAKAO_SDK_URL = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&libraries=services,clusterer&autoload=false`;
@@ -679,10 +680,9 @@ export function UniversityMapKakao({ universities, onUniversitySelect, focusUniv
       : `lat=${params.lat}&lng=${params.lng}`;
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     const response = await fetch(
       `${supabaseUrl}/functions/v1/kakao-roadview-proxy?${query}`,
-      { headers: { 'apikey': anonKey, 'Content-Type': 'application/json' }, signal }
+      { headers: { 'apikey': SUPABASE_PUBLISHABLE_KEY, 'Content-Type': 'application/json' }, signal }
     );
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');

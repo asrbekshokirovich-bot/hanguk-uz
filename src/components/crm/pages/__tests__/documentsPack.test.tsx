@@ -171,6 +171,25 @@ describe('DocumentsContent application pack', () => {
     expect(screen.queryByText(/To'lov kutilmoqda|To'lov kechikdi|To'langan/)).not.toBeInTheDocument();
   });
 
+  it('does not silently open the first student and hides demo profiles', () => {
+    const mk = (id: string, name: string, is_demo = false) =>
+      ({ ...student, user_id: id, full_name: name, is_demo, documents: [] }) as unknown as Student;
+    render(
+      <DocumentsContent
+        students={[mk('d', 'DEMO — Google Play Reviewer', true), mk('a', 'ALI VALI'), mk('b', 'NEW STUDENT')]}
+        loading={false}
+        currentLang="uz"
+        onUpdateDocumentStatus={vi.fn().mockResolvedValue({ error: null })}
+      />,
+    );
+    expect(screen.queryByText('DEMO — Google Play Reviewer')).not.toBeInTheDocument();
+    expect(screen.getByText('Talaba tanlanmagan')).toBeInTheDocument();
+    expect(screen.queryAllByText('Yuklash')).toHaveLength(0);
+    fireEvent.click(screen.getByText('NEW STUDENT'));
+    expect(screen.queryByText('Talaba tanlanmagan')).not.toBeInTheDocument();
+    expect(screen.getAllByText('NEW STUDENT').length).toBeGreaterThan(1);
+  });
+
   it('describes uploads as uploaded, not accepted, in the history', () => {
     setup();
     expect(screen.getByText('"[diploma] QR CODE.pdf" hujjati yuklandi')).toBeInTheDocument();
