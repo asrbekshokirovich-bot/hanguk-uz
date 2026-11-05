@@ -7,6 +7,7 @@ export interface StructuredArgs {
   system: string;
   prompt: string;
   schema: Record<string, unknown>;
+  /** Faqat Gemini uchun; Claude'ga yuborilmaydi. */
   temperature?: number;
 }
 
@@ -55,7 +56,7 @@ async function viaClaude<T>(a: StructuredArgs, env: Env, f: Fetch): Promise<T | 
     body: JSON.stringify({
       model: env("STAFF_BOT_CLAUDE_MODEL") || "claude-haiku-5-5",
       max_tokens: 1024,
-      temperature: a.temperature ?? 0,
+      // temperature yuborilmaydi: yangi Claude modellari uni rad etadi (400 «temperature is deprecated»).
       system: a.system,
       messages: [{ role: "user", content: a.prompt }],
       tools: [{ name: "answer", description: "Return the result in this exact structure.", input_schema: a.schema }],

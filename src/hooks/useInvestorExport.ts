@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useInvestorSeason } from '@/contexts/InvestorSeasonContext';
+import { SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/keys';
 
 /* ---------------------------------------------------------------------------
  * The four investor exports.
@@ -113,7 +114,7 @@ export function useInvestorExport() {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: SUPABASE_PUBLISHABLE_KEY,
             'content-type': 'application/json',
           },
           body: JSON.stringify({ kind, intakeId: activeIntakeId }),

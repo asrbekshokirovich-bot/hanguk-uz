@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Loader2,
 } from 'lucide-react';
+import { SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/keys';
 
 type ConnectionState = 'checking' | 'connected' | 'partial' | 'not_configured' | 'unknown';
 
@@ -24,7 +25,7 @@ interface IntegrationStatus {
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+const PUBLISHABLE_KEY = SUPABASE_PUBLISHABLE_KEY;
 
 function webhookUrl(fn: string) {
   return `${SUPABASE_URL}/functions/v1/${fn}`;

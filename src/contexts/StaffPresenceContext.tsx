@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabaseAuthHeaders } from '@/integrations/supabase/keys';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface StaffPresenceStatus {
@@ -48,7 +49,10 @@ type PresenceMeta = {
  * longer depends on it, so its staleness can never gate "who can I talk to" again.
  */
 export function StaffPresenceProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
+  // Latest access token for the synchronous unload handler (it cannot await getSession).
+  const accessTokenRef = useRef<string | null>(null);
+  accessTokenRef.current = session?.access_token ?? null;
   const [onlineStaff, setOnlineStaff] = useState<StaffPresenceStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -160,13 +164,16 @@ export function StaffPresenceProvider({ children }: { children: ReactNode }) {
     // Best-effort offline marker for the diagnostic row on tab close. Realtime Presence
     // drops the live entry automatically; this just keeps the table row tidy sooner.
     const handleUnload = () => {
+      // The publishable key is not a JWT: without a user token the PATCH could
+      // not pass RLS anyway, so skip it instead of sending the key as a Bearer.
+      const accessToken = accessTokenRef.current;
+      if (!accessToken) return;
       try {
         fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/staff_presence?user_id=eq.${user.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            ...supabaseAuthHeaders(accessToken),
             Prefer: 'return=minimal',
           },
           body: JSON.stringify({

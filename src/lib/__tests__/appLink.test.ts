@@ -20,6 +20,8 @@ describe('operator link to the app', () => {
     expect(intent.startsWith('intent://open/l/abc1234567#Intent;scheme=hanguk;package=com.hanguk.studentapp.hanguk_app;')).toBe(true);
     expect(decodeURIComponent(intent.split('S.browser_fallback_url=')[1].replace(';end', ''))).toBe(playUrl('abc1234567'));
     expect(new URL(webUrl('abc1234567')).searchParams.get('l')).toBe('abc1234567');
+    expect(webUrl(null)).toBe('https://hanguk.uz/ilova/app/');
+    expect(webUrl('abc1234567')).toBe('https://hanguk.uz/ilova/app/?l=abc1234567');
     expect(operatorLink('abc1234567')).toBe('https://hanguk.uz/l/abc1234567');
   });
 
