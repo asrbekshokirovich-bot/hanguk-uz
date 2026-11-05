@@ -1,7 +1,7 @@
 # Ochilmagan universitet saytlari
 
-Oxirgi tekshiruv: 2026-11-04T22:42:54+00:00
-Tekshirildi: 408 ta · Ochilmadi: 99 ta
+Oxirgi tekshiruv: 2026-11-05T03:33:23+00:00
+Tekshirildi: 408 ta · Ochilmadi: 102 ta
 
 Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`
 faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda
@@ -17,8 +17,9 @@ bu ro'yxatdan tushadi.
 | 개혁신학대학원대학교 (Reformed Graduate University) | https://rgu.ac.kr | HTTPStatusError: Client error '403 Forbidden' for url 'https://rgu.ac.kr' For more information check: https:// |
 | 거제대학교 (Koje College) | https://koje.ac.kr | ConnectError: [Errno -5] No address associated with hostname |
 | 경남정보대학교 (Kyungnam College of Information & Technology) | https://iphak.kit.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
-| 경북과학대학교 (Kyongbuk College of Science) | https://kbsu.ac.kr | ConnectError: [Errno -3] Temporary failure in name resolution |
+| 경북과학대학교 (Kyongbuk College of Science) | https://kbsu.ac.kr | ConnectTimeout:  |
 | 경북보건대학교 (Gyeongbuk College of Health) | https://gbhc.ac.kr | ConnectError: [Errno -2] Name or service not known |
+| 경운대학교 (Kyungwoon University) | https://www.ikw.ac.kr/worldle/page/3879/2759.tc?protocol=http | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 경인여자대학교 (Kyungin Women's University) | https://www.kic.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 계약신학대학원대학교 (Kyeyak Graduate School of Theology) | https://kyeyak.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 고구려대학교 (Koguryeo College) | https://koguryeo.ac.kr | ConnectError: [Errno -2] Name or service not known |
@@ -31,7 +32,9 @@ bu ro'yxatdan tushadi.
 | 국제사이버대학교 (International Cyber University) | https://www.icu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 국제신학대학원대학교 (Kukje Theological University) | https://www.kits.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 군장대학교 (Kunjang University College) | https://enter.kunjang.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
+| 기독간호대학교 (Christian College of Nursing) | https://www.ccn.ac.kr/Admission/ | ConnectTimeout:  |
 | 대구과학대학교 (Taegu Science University) | https://tsu.ac.kr | ReadError:  |
+| 대구교육대학교 (Daegu National University of Education) | https://admission.dnue.ac.kr/ipsi/Main.do | ConnectError:  |
 | 대신대학교 (Daeshin University) | https://www.daeshin.ac.kr/html/02_admission/01_4.php | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 대전신학대학교 (Daejeon Theological University) | https://djtu.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 대한신학대학원대학교 (Daehan Theological Graduate University) | https://daehanshin.ac.kr | ConnectError: [Errno -2] Name or service not known |
@@ -42,14 +45,15 @@ bu ro'yxatdan tushadi.
 | 두원공과대학교 (Doowon Technical University) | https://entrance.doowon.ac.kr/main.do | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 목포대학교 (Mokpo National University) | https://ipsi.mokpo.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 벽성대학교 (Byeokseong College) | https://www.bs.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
+| 부산경상대학교 (Busan Kyungsang University) | https://www.bsks.ac.kr/ | ConnectTimeout:  |
 | 부산여자대학교 (Busan Women's College) | https://www.bwc.ac.kr/ipsi/index.asp | ConnectError: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010) |
+| 부산예술대학교 (Busan Arts College) | https://www.busanarts.ac.kr/ | ConnectTimeout:  |
 | 상지영서대학교 (Sangji Youngseo University) | https://www.sy.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 서강대학교 (Sogang University) | https://admission.sogang.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 서라벌대학교 (Sorabol College) | https://www.sorabol.ac.kr/sub2_2_a | ConnectError: [Errno -2] Name or service not known |
 | 서울보건대학교 (Seoul Health College) | https://www.shjc.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 서울성경신학대학원대학교 (Seoul Bible Graduate School of Theology) | https://sbgst.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 서울한영대학교 (Seoul Hanyoung University) | https://ipsi.hytu.ac.kr/ | ConnectTimeout:  |
-| 선린대학교 (Sunlin University) | https://admission.sunlin.ac.kr/ | HTTPStatusError: Server error '500 Internal Server Error' for url 'https://admission.sunlin.ac.kr/' For more i |
 | 선학유피대학원대학교 (Sunhak Universal Peace Graduate University) | https://supu.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 성공회대학교 (Sungkonghoe University) | https://enter.skhu.ac.kr/ | ConnectError: [SSL: WRONG_SIGNATURE_TYPE] wrong signature type (_ssl.c:1010) |
 | 세경대학교 (Sekyung University) | https://www.sekyung.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
@@ -94,14 +98,13 @@ bu ro'yxatdan tushadi.
 | 청강문화산업대학교 (Chungkang College of Cultural Industries) | https://www.chungkang.academy/ | ConnectError: [Errno -2] Name or service not known |
 | 청심신학대학원대학교 (Cheongshim Graduate School of Theology) | https://csgst.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 청암대학교 (Cheongam College) | https://www.scca.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
-| 충청대학교 (Chungcheong University) | https://www.ok.ac.kr/ipsi/index.do | ReadTimeout:  |
+| 춘해보건대학교 (Choonhae College of Health Sciences) | https://ch.ac.kr | ConnectTimeout:  |
 | 탐라대학교 (Tamna University) | https://www.tnu.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 포항대학교 (Pohang College) | https://ipsi.pohang.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 한국교원대학교 (Korea National University of Education) | https://ent.knue.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 한국국제대학교 (International University of Korea) | https://www.iuk.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 한국복지대학교 (Korea National University of Welfare) | https://www.knuw.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
 | 한국복지사이버대학 (Korea Welfare Cyber College) | https://kwcc.ac.kr | ConnectError: [Errno -2] Name or service not known |
-| 한국열린사이버대학교 (Open Cyber University of Korea) | https://ocu.ac.kr | ConnectError:  |
 | 한국전통문화대학교 (Korea National University of Cultural Heritage) | https://www.nuch.ac.kr/admission/main.do | ConnectError: [Errno -2] Name or service not known |
 | 한국침례신학대학교 (Korea Baptist Theological Seminary) | https://kbtus2.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 한려대학교 (Hallyeo University) | https://www.hanlyo.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
