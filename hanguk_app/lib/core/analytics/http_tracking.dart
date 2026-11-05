@@ -13,6 +13,13 @@ class TrackingHttpClient extends http.BaseClient {
   final http.Client _inner;
   int _reported = 0;
 
+  /// How often each call and outcome was reported this run: offline, the
+  /// SDK retries its token refresh every few seconds (auth:token, status 0 —
+  /// 118 times on one phone), which used up the 30 and hid every other
+  /// failure. Each call and outcome is reported at most [_perCall] times.
+  final Map<String, int> _perKey = {};
+  static const _perCall = 3;
+
   /// The analytics' own calls are not reported (a failing send would report
   /// itself forever).
   static const _quiet = {'rpc:app_events_log', 'rpc:app_events_log_v2'};
@@ -35,7 +42,13 @@ class TrackingHttpClient extends http.BaseClient {
   void _observe(Uri url, int status, int ms) {
     final name = callName(url);
     if (name == null || _quiet.contains(name) || _reported >= 30) return;
-    if (status == 0 || status >= 400) {
+    final failed = status == 0 || status >= 400;
+    if (!failed && ms <= _slowMs) return;
+    final key = failed ? '$name|$status' : '$name|slow';
+    final seen = _perKey[key] ?? 0;
+    if (seen >= _perCall) return;
+    _perKey[key] = seen + 1;
+    if (failed) {
       _reported++;
       AppEvents.track('rpc_error', props: {'name': name, 'status': status});
     } else if (ms > _slowMs) {
