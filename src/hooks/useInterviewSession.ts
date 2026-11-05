@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/keys';
 
 interface InterviewMessage {
   id: string;
@@ -82,7 +83,7 @@ export function useInterviewSession() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authSession.access_token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'apikey': SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
             sessionId: currentSession.id,

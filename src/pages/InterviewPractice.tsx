@@ -33,6 +33,7 @@ import {
   Target,
   Circle
 } from 'lucide-react';
+import { supabaseAuthHeaders } from '@/integrations/supabase/keys';
 
 type SessionType = 'general' | 'university_specific' | 'visa' | 'document_based';
 type LanguageTrack = 'korean' | 'english' | 'both';
@@ -234,8 +235,7 @@ export default function InterviewPractice() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            ...supabaseAuthHeaders((await supabase.auth.getSession()).data.session?.access_token),
           },
           body: JSON.stringify({ text, voiceId }),
         }
