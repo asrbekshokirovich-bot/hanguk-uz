@@ -27,7 +27,7 @@ name: uni-db drain extraction backlog
 #
 # Required repo secrets (same ones uni-db-auto-crawl.yml already uses):
 #   SUPABASE_DB_PASSWORD, UNI_DB_SUPABASE_URL,
-#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY (sb_secret_ key, not the legacy JWT), UNI_DB_ANTHROPIC_API_KEY
 #
 # Two ways to pay for the model calls. The default is the API key, billed per
 # token. Dispatching with `llm_backend: claude_cli` runs the same work through
