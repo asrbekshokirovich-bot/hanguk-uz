@@ -54,7 +54,9 @@ class HardSlider extends StatelessWidget {
             onTapUp: onChangeEnd == null ? null : (_) => onChangeEnd!(),
             onHorizontalDragUpdate: (d) => at(d.localPosition.dx),
             onHorizontalDragEnd: onChangeEnd == null ? null : (_) => onChangeEnd!(),
-            onHorizontalDragCancel: onChangeEnd,
+            // A drag that never started already ended as a tap; a press the
+            // page's scroll took moved the value too.
+            onTapCancel: onChangeEnd,
             child: SizedBox(
               height: markerLabel == null ? 28 : 44,
               child: Stack(
