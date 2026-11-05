@@ -337,7 +337,8 @@ async function authorized(
     claims = JSON.parse(atob(pad.replace(/-/g, "+").replace(/_/g, "/")));
   } catch (_e) { return false; }
 
-  if (claims?.role === "service_role") return true;
+  // Xavfsizlik (2026-11-05): imzosiz role=service_role'ga ishonilmaydi —
+  // server faqat aniq kalit bilan (yuqorida) o'tadi; qolganini getUser tekshiradi.
   if (!claims?.sub) return false;
 
   // The token is only a claim of identity until Supabase confirms it; a
