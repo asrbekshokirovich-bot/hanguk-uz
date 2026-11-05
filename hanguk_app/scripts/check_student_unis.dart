@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:supabase/supabase.dart';
+import 'package:hanguk_app/core/config/app_config.dart';
 
 Future<void> main() async {
   const supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
   
   // Use anon key and login
-  const anonKey = 'sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3';
+  const anonKey = AppConfig.supabasePublishableKey;
   const serviceRoleKey = 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV';
   
   final client = SupabaseClient(supabaseUrl, serviceRoleKey);

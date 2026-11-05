@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:supabase/supabase.dart';
+import 'package:hanguk_app/core/config/app_config.dart';
 
 // ============================================================
 // DEEP AUDIT SCRIPT
@@ -9,7 +10,7 @@ import 'package:supabase/supabase.dart';
 Future<void> main() async {
   const supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
   const serviceRoleKey = 'SERVICE_ROLE_KEY_REMOVED__ROTATE_AND_LOAD_FROM_ENV';
-  const anonKey = 'sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3';
+  const anonKey = AppConfig.supabasePublishableKey;
 
   final adminClient = SupabaseClient(supabaseUrl, serviceRoleKey);
   
