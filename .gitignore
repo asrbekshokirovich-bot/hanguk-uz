@@ -46,3 +46,8 @@ hanguk_app/ios/fastlane/screenshots/*/
 .env
 .env.*
 !.env.example
+
+# Xavfsizlik (2026-11-05): kalitlar, parollar, CLI vaqtinchalik fayllari repoga tushmasin
+*.jks
+android/keystore.properties
+supabase/.temp/
