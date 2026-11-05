@@ -51,6 +51,9 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,ico,png,svg,jpg,jpeg,webp,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        // hanguk.uz/ilova/* is the Flutter web app (another Vercel project,
+        // proxied by vercel.json) — never answer it with this SPA's index.html.
+        navigateFallbackDenylist: [/^\/ilova(\/|$)/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

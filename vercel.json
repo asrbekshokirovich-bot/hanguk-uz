@@ -1,8 +1,24 @@
 {
+  "redirects": [
+    { "source": "/ilova", "destination": "/ilova/", "permanent": false },
+    { "source": "/ilova/app", "destination": "/ilova/app/", "permanent": false }
+  ],
   "rewrites": [
     {
       "source": "/app",
       "destination": "/app.html"
+    },
+    {
+      "source": "/ilova/",
+      "destination": "https://hanguk-ilova.vercel.app/ilova/index.html"
+    },
+    {
+      "source": "/ilova/app/",
+      "destination": "https://hanguk-ilova.vercel.app/ilova/app/index.html"
+    },
+    {
+      "source": "/ilova/:path*",
+      "destination": "https://hanguk-ilova.vercel.app/ilova/:path*"
     },
     {
       "source": "/(.*)",
