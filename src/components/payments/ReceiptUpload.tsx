@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, Image, X, Clipboard, Loader2 } from 'lucide-react';
+import { SignedReceiptImg } from '@/components/payments/SignedReceipt';
 
 interface ReceiptUploadProps {
   value?: string | null;
@@ -169,8 +170,8 @@ export function ReceiptUpload({ value, onChange, studentId, disabled }: ReceiptU
       
       {preview ? (
         <div className="relative rounded-lg border overflow-hidden">
-          <img 
-            src={preview} 
+          <SignedReceiptImg
+            url={preview}
             alt="Payment receipt" 
             className="w-full max-h-48 object-contain bg-muted"
           />
