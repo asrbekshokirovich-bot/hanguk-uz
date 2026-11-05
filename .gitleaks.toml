@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Supabase publishable key is public by design"
+regexes = ['''sb_publishable_[A-Za-z0-9_-]+''']

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { threadTitleFrom } from '@/lib/aiThreads';
 import { applyEvent, fromSnapshot, type AnswerMeta } from '@/lib/hangukAiAnswer';
+import { supabaseAuthHeaders } from '@/integrations/supabase/keys';
 
 // ai_threads is newer than the generated types.
 const db = supabase as unknown as SupabaseClient;
@@ -73,9 +74,10 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
     try {
       // Forward the logged-in user's access token so the edge function can
       // identify them (the staff agent path needs a real JWT, not the anon key).
-      // The publishable key still goes in `apikey` to satisfy the gateway.
+      // The publishable key goes in `apikey` only (it is not a JWT); with no
+      // session we send no Authorization header at all.
       const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const accessToken = session?.access_token;
 
       // A new conversation starts with the first question.
       if (threads && !threadRef.current) {
@@ -94,8 +96,7 @@ export function useHangukAI(userType: UserType, language: string = 'en', options
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${accessToken}`,
+          ...supabaseAuthHeaders(accessToken),
         },
         body: JSON.stringify({
           message: input,

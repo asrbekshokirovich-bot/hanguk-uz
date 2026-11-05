@@ -82,10 +82,11 @@
   <footer>Questions? Contact <a href="mailto:privacy@hanguk.uz">privacy@hanguk.uz</a>.</footer>
 
   <script>
-    // Public anon key — safe to expose; the row-level policy only permits
-    // INSERT into account_deletion_requests (no read access).
+    // Public publishable key (sb_publishable_...) — safe to expose; the row-level
+    // policy only permits INSERT into account_deletion_requests (no read access).
+    // It is not a JWT, so it goes in the apikey header only (no Authorization).
     const SUPABASE_URL = "https://lysjdtyanhdfphqyijsr.supabase.co";
-    const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs";
+    const PUBLISHABLE_KEY = "sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3";
 
     const form = document.getElementById("form");
     const result = document.getElementById("result");
@@ -107,8 +108,7 @@
         const res = await fetch(SUPABASE_URL + "/rest/v1/account_deletion_requests", {
           method: "POST",
           headers: {
-            "apikey": ANON_KEY,
-            "Authorization": "Bearer " + ANON_KEY,
+            "apikey": PUBLISHABLE_KEY,
             "Content-Type": "application/json",
             "Prefer": "return=minimal",
           },

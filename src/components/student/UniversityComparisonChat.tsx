@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchMyUniversities } from '@/lib/myUniversities';
 import { ComparisonQuestionnaire, StudentPreferences } from './ComparisonQuestionnaire';
+import { supabaseAuthHeaders } from '@/integrations/supabase/keys';
 
 interface StudentContext {
   profile: {
@@ -165,14 +166,12 @@ export function UniversityComparisonChat({ universities, onClose }: UniversityCo
 
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       const response = await fetch(`${supabaseUrl}/functions/v1/compare-universities`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': anonKey,
-          'Authorization': `Bearer ${session?.access_token || anonKey}`,
+          ...supabaseAuthHeaders(session?.access_token),
         },
         signal: controller.signal,
         body: JSON.stringify({
