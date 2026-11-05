@@ -2,25 +2,42 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/cache/cached_rows.dart';
+import '../../../core/cache/snapshot_queries.dart';
 import '../domain/catalog_models.dart';
+
+final _catalogRows = CachedRows('catalog', query: kSnapshotReads[kCatalogAsset]!, asset: kCatalogAsset);
 
 /// The universities staff have loaded a guideline Excel for — the CRM's
 /// "Universitetlar → Ma'lumotli" section, read live from
 /// `v_app_university_catalog`. An Excel uploaded today shows up here on the
-/// next refresh; nothing in the app keeps its own list.
+/// next refresh. The last rows read (or, on a first launch, the copy shipped
+/// in the app) show at once while the network brings the current ones
+/// ([CachedRows]).
 final catalogProvider = FutureProvider<List<CatalogUniversity>>((ref) async {
-  try {
-    final data = await Supabase.instance.client
-        .from('v_app_university_catalog')
-        .select()
-        .order('qabul_yili', ascending: false)
-        .timeout(const Duration(seconds: 20));
-    return groupCatalogRows(data as List);
-  } on PostgrestException catch (e) {
-    debugPrint('[Catalog] Postgrest error: ${e.code} ${e.message}');
-    rethrow;
-  }
+  final rows = await _catalogRows.load(() async {
+    try {
+      final data = await Supabase.instance.client
+          .from(kCatalogView)
+          .select()
+          .order(kCatalogOrder, ascending: false)
+          .timeout(const Duration(seconds: 20));
+      return data as List;
+    } on PostgrestException catch (e) {
+      debugPrint('[Catalog] Postgrest error: ${e.code} ${e.message}');
+      rethrow;
+    }
+  }, onFresh: () => _reread(ref));
+  return groupCatalogRows(rows);
 });
+
+/// The provider reads the rows the network just brought. A provider already
+/// rebuilt (or disposed) has nothing to re-read.
+void _reread(Ref ref) {
+  try {
+    ref.invalidateSelf();
+  } catch (_) {}
+}
 
 /// Rows (one per guideline) → one entry per university: official partners
 /// first, then by name.
