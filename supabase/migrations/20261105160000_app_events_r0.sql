@@ -8,6 +8,10 @@
 -- * ai_chat (new): one per question to the app's AI chat — ok / empty /
 --   error, the HTTP status, the wait for the first words and for the whole
 --   answer, the question's length (not its text) and its turn (R0.8).
+-- * interview_connect (new): once per interview — whether the interviewer
+--   spoke (greeted) or the call failed first (no_greeting, ended, error,
+--   start_failed, left) and after how long; 13 of 27 interview_end were at
+--   0 seconds with no reason recorded (R0.7, R1.5).
 -- * app_error: + code (a Firebase plugin's code, an auth error's status) and
 --   at (the file:line it was thrown from) — 36 FirebaseException and 80
 --   AuthRetryableFetchException in ten days carried only their type (R1.4).
@@ -20,7 +24,9 @@ insert into public.app_event_types (event, family, description_uz, props, status
   ('data_ready', 'quality', 'Katalog/xarita/qoidalar birinchi marta tayyor bo''ldi (manba, vaqt)',
    '{name,source,ms,rows,age_h}', 'active', '1.1.3'),
   ('ai_chat', 'contact', 'AI chatga savol (natija, kutish vaqti)',
-   '{result,status,first_ms,ms,chars,turn}', 'active', '1.1.3')
+   '{result,status,first_ms,ms,chars,turn}', 'active', '1.1.3'),
+  ('interview_connect', 'prepare', 'Suhbat ulanishi (intervyuer gapirdimi, qancha kutildi)',
+   '{result,ms,error}', 'active', '1.1.3')
 on conflict (event) do update set
   family = excluded.family, description_uz = excluded.description_uz,
   props = excluded.props, status = excluded.status;

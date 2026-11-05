@@ -80,6 +80,21 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   Timer? _clock;
   int _seconds = 0;
   bool _muted = false;
+
+  /// `interview_connect`, once: whether the interviewer spoke, and after how
+  /// long — or how the call failed before it (13 of 27 interview_end were
+  /// at 0 seconds, with nothing saying why).
+  final _connectClock = Stopwatch()..start();
+  bool _connectReported = false;
+  void _reportConnect(String result, {Object? error}) {
+    if (_connectReported) return;
+    _connectReported = true;
+    AppEvents.track('interview_connect', props: {
+      'result': result,
+      'ms': _connectClock.elapsedMilliseconds,
+      if (error != null) 'error': error.runtimeType.toString(),
+    });
+  }
   String _lastQuestion = '';
 
   @override
@@ -166,6 +181,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     _greetTimer?.cancel();
     _greetTimer = Timer(const Duration(seconds: 25), () {
       if (!mounted || _firstMessageReceived || _errorMessage != null) return;
+      _reportConnect('no_greeting');
       setState(() {
         _isCallActive = false;
         _errorMessage = AppLocalizations.of(context)!.interviewErrorNoGreeting;
@@ -378,6 +394,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         // audibly speaking (root cause of the stuck-greetWait bug).
         if (eventLabel == 'speech-start') {
           _greetTimer?.cancel();
+          _reportConnect('greeted');
           setState(() {
             _isAI_Speaking = true;
             _firstMessageReceived = true;
@@ -411,6 +428,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
             // surface it instead of leaving "will greet you shortly" forever.
             if (_errorMessage == null) {
               _greetTimer?.cancel();
+              _reportConnect('ended');
               ref.read(interviewProvider.notifier).setVapiConnected(false);
               setState(() {
                 _isCallActive = false;
@@ -451,6 +469,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
                 if (v != null) extractedDetail = v.toString();
               }
               extractedDetail ??= eventValue.toString();
+              _reportConnect('error');
               if (extractedDetail.length > 240) {
                 extractedDetail = '${extractedDetail.substring(0, 240)}…';
               }
@@ -473,6 +492,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
 
           if (eventType == 'speech-start') {
             _greetTimer?.cancel();
+            _reportConnect('greeted');
             setState(() {
               _isAI_Speaking = true;
               _firstMessageReceived = true;
@@ -537,6 +557,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
       });
     } catch (e, st) {
       debugPrint('Vapi Start Error Type: ${e.runtimeType}');
+      _reportConnect('start_failed', error: e);
       debugPrint('Vapi Start Error: $e');
       debugPrint('Vapi StackTrace: $st');
       // Ghost-call cleanup: our .timeout only abandons the await — the SDK
@@ -650,6 +671,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   /// the provider is left in a state that unmounts this screen — the End
   /// button must NEVER be a no-op.
   Future<void> _completeAutoEnd() async {
+    _reportConnect('left');
     AppEvents.track('interview_end', props: {'seconds': _seconds, 'by_ai': _aiRequestedEnd});
     // Capture provider handles up-front: the notifier outlives this widget,
     // so the flow keeps working even if the view unmounts mid-way.
@@ -769,6 +791,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
   @override
   void dispose() {
     _disposing = true;
+    _reportConnect('left');
     WidgetsBinding.instance.removeObserver(this);
     // Give the screen back to the normal idle timer. This runs on every way
     // out of the interview — finished, ended early, errored, or backed out of
