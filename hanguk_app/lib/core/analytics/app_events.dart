@@ -367,7 +367,6 @@ abstract final class AppEvents {
   /// What kind of failure it was, without its message (which can carry
   /// user text): a Firebase plugin's code ("messaging/unknown"), an auth
   /// error's HTTP status.
-  @visibleForTesting
   static String? errorCode(Object error) {
     final String? c = switch (error) {
       FirebaseException(:final plugin, :final code) => '$plugin/$code',
