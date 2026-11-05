@@ -18,6 +18,16 @@ describe('staff-bot morning brief', () => {
       '• R&amp;D &lt;Univ&gt; — 10.11 (7 kun), talabalar: 1',
     ].join('\n'));
   });
+  it('splits waiting documents into student uploads and AI translations', () => {
+    const t = renderBrief({
+      new_leads: 0, my_new_leads: 0, my_overdue_tasks: 0,
+      docs_waiting: 7, docs_waiting_student: 5, docs_waiting_ai: 2, deadlines: [],
+    });
+    expect(t).toBe([
+      '📊 <b>Bugungi brifing</b>',
+      '• Tekshiruvni kutayotgan hujjatlar: <b>7</b> (talaba yuklagan: 5, AI tarjima: 2)',
+    ].join('\n'));
+  });
   it('says all is calm when there is nothing', () => {
     expect(renderBrief({ new_leads: 0, my_new_leads: 0, my_overdue_tasks: 0, docs_waiting: 0, deadlines: [] }))
       .toContain('Hammasi joyida');

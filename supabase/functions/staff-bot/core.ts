@@ -105,7 +105,12 @@ export interface MorningBrief {
   new_leads: number;
   my_new_leads: number;
   my_overdue_tasks: number;
+  /** Faol mavsum, tekshirilmagan hujjatlar jami (20261105100000). */
   docs_waiting: number;
+  /** Shulardan talaba yuklagani. Eski RPC bermasa — undefined. */
+  docs_waiting_student?: number;
+  /** Shulardan AI tarjima qoralamasi. */
+  docs_waiting_ai?: number;
   deadlines: { university: string; date: string; days_left: number; students: number }[];
 }
 
@@ -126,7 +131,13 @@ export function renderBrief(b: MorningBrief): string {
     lines.push(`• Yangi lidlar (24 soat): <b>${b.new_leads}</b>${b.my_new_leads > 0 ? `, sizga: <b>${b.my_new_leads}</b>` : ""}`);
   }
   if (b.my_overdue_tasks > 0) lines.push(`• Muddati o'tgan vazifalaringiz: <b>${b.my_overdue_tasks}</b>`);
-  if (b.docs_waiting > 0) lines.push(`• Tekshiruvni kutayotgan hujjatlar: <b>${b.docs_waiting}</b>`);
+  if (b.docs_waiting > 0) {
+    // Faqat faol mavsum; talaba yuklagani va AI tarjima alohida (2026-11-05).
+    const split = b.docs_waiting_student !== undefined && b.docs_waiting_ai !== undefined
+      ? ` (talaba yuklagan: ${b.docs_waiting_student}, AI tarjima: ${b.docs_waiting_ai})`
+      : "";
+    lines.push(`• Tekshiruvni kutayotgan hujjatlar: <b>${b.docs_waiting}</b>${split}`);
+  }
   if (b.deadlines.length) {
     lines.push("", "⏰ <b>7 kun ichida onlayn ariza muddati</b>");
     for (const d of b.deadlines) {
