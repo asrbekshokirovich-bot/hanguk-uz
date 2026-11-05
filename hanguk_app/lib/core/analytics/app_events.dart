@@ -309,7 +309,32 @@ abstract final class AppEvents {
 
   static void _commitTap(_PendingTap t) {
     if (!_taps.remove(t)) return;
-    track('tap', screen: t.screen, element: t.element, props: {'x': ?t.x, 'y': ?t.y, ...?t.props});
+    final at = t.at;
+    final target = t.element == null && at != null ? tapTarget(at) : null;
+    track('tap', screen: t.screen, element: t.element, props: {'x': ?t.x, 'y': ?t.y, 'target': ?target, ...?t.props});
+  }
+
+  /// What a tap no control answered landed on — a text field, text, a
+  /// picture, or nothing ('blank') — so the taps on things that look
+  /// pressable but are not can be told from taps on empty space (R0.10:
+  /// a fifth of the taps had no name).
+  @visibleForTesting
+  static String? tapTarget(Offset at) {
+    try {
+      final view = WidgetsBinding.instance.platformDispatcher.implicitView;
+      if (view == null) return null;
+      final hit = HitTestResult();
+      WidgetsBinding.instance.hitTestInView(hit, at, view.viewId);
+      for (final e in hit.path) {
+        final r = e.target;
+        if (r is RenderEditable) return 'field';
+        if (r is RenderParagraph) return 'text';
+        if (r is RenderImage) return 'image';
+      }
+      return 'blank';
+    } catch (_) {
+      return null;
+    }
   }
 
   static final List<_PendingTap> _recent = [];
