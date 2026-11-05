@@ -149,6 +149,8 @@ jobs:
           # was set to the live value for each (interview-feedback true,
           # translate-parsed-output false, suggest-lead-profile false,
           # admission-study-plan-test true).
+          # 2026-11-05 (xavfsizlik): student-login-v2 live == repo tekshirildi; parol endi
+          # tasodifiy. student-login (v1) chaqiruvchisiz — 410 qaytaradi.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -195,6 +197,8 @@ jobs:
             suggest-lead-profile
             translate-parsed-output
             enrich-lead
+            student-login-v2
+            student-login
           "
 
           for fn in $FUNCTIONS; do

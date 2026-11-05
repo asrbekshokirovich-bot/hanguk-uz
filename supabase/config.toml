@@ -260,3 +260,7 @@ verify_jwt = false
 # admission-study-plan-test: live verify_jwt=true (2026-11-03).
 [functions.admission-study-plan-test]
 verify_jwt = true
+
+# student-login-v2: live verify_jwt=false (2026-11-05) — ilova tizimga kirmasdan chaqiradi.
+[functions.student-login-v2]
+verify_jwt = false
