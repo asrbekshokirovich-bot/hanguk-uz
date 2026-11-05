@@ -140,9 +140,12 @@ serve(async (req) => {
     // If the env var is set, we require the secret in the request — but only
     // *after* the capture above, so we can still see rejected attempts in the DB.
     const mediatekaSecret = Deno.env.get('MEDIATEKA_WEBHOOK_SECRET');
+    // Set only by a matching secret — never by anything in the request body.
+    let mediatekaAuthed = false;
     if (mediatekaSecret) {
       const provided = extractMediatekaSecret(req, url, payload);
       if (provided && provided === mediatekaSecret) {
+        mediatekaAuthed = true;
         // Authenticated Mediateka request. Tag the provider so downstream
         // parsing branches can react accordingly.
         (payload as Record<string, unknown>).__voip_provider = 'mediateka';
@@ -160,13 +163,25 @@ serve(async (req) => {
     // Voximplant payload detection
     const isVoximplant = !!(payload.call_session_id || payload.call_session_history_id);
 
+    // Xavfsizlik (2026-11-05): fail-closed. Oldin kalitsiz so'rov ham
+    // qo'ng'iroq yozar va cmd=contact orqali telefon raqamdan lid/talaba ismini
+    // qaytarardi. Endi faqat to'g'ri Mediateka yoki Voximplant kaliti bilan.
+    const voximplantKey = Deno.env.get('VOXIMPLANT_API_KEY');
+    const voximplantProvided = (payload.api_key as string) || req.headers.get('x-api-key');
+    const voximplantAuthed = !!voximplantKey && !!voximplantProvided && voximplantProvided === voximplantKey;
+    if (!mediatekaAuthed && !voximplantAuthed) {
+      console.error('voip-webhook: unauthenticated request rejected');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Mediateka uses form-urlencoded with a `crm_token` body field and a
     // `callid` identifier. Detect either by tag (set above when our secret
     // matched the env var) or by the unmistakable field combo, so a captured
     // request that pre-dates the env var still gets parsed correctly.
-    const isMediateka =
-      (payload as Record<string, unknown>).__voip_provider === 'mediateka' ||
-      (typeof payload.crm_token === 'string' && typeof payload.callid === 'string');
+    const isMediateka = mediatekaAuthed;
 
     let callData;
     // The PBX extension that handled the call (Mediateka `ext`, later the
