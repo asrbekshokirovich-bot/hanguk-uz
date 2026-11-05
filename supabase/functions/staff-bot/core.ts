@@ -138,14 +138,135 @@ export function renderBrief(b: MorningBrief): string {
       : "";
     lines.push(`• Tekshiruvni kutayotgan hujjatlar: <b>${b.docs_waiting}</b>${split}`);
   }
-  if (b.deadlines.length) {
-    lines.push("", "⏰ <b>7 kun ichida onlayn ariza muddati</b>");
-    for (const d of b.deadlines) {
-      const when = d.days_left === 0 ? "bugun" : d.days_left === 1 ? "ertaga" : `${d.days_left} kun`;
-      lines.push(`• ${escapeHtml(d.university)} — ${ddmm(d.date)} (${when}), talabalar: ${d.students}`);
-    }
-  }
+  lines.push(...deadlineLines(b.deadlines));
   if (lines.length === 1) lines.push("Hammasi joyida: yangi lid, kechikkan vazifa va yaqin muddat yo'q.");
+  return lines.join("\n");
+}
+
+function deadlineLines(deadlines: MorningBrief["deadlines"]): string[] {
+  if (!deadlines.length) return [];
+  const out = ["", "⏰ <b>7 kun ichida onlayn ariza muddati</b>"];
+  for (const d of deadlines) {
+    const when = d.days_left === 0 ? "bugun" : d.days_left === 1 ? "ertaga" : `${d.days_left} kun`;
+    out.push(`• ${escapeHtml(d.university)} — ${ddmm(d.date)} (${when}), talabalar: ${d.students}`);
+  }
+  return out;
+}
+
+// ── Guruhga ertalabki jamoa xulosasi (bot_group_digest, 20261105130000) ──
+
+export interface DigestTask {
+  title: string;
+  due: string | null;
+  kind: "overdue" | "today";
+  late_days: number;
+  wip: boolean;
+  hi: boolean;
+}
+
+export interface DigestPerson {
+  name: string;
+  overdue: number;
+  today: number;
+  tasks: DigestTask[];
+}
+
+export interface GroupDigest {
+  date: string;
+  /** ISO hafta kuni, 1 = dushanba. */
+  weekday: number;
+  /** Oxirgi ish kuni (bot_settings.workdays). */
+  prev_date: string;
+  counts: { open: number; overdue: number; today: number; done: number };
+  people: DigestPerson[];
+  brief: Omit<MorningBrief, "my_new_leads" | "my_overdue_tasks"> | null;
+  /** Oxirgi ish kunidagi kunlik hisobot; hisobot o'chirilgan bo'lsa null. */
+  reports: { submitted: number; expected: number } | null;
+}
+
+export const WEEKDAYS_UZ = ["", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"];
+
+/** "2026-11-05" → kun raqami (UTC), sanalar ayirmasi uchun. */
+function dayNum(iso: string): number {
+  return Math.floor(Date.parse(iso.slice(0, 10) + "T00:00:00Z") / 86_400_000);
+}
+
+/** ISO hafta kuni (1–7) sana bo'yicha. */
+function isoWeekday(iso: string): number {
+  const d = new Date(iso.slice(0, 10) + "T00:00:00Z").getUTCDay();
+  return d === 0 ? 7 : d;
+}
+
+function shortTitle(s: string, max = 80): string {
+  const t = s.replace(/\s+/g, " ").trim();
+  return t.length > max ? t.slice(0, max - 1).trimEnd() + "…" : t;
+}
+
+/**
+ * Toshkent vaqtida HH:MM. Faqat sana qo'yilgan muddat (Toshkent yoki UTC yarim tuni —
+ * CRM sana tanlagichi 00:00 UTC saqlaydi) uchun bo'sh.
+ */
+function timeOf(iso: string | null): string {
+  if (!iso || /T00:00(:00(\.0+)?)?(Z|\+00:00)$/.test(iso)) return "";
+  const m = / (\d{2}:\d{2})$/.exec(fmtDue(iso));
+  return m ? m[1] : "";
+}
+
+function digestTaskLine(t: DigestTask): string {
+  const pr = t.hi ? " ❗" : "";
+  const wip = t.wip ? " ▶" : "";
+  if (t.kind === "overdue") {
+    const day = fmtDue(t.due).split(" ")[0];
+    return `🔴 ${escapeHtml(shortTitle(t.title))} — ${day}, ${t.late_days} kun kechikdi${pr}${wip}`;
+  }
+  const time = timeOf(t.due);
+  return `🟡 ${escapeHtml(shortTitle(t.title))}${time ? ` — ${time} gacha` : ""}${pr}${wip}`;
+}
+
+/**
+ * «Staff» guruhiga ertalabki xulosa (HTML). Faqat RPC bergan sonlar;
+ * har xodimdan ko'pi bilan `maxPerPerson` ta vazifa, qolgani «yana N ta».
+ */
+export function renderGroupDigest(d: GroupDigest, maxPerPerson = 5): string {
+  const lines: string[] = [
+    `☀️ <b>Xayrli tong, jamoa!</b> ${WEEKDAYS_UZ[d.weekday] ?? ""}, ${ddmm(d.date)}`.trimEnd(),
+    "",
+  ];
+  const c = d.counts;
+  lines.push(`📋 <b>Vazifalar:</b> ochiq ${c.open} · 🔴 kechikkan ${c.overdue} · 🟡 bugun ${c.today}`);
+  const yesterday = dayNum(d.date) - dayNum(d.prev_date) === 1;
+  const prevLabel = yesterday ? "Kecha" : `${WEEKDAYS_UZ[isoWeekday(d.prev_date)]}dan beri`;
+  lines.push(`✅ ${prevLabel} bajarildi: ${c.done}`);
+
+  if (d.people.length) {
+    for (const p of d.people) {
+      const head = [p.overdue ? `🔴 ${p.overdue}` : "", p.today ? `🟡 ${p.today}` : ""].filter(Boolean).join(" · ");
+      lines.push("", `👤 <b>${escapeHtml(p.name)}</b> — ${head}`);
+      lines.push(...p.tasks.slice(0, maxPerPerson).map(digestTaskLine));
+      if (p.tasks.length > maxPerPerson) lines.push(`… yana ${p.tasks.length - maxPerPerson} ta`);
+    }
+  } else {
+    lines.push("", "Kechikkan va bugungi vazifa yo'q 👍");
+  }
+
+  const b = d.brief;
+  if (b) {
+    const info: string[] = [];
+    if (b.new_leads > 0) info.push(`• Yangi lidlar (24 soat): <b>${b.new_leads}</b>`);
+    if (b.docs_waiting > 0) {
+      const split = b.docs_waiting_student !== undefined && b.docs_waiting_ai !== undefined
+        ? ` (talaba yuklagan: ${b.docs_waiting_student}, AI tarjima: ${b.docs_waiting_ai})`
+        : "";
+      info.push(`• Tekshiruvni kutayotgan hujjatlar: <b>${b.docs_waiting}</b>${split}`);
+    }
+    if (info.length) lines.push("", "📊 <b>Ish holati</b>", ...info);
+    lines.push(...deadlineLines(b.deadlines ?? []));
+  }
+
+  if (d.reports && d.reports.expected > 0) {
+    const label = yesterday ? "Kechagi" : `${WEEKDAYS_UZ[isoWeekday(d.prev_date)]} kungi`;
+    lines.push("", `📝 ${label} kunlik hisobot: <b>${d.reports.submitted}/${d.reports.expected}</b> xodim topshirdi`);
+  }
   return lines.join("\n");
 }
 
@@ -220,6 +341,7 @@ export const HELP_GUIDE = [
   "<b>Guruhda</b>",
   "<code>#vazifa @username nima qilish kerak, ertaga 15:00</code> — vazifa beradi (yoki odamning xabariga javob qilib <code>#vazifa matn</code>).",
   "Bot kartasiga mas'ul «✅» yoki «bajarildi» deb javob yozsa — vazifa yopiladi (boshqalar yopa olmaydi; CRM'dan yopish mumkin).",
+  "Har ish kuni 09:00 da guruhga jamoa xulosasi chiqadi: kechikkan va bugungi vazifalar, yangi lidlar, hujjatlar, ariza muddatlari.",
   "",
   "<b>Buyruqlar</b>",
   "/bugun — bugungi va kechikkan vazifalar",
@@ -446,7 +568,8 @@ export function isDoneReply(text: string | null | undefined): boolean {
 export const GROUP_HELP =
   "Guruhda vazifa berish:\n<code>#vazifa @username nima qilish kerak, ertaga 15:00, zarur</code>\n" +
   "yoki odamning xabariga javob qilib: <code>#vazifa matn</code>\n" +
-  "Bajarilganda bot kartasiga «✅» yoki «bajarildi» deb javob yozing.";
+  "Bajarilganda bot kartasiga «✅» yoki «bajarildi» deb javob yozing.\n" +
+  "Har ish kuni ertalab bot shu guruhga jamoa xulosasini yuboradi.";
 
 // ── PR-8: guruh suhbati AI tahlili (faqat taklif) ─────────────────────────
 

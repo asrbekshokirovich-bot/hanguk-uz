@@ -14,6 +14,7 @@ Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohid
 | DM | 🤖 Savol | Hanguk AI; xodimning CRM ruxsatlari doirasida |
 | Guruh | `#vazifa @username matn` | vazifa + karta; mas'ul kartaga «✅»/«bajarildi» → yopiladi |
 | Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
+| Guruh | har ish kuni 09:00 | jamoa xulosasi: vazifalar (har xodim), lidlar, hujjatlar, ariza muddatlari, kechagi hisobotlar soni |
 
 To'liq qo'llanma botda: `/help`.
 
@@ -24,7 +25,7 @@ Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir mart
 ## Jadval (Toshkent, Du–Sha; CRM → Sozlamalar → Bot'da o'zgaradi)
 | Vaqt | Ish | cron |
 |---|---|---|
-| 09:00 | ertalabki ro'yxat (kechikkan + bugungi) | `staff-bot-morning` |
+| 09:00 | «Staff» guruhiga jamoa xulosasi (`bot_group_digest`; `group_digest_enabled`) + har xodimga DM: brifing, kechikkan va bugungi vazifalar | `staff-bot-morning` |
 | 17:00 | hisobot so'rovi | `staff-bot-report-ask` |
 | 17:30, 18:00 | eslatma (topshirmaganlarga) | `staff-bot-report-remind1..3` |
 | 18:15 | ownerlarga (yoki tanlanganlarga) xulosa | `staff-bot-report-summary` |

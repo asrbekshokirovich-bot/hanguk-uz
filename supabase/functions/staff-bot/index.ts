@@ -14,6 +14,8 @@
 // PR-10: «🤖 Savol» → Hanguk AI (hanguk-ai-chat). Bot xodim nomidan qisqa muddatli haqiqiy sessiya ochadi
 // (admin.generateLink → verifyOtp, email yuborilmaydi), shu JWT bilan so'raydi — AI xodimning o'z ruxsatlari
 // (RLS) doirasida javob beradi; javobdan keyin sessiya yopiladi.
+// Guruh xulosasi (2026-11-05): ertalabki cron'da guruhga bot_group_digest → renderGroupDigest
+// (bot_settings.group_digest_enabled; qo'lda: ?action=morning&only=group).
 //
 // Sozlash (bir marta): secrets STAFF_BOT_TOKEN va STAFF_BOT_WEBHOOK_SECRET,
 // keyin `<function url>?action=setup` ochiladi — webhook, buyruqlar ro'yxati
@@ -31,6 +33,8 @@ import {
   escapeHtml,
   type MorningBrief,
   renderBrief,
+  type GroupDigest,
+  renderGroupDigest,
   ANALYSIS_SCHEMA,
   ASK_PROMPT,
   mdToPlain,
@@ -423,9 +427,28 @@ function cronAuthorized(req: Request): boolean {
   return bearer !== "" && bearer === SERVICE_ROLE_KEY;
 }
 
-// Har xodimga (Telegram'ni ulagan) 09:00: brifing + bugungi va kechikkan
-// vazifalar (2026-11-03: oldin faqat vazifasi borlarga borardi).
-async function morning() {
+/** Guruhga jamoa xulosasi (bot_group_digest). Xato bo'lsa DM'lar baribir ketadi. */
+async function sendGroupDigest(chatId: number): Promise<boolean> {
+  const { data, error } = await db.rpc("bot_group_digest");
+  if (error || !data) { console.error("bot_group_digest:", error?.message); return false; }
+  await sendLong(chatId, renderGroupDigest(data as GroupDigest));
+  return true;
+}
+
+// 09:00 (morning_time): avval guruhga jamoa xulosasi (group_digest_enabled), keyin har xodimga
+// (Telegram'ni ulagan) brifing + bugungi va kechikkan vazifalar (morning_enabled).
+async function morning(only: string | null = null) {
+  const { data: cfg } = await db.from("bot_settings").select("key, value")
+    .in("key", ["morning_enabled", "group_digest_enabled", "group_chat_id"]);
+  const s = Object.fromEntries(((cfg ?? []) as { key: string; value: string }[]).map((r) => [r.key, r.value]));
+
+  let group = false;
+  const groupChat = Number(s.group_chat_id || 0);
+  if (only !== "dm" && s.group_digest_enabled !== "false" && groupChat) {
+    try { group = await sendGroupDigest(groupChat); } catch (e) { console.error("group digest:", e); }
+  }
+  if (only === "group" || s.morning_enabled === "false") return json({ ok: true, sent: 0, group });
+
   const { data, error } = await db.rpc("bot_brief_targets");
   if (error) { console.error("bot_brief_targets:", error.message); return json({ error: error.message }, 500); }
   let sent = 0;
@@ -441,7 +464,7 @@ async function morning() {
     for (const task of [...g.overdue, ...g.today].slice(0, MAX_CARDS)) await sendTaskCard(t.dm_chat_id, task);
     sent++;
   }
-  return json({ ok: true, sent });
+  return json({ ok: true, sent, group });
 }
 
 // ── kunlik hisobot ────────────────────────────────────────────────────────
@@ -1014,7 +1037,8 @@ Deno.serve(async (req) => {
   // Cron: ertalabki ro'yxat (Telegram sirisiz, Supabase secret key bilan)
   if (new URL(req.url).searchParams.get("action") === "morning") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
-    return await morning();
+    // &only=group — faqat guruh xulosasi (qo'lda sinash uchun), &only=dm — faqat DM'lar
+    return await morning(new URL(req.url).searchParams.get("only"));
   }
   if (new URL(req.url).searchParams.get("action") === "report") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
