@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { requireCaller } from "../_shared/caller.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,6 +46,10 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Xavfsizlik (2026-11-05): faqat xodim yoki server.
+  const caller = await requireCaller(req, "staff", corsHeaders, { allowService: true });
+  if (!caller.ok) return caller.response;
 
   try {
     const { lead_id, analyze_all } = await req.json();
