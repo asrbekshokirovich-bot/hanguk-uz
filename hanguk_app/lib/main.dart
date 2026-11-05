@@ -11,6 +11,7 @@ import 'core/analytics/app_events.dart';
 import 'core/analytics/http_tracking.dart';
 import 'core/analytics/identity_links.dart';
 import 'core/analytics/tracked.dart';
+import 'core/config/app_config.dart';
 import 'core/money/fx_rates.dart';
 import 'core/push/guest_push.dart';
 import 'core/router/app_router.dart';
@@ -69,9 +70,8 @@ Future<void> main() async {
     await Supabase.initialize(
       // Calls to the backend that fail or are slow go to the analytics.
       httpClient: TrackingHttpClient(),
-      url: 'https://lysjdtyanhdfphqyijsr.supabase.co',
-      anonKey:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5c2pkdHlhbmhkZnBocXlpanNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4NTUxMDYsImV4cCI6MjA4ODQzMTEwNn0.p-WlK-r4xqRk63N6zc_8JCIV53FVmjwAcqK7Lx25GJs',
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabasePublishableKey,
     );
   } catch (e) {
     debugPrint('Supabase init error (offline mode): $e');
