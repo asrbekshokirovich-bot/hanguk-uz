@@ -29,6 +29,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
 import { structuredJSON } from "./ai.ts";
+import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
+import { type CardDeps, dmCardReply, groupCardReply } from "./card_actions.ts";
+import { CARD_HINT, replyKeyboard } from "./cards.ts";
 import {
   escapeHtml,
   type MorningBrief,
@@ -80,9 +83,6 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/staff-bot`;
 const BOT_ID = "staff-bot";
-const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
-// Google eski modellarni yangi kalitlar uchun o'chirib boryapti — kerak bo'lsa secret bilan almashtiriladi.
-const GEMINI_MODEL = Deno.env.get("STAFF_BOT_GEMINI_MODEL") || "gemini-2.5-flash";
 const STATE_TTL_MS = 60 * 60_000;
 const REPORT_STATE_TTL_MS = 8 * 60 * 60_000; // 17:00 so'rovga kechroq javob ham qabul qilinadi
 const MAX_CARDS = 10;
@@ -257,45 +257,9 @@ async function startAssign(chatId: number, tgId: number, staff: Staff) {
   await send(chatId, "Kimga vazifa berasiz?", { reply_markup: { inline_keyboard: rows } });
 }
 
-/** Ovozli xabarni matnga (Gemini). Bo'lmasa null. */
+/** Ovozli xabarni matnga: ElevenLabs Scribe, ishlamasa Gemini (voice.ts). Bo'lmasa null. */
 async function transcribeVoice(fileId: string): Promise<string | null> {
-  if (!GEMINI_KEY) return null;
-  try {
-    const f = await callTelegram<{ file_path?: string }>(BOT_TOKEN, "getFile", { file_id: fileId });
-    const path = f.result?.file_path;
-    if (!path) return null;
-    const res = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${path}`);
-    if (!res.ok) return null;
-    const buf = new Uint8Array(await res.arrayBuffer());
-    if (buf.length > 8 * 1024 * 1024) return null;
-    let bin = "";
-    for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-    const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            role: "user",
-            parts: [
-              { text: "Transcribe this voice message verbatim. It is mostly in Uzbek (Latin script), possibly with Russian or Korean words. Output only the transcript, no comments." },
-              { inlineData: { mimeType: "audio/ogg", data: btoa(bin) } },
-            ],
-          }],
-          generationConfig: { temperature: 0 },
-        }),
-      },
-    );
-    if (!r.ok) { console.error("gemini transcribe:", r.status, (await r.text()).slice(0, 300)); return null; }
-    const j = await r.json();
-    // deno-lint-ignore no-explicit-any
-    const text = (j?.candidates?.[0]?.content?.parts ?? []).map((p: any) => p.text ?? "").join("").trim();
-    return text || null;
-  } catch (e) {
-    console.error("transcribeVoice:", e instanceof Error ? e.message : e);
-    return null;
-  }
+  return (await transcribeTelegramVoice(BOT_TOKEN, fileId))?.text ?? null;
 }
 
 const CONFIRM_KB = {
@@ -336,6 +300,7 @@ async function createFromState(cq: Any, staff: Staff, st: State) {
   await callTelegram(BOT_TOKEN, "editMessageText", {
     chat_id: chatId, message_id: cq.message.message_id, parse_mode: "HTML",
     text: renderDraft(st.assignee_name, d) + "\n\n✅ Yaratildi — CRM'da ham ko'rinadi.",
+    reply_markup: replyKeyboard(String(data)), // javob yozib muddat, mas'ul yoki izoh (B1-3)
   });
   if (st.assignee !== staff.user_id) {
     const card: TaskRow = { id: String(data), title: d.title, status: "todo", priority: d.priority, due_date: d.due };
@@ -364,6 +329,12 @@ async function onCallback(cq: Any) {
 
   if (data.startsWith("pr:y:") || data.startsWith("pr:n:")) {
     await onProposalCallback(cq, staff, data.startsWith("pr:y:"), data.slice(5));
+    return;
+  }
+
+  // «💬 Javob yozish» — kartaga qanday javob yozishni ko'rsatadi (B1-3)
+  if (data.startsWith("tr:")) {
+    await callTelegram(BOT_TOKEN, "answerCallbackQuery", { callback_query_id: cq.id, text: CARD_HINT, show_alert: true });
     return;
   }
 
@@ -560,6 +531,12 @@ async function configuredGroupId(): Promise<string> {
 const reply = (chatId: number, replyTo: number, text: string, extra: Record<string, unknown> = {}) =>
   send(chatId, text, { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true }, ...extra });
 
+/** Kartaga javob (card_actions.ts) uchun: tasdiq shu xabarga javob bo'lib boradi. */
+const cardDeps = (chatId: number, replyTo: number): CardDeps => ({
+  db, notifyUser, taskButtons, resolveStaff,
+  reply: (text, extra = {}) => reply(chatId, replyTo, text, extra),
+});
+
 async function logGroupMessage(msg: Any, staff: Staff | null, kind: string, taskId: string | null = null) {
   const media = msg.voice ? "voice" : msg.photo ? "photo" : msg.document ? "document" : msg.video ? "video"
     : msg.audio ? "audio" : msg.sticker ? "sticker" : null;
@@ -624,6 +601,12 @@ async function onGroupMessage(msg: Any) {
     }
   }
 
+  // 1b) Bot kartasiga boshqa javob → izoh, muddat yoki @odam (B1-3, card_actions.ts)
+  if (staff && replyTo?.from?.is_bot) {
+    const card = await groupCardReply(cardDeps(chatId, msg.message_id), msg, staff);
+    if (card) { await logGroupMessage(msg, staff, card.kind, card.taskId); return; }
+  }
+
   // 2) #vazifa / /vazifa
   if (/^\/(help|yordam)(@\w+)?\s*$/i.test(text.trim())) {
     await reply(chatId, msg.message_id, GROUP_HELP);
@@ -636,7 +619,9 @@ async function onGroupMessage(msg: Any) {
     const hasContent = text || msg.voice || msg.photo || msg.document || msg.video || msg.audio || msg.sticker;
     if (!hasContent) return;
     await logGroupMessage(msg, staff, "message");
-    if (staff && shouldAnalyze(text)) background(analyzeGroupMessage(msg, staff, text));
+    // Ovoz fonda matnga aylanadi (Scribe → Gemini) va «🎤 …» bo'lib tahlilga boradi (voice.ts)
+    if (staff && msg.voice) background(onGroupVoice(db, BOT_TOKEN, msg, (t) => analyzeGroupMessage(msg, staff, t)));
+    else if (staff && shouldAnalyze(text)) background(analyzeGroupMessage(msg, staff, text));
     return;
   }
 
@@ -926,6 +911,8 @@ async function onPrivateMessage(msg: Any) {
 
   // Vazifa berish oqimi: matn yoki ovoz kutilmoqda
   if (!cmd && !isMenu) {
+    // Bot yuborgan vazifa kartasiga javob → izoh, muddat yoki @odam (B1-3, card_actions.ts)
+    if (await dmCardReply(cardDeps(chatId, msg.message_id), msg, staff)) return;
     const st = await getState(from.id);
     if (st && (st.step === "text" || st.step === "confirm")) {
       const voice = msg.voice ?? msg.audio;

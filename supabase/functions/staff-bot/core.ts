@@ -341,6 +341,11 @@ export const HELP_GUIDE = [
   `<b>${MENU.ask}</b>`,
   "Hanguk AI'ga savol: talabalar, lidlar, arizalar, vazifalar, universitetlar. Faqat CRM'da sizga ochiq ma'lumot bo'yicha javob beradi.",
   "",
+  "<b>Vazifa kartasiga javob</b>",
+  "Bot yuborgan vazifa kartasiga (shu yerda yoki guruhda) javob (reply) yozing:",
+  "• oddiy matn — izoh: CRM'da vazifaning «Faollik» bo'limida qoladi va ikkinchi tomonga (mas'ul ↔ bergan) boradi;",
+  "• vazifa bergan yoki owner: «ertaga 15:00», «05.11», «juma» — yangi muddat; <code>@username</code> — vazifani boshqa xodimga o'tkazish.",
+  "",
   "<b>Guruhda</b>",
   "<code>#vazifa @username nima qilish kerak, ertaga 15:00</code> — vazifa beradi (yoki odamning xabariga javob qilib <code>#vazifa matn</code>).",
   "Bot kartasiga mas'ul «✅» yoki «bajarildi» deb javob yozsa — vazifa yopiladi (boshqalar yopa olmaydi; CRM'dan yopish mumkin).",
@@ -413,8 +418,11 @@ export function parseTaskText(raw: string, nowMs: number): ParsedTask {
   }
 
   let hh = 18, mi = 0, hasTime = false;
-  const tm = low.match(/\b(?:soat\s*)?([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
-  if (tm && !(dm && tm.index === dm.index)) { hh = +tm[1]; mi = +tm[2]; hasTime = true; }
+  // Vaqt: sanaga o'xshash bo'lak («05.11», «1.50») bilan bir joydan boshlanmagan birinchi moslik.
+  // (Avval faqat birinchi moslik tekshirilardi: «05.11 15:00» → 15:00 tashlanib 18:00 bo'lardi.)
+  const dateStarts = new Set([...low.matchAll(/\b\d{1,2}[./]\d{1,2}(?:[./]\d{2,4})?\b/g)].map((x) => x.index));
+  const tm = [...low.matchAll(/\b(?:soat\s*)?([01]?\d|2[0-3])[:.]([0-5]\d)\b/g)].find((x) => !dateStarts.has(x.index));
+  if (tm) { hh = +tm[1]; mi = +tm[2]; hasTime = true; }
   else {
     const sm = low.match(/\bsoat\s*([01]?\d|2[0-3])\b/);
     if (sm) { hh = +sm[1]; mi = 0; hasTime = true; }
@@ -572,6 +580,8 @@ export const GROUP_HELP =
   "Guruhda vazifa berish:\n<code>#vazifa @username nima qilish kerak, ertaga 15:00, zarur</code>\n" +
   "yoki odamning xabariga javob qilib: <code>#vazifa matn</code>\n" +
   "Bajarilganda bot kartasiga «✅» yoki «bajarildi» deb javob yozing.\n" +
+  "Kartaga boshqa javob — izoh (CRM'da qoladi); vazifa bergan yoki owner: «ertaga 15:00» — yangi muddat, " +
+  "<code>@username</code> — boshqa xodimga o'tkazish.\n" +
   "Har ish kuni ertalab bot shu guruhga jamoa xulosasini yuboradi.";
 
 // ── PR-8: guruh suhbati AI tahlili (faqat taklif) ─────────────────────────

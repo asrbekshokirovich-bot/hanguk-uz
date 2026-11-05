@@ -13,6 +13,8 @@ Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohid
 | DM | 📝 Hisobot | 17:00 da so'raladi; bitta xabar (matn/ovoz); qayta yozsa yangilanadi |
 | DM | 🤖 Savol | Hanguk AI; xodimning CRM ruxsatlari doirasida |
 | Guruh | `#vazifa @username matn` | vazifa + karta; mas'ul kartaga «✅»/«bajarildi» → yopiladi |
+| Guruh, DM | vazifa kartasiga javob (reply) | oddiy matn → izoh (CRM «Faollik», ikkinchi tomonga DM); bergan yoki owner: «ertaga 15:00», «05.11», «juma» → muddat, `@username` → boshqa xodimga |
+| Guruh | ovozli xabar | fonda matnga (Scribe, zaxira Gemini) → «🎤 …» bo'lib saqlanadi va tahlil qilinadi; ovozdan `#vazifa` chiqmaydi |
 | Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
 | Guruh | har ish kuni 09:00 | jamoa xulosasi: har xodimning kechikkan va bugungi vazifalari (hammasi), lidlar, hujjatlar, ariza muddatlari, kechagi hisobot (topshirmaganlar ismi bilan) |
 
@@ -35,32 +37,35 @@ Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir mart
 Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida).
 
 ## Arxitektura
-- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (Gemini → Claude zaxira).
+- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (Gemini → Claude zaxira), `voice.ts` (ovoz → matn: Scribe → Gemini, guruh ovozi; `voice_test.ts`), `cards.ts` (kartaga javobni ajratish, sof; `cards_test.ts`) va `card_actions.ts` (RPC + xabarlar).
 - Edge: `tv-board` — ofis TV (hanguk.uz/tv) ma'lumoti, `?k=` kalit (`bot_settings.tv_key`, faqat owner ko'radi).
 - Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report`) — Supabase secret key (`apikey`).
-- Secrets: `STAFF_BOT_TOKEN`, `STAFF_BOT_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`; ixtiyoriy `STAFF_BOT_GEMINI_MODEL` (standart gemini-2.5-flash), `STAFF_BOT_CLAUDE_MODEL` (standart claude-haiku-5-5).
-- AI: hisobotni 3 qismga ajratish va guruh tahlili — avval Gemini, ishlamasa Claude (`tool_use` bilan aniq JSON). Ovozni matnga faqat Gemini aylantiradi.
+- Secrets: `STAFF_BOT_TOKEN`, `STAFF_BOT_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY` (Scribe; bo'lmasa ovoz faqat Gemini bilan); ixtiyoriy `STAFF_BOT_GEMINI_MODEL` (standart gemini-2.5-flash), `STAFF_BOT_CLAUDE_MODEL` (standart claude-haiku-5-5).
+- AI: hisobotni 3 qismga ajratish va guruh tahlili — avval Gemini, ishlamasa Claude (`tool_use` bilan aniq JSON).
+- Ovoz → matn (DM: vazifa, hisobot, savol; guruh): ElevenLabs Scribe (`_shared/scribe.ts`, `uzb`, fayl `voice.ogg`), xato, bo'sh javob yoki 30 s dan oshsa — Gemini. Logda: `staff-bot voice: via scribe|gemini …` yoki `… voice not transcribed`.
+- Kartaga javob: guruhda `bot_group_cards` orqali, DM'da kartaning tugmasidagi id (`td:`/`ts:`, bergan odamga — `tr:` «💬 Javob yozish»). Muddat/@odam faqat javob shu iboradan iborat bo'lsa (boshqa so'z qolsa — izoh). Xabarlar: izoh → ikkinchi tomonga (owner yozsa ikkalasiga), muddat → mas'ulga, o'tkazish → yangi mas'ulga karta (▶/✅) va eskisiga.
 - «Savol»: bot xodim nomidan qisqa sessiya ochadi (`auth.admin.generateLink` → `verifyOtp`, email yuborilmaydi), `hanguk-ai-chat`ga shu JWT bilan so'raydi, keyin `auth.admin.signOut`.
 
-## Baza (migratsiyalar 2026-10-31 … 2026-11-03)
+## Baza (migratsiyalar 2026-10-31 … 2026-11-05)
 | Jadval | Vazifasi | O'qiydi |
 |---|---|---|
 | `staff_telegram_links`, `staff_link_codes` | xodim ↔ Telegram | o'zi, owner, admin |
 | `bot_settings` | vaqtlar, guruh, AI rejimi, TV kaliti | xodimlar (`tv_key` — faqat owner) |
 | `bot_state`, `telegram_updates_seen` | ko'p bosqichli oqim, dublikat himoya | faqat service |
 | `task_events` | vazifa voqealari (via crm/dm/group/cron) | vazifani ko'ra oladigan |
+| `task_comments` | vazifa izohlari (CRM «Faollik»); botdagi kartaga javob ham shu yerga, muallif = xodim | owner, admin, operator, hujjatchi |
 | `daily_reports` | kunlik hisobot (bir kunga bitta) | o'zi, owner, admin |
 | `staff_group_messages` | guruh xabarlari (90 kun) | owner |
 | `bot_group_cards` | guruh kartasi → vazifa | faqat service |
 | `bot_proposals` | AI takliflari (shadow/on, holati) | owner |
 
-Bot RPC'lari (`bot_*`) faqat `service_role` uchun; CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
+Bot RPC'lari (`bot_*`) faqat `service_role` uchun (kartadan: `bot_set_task_due`, `bot_reassign_task` — bergan yoki owner; `bot_add_task_comment` — mas'ul, bergan yoki owner; hammasi `app.task_via`/`app.task_actor` bilan); CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
 
 ## Guruh AI ishonchliligi
 1. Aniq buyruqlar (`#vazifa`, kartaga ✅) — deterministik.
 2. AI faqat taklif: ishonch ≥ 0.75, xodim aniq mos kelishi, mavjud vazifaga o'xshamasligi; yopishda vazifa id'si AI'dan emas, ro'yxatdagi raqamdan.
 3. Tasdiqsiz hech narsa yaratilmaydi/yopilmaydi; 24 soatda tasdiqlanmasa — expired.
-4. Vazifa holatini botda (▶/✅, guruhda ✅, AI yopish taklifi) **faqat mas'ul** o'zgartiradi; bergan odam va owner CRM orqali yopadi.
+4. Vazifa holatini botda (▶/✅, guruhda ✅, AI yopish taklifi) **faqat mas'ul** o'zgartiradi; bergan odam va owner CRM orqali yopadi. Muddat va mas'ulni kartadan **bergan yoki owner** o'zgartiradi.
 Rejim: `off` | `shadow` (standart — faqat `bot_proposals`, guruhga chiqmaydi) | `on`.
 
 ## Orbit

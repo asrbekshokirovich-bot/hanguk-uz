@@ -25,11 +25,15 @@ export interface TranscriptionResult {
 /**
  * Transcribe audio bytes with ElevenLabs Scribe.
  * `languageCode` is an ISO-639 hint (default "uzb" — Uzbek). Diarization on.
+ * `fileName` is sent as the upload's name; its extension should match the audio
+ * (Telegram voice notes are OGG/Opus → "voice.ogg"). Defaults to the old
+ * "recording.mp3" so existing callers (process-call-recording) are unchanged.
  */
 export async function transcribeWithScribe(
   bytes: Uint8Array,
   mimeType: string,
   languageCode = "uzb",
+  fileName = "recording.mp3",
 ): Promise<TranscriptionResult> {
   const key = Deno.env.get("ELEVENLABS_API_KEY");
   if (!key) throw new Error("ELEVENLABS_API_KEY is not configured");
@@ -39,7 +43,8 @@ export async function transcribeWithScribe(
   form.append("diarize", "true");
   form.append("timestamps_granularity", "word");
   if (languageCode) form.append("language_code", languageCode);
-  form.append("file", new Blob([bytes], { type: mimeType }), "recording.mp3");
+  // `as BlobPart`: TS 5.7+ types Uint8Array<ArrayBufferLike> as not a BlobPart (runtime is fine).
+  form.append("file", new Blob([bytes as unknown as BlobPart], { type: mimeType }), fileName || "recording.mp3");
 
   const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
     method: "POST",
