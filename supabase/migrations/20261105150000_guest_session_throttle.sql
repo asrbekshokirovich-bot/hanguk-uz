@@ -1,5 +1,5 @@
 -- Xavfsizlik (2026-11-05): guest-test-session cheksiz mehmon akkaunt ochardi.
--- Edge funksiya shu jadvalga har ochilishni yozadi va bitta IP'dan soatiga 5,
+-- Edge funksiya shu jadvalga har ochilishni yozadi va bitta IP'dan soatiga 20,
 -- hammasi bo'lib kuniga 300 tadan ortig'ini rad etadi. IP o'zi saqlanmaydi,
 -- faqat SHA-256 izi. Faqat service_role (edge funksiya) ishlatadi.
 create table if not exists public.guest_session_throttle (

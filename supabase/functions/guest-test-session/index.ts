@@ -17,7 +17,7 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
-const PER_IP_PER_HOUR = 5;
+const PER_IP_PER_HOUR = 20;
 const TOTAL_PER_DAY = 300;
 
 function clientIp(req: Request): string {
@@ -60,9 +60,9 @@ Deno.serve(async (req) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
-    // Xavfsizlik (2026-11-05): bitta IP soatiga 5 tadan, hammasi kuniga 300 tadan
+    // Xavfsizlik (2026-11-05): bitta IP soatiga 20 tadan, hammasi kuniga 300 tadan
     // ko'p mehmon akkaunt ocholmaydi (oldin cheksiz edi). Kuniga eng ko'pi 19 ta
-    // ochilgan (2026-11-04), shuning uchun oddiy foydalanuvchiga ta'sir qilmaydi.
+    // ochilgan, bitta IP soatiga eng ko'pi 6 ta (2026-11-04; ofis/mobil NAT bitta IP), shuning uchun oddiy foydalanuvchiga ta'sir qilmaydi.
     const limited = await overLimit(admin, req);
     if (limited) return json({ error: "rate_limited" }, 429);
 
