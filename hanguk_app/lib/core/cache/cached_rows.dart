@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 
+import '../analytics/app_events.dart';
+
 /// Where [CachedRows] keeps its copy: a file on the phone, and the copy
 /// shipped in the app. Tests pass their own.
 class CachedRowsStore {
@@ -99,7 +101,26 @@ class CachedRows {
   bool _restored = false;
   Future<List<dynamic>>? _inFlight;
 
+  /// Where the kept rows came from: 'saved' or 'shipped'.
+  String? _source;
+  bool _reported = false;
+
+  /// `data_ready` once per run: how the first screen got its rows — from
+  /// memory, the saved or shipped copy, or the network — and how long it took.
+  void _report(String source, Stopwatch clock, int? rows) {
+    if (_reported) return;
+    _reported = true;
+    AppEvents.track('data_ready', props: {
+      'name': name,
+      'source': source,
+      'ms': clock.elapsedMilliseconds,
+      'rows': ?rows,
+      if (source == 'saved' && _at != null) 'age_h': _now().difference(_at!).inHours,
+    });
+  }
+
   Future<List<dynamic>> load(Future<List<dynamic>> Function() fetch, {void Function()? onFresh}) async {
+    final clock = Stopwatch()..start();
     if (!_restored) {
       // A look started in another zone (a finished test's) may never end.
       if (_restoring == null || _restoringZone != Zone.current) {
@@ -109,7 +130,17 @@ class CachedRows {
       await _restoring;
     }
     final rows = _rows;
-    if (rows == null) return _fetch(fetch);
+    if (rows == null) {
+      try {
+        final fetched = await _fetch(fetch);
+        _report('network', clock, fetched.length);
+        return fetched;
+      } catch (_) {
+        _report('failed', clock, null);
+        rethrow;
+      }
+    }
+    _report(_source ?? 'memory', clock, rows.length);
     final at = _at;
     if (at == null || _now().difference(at) >= fresh) {
       unawaited(
@@ -148,6 +179,7 @@ class CachedRows {
           if (_rows == null) {
             _rows = m['rows'] as List;
             _at = DateTime.tryParse('${m['at']}');
+            _source = 'saved';
           }
           return;
         }
@@ -162,7 +194,10 @@ class CachedRows {
       if (shipped == null) return;
       final rows = jsonDecode(shipped);
       // An empty list is the placeholder a build without a snapshot ships.
-      if (rows is List && rows.isNotEmpty) _rows ??= rows;
+      if (rows is List && rows.isNotEmpty && _rows == null) {
+        _rows = rows;
+        _source = 'shipped';
+      }
     } catch (e) {
       debugPrint('[CachedRows] $asset unreadable: $e');
     }
@@ -175,6 +210,8 @@ class CachedRows {
     _restoring = null;
     _restoringZone = null;
     _restored = false;
+    _source = null;
+    _reported = false;
     _inFlight = null;
   }
 }
