@@ -16,6 +16,8 @@
 // (RLS) doirasida javob beradi; javobdan keyin sessiya yopiladi.
 // Guruh xulosasi (2026-11-05): ertalabki cron'da guruhga bot_group_digest → renderGroupDigest
 // (bot_settings.group_digest_enabled; qo'lda: ?action=morning&only=group).
+// AI qatlami (2026-11-05, B0-2/B0-3/B0-5): aiops.ts — tartib bot_settings.ai_provider_order (standart
+// claude,gemini), har urinish ai_calls'ga; provayderlar xato bersa ish bot_jobs'ga, cron → ?action=jobs.
 //
 // Sozlash (bir marta): secrets STAFF_BOT_TOKEN va STAFF_BOT_WEBHOOK_SECRET,
 // keyin `<function url>?action=setup` ochiladi — webhook, buyruqlar ro'yxati
@@ -28,7 +30,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
-import { structuredJSON } from "./ai.ts";
+import { createAiOps, type JobRow } from "./aiops.ts";
 import {
   escapeHtml,
   type MorningBrief,
@@ -57,7 +59,6 @@ import {
   REPORT_PROMPT,
   renderReport,
   renderSummary,
-  type ReportParts,
   type SummaryRow,
   tashkentDate,
   type ParsedTask,
@@ -88,6 +89,7 @@ const REPORT_STATE_TTL_MS = 8 * 60 * 60_000; // 17:00 so'rovga kechroq javob ham
 const MAX_CARDS = 10;
 
 const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+const aiOps = createAiOps({ db, providerOrder: () => settingValue("ai_provider_order"), send: (chat, text) => send(chat, text) });
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -474,34 +476,9 @@ async function startReport(chatId: number, tgId: number, intro = "") {
   await send(chatId, (intro ? intro + "\n\n" : "") + REPORT_PROMPT, { reply_markup: MENU_KEYBOARD });
 }
 
-/** Hisobotni 3 qismga ajratish (Gemini). Ishlamasa null — asl matn saqlanadi. */
-async function splitReport(raw: string): Promise<ReportParts | null> {
-  try {
-    const { data: r } = await structuredJSON<ReportParts>({
-      system:
-        "You split a staff member's end-of-day work report into three parts. The report is in Uzbek (Latin), " +
-        "maybe mixed with Russian. Keep the author's own words and language; shorten only by removing filler. " +
-        "Do not invent anything. If a part is not mentioned, return an empty string for it.",
-      prompt: `Report:\n"""${raw.slice(0, 6000)}"""\n\nReturn done (what was done today), blockers (problems, blockers, help needed), plan (plans for tomorrow).`,
-      schema: {
-        type: "object",
-        properties: { done: { type: "string" }, blockers: { type: "string" }, plan: { type: "string" } },
-        required: ["done", "blockers", "plan"],
-      },
-      temperature: 0,
-    });
-    if (!r) return null;
-    const clean = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 3000) : null);
-    const parts = { done: clean(r.done), blockers: clean(r.blockers), plan: clean(r.plan) };
-    return parts.done || parts.blockers || parts.plan ? parts : null;
-  } catch (e) {
-    console.error("splitReport:", e instanceof Error ? e.message : e);
-    return null;
-  }
-}
-
 async function onReportText(chatId: number, tgId: number, staff: Staff, raw: string, heard: string | null) {
-  const parts = await splitReport(raw);
+  // 3 qismga ajratish (aiops.ts). Provayderlar xato bersa — asl matn saqlanadi, ajratish navbatdan.
+  const { parts, error: aiError } = await aiOps.splitReport(raw);
   const { data, error } = await db.rpc("bot_save_report", {
     p_actor: staff.user_id, p_raw: raw, p_done: parts?.done ?? null, p_blockers: parts?.blockers ?? null,
     p_plan: parts?.plan ?? null, p_ai: parts !== null,
@@ -512,7 +489,8 @@ async function onReportText(chatId: number, tgId: number, staff: Staff, raw: str
     return;
   }
   await setState(tgId, null);
-  const r = (Array.isArray(data) ? data[0] : data) as { was_update: boolean } | undefined;
+  const r = (Array.isArray(data) ? data[0] : data) as { id: string; was_update: boolean } | undefined;
+  if (aiError && r?.id) await aiOps.enqueue("report_split", `rs:${r.id}`, { report_id: r.id, raw }, aiError);
   const head = r?.was_update ? "✏️ Hisobot yangilandi." : "✅ Hisobot qabul qilindi. Rahmat!";
   const heardLine = heard ? `🎙 «${escapeHtml(heard)}»\n\n` : "";
   await sendLong(chatId, `${head}\n\n${heardLine}${renderReport(raw, parts)}\n\n<i>O'zgartirish uchun «📝 Hisobot» tugmasini qayta bosing.</i>`,
@@ -528,7 +506,7 @@ async function reportCron(kind: string) {
   if (kind === "summary") {
     const { data, error } = await db.rpc("bot_report_summary");
     if (error) { console.error("bot_report_summary:", error.message); return json({ error: error.message }, 500); }
-    const text = renderSummary((data ?? []) as SummaryRow[], fmtDay(Date.now()));
+    const text = renderSummary((data ?? []) as SummaryRow[], fmtDay(Date.now()), await aiOps.brief(24));
     const { data: owners } = await db.rpc("bot_owner_chats");
     let sent = 0;
     for (const o of (owners ?? []) as { dm_chat_id: number }[]) { await sendLong(o.dm_chat_id, text); sent++; }
@@ -743,11 +721,15 @@ async function settingValue(key: string): Promise<string> {
   return String(data?.value ?? "");
 }
 
-async function analyzeGroupMessage(msg: Any, staff: Staff, text: string) {
+/**
+ * Guruh xabarini AI bilan tahlil (faqat taklif). Provayderlar xato bersa — xato matni qaytadi va (jonli
+ * chaqiriqda) ish bot_jobs navbatiga tushadi; navbatdan (jobId bilan) qayta bajarilganda mantiq o'sha.
+ */
+async function analyzeGroupMessage(msg: Any, staff: Staff, text: string, jobId: string | null = null): Promise<string | undefined> {
   const mode = (await settingValue("group_ai_mode")) || "shadow";
   if (mode === "off") return;
   const { data: ctxData, error: ctxErr } = await db.rpc("bot_group_context");
-  if (ctxErr) { console.error("bot_group_context:", ctxErr.message); return; }
+  if (ctxErr) { console.error("bot_group_context:", ctxErr.message); return `bot_group_context: ${ctxErr.message}`; }
   const ctx = (ctxData ?? []) as CtxStaff[];
   const names = new Map(ctx.map((c) => [c.user_id, c.name]));
 
@@ -757,15 +739,26 @@ async function analyzeGroupMessage(msg: Any, staff: Staff, text: string) {
   const history = ((hist ?? []) as { user_id: string | null; text: string }[]).reverse()
     .map((h) => ({ name: (h.user_id && names.get(h.user_id)) || "Noma'lum", text: h.text.slice(0, 500) }));
 
-  const { data: ai, provider } = await structuredJSON<AiAnalysis>({
+  const { data: ai, provider, error: aiError } = await aiOps.structured<AiAnalysis>("group_analysis", {
     system: ANALYSIS_SYSTEM,
     prompt: buildAnalysisPrompt(ctx, history, { name: staff.full_name, text: text.slice(0, 2000) }),
     schema: ANALYSIS_SCHEMA,
     temperature: 0,
-  });
+  }, jobId);
+  if (!ai) {
+    // Provayderlar xato berdi (AI «hech narsa yo'q» degani emas) — cron 5 daqiqadan keyin qayta urinadi.
+    if (!jobId) {
+      await aiOps.enqueue("group_analysis", `ga:${msg.chat.id}:${msg.message_id}`, {
+        chat_id: msg.chat.id, message_id: msg.message_id, date: msg.date ?? null,
+        user_id: staff.user_id, author_name: staff.full_name, text: text.slice(0, 2000),
+      }, aiError);
+    }
+    return aiError ?? "AI xato";
+  }
   if (provider) console.log(`staff-bot: group analysis via ${provider}`);
 
-  const p = interpretAnalysis(ai, ctx, Date.now());
+  // Muddat («ertaga 15:00») xabar yozilgan vaqtga nisbatan — navbatdan kechroq bajarilsa ham.
+  const p = interpretAnalysis(ai, ctx, msg.date ? msg.date * 1000 : Date.now());
   if (!p) return;
   if (p.kind === "close") {
     const { count } = await db.from("bot_proposals").select("id", { count: "exact", head: true })
@@ -792,6 +785,16 @@ async function analyzeGroupMessage(msg: Any, staff: Staff, text: string) {
   // deno-lint-ignore no-explicit-any
   const cardId = (sent as any)?.result?.message_id;
   if (cardId) await db.from("bot_proposals").update({ card_message_id: cardId }).eq("id", row.id);
+}
+
+/** Navbatdan (`group_analysis`): payload'dan xabar va muallif tiklanadi. */
+function retryGroupAnalysis(job: JobRow): Promise<string | undefined> {
+  const p = job.payload as Any;
+  return analyzeGroupMessage(
+    { chat: { id: p.chat_id }, message_id: p.message_id, date: p.date },
+    { user_id: p.user_id, full_name: p.author_name ?? "", roles: [], dm_chat_id: null },
+    String(p.text ?? ""), job.id,
+  );
 }
 
 interface ProposalRow {
@@ -1043,6 +1046,11 @@ Deno.serve(async (req) => {
   if (new URL(req.url).searchParams.get("action") === "report") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
     return await reportCron(new URL(req.url).searchParams.get("kind") ?? "");
+  }
+  // Cron (5 daqiqa): AI navbati va AI holati ogohlantirishi (aiops.ts)
+  if (new URL(req.url).searchParams.get("action") === "jobs") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return json({ ok: true, ...(await aiOps.runJobs({ group_analysis: retryGroupAnalysis })) });
   }
 
   if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {
