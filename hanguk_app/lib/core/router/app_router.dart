@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show AuthState;
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthState, Supabase;
 
 import '../../core/analytics/tracked.dart';
 import '../../design_system/seoul_night/seoul_night.dart';
@@ -397,6 +397,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     isAuthenticated: isClientSession(s.value?.session),
   );
   sync(ref.read(authStateProvider));
+  // main.dart awaits Supabase.initialize, which restores the saved session, so
+  // whether a student is signed in is known before the first frame. Waiting
+  // for the auth stream's first event instead let '/' through meanwhile: every
+  // guest launch built the student's shell for a frame, and the analytics
+  // counted it as an "/#application" visit (60 ms) on each guest's first screen.
+  if (gate.isLoading) {
+    final restored = restoredClientSession();
+    if (restored != null) gate.update(isLoading: false, isAuthenticated: restored);
+  }
   ref.listen<AsyncValue<AuthState>>(authStateProvider, (_, next) => sync(next));
 
   final router = GoRouter(
@@ -448,6 +457,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
   return router;
 });
+
+/// Whether the session Supabase restored at start-up is a student's; null
+/// when Supabase is not up (a widget test, a start whose initialize failed),
+/// so the router waits for the auth stream as before.
+@visibleForTesting
+bool? restoredClientSession() {
+  try {
+    return isClientSession(Supabase.instance.client.auth.currentSession);
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Where [loc] should go instead, or null to stay. Pure, so the gates can be
 /// tested without a router or a session.

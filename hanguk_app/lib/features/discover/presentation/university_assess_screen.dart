@@ -54,6 +54,9 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
   /// `assessment_start` goes once per visit, with the first answer changed.
   bool _started = false;
 
+  /// The slider's answers, recorded when the finger lifts.
+  final _slide = SlideAnswers();
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -119,12 +122,16 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     final input = ref.watch(assessmentProvider);
     final book = ref.watch(chanceBookProvider);
     final tests = book.testsOf(u);
-    void set(AssessmentInput next) {
+    void set(AssessmentInput next, {bool sliding = false}) {
       if (!_started) {
         _started = true;
         AppEvents.track('assessment_start', props: {'kind': 'university', 'institution_id': u.institutionId});
       }
-      trackAnswers('university', input, next);
+      if (sliding) {
+        _slide.moved(input);
+      } else {
+        trackAnswers('university', input, next);
+      }
       ref.read(assessmentProvider.notifier).set(next);
     }
 
@@ -180,7 +187,8 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
               child: HardSlider(
                 value: (input.gpa - 1) / 4,
                 semanticLabel: l.uaQGpa,
-                onChanged: (v) => set(input.copyWith(gpa: ((1 + 4 * v) * 10).round() / 10)),
+                onChanged: (v) => set(input.copyWith(gpa: ((1 + 4 * v) * 10).round() / 10), sliding: true),
+                onChangeEnd: () => _slide.ended('university', ref.read(assessmentProvider)),
               ),
             ),
             const SizedBox(width: 10),
