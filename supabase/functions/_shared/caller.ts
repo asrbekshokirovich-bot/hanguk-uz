@@ -35,12 +35,21 @@ function safeEqual(a: string, b: string): boolean {
 
 /** True when the request carries one of this project's server-side keys. */
 export function isServiceRequest(req: Request): boolean {
-  const token = bearer(req) ?? req.headers.get("apikey");
-  if (!token) return false;
-  const keys = [Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), Deno.env.get("SUPABASE_SECRET_KEY")].filter(
-    (k): k is string => !!k,
-  );
-  return keys.some((k) => safeEqual(token, k));
+  const candidates = [bearer(req), req.headers.get("apikey")?.trim()].filter((t): t is string => !!t);
+  if (candidates.length === 0) return false;
+  const keys = [Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), ...secretKeys()].filter((k): k is string => !!k);
+  return candidates.some((t) => keys.some((k) => safeEqual(t, k)));
+}
+
+/** Every sb_secret_ key configured for this project, whatever it is named. */
+function secretKeys(): string[] {
+  try {
+    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
+    if (!raw) return [];
+    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
+  } catch (_e) {
+    return [];
+  }
 }
 
 export async function requireCaller(
