@@ -169,6 +169,86 @@ class AssessmentInput {
     'interview_prep': interviewPrep,
   };
 
+  /// The answers as kept on the phone between visits (plan P05): the
+  /// figures as they are, the route by its name.
+  Map<String, Object> toJson() => {
+    'v': 1,
+    'topik': topik,
+    'gpa': gpa,
+    'bank_krw': bankKrw,
+    'route': route.name,
+    'visa_refused': visaRefused,
+    'university_ids': universityIds,
+    'gap_years': gapYears,
+    'experience': experience,
+    'olympiad': olympiad,
+    'topik_fresh': topikFresh,
+    'ielts': ielts,
+    'motivation': motivation,
+    'recommendation': recommendation,
+    'portfolio': portfolio,
+    'activity': activity,
+    'education': education,
+    'age': age,
+    'income': income,
+    'income_documented': incomeDocumented,
+    'sponsor': sponsor,
+    'relation_doc': relationDoc,
+    'income_stability': incomeStability,
+    'property': property,
+    'car': car,
+    'business': business,
+    'korea_before': koreaBefore,
+    'illegal_relatives': illegalRelatives,
+    'legal_relatives': legalRelatives,
+    'study_plan': studyPlan,
+    'interview_prep': interviewPrep,
+  };
+
+  /// Reads what [toJson] wrote; a key that is missing or of the wrong type
+  /// keeps its default, so an older copy still loads.
+  factory AssessmentInput.fromJson(Map<String, dynamic> j) {
+    const d = AssessmentInput();
+    int i(String k, int def) => j[k] is num ? (j[k] as num).toInt() : def;
+    double f(String k, double def) => j[k] is num ? (j[k] as num).toDouble() : def;
+    bool b(String k, bool def) => j[k] is bool ? j[k] as bool : def;
+    final routeName = j['route'];
+    final route = StudyRoute.values.where((r) => r.name == routeName).firstOrNull ?? d.route;
+    final ids = j['university_ids'];
+    return AssessmentInput(
+      topik: i('topik', d.topik),
+      gpa: f('gpa', d.gpa),
+      bankKrw: i('bank_krw', d.bankKrw),
+      route: route,
+      visaRefused: b('visa_refused', d.visaRefused),
+      universityIds: ids is List ? ids.whereType<String>().toList() : d.universityIds,
+      gapYears: i('gap_years', d.gapYears),
+      experience: i('experience', d.experience),
+      olympiad: i('olympiad', d.olympiad),
+      topikFresh: b('topik_fresh', d.topikFresh),
+      ielts: f('ielts', d.ielts),
+      motivation: i('motivation', d.motivation),
+      recommendation: b('recommendation', d.recommendation),
+      portfolio: b('portfolio', d.portfolio),
+      activity: i('activity', d.activity),
+      education: i('education', d.education),
+      age: i('age', d.age),
+      income: i('income', d.income),
+      incomeDocumented: b('income_documented', d.incomeDocumented),
+      sponsor: i('sponsor', d.sponsor),
+      relationDoc: b('relation_doc', d.relationDoc),
+      incomeStability: i('income_stability', d.incomeStability),
+      property: i('property', d.property),
+      car: i('car', d.car),
+      business: i('business', d.business),
+      koreaBefore: i('korea_before', d.koreaBefore),
+      illegalRelatives: b('illegal_relatives', d.illegalRelatives),
+      legalRelatives: b('legal_relatives', d.legalRelatives),
+      studyPlan: i('study_plan', d.studyPlan),
+      interviewPrep: i('interview_prep', d.interviewPrep),
+    );
+  }
+
   AssessmentInput copyWith({
     int? topik,
     double? gpa,
