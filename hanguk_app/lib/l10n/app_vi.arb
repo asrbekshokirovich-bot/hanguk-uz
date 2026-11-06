@@ -1808,5 +1808,14 @@
   "nextStepBadge": "BƯỚC TIẾP THEO",
   "nextStepUploadTitle": "Giấy tờ cần tải lên",
   "nextStepUploadBody": "Khi đủ giấy tờ, tư vấn viên sẽ nộp hồ sơ trực tuyến.",
-  "nextStepUploadButton": "Tải giấy tờ lên"
+  "nextStepUploadButton": "Tải giấy tờ lên",
+  "nextStepUploadCount": "Tải lên {count} hồ sơ",
+  "nextStepUploadNeeded": "Còn cần: {names}.",
+  "nextStepAnd": "và",
+  "nextStepOrder": "CÁC BƯỚC",
+  "nextStepStageContract": "Hợp đồng",
+  "nextStepStageDocuments": "Hồ sơ",
+  "nextStepStageUniversity": "Chọn trường",
+  "nextStepStageOnline": "Nộp hồ sơ trực tuyến",
+  "nextStepStageResult": "Kết quả và visa"
 }

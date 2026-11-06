@@ -5660,4 +5660,35 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Загрузить документы';
+
+  @override
+  String nextStepUploadCount(String count) {
+    return 'Загрузите документы: $count';
+  }
+
+  @override
+  String nextStepUploadNeeded(String names) {
+    return 'Нужны: $names.';
+  }
+
+  @override
+  String get nextStepAnd => 'и';
+
+  @override
+  String get nextStepOrder => 'ПОРЯДОК';
+
+  @override
+  String get nextStepStageContract => 'Договор';
+
+  @override
+  String get nextStepStageDocuments => 'Документы';
+
+  @override
+  String get nextStepStageUniversity => 'Выбор университета';
+
+  @override
+  String get nextStepStageOnline => 'Онлайн-заявка';
+
+  @override
+  String get nextStepStageResult => 'Результат и виза';
 }

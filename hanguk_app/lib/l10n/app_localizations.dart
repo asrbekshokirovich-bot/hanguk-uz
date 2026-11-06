@@ -10159,6 +10159,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload documents'**
   String get nextStepUploadButton;
+
+  /// Next step card (D8) title: how many required documents to upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload {count} documents'**
+  String nextStepUploadCount(String count);
+
+  /// Next step card (D8): which documents are still needed.
+  ///
+  /// In en, this message translates to:
+  /// **'Still needed: {names}.'**
+  String nextStepUploadNeeded(String names);
+
+  /// The word joining the last two names in a list (D8).
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get nextStepAnd;
+
+  /// Heading of the step list under the next step card (D8).
+  ///
+  /// In en, this message translates to:
+  /// **'STEPS'**
+  String get nextStepOrder;
+
+  /// Step list (D8): the contract.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get nextStepStageContract;
+
+  /// Step list (D8): the documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get nextStepStageDocuments;
+
+  /// Step list (D8): choosing the universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing universities'**
+  String get nextStepStageUniversity;
+
+  /// Step list (D8): the online application.
+  ///
+  /// In en, this message translates to:
+  /// **'Online application'**
+  String get nextStepStageOnline;
+
+  /// Step list (D8): the result and the visa.
+  ///
+  /// In en, this message translates to:
+  /// **'Result and visa'**
+  String get nextStepStageResult;
 }
 
 class _AppLocalizationsDelegate

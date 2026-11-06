@@ -1808,5 +1808,14 @@
   "nextStepBadge": "KEYINGI QADAM",
   "nextStepUploadTitle": "Yuklanadigan hujjatlar",
   "nextStepUploadBody": "Ular tayyor bo'lsa, konsultant online arizani topshiradi.",
-  "nextStepUploadButton": "Hujjatlarni yuklash"
+  "nextStepUploadButton": "Hujjatlarni yuklash",
+  "nextStepUploadCount": "{count} ta hujjatni yuklang",
+  "nextStepUploadNeeded": "{names} kerak.",
+  "nextStepAnd": "va",
+  "nextStepOrder": "TARTIB",
+  "nextStepStageContract": "Shartnoma",
+  "nextStepStageDocuments": "Hujjatlar",
+  "nextStepStageUniversity": "Universitet tanlash",
+  "nextStepStageOnline": "Online ariza",
+  "nextStepStageResult": "Natija va viza"
 }
