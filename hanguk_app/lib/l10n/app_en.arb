@@ -6840,5 +6840,21 @@
   "guestPushHeartBody": "We'll let you know before the online application closes at the universities you saved. No phone number needed.",
   "@guestPushHeartBody": {
     "description": "Guest push permission sheet after the first saved university: what we would send; a guest leaves no phone number"
+  },
+  "guestRemindersTitle": "Deadline reminders",
+  "@guestRemindersTitle": {
+    "description": "Guest deadline reminders switch (retention plan P10, design D2): title"
+  },
+  "guestRemindersOn": "On",
+  "@guestRemindersOn": {
+    "description": "Guest deadline reminders switch: state on"
+  },
+  "guestRemindersOff": "Off",
+  "@guestRemindersOff": {
+    "description": "Guest deadline reminders switch: state off"
+  },
+  "guestRemindersBody": "We'll let you know before the online application closes at the universities you saved. At most 1 a day and 2 a week; nothing between 22:00 and 08:00.",
+  "@guestRemindersBody": {
+    "description": "Guest deadline reminders switch: what is sent and how often (QU2)"
   }
 }

@@ -5344,4 +5344,17 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get guestPushHeartBody =>
       '저장한 대학의 온라인 지원 마감 전에 알려 드립니다. 전화번호는 필요 없습니다.';
+
+  @override
+  String get guestRemindersTitle => '마감 알림';
+
+  @override
+  String get guestRemindersOn => '켜짐';
+
+  @override
+  String get guestRemindersOff => '꺼짐';
+
+  @override
+  String get guestRemindersBody =>
+      '저장한 대학의 온라인 지원 마감 전에 알려 드립니다. 하루 최대 1개, 주 2개까지이며 22:00–08:00에는 보내지 않습니다.';
 }

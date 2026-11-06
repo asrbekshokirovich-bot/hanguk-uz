@@ -5541,4 +5541,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guestPushHeartBody =>
       'We\'ll let you know before the online application closes at the universities you saved. No phone number needed.';
+
+  @override
+  String get guestRemindersTitle => 'Deadline reminders';
+
+  @override
+  String get guestRemindersOn => 'On';
+
+  @override
+  String get guestRemindersOff => 'Off';
+
+  @override
+  String get guestRemindersBody =>
+      'We\'ll let you know before the online application closes at the universities you saved. At most 1 a day and 2 a week; nothing between 22:00 and 08:00.';
 }

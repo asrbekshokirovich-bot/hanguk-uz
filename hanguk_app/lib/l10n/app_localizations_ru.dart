@@ -5541,4 +5541,17 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get guestPushHeartBody =>
       'Сообщим, когда в сохранённых вами университетах будет заканчиваться онлайн-подача. Номер телефона не нужен.';
+
+  @override
+  String get guestRemindersTitle => 'Напоминания о сроках';
+
+  @override
+  String get guestRemindersOn => 'Включены';
+
+  @override
+  String get guestRemindersOff => 'Выключены';
+
+  @override
+  String get guestRemindersBody =>
+      'Сообщим, когда в сохранённых вами университетах будет заканчиваться онлайн-подача. Не больше 1 в день и 2 в неделю; с 22:00 до 08:00 не отправляем.';
 }

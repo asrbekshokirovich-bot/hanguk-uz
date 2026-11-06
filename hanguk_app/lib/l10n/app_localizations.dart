@@ -9937,6 +9937,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We\'ll let you know before the online application closes at the universities you saved. No phone number needed.'**
   String get guestPushHeartBody;
+
+  /// Guest deadline reminders switch (retention plan P10, design D2): title
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline reminders'**
+  String get guestRemindersTitle;
+
+  /// Guest deadline reminders switch: state on
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get guestRemindersOn;
+
+  /// Guest deadline reminders switch: state off
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get guestRemindersOff;
+
+  /// Guest deadline reminders switch: what is sent and how often (QU2)
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll let you know before the online application closes at the universities you saved. At most 1 a day and 2 a week; nothing between 22:00 and 08:00.'**
+  String get guestRemindersBody;
 }
 
 class _AppLocalizationsDelegate

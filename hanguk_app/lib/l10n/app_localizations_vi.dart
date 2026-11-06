@@ -5514,4 +5514,17 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get guestPushHeartBody =>
       'Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Không cần số điện thoại.';
+
+  @override
+  String get guestRemindersTitle => 'Nhắc hạn nộp';
+
+  @override
+  String get guestRemindersOn => 'Đang bật';
+
+  @override
+  String get guestRemindersOff => 'Đang tắt';
+
+  @override
+  String get guestRemindersBody =>
+      'Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Tối đa 1 tin mỗi ngày, 2 tin mỗi tuần; không gửi từ 22:00 đến 08:00.';
 }

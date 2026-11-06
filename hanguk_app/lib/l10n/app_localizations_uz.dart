@@ -5542,4 +5542,17 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get guestPushHeartBody =>
       'Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Telefon raqamingiz kerak emas.';
+
+  @override
+  String get guestRemindersTitle => 'Muddat eslatmalari';
+
+  @override
+  String get guestRemindersOn => 'Yoqilgan';
+
+  @override
+  String get guestRemindersOff => 'O\'chirilgan';
+
+  @override
+  String get guestRemindersBody =>
+      'Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Kuniga ko\'pi bilan 1 ta, haftasiga 2 ta; 22:00–08:00 da yubormaymiz.';
 }

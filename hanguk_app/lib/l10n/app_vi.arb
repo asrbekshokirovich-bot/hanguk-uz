@@ -1771,5 +1771,9 @@
   "guestPushYes": "Có, gửi cho tôi",
   "guestPushLater": "Để sau",
   "guestPushHeartTitle": "Nhắc bạn hạn của trường này nhé?",
-  "guestPushHeartBody": "Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Không cần số điện thoại."
+  "guestPushHeartBody": "Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Không cần số điện thoại.",
+  "guestRemindersTitle": "Nhắc hạn nộp",
+  "guestRemindersOn": "Đang bật",
+  "guestRemindersOff": "Đang tắt",
+  "guestRemindersBody": "Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Tối đa 1 tin mỗi ngày, 2 tin mỗi tuần; không gửi từ 22:00 đến 08:00."
 }

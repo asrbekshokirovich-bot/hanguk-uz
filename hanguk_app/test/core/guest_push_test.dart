@@ -53,6 +53,14 @@ void main() {
     expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: false, done: true), isFalse);
   });
 
+  test('the reminders switch shows only for a guest phone that takes pushes', () async {
+    expect(await GuestPush.remindersVisible(), isFalse); // not a phone in tests
+    expect(await GuestPush.remindersOn(), isTrue);
+    store.values['guest_reminders_off_v1'] = true;
+    expect(await GuestPush.remindersOn(), isFalse);
+    expect(GuestPush.remindersParams('i-1', 'tok', false), {'p_install_id': 'i-1', 'p_token': 'tok', 'p_enabled': false});
+  });
+
   test('the token goes with the install id, platform and language', () {
     expect(GuestPush.registerParams('i-1', 'android', 'tok', 'ru', '1.1.3'), {
       'p_install_id': 'i-1',
