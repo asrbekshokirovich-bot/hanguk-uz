@@ -1769,5 +1769,7 @@
   "guestPushTitle": "Muddatlarni o'tkazib yubormang",
   "guestPushBody": "Qabul muddatlari va yangi grantlar haqida bildirishnoma yuboraylikmi? Telefon raqamingiz kerak emas.",
   "guestPushYes": "Ha, yuboring",
-  "guestPushLater": "Keyinroq"
+  "guestPushLater": "Keyinroq",
+  "guestPushHeartTitle": "Shu universitet muddatini eslataylikmi?",
+  "guestPushHeartBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Telefon raqamingiz kerak emas."
 }

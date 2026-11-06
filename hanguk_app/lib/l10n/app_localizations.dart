@@ -9925,6 +9925,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Later'**
   String get guestPushLater;
+
+  /// Guest push permission sheet after the first saved university (retention plan P11): title
+  ///
+  /// In en, this message translates to:
+  /// **'Get a reminder for this university?'**
+  String get guestPushHeartTitle;
+
+  /// Guest push permission sheet after the first saved university: what we would send; a guest leaves no phone number
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll let you know before the online application closes at the universities you saved. No phone number needed.'**
+  String get guestPushHeartBody;
 }
 
 class _AppLocalizationsDelegate

@@ -5534,4 +5534,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get guestPushLater => 'Позже';
+
+  @override
+  String get guestPushHeartTitle => 'Напомнить о сроках этого университета?';
+
+  @override
+  String get guestPushHeartBody =>
+      'Сообщим, когда в сохранённых вами университетах будет заканчиваться онлайн-подача. Номер телефона не нужен.';
 }

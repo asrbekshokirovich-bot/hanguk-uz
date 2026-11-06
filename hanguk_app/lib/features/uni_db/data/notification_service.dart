@@ -10,6 +10,8 @@ import '../../../core/analytics/app_events.dart';
 import '../../../core/router/app_router.dart';
 import '../../entry/data/entry_store.dart';
 import '../../university_choices/presentation/university_choices_screen.dart';
+import '../../discover/presentation/discover_routes.dart';
+import '../../discover/presentation/widgets/app_nav.dart';
 import 'notification_store.dart';
 
 const _bgChannelId = 'hanguk_default';
@@ -48,7 +50,14 @@ Future<void> initNotificationService({ProviderContainer? container}) async {
 
   const androidSettings =
       AndroidInitializationSettings('@mipmap/launcher_icon');
-  const initSettings = InitializationSettings(android: androidSettings);
+  // iOS (ushlab qolish P12): the plugin must not ask on its own — the app
+  // asks in its own words (GuestPush) or quietly (provisional).
+  const darwinSettings = DarwinInitializationSettings(
+    requestAlertPermission: false,
+    requestBadgePermission: false,
+    requestSoundPermission: false,
+  );
+  const initSettings = InitializationSettings(android: androidSettings, iOS: darwinSettings);
   await _localNotifications.initialize(
     initSettings,
     onDidReceiveNotificationResponse: (response) {
@@ -106,15 +115,18 @@ AppLifecycleListener? _lifecycleListener;
 
 /// What a push says about itself, for the analytics: its type ('survey',
 /// 'stage', …) and the campaign the CRM sent it under. Nothing else.
-Map<String, Object?> _pushProps(Map<String, dynamic> data) => {
+@visibleForTesting
+Map<String, Object?> pushProps(Map<String, dynamic> data) => {
   'type': data['type'] is String ? data['type'] : null,
   'campaign': data['campaign'] is String ? data['campaign'] : null,
+  'kind': data['kind'] is String ? data['kind'] : null,
+  'institution_id': data['institution_id'] is String ? data['institution_id'] : null,
 };
 
 void _handleForegroundMessage(RemoteMessage message) {
   final notification = message.notification;
   if (notification == null) return;
-  AppEvents.track('push_received', props: _pushProps(message.data));
+  AppEvents.track('push_received', props: pushProps(message.data));
 
   // Save to local history.
   _persistNotification(notification.title, notification.body, message.data);
@@ -134,6 +146,7 @@ void _handleForegroundMessage(RemoteMessage message) {
           playSound: true,
           enableVibration: true,
         ),
+        iOS: const DarwinNotificationDetails(presentAlert: true, presentBanner: true, presentSound: true),
       ),
       payload: jsonEncode(message.data),
     );
@@ -158,13 +171,24 @@ String? notificationRoute(Map<String, dynamic> data) {
   if (type == 'stage') {
     final kind = data['kind'];
     const universityKinds = {'university_offered', 'university_confirmed', 'admission_accepted', 'final_university'};
-    return universityKinds.contains(kind) ? kUniversityChoicesPath : '/';
+    if (universityKinds.contains(kind)) return kUniversityChoicesPath;
+    // An application deadline is about the universities the student chose.
+    if (kind == 'deadline') return kUniversityChoicesPath;
+    // "Hujjatlaringiz tayyor" opens the documents, not the journey.
+    if (kind == 'documents_ready') return '/?tab=${AppTab.documents}';
+    return '/';
+  }
+  // A guest's reminder (notify-guest-reminders): a deadline at a university
+  // they saved, or that university's new guideline, opens its page.
+  if (type == 'guest_deadline' || type == 'guideline_new') {
+    final id = data['institution_id'];
+    return id is String && RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(id) ? '/university/$id' : kDiscoverPath;
   }
   return null;
 }
 
 void _openFromData(Map<String, dynamic> data) {
-  AppEvents.track('push_opened', props: _pushProps(data));
+  AppEvents.track('push_opened', props: pushProps(data));
   final container = _container;
   if (container == null) return;
 

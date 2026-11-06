@@ -11,6 +11,7 @@ import 'core/analytics/app_events.dart';
 import 'core/analytics/http_tracking.dart';
 import 'core/analytics/identity_links.dart';
 import 'core/analytics/tracked.dart';
+import 'core/auth/refresh_backoff.dart';
 import 'core/config/app_config.dart';
 import 'core/money/fx_rates.dart';
 import 'core/push/guest_push.dart';
@@ -76,6 +77,8 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init error (offline mode): $e');
   }
+  // Offline, stop the SDK retrying the token refresh every few seconds.
+  RefreshBackoff.attach();
 
   // Usage events (what is opened and pressed; see AppEvents).
   AppEvents.setLanguage(EntryStore.initial.languageCode);
