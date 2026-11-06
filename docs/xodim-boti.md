@@ -55,7 +55,7 @@ Bitta saqlashda bitta vazifa bo'yicha bitta odamga bitta xabar. 24 soatdan eski 
 Muddat: soatli muddat — 60 daqiqa qolganda (`due_soon`); kechikish — soatli bo'lsa muddatning o'zi, faqat sana (00:00 UTC yoki 00:00 Toshkent)
 bo'lsa o'sha kunning oxiri. Har eslatma bir marta: `task_reminders (task_id, kind, due_date)`, muddat o'zgarsa yana ishlaydi.
 Eski sana bilan (muddati o'tib bo'lgach) yaratilgan vazifaga «muddat o'tdi» yuborilmaydi; owner'ga — yaratilganidan 2 kun keyin.
-Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «yuborilgan» deb belgilangan (eski Orbit vazifalari bo'yicha xabar ketmaydi).
+Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «muddat o'tdi — yuborilgan» deb belgilangan (eski Orbit vazifalari bo'yicha xabar ketmaydi); ownerlarga eskalatsiya ham faqat 2 kuni allaqachon to'lganlar uchun belgilangan, qolganlari o'z vaqtida boradi.
 
 ## Arxitektura
 - Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (provayderlar, testlar `ai_test.ts`), `aiops.ts` (AI jurnali, navbat, ogohlantirish; testlar `aiops_test.ts`), `notify.ts` (bildirishnomalar navbati va muddat nazorati, testlar `notify_test.ts`).

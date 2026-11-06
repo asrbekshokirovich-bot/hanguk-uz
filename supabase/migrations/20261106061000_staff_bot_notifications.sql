@@ -30,8 +30,8 @@
 --
 -- BOSHLANG'ICH BELGILASH: prod'da Orbit'dan ko'chirilgan, 100 kundan ortiq kechikkan eski vazifalar bor.
 -- Birinchi ishga tushishda ular bo'yicha birdaniga xabar ketmasligi uchun migratsiya paytida allaqachon
--- kechikkan ochiq vazifalar task_reminders'ga overdue va escalation «yuborilgan» deb yoziladi
--- (note = 'baseline'). Faqat bundan keyin kechikadiganlar xabar oladi. Muddati keyin o'zgartirilsa —
+-- kechikkan ochiq vazifalar task_reminders'ga overdue «yuborilgan» deb yoziladi, escalation — faqat 2 kuni
+-- to'lganlarga (note = 'baseline'). Faqat bundan keyin kechikadiganlar xabar oladi. Muddati keyin o'zgartirilsa —
 -- yangi muddat bo'yicha odatdagidek ishlaydi.
 --
 -- Joylash tartibi: staff-bot funksiyasi (notify.ts bilan) avval joylansa yaxshi. Aks holda eski funksiya
@@ -284,21 +284,28 @@ grant execute on function public.bot_deadline_candidates(timestamptz) to service
 
 -- ---------------------------------------------------------------- boshlang'ich belgilash
 
--- Hozir allaqachon kechikkan ochiq vazifalar: overdue va escalation «yuborilgan» (xabar ketmaydi).
+-- Hozir allaqachon kechikkan ochiq vazifalar: overdue «yuborilgan» (xabar ketmaydi); escalation esa faqat
+-- muddati allaqachon kelganlarga (max(kechikish, yaratilgan) + 2 kun — notify.ts dueReminders bilan bir xil).
+-- Yaqinda kechikkanlar ownerlarga o'z vaqtida (2 kun to'lganda) boradi.
 -- Kechikish qoidasi notify.ts overdueAt bilan bir xil: soatli — muddatning o'zi; faqat sana
 -- (00:00 UTC yoki 00:00 Toshkent) — o'sha Toshkent kunining oxiri.
 insert into public.task_reminders (task_id, kind, due_date, note)
-select t.id, k.kind, t.due_date, 'baseline'
-  from public.tasks t
+select x.id, k.kind, x.due_date, 'baseline'
+  from (
+    select t.id, t.due_date, t.created_at,
+           case
+             when (t.due_date at time zone 'UTC')::time = time '00:00'
+               or (t.due_date at time zone 'Asia/Tashkent')::time = time '00:00'
+             then (((t.due_date at time zone 'Asia/Tashkent')::date + 1)::timestamp at time zone 'Asia/Tashkent')
+             else t.due_date
+           end as overdue_at
+      from public.tasks t
+     where t.status in ('todo', 'in_progress')
+       and t.due_date is not null
+  ) x
  cross join (values ('overdue'), ('escalation')) as k(kind)
- where t.status in ('todo', 'in_progress')
-   and t.due_date is not null
-   and now() >= case
-         when (t.due_date at time zone 'UTC')::time = time '00:00'
-           or (t.due_date at time zone 'Asia/Tashkent')::time = time '00:00'
-         then (((t.due_date at time zone 'Asia/Tashkent')::date + 1)::timestamp at time zone 'Asia/Tashkent')
-         else t.due_date
-       end
+ where now() >= x.overdue_at
+   and (k.kind = 'overdue' or now() >= greatest(x.overdue_at, x.created_at) + interval '2 days')
 on conflict do nothing;
 
 -- ---------------------------------------------------------------- cron (UTC; Toshkent = UTC+5)
