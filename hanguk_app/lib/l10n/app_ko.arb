@@ -1822,5 +1822,13 @@
   "nextStepStageResult": "결과 및 비자",
   "prepGuestAiLeft": "오늘 질문 {limit}개 중 {left}개 남음",
   "prepGuestInterviewFree": "주 1회 · 이번 주 사용 가능",
-  "prepGuestInterviewUsed": "주 1회 · 이번 주 사용함"
+  "prepGuestInterviewUsed": "주 1회 · 이번 주 사용함",
+  "continueWelcomeBack": "다시 오신 것을 환영합니다!",
+  "nextStepOfferBody": "상담원이 제안한 대학을 확인하고 답변해 주세요.",
+  "nextStepOfferButton": "제안 보기",
+  "nextStepSubmissionTitle": "온라인 지원 마감이 다가옵니다",
+  "nextStepSubmissionBody": "{university}: 온라인 지원 마감. 날짜와 상태는 지원 페이지에서 확인하세요.",
+  "nextStepInterviewTitle": "면접을 준비하세요",
+  "nextStepInterviewBody": "{university}: 면접. 날짜와 시간은 지원 페이지에서 확인하세요.",
+  "nextStepOpenButton": "지원서 열기"
 }

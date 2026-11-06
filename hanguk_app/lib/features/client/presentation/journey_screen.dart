@@ -229,7 +229,7 @@ class _List extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.only(bottom: 4),
             children: [
-              NextStepCard(daysLeft: nearest?.days, all: all),
+              NextStepCard(daysLeft: nearest?.days, all: all, now: now, onOpen: onOpen),
               const UniversityChoicesEntry(),
               for (final p in all) _Card(progress: p, now: now, onOpen: tracked('journey.list_open', () => onOpen(p))),
             ],

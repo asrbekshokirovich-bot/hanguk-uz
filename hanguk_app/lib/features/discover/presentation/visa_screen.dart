@@ -396,8 +396,12 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: 6,
                   children: [
-                    Text(l.vzTitle, style: fdText(22, FontWeight.w800, FdColors.onPage, letterSpacing: -0.44)),
-                    LimeMark(l.vzTitleMark, style: fdText(22, FontWeight.w800, FdColors.onPage, letterSpacing: -0.44)),
+                    if (continueCardShown(ref))
+                      Text(l.continueWelcomeBack, style: fdText(24, FontWeight.w800, FdColors.onPage))
+                    else ...[
+                      Text(l.vzTitle, style: fdText(22, FontWeight.w800, FdColors.onPage, letterSpacing: -0.44)),
+                      LimeMark(l.vzTitleMark, style: fdText(22, FontWeight.w800, FdColors.onPage, letterSpacing: -0.44)),
+                    ],
                   ],
                 ),
               ),

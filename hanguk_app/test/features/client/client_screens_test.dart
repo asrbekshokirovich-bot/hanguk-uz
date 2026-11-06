@@ -103,8 +103,9 @@ void main() {
     List<StudentApplication> apps = const [],
     List<AppDocument> docs = const [],
     ApplicationJourney journey = const ApplicationJourney(facts: JourneyFacts(), universities: []),
+    double height = 844,
   }) async {
-    t.view.physicalSize = const Size(390 * 3, 844 * 3);
+    t.view.physicalSize = Size(390 * 3, height * 3);
     t.view.devicePixelRatio = 3;
     addTearDown(t.view.reset);
     await t.pumpWidget(
@@ -137,7 +138,7 @@ void main() {
   }
 
   testWidgets('the Ariza list (design 7b): ring, summary and one card per university', (t) async {
-    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney, docs: allRequired);
+    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney, docs: allRequired, height: 1800);
     expect(find.text('Ariza jarayoni'), findsOneWidget);
     expect(find.text('48%'), findsOneWidget);
     expect(find.text('3 universitet · 4 / 8 bosqich'), findsOneWidget);
@@ -159,6 +160,8 @@ void main() {
       expect(find.text(label), findsNWidgets(3), reason: label);
     }
     expect(find.text('Universitet xonasi'), findsNothing);
+    // Documents done, no offer waiting: the next step is the nearest date (D8).
+    expect(find.text('Suhbatga tayyorlaning'), findsOneWidget);
   });
 
   testWidgets('«Keyingi qadam» (D8) shows while required documents are missing', (t) async {
@@ -173,7 +176,7 @@ void main() {
   });
 
   testWidgets("a card opens the university's page (design 8a) and back returns", (t) async {
-    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney, docs: allRequired);
+    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney, docs: allRequired, height: 1800);
     await t.tap(find.text('Sun Moon University'));
     await t.pump();
     expect(find.text('ARIZA · 2 / 3'), findsOneWidget);

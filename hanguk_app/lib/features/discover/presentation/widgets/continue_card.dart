@@ -30,10 +30,8 @@ class ContinueCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final touched = ref.watch(assessmentTouchedProvider);
-    final catalog = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final input = ref.watch(assessmentProvider);
-    final known = {for (final u in catalog) u.institutionId: u};
-    final unis = [for (final id in input.universityIds) ?known[id]];
+    final unis = continueUniversities(ref);
     if (!touched || unis.isEmpty) return const SizedBox.shrink();
     final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
     final windows = ref.watch(applicationWindowsProvider).value ?? const <String, CatalogRound>{};
@@ -108,6 +106,17 @@ class ContinueCard extends ConsumerWidget {
     );
   }
 }
+
+/// The assessment's universities the card lists (D7).
+List<CatalogUniversity> continueUniversities(WidgetRef ref) {
+  final catalog = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
+  final known = {for (final u in catalog) u.institutionId: u};
+  return [for (final id in ref.watch(assessmentProvider).universityIds) ?known[id]];
+}
+
+/// Whether the «Davom etish» card shows — the home then greets the guest
+/// with «Xush kelibsiz qaytib!» (D7) instead of its usual title.
+bool continueCardShown(WidgetRef ref) => ref.watch(assessmentTouchedProvider) && continueUniversities(ref).isNotEmpty;
 
 /// «20-noyabr» in Uzbek (the design's «20-noyabrgacha»), the locale's day and
 /// full month elsewhere.

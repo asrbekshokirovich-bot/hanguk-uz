@@ -1822,5 +1822,13 @@
   "nextStepStageResult": "Результат и виза",
   "prepGuestAiLeft": "Сегодня осталось {left} из {limit} вопросов",
   "prepGuestInterviewFree": "1 в неделю · на этой неделе свободно",
-  "prepGuestInterviewUsed": "1 в неделю · на этой неделе использовано"
+  "prepGuestInterviewUsed": "1 в неделю · на этой неделе использовано",
+  "continueWelcomeBack": "С возвращением!",
+  "nextStepOfferBody": "Посмотрите университеты, которые предложил консультант, и ответьте.",
+  "nextStepOfferButton": "Посмотреть предложения",
+  "nextStepSubmissionTitle": "Срок онлайн-заявки близко",
+  "nextStepSubmissionBody": "{university}: срок онлайн-заявки. Дата и статус — на странице заявки.",
+  "nextStepInterviewTitle": "Готовьтесь к собеседованию",
+  "nextStepInterviewBody": "{university}: собеседование. Дата и время — на странице заявки.",
+  "nextStepOpenButton": "Открыть заявку"
 }

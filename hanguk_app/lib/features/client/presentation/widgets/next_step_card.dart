@@ -9,6 +9,8 @@ import '../../../applications/domain/application_journey.dart';
 import '../../../documents/data/documents_repository.dart';
 import '../../../documents/domain/document.dart';
 import '../../../documents/domain/document_type.dart';
+import '../../../university_choices/data/university_choices_repository.dart';
+import '../../../university_choices/presentation/university_choices_screen.dart' show kUniversityChoicesPath;
 import '../client_shell.dart';
 
 /// Whether [type] is among [uploaded] — the same test the notifications page
@@ -20,7 +22,7 @@ bool isUploaded(DocumentType type, List<AppDocument> uploaded) =>
 /// student has to do now — the required documents still missing — with the
 /// days to the nearest deadline and the way to the documents tab.
 class NextStepCard extends ConsumerWidget {
-  const NextStepCard({super.key, this.daysLeft, this.all = const []});
+  const NextStepCard({super.key, this.daysLeft, this.all = const [], this.now, this.onOpen});
 
   /// Days to the nearest submission or interview (JourneySummary.nearest).
   final int? daysLeft;
@@ -28,29 +30,66 @@ class NextStepCard extends ConsumerWidget {
   /// The student's universities, for the «TARTIB» list under the card.
   final List<UniversityProgress> all;
 
+  /// Today, and the way into a university's page (the deadline step).
+  final DateTime? now;
+  final ValueChanged<UniversityProgress>? onOpen;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final uploaded = ref.watch(documentsProvider).value;
     if (uploaded == null) return const SizedBox.shrink();
     final missing = DocumentConstants.requiredDocuments.where((t) => !isUploaded(t, uploaded)).toList();
-    if (missing.isEmpty) return const SizedBox.shrink();
-    final named = missing.take(3).map((t) => t.localizedName(l)).toList();
-    final names = named.length < 2
-        ? named.join()
-        : '${named.sublist(0, named.length - 1).join(', ')} ${l.nextStepAnd} ${named.last}';
-    final stages = nextStepStages(docsDone: false, all: all);
+    final choices = ref.watch(myUniversityChoicesProvider).value ?? const [];
+    final waiting = choices.where((c) => c.canAnswer || c.needsFinalConfirm).length;
+    final deadline = now == null ? null : nearestStep(all, now!);
+
+    // The one step the student has to take now (D8): documents first, then
+    // the consultant's offers waiting for an answer, then the nearest date.
+    final _Step step;
+    if (missing.isNotEmpty) {
+      final named = missing.take(3).map((t) => t.localizedName(l)).toList();
+      final names = named.length < 2
+          ? named.join()
+          : '${named.sublist(0, named.length - 1).join(', ')} ${l.nextStepAnd} ${named.last}';
+      step = _Step(
+        title: l.nextStepUploadCount('${missing.length}'),
+        body: '${l.nextStepUploadNeeded(names)} ${l.nextStepUploadBody}',
+        button: l.nextStepUploadButton,
+        onTap: tracked('next_step.documents', () => context.go('/?tab=${ClientShell.tabDocuments}')),
+      );
+    } else if (waiting > 0) {
+      step = _Step(
+        title: l.ucBannerPending(waiting),
+        body: l.nextStepOfferBody,
+        button: l.nextStepOfferButton,
+        onTap: tracked('next_step.offers', () => context.push(kUniversityChoicesPath)),
+      );
+    } else if (deadline != null) {
+      final (p, stamp) = deadline;
+      step = _Step(
+        title: stamp == JourneyStamp.interview ? l.nextStepInterviewTitle : l.nextStepSubmissionTitle,
+        body: stamp == JourneyStamp.interview
+            ? l.nextStepInterviewBody(p.university.name)
+            : l.nextStepSubmissionBody(p.university.name),
+        button: l.nextStepOpenButton,
+        onTap: onOpen == null ? null : tracked('next_step.deadline', () => onOpen!(p)),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+    final stages = nextStepStages(docsDone: missing.isEmpty, all: all);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _card(context, l, missing.length, names),
+        _card(l, step),
         _Order(stages: stages),
       ],
     );
   }
 
-  Widget _card(BuildContext context, AppLocalizations l, int count, String names) {
+  Widget _card(AppLocalizations l, _Step step) {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 14),
       padding: const EdgeInsets.all(18),
@@ -87,28 +126,58 @@ class NextStepCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(l.nextStepUploadCount('$count'), style: fdText(18, FontWeight.w800, FdColors.ink, height: 1.25)),
+          Text(step.title, style: fdText(18, FontWeight.w800, FdColors.ink, height: 1.25)),
           const SizedBox(height: 8),
-          Text('${l.nextStepUploadNeeded(names)} ${l.nextStepUploadBody}', style: fdText(13.5, FontWeight.w500, FdColors.muted, height: 1.4)),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: tracked('next_step.documents', () => context.go('/?tab=${ClientShell.tabDocuments}')),
-            child: Container(
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: FdColors.lime,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: FdColors.ink, width: 1.5),
-                boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+          Text(step.body, style: fdText(13.5, FontWeight.w500, FdColors.muted, height: 1.4)),
+          if (step.onTap != null) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: step.onTap,
+              child: Container(
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: FdColors.lime,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: FdColors.ink, width: 1.5),
+                  boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+                ),
+                child: Text(step.button, style: fdText(15, FontWeight.w800, FdColors.onLime)),
               ),
-              child: Text(l.nextStepUploadButton, style: fdText(15, FontWeight.w800, FdColors.onLime)),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
+}
+
+class _Step {
+  const _Step({required this.title, required this.body, required this.button, required this.onTap});
+
+  final String title;
+  final String body;
+  final String button;
+  final VoidCallback? onTap;
+}
+
+/// The university whose submission or interview comes first (the same events
+/// JourneySummary.nearest counts), for the deadline step.
+(UniversityProgress, JourneyStamp)? nearestStep(List<UniversityProgress> all, DateTime now) {
+  (UniversityProgress, JourneyStamp, int)? best;
+  for (final p in all.where((p) => !p.rejected)) {
+    final u = p.university;
+    final c = <(JourneyStamp, int)>[
+      if (p.upcomingInterview(now)) (JourneyStamp.interview, daysUntil(u.interviewAt!, now)),
+      if (p.current == JourneyStamp.submission && !u.submitted && u.onlineDeadline != null &&
+          daysUntil(u.onlineDeadline!, now) >= 0)
+        (JourneyStamp.submission, daysUntil(u.onlineDeadline!, now)),
+    ];
+    for (final (st, d) in c) {
+      if (best == null || d < best.$3) best = (p, st, d);
+    }
+  }
+  return best == null ? null : (best.$1, best.$2);
 }
 
 /// The five steps of the «TARTIB» list (D8), in order.

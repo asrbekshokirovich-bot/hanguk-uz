@@ -5713,4 +5713,33 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get prepGuestInterviewUsed =>
       '1 в неделю · на этой неделе использовано';
+
+  @override
+  String get continueWelcomeBack => 'С возвращением!';
+
+  @override
+  String get nextStepOfferBody =>
+      'Посмотрите университеты, которые предложил консультант, и ответьте.';
+
+  @override
+  String get nextStepOfferButton => 'Посмотреть предложения';
+
+  @override
+  String get nextStepSubmissionTitle => 'Срок онлайн-заявки близко';
+
+  @override
+  String nextStepSubmissionBody(String university) {
+    return '$university: срок онлайн-заявки. Дата и статус — на странице заявки.';
+  }
+
+  @override
+  String get nextStepInterviewTitle => 'Готовьтесь к собеседованию';
+
+  @override
+  String nextStepInterviewBody(String university) {
+    return '$university: собеседование. Дата и время — на странице заявки.';
+  }
+
+  @override
+  String get nextStepOpenButton => 'Открыть заявку';
 }

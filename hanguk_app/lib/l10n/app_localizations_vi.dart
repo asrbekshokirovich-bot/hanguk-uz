@@ -5685,4 +5685,33 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get prepGuestInterviewUsed => '1 lần/tuần · tuần này đã dùng';
+
+  @override
+  String get continueWelcomeBack => 'Chào mừng bạn quay lại!';
+
+  @override
+  String get nextStepOfferBody =>
+      'Xem các trường tư vấn viên đề xuất và trả lời.';
+
+  @override
+  String get nextStepOfferButton => 'Xem đề xuất';
+
+  @override
+  String get nextStepSubmissionTitle => 'Sắp hết hạn nộp hồ sơ trực tuyến';
+
+  @override
+  String nextStepSubmissionBody(String university) {
+    return '$university: hạn nộp hồ sơ trực tuyến. Xem ngày và trạng thái trên trang hồ sơ.';
+  }
+
+  @override
+  String get nextStepInterviewTitle => 'Chuẩn bị cho buổi phỏng vấn';
+
+  @override
+  String nextStepInterviewBody(String university) {
+    return '$university: phỏng vấn. Xem ngày giờ trên trang hồ sơ.';
+  }
+
+  @override
+  String get nextStepOpenButton => 'Mở hồ sơ';
 }
