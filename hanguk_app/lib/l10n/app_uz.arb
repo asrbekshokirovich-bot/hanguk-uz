@@ -1793,5 +1793,10 @@
   "guestDocsReady": "tayyor · belgilar faqat telefoningizda",
   "guestDocsNone": "Bu universitet yo'riqnomasida hujjatlar ro'yxati hali yo'q.",
   "guestDocsApostille": "apostil",
-  "guestDocsNote": "Ro'yxat universitet yo'riqnomasidan. Hujjatlarni tayyorlash va tarjimada konsultant yordam beradi."
+  "guestDocsNote": "Ro'yxat universitet yo'riqnomasidan. Hujjatlarni tayyorlash va tarjimada konsultant yordam beradi.",
+  "continueEyebrow": "DAVOM ETISH",
+  "continueTitle": "Baholashingiz saqlangan",
+  "continueNearest": "Eng yaqin muddat",
+  "continuePath": "Ariza yo'lini ko'rish",
+  "continueReport": "Hisobotni ochish"
 }

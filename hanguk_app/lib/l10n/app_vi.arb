@@ -1793,5 +1793,10 @@
   "guestDocsReady": "đã xong · dấu tích chỉ lưu trên điện thoại",
   "guestDocsNone": "Hướng dẫn của trường này chưa có danh sách giấy tờ.",
   "guestDocsApostille": "hợp pháp hóa",
-  "guestDocsNote": "Danh sách lấy từ hướng dẫn của trường. Tư vấn viên sẽ giúp chuẩn bị và dịch giấy tờ."
+  "guestDocsNote": "Danh sách lấy từ hướng dẫn của trường. Tư vấn viên sẽ giúp chuẩn bị và dịch giấy tờ.",
+  "continueEyebrow": "TIẾP TỤC",
+  "continueTitle": "Đánh giá của bạn đã được lưu",
+  "continueNearest": "Hạn gần nhất",
+  "continuePath": "Xem lộ trình nộp hồ sơ",
+  "continueReport": "Mở báo cáo"
 }

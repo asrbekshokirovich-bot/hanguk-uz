@@ -5614,4 +5614,19 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get guestDocsNote =>
       'Ro\'yxat universitet yo\'riqnomasidan. Hujjatlarni tayyorlash va tarjimada konsultant yordam beradi.';
+
+  @override
+  String get continueEyebrow => 'DAVOM ETISH';
+
+  @override
+  String get continueTitle => 'Baholashingiz saqlangan';
+
+  @override
+  String get continueNearest => 'Eng yaqin muddat';
+
+  @override
+  String get continuePath => 'Ariza yo\'lini ko\'rish';
+
+  @override
+  String get continueReport => 'Hisobotni ochish';
 }

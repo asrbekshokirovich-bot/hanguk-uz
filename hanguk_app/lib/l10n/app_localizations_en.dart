@@ -5613,4 +5613,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guestDocsNote =>
       'The list is from the university\'s guideline. A consultant helps with preparing and translating the documents.';
+
+  @override
+  String get continueEyebrow => 'CONTINUE';
+
+  @override
+  String get continueTitle => 'Your assessment is saved';
+
+  @override
+  String get continueNearest => 'Nearest deadline';
+
+  @override
+  String get continuePath => 'See the application path';
+
+  @override
+  String get continueReport => 'Open the report';
 }
