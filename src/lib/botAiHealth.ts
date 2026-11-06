@@ -1,6 +1,6 @@
 /**
  * CRM «AI holati» (xodim boti, reja B0-5) uchun sof yordamchilar.
- * Baza: bot_ai_health(p_hours) — migratsiya 20261105140000_staff_bot_ai_layer.sql.
+ * Baza: bot_ai_health(p_hours) — migratsiya 20261106060000_staff_bot_ai_layer.sql.
  * Har urinish (qayta urinish ham) alohida qator; narx faqat Claude (Gemini — bepul tarif, null).
  */
 

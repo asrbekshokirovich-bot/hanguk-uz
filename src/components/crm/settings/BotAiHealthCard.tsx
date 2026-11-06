@@ -17,7 +17,7 @@ import {
   type AiHealth,
 } from '@/lib/botAiHealth';
 
-// RPC hali generatsiya qilingan Database turlarida yo'q (migratsiya 20261105140000_staff_bot_ai_layer.sql).
+// RPC hali generatsiya qilingan Database turlarida yo'q (migratsiya 20261106060000_staff_bot_ai_layer.sql).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sb = supabase as unknown as { rpc: (fn: string, args?: Record<string, unknown>) => any };
 

@@ -1,4 +1,4 @@
-// Xodim boti AI qatlami ustidagi amallar (reja B0-2, B0-3, B0-5; migratsiya 20261105140000_staff_bot_ai_layer.sql):
+// Xodim boti AI qatlami ustidagi amallar (reja B0-2, B0-3, B0-5; migratsiya 20261106060000_staff_bot_ai_layer.sql):
 //   structured()  — AI so'rovi bot_settings.ai_provider_order tartibi bilan; har urinish ai_calls jadvaliga;
 //   enqueue()     — provayderlar xato bergan ish bot_jobs navbatiga (cron `staff-bot-jobs` 5 daqiqada qayta urinadi);
 //   splitReport() — kunlik hisobotni 3 qismga ajratish (jonli va navbatdan, `report_split`);
