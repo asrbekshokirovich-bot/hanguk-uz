@@ -56,14 +56,16 @@ class NextStepCard extends ConsumerWidget {
         title: l.nextStepUploadCount('${missing.length}'),
         body: '${l.nextStepUploadNeeded(names)} ${l.nextStepUploadBody}',
         button: l.nextStepUploadButton,
-        onTap: tracked('next_step.documents', () => context.go('/?tab=${ClientShell.tabDocuments}')),
+        event: 'next_step.documents',
+        go: () => context.go('/?tab=${ClientShell.tabDocuments}'),
       );
     } else if (waiting > 0) {
       step = _Step(
         title: l.ucBannerPending(waiting),
         body: l.nextStepOfferBody,
         button: l.nextStepOfferButton,
-        onTap: tracked('next_step.offers', () => context.push(kUniversityChoicesPath)),
+        event: 'next_step.offers',
+        go: () => context.push(kUniversityChoicesPath),
       );
     } else if (deadline != null) {
       final (p, stamp) = deadline;
@@ -73,7 +75,8 @@ class NextStepCard extends ConsumerWidget {
             ? l.nextStepInterviewBody(p.university.name)
             : l.nextStepSubmissionBody(p.university.name),
         button: l.nextStepOpenButton,
-        onTap: onOpen == null ? null : tracked('next_step.deadline', () => onOpen!(p)),
+        event: 'next_step.deadline',
+        go: onOpen == null ? null : () => onOpen!(p),
       );
     } else {
       return const SizedBox.shrink();
@@ -129,10 +132,10 @@ class NextStepCard extends ConsumerWidget {
           Text(step.title, style: fdText(18, FontWeight.w800, FdColors.ink, height: 1.25)),
           const SizedBox(height: 8),
           Text(step.body, style: fdText(13.5, FontWeight.w500, FdColors.muted, height: 1.4)),
-          if (step.onTap != null) ...[
+          if (step.go != null) ...[
             const SizedBox(height: 12),
             GestureDetector(
-              onTap: step.onTap,
+              onTap: tracked(step.event, step.go!),
               child: Container(
                 height: 52,
                 alignment: Alignment.center,
@@ -153,12 +156,15 @@ class NextStepCard extends ConsumerWidget {
 }
 
 class _Step {
-  const _Step({required this.title, required this.body, required this.button, required this.onTap});
+  const _Step({required this.title, required this.body, required this.button, required this.event, required this.go});
 
   final String title;
   final String body;
   final String button;
-  final VoidCallback? onTap;
+
+  /// The analytics name of the button, and what it does.
+  final String event;
+  final VoidCallback? go;
 }
 
 /// The university whose submission or interview comes first (the same events
