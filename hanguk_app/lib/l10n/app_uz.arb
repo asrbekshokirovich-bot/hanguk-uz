@@ -1778,5 +1778,20 @@
   "guestRemindersBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Kuniga ko'pi bilan 1 ta, haftasiga 2 ta; 22:00–08:00 da yubormaymiz.",
   "guestTelegramTitle": "Bildirishnomalar o'chiq",
   "guestTelegramBody": "Muddat eslatmasini Telegram'da olishingiz mumkin. Telefon raqamingiz kerak emas — botda bir marta «Start» bosasiz.",
-  "guestTelegramButton": "Telegram'da olish"
+  "guestTelegramButton": "Telegram'da olish",
+  "guestPathTitle": "Ariza yo'li",
+  "guestPathBachelor": "Bakalavr",
+  "guestPathMaster": "Magistratura",
+  "guestPathNoDates": "Bu mavsum sanalari hali e'lon qilinmagan. Universitet e'lon qilishi bilan qo'shamiz.",
+  "guestPathDays": "kun",
+  "guestPathDeadline": "Muddat",
+  "guestPathDocuments": "Hujjatlar ro'yxati",
+  "guestPathApply": "Konsultant bilan topshirish",
+  "guestPathEmpty": "Universitetni ♥ bilan saqlang — bosqichlari, sanalari va hujjatlari shu yerda chiqadi.",
+  "guestPathPick": "Universitet tanlash",
+  "guestDocsTitle": "Hujjatlar ro'yxati",
+  "guestDocsReady": "tayyor · belgilar faqat telefoningizda",
+  "guestDocsNone": "Bu universitet yo'riqnomasida hujjatlar ro'yxati hali yo'q.",
+  "guestDocsApostille": "apostil",
+  "guestDocsNote": "Ro'yxat universitet yo'riqnomasidan. Hujjatlarni tayyorlash va tarjimada konsultant yordam beradi."
 }

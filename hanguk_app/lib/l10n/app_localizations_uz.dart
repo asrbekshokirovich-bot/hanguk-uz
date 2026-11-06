@@ -5565,4 +5565,53 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get guestTelegramButton => 'Telegram\'da olish';
+
+  @override
+  String get guestPathTitle => 'Ariza yo\'li';
+
+  @override
+  String get guestPathBachelor => 'Bakalavr';
+
+  @override
+  String get guestPathMaster => 'Magistratura';
+
+  @override
+  String get guestPathNoDates =>
+      'Bu mavsum sanalari hali e\'lon qilinmagan. Universitet e\'lon qilishi bilan qo\'shamiz.';
+
+  @override
+  String get guestPathDays => 'kun';
+
+  @override
+  String get guestPathDeadline => 'Muddat';
+
+  @override
+  String get guestPathDocuments => 'Hujjatlar ro\'yxati';
+
+  @override
+  String get guestPathApply => 'Konsultant bilan topshirish';
+
+  @override
+  String get guestPathEmpty =>
+      'Universitetni ♥ bilan saqlang — bosqichlari, sanalari va hujjatlari shu yerda chiqadi.';
+
+  @override
+  String get guestPathPick => 'Universitet tanlash';
+
+  @override
+  String get guestDocsTitle => 'Hujjatlar ro\'yxati';
+
+  @override
+  String get guestDocsReady => 'tayyor · belgilar faqat telefoningizda';
+
+  @override
+  String get guestDocsNone =>
+      'Bu universitet yo\'riqnomasida hujjatlar ro\'yxati hali yo\'q.';
+
+  @override
+  String get guestDocsApostille => 'apostil';
+
+  @override
+  String get guestDocsNote =>
+      'Ro\'yxat universitet yo\'riqnomasidan. Hujjatlarni tayyorlash va tarjimada konsultant yordam beradi.';
 }

@@ -5537,4 +5537,53 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get guestTelegramButton => 'Nhận qua Telegram';
+
+  @override
+  String get guestPathTitle => 'Lộ trình nộp hồ sơ';
+
+  @override
+  String get guestPathBachelor => 'Cử nhân';
+
+  @override
+  String get guestPathMaster => 'Thạc sĩ';
+
+  @override
+  String get guestPathNoDates =>
+      'Lịch của mùa này chưa được công bố. Chúng tôi sẽ thêm ngay khi trường thông báo.';
+
+  @override
+  String get guestPathDays => 'ngày';
+
+  @override
+  String get guestPathDeadline => 'Hạn';
+
+  @override
+  String get guestPathDocuments => 'Danh sách giấy tờ';
+
+  @override
+  String get guestPathApply => 'Nộp hồ sơ cùng tư vấn viên';
+
+  @override
+  String get guestPathEmpty =>
+      'Lưu một trường bằng ♥ để xem các bước, ngày và giấy tờ tại đây.';
+
+  @override
+  String get guestPathPick => 'Chọn trường';
+
+  @override
+  String get guestDocsTitle => 'Danh sách giấy tờ';
+
+  @override
+  String get guestDocsReady => 'đã xong · dấu tích chỉ lưu trên điện thoại';
+
+  @override
+  String get guestDocsNone =>
+      'Hướng dẫn của trường này chưa có danh sách giấy tờ.';
+
+  @override
+  String get guestDocsApostille => 'hợp pháp hóa';
+
+  @override
+  String get guestDocsNote =>
+      'Danh sách lấy từ hướng dẫn của trường. Tư vấn viên sẽ giúp chuẩn bị và dịch giấy tờ.';
 }

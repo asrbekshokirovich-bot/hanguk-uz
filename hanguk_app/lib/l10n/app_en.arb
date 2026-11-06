@@ -6868,5 +6868,65 @@
   "guestTelegramButton": "Get in Telegram",
   "@guestTelegramButton": {
     "description": "Telegram reminders sheet: the button that opens the bot"
+  },
+  "guestPathTitle": "Application path",
+  "@guestPathTitle": {
+    "description": "Guest application path (retention plan P20, design D5): title"
+  },
+  "guestPathBachelor": "Bachelor",
+  "@guestPathBachelor": {
+    "description": "Guest application path: degree label, bachelor"
+  },
+  "guestPathMaster": "Master",
+  "@guestPathMaster": {
+    "description": "Guest application path: degree label, master"
+  },
+  "guestPathNoDates": "The dates for this season are not published yet. We will add them as soon as the university announces them.",
+  "@guestPathNoDates": {
+    "description": "Guest application path: the guideline has no dates yet"
+  },
+  "guestPathDays": "days",
+  "@guestPathDays": {
+    "description": "Guest application path: unit after the number of days left"
+  },
+  "guestPathDeadline": "Until",
+  "@guestPathDeadline": {
+    "description": "Guest application path: label before a step's end date when it has no start"
+  },
+  "guestPathDocuments": "Document list",
+  "@guestPathDocuments": {
+    "description": "Guest application path: button to the document list (D6)"
+  },
+  "guestPathApply": "Apply with a consultant",
+  "@guestPathApply": {
+    "description": "Guest application path: apply with a consultant (lead form)"
+  },
+  "guestPathEmpty": "Save a university with ♥ and its steps, dates and documents will show here.",
+  "@guestPathEmpty": {
+    "description": "Guest application path / documents: no saved university yet"
+  },
+  "guestPathPick": "Choose universities",
+  "@guestPathPick": {
+    "description": "Guest application path: button to the university list"
+  },
+  "guestDocsTitle": "Document list",
+  "@guestDocsTitle": {
+    "description": "Guest document list (retention plan P21, design D6): title"
+  },
+  "guestDocsReady": "ready · ticks stay on your phone only",
+  "@guestDocsReady": {
+    "description": "Guest document list: after the ready count"
+  },
+  "guestDocsNone": "This university's guideline lists no documents yet.",
+  "@guestDocsNone": {
+    "description": "Guest document list: the guideline lists no documents"
+  },
+  "guestDocsApostille": "apostille",
+  "@guestDocsApostille": {
+    "description": "Guest document list: tag on a document that needs an apostille"
+  },
+  "guestDocsNote": "The list is from the university's guideline. A consultant helps with preparing and translating the documents.",
+  "@guestDocsNote": {
+    "description": "Guest document list: footnote"
   }
 }

@@ -5564,4 +5564,53 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get guestTelegramButton => 'Получать в Telegram';
+
+  @override
+  String get guestPathTitle => 'Путь заявки';
+
+  @override
+  String get guestPathBachelor => 'Бакалавриат';
+
+  @override
+  String get guestPathMaster => 'Магистратура';
+
+  @override
+  String get guestPathNoDates =>
+      'Даты этого сезона ещё не опубликованы. Добавим, как только университет их объявит.';
+
+  @override
+  String get guestPathDays => 'дн.';
+
+  @override
+  String get guestPathDeadline => 'До';
+
+  @override
+  String get guestPathDocuments => 'Список документов';
+
+  @override
+  String get guestPathApply => 'Подать с консультантом';
+
+  @override
+  String get guestPathEmpty =>
+      'Сохраните университет ♥ — здесь появятся этапы, даты и документы.';
+
+  @override
+  String get guestPathPick => 'Выбрать университеты';
+
+  @override
+  String get guestDocsTitle => 'Список документов';
+
+  @override
+  String get guestDocsReady => 'готово · отметки только на вашем телефоне';
+
+  @override
+  String get guestDocsNone =>
+      'В правилах этого университета список документов пока не указан.';
+
+  @override
+  String get guestDocsApostille => 'апостиль';
+
+  @override
+  String get guestDocsNote =>
+      'Список из правил приёма университета. С подготовкой и переводом документов помогает консультант.';
 }
