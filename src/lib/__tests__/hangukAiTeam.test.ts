@@ -8,7 +8,8 @@ const { staffSystem } = await import('../../../supabase/functions/hanguk-ai-chat
 
 type T = { name: string; run: (ctx: unknown, a: unknown) => Promise<{ data: unknown }> };
 const byName = (n: string) => (TEAM_TOOLS as T[]).find((t) => t.name === n)!;
-const caller = (audience: string, roles: string[] = []) => ({ audience, userId: 'u', name: '', roles, guestKey: null });
+type Audience = 'staff' | 'student' | 'guest';
+const caller = (audience: Audience, roles: string[] = []) => ({ audience, userId: 'u', name: '', roles, guestKey: null as string | null });
 const names = (c: ReturnType<typeof caller>) => toolsFor(ALL_TOOLS, c).map((t: { name: string }) => t.name);
 const client = (data: unknown = { ok: true }, error: unknown = null) => ({ rpc: vi.fn().mockResolvedValue({ data, error }) });
 
