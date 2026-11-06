@@ -80,6 +80,7 @@ export function aiCallRows(purpose: string, attempts: AiAttempt[], jobId: string
 export const PURPOSE_UZ: Record<string, string> = {
   group_analysis: "guruh tahlili",
   report_split: "hisobotni ajratish",
+  group_summary: "guruh xulosasi",
 };
 
 /** 22:00–08:00 (Toshkent) — ogohlantirish yuborilmaydi; shart saqlansa 08:00 dan keyin boradi. */

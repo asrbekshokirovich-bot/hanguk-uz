@@ -16,6 +16,8 @@
 // (RLS) doirasida javob beradi; javobdan keyin sessiya yopiladi.
 // Guruh xulosasi (2026-11-05): ertalabki cron'da guruhga bot_group_digest → renderGroupDigest
 // (bot_settings.group_digest_enabled; qo'lda: ?action=morning&only=group).
+// Kunlik guruh xulosasi (B3-1, summary.ts): cron 21:30 → ?action=group_summary → group_daily_summaries;
+// ertalabki guruh xulosasida «💬 Kecha guruhda» (D8).
 // AI qatlami (2026-11-05, B0-2/B0-3/B0-5): aiops.ts — tartib bot_settings.ai_provider_order (standart
 // claude,gemini), har urinish ai_calls'ga; provayderlar xato bersa ish bot_jobs'ga, cron → ?action=jobs.
 //
@@ -31,7 +33,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
 import { createAiOps, type JobRow } from "./aiops.ts";
-import { runDeadlines, runNotify } from "./notify.ts";
+import { isWorkday, runDeadlines, runNotify } from "./notify.ts";
+import { createSummaryOps } from "./summary.ts";
 import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
 import { type CardDeps, dmCardReply, groupCardReply } from "./card_actions.ts";
 import { CARD_HINT, replyKeyboard } from "./cards.ts";
@@ -93,6 +96,7 @@ const MAX_CARDS = 10;
 
 const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const aiOps = createAiOps({ db, providerOrder: () => settingValue("ai_provider_order"), send: (chat, text) => send(chat, text) });
+const summaryOps = createSummaryOps({ db, ai: aiOps, setting: (k) => settingValue(k), isWorkday });
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -399,7 +403,8 @@ function cronAuthorized(req: Request): boolean {
 async function sendGroupDigest(chatId: number): Promise<boolean> {
   const { data, error } = await db.rpc("bot_group_digest");
   if (error || !data) { console.error("bot_group_digest:", error?.message); return false; }
-  await sendLong(chatId, renderGroupDigest(data as GroupDigest));
+  const d = data as GroupDigest;
+  await sendLong(chatId, renderGroupDigest({ ...d, chat: await summaryOps.digestChat(chatId, d.prev_date) }));
   return true;
 }
 
@@ -1033,7 +1038,12 @@ Deno.serve(async (req) => {
   const act = new URL(req.url).searchParams.get("action");
   if (act === "jobs") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
-    return json({ ok: true, ...(await aiOps.runJobs({ group_analysis: retryGroupAnalysis })) });
+    return json({ ok: true, ...(await aiOps.runJobs({ group_analysis: retryGroupAnalysis, group_summary: summaryOps.job })) });
+  }
+  // Cron 21:30: kunlik guruh xulosasi (summary.ts, B3-1)
+  if (act === "group_summary") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return json(await summaryOps.run(new URL(req.url).searchParams));
   }
   // Bildirishnomalar navbati (trigger darhol + cron) va muddat nazorati — notify.ts
   if (act === "notify" || act === "deadlines") {
