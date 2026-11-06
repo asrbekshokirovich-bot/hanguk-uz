@@ -113,7 +113,7 @@ abstract final class GuestPush {
     }
   }
 
-  static const _remindersKey = 'guest_reminders_off_v1';
+  static const _remindersFlag = 'guest_reminders_off_v1';
 
   /// «Muddat eslatmalari» (ushlab qolish P10, D2): shown to a guest whose
   /// phone may get pushes (allowed, or quietly allowed on iOS).
@@ -122,7 +122,7 @@ abstract final class GuestPush {
     return (await store.read(_allowedKey) ?? false) || (await store.read(_quietKey) ?? false);
   }
 
-  static Future<bool> remindersOn() async => !(await store.read(_remindersKey) ?? false);
+  static Future<bool> remindersOn() async => !(await store.read(_remindersFlag) ?? false);
 
   /// Turns the phone's deadline reminders on or off on the server
   /// (app_guest_push_set); campaigns are not affected. False when it failed.
@@ -134,7 +134,7 @@ abstract final class GuestPush {
       if (token == null || token.isEmpty) return false;
       final res = await Supabase.instance.client.rpc('app_guest_push_set', params: remindersParams(install, token, on));
       if (res is Map && res['status'] != 'ok') return false;
-      await store.write(_remindersKey, !on);
+      await store.write(_remindersFlag, !on);
       AppEvents.track('push_permission', props: {'result': on ? 'reminders_on' : 'reminders_off', 'source': 'guest'});
       return true;
     } catch (e) {
