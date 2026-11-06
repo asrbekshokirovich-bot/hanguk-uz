@@ -62,6 +62,15 @@ jobs:
         working-directory: hanguk_app
 
     steps:
+      # 2026-11-06: the runner ran out of disk while building the test APK after
+      # the bundle. Drop toolchains this job never uses (keeps the Android SDK).
+      - name: Free disk space
+        working-directory: .
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/powershell /usr/share/swift || true
+          df -h /
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
@@ -177,7 +186,8 @@ jobs:
 
       - name: Build APK for on-device testing
         if: ${{ inputs.build_apk }}
-        run: flutter build apk --release ${{ steps.defines.outputs.flags }}
+        # arm64 only: what real devices run, and a third of the fat APK's size.
+        run: flutter build apk --release --target-platform android-arm64 ${{ steps.defines.outputs.flags }}
 
       # ── Verify what was actually produced ──────────────────────────────────
       # Play blocked version code 2040 for holding READ_MEDIA_IMAGES /
