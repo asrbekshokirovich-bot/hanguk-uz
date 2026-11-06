@@ -9961,6 +9961,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We\'ll let you know before the online application closes at the universities you saved. At most 1 a day and 2 a week; nothing between 22:00 and 08:00.'**
   String get guestRemindersBody;
+
+  /// Telegram reminders sheet after notifications were refused (retention plan P17, design D3): title
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off'**
+  String get guestTelegramTitle;
+
+  /// Telegram reminders sheet: what it does; no phone number needed
+  ///
+  /// In en, this message translates to:
+  /// **'You can get deadline reminders in Telegram. No phone number needed — just tap «Start» in the bot once.'**
+  String get guestTelegramBody;
+
+  /// Telegram reminders sheet: the button that opens the bot
+  ///
+  /// In en, this message translates to:
+  /// **'Get in Telegram'**
+  String get guestTelegramButton;
 }
 
 class _AppLocalizationsDelegate

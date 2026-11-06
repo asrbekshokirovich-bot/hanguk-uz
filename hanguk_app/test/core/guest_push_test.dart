@@ -61,6 +61,12 @@ void main() {
     expect(GuestPush.remindersParams('i-1', 'tok', false), {'p_install_id': 'i-1', 'p_token': 'tok', 'p_enabled': false});
   });
 
+  test('the Telegram link carries the phone code', () {
+    expect(GuestPush.subLink('HangukBot', 'ABCDEFGH23').toString(), 'https://t.me/HangukBot?start=D_ABCDEFGH23');
+    expect(GuestPush.subLink(null, 'ABCDEFGH23'), isNull);
+    expect(GuestPush.subLink('HangukBot', 'bad'), isNull);
+  });
+
   test('the token goes with the install id, platform and language', () {
     expect(GuestPush.registerParams('i-1', 'android', 'tok', 'ru', '1.1.3'), {
       'p_install_id': 'i-1',

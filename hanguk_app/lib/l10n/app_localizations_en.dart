@@ -5554,4 +5554,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guestRemindersBody =>
       'We\'ll let you know before the online application closes at the universities you saved. At most 1 a day and 2 a week; nothing between 22:00 and 08:00.';
+
+  @override
+  String get guestTelegramTitle => 'Notifications are off';
+
+  @override
+  String get guestTelegramBody =>
+      'You can get deadline reminders in Telegram. No phone number needed — just tap «Start» in the bot once.';
+
+  @override
+  String get guestTelegramButton => 'Get in Telegram';
 }

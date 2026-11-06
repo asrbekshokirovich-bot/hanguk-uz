@@ -5357,4 +5357,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get guestRemindersBody =>
       '저장한 대학의 온라인 지원 마감 전에 알려 드립니다. 하루 최대 1개, 주 2개까지이며 22:00–08:00에는 보내지 않습니다.';
+
+  @override
+  String get guestTelegramTitle => '알림이 꺼져 있습니다';
+
+  @override
+  String get guestTelegramBody =>
+      '마감 알림을 Telegram으로 받을 수 있습니다. 전화번호는 필요 없고, 봇에서 «Start»를 한 번만 누르면 됩니다.';
+
+  @override
+  String get guestTelegramButton => 'Telegram으로 받기';
 }
