@@ -17,6 +17,8 @@
 // Add { dry: true } to get the proposal back without writing anything.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +26,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY");
 const MODEL = "gemini-2.5-flash";
 
@@ -217,24 +219,10 @@ Deno.serve(async (req) => {
   }
 });
 
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!bearer) return false;
-  if (bearer === SERVICE_KEY) return true;
-  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
-  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
-  // Faqat aniq kalit solishtiriladi.
-  return false;
-}
-
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) { return []; }
+  return isServiceRequest(req);
 }
 
 function json(body: unknown, status = 200): Response {

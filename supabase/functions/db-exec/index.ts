@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 // Internal SQL-over-HTTPS bridge for the uni_db crawl pipeline.
 //
@@ -10,12 +11,14 @@ import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 // returns the rows as JSON. It grants nothing beyond the service-role key the
 // caller must already present — it just tunnels that access over HTTPS.
 //
-// Auth: caller must send `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>`.
-// Only the pipeline (which holds that key) can call it.
+// Auth: caller must send the project's sb_secret_ key on `apikey` (or, during
+// the transition, the legacy service_role key on `apikey` / `Authorization:
+// Bearer`), checked by isServiceRequest. verify_jwt is off because an
+// sb_secret_ key is not a JWT. Only the pipeline (which holds that key) can call it.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
 };
 
 // Warm pool reused across invocations while the instance stays warm.
@@ -34,9 +37,7 @@ serve(async (req) => {
     });
   }
 
-  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
-  const expected = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!expected || token !== expected) {
+  if (!isServiceRequest(req)) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

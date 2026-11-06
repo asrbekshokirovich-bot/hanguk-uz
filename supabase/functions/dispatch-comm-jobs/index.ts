@@ -5,10 +5,13 @@
 // repeatedly — intended for a pg_cron schedule, a manual "process pending"
 // action, or one-off backfills.
 //
-// Internal-only: present the service-role key as a Bearer token.
+// Internal-only: present the secret key on `apikey` (or, during the
+// transition, the legacy service_role key as a Bearer token).
 //
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { internalFunctionHeaders, serviceKey as getServiceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,10 +29,10 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const serviceKey = getServiceKey();
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const auth = req.headers.get("authorization") || "";
-  if (auth.replace(/^Bearer\s+/i, "").trim() !== serviceKey) {
+  // Server callers only: sb_secret_ key on `apikey` (or the legacy service_role key).
+  if (!isServiceRequest(req)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -68,7 +71,7 @@ Deno.serve(async (req) => {
     try {
       const res = await fetch(`${supabaseUrl}/functions/v1/${w.fn}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
+        headers: internalFunctionHeaders(),
         body: JSON.stringify({ [w.param]: jobRow.ref_id }),
       });
       const out = await res.json().catch(() => ({}));

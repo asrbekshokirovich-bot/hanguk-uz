@@ -6,6 +6,8 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { serviceKey as getServiceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,9 +45,9 @@ const EDUCATION_LEVELS = ["high_school", "bachelor", "master", "phd", "other"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const auth = req.headers.get("authorization") || "";
-  if (auth.replace(/^Bearer\s+/i, "").trim() !== serviceKey) return json({ error: "Unauthorized" }, 401);
+  const serviceKey = getServiceKey();
+  // Server callers only: sb_secret_ key on `apikey` (or the legacy service_role key).
+  if (!isServiceRequest(req)) return json({ error: "Unauthorized" }, 401);
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
   if (!geminiKey) return json({ error: "GEMINI_API_KEY not configured" }, 500);

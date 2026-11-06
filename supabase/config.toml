@@ -27,6 +27,13 @@ verify_jwt = false
 [functions.telegram-ingest]
 verify_jwt = false
 
+# Userbot / telegram-poll work queue. Same shared secret as telegram-ingest
+# (x-ingest-secret, checked in the function); telegram-poll calls it
+# server-to-server without a JWT. Was missing here, so a CLI deploy defaulted
+# it to verify_jwt = true.
+[functions.telegram-outbox]
+verify_jwt = false
+
 [functions.create-staff]
 verify_jwt = false
 
@@ -142,10 +149,12 @@ verify_jwt = false
 verify_jwt = false
 
 # Internal SQL-over-HTTPS bridge for the uni_db crawl when it runs in a Claude
-# Routine sandbox (raw Postgres blocked). verify_jwt=true so the gateway checks
-# the caller's JWT signature; the function additionally requires service_role.
+# Routine sandbox (raw Postgres blocked). 2026-11-05 (yangi kalitlar): the
+# caller now presents an sb_secret_ key, which is not a JWT, so the gateway
+# check is off; the function itself accepts only the project's secret key (or,
+# during the transition, the legacy service_role key) via isServiceRequest.
 [functions.db-exec]
-verify_jwt = true
+verify_jwt = false
 
 # Stage notifications to students (documents collected, online / offline
 # application, university offered / confirmed), called every minute by pg_cron

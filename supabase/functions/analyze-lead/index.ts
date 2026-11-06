@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { requireCaller } from "../_shared/caller.ts";
+import { serviceKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,7 +56,7 @@ serve(async (req) => {
     const { lead_id, analyze_all } = await req.json();
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseKey = serviceKey();
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 
     const supabase = createClient(supabaseUrl, supabaseKey);

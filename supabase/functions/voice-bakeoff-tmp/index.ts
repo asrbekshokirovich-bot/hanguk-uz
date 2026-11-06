@@ -10,6 +10,7 @@
 // Recovered 2026-09-07 from the live Supabase project (version 12). The gate
 // secret was hardcoded on the server; it now comes from VOICE_BAKEOFF_SECRET.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceKey } from "../_shared/keys.ts";
 
 const SECRET = Deno.env.get("VOICE_BAKEOFF_SECRET") ?? "";
 const EL_VOICE_ID = "cgSgspJ2msm6clMCkdW9";
@@ -84,7 +85,7 @@ Deno.serve(async (req) => {
   }
 
   if (!keys.eleven && !keys.azure) return new Response("no key provided (eleven_key or azure_key)", { status: 400 });
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey());
   (globalThis as any).EdgeRuntime?.waitUntil?.(run(supabase, keys));
   return new Response(JSON.stringify({ started: true, providers: { eleven: !!keys.eleven, azure: !!keys.azure } }), { headers: { "Content-Type": "application/json" } });
 });

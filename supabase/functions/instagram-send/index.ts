@@ -13,13 +13,14 @@
 // stop the repo and production disagreeing.
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey());
 const STAFF_ROLES = ["owner", "admin", "call_operator"];
 
 function json(body: unknown, status = 200): Response {
@@ -28,7 +29,7 @@ function json(body: unknown, status = 200): Response {
 
 async function getCaller(req: Request): Promise<{ userId: string | null; isStaff: boolean }> {
   const authHeader = req.headers.get("Authorization") ?? "";
-  const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
+  const userClient = createClient(Deno.env.get("SUPABASE_URL")!, publishableKey(), { global: { headers: { Authorization: authHeader } } });
   const { data } = await userClient.auth.getUser();
   const userId = data?.user?.id ?? null;
   if (!userId) return { userId: null, isStaff: false };
