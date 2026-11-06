@@ -33,6 +33,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
 import { createAiOps, type JobRow } from "./aiops.ts";
+import { createEmbedOps } from "./embed.ts";
 import { isWorkday, runDeadlines, runNotify } from "./notify.ts";
 import { createSummaryOps } from "./summary.ts";
 import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
@@ -92,6 +93,7 @@ const MAX_CARDS = 10;
 const db = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const aiOps = createAiOps({ db, providerOrder: () => settingValue("ai_provider_order"), send: (chat, text) => send(chat, text) });
 const summaryOps = createSummaryOps({ db, ai: aiOps, setting: (k) => settingValue(k), isWorkday });
+const embedOps = createEmbedOps({ db });
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -975,7 +977,12 @@ Deno.serve(async (req) => {
   const act = new URL(req.url).searchParams.get("action");
   if (act === "jobs") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
-    return json({ ok: true, ...(await aiOps.runJobs({ group_analysis: retryGroupAnalysis, group_summary: summaryOps.job })) });
+    return json({ ok: true, ...(await aiOps.runJobs({ group_analysis: retryGroupAnalysis, group_summary: summaryOps.job, group_embed: embedOps.embedJob })) });
+  }
+  // Semantik qidiruv uchun eski xabarlarni partiyalab vektorlash (B3-2, cron yoki qo'lda).
+  if (act === "embed_backfill") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return json({ ok: true, ...(await embedOps.backfillBatch()) });
   }
   // Cron 21:30: kunlik guruh xulosasi (summary.ts, B3-1)
   if (act === "group_summary") {
