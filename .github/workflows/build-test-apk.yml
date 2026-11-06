@@ -76,14 +76,14 @@ jobs:
         run: flutter analyze --no-fatal-infos lib test
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --target-platform android-arm64
 
       - name: Publish APK to a GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="app-apk-latest"
+          TAG="app-apk-r0-r1"
           # Drop the previous rolling release and tag so only the newest asset
           # is kept and the download URL stays the same.
           gh release delete "$TAG" --yes --cleanup-tag || true
