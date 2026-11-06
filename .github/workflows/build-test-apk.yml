@@ -23,6 +23,11 @@ on:
   # Actions daqiqalari (2026-11-05): repo private bo'ldi — oyiga 2 000 daqiqa, macOS x10.
   # Har push'da APK (~8 daqiqa) o'rniga faqat qo'lda: Actions → Run workflow.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag for this APK (one per PR keeps them apart). Blank = app-apk-latest."
+        required: false
+        default: ""
 
 concurrency:
   group: build-test-apk
@@ -75,15 +80,25 @@ jobs:
       - name: flutter analyze
         run: flutter analyze --no-fatal-infos lib test
 
+      # arm64 only (every phone the app is used on; half the size), and the
+      # crash reporter switched on when the SENTRY_DSN secret is set — without
+      # it the SDK no-ops, as before (plan P07 / U6.1).
       - name: Build release APK
-        run: flutter build apk --release
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          defines=""
+          [ -n "$SENTRY_DSN" ] && defines="--dart-define=SENTRY_DSN=$SENTRY_DSN"
+          echo "SENTRY_DSN supplied: $([ -n "$SENTRY_DSN" ] && echo yes || echo 'no (crash reporting no-ops)')"
+          flutter build apk --release --target-platform android-arm64 $defines
 
       - name: Publish APK to a GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="app-apk-latest"
+          TAG="${{ inputs.tag }}"
+          TAG="${TAG:-app-apk-latest}"
           # Drop the previous rolling release and tag so only the newest asset
           # is kept and the download URL stays the same.
           gh release delete "$TAG" --yes --cleanup-tag || true
