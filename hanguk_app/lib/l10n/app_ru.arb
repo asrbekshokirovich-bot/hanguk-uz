@@ -1809,6 +1809,8 @@
   "nextStepUploadTitle": "Нужно загрузить документы",
   "nextStepUploadBody": "Когда они будут готовы, консультант подаст онлайн-заявку.",
   "nextStepUploadButton": "Загрузить документы",
+  "continueTitleCount": "Ваша оценка сохранена: университетов — {count}",
+  "continueNearestLine": "Ближайший срок: {university} — онлайн-заявка до {date}",
   "nextStepUploadCount": "Загрузите документы: {count}",
   "nextStepUploadNeeded": "Нужны: {names}.",
   "nextStepAnd": "и",

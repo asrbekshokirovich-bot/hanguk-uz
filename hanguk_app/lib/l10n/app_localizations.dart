@@ -10160,6 +10160,18 @@ abstract class AppLocalizations {
   /// **'Upload documents'**
   String get nextStepUploadButton;
 
+  /// Continue card (D7) title: the assessment is saved, with how many universities it weighs.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assessment is saved: {count} universities'**
+  String continueTitleCount(String count);
+
+  /// Continue card (D7): the nearest online application deadline among the assessment's universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest deadline: {university} — online application until {date}'**
+  String continueNearestLine(String university, String date);
+
   /// Next step card (D8) title: how many required documents to upload.
   ///
   /// In en, this message translates to:

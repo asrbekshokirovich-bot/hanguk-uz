@@ -1809,6 +1809,8 @@
   "nextStepUploadTitle": "Yuklanadigan hujjatlar",
   "nextStepUploadBody": "Ular tayyor bo'lsa, konsultant online arizani topshiradi.",
   "nextStepUploadButton": "Hujjatlarni yuklash",
+  "continueTitleCount": "Baholashingiz saqlangan: {count} ta universitet",
+  "continueNearestLine": "Eng yaqin muddat: {university} — online ariza {date}gacha",
   "nextStepUploadCount": "{count} ta hujjatni yuklang",
   "nextStepUploadNeeded": "{names} kerak.",
   "nextStepAnd": "va",

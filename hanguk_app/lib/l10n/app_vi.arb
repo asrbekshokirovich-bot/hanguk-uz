@@ -1809,6 +1809,8 @@
   "nextStepUploadTitle": "Giấy tờ cần tải lên",
   "nextStepUploadBody": "Khi đủ giấy tờ, tư vấn viên sẽ nộp hồ sơ trực tuyến.",
   "nextStepUploadButton": "Tải giấy tờ lên",
+  "continueTitleCount": "Đánh giá của bạn đã được lưu: {count} trường đại học",
+  "continueNearestLine": "Hạn gần nhất: {university} — nộp hồ sơ trực tuyến đến {date}",
   "nextStepUploadCount": "Tải lên {count} hồ sơ",
   "nextStepUploadNeeded": "Còn cần: {names}.",
   "nextStepAnd": "và",

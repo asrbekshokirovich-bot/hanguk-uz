@@ -5662,6 +5662,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get nextStepUploadButton => 'Загрузить документы';
 
   @override
+  String continueTitleCount(String count) {
+    return 'Ваша оценка сохранена: университетов — $count';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return 'Ближайший срок: $university — онлайн-заявка до $date';
+  }
+
+  @override
   String nextStepUploadCount(String count) {
     return 'Загрузите документы: $count';
   }

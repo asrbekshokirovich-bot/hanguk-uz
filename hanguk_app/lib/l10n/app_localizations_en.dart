@@ -5662,6 +5662,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextStepUploadButton => 'Upload documents';
 
   @override
+  String continueTitleCount(String count) {
+    return 'Your assessment is saved: $count universities';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return 'Nearest deadline: $university — online application until $date';
+  }
+
+  @override
   String nextStepUploadCount(String count) {
     return 'Upload $count documents';
   }
