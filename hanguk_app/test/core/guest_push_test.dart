@@ -45,6 +45,14 @@ void main() {
     expect(await GuestPush.shouldAsk(signedIn: false, mobile: false), isFalse);
   });
 
+  test('only a guest iPhone, not yet allowed, starts quietly, once', () {
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: false, done: false), isTrue);
+    expect(GuestPush.wantsQuiet(ios: false, signedIn: false, allowed: false, done: false), isFalse);
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: true, allowed: false, done: false), isFalse);
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: true, done: false), isFalse);
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: false, done: true), isFalse);
+  });
+
   test('the token goes with the install id, platform and language', () {
     expect(GuestPush.registerParams('i-1', 'android', 'tok', 'ru', '1.1.3'), {
       'p_install_id': 'i-1',
