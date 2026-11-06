@@ -8,7 +8,7 @@ name: uni-db process uploads
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
 #   SUPABASE_DB_PASSWORD, UNI_DB_SUPABASE_URL,
-#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY (sb_secret_ key, not the legacy JWT), UNI_DB_ANTHROPIC_API_KEY
 #   (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
 # Scheduled runs fire only from the DEFAULT branch — this activates once merged.
 

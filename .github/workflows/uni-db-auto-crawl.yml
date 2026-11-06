@@ -13,7 +13,7 @@ name: uni-db auto-crawl guidelines
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
 #   SUPABASE_DB_PASSWORD, UNI_DB_SUPABASE_URL,
-#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY,
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY (sb_secret_ key, not the legacy JWT), UNI_DB_ANTHROPIC_API_KEY,
 #   UNI_DB_NAVER_SEARCH_CLIENT_ID, UNI_DB_NAVER_SEARCH_CLIENT_SECRET
 #   (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
 
