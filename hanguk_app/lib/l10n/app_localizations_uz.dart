@@ -5663,6 +5663,47 @@ class AppLocalizationsUz extends AppLocalizations {
   String get nextStepUploadButton => 'Hujjatlarni yuklash';
 
   @override
+  String continueTitleCount(String count) {
+    return 'Baholashingiz saqlangan: $count ta universitet';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return 'Eng yaqin muddat: $university — online ariza ${date}gacha';
+  }
+
+  @override
+  String nextStepUploadCount(String count) {
+    return '$count ta hujjatni yuklang';
+  }
+
+  @override
+  String nextStepUploadNeeded(String names) {
+    return '$names kerak.';
+  }
+
+  @override
+  String get nextStepAnd => 'va';
+
+  @override
+  String get nextStepOrder => 'TARTIB';
+
+  @override
+  String get nextStepStageContract => 'Shartnoma';
+
+  @override
+  String get nextStepStageDocuments => 'Hujjatlar';
+
+  @override
+  String get nextStepStageUniversity => 'Universitet tanlash';
+
+  @override
+  String get nextStepStageOnline => 'Online ariza';
+
+  @override
+  String get nextStepStageResult => 'Natija va viza';
+
+  @override
   String prepGuestAiLeft(String limit, String left) {
     return 'Bugun $limit ta savoldan $left tasi qoldi';
   }

@@ -164,6 +164,12 @@ void main() {
   testWidgets('«Keyingi qadam» (D8) shows while required documents are missing', (t) async {
     await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney);
     expect(find.text('KEYINGI QADAM'), findsOneWidget);
+    expect(find.text('${DocumentConstants.requiredDocuments.length} ta hujjatni yuklang'), findsOneWidget);
+    expect(find.text('Hujjatlarni yuklash'), findsOneWidget);
+    expect(find.text('TARTIB'), findsOneWidget);
+    for (final s in ['Shartnoma', 'Hujjatlar', 'Universitet tanlash', 'Online ariza', 'Natija va viza']) {
+      expect(find.text(s), findsWidgets, reason: s);
+    }
   });
 
   testWidgets("a card opens the university's page (design 8a) and back returns", (t) async {

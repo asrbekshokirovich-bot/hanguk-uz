@@ -5662,6 +5662,47 @@ class AppLocalizationsRu extends AppLocalizations {
   String get nextStepUploadButton => 'Загрузить документы';
 
   @override
+  String continueTitleCount(String count) {
+    return 'Ваша оценка сохранена: университетов — $count';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return 'Ближайший срок: $university — онлайн-заявка до $date';
+  }
+
+  @override
+  String nextStepUploadCount(String count) {
+    return 'Загрузите документы: $count';
+  }
+
+  @override
+  String nextStepUploadNeeded(String names) {
+    return 'Нужны: $names.';
+  }
+
+  @override
+  String get nextStepAnd => 'и';
+
+  @override
+  String get nextStepOrder => 'ПОРЯДОК';
+
+  @override
+  String get nextStepStageContract => 'Договор';
+
+  @override
+  String get nextStepStageDocuments => 'Документы';
+
+  @override
+  String get nextStepStageUniversity => 'Выбор университета';
+
+  @override
+  String get nextStepStageOnline => 'Онлайн-заявка';
+
+  @override
+  String get nextStepStageResult => 'Результат и виза';
+
+  @override
   String prepGuestAiLeft(String limit, String left) {
     return 'Сегодня осталось $left из $limit вопросов';
   }

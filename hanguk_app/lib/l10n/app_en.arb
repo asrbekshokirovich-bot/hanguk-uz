@@ -6989,6 +6989,73 @@
   "@nextStepUploadButton": {
     "description": "Student 'Next step' card: open the documents tab"
   },
+  "continueTitleCount": "Your assessment is saved: {count} universities",
+  "@continueTitleCount": {
+    "description": "Continue card (D7) title: the assessment is saved, with how many universities it weighs.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "continueNearestLine": "Nearest deadline: {university} — online application until {date}",
+  "@continueNearestLine": {
+    "description": "Continue card (D7): the nearest online application deadline among the assessment's universities.",
+    "placeholders": {
+      "university": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "nextStepUploadCount": "Upload {count} documents",
+  "@nextStepUploadCount": {
+    "description": "Next step card (D8) title: how many required documents to upload.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "nextStepUploadNeeded": "Still needed: {names}.",
+  "@nextStepUploadNeeded": {
+    "description": "Next step card (D8): which documents are still needed.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "nextStepAnd": "and",
+  "@nextStepAnd": {
+    "description": "The word joining the last two names in a list (D8)."
+  },
+  "nextStepOrder": "STEPS",
+  "@nextStepOrder": {
+    "description": "Heading of the step list under the next step card (D8)."
+  },
+  "nextStepStageContract": "Contract",
+  "@nextStepStageContract": {
+    "description": "Step list (D8): the contract."
+  },
+  "nextStepStageDocuments": "Documents",
+  "@nextStepStageDocuments": {
+    "description": "Step list (D8): the documents."
+  },
+  "nextStepStageUniversity": "Choosing universities",
+  "@nextStepStageUniversity": {
+    "description": "Step list (D8): choosing the universities."
+  },
+  "nextStepStageOnline": "Online application",
+  "@nextStepStageOnline": {
+    "description": "Step list (D8): the online application."
+  },
+  "nextStepStageResult": "Result and visa",
+  "@nextStepStageResult": {
+    "description": "Step list (D8): the result and the visa."
+  },
   "prepGuestAiLeft": "{left} of {limit} questions left today",
   "@prepGuestAiLeft": {
     "description": "Prepare, guest (D4): Hanguk AI questions left today; {left} is set in the mono face.",
