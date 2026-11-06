@@ -74,11 +74,13 @@ import {
   splitMessage,
   type TaskRow,
 } from "./core.ts";
+import { publishableKey, serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const BOT_TOKEN = Deno.env.get("STAFF_BOT_TOKEN") ?? "";
 const WEBHOOK_SECRET = Deno.env.get("STAFF_BOT_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_ROLE_KEY = serviceKey();
 const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/staff-bot`;
 const BOT_ID = "staff-bot";
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
@@ -418,15 +420,7 @@ async function onCallback(cq: Any) {
 // ── ertalabki ro'yxat (cron) ──────────────────────────────────────────────
 
 function cronAuthorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_")) {
-    try {
-      const keys = Object.values(JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}"));
-      if (keys.includes(apikey)) return true;
-    } catch { /* ignore */ }
-  }
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  return bearer !== "" && bearer === SERVICE_ROLE_KEY;
+  return isServiceRequest(req);
 }
 
 /** Guruhga jamoa xulosasi (bot_group_digest). Xato bo'lsa DM'lar baribir ketadi. */
@@ -669,7 +663,7 @@ async function staffSession(userId: string): Promise<string | null> {
   const { data: link, error: lErr } = await db.auth.admin.generateLink({ type: "magiclink", email });
   const hash = link?.properties?.hashed_token;
   if (lErr || !hash) { console.error("staffSession link:", lErr?.message); return null; }
-  const anon = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  const anon = createClient(SUPABASE_URL, publishableKey() || SERVICE_ROLE_KEY, { auth: { persistSession: false } });
   const { data: v, error: vErr } = await anon.auth.verifyOtp({ token_hash: hash, type: "magiclink" });
   if (vErr || !v?.session?.access_token) { console.error("staffSession verify:", vErr?.message); return null; }
   return v.session.access_token;

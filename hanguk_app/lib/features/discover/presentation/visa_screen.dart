@@ -52,6 +52,9 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
   /// `assessment_start` goes once per visit, with the first answer changed.
   bool _started = false;
 
+  /// The sliders' answers, recorded when the finger lifts.
+  final _slide = SlideAnswers();
+
   @override
   Widget build(BuildContext context) {
     final tour = _tour();
@@ -96,14 +99,20 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         : all.where((u) => picked.contains(u.institutionId)).toList();
     final chosen = all.where((u) => picked.contains(u.institutionId)).toList();
     final need = requiredBank(input.route, chosen, rules: rules);
-    void set(AssessmentInput next) {
+    void set(AssessmentInput next, {bool sliding = false}) {
       if (!_started) {
         _started = true;
         AppEvents.track('assessment_start', props: {'kind': 'visa', 'universities': chosen.length});
       }
-      trackAnswers('visa', input, next);
+      if (sliding) {
+        _slide.moved(input);
+      } else {
+        trackAnswers('visa', input, next);
+      }
       ref.read(assessmentProvider.notifier).set(next);
     }
+
+    void slid() => _slide.ended('visa', ref.read(assessmentProvider));
 
     int visa(AssessmentInput i) => visaScore(i, requiredBankKrw: need);
     // Admission: the best of the picked universities (or of the board's).
@@ -155,7 +164,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
     Widget slider(String label, double value, ValueChanged<double> onChanged, String shown) => Row(
       children: [
         Expanded(
-          child: HardSlider(value: value, semanticLabel: label, onChanged: onChanged),
+          child: HardSlider(value: value, semanticLabel: label, onChanged: onChanged, onChangeEnd: slid),
         ),
         const SizedBox(width: 10),
         AssessValue(shown),
@@ -191,7 +200,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         slider(
           l.uaQGpa,
           (input.gpa - 1) / 4,
-          (v) => set(input.copyWith(gpa: ((1 + 4 * v) * 10).round() / 10)),
+          (v) => set(input.copyWith(gpa: ((1 + 4 * v) * 10).round() / 10), sliding: true),
           l.uaGpaValue(input.gpa.toStringAsFixed(1)),
         ),
       ),
@@ -210,7 +219,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         slider(
           l.vzQAge,
           (input.age - kVisaAgeMin) / (kVisaAgeMax - kVisaAgeMin),
-          (v) => set(input.copyWith(age: (kVisaAgeMin + (kVisaAgeMax - kVisaAgeMin) * v).round())),
+          (v) => set(input.copyWith(age: (kVisaAgeMin + (kVisaAgeMax - kVisaAgeMin) * v).round()), sliding: true),
           l.vzAgeValue(input.age),
         ),
       ),

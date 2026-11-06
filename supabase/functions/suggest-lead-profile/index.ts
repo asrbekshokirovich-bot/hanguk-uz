@@ -24,6 +24,8 @@
 // { dry: true } returns the proposal and the material it read, writing nothing.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,7 +33,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY");
 const MODEL = "gemini-2.5-flash";
 
@@ -323,12 +325,11 @@ async function authorized(
   req: Request,
   supabase: ReturnType<typeof createClient>,
 ): Promise<boolean> {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
+  // Server callers: an sb_secret_ key (or the legacy service_role key).
+  if (isServiceRequest(req)) return true;
 
   const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!bearer) return false;
-  if (bearer === SERVICE_KEY) return true;
 
   let claims: { role?: string; sub?: string } | null = null;
   try {
@@ -352,14 +353,6 @@ async function authorized(
     .eq("user_id", claims.sub);
 
   return (roles ?? []).some((r: { role: string }) => STAFF_ROLES.includes(r.role));
-}
-
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) { return []; }
 }
 
 function json(body: unknown, status = 200): Response {

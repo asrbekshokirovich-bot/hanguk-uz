@@ -15,6 +15,7 @@
 // university_staff). verify_jwt=false in config; the role check is enforced here.
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceKey as getServiceKey, publishableKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -111,8 +112,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const serviceKey = getServiceKey();
+  const anonKey = publishableKey();
 
   const body = await req.json().catch(() => null) as Record<string, any> | null;
   if (!body) return json({ error: "Invalid JSON body" }, 400);

@@ -15,6 +15,8 @@
 // open to anyone, and it both writes state and sends Telegram messages.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +24,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 /** Chat that receives the alerts — a staff group, or one admin's chat id. */
 const ALERT_CHAT_ID = Deno.env.get("ALERT_TELEGRAM_CHAT_ID");
@@ -98,7 +100,7 @@ serve(async (req) => {
 
   if (!authorized(req)) return json({ error: "Unauthorized" }, 401);
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
   const dry = new URL(req.url).searchParams.get("dry") === "1";
 
   try {
@@ -134,28 +136,10 @@ serve(async (req) => {
   }
 });
 
-/** A secret key in `apikey`, or a service_role JWT in `Authorization: Bearer`. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!bearer) return false;
-  if (bearer === SUPABASE_SERVICE_ROLE_KEY) return true;
-  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
-  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
-  // Faqat aniq kalit solishtiriladi.
-  return false;
-}
-
-/** Every sb_secret_ key configured for this project, whatever it is named. */
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Object.values(parsed).filter((v): v is string => typeof v === "string");
-  } catch (_e) { return []; }
+  return isServiceRequest(req);
 }
 
 function json(body: unknown, status = 200): Response {

@@ -7,6 +7,7 @@
 // application and documents stay locked), and handle_new_user gives it no
 // profile, so it never shows in the CRM as a student.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceKey } from "../_shared/keys.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   if (req.method !== "POST") return json({ error: "method" }, 405);
   try {
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey(), {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     // Xavfsizlik (2026-11-05): bitta IP soatiga 20 tadan, hammasi kuniga 300 tadan

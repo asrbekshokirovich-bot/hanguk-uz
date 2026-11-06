@@ -17,6 +17,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { fetchRecording, bytesToBase64 } from "../_shared/recording.ts";
 import { transcribeWithScribe, type TranscriptionResult } from "../_shared/scribe.ts";
 import { embedText, generateJSON, transcribeAudioWithGemini } from "../_shared/gemini.ts";
+import { serviceKey as getServiceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,9 +81,9 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const auth = req.headers.get("authorization") || "";
-  if (auth.replace(/^Bearer\s+/i, "").trim() !== serviceKey) {
+  const serviceKey = getServiceKey();
+  // Server callers only: sb_secret_ key on `apikey` (or the legacy service_role key).
+  if (!isServiceRequest(req)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

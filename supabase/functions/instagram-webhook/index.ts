@@ -14,8 +14,9 @@
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ensureIdentity, extractHandleFromText, extractPhoneFromText, resolveIdentity } from "../_shared/identity.ts";
+import { serviceKey } from "../_shared/keys.ts";
 
-const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey());
 
 const CHAT_MEDIA_BUCKET = "chat-media";
 const MAX_MEDIA_BYTES = 20 * 1024 * 1024;

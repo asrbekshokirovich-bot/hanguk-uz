@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/analytics/app_events.dart';
 import '../../../core/config/app_config.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../entry/data/entry_store.dart';
@@ -59,6 +60,12 @@ class ChatNotifier extends Notifier<ChatState> {
     final newMessages = [...state.messages, userMsg];
     state = state.copyWith(messages: newMessages, isLoading: true, error: null);
 
+    // `ai_chat`: how the answer came — its first words' wait, the whole
+    // answer's, or the failure (the message itself is not sent).
+    final clock = Stopwatch()..start();
+    int? firstMs;
+    int? status;
+    var result = 'error';
     try {
       final client = Supabase.instance.client;
 
@@ -98,6 +105,7 @@ class ChatNotifier extends Notifier<ChatState> {
       });
 
       final response = await http.Client().send(request);
+      status = response.statusCode;
 
       if (response.statusCode >= 400) {
         final errorStr = await response.stream.bytesToString();
@@ -107,6 +115,7 @@ class ChatNotifier extends Notifier<ChatState> {
       String assistantSoFar = '';
 
       void upsertAssistant(String chunk) {
+        firstMs ??= clock.elapsedMilliseconds;
         assistantSoFar += chunk;
 
         final messagesList = List<ChatMessage>.from(state.messages);
@@ -155,11 +164,21 @@ class ChatNotifier extends Notifier<ChatState> {
       }
 
       // If empty response (no streaming chunks)
+      result = assistantSoFar.isEmpty ? 'empty' : 'ok';
       if (assistantSoFar.isEmpty) {
         upsertAssistant(_l.chatNoResponse);
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: ChatError.unreachable);
+    } finally {
+      AppEvents.track('ai_chat', props: {
+        'result': result,
+        'status': ?status,
+        'first_ms': ?firstMs,
+        'ms': clock.elapsedMilliseconds,
+        'chars': text.length,
+        'turn': newMessages.where((m) => m.role == 'user').length,
+      });
     }
   }
 

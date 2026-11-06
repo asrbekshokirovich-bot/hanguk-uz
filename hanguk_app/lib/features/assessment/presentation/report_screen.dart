@@ -84,6 +84,16 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     super.dispose();
   }
 
+  /// Shares the report; `share` records whether it was sent.
+  Future<void> _share(String text) async {
+    try {
+      final r = await Share.share(text);
+      AppEvents.track('share', props: {'what': 'report', 'result': r.status.name});
+    } catch (e) {
+      debugPrint('share failed: $e');
+    }
+  }
+
   String _shareText(AppLocalizations l, AssessmentOutcome o) => [
     '${l.fdAssessTitleLead} ${l.fdAssessTitleMark}',
     _head(l, o.band),
@@ -128,7 +138,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                     HardIconButton(
                       glyph: LucideIcons.share2,
                       semanticLabel: l.fdShare,
-                      onTap: tracked('report.share', () => Share.share(_shareText(l, outcome))),
+                      onTap: tracked('report.share', () => _share(_shareText(l, outcome))),
                     ),
                   ],
                 ),

@@ -7,6 +7,7 @@
 // Recovered 2026-09-07 from the live Supabase project (lysjdtyanhdfphqyijsr,
 // version 17, deployed 2026-06-05). It had only ever existed on the server.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,7 +114,7 @@ Deno.serve(async (req) => {
 
     const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } },
     );
     const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
@@ -125,7 +126,7 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      serviceKey(),
     );
 
     const { data: roles } = await supabaseAdmin

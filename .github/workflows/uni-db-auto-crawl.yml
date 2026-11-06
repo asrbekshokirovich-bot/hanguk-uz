@@ -12,8 +12,8 @@ name: uni-db auto-crawl guidelines
 # fallback / test harness you can trigger from the Actions tab.
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
-#   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
-#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY,
+#   SUPABASE_DB_PASSWORD, UNI_DB_SUPABASE_URL,
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY (sb_secret_ key, not the legacy JWT), UNI_DB_ANTHROPIC_API_KEY,
 #   UNI_DB_NAVER_SEARCH_CLIENT_ID, UNI_DB_NAVER_SEARCH_CLIENT_SECRET
 #   (optional: UNI_DB_DEEPL_API_KEY for the translate stage)
 
@@ -50,7 +50,8 @@ jobs:
       UNI_DB_LIVE_CRAWL: "true"
       UNI_DB_LIVE_APIS: "true"
       UNI_DB_ENV: "production"
-      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      # 2026-11-05: manzil SUPABASE_DB_PASSWORD'dan yig'iladi — parol bitta joyda saqlanadi.
+      SUPABASE_DB_URL: postgresql://postgres.lysjdtyanhdfphqyijsr:${{ secrets.SUPABASE_DB_PASSWORD }}@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
       SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
       UNI_DB_LLM_BACKEND: "claude_cli"
@@ -95,7 +96,7 @@ jobs:
       - name: Check required secrets are set
         run: |
           if [ -z "${SUPABASE_DB_URL}" ] || [ -z "${NAVER_SEARCH_CLIENT_ID}" ] || [ -z "${NAVER_SEARCH_CLIENT_SECRET}" ]; then
-            echo "::error::Missing secrets. Add UNI_DB_SUPABASE_DB_URL, UNI_DB_NAVER_SEARCH_CLIENT_ID and UNI_DB_NAVER_SEARCH_CLIENT_SECRET in Settings → Secrets and variables → Actions."
+            echo "::error::Missing secrets. Add SUPABASE_DB_PASSWORD, UNI_DB_NAVER_SEARCH_CLIENT_ID and UNI_DB_NAVER_SEARCH_CLIENT_SECRET in Settings → Secrets and variables → Actions."
             exit 1
           fi
           if [ "${UNI_DB_LLM_BACKEND}" = "claude_cli" ]; then
