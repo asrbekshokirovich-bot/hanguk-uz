@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/form_progress.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -55,6 +56,16 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
   /// The sliders' answers, recorded when the finger lifts.
   final _slide = SlideAnswers();
 
+  /// `form_leave` when the page goes: how many answers changed on this visit.
+  late final _progress = FormProgress('visa');
+  int _total = 0;
+
+  @override
+  void dispose() {
+    _progress.leave(total: _total);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final tour = _tour();
@@ -91,6 +102,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
   Widget _body(BuildContext context, List<GlobalKey> keys) {
     final l = AppLocalizations.of(context)!;
     final input = ref.watch(assessmentProvider);
+    _total = input.answerBands().length;
     final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final picked = {for (final id in ref.watch(slotsProvider)) ?id};
@@ -104,6 +116,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         _started = true;
         AppEvents.track('assessment_start', props: {'kind': 'visa', 'universities': chosen.length});
       }
+      _progress.compare(input.answerBands(), next.answerBands());
       if (sliding) {
         _slide.moved(input);
       } else {
