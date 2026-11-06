@@ -18,6 +18,7 @@ import '../../onboarding/domain/eligibility_engine.dart';
 import '../data/assessment_controller.dart';
 import '../domain/assessment.dart';
 import 'assessment_widgets.dart' show shortUniversityName;
+import '../../../core/review/review_prompt.dart';
 
 /// The deep blue under the report's call button (the prototype's `#061B7A`).
 const Color _kBlueShadow = Color(0xFF061B7A);
@@ -74,13 +75,20 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     _pushAsk = Timer(const Duration(seconds: 3), () {
       if (mounted) unawaited(GuestPush.maybeAsk(context));
     });
+    // P24: the store's rating sheet, later, if nothing else is open by then.
+    _reviewAsk = Timer(const Duration(seconds: 12), () {
+      if (mounted) unawaited(ReviewPrompt.maybeAsk(context));
+    });
   }
+
+  Timer? _reviewAsk;
 
   Timer? _pushAsk;
 
   @override
   void dispose() {
     _pushAsk?.cancel();
+    _reviewAsk?.cancel();
     super.dispose();
   }
 
