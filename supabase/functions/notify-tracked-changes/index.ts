@@ -16,10 +16,21 @@
 // Killswitch: UNI_DB_PUSH_ENABLED=false on the function secret skips
 // dispatch entirely. The outbox keeps growing harmlessly until enabled.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+// New sb_secret_ key first; the legacy service_role JWT only as a fallback
+// until legacy keys are deactivated (security audit 2026-11-05).
+const SECRET_KEYS: string[] = (() => {
+  try {
+    return Object.values(JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}'))
+      .filter((v): v is string => typeof v === 'string' && v.length > 0);
+  } catch {
+    return [];
+  }
+})();
+const LEGACY_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const SERVICE_ROLE_KEY = SECRET_KEYS[0] || LEGACY_SERVICE_ROLE_KEY;
 const PUSH_ENABLED = (Deno.env.get('UNI_DB_PUSH_ENABLED') || 'false').toLowerCase() === 'true';
 const FCM_SERVICE_ACCOUNT_JSON = Deno.env.get('FCM_SERVICE_ACCOUNT_JSON') || '';
 const APNS_KEY_P8 = Deno.env.get('APNS_KEY_P8') || '';
@@ -34,7 +45,7 @@ const MAX_BATCH = 100;
 const MAX_ATTEMPTS = 8;
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set');
+  throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEYS (or SUPABASE_SERVICE_ROLE_KEY) must be set');
 }
 
 const sb = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
@@ -395,7 +406,32 @@ function bodyFor(event: OutboxRow, lang: string): string {
 // Main tick handler
 // ---------------------------------------------------------------------------
 
-Deno.serve(async () => {
+/** Constant-time comparison. */
+function safeEqual(a: string, b: string): boolean {
+  const ea = new TextEncoder().encode(a);
+  const eb = new TextEncoder().encode(b);
+  let diff = ea.length ^ eb.length;
+  for (let i = 0; i < Math.max(ea.length, eb.length); i++) diff |= (ea[i] ?? 0) ^ (eb[i] ?? 0);
+  return diff === 0;
+}
+
+/** Only server-side callers (pg_cron via vault `secret_key` on the apikey header). */
+function isServiceRequest(req: Request): boolean {
+  const bearer = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '').trim();
+  const candidates = [req.headers.get('apikey')?.trim() ?? '', bearer].filter((t) => t.length > 0);
+  const keys = [...SECRET_KEYS, LEGACY_SERVICE_ROLE_KEY].filter((k) => k.length > 0);
+  return candidates.some((t) => keys.some((k) => safeEqual(t, k)));
+}
+
+// verify_jwt = false: sb_secret_ keys are not JWTs, so the caller is checked here.
+Deno.serve(async (req) => {
+  if (!isServiceRequest(req)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
   if (!PUSH_ENABLED) {
     return new Response(JSON.stringify({ ok: true, skipped: 'push_disabled' }), {
       status: 200,

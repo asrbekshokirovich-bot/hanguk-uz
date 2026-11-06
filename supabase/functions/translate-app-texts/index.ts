@@ -14,9 +14,11 @@
 // a Bearer token — never by the app.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 const MODELS = ["claude-opus-4-7", "claude-sonnet-4-6"];
@@ -25,22 +27,10 @@ const BATCH = 40;
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-/** A secret key in `apikey`, or the service-role key itself as a Bearer. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  return bearer !== "" && bearer === SERVICE_KEY;
-}
-
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) {
-    return [];
-  }
+  return isServiceRequest(req);
 }
 
 const SYSTEM =

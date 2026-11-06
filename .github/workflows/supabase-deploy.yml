@@ -156,6 +156,20 @@ jobs:
           # tasodifiy. student-login (v1) chaqiruvchisiz — 410 qaytaradi.
           # 2026-11-05: voip-webhook — live (v67) == repo (bir bo'sh qatordan tashqari);
           # live'dagi _shared/identity.ts nusxasi voip-webhook/_shared/ ga qo'yildi.
+          # 2026-11-06 (kalit migratsiyasi, #599): quyidagi 13 ta funksiyaning live kodi
+          # repo bilan (13e0106 dan oldingi holat) solishtirildi — live == repo, faqat
+          # izoh/bo'sh joy farqi bor (compare-universities: satr ichida \" escape,
+          # natijasi bir xil; document-proxy, mediateka-makecall, request-call-analysis,
+          # request-document-analysis: faqat izohlar). verify_jwt config.toml'da live
+          # bilan bir xil. Endi #599 dagi yangi kalit kodi shu yerdan joylanadi:
+          # command-center-webhook, compare-universities, create-staff, document-proxy,
+          # heygen-avatar-token, mediateka-makecall, mediateka-recording,
+          # request-call-analysis, request-document-analysis, request-lead-enrichment,
+          # turn-credentials, upload-guideline, voice-bakeoff-tmp.
+          # notify-tracked-changes (2026-11-06): hanguk_app/supabase/functions/ dan
+          # supabase/functions/ ga ko'chirildi; #596 da manbasi sb_secret kalitni o'zi
+          # tekshiradigan bo'ldi. verify_jwt = false shart — 20261105170000 migratsiyasidan
+          # keyin pg_cron `apikey`da sb_secret yuboradi.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -209,6 +223,20 @@ jobs:
             student-login-v2
             student-login
             voip-webhook
+            command-center-webhook
+            compare-universities
+            create-staff
+            document-proxy
+            heygen-avatar-token
+            mediateka-makecall
+            mediateka-recording
+            request-call-analysis
+            request-document-analysis
+            request-lead-enrichment
+            turn-credentials
+            upload-guideline
+            voice-bakeoff-tmp
+            notify-tracked-changes
           "
 
           for fn in $FUNCTIONS; do

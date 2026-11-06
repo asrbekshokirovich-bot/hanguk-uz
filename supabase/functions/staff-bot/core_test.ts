@@ -326,3 +326,20 @@ Deno.test("renderBrief: muddatlar bo'limi o'zgarmadi", () => {
     "• Gyeongsang — 11.11 (6 kun), talabalar: 1",
   ].join("\n"));
 });
+
+import { fmtUsd, renderAiLine } from "./core.ts";
+
+Deno.test("renderSummary: oxirida AI qatori (24 soat); ma'lumot bo'lmasa qator yo'q", () => {
+  const rows: SummaryRow[] = [{ full_name: "Diyora", is_linked: true, has_report: true, done: "hujjat", blockers: null,
+    plan: null, raw_text: null, completed_today: 1, overdue: 0 }];
+  const s = renderSummary(rows, "05.11", { calls: 27, errors: 3, cost_usd: 0.0042 });
+  assertEquals(s.endsWith("\n\n🤖 AI (24 soat): 27 chaqiruv, 3 xato, $0,0042"), true, s);
+  assertEquals(renderSummary(rows, "05.11").includes("🤖 AI"), false);
+  assertEquals(renderSummary(rows, "05.11", null).includes("🤖 AI"), false);
+  assertEquals(renderAiLine({ calls: 0, errors: 0, cost_usd: null }), "🤖 AI (24 soat): 0 chaqiruv, 0 xato, $0");
+});
+
+Deno.test("fmtUsd", () => {
+  assertEquals([fmtUsd(0), fmtUsd(null), fmtUsd(0.00035), fmtUsd(0.0042), fmtUsd(0.15312), fmtUsd(1.274), fmtUsd(0.000001)],
+    ["$0", "$0", "$0,00035", "$0,0042", "$0,153", "$1,27", "$0,000001"]);
+});

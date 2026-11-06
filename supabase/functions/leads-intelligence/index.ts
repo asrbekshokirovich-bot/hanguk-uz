@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { requireCaller } from "../_shared/caller.ts";
+import { serviceKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,14 +21,14 @@ serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const SERVICE_KEY = serviceKey();
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
 
     if (!GEMINI_API_KEY) {
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     // ─── 1. Fetch all aggregate data ───────────────────────────────────────────
 

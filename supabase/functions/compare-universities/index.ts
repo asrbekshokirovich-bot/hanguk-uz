@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceKey } from "../_shared/keys.ts";
 
 // Student-facing university comparison. Rebuilt (2026-07) onto the uni_db
 // `institutions` + parsed-guideline tables after the legacy `universities` /
@@ -21,7 +22,7 @@ const LANGS: Record<string, string> = { uz: "Uzbek", ru: "Russian", ko: "Korean"
 function adminClient() {
   return createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    serviceKey(),
   );
 }
 

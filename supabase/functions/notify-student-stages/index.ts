@@ -13,6 +13,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { pushData, stageMessage, type StageKind } from "./messages.ts";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,7 +22,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const FCM_SERVICE_ACCOUNT_JSON = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
 
 const SETTLE_MS = 30_000;
@@ -47,22 +49,10 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Only pg_cron (an sb_secret_ key) or the service-role key itself. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  return !!bearer && bearer === SUPABASE_SERVICE_ROLE_KEY;
-}
-
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) {
-    return [];
-  }
+  return isServiceRequest(req);
 }
 
 const b64url = (s: string) => btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -103,7 +93,7 @@ serve(async (req) => {
   if (!authorized(req)) return json({ error: "Unauthorized" }, 401);
   if (!FCM_SERVICE_ACCOUNT_JSON) return json({ error: "FCM_SERVICE_ACCOUNT_JSON is not set" }, 500);
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   try {
     const { data: rows, error } = await supabase

@@ -2,7 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/cache/cached_rows.dart';
+import '../../../core/cache/snapshot_queries.dart';
 import '../domain/eligibility_engine.dart';
+
+final _rulesRows = CachedRows('eligibility_rules', query: kSnapshotReads[kRulesAsset]!, asset: kRulesAsset);
 
 /// What `app_quiz_submit` answered.
 enum QuizSubmitStatus { ok, student, invalidPhone, invalidName, network }
@@ -43,11 +47,16 @@ class QuizRepository {
 
   final SupabaseClient _client;
 
-  /// The rules from `eligibility_rules`; the built-in defaults when the table
-  /// cannot be read (offline), so the result is always computed.
-  Future<EligibilityRules> fetchRules() async {
+  /// The rules from `eligibility_rules` — the last read, or the copy shipped
+  /// in the app, while the network brings the current ones ([onFresh] then
+  /// runs); the built-in defaults when none can be read, so the result is
+  /// always computed.
+  Future<EligibilityRules> fetchRules({void Function()? onFresh}) async {
     try {
-      final rows = await _client.from('eligibility_rules').select('key, value');
+      final rows = await _rulesRows.load(
+        () => _client.from(kRulesTable).select(kRulesColumns).timeout(const Duration(seconds: 20)),
+        onFresh: onFresh,
+      );
       return EligibilityRules.fromRows(List<Map<String, dynamic>>.from(rows));
     } catch (e) {
       debugPrint('eligibility_rules failed: $e');
@@ -103,7 +112,13 @@ final quizRepositoryProvider = Provider<QuizRepository>((ref) {
   return QuizRepository(Supabase.instance.client);
 });
 
-/// The rules, read once per app run.
+/// The rules; read again when the network brings newer ones.
 final eligibilityRulesProvider = FutureProvider<EligibilityRules>((ref) {
-  return ref.watch(quizRepositoryProvider).fetchRules();
+  return ref.watch(quizRepositoryProvider).fetchRules(
+    onFresh: () {
+      try {
+        ref.invalidateSelf();
+      } catch (_) {}
+    },
+  );
 });

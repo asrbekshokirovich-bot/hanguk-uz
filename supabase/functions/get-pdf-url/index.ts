@@ -1,5 +1,6 @@
 // get-pdf-url — mint a 15-minute signed URL for a guideline PDF blob.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { serviceKey } from "../_shared/keys.ts";
 
 interface RequestBody { document_id?: string; storage_path?: string; reason?: string; }
 interface DocumentRow { id: string; storage_path: string | null; }
@@ -7,9 +8,9 @@ interface DocumentRow { id: string; storage_path: string | null; }
 const SIGNED_URL_TTL_SECONDS = 60 * 15;
 const DEFAULT_BUCKET = 'guideline-blobs';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = serviceKey();
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set');
+  throw new Error('SUPABASE_URL and SUPABASE_SECRET_KEYS (or SUPABASE_SERVICE_ROLE_KEY) must be set');
 }
 const serviceClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },

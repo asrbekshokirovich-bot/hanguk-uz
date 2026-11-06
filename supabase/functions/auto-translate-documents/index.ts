@@ -36,6 +36,8 @@ import {
   type StudentDoc,
   waitingMessage,
 } from "./rules.ts";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 
@@ -45,7 +47,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 /**
@@ -72,22 +74,10 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Only pg_cron (an sb_secret_ key) or the service-role key itself. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  return !!bearer && bearer === SUPABASE_SERVICE_ROLE_KEY;
-}
-
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch (_e) {
-    return [];
-  }
+  return isServiceRequest(req);
 }
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -201,7 +191,7 @@ async function processJob(db: SupabaseClient, job: Job): Promise<string> {
 }
 
 async function run(): Promise<Record<string, number>> {
-  const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const db = createClient(SUPABASE_URL, SERVICE_KEY);
   const started = Date.now();
   const counts: Record<string, number> = {};
 

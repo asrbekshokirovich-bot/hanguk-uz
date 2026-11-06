@@ -6,6 +6,7 @@ import {
   removeKeyboard,
   sendTelegramMessage,
 } from "../_shared/telegram.ts";
+import { serviceKey } from "../_shared/keys.ts";
 
 // HR bot: hiring runs entirely inside Telegram — no website, no CRM page.
 //
@@ -30,7 +31,7 @@ const BOT_TOKEN = Deno.env.get("HR_BOT_TOKEN") ?? "";
 const WEBHOOK_SECRET = Deno.env.get("HR_BOT_WEBHOOK_SECRET") ?? "";
 const ADMIN_PASSWORD = Deno.env.get("HR_ADMIN_PASSWORD") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const WEBHOOK_URL = `${SUPABASE_URL}/functions/v1/hr-bot`;
 
 /**
@@ -101,7 +102,7 @@ interface Admin {
   last_address: Place | null;
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
 // --- Wording -----------------------------------------------------------------
 

@@ -148,6 +148,12 @@ jobs:
       # ── Build ──────────────────────────────────────────────────────────────
       - name: flutter pub get
         run: flutter pub get
+      # The catalogue reads the app shows on a first launch while the network
+      # loads (hanguk_app/lib/core/cache/cached_rows.dart). A failed read
+      # keeps the committed placeholder; the build goes on.
+      - name: Snapshot catalogue data
+        continue-on-error: true
+        run: dart run tools/fetch_data_snapshots.dart
 
       - name: Collect optional dart-defines
         id: defines

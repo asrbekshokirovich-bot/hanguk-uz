@@ -14,6 +14,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -50,10 +51,10 @@ serve(async (req) => {
     const texts = answers.map((a: unknown) => (typeof a === "string" ? a.trim().slice(0, 4000) : ""));
 
     const url = Deno.env.get("SUPABASE_URL")!;
-    const asUser = createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const asUser = createClient(url, publishableKey(), {
       global: { headers: { Authorization: auth } },
     });
-    const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const admin = createClient(url, serviceKey());
     const { data: { user } } = await asUser.auth.getUser();
     if (!user) return json({ error: "Unauthorized" }, 401);
 

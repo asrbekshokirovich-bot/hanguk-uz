@@ -89,6 +89,22 @@ void main() {
     await t.pump();
     expect(named('tap').length, 2);
     expect(named('tap').last.element, isNull);
+    expect(named('tap').last.props?['target'], 'blank');
+    // A named tap says nothing about what is under it.
+    expect(named('tap').first.props?.containsKey('target'), isFalse);
+  });
+
+  testWidgets('an unnamed tap on text says so', (t) async {
+    await t.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => AnalyticsRoot(child: child!),
+        home: const Scaffold(body: Center(child: Text('Grant 50%'))),
+      ),
+    );
+    await t.tap(find.text('Grant 50%'));
+    await t.pump();
+    expect(named('tap').single.element, isNull);
+    expect(named('tap').single.props?['target'], 'text');
   });
 
   testWidgets('three quick taps on the same spot are a rage tap', (t) async {

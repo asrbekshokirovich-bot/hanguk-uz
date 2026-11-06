@@ -22,6 +22,24 @@ void trackAnswers(String form, AssessmentInput before, AssessmentInput after) {
   }
 }
 
+/// A slider's answer goes to the analytics once, when the finger lifts.
+/// While it moves, [moved] keeps the answers as they were before the slide;
+/// [ended] records what the slide changed. Before 1.1.3 every move was a
+/// `question_answer` of its own: the two sliders made 40% of all answers.
+class SlideAnswers {
+  AssessmentInput? _before;
+
+  /// The slide under way changes the answers; [before] is kept from its first move.
+  void moved(AssessmentInput before) => _before ??= before;
+
+  /// The slide ended with the answers at [now]: its changes, as [trackAnswers] records them.
+  void ended(String form, AssessmentInput now) {
+    final before = _before;
+    _before = null;
+    if (before != null) trackAnswers(form, before, now);
+  }
+}
+
 /// The answers as pills, the picked one lime.
 Widget assessPills<T>(List<(T, String)> options, T value, ValueChanged<T> onPick) => Wrap(
   spacing: 6,

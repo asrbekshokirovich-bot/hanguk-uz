@@ -22,6 +22,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { SavedRepliesSettings } from '@/components/crm/messages/SavedRepliesSettings';
 import { BotSettingsCard } from '@/components/crm/settings/BotSettingsCard';
 import { BotProposalsCard } from '@/components/crm/settings/BotProposalsCard';
+import { BotAiHealthCard } from '@/components/crm/settings/BotAiHealthCard';
 import { CameraSettingsCard } from '@/components/crm/settings/CameraSettingsCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
@@ -463,6 +464,7 @@ export default function SettingsContent() {
         {isOwner && (
           <TabsContent value="bot" className="space-y-6">
             <BotSettingsCard />
+            <BotAiHealthCard />
             <BotProposalsCard />
           </TabsContent>
         )}

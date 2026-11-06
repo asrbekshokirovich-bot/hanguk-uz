@@ -22,9 +22,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
 import { INK, INK_MUTED, LINE, Pdf, ROYAL, TINT, WHITE } from './pdf.ts';
 import { buildXlsx, type CellValue, type Sheet } from './xlsx.ts';
+import { publishableKey } from "../_shared/keys.ts";
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+const PUBLISHABLE_KEY = publishableKey();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -533,7 +534,7 @@ Deno.serve(async (req) => {
   if (!KINDS.includes(kind)) return fail(400, 'UNKNOWN_KIND');
 
   // User-scoped: RLS, not this function, decides what is readable.
-  const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const client = createClient(SUPABASE_URL, PUBLISHABLE_KEY, {
     global: { headers: { Authorization: auth } },
     auth: { persistSession: false },
   });

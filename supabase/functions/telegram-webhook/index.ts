@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { ensureIdentity, extractPhoneFromText, resolveIdentity, normalizePhone } from "../_shared/identity.ts";
+import { serviceKey } from "../_shared/keys.ts";
 
 // Telegram bot webhook: runs the student onboarding conversation AND captures
 // every message into the CRM, linked to a student/lead via the identity spine.
@@ -17,7 +18,7 @@ const corsHeaders = {
 
 const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const TG_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 // deno-lint-ignore no-explicit-any
@@ -321,7 +322,7 @@ serve(async (req) => {
     new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     if (req.method !== "POST") {
       // `configured` only says the bot token is present. It says nothing about

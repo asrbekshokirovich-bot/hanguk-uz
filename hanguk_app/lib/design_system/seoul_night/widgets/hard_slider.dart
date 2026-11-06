@@ -13,6 +13,7 @@ class HardSlider extends StatelessWidget {
     required this.semanticLabel,
     this.marker,
     this.markerLabel,
+    this.onChangeEnd,
   });
 
   /// 0–1.
@@ -24,6 +25,15 @@ class HardSlider extends StatelessWidget {
   final double? marker;
   final String? markerLabel;
 
+  /// The value is settled: the finger lifted, or the screen reader stepped
+  /// it. [onChanged] runs on every move; this runs once per move gesture.
+  final VoidCallback? onChangeEnd;
+
+  void _step(double to) {
+    onChanged(to);
+    onChangeEnd?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -32,8 +42,8 @@ class HardSlider extends StatelessWidget {
       value: '${(value * 100).round()}%',
       increasedValue: '${((value + 0.05).clamp(0, 1) * 100).round()}%',
       decreasedValue: '${((value - 0.05).clamp(0, 1) * 100).round()}%',
-      onIncrease: () => onChanged((value + 0.05).clamp(0, 1)),
-      onDecrease: () => onChanged((value - 0.05).clamp(0, 1)),
+      onIncrease: () => _step((value + 0.05).clamp(0.0, 1.0)),
+      onDecrease: () => _step((value - 0.05).clamp(0.0, 1.0)),
       child: LayoutBuilder(
         builder: (context, box) {
           final w = box.maxWidth;
@@ -41,7 +51,12 @@ class HardSlider extends StatelessWidget {
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTapDown: (d) => at(d.localPosition.dx),
+            onTapUp: onChangeEnd == null ? null : (_) => onChangeEnd!(),
             onHorizontalDragUpdate: (d) => at(d.localPosition.dx),
+            onHorizontalDragEnd: onChangeEnd == null ? null : (_) => onChangeEnd!(),
+            // A drag that never started already ended as a tap; a press the
+            // page's scroll took moved the value too.
+            onTapCancel: onChangeEnd,
             child: SizedBox(
               height: markerLabel == null ? 28 : 44,
               child: Stack(

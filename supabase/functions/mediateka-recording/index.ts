@@ -8,6 +8,7 @@
 //
 // HTTP Range is forwarded so audio players can seek.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
 
     const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } }
     );
 
@@ -45,7 +46,7 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      serviceKey()
     );
 
     const { data: roles } = await supabaseAdmin

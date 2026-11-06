@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -32,13 +32,22 @@ class PlatformTokenInfo {
 }
 
 /// Listens for auth-state changes and registers the device's push token
-/// each time the user signs in. Idempotent — server upserts on
+/// each time a student signs in. Idempotent — server upserts on
 /// (platform, token) so re-runs on the same device just bump
 /// last_seen_at.
+///
+/// Only a student's own session counts ([isClientSession]). A guest's
+/// university-test session (`guest-test-session`) is a session too, and it
+/// used to start this flow: the system's notification prompt opened as the
+/// guest began a Study Plan or interview test, and a failing FCM call
+/// surfaced as an uncaught FirebaseException. Guests are asked by
+/// GuestPush, after their report.
 class PushTokenBootstrap {
-  PushTokenBootstrap(this._registrar);
+  PushTokenBootstrap(this._registrar, {Session? Function()? currentSession})
+    : _currentSession = currentSession ?? _supabaseSession;
 
   final PushTokenRegistrar _registrar;
+  final Session? Function() _currentSession;
   PushTokenSource _source = _defaultNoOpSource;
   StreamSubscription<AuthState>? _sub;
 
@@ -47,7 +56,8 @@ class PushTokenBootstrap {
   /// start() or after — the next signedIn event will pick it up.
   void setTokenSource(PushTokenSource source) {
     _source = source;
-    if (Supabase.instance.client.auth.currentUser != null) {
+    if (isClientSession(_currentSession())) {
+      // ignore: discarded_futures
       _maybeRegister();
     }
   }
@@ -56,14 +66,23 @@ class PushTokenBootstrap {
   /// subscription so callers can cancel on app dispose.
   StreamSubscription<AuthState> start(Stream<AuthState> authChanges) {
     _sub?.cancel();
-    _sub = authChanges.listen((state) async {
-      if (state.event == AuthChangeEvent.signedIn ||
-          state.event == AuthChangeEvent.tokenRefreshed) {
-        await _maybeRegister();
-      }
-    });
-    // Also fire once on startup if a session already exists.
-    if (Supabase.instance.client.auth.currentUser != null) {
+    _sub = authChanges.listen(
+      (state) async {
+        if (state.event == AuthChangeEvent.signedIn ||
+            state.event == AuthChangeEvent.tokenRefreshed) {
+          await _maybeRegister();
+        }
+      },
+      // A token refresh that fails offline can arrive here as an error
+      // (AuthRetryableFetchException). The SDK retries by itself and the
+      // router reads the auth state through its own provider; without a
+      // handler here a stream error is an uncaught app error.
+      onError: (Object error, StackTrace stack) {
+        debugPrint('PushTokenBootstrap: auth stream error: $error');
+      },
+    );
+    // Also fire once on startup if a student is already signed in.
+    if (isClientSession(_currentSession())) {
       // ignore: discarded_futures
       _maybeRegister();
     }
@@ -72,9 +91,10 @@ class PushTokenBootstrap {
 
   Future<void> _maybeRegister() async {
     if (!kUniDbEnabled) return;
-    final info = await _source();
-    if (info == null) return; // no SDK configured yet — silent no-op
+    if (!isClientSession(_currentSession())) return;
     try {
+      final info = await _source();
+      if (info == null) return; // no SDK configured yet — silent no-op
       await _registrar.register(
         token: info.token,
         platformOverride: info.platform,
@@ -99,6 +119,14 @@ class PushTokenBootstrap {
 }
 
 Future<PlatformTokenInfo?> _defaultNoOpSource() async => null;
+
+Session? _supabaseSession() {
+  try {
+    return Supabase.instance.client.auth.currentSession;
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Convenience: a default platform-detection helper that callers can
 /// build on top of. Doesn't supply a token (no SDK) — only the platform

@@ -3,6 +3,7 @@
 // service key. Supports a single document or draining a batch (for backfill).
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { internalFunctionHeaders, publishableKey, serviceKey as getServiceKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,9 +17,9 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Unauthorized" }, 401);
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceKey = getServiceKey();
 
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
+    const userClient = createClient(supabaseUrl, publishableKey(), { global: { headers: { Authorization: authHeader } } });
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
     if (authErr || !user) return json({ error: "Unauthorized" }, 401);
     const admin = createClient(supabaseUrl, serviceKey);
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const invokeOne = async (documentId: string, force?: boolean) => {
       const res = await fetch(`${supabaseUrl}/functions/v1/process-document`, {
-        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
+        method: "POST", headers: internalFunctionHeaders(),
         body: JSON.stringify({ document_id: documentId, force: !!force }),
       });
       return { ok: res.ok, out: await res.json().catch(() => ({})) };

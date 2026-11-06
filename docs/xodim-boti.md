@@ -32,11 +32,12 @@ Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir mart
 | 18:15 | ownerlarga (yoki tanlanganlarga) xulosa | `staff-bot-report-summary` |
 | har soat | 24 soatlik takliflar → expired | `staff-bot-proposals-expire` |
 | 02:30 | 90 kundan eski guruh xabarlari o'chiriladi | `staff-bot-group-retention` |
+| har 5 daqiqa (har kuni) | AI navbati (`bot_jobs`) qayta bajariladi + AI holati ogohlantirishi (`?action=jobs`) | `staff-bot-jobs` |
+| 02:40 | 90 kundan eski `ai_calls` va yakunlangan `bot_jobs` o'chiriladi | `staff-bot-ai-retention` |
 | darhol + har 5 daqiqa, 08:00–21:55 (har kuni) | bildirishnomalar navbati (`bot_notifications`) → DM; tunda yig'iladi, 08:00 da ketadi | `staff-bot-notify` |
 | har 15 daqiqa, 08:00–21:45 (ish kunlari — `workdays`; yakshanbagisi dushanba 08:00 da) | muddat nazorati: 1 soat qoldi → mas'ul; o'tdi → mas'ul + beruvchi; 2 kundan oshdi → ownerlarga yig'ma | `staff-bot-deadlines` |
 
-Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida).
-`staff-bot-notify` va `staff-bot-deadlines` sozlamadan o'zgarmaydi (migratsiya `20261105153000`), `bot_apply_schedule()` ularga tegmaydi.
+Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida). `staff-bot-jobs`, `staff-bot-ai-retention`, `staff-bot-notify` va `staff-bot-deadlines` migratsiyalarda qo'yilgan (`20261106060000`, `20261106061000`) — `bot_apply_schedule()` ularga tegmaydi.
 
 ## Bildirishnomalar va muddat nazorati
 `task_events` → trigger `trg_task_events_notify` → `bot_notifications` (outbox) → shu zahoti `net.http_post(?action=notify)`; zaxira — cron.
@@ -57,14 +58,25 @@ Eski sana bilan (muddati o'tib bo'lgach) yaratilgan vazifaga «muddat o'tdi» yu
 Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «yuborilgan» deb belgilangan (eski Orbit vazifalari bo'yicha xabar ketmaydi).
 
 ## Arxitektura
-- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (Gemini → Claude zaxira), `notify.ts` (bildirishnomalar navbati va muddat nazorati, testlar `notify_test.ts`).
+- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (provayderlar, testlar `ai_test.ts`), `aiops.ts` (AI jurnali, navbat, ogohlantirish; testlar `aiops_test.ts`), `notify.ts` (bildirishnomalar navbati va muddat nazorati, testlar `notify_test.ts`).
 - Edge: `tv-board` — ofis TV (hanguk.uz/tv) ma'lumoti, `?k=` kalit (`bot_settings.tv_key`, faqat owner ko'radi).
-- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report|notify|deadlines`) — Supabase secret key (`apikey`).
+- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report|jobs|notify|deadlines`) — Supabase secret key (`apikey`).
 - Secrets: `STAFF_BOT_TOKEN`, `STAFF_BOT_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`; ixtiyoriy `STAFF_BOT_GEMINI_MODEL` (standart gemini-2.5-flash), `STAFF_BOT_CLAUDE_MODEL` (standart claude-haiku-5-5).
-- AI: hisobotni 3 qismga ajratish va guruh tahlili — avval Gemini, ishlamasa Claude (`tool_use` bilan aniq JSON). Ovozni matnga faqat Gemini aylantiradi.
+- AI: hisobotni 3 qismga ajratish va guruh tahlili — «AI qatlami va navbat» bo'limiga qarang. Ovozni matnga faqat Gemini aylantiradi.
 - «Savol»: bot xodim nomidan qisqa sessiya ochadi (`auth.admin.generateLink` → `verifyOtp`, email yuborilmaydi), `hanguk-ai-chat`ga shu JWT bilan so'raydi, keyin `auth.admin.signOut`.
 
-## Baza (migratsiyalar 2026-10-31 … 2026-11-05)
+## AI qatlami va navbat (2026-11-05, reja B0-2, B0-3, B0-5)
+- **Tartib:** `bot_settings.ai_provider_order` (standart `claude,gemini` — D1; UI'da yo'q, bazada o'zgartiriladi, 60 s kesh). Kaliti yo'q provayder o'tkazib yuboriladi.
+- **Qayta urinish:** har provayderda 429/503/529 bo'lsa ~1,5 s kutib bitta qayta urinish, keyin keyingi provayder. So'rov chegarasi 25 s. Claude'ga `temperature` yuborilmaydi (#574).
+- **Tekshiruv:** javob sxemaga (majburiy maydon, tur, enum) mos kelmasa — xato, keyingi provayder.
+- **Jurnal `ai_calls`:** har urinish — maqsad (`group_analysis`, `report_split`), provayder, model, ok, HTTP status, qisqa xato, ms, kirish/chiqish tokenlari, narx (Claude — rasmiy narx: Haiku 5.5 $0,10 / $0,50, Sonnet 5.5 $2 / $10 1 mln token uchun; Gemini — null). 90 kun.
+- **Navbat `bot_jobs`:** guruh tahlili yoki hisobotni ajratish provayder xatosi bilan natija bermasa (AI «hech narsa yo'q» degani emas) — ish navbatga tushadi (`ga:<chat>:<xabar>`, `rs:<hisobot>`). `staff-bot-jobs` muddati kelganini qayta bajaradi: muvaffaqiyat → `done` (hisobotda `daily_reports` done/blockers/plan, `ai_parsed=true` — `bot_report_apply_split`, matn o'zgarmagan bo'lsa); har urinish `attempts+1`; xato → 5 daqiqadan keyin qayta; 3-urinish ham xato bo'lsa `failed` (jarayon uzilsa ham ish yo'qolmaydi — 10 daqiqalik ijara tugagach qayta olinadi). Guruh tahlili qayta bajarilganda rejim (off/shadow/on) va dublikat himoya o'sha; muddat xabar yozilgan vaqtga nisbatan.
+- **Ogohlantirish:** `?action=jobs` oxirida — oxirgi 60 daqiqada ≥5 chaqiruv va xato ≥20% yoki yangi `failed` ish bo'lsa xulosa oluvchilarga (`bot_owner_chats`) DM «⚠️ AI: nosozlik»; soatiga ko'pi bilan 1 ta (`bot_alerts`), 22:00–08:00 da yuborilmaydi.
+- **18:15 xulosa** oxirida: «🤖 AI (24 soat): N chaqiruv, X xato, $Y» (`bot_ai_stats`).
+- **CRM:** Sozlamalar → Bot → «AI holati» (`BotAiHealthCard`, RPC `bot_ai_health`, faqat owner): maqsad/provayder kesimida chaqiruv, xato, o'rtacha ms, token, narx; navbatdagi va bajarilmagan ishlar; oxirgi xato.
+- Migratsiya qo'llanmagan bo'lsa ham bot ishlaydi: jurnal/navbat xatolari faqat loglanadi.
+
+## Baza (migratsiyalar 2026-10-31 … 2026-11-06)
 | Jadval | Vazifasi | O'qiydi |
 |---|---|---|
 | `staff_telegram_links`, `staff_link_codes` | xodim ↔ Telegram | o'zi, owner, admin |
@@ -75,10 +87,12 @@ Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «yu
 | `staff_group_messages` | guruh xabarlari (90 kun) | owner |
 | `bot_group_cards` | guruh kartasi → vazifa | faqat service |
 | `bot_proposals` | AI takliflari (shadow/on, holati) | owner |
+| `ai_calls` | AI urinishlari jurnali (90 kun) | owner |
+| `bot_jobs`, `bot_alerts` | AI qayta urinish navbati, ogohlantirish vaqti | faqat service |
 | `bot_notifications` | bildirishnomalar navbati: pending → sent / skipped / failed | faqat service |
 | `task_reminders` | muddat eslatmalari (bir marta; `baseline` — migratsiyada belgilangan) | faqat service |
 
-Bot RPC'lari (`bot_*`) faqat `service_role` uchun; CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
+Bot RPC'lari (`bot_*`) faqat `service_role` uchun; CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `bot_ai_health` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
 
 ## Guruh AI ishonchliligi
 1. Aniq buyruqlar (`#vazifa`, kartaga ✅) — deterministik.

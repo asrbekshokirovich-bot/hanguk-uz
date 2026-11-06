@@ -18,7 +18,7 @@ dependencies = [
   "psycopg[binary]>=3.2",
 
   # Supabase / object storage
-  "supabase>=2.7",
+  "supabase>=2.30",               # 2.30+: accepts sb_secret_ keys (no JWT-shape check)
   "boto3>=1.35",                   # R2 via S3-compatible API
 
   # HTML / scraping
@@ -120,5 +120,6 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 filterwarnings = ["error"]

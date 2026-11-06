@@ -511,6 +511,12 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     }
   }
 
+  /// Whether the student said anything the feedback can score.
+  @visibleForTesting
+  static bool hasStudentAnswer(List<InterviewMessage> messages) => messages.any(
+    (m) => m.role == 'student' && m.content.trim().isNotEmpty && !m.content.contains('[Interview started'),
+  );
+
   Future<Map<String, dynamic>?> _endSessionInner(
     String sessionId,
     String language,
@@ -522,10 +528,12 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
     // otherwise leave the student stuck on the "Connecting…" screen with a
     // dead End button. This makes the End control work at the very start of a
     // session, not only mid-conversation.
-    final hasTranscript = state.messages.any(
-      (m) => !m.content.contains('[Interview started'),
-    );
-    if (!hasTranscript) {
+    //
+    // Only the student's own words count: interview-feedback refuses (400,
+    // "Not enough conversation data") a session where only the interviewer
+    // spoke — 4 phones in ten days were sent there and shown the
+    // "couldn't analyse" error for an interview they never answered.
+    if (!hasStudentAnswer(state.messages)) {
       // Return to the setup screen instantly so the End button feels
       // responsive even on a slow network; mark the row abandoned in the
       // background (inline, so its write can't fight the 'idle' reset).

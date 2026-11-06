@@ -485,8 +485,30 @@ export interface SummaryRow {
 
 const short = (s: string, n = 300) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
 
-/** 18:15 ownerlarga xulosa. */
-export function renderSummary(rows: SummaryRow[], dateStr: string): string {
+/** 18:15 xulosadagi AI qatori uchun (bot_ai_stats, oxirgi 24 soat; B0-5). */
+export interface AiBrief {
+  /** ai_calls qatorlari (har urinish). */
+  calls: number;
+  errors: number;
+  /** Claude narxi, USD (Gemini — bepul tarif, narxi null). */
+  cost_usd: number | null;
+}
+
+/** «$0», «$0,00035», «$0,153», «$1,27» (o'zbekcha vergul). */
+export function fmtUsd(v: number | null | undefined): string {
+  const x = typeof v === "number" && Number.isFinite(v) && v > 0 ? v : 0;
+  if (x === 0) return "$0";
+  const s = x >= 1 ? x.toFixed(2) : x >= 0.01 ? x.toFixed(3) : String(Number(x.toPrecision(2)));
+  return "$" + s.replace(".", ",");
+}
+
+/** «🤖 AI (24 soat): N chaqiruv, X xato, $Y». */
+export function renderAiLine(a: AiBrief): string {
+  return `🤖 AI (24 soat): ${a.calls} chaqiruv, ${a.errors} xato, ${fmtUsd(a.cost_usd)}`;
+}
+
+/** 18:15 ownerlarga xulosa. `ai` berilsa oxiriga AI qatori qo'shiladi. */
+export function renderSummary(rows: SummaryRow[], dateStr: string, ai: AiBrief | null = null): string {
   const sorted = [...rows].sort((a, b) =>
     Number(b.has_report) - Number(a.has_report) || a.full_name.localeCompare(b.full_name)
   );
@@ -511,6 +533,7 @@ export function renderSummary(rows: SummaryRow[], dateStr: string): string {
       out.push(`   ${escapeHtml(short(r.raw_text))}`);
     }
   }
+  if (ai) out.push("", renderAiLine(ai));
   return out.join("\n");
 }
 

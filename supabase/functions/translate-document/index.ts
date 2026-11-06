@@ -12,6 +12,7 @@ import {
   TranslationError,
   uploadTranslationDocx,
 } from "../_shared/certified-translation.ts";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,14 +27,14 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseServiceKey = serviceKey();
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Staff-only gate
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Unauthorized" }, 401);
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    const userClient = createClient(supabaseUrl, publishableKey(), {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: { user }, error: authErr } = await userClient.auth.getUser();

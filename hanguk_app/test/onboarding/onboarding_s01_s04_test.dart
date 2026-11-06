@@ -39,7 +39,7 @@ class _Entry extends EntryNotifier {
 
 class _Repo implements QuizRepository {
   @override
-  Future<EligibilityRules> fetchRules() async => const EligibilityRules();
+  Future<EligibilityRules> fetchRules({void Function()? onFresh}) async => const EligibilityRules();
   @override
   Future<QuizSubmitResult> submit({
     required String phoneE164,
