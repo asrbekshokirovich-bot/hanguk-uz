@@ -1808,5 +1808,8 @@
   "nextStepBadge": "СЛЕДУЮЩИЙ ШАГ",
   "nextStepUploadTitle": "Нужно загрузить документы",
   "nextStepUploadBody": "Когда они будут готовы, консультант подаст онлайн-заявку.",
-  "nextStepUploadButton": "Загрузить документы"
+  "nextStepUploadButton": "Загрузить документы",
+  "prepGuestAiLeft": "Сегодня осталось {left} из {limit} вопросов",
+  "prepGuestInterviewFree": "1 в неделю · на этой неделе свободно",
+  "prepGuestInterviewUsed": "1 в неделю · на этой неделе использовано"
 }

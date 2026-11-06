@@ -6,6 +6,7 @@
 //   no token / the publishable key / "Bearer "   → guest
 //   valid JWT, staff role (not investor)          → staff
 //   valid JWT, investor only                      → refused
+//   valid JWT, guest test session (app_metadata)  → guest
 //   valid JWT, no role                            → student
 //   invalid / expired JWT                         → 401 (the client refreshes)
 //
@@ -55,6 +56,16 @@ export async function resolveCaller(req: Request, body: any, deps: IdentityDeps)
   const { data, error } = await client.auth.getUser();
   const user = data?.user;
   if (error || !user) throw new CallerError(401, "Session expired — please sign in again");
+
+  // A guest's test session (the interview practice, ushlab qolish P18) is a
+  // signed-in user but still a guest: the guest's 10 questions a day, counted
+  // by the phone (D4 shows what is left).
+  if (user.app_metadata?.guest === true) {
+    return {
+      caller: { audience: "guest", userId: null, name: "", roles: [], guestKey: await guestKeyFor(req, body) },
+      client: deps.service,
+    };
+  }
 
   const [{ data: roleRows }, { data: prof }] = await Promise.all([
     deps.service.from("user_roles").select("role").eq("user_id", user.id),
