@@ -43,6 +43,9 @@ AppDocument doc(String type, String status) => AppDocument(
 
 final journeyNow = DateTime(2026, 10, 19, 10);
 
+/// Every required document uploaded — the «Keyingi qadam» card stays away.
+final allRequired = [for (final t in DocumentConstants.requiredDocuments) doc(t.id, 'approved')];
+
 /// The design's example on 19 October 2026: Keimyung at its interview, Sun
 /// Moon waiting for the Study Plan, Dongseo under review.
 final designJourney = ApplicationJourney.fromJson({
@@ -134,7 +137,7 @@ void main() {
   }
 
   testWidgets('the Ariza list (design 7b): ring, summary and one card per university', (t) async {
-    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney);
+    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney, docs: allRequired);
     expect(find.text('Ariza jarayoni'), findsOneWidget);
     expect(find.text('48%'), findsOneWidget);
     expect(find.text('3 universitet · 4 / 8 bosqich'), findsOneWidget);
@@ -158,8 +161,13 @@ void main() {
     expect(find.text('Universitet xonasi'), findsNothing);
   });
 
-  testWidgets("a card opens the university's page (design 8a) and back returns", (t) async {
+  testWidgets('«Keyingi qadam» (D8) shows while required documents are missing', (t) async {
     await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney);
+    expect(find.text('KEYINGI QADAM'), findsOneWidget);
+  });
+
+  testWidgets("a card opens the university's page (design 8a) and back returns", (t) async {
+    await pump(t, Scaffold(body: JourneyScreen(onBrowse: () {}, now: journeyNow)), journey: designJourney, docs: allRequired);
     await t.tap(find.text('Sun Moon University'));
     await t.pump();
     expect(find.text('ARIZA · 2 / 3'), findsOneWidget);
