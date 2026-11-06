@@ -35,23 +35,18 @@ import { runDeadlines, runNotify } from "./notify.ts";
 import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
 import { type CardDeps, dmCardReply, groupCardReply } from "./card_actions.ts";
 import { CARD_HINT, replyKeyboard } from "./cards.ts";
+import { runGroupAnalysis } from "./analysis.ts";
+import { type IntakeDeps, onGroupEdit, onGroupReaction } from "./intake.ts";
 import {
   escapeHtml,
   type MorningBrief,
   renderBrief,
   type GroupDigest,
   renderGroupDigest,
-  ANALYSIS_SCHEMA,
   ASK_PROMPT,
   mdToPlain,
   parseAiStream,
-  ANALYSIS_SYSTEM,
-  type AiAnalysis,
-  buildAnalysisPrompt,
-  type CtxStaff,
   GROUP_HELP,
-  interpretAnalysis,
-  renderProposal,
   shouldAnalyze,
   isDoneReply,
   parseGroupCommand,
@@ -132,7 +127,8 @@ async function setup() {
   }
   const hook = await callTelegram(BOT_TOKEN, "setWebhook", {
     url: WEBHOOK_URL,
-    allowed_updates: ["message", "callback_query", "my_chat_member"],
+    // edited_message — guruhdagi tahrir, message_reaction — reaksiyalar (B2-1; bot guruhda admin bo'lishi kerak)
+    allowed_updates: ["message", "edited_message", "callback_query", "my_chat_member", "message_reaction"],
     secret_token: await telegramSecret(),
     drop_pending_updates: false,
   });
@@ -701,71 +697,12 @@ async function settingValue(key: string): Promise<string> {
   return String(data?.value ?? "");
 }
 
-/**
- * Guruh xabarini AI bilan tahlil (faqat taklif). Provayderlar xato bersa — xato matni qaytadi va (jonli
- * chaqiriqda) ish bot_jobs navbatiga tushadi; navbatdan (jobId bilan) qayta bajarilganda mantiq o'sha.
- */
-async function analyzeGroupMessage(msg: Any, staff: Staff, text: string, jobId: string | null = null): Promise<string | undefined> {
-  const mode = (await settingValue("group_ai_mode")) || "shadow";
-  if (mode === "off") return;
-  const { data: ctxData, error: ctxErr } = await db.rpc("bot_group_context");
-  if (ctxErr) { console.error("bot_group_context:", ctxErr.message); return `bot_group_context: ${ctxErr.message}`; }
-  const ctx = (ctxData ?? []) as CtxStaff[];
-  const names = new Map(ctx.map((c) => [c.user_id, c.name]));
-
-  const { data: hist } = await db.from("staff_group_messages").select("user_id, text")
-    .eq("chat_id", msg.chat.id).lt("message_id", msg.message_id).not("text", "is", null)
-    .order("message_id", { ascending: false }).limit(15);
-  const history = ((hist ?? []) as { user_id: string | null; text: string }[]).reverse()
-    .map((h) => ({ name: (h.user_id && names.get(h.user_id)) || "Noma'lum", text: h.text.slice(0, 500) }));
-
-  const { data: ai, provider, error: aiError } = await aiOps.structured<AiAnalysis>("group_analysis", {
-    system: ANALYSIS_SYSTEM,
-    prompt: buildAnalysisPrompt(ctx, history, { name: staff.full_name, text: text.slice(0, 2000) }),
-    schema: ANALYSIS_SCHEMA,
-    temperature: 0,
-  }, jobId);
-  if (!ai) {
-    // Provayderlar xato berdi (AI «hech narsa yo'q» degani emas) — cron 5 daqiqadan keyin qayta urinadi.
-    if (!jobId) {
-      await aiOps.enqueue("group_analysis", `ga:${msg.chat.id}:${msg.message_id}`, {
-        chat_id: msg.chat.id, message_id: msg.message_id, date: msg.date ?? null,
-        user_id: staff.user_id, author_name: staff.full_name, text: text.slice(0, 2000),
-      }, aiError);
-    }
-    return aiError ?? "AI xato";
-  }
-  if (provider) console.log(`staff-bot: group analysis via ${provider}`);
-
-  // Muddat («ertaga 15:00») xabar yozilgan vaqtga nisbatan — navbatdan kechroq bajarilsa ham.
-  const p = interpretAnalysis(ai, ctx, msg.date ? msg.date * 1000 : Date.now());
-  if (!p) return;
-  if (p.kind === "close") {
-    const { count } = await db.from("bot_proposals").select("id", { count: "exact", head: true })
-      .eq("task_id", p.task_id).eq("kind", "close").eq("status", "pending");
-    if (count) return;
-  }
-
-  const { data: row, error } = await db.from("bot_proposals").insert({
-    chat_id: msg.chat.id, source_message_id: msg.message_id, kind: p.kind,
-    author_user_id: staff.user_id, assignee_user_id: p.assignee_user_id, task_id: p.task_id,
-    title: p.title, due_date: p.due, priority: p.priority, confidence: p.confidence, reason: p.reason,
-    mode, status: mode === "on" ? "pending" : "shadow",
-  }).select("id").single();
-  if (error || !row) { if (error?.code !== "23505") console.error("bot_proposals:", error?.message); return; }
-  console.log(`staff-bot: proposal ${p.kind} (${mode}) conf=${p.confidence} for ${p.assignee_name}`);
-  if (mode !== "on") return;
-
-  const sent = await reply(msg.chat.id, msg.message_id, renderProposal(p, staff.full_name), {
-    reply_markup: { inline_keyboard: [[
-      { text: p.kind === "close" ? "✅ Ha, bajarildi" : "✅ Yaratish", callback_data: `pr:y:${row.id}` },
-      { text: "❌ Yo'q", callback_data: `pr:n:${row.id}` },
-    ]] },
-  });
-  // deno-lint-ignore no-explicit-any
-  const cardId = (sent as any)?.result?.message_id;
-  if (cardId) await db.from("bot_proposals").update({ card_message_id: cardId }).eq("id", row.id);
+/** Guruh xabarini AI bilan tahlil — analysis.ts (B2-2). Navbatdan qayta bajarilganda jobId bilan. */
+function analyzeGroupMessage(msg: Any, staff: Staff, text: string, jobId: string | null = null): Promise<string | undefined> {
+  return runGroupAnalysis({ db, ai: aiOps, mode: () => settingValue("group_ai_mode"), reply }, msg, staff, text, jobId);
 }
+
+const intakeDeps: IntakeDeps = { db, groupId: configuredGroupId, resolveStaff };
 
 /** Navbatdan (`group_analysis`): payload'dan xabar va muallif tiklanadi. */
 function retryGroupAnalysis(job: JobRow): Promise<string | undefined> {
@@ -1059,6 +996,16 @@ Deno.serve(async (req) => {
 
     if (update.callback_query) {
       await onCallback(update.callback_query);
+      return json({ ok: true });
+    }
+
+    // Guruhdagi tahrir va reaksiya — faqat saqlanadi (intake.ts, B2-1)
+    if (update.edited_message) {
+      await onGroupEdit(intakeDeps, update.edited_message);
+      return json({ ok: true });
+    }
+    if (update.message_reaction) {
+      await onGroupReaction(intakeDeps, update.message_reaction);
       return json({ ok: true });
     }
 
