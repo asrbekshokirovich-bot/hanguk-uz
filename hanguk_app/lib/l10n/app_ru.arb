@@ -1808,7 +1808,5 @@
   "nextStepBadge": "СЛЕДУЮЩИЙ ШАГ",
   "nextStepUploadTitle": "Нужно загрузить документы",
   "nextStepUploadBody": "Когда они будут готовы, консультант подаст онлайн-заявку.",
-  "nextStepUploadButton": "Загрузить документы",
-  "continueTitleCount": "Ваша оценка сохранена: университетов — {count}",
-  "continueNearestLine": "Ближайший срок: {university} — онлайн-заявка до {date}"
+  "nextStepUploadButton": "Загрузить документы"
 }

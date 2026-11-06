@@ -5633,14 +5633,4 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Tải giấy tờ lên';
-
-  @override
-  String continueTitleCount(String count) {
-    return 'Đánh giá của bạn đã được lưu: $count trường đại học';
-  }
-
-  @override
-  String continueNearestLine(String university, String date) {
-    return 'Hạn gần nhất: $university — nộp hồ sơ trực tuyến đến $date';
-  }
 }

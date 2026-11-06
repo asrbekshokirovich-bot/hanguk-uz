@@ -5661,14 +5661,4 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Hujjatlarni yuklash';
-
-  @override
-  String continueTitleCount(String count) {
-    return 'Baholashingiz saqlangan: $count ta universitet';
-  }
-
-  @override
-  String continueNearestLine(String university, String date) {
-    return 'Eng yaqin muddat: $university — online ariza ${date}gacha';
-  }
 }

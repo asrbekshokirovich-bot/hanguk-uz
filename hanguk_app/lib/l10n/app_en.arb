@@ -6988,26 +6988,5 @@
   "nextStepUploadButton": "Upload documents",
   "@nextStepUploadButton": {
     "description": "Student 'Next step' card: open the documents tab"
-  },
-  "continueTitleCount": "Your assessment is saved: {count} universities",
-  "@continueTitleCount": {
-    "description": "Continue card (D7) title: the assessment is saved, with how many universities it weighs.",
-    "placeholders": {
-      "count": {
-        "type": "String"
-      }
-    }
-  },
-  "continueNearestLine": "Nearest deadline: {university} — online application until {date}",
-  "@continueNearestLine": {
-    "description": "Continue card (D7): the nearest online application deadline among the assessment's universities.",
-    "placeholders": {
-      "university": {
-        "type": "String"
-      },
-      "date": {
-        "type": "String"
-      }
-    }
   }
 }

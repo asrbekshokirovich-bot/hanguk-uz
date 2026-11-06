@@ -1808,7 +1808,5 @@
   "nextStepBadge": "KEYINGI QADAM",
   "nextStepUploadTitle": "Yuklanadigan hujjatlar",
   "nextStepUploadBody": "Ular tayyor bo'lsa, konsultant online arizani topshiradi.",
-  "nextStepUploadButton": "Hujjatlarni yuklash",
-  "continueTitleCount": "Baholashingiz saqlangan: {count} ta universitet",
-  "continueNearestLine": "Eng yaqin muddat: {university} — online ariza {date}gacha"
+  "nextStepUploadButton": "Hujjatlarni yuklash"
 }
