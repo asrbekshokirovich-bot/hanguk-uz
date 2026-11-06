@@ -2741,5 +2741,17 @@
     "nameExists": "Студент с таким именем уже существует.",
     "missingFields": "Не заполнены обязательные поля.",
     "generic": "Студент не добавлен. {{detail}}"
+  },
+  "clients": {
+    "invite": "Пригласить в приложение",
+    "inviteAll": "Пригласить всех",
+    "invitePlan": "Telegram: {{telegram}} · задача: {{task}} · пропуск: {{skipped}}",
+    "inviteConfirm": "Отправить",
+    "inviteCancel": "Отмена",
+    "inviteSentTelegram": "Приглашение отправлено в Telegram",
+    "inviteSentTask": "Нет Telegram — создана задача консультанту",
+    "inviteNothing": "Уже в приложении или приглашён на этой неделе",
+    "inviteDone": "Отправлено: Telegram {{telegram}}, задач {{task}}",
+    "inviteError": "Приглашение не отправлено"
   }
 }

@@ -3115,7 +3115,17 @@
     "noOffers": "No offer is waiting for an answer",
     "noDocuments": "Everyone's documents are complete",
     "noInactive": "Everyone opened the app in the last 7 days",
-    "seasonNote": "Only {{season}} students — without cancelled contracts and those who left for Korea. Change the season in the top bar."
+    "seasonNote": "Only {{season}} students — without cancelled contracts and those who left for Korea. Change the season in the top bar.",
+    "invite": "Invite to the app",
+    "inviteAll": "Invite all",
+    "invitePlan": "Telegram: {{telegram}} · task: {{task}} · skipped: {{skipped}}",
+    "inviteConfirm": "Send",
+    "inviteCancel": "Cancel",
+    "inviteSentTelegram": "Invite sent on Telegram",
+    "inviteSentTask": "No Telegram — a task was made for the consultant",
+    "inviteNothing": "Already in the app or invited this week",
+    "inviteDone": "Sent: Telegram {{telegram}}, tasks {{task}}",
+    "inviteError": "The invite was not sent"
   },
   "guestPush": {
     "title": "Push to guests",
