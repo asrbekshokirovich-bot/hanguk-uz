@@ -5620,4 +5620,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get prepGuestSignIn => 'Đăng nhập bằng mã khách hàng';
+
+  @override
+  String get nextStepBadge => 'BƯỚC TIẾP THEO';
+
+  @override
+  String get nextStepUploadTitle => 'Giấy tờ cần tải lên';
+
+  @override
+  String get nextStepUploadBody =>
+      'Khi đủ giấy tờ, tư vấn viên sẽ nộp hồ sơ trực tuyến.';
+
+  @override
+  String get nextStepUploadButton => 'Tải giấy tờ lên';
 }

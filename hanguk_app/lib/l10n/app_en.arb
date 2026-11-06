@@ -6972,5 +6972,21 @@
   "prepGuestSignIn": "Sign in with a client code",
   "@prepGuestSignIn": {
     "description": "Prepare tab for a guest: sign-in button"
+  },
+  "nextStepBadge": "NEXT STEP",
+  "@nextStepBadge": {
+    "description": "Student 'Next step' card (retention plan P23, design D8): badge"
+  },
+  "nextStepUploadTitle": "Documents to upload",
+  "@nextStepUploadTitle": {
+    "description": "Student 'Next step' card: documents still to upload (a count follows after a colon)"
+  },
+  "nextStepUploadBody": "Once they are in, your consultant submits the online application.",
+  "@nextStepUploadBody": {
+    "description": "Student 'Next step' card: after the missing document names"
+  },
+  "nextStepUploadButton": "Upload documents",
+  "@nextStepUploadButton": {
+    "description": "Student 'Next step' card: open the documents tab"
   }
 }

@@ -1804,5 +1804,9 @@
   "prepGuestAiLimit": "하루 10개 질문",
   "prepGuestInterviewLimit": "주 1회",
   "prepGuestStudyLocked": "고객 코드로 열립니다",
-  "prepGuestSignIn": "고객 코드로 로그인"
+  "prepGuestSignIn": "고객 코드로 로그인",
+  "nextStepBadge": "다음 단계",
+  "nextStepUploadTitle": "업로드할 서류",
+  "nextStepUploadBody": "준비되면 상담사가 온라인 지원서를 제출합니다.",
+  "nextStepUploadButton": "서류 업로드"
 }

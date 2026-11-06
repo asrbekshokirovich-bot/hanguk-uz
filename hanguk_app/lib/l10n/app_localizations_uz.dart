@@ -5648,4 +5648,17 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get prepGuestSignIn => 'Mijoz kodi bilan kirish';
+
+  @override
+  String get nextStepBadge => 'KEYINGI QADAM';
+
+  @override
+  String get nextStepUploadTitle => 'Yuklanadigan hujjatlar';
+
+  @override
+  String get nextStepUploadBody =>
+      'Ular tayyor bo\'lsa, konsultant online arizani topshiradi.';
+
+  @override
+  String get nextStepUploadButton => 'Hujjatlarni yuklash';
 }
