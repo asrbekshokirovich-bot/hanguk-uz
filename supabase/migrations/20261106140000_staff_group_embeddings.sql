@@ -15,15 +15,15 @@
 -- Eslatma: VOYAGE_API_KEY bo'lmasa ustun bo'sh qoladi — hech narsa buzilmaydi,
 -- ai_team_history_search (leksik) ishlashda davom etadi.
 
-create extension if not exists vector with schema extensions;
+create extension if not exists vector;
 
 alter table public.staff_group_messages
-  add column if not exists embedding extensions.vector(1024),
+  add column if not exists embedding public.vector(1024),
   add column if not exists embedded_at timestamptz;
 
 -- ivfflat bo'sh jadvalda ma'nosiz; HNSW o'qitilmasdan ishlaydi (guideline_text_index'dagi kabi).
 create index if not exists staff_group_messages_embedding_hnsw
-  on public.staff_group_messages using hnsw (embedding extensions.vector_cosine_ops)
+  on public.staff_group_messages using hnsw (embedding public.vector_cosine_ops)
   with (m = '16', ef_construction = '64');
 
 -- ── yangi xabar → navbat ────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ create trigger staff_group_messages_embed
 
 -- ── staff-bot/embed.ts uchun RPC'lar (service_role) ─────────────────────────
 
-create or replace function public.bot_embed_set(p_message_id uuid, p_embedding extensions.vector(1024))
+create or replace function public.bot_embed_set(p_message_id uuid, p_embedding public.vector(1024))
 returns void
 language sql
 security definer
@@ -86,15 +86,15 @@ as $$
    limit greatest(1, least(coalesce(p_limit, 50), 200));
 $$;
 
-revoke all on function public.bot_embed_set(uuid, extensions.vector) from public, anon, authenticated;
+revoke all on function public.bot_embed_set(uuid, public.vector) from public, anon, authenticated;
 revoke all on function public.bot_embed_backfill_claim(integer) from public, anon, authenticated;
-grant execute on function public.bot_embed_set(uuid, extensions.vector) to service_role;
+grant execute on function public.bot_embed_set(uuid, public.vector) to service_role;
 grant execute on function public.bot_embed_backfill_claim(integer) to service_role;
 
 -- ── semantik qidiruv (owner, ai_team_history_search bilan bir xil ruxsat/filtr) ─
 
 create or replace function public.ai_team_history_search_semantic(
-  p_embedding extensions.vector(1024),
+  p_embedding public.vector(1024),
   p_from date default null,
   p_to date default null,
   p_staff text default null,
@@ -166,5 +166,5 @@ begin
 end;
 $$;
 
-revoke all on function public.ai_team_history_search_semantic(extensions.vector, date, date, text, int) from public, anon;
-grant execute on function public.ai_team_history_search_semantic(extensions.vector, date, date, text, int) to authenticated, service_role;
+revoke all on function public.ai_team_history_search_semantic(public.vector, date, date, text, int) from public, anon;
+grant execute on function public.ai_team_history_search_semantic(public.vector, date, date, text, int) to authenticated, service_role;
