@@ -17,6 +17,7 @@ import '../../university_choices/presentation/university_choices_entry.dart';
 import 'journey_detail.dart';
 import 'widgets/client_parts.dart';
 import 'widgets/journey_parts.dart';
+import 'widgets/next_step_card.dart';
 
 /// Design 7b, "Ariza jarayoni": every university the student applies to as a
 /// card — where it stands on the five-part bar, what is wanted from the
@@ -228,6 +229,7 @@ class _List extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.only(bottom: 4),
             children: [
+              NextStepCard(daysLeft: nearest?.days),
               const UniversityChoicesEntry(),
               for (final p in all) _Card(progress: p, now: now, onOpen: tracked('journey.list_open', () => onOpen(p))),
             ],

@@ -5647,4 +5647,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prepGuestSignIn => 'Sign in with a client code';
+
+  @override
+  String get nextStepBadge => 'NEXT STEP';
+
+  @override
+  String get nextStepUploadTitle => 'Documents to upload';
+
+  @override
+  String get nextStepUploadBody =>
+      'Once they are in, your consultant submits the online application.';
+
+  @override
+  String get nextStepUploadButton => 'Upload documents';
 }

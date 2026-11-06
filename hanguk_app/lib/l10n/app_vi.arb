@@ -1804,5 +1804,9 @@
   "prepGuestAiLimit": "10 câu hỏi mỗi ngày",
   "prepGuestInterviewLimit": "1 lần mỗi tuần",
   "prepGuestStudyLocked": "Mở bằng mã khách hàng",
-  "prepGuestSignIn": "Đăng nhập bằng mã khách hàng"
+  "prepGuestSignIn": "Đăng nhập bằng mã khách hàng",
+  "nextStepBadge": "BƯỚC TIẾP THEO",
+  "nextStepUploadTitle": "Giấy tờ cần tải lên",
+  "nextStepUploadBody": "Khi đủ giấy tờ, tư vấn viên sẽ nộp hồ sơ trực tuyến.",
+  "nextStepUploadButton": "Tải giấy tờ lên"
 }

@@ -5647,4 +5647,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get prepGuestSignIn => 'Войти по коду клиента';
+
+  @override
+  String get nextStepBadge => 'СЛЕДУЮЩИЙ ШАГ';
+
+  @override
+  String get nextStepUploadTitle => 'Нужно загрузить документы';
+
+  @override
+  String get nextStepUploadBody =>
+      'Когда они будут готовы, консультант подаст онлайн-заявку.';
+
+  @override
+  String get nextStepUploadButton => 'Загрузить документы';
 }

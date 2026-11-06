@@ -1804,5 +1804,9 @@
   "prepGuestAiLimit": "Kuniga 10 ta savol",
   "prepGuestInterviewLimit": "Haftasiga 1 ta",
   "prepGuestStudyLocked": "Mijoz kodi bilan ochiladi",
-  "prepGuestSignIn": "Mijoz kodi bilan kirish"
+  "prepGuestSignIn": "Mijoz kodi bilan kirish",
+  "nextStepBadge": "KEYINGI QADAM",
+  "nextStepUploadTitle": "Yuklanadigan hujjatlar",
+  "nextStepUploadBody": "Ular tayyor bo'lsa, konsultant online arizani topshiradi.",
+  "nextStepUploadButton": "Hujjatlarni yuklash"
 }

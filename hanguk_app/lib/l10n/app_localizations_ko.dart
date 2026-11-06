@@ -5445,4 +5445,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get prepGuestSignIn => '고객 코드로 로그인';
+
+  @override
+  String get nextStepBadge => '다음 단계';
+
+  @override
+  String get nextStepUploadTitle => '업로드할 서류';
+
+  @override
+  String get nextStepUploadBody => '준비되면 상담사가 온라인 지원서를 제출합니다.';
+
+  @override
+  String get nextStepUploadButton => '서류 업로드';
 }

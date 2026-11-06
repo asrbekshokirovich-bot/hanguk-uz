@@ -10135,6 +10135,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in with a client code'**
   String get prepGuestSignIn;
+
+  /// Student 'Next step' card (retention plan P23, design D8): badge
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT STEP'**
+  String get nextStepBadge;
+
+  /// Student 'Next step' card: documents still to upload (a count follows after a colon)
+  ///
+  /// In en, this message translates to:
+  /// **'Documents to upload'**
+  String get nextStepUploadTitle;
+
+  /// Student 'Next step' card: after the missing document names
+  ///
+  /// In en, this message translates to:
+  /// **'Once they are in, your consultant submits the online application.'**
+  String get nextStepUploadBody;
+
+  /// Student 'Next step' card: open the documents tab
+  ///
+  /// In en, this message translates to:
+  /// **'Upload documents'**
+  String get nextStepUploadButton;
 }
 
 class _AppLocalizationsDelegate
