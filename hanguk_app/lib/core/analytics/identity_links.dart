@@ -84,8 +84,34 @@ abstract final class IdentityLinks {
     }
   }
 
+  /// Where an install came from, read from the Play install referrer
+  /// ('utm_source=google-play&utm_medium=organic' when nothing set it):
+  /// `install_source` once per phone (plan R6.3). Values are cut to 60
+  /// characters; [linked] says the link carried a lead's code.
+  static Map<String, Object> installSource(String? referrer) {
+    Map<String, String> q = const {};
+    if (referrer != null && referrer.isNotEmpty) {
+      try {
+        q = Uri.splitQueryString(referrer);
+      } catch (_) {}
+    }
+    String? v(String k) {
+      final s = q[k]?.trim();
+      if (s == null || s.isEmpty) return null;
+      return s.length > 60 ? s.substring(0, 60) : s;
+    }
+
+    return {
+      'source': v('utm_source') ?? (referrer == null || referrer.isEmpty ? 'none' : 'other'),
+      'medium': ?v('utm_medium'),
+      'campaign': ?v('utm_campaign'),
+      'content': ?v('utm_content'),
+      'linked': codeFromReferrer(referrer) != null,
+    };
+  }
+
   /// Android, the first launch only: the code Google Play kept from the link
-  /// the app was installed through.
+  /// the app was installed through, and where the install came from.
   static Future<void> checkInstallReferrer() async {
     if (kIsWeb) return;
     try {
@@ -93,6 +119,7 @@ abstract final class IdentityLinks {
       if (await _storage.read(key: _referrerKey) != null) return;
       await _storage.write(key: _referrerKey, value: '1');
       final referrer = await _referrer.invokeMethod<String>('get');
+      AppEvents.track('install_source', props: installSource(referrer));
       final code = codeFromReferrer(referrer);
       if (code != null) await claim(code, 'referrer');
     } catch (e) {
