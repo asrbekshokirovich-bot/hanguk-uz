@@ -23,13 +23,10 @@ import '../../features/assessment/presentation/report_screen.dart';
 import '../../features/assessment/presentation/sent_screen.dart';
 import '../../features/discover/presentation/discover_routes.dart';
 import '../../features/discover/presentation/chosen_screen.dart';
-import '../../features/discover/presentation/compare_screen.dart';
 import '../../features/discover/presentation/discover_shell.dart';
-import '../../features/discover/presentation/duel_screen.dart';
 import '../../features/discover/presentation/universities_screen.dart';
 import '../../features/discover/presentation/widgets/app_nav.dart';
 import '../../features/discover/data/list_mode.dart';
-import '../../features/discover/presentation/saved_screen.dart';
 import '../../features/discover/presentation/search_screen.dart';
 import '../../features/discover/presentation/filter_screen.dart';
 import '../../features/discover/presentation/university_assess_screen.dart';
@@ -37,11 +34,6 @@ import '../../features/discover/presentation/university_screen.dart';
 import '../../features/discover/presentation/visa_screen.dart';
 import '../../features/map/data/map_repository.dart';
 import '../../features/onboarding/onboarding_routes.dart';
-import '../../features/onboarding/presentation/quiz_s02_screen.dart';
-import '../../features/onboarding/presentation/result_s03_screen.dart';
-import '../../features/onboarding/presentation/tariff_detail_s06_screen.dart';
-import '../../features/onboarding/presentation/tariffs_s05_screen.dart';
-import '../../features/onboarding/presentation/welcome_s01_screen.dart';
 import '../../features/map/domain/university.dart';
 import '../../features/map/presentation/map_deeplink_provider.dart';
 import '../../features/map/presentation/widgets/university_roadview_screen.dart';
@@ -107,21 +99,11 @@ List<RouteBase> _guestRoutes() => [
     path: kDiscoverResultsPath,
     builder: (context, state) => const NavScaffold(current: AppTab.universities, child: UniversitiesScreen()),
   ),
-  GoRoute(
-    path: kDiscoverDuelPath,
-    builder: (context, state) => const NavScaffold(current: AppTab.universities, child: DuelScreen()),
-  ),
   GoRoute(path: kDiscoverChosenPath, builder: (context, state) => const ChosenScreen()),
-  GoRoute(
-    path: kDiscoverComparePath,
-    builder: (context, state) => NavScaffold(
-      current: AppTab.universities,
-      child: CompareScreen(
-        institutionIds: state.extra is List ? (state.extra as List).whereType<String>().toList() : const [],
-      ),
-    ),
-  ),
-  GoRoute(path: kDiscoverSavedPath, builder: (context, state) => const SavedScreen()),
+  // "Bu yoki bu?", the comparison and the saved list had no way in from the
+  // app (owner, 2026-11-06: removed, plan R7.1); an old link opens the home.
+  for (final old in [kDiscoverDuelPath, kDiscoverComparePath, kDiscoverSavedPath])
+    GoRoute(path: old, redirect: (context, state) => kDiscoverPath),
   GoRoute(
     path: '/university/:id',
     builder: (context, state) => UniversityScreen(institutionId: state.pathParameters['id'] ?? ''),
@@ -157,23 +139,12 @@ List<RouteBase> _entryRoutes() => [
   ),
 ];
 
-/// "Viza imkoniyatim" (S02–S06; S01 is `/welcome`). Public, like `/guest`:
-/// a visitor answers six questions and sees the result before giving a phone.
+/// The old "Viza imkoniyatim" (S01–S06; S01 is `/welcome`) is gone (owner,
+/// 2026-11-06, plan R7.2): nothing in the app led there; a link to one of its
+/// pages opens the home.
 List<RouteBase> _onboardingRoutes() => [
-  GoRoute(path: kQuizPath, builder: (context, state) => const QuizScreen()),
-  GoRoute(
-    path: kQuizResultPath,
-    builder: (context, state) => const QuizResultScreen(),
-  ),
-  GoRoute(
-    path: kTariffsPath,
-    builder: (context, state) => const NavScaffold(current: -1, child: TariffsScreen()),
-  ),
-  GoRoute(
-    path: '$kTariffsPath/:code',
-    builder: (context, state) =>
-        NavScaffold(current: -1, child: TariffDetailScreen(code: state.pathParameters['code'] ?? 'premium')),
-  ),
+  for (final old in [kQuizPath, kQuizResultPath, kTariffsPath, '$kTariffsPath/:code'])
+    GoRoute(path: old, redirect: (context, state) => kDiscoverPath),
 ];
 
 List<RouteBase> _universityChoiceRoutes() => [
@@ -545,9 +516,12 @@ class HomeRoute extends GoRouteData with $HomeRoute {
 class WelcomeRoute extends GoRouteData with $WelcomeRoute {
   const WelcomeRoute();
 
+  // The old S01 welcome is gone (plan R7.2); a link to it opens the home.
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const OnboardingWelcomeScreen();
+  String? redirect(BuildContext context, GoRouterState state) => kDiscoverPath;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const SizedBox.shrink();
 }
 
 @TypedGoRoute<LoginRoute>(path: '/login')

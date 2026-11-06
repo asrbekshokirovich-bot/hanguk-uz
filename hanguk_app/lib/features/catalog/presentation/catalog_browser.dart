@@ -30,7 +30,7 @@ const String kGuestUniversityId = '8f7d4351-c37d-4d26-b982-bfc76885225e';
 /// Both hosts get compare mode (design 3a "Kashf etish"): the "Taqqoslash"
 /// chip turns it on, or a long press on a card, which also picks that card.
 /// While it is on, a tap picks or unpicks a card instead of opening it, and
-/// the host swaps its 한 orb for [CatalogCompareTray].
+/// the host swaps its 한 orb for the compare tray.
 class CatalogBrowser extends ConsumerWidget {
   const CatalogBrowser({super.key, this.isGuest = false});
 
