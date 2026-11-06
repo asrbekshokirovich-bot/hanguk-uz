@@ -6928,5 +6928,25 @@
   "guestDocsNote": "The list is from the university's guideline. A consultant helps with preparing and translating the documents.",
   "@guestDocsNote": {
     "description": "Guest document list: footnote"
+  },
+  "continueEyebrow": "CONTINUE",
+  "@continueEyebrow": {
+    "description": "Home 'Continue' card (retention plan P22, design D7): eyebrow"
+  },
+  "continueTitle": "Your assessment is saved",
+  "@continueTitle": {
+    "description": "Home 'Continue' card: title above the saved universities"
+  },
+  "continueNearest": "Nearest deadline",
+  "@continueNearest": {
+    "description": "Home 'Continue' card: label before the nearest online deadline"
+  },
+  "continuePath": "See the application path",
+  "@continuePath": {
+    "description": "Home 'Continue' card: open the application path tab"
+  },
+  "continueReport": "Open the report",
+  "@continueReport": {
+    "description": "Home 'Continue' card: open the report"
   }
 }

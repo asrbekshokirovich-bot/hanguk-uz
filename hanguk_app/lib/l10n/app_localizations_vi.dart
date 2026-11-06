@@ -5586,4 +5586,19 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get guestDocsNote =>
       'Danh sách lấy từ hướng dẫn của trường. Tư vấn viên sẽ giúp chuẩn bị và dịch giấy tờ.';
+
+  @override
+  String get continueEyebrow => 'TIẾP TỤC';
+
+  @override
+  String get continueTitle => 'Đánh giá của bạn đã được lưu';
+
+  @override
+  String get continueNearest => 'Hạn gần nhất';
+
+  @override
+  String get continuePath => 'Xem lộ trình nộp hồ sơ';
+
+  @override
+  String get continueReport => 'Mở báo cáo';
 }

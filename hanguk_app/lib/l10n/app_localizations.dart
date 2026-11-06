@@ -10069,6 +10069,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The list is from the university\'s guideline. A consultant helps with preparing and translating the documents.'**
   String get guestDocsNote;
+
+  /// Home 'Continue' card (retention plan P22, design D7): eyebrow
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get continueEyebrow;
+
+  /// Home 'Continue' card: title above the saved universities
+  ///
+  /// In en, this message translates to:
+  /// **'Your assessment is saved'**
+  String get continueTitle;
+
+  /// Home 'Continue' card: label before the nearest online deadline
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest deadline'**
+  String get continueNearest;
+
+  /// Home 'Continue' card: open the application path tab
+  ///
+  /// In en, this message translates to:
+  /// **'See the application path'**
+  String get continuePath;
+
+  /// Home 'Continue' card: open the report
+  ///
+  /// In en, this message translates to:
+  /// **'Open the report'**
+  String get continueReport;
 }
 
 class _AppLocalizationsDelegate

@@ -26,6 +26,7 @@ import 'filter_board_screen.dart' show boardResults;
 import 'discover_routes.dart';
 import 'widgets/app_nav.dart';
 import 'widgets/assess_parts.dart';
+import 'widgets/continue_card.dart';
 import 'widgets/fd_bottom_nav.dart';
 import 'widgets/page_tour.dart';
 
@@ -419,6 +420,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
             children: [
+              const ContinueCard(),
               section(0, keys[1], LucideIcons.graduationCap, l.vzSecEducation, education),
               const SizedBox(height: 12),
               section(1, keys[2], LucideIcons.languages, l.uaSecLanguage, language),

@@ -5613,4 +5613,19 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get guestDocsNote =>
       'Список из правил приёма университета. С подготовкой и переводом документов помогает консультант.';
+
+  @override
+  String get continueEyebrow => 'ПРОДОЛЖИТЬ';
+
+  @override
+  String get continueTitle => 'Ваша оценка сохранена';
+
+  @override
+  String get continueNearest => 'Ближайший срок';
+
+  @override
+  String get continuePath => 'Посмотреть путь заявки';
+
+  @override
+  String get continueReport => 'Открыть отчёт';
 }

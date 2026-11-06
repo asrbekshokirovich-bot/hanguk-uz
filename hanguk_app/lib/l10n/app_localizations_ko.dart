@@ -5412,4 +5412,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get guestDocsNote => '목록은 대학 모집요강 기준입니다. 서류 준비와 번역은 상담사가 도와드립니다.';
+
+  @override
+  String get continueEyebrow => '이어하기';
+
+  @override
+  String get continueTitle => '평가가 저장되어 있습니다';
+
+  @override
+  String get continueNearest => '가장 가까운 마감';
+
+  @override
+  String get continuePath => '지원 절차 보기';
+
+  @override
+  String get continueReport => '보고서 열기';
 }
