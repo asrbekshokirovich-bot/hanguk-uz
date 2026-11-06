@@ -6832,5 +6832,13 @@
   "guestPushLater": "Later",
   "@guestPushLater": {
     "description": "Guest push permission sheet: not now"
+  },
+  "guestPushHeartTitle": "Get a reminder for this university?",
+  "@guestPushHeartTitle": {
+    "description": "Guest push permission sheet after the first saved university (retention plan P11): title"
+  },
+  "guestPushHeartBody": "We'll let you know before the online application closes at the universities you saved. No phone number needed.",
+  "@guestPushHeartBody": {
+    "description": "Guest push permission sheet after the first saved university: what we would send; a guest leaves no phone number"
   }
 }

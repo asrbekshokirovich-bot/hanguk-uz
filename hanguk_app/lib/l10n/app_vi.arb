@@ -1769,5 +1769,7 @@
   "guestPushTitle": "Đừng bỏ lỡ hạn chót",
   "guestPushBody": "Chúng tôi gửi thông báo về hạn nộp hồ sơ và học bổng mới nhé? Không cần số điện thoại.",
   "guestPushYes": "Có, gửi cho tôi",
-  "guestPushLater": "Để sau"
+  "guestPushLater": "Để sau",
+  "guestPushHeartTitle": "Nhắc bạn hạn của trường này nhé?",
+  "guestPushHeartBody": "Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Không cần số điện thoại."
 }

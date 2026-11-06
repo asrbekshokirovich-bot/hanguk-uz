@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -180,6 +183,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
         context.push(kDiscoverChosenPath);
         return;
       }
+      unawaited(GuestPush.maybeAsk(context, reason: GuestPushReason.heart));
       final count = ref.read(slotsProvider).whereType<String>().length;
       if (count >= kSlotCount) {
         context.push(kDiscoverChosenPath);

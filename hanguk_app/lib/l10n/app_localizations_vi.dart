@@ -5507,4 +5507,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get guestPushLater => 'Để sau';
+
+  @override
+  String get guestPushHeartTitle => 'Nhắc bạn hạn của trường này nhé?';
+
+  @override
+  String get guestPushHeartBody =>
+      'Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Không cần số điện thoại.';
 }
