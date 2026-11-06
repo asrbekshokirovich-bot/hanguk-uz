@@ -10243,6 +10243,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'1 a week · used this week'**
   String get prepGuestInterviewUsed;
+
+  /// Home title when the continue card (D7) shows to a returning guest.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back!'**
+  String get continueWelcomeBack;
+
+  /// Next step card (D8), offers waiting: what to do.
+  ///
+  /// In en, this message translates to:
+  /// **'Look through the universities your consultant offered and answer.'**
+  String get nextStepOfferBody;
+
+  /// Next step card (D8), offers waiting: the button.
+  ///
+  /// In en, this message translates to:
+  /// **'See the offers'**
+  String get nextStepOfferButton;
+
+  /// Next step card (D8): the nearest online application deadline.
+  ///
+  /// In en, this message translates to:
+  /// **'The online application deadline is near'**
+  String get nextStepSubmissionTitle;
+
+  /// Next step card (D8): which university's online application closes first.
+  ///
+  /// In en, this message translates to:
+  /// **'{university}: the online application deadline. See the date and status on its page.'**
+  String nextStepSubmissionBody(String university);
+
+  /// Next step card (D8): the nearest interview.
+  ///
+  /// In en, this message translates to:
+  /// **'Get ready for your interview'**
+  String get nextStepInterviewTitle;
+
+  /// Next step card (D8): which university's interview comes first.
+  ///
+  /// In en, this message translates to:
+  /// **'{university}: interview. See the date and time on its page.'**
+  String nextStepInterviewBody(String university);
+
+  /// Next step card (D8), deadline step: opens the university's page.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the application'**
+  String get nextStepOpenButton;
 }
 
 class _AppLocalizationsDelegate

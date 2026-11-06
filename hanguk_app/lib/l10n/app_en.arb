@@ -7075,5 +7075,47 @@
   "prepGuestInterviewUsed": "1 a week · used this week",
   "@prepGuestInterviewUsed": {
     "description": "Prepare, guest (D4): this week's interview practice is used."
+  },
+  "continueWelcomeBack": "Welcome back!",
+  "@continueWelcomeBack": {
+    "description": "Home title when the continue card (D7) shows to a returning guest."
+  },
+  "nextStepOfferBody": "Look through the universities your consultant offered and answer.",
+  "@nextStepOfferBody": {
+    "description": "Next step card (D8), offers waiting: what to do."
+  },
+  "nextStepOfferButton": "See the offers",
+  "@nextStepOfferButton": {
+    "description": "Next step card (D8), offers waiting: the button."
+  },
+  "nextStepSubmissionTitle": "The online application deadline is near",
+  "@nextStepSubmissionTitle": {
+    "description": "Next step card (D8): the nearest online application deadline."
+  },
+  "nextStepSubmissionBody": "{university}: the online application deadline. See the date and status on its page.",
+  "@nextStepSubmissionBody": {
+    "description": "Next step card (D8): which university's online application closes first.",
+    "placeholders": {
+      "university": {
+        "type": "String"
+      }
+    }
+  },
+  "nextStepInterviewTitle": "Get ready for your interview",
+  "@nextStepInterviewTitle": {
+    "description": "Next step card (D8): the nearest interview."
+  },
+  "nextStepInterviewBody": "{university}: interview. See the date and time on its page.",
+  "@nextStepInterviewBody": {
+    "description": "Next step card (D8): which university's interview comes first.",
+    "placeholders": {
+      "university": {
+        "type": "String"
+      }
+    }
+  },
+  "nextStepOpenButton": "Open the application",
+  "@nextStepOpenButton": {
+    "description": "Next step card (D8), deadline step: opens the university's page."
   }
 }

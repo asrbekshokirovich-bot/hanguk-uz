@@ -5713,4 +5713,33 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get prepGuestInterviewUsed => 'Haftasiga 1 ta · bu hafta ishlatilgan';
+
+  @override
+  String get continueWelcomeBack => 'Xush kelibsiz qaytib!';
+
+  @override
+  String get nextStepOfferBody =>
+      'Konsultant taklif qilgan universitetlarni ko\'rib chiqing va javob bering.';
+
+  @override
+  String get nextStepOfferButton => 'Takliflarni ko\'rish';
+
+  @override
+  String get nextStepSubmissionTitle => 'Online ariza muddati yaqin';
+
+  @override
+  String nextStepSubmissionBody(String university) {
+    return '$university: online ariza muddati. Ariza sahifasida sana va holatni ko\'ring.';
+  }
+
+  @override
+  String get nextStepInterviewTitle => 'Suhbatga tayyorlaning';
+
+  @override
+  String nextStepInterviewBody(String university) {
+    return '$university: suhbat. Sana va vaqtni ariza sahifasida ko\'ring.';
+  }
+
+  @override
+  String get nextStepOpenButton => 'Arizani ochish';
 }

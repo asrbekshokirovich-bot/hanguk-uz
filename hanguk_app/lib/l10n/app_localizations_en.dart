@@ -5712,4 +5712,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prepGuestInterviewUsed => '1 a week · used this week';
+
+  @override
+  String get continueWelcomeBack => 'Welcome back!';
+
+  @override
+  String get nextStepOfferBody =>
+      'Look through the universities your consultant offered and answer.';
+
+  @override
+  String get nextStepOfferButton => 'See the offers';
+
+  @override
+  String get nextStepSubmissionTitle =>
+      'The online application deadline is near';
+
+  @override
+  String nextStepSubmissionBody(String university) {
+    return '$university: the online application deadline. See the date and status on its page.';
+  }
+
+  @override
+  String get nextStepInterviewTitle => 'Get ready for your interview';
+
+  @override
+  String nextStepInterviewBody(String university) {
+    return '$university: interview. See the date and time on its page.';
+  }
+
+  @override
+  String get nextStepOpenButton => 'Open the application';
 }

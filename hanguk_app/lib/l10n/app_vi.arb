@@ -1822,5 +1822,13 @@
   "nextStepStageResult": "Kết quả và visa",
   "prepGuestAiLeft": "Hôm nay còn {left}/{limit} câu hỏi",
   "prepGuestInterviewFree": "1 lần/tuần · tuần này còn trống",
-  "prepGuestInterviewUsed": "1 lần/tuần · tuần này đã dùng"
+  "prepGuestInterviewUsed": "1 lần/tuần · tuần này đã dùng",
+  "continueWelcomeBack": "Chào mừng bạn quay lại!",
+  "nextStepOfferBody": "Xem các trường tư vấn viên đề xuất và trả lời.",
+  "nextStepOfferButton": "Xem đề xuất",
+  "nextStepSubmissionTitle": "Sắp hết hạn nộp hồ sơ trực tuyến",
+  "nextStepSubmissionBody": "{university}: hạn nộp hồ sơ trực tuyến. Xem ngày và trạng thái trên trang hồ sơ.",
+  "nextStepInterviewTitle": "Chuẩn bị cho buổi phỏng vấn",
+  "nextStepInterviewBody": "{university}: phỏng vấn. Xem ngày giờ trên trang hồ sơ.",
+  "nextStepOpenButton": "Mở hồ sơ"
 }

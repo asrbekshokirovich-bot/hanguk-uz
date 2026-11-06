@@ -5509,4 +5509,32 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get prepGuestInterviewUsed => '주 1회 · 이번 주 사용함';
+
+  @override
+  String get continueWelcomeBack => '다시 오신 것을 환영합니다!';
+
+  @override
+  String get nextStepOfferBody => '상담원이 제안한 대학을 확인하고 답변해 주세요.';
+
+  @override
+  String get nextStepOfferButton => '제안 보기';
+
+  @override
+  String get nextStepSubmissionTitle => '온라인 지원 마감이 다가옵니다';
+
+  @override
+  String nextStepSubmissionBody(String university) {
+    return '$university: 온라인 지원 마감. 날짜와 상태는 지원 페이지에서 확인하세요.';
+  }
+
+  @override
+  String get nextStepInterviewTitle => '면접을 준비하세요';
+
+  @override
+  String nextStepInterviewBody(String university) {
+    return '$university: 면접. 날짜와 시간은 지원 페이지에서 확인하세요.';
+  }
+
+  @override
+  String get nextStepOpenButton => '지원서 열기';
 }

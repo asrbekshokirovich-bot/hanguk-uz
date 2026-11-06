@@ -1822,5 +1822,13 @@
   "nextStepStageResult": "Natija va viza",
   "prepGuestAiLeft": "Bugun {limit} ta savoldan {left} tasi qoldi",
   "prepGuestInterviewFree": "Haftasiga 1 ta · bu hafta bo'sh",
-  "prepGuestInterviewUsed": "Haftasiga 1 ta · bu hafta ishlatilgan"
+  "prepGuestInterviewUsed": "Haftasiga 1 ta · bu hafta ishlatilgan",
+  "continueWelcomeBack": "Xush kelibsiz qaytib!",
+  "nextStepOfferBody": "Konsultant taklif qilgan universitetlarni ko'rib chiqing va javob bering.",
+  "nextStepOfferButton": "Takliflarni ko'rish",
+  "nextStepSubmissionTitle": "Online ariza muddati yaqin",
+  "nextStepSubmissionBody": "{university}: online ariza muddati. Ariza sahifasida sana va holatni ko'ring.",
+  "nextStepInterviewTitle": "Suhbatga tayyorlaning",
+  "nextStepInterviewBody": "{university}: suhbat. Sana va vaqtni ariza sahifasida ko'ring.",
+  "nextStepOpenButton": "Arizani ochish"
 }
