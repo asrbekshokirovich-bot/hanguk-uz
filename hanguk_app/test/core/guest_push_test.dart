@@ -25,7 +25,22 @@ void main() {
     expect(await GuestPush.shouldAsk(signedIn: false, mobile: true), isFalse);
   });
 
+  test('the first ♥ asks once more, on its own flag (two asks at most)', () async {
+    store.values['guest_push_asked_v1'] = true;
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true, reason: GuestPushReason.heart), isTrue);
+    store.values['guest_push_asked_heart_v1'] = true;
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true, reason: GuestPushReason.heart), isFalse);
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true), isFalse);
+  });
+
+  test('an allowed phone is not asked again for any reason', () async {
+    store.values['guest_push_allowed_v1'] = true;
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true), isFalse);
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true, reason: GuestPushReason.heart), isFalse);
+  });
+
   test('a signed-in student or the web app is not asked', () async {
+    expect(await GuestPush.shouldAsk(signedIn: true, mobile: true, reason: GuestPushReason.heart), isFalse);
     expect(await GuestPush.shouldAsk(signedIn: true, mobile: true), isFalse);
     expect(await GuestPush.shouldAsk(signedIn: false, mobile: false), isFalse);
   });
