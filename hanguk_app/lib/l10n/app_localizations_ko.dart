@@ -5457,4 +5457,56 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => '서류 업로드';
+
+  @override
+  String continueTitleCount(String count) {
+    return '평가가 저장되었습니다: 대학 $count곳';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return '가장 가까운 마감: $university — 온라인 지원 $date까지';
+  }
+
+  @override
+  String nextStepUploadCount(String count) {
+    return '서류 $count개를 업로드하세요';
+  }
+
+  @override
+  String nextStepUploadNeeded(String names) {
+    return '$names이(가) 필요합니다.';
+  }
+
+  @override
+  String get nextStepAnd => '및';
+
+  @override
+  String get nextStepOrder => '순서';
+
+  @override
+  String get nextStepStageContract => '계약';
+
+  @override
+  String get nextStepStageDocuments => '서류';
+
+  @override
+  String get nextStepStageUniversity => '대학 선택';
+
+  @override
+  String get nextStepStageOnline => '온라인 지원';
+
+  @override
+  String get nextStepStageResult => '결과 및 비자';
+
+  @override
+  String prepGuestAiLeft(String limit, String left) {
+    return '오늘 질문 $limit개 중 $left개 남음';
+  }
+
+  @override
+  String get prepGuestInterviewFree => '주 1회 · 이번 주 사용 가능';
+
+  @override
+  String get prepGuestInterviewUsed => '주 1회 · 이번 주 사용함';
 }

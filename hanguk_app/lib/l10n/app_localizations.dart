@@ -10159,6 +10159,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload documents'**
   String get nextStepUploadButton;
+
+  /// Continue card (D7) title: the assessment is saved, with how many universities it weighs.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assessment is saved: {count} universities'**
+  String continueTitleCount(String count);
+
+  /// Continue card (D7): the nearest online application deadline among the assessment's universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest deadline: {university} — online application until {date}'**
+  String continueNearestLine(String university, String date);
+
+  /// Next step card (D8) title: how many required documents to upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload {count} documents'**
+  String nextStepUploadCount(String count);
+
+  /// Next step card (D8): which documents are still needed.
+  ///
+  /// In en, this message translates to:
+  /// **'Still needed: {names}.'**
+  String nextStepUploadNeeded(String names);
+
+  /// The word joining the last two names in a list (D8).
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get nextStepAnd;
+
+  /// Heading of the step list under the next step card (D8).
+  ///
+  /// In en, this message translates to:
+  /// **'STEPS'**
+  String get nextStepOrder;
+
+  /// Step list (D8): the contract.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get nextStepStageContract;
+
+  /// Step list (D8): the documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get nextStepStageDocuments;
+
+  /// Step list (D8): choosing the universities.
+  ///
+  /// In en, this message translates to:
+  /// **'Choosing universities'**
+  String get nextStepStageUniversity;
+
+  /// Step list (D8): the online application.
+  ///
+  /// In en, this message translates to:
+  /// **'Online application'**
+  String get nextStepStageOnline;
+
+  /// Step list (D8): the result and the visa.
+  ///
+  /// In en, this message translates to:
+  /// **'Result and visa'**
+  String get nextStepStageResult;
+
+  /// Prepare, guest (D4): Hanguk AI questions left today; {left} is set in the mono face.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} of {limit} questions left today'**
+  String prepGuestAiLeft(String limit, String left);
+
+  /// Prepare, guest (D4): the weekly interview practice is still free this week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 a week · free this week'**
+  String get prepGuestInterviewFree;
+
+  /// Prepare, guest (D4): this week's interview practice is used.
+  ///
+  /// In en, this message translates to:
+  /// **'1 a week · used this week'**
+  String get prepGuestInterviewUsed;
 }
 
 class _AppLocalizationsDelegate

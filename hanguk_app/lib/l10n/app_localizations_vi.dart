@@ -5633,4 +5633,56 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Tải giấy tờ lên';
+
+  @override
+  String continueTitleCount(String count) {
+    return 'Đánh giá của bạn đã được lưu: $count trường đại học';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return 'Hạn gần nhất: $university — nộp hồ sơ trực tuyến đến $date';
+  }
+
+  @override
+  String nextStepUploadCount(String count) {
+    return 'Tải lên $count hồ sơ';
+  }
+
+  @override
+  String nextStepUploadNeeded(String names) {
+    return 'Còn cần: $names.';
+  }
+
+  @override
+  String get nextStepAnd => 'và';
+
+  @override
+  String get nextStepOrder => 'CÁC BƯỚC';
+
+  @override
+  String get nextStepStageContract => 'Hợp đồng';
+
+  @override
+  String get nextStepStageDocuments => 'Hồ sơ';
+
+  @override
+  String get nextStepStageUniversity => 'Chọn trường';
+
+  @override
+  String get nextStepStageOnline => 'Nộp hồ sơ trực tuyến';
+
+  @override
+  String get nextStepStageResult => 'Kết quả và visa';
+
+  @override
+  String prepGuestAiLeft(String limit, String left) {
+    return 'Hôm nay còn $left/$limit câu hỏi';
+  }
+
+  @override
+  String get prepGuestInterviewFree => '1 lần/tuần · tuần này còn trống';
+
+  @override
+  String get prepGuestInterviewUsed => '1 lần/tuần · tuần này đã dùng';
 }
