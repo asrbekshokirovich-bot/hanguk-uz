@@ -1965,6 +1965,9 @@
         "compute": "Hisoblayapman",
         "myCard": "Arizangizni tekshiryapman",
         "memory": "Xotirani yangilayapman",
+        "reports": "Kunlik hisobotlarni o'qiyapman",
+        "groupSummary": "Guruh xulosasini o'qiyapman",
+        "teamHistory": "Guruh tarixidan qidiryapman",
         "data": "CRM ma'lumotini o'qiyapman"
       },
       "uni": {

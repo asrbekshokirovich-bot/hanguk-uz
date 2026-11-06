@@ -1897,6 +1897,9 @@
         "compute": "Calculating",
         "myCard": "Checking your application",
         "memory": "Updating memory",
+        "reports": "Reading daily reports",
+        "groupSummary": "Reading the group summary",
+        "teamHistory": "Searching the group history",
         "data": "Reading CRM data"
       },
       "uni": {
