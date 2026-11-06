@@ -1798,5 +1798,11 @@
   "continueTitle": "평가가 저장되어 있습니다",
   "continueNearest": "가장 가까운 마감",
   "continuePath": "지원 절차 보기",
-  "continueReport": "보고서 열기"
+  "continueReport": "보고서 열기",
+  "prepGuestIntro": "게스트로도 사용해 볼 수 있습니다. 제한 없이 쓰려면 고객 코드로 로그인하세요.",
+  "prepGuestAi": "Hanguk AI",
+  "prepGuestAiLimit": "하루 10개 질문",
+  "prepGuestInterviewLimit": "주 1회",
+  "prepGuestStudyLocked": "고객 코드로 열립니다",
+  "prepGuestSignIn": "고객 코드로 로그인"
 }

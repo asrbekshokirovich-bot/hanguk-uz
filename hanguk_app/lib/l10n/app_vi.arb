@@ -1798,5 +1798,11 @@
   "continueTitle": "Đánh giá của bạn đã được lưu",
   "continueNearest": "Hạn gần nhất",
   "continuePath": "Xem lộ trình nộp hồ sơ",
-  "continueReport": "Mở báo cáo"
+  "continueReport": "Mở báo cáo",
+  "prepGuestIntro": "Bạn có thể dùng thử với tư cách khách. Dùng không giới hạn — bằng mã khách hàng.",
+  "prepGuestAi": "Hanguk AI",
+  "prepGuestAiLimit": "10 câu hỏi mỗi ngày",
+  "prepGuestInterviewLimit": "1 lần mỗi tuần",
+  "prepGuestStudyLocked": "Mở bằng mã khách hàng",
+  "prepGuestSignIn": "Đăng nhập bằng mã khách hàng"
 }

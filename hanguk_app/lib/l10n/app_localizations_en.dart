@@ -5628,4 +5628,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get continueReport => 'Open the report';
+
+  @override
+  String get prepGuestIntro =>
+      'You can try these as a guest too. To use them without limits, sign in with your client code.';
+
+  @override
+  String get prepGuestAi => 'Hanguk AI';
+
+  @override
+  String get prepGuestAiLimit => '10 questions a day';
+
+  @override
+  String get prepGuestInterviewLimit => '1 a week';
+
+  @override
+  String get prepGuestStudyLocked => 'Opens with a client code';
+
+  @override
+  String get prepGuestSignIn => 'Sign in with a client code';
 }

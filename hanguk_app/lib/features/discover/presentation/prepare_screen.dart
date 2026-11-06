@@ -8,6 +8,7 @@ import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/data/auth_repository.dart' show ensureTestSession;
 import '../../chat/presentation/chat_tab.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../../training/presentation/study_plan_builder_screen.dart';
@@ -53,8 +54,21 @@ class PrepareScreen extends StatelessWidget {
     ).whenComplete(() => AppEvents.overlayClosed('ai_chat'));
   }
 
+  /// A guest's interview runs on the guest test account (one per phone);
+  /// interview-ai lets it start one a week (P18).
+  Future<void> _guestInterview(BuildContext context) async {
+    final ok = await ensureTestSession();
+    if (!context.mounted) return;
+    if (ok) {
+      _push(context, const InterviewScreen(), 'interview');
+    } else {
+      _signIn(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!signedIn) return _guest(context);
     final l = AppLocalizations.of(context)!;
     return SafeArea(
       bottom: false,
@@ -112,6 +126,99 @@ class PrepareScreen extends StatelessWidget {
 
 /// A tool card (prototype 11): a kicker line, the title, a line under it.
 /// The first is blue with a lime shadow, the second white with an ink one.
+extension on PrepareScreen {
+  /// Tayyorgarlik for a guest (ushlab qolish P19, Claude Design D4): the AI
+  /// (10 questions a day) and the interview (one a week) open without a
+  /// code; Study Plan stays for clients.
+  Widget _guest(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    Widget row({LucideGlyph? glyph, required String title, required String sub, VoidCallback? onTap}) {
+      final locked = onTap == null;
+      final card = Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: locked ? FdColors.tint : FdColors.card,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+          boxShadow: locked ? null : const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(color: locked ? FdColors.card : FdColors.tint, borderRadius: BorderRadius.circular(14)),
+              child: Center(
+                child: glyph == null
+                    ? const Icon(Icons.lock_outline_rounded, size: 22, color: FdColors.muted)
+                    : Lucide(glyph, size: 22, color: locked ? FdColors.muted : FdColors.blueDeep),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: fdText(16, FontWeight.w800, FdColors.ink)),
+                  const SizedBox(height: 2),
+                  Text(sub, style: fdText(13, FontWeight.w500, FdColors.muted)),
+                ],
+              ),
+            ),
+            if (!locked) Lucide(LucideIcons.chevronRight, size: 18, color: FdColors.muted),
+          ],
+        ),
+      );
+      return locked ? card : GestureDetector(onTap: tracked('prepare.guest_row', onTap), child: card);
+    }
+
+    return SafeArea(
+      bottom: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
+        children: [
+          DeviceCodeTaps(
+            child: Text(l.fdPrepareTitle, style: fdText(24, FontWeight.w800, FdColors.onPage, height: 1.15, letterSpacing: -0.5)),
+          ),
+          const SizedBox(height: 8),
+          Text(l.prepGuestIntro, style: fdText(13.5, FontWeight.w500, FdColors.pageMuted, height: 1.4)),
+          const SizedBox(height: 14),
+          row(
+            glyph: LucideIcons.bot,
+            title: l.prepGuestAi,
+            sub: l.prepGuestAiLimit,
+            onTap: tracked('prepare.guest_ai', () => _openChat(context)),
+          ),
+          const SizedBox(height: 14),
+          row(
+            glyph: LucideIcons.mic,
+            title: l.fdPrepareInterviewTitle,
+            sub: l.prepGuestInterviewLimit,
+            onTap: tracked('prepare.guest_interview', () => _guestInterview(context)),
+          ),
+          const SizedBox(height: 14),
+          row(title: l.fdPrepareStudyPlanTitle, sub: l.prepGuestStudyLocked),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: tracked('prepare.guest_sign_in', () => _signIn(context)),
+            child: Container(
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: FdColors.lime,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: FdColors.ink, width: 1.5),
+                boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+              ),
+              child: Text(l.prepGuestSignIn, style: fdText(15, FontWeight.w800, FdColors.onLime)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ToolCard extends StatelessWidget {
   const _ToolCard({
     required this.blue,

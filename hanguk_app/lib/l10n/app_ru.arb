@@ -1798,5 +1798,11 @@
   "continueTitle": "Ваша оценка сохранена",
   "continueNearest": "Ближайший срок",
   "continuePath": "Посмотреть путь заявки",
-  "continueReport": "Открыть отчёт"
+  "continueReport": "Открыть отчёт",
+  "prepGuestIntro": "Можно попробовать и гостем. Без ограничений — с кодом клиента.",
+  "prepGuestAi": "Hanguk AI",
+  "prepGuestAiLimit": "10 вопросов в день",
+  "prepGuestInterviewLimit": "1 в неделю",
+  "prepGuestStudyLocked": "Открывается с кодом клиента",
+  "prepGuestSignIn": "Войти по коду клиента"
 }

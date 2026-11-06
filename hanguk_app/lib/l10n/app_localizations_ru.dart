@@ -5628,4 +5628,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get continueReport => 'Открыть отчёт';
+
+  @override
+  String get prepGuestIntro =>
+      'Можно попробовать и гостем. Без ограничений — с кодом клиента.';
+
+  @override
+  String get prepGuestAi => 'Hanguk AI';
+
+  @override
+  String get prepGuestAiLimit => '10 вопросов в день';
+
+  @override
+  String get prepGuestInterviewLimit => '1 в неделю';
+
+  @override
+  String get prepGuestStudyLocked => 'Открывается с кодом клиента';
+
+  @override
+  String get prepGuestSignIn => 'Войти по коду клиента';
 }
