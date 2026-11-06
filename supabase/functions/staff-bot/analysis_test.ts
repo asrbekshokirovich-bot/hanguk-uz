@@ -133,20 +133,37 @@ Deno.test("interpretFindings: close_task — id ro'yxatdan, mas'ul vazifanikidan
   assertEquals(bad.findings[0].task_id, null);
 });
 
-Deno.test("interpretFindings: update/question/decision — faqat tahlil, taklif yo'q", () => {
+Deno.test("interpretFindings: question/decision — faqat tahlil, taklif yo'q", () => {
   const r = interpretFindings({ findings: [
-    f({ kind: "update_task", task_ref: 1, due_text: "juma", assignee: "Bobur" }),
     f({ kind: "question", assignee: "Aziz", confidence: 0.8 }),
     f({ kind: "decision", confidence: 0.85 }),
     f({ kind: "none" }),
   ] }, CTX, NOW);
-  assertEquals(r.kinds, ["update_task", "question", "decision"]);
+  assertEquals(r.kinds, ["question", "decision"]);
   assertEquals(r.proposals, []);
-  assertEquals(r.findings[0].task_id, T1);
-  assertEquals(r.findings[0].assignee_user_id, B);
-  assert(r.findings[0].due !== null);
-  assertEquals(r.findings[1].assignee_user_id, A);
+  assertEquals(r.findings[0].assignee_user_id, A);
+});
+
+Deno.test("interpretFindings: update_task — vazifa topilmasa yoki muddat aniqlanmasa taklif yo'q", () => {
   assertEquals(interpretFindings({ findings: [f({ kind: "update_task", task_ref: 0 })] }, CTX, NOW).findings[0].skip, "vazifa ro'yxatda topilmadi");
+  const r = interpretFindings({ findings: [f({ kind: "update_task", task_ref: 1, assignee: "Bobur" })] }, CTX, NOW);
+  assertEquals(r.proposals, []);
+  assertEquals(r.findings[0].skip, "muddat aniqlanmadi");
+  assertEquals(r.findings[0].task_id, T1);
+  assertEquals(r.findings[0].assignee_user_id, B); // assignee maydoni doim parse qilinadi, taklif turini belgilamaydi
+});
+
+Deno.test("interpretFindings: update_task — muddat taklifi, xabar vaqtiga nisbatan", () => {
+  const r = interpretFindings({ findings: [f({ kind: "update_task", task_ref: 1, due_text: "ertaga 15:00" })] }, CTX, NOW);
+  assertEquals(r.kinds, ["update_task"]);
+  assertEquals(r.proposals.length, 1);
+  const p = r.proposals[0].proposal;
+  assertEquals([p.kind, p.task_id, p.assignee_user_id, p.title], ["update", T1, A, "Talaba hujjatlarini apostil qilish"]);
+  assertEquals(p.due, "2026-11-07T10:00:00.000Z");
+  assertEquals(r.findings[0].proposed, true);
+  const low = interpretFindings({ findings: [f({ kind: "update_task", task_ref: 1, due_text: "ertaga 15:00", confidence: 0.6 })] }, CTX, NOW);
+  assertEquals(low.proposals, []);
+  assertEquals(low.findings[0].skip, "ishonch past");
 });
 
 Deno.test("interpretFindings: bir turdan bitta taklif, noma'lum tur va ishonch chegarasi", () => {
@@ -276,6 +293,32 @@ Deno.test("runGroupAnalysis: on → taklif kartasi, card_message_id saqlanadi", 
   assertEquals(t.replies.length, 1);
   const upd = t.calls.find((c) => c.table === "bot_proposals" && c.op === "update")!;
   assertEquals(upd.args[0], { card_message_id: 77 });
+});
+
+Deno.test("runGroupAnalysis: on, lekin ishonch ON_CONFIDENCE'dan past → shadow kabi yoziladi, guruhga chiqmaydi", async () => {
+  const t = deps({
+    mode: "on",
+    findings: [f({ kind: "close_task", task_ref: 1, confidence: 0.78 })],
+    respond: (c) => c.op === "insert" && c.table === "bot_proposals" ? { data: { id: "p3" } } : c.op === "select" && c.table === "bot_proposals" ? { count: 0 } : {},
+  });
+  await runGroupAnalysis(t.d, MSG, AUTHOR, "apostil tayyor bo'ldi");
+  assertEquals(t.replies, []);
+  const prop = t.calls.find((c) => c.table === "bot_proposals" && c.op === "insert")!.args[0] as Any;
+  assertEquals([prop.mode, prop.status], ["on", "shadow"]);
+});
+
+Deno.test("runGroupAnalysis: update_task on, yuqori ishonch → taklif kartasi «O'zgartirish» tugmasi bilan", async () => {
+  const t = deps({
+    mode: "on",
+    findings: [f({ kind: "update_task", task_ref: 1, due_text: "ertaga 15:00", confidence: 0.9 })],
+    respond: (c) => c.op === "insert" && c.table === "bot_proposals" ? { data: { id: "p4" } } : c.op === "select" && c.table === "bot_proposals" ? { count: 0 } : {},
+  });
+  await runGroupAnalysis(t.d, MSG, AUTHOR, "muddatni ertaga 15:00 ga suring");
+  assertEquals(t.replies.length, 1);
+  const extra = (t.replies[0] as Any[])[3] as Any;
+  assertEquals(extra.reply_markup.inline_keyboard[0][0].text, "✅ Ha, o'zgartirish");
+  const prop = t.calls.find((c) => c.table === "bot_proposals" && c.op === "insert")!.args[0] as Any;
+  assertEquals([prop.kind, prop.status], ["update", "pending"]);
 });
 
 Deno.test("runGroupAnalysis: dublikat — kutilayotgan yopish taklifi bo'lsa yangisi yo'q, sababi tahlilda", async () => {

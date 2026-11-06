@@ -162,7 +162,7 @@ Deno.test("isDoneReply", () => {
   }
 });
 
-import { type AiAnalysis, type CtxStaff, interpretAnalysis, matchStaff, renderProposal, shouldAnalyze, similarTitle } from "./core.ts";
+import { type AiAnalysis, type CtxStaff, interpretAnalysis, matchStaff, MIN_CONFIDENCE, ON_CONFIDENCE, type Proposal, renderProposal, shouldAnalyze, similarTitle } from "./core.ts";
 
 const STAFF: CtxStaff[] = [
   { user_id: "u-d", name: "Diyora", username: "drantares", tasks: [{ id: "t1", title: "Kim Minsu apostil hujjatlari" }] },
@@ -216,6 +216,21 @@ Deno.test("renderProposal", () => {
   assertEquals(t.includes("Madina uchun vazifa"), true);
   assertEquals(t.includes("muddat 03.11 15:00 · zarur"), true);
   assertEquals(t.includes("Asrbek tasdiqlasin"), true);
+});
+
+Deno.test("renderProposal: update — muddat o'zgarishi taklifi (B5-1)", () => {
+  const p: Proposal = {
+    kind: "update", assignee_user_id: "u1", assignee_name: "Bobur Aliyev", task_id: "t1",
+    title: "Apostil qilish", due: "2026-11-07T10:00:00.000Z", priority: "normal", confidence: 0.9, reason: "sabab",
+  };
+  const t = renderProposal(p, "Aziz Karimov");
+  assertEquals(t.includes("Apostil qilish"), true);
+  assertEquals(t.includes("Bobur Aliyev"), true);
+  assertEquals(t.includes("o'zgartirilsinmi"), true);
+});
+
+Deno.test("ON_CONFIDENCE: MIN_CONFIDENCE'dan yuqori (B5-1 — guruhga chiqish chegarasi)", () => {
+  assertEquals(ON_CONFIDENCE > MIN_CONFIDENCE, true);
 });
 
 import { mdToPlain, parseAiStream } from "./core.ts";

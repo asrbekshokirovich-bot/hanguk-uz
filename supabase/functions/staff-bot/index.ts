@@ -37,11 +37,13 @@ import { isWorkday, runDeadlines, runNotify } from "./notify.ts";
 import { createSummaryOps } from "./summary.ts";
 import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
 import { type CardDeps, dmCardReply, groupCardReply } from "./card_actions.ts";
-import { CARD_HINT, replyKeyboard } from "./cards.ts";
+import { CARD_HINT, replyKeyboard, taskIdFromMarkup } from "./cards.ts";
+import { attachStudentToTask, STUDENT_NO_TASK } from "./student_link.ts";
 import { runGroupAnalysis } from "./analysis.ts";
 import { type IntakeDeps, onGroupEdit, onGroupReaction } from "./intake.ts";
 import {
   escapeHtml,
+  fmtDue,
   type MorningBrief,
   renderBrief,
   type GroupDigest,
@@ -581,6 +583,21 @@ async function onGroupMessage(msg: Any) {
     if (card) { await logGroupMessage(msg, staff, card.kind, card.taskId); return; }
   }
 
+  // 1c) Bot kartasiga «/talaba <ism>» (B5-2)
+  if (staff && replyTo?.from?.is_bot && /^\/talaba(@\w+)?(\s|$)/i.test(text.trim())) {
+    const { data: groupCard } = await db.from("bot_group_cards").select("task_id")
+      .eq("chat_id", chatId).eq("message_id", replyTo.message_id).maybeSingle();
+    const taskId = groupCard?.task_id ?? taskIdFromMarkup(replyTo.reply_markup);
+    await logGroupMessage(msg, staff, "command", taskId ?? null);
+    if (!taskId) { await reply(chatId, msg.message_id, STUDENT_NO_TASK); return; }
+    const arg = text.trim().replace(/^\/talaba(@\w+)?\s*/i, "");
+    await attachStudentToTask(
+      { db, reply: (t, extra = {}) => reply(chatId, msg.message_id, t, extra) },
+      { user_id: staff.user_id, roles: staff.roles }, String(taskId), arg, "group",
+    );
+    return;
+  }
+
   // 2) #vazifa / /vazifa
   if (/^\/(help|yordam)(@\w+)?\s*$/i.test(text.trim())) {
     await reply(chatId, msg.message_id, GROUP_HELP);
@@ -720,7 +737,7 @@ function retryGroupAnalysis(job: JobRow): Promise<string | undefined> {
 }
 
 interface ProposalRow {
-  id: string; kind: "create" | "close"; status: string; author_user_id: string | null;
+  id: string; kind: "create" | "close" | "update"; status: string; author_user_id: string | null;
   assignee_user_id: string | null; task_id: string | null; title: string; due_date: string | null;
   priority: string; chat_id: number;
 }
@@ -733,14 +750,15 @@ async function onProposalCallback(cq: Any, staff: Staff, yes: boolean, id: strin
   if (!p || p.status !== "pending") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Bu taklif endi amal qilmaydi"); return; }
 
   const isOwner = staff.roles?.includes("owner");
-  let allowed = p.kind === "create" && (isOwner || staff.user_id === p.author_user_id);
+  // create/update — xabar yozgan odam yoki owner tasdiqlaydi (bot_set_task_due/bot_create_task ham shuni tekshiradi)
+  let allowed = (p.kind === "create" || p.kind === "update") && (isOwner || staff.user_id === p.author_user_id);
   if (p.kind === "close" && p.task_id) {
     // yopishni faqat mas'ul tasdiqlaydi (bot_set_task_status ham shuni tekshiradi)
     const { data: t } = await db.from("tasks").select("assigned_to").eq("id", p.task_id).maybeSingle();
     allowed = !!t && t.assigned_to === staff.user_id;
   }
   if (!allowed) {
-    await answerCallbackQuery(BOT_TOKEN, cq.id, p.kind === "create" ? "Faqat xabar yozgan odam yoki owner tasdiqlaydi" : "Faqat mas'ul yopa oladi");
+    await answerCallbackQuery(BOT_TOKEN, cq.id, p.kind === "close" ? "Faqat mas'ul yopa oladi" : "Faqat xabar yozgan odam yoki owner tasdiqlaydi");
     return;
   }
 
@@ -770,6 +788,26 @@ async function onProposalCallback(cq: Any, staff: Staff, yes: boolean, id: strin
     await finish("accepted", `✅ Bajarildi: <s>${escapeHtml(r.title)}</s> (${escapeHtml(staff.full_name)} tasdiqladi)`);
     if (r.result === "ok" && r.created_by && r.created_by !== staff.user_id) {
       await notifyUser(r.created_by, `✅ <b>${escapeHtml(staff.full_name)}</b> vazifani bajarildi deb belgiladi:\n${escapeHtml(r.title)}`);
+    }
+    return;
+  }
+
+  if (p.kind === "update") {
+    const actor = p.author_user_id ?? staff.user_id;
+    const { data: res, error } = await db.rpc("bot_set_task_due",
+      { p_actor: actor, p_task: p.task_id, p_due: p.due_date, p_via: "group" });
+    const r = (Array.isArray(res) ? res[0] : res) as { result: string; title: string; assigned_to: string; new_due: string } | undefined;
+    if (error || !r || !["ok", "same"].includes(r.result)) {
+      console.error("proposal update:", error?.message ?? r?.result);
+      await answerCallbackQuery(BOT_TOKEN, cq.id, r?.result === "not_allowed" ? "Faqat xabar yozgan odam yoki owner o'zgartiradi" : "Muddatni o'zgartirib bo'lmadi");
+      return;
+    }
+    await answerCallbackQuery(BOT_TOKEN, cq.id, "✅ O'zgartirildi");
+    await finish("accepted", `⏰ Muddat o'zgartirildi: <b>${fmtDue(r.new_due ?? p.due_date)}</b> — ${escapeHtml(r.title)} (${escapeHtml(staff.full_name)} tasdiqladi)`);
+    if (r.result === "ok" && r.assigned_to && r.assigned_to !== actor) {
+      const card: TaskRow = { id: String(p.task_id), title: r.title, status: "todo", priority: p.priority, due_date: r.new_due ?? p.due_date };
+      await notifyUser(r.assigned_to, `⏰ <b>${escapeHtml(staff.full_name)}</b> muddatni o'zgartirdi: <b>${fmtDue(card.due_date)}</b>\n📌 ${escapeHtml(r.title)}`,
+        { reply_markup: taskButtons(card) });
     }
     return;
   }
@@ -916,6 +954,16 @@ async function onPrivateMessage(msg: Any) {
         await db.from("bot_state").delete().eq("telegram_user_id", from.id);
         await send(chatId, "Bekor qilindi.", { reply_markup: MENU_KEYBOARD });
         return;
+      case "talaba": {
+        // B5-2: faqat bot yuborgan vazifa kartasiga javob sifatida (taskId tugmadan olinadi).
+        const taskId = taskIdFromMarkup(msg.reply_to_message?.reply_markup);
+        if (!taskId) { await send(chatId, STUDENT_NO_TASK); return; }
+        await attachStudentToTask(
+          { db, reply: (text, extra = {}) => send(chatId, text, extra) },
+          { user_id: staff.user_id, roles: staff.roles }, taskId, cmd.arg, "dm",
+        );
+        return;
+      }
       default:
         await send(chatId, "Bunday buyruq yo'q. /help", { reply_markup: MENU_KEYBOARD });
         return;
