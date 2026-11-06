@@ -36,6 +36,9 @@ import { createAiOps, type JobRow } from "./aiops.ts";
 import { createEmbedOps } from "./embed.ts";
 import { isWorkday, runDeadlines, runNotify } from "./notify.ts";
 import { createSummaryOps } from "./summary.ts";
+import { buildReportDraft, DRAFT_KB, renderDraftOffer, type ReportDraft } from "./report2.ts";
+import { runReportDiscipline } from "./discipline.ts";
+import { runWeeklyKpi } from "./kpi.ts";
 import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
 import { type CardDeps, dmCardReply, groupCardReply } from "./card_actions.ts";
 import { CARD_HINT, replyKeyboard } from "./cards.ts";
@@ -339,6 +342,21 @@ async function onCallback(cq: Any) {
     return;
   }
 
+  // Hisobot qoralamasi (B4-1): tasdiqlash yoki o'zi yozishni tanlash
+  if (data === "rd:ok" || data === "rd:edit") {
+    const st = await getState(cq.from.id);
+    if (!st || st.step !== "report_draft") { await answerCallbackQuery(BOT_TOKEN, cq.id, "Eskirgan tugma"); return; }
+    if (data === "rd:ok") { await acceptDraft(cq, staff, st.draft as ReportDraft); return; }
+    await setState(cq.from.id, { step: "report" });
+    await answerCallbackQuery(BOT_TOKEN, cq.id);
+    const chatId = cq.message?.chat?.id;
+    if (chatId) {
+      await callTelegram(BOT_TOKEN, "editMessageReplyMarkup", { chat_id: chatId, message_id: cq.message.message_id, reply_markup: { inline_keyboard: [] } });
+      await send(chatId, REPORT_PROMPT, { reply_markup: MENU_KEYBOARD });
+    }
+    return;
+  }
+
   // «💬 Javob yozish» — kartaga qanday javob yozishni ko'rsatadi (B1-3)
   if (data.startsWith("tr:")) {
     await callTelegram(BOT_TOKEN, "answerCallbackQuery", { callback_query_id: cq.id, text: CARD_HINT, show_alert: true });
@@ -445,6 +463,39 @@ async function startReport(chatId: number, tgId: number, intro = "") {
   await send(chatId, (intro ? intro + "\n\n" : "") + REPORT_PROMPT, { reply_markup: MENU_KEYBOARD });
 }
 
+/** B4-1: kunlik faoliyatdan AI qoralama tuzadi va tasdiqqa taklif qiladi; bo'lmasa — oddiy REPORT_PROMPT. */
+async function startReportWithDraft(chatId: number, tgId: number, userId: string, intro = "") {
+  let draft: ReportDraft | null = null;
+  try {
+    draft = await buildReportDraft({ db, ai: aiOps }, userId);
+  } catch (e) {
+    console.error("buildReportDraft:", e instanceof Error ? e.message : e);
+  }
+  if (!draft) { await startReport(chatId, tgId, intro); return; }
+  await setState(tgId, { step: "report_draft", draft });
+  await send(chatId, (intro ? intro + "\n\n" : "") + renderDraftOffer(draft), { reply_markup: DRAFT_KB });
+}
+
+async function acceptDraft(cq: Any, staff: Staff, draft: ReportDraft) {
+  const { data, error } = await db.rpc("bot_save_report", {
+    p_actor: staff.user_id, p_raw: draft.text, p_done: draft.done, p_blockers: draft.blockers,
+    p_plan: draft.plan, p_ai: true, p_draft: draft.text, p_draft_model: draft.model,
+  });
+  const chatId = cq.message?.chat?.id;
+  if (error || !data) {
+    console.error("bot_save_report(draft):", error?.message);
+    await answerCallbackQuery(BOT_TOKEN, cq.id, "Saqlab bo'lmadi");
+    return;
+  }
+  await setState(cq.from.id, null);
+  const r = (Array.isArray(data) ? data[0] : data) as { was_update: boolean } | undefined;
+  await answerCallbackQuery(BOT_TOKEN, cq.id, "✅ Qabul qilindi");
+  await callTelegram(BOT_TOKEN, "editMessageText", {
+    chat_id: chatId, message_id: cq.message.message_id, parse_mode: "HTML",
+    text: `${r?.was_update ? "✏️ Hisobot yangilandi." : "✅ Hisobot qabul qilindi. Rahmat!"}\n\n${renderReport(draft.text, draft)}`,
+  });
+}
+
 async function onReportText(chatId: number, tgId: number, staff: Staff, raw: string, heard: string | null) {
   // 3 qismga ajratish (aiops.ts). Provayderlar xato bersa — asl matn saqlanadi, ajratish navbatdan.
   const { parts, error: aiError } = await aiOps.splitReport(raw);
@@ -481,17 +532,26 @@ async function reportCron(kind: string) {
     for (const o of (owners ?? []) as { dm_chat_id: number }[]) { await sendLong(o.dm_chat_id, text); sent++; }
     return json({ ok: true, kind, sent });
   }
+  // B4-2: intizom jadvali + 2 ish kundan ortiq topshirmaganlar uchun ownerlarga ogohlantirish (dublikatsiz).
+  if (kind === "discipline") {
+    return json(await runReportDiscipline({ db, send, workdays: () => settingValue("workdays") }));
+  }
+  // B4-3: haftalik KPI (owner uchun). Hozircha cron ulanmagan — qo'lda yoki keyingi bosqichda chaqiriladi.
+  if (kind === "kpi") {
+    return json(await runWeeklyKpi({ db, send }));
+  }
   if (kind !== "ask" && kind !== "remind") return json({ error: "bad kind" }, 400);
   const { data, error } = await db.rpc("bot_report_targets");
   if (error) { console.error("bot_report_targets:", error.message); return json({ error: error.message }, 500); }
   let sent = 0;
-  for (const t of (data ?? []) as { full_name: string; dm_chat_id: number; has_report: boolean }[]) {
+  for (const t of (data ?? []) as { user_id: string; full_name: string; dm_chat_id: number; has_report: boolean }[]) {
     if (t.has_report) continue;
     // Shaxsiy chatda telegram_user_id = chat id
     const intro = kind === "ask"
       ? `🕔 Ish kuni tugayapti${t.full_name ? ", " + escapeHtml(t.full_name.split(" ")[0]) : ""}.`
       : "⏰ Bugungi hisobotingiz hali kelmadi.";
-    await startReport(t.dm_chat_id, t.dm_chat_id, intro);
+    // B4-1: avval AI qoralama taklif qilinadi (kun davomidagi faoliyatdan); bo'lmasa oddiy so'rov.
+    await startReportWithDraft(t.dm_chat_id, t.dm_chat_id, t.user_id, intro);
     sent++;
   }
   return json({ ok: true, kind, sent });
@@ -882,7 +942,7 @@ async function onPrivateMessage(msg: Any) {
         return;
       }
     }
-    if (st && st.step === "report") {
+    if (st && (st.step === "report" || st.step === "report_draft")) {
       const voice = msg.voice ?? msg.audio;
       if (voice) {
         await send(chatId, "🎧 Tinglayapman…");
@@ -891,6 +951,7 @@ async function onPrivateMessage(msg: Any) {
         await onReportText(chatId, from.id, staff, heard, heard);
         return;
       }
+      // «report_draft» holatida matn yozish — tugma bosmasdan ham o'zi yozishni bildiradi.
       if (text.trim()) { await onReportText(chatId, from.id, staff, text, null); return; }
     }
   }
@@ -932,7 +993,7 @@ async function onPrivateMessage(msg: Any) {
       await startAssign(chatId, from.id, staff);
       return;
     case MENU.report:
-      await startReport(chatId, from.id);
+      await startReportWithDraft(chatId, from.id, staff.user_id);
       return;
     case MENU.ask:
       await setState(from.id, { step: "ask" });
