@@ -1819,5 +1819,8 @@
   "nextStepStageDocuments": "Документы",
   "nextStepStageUniversity": "Выбор университета",
   "nextStepStageOnline": "Онлайн-заявка",
-  "nextStepStageResult": "Результат и виза"
+  "nextStepStageResult": "Результат и виза",
+  "prepGuestAiLeft": "Сегодня осталось {left} из {limit} вопросов",
+  "prepGuestInterviewFree": "1 в неделю · на этой неделе свободно",
+  "prepGuestInterviewUsed": "1 в неделю · на этой неделе использовано"
 }

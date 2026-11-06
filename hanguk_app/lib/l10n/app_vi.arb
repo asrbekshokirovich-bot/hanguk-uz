@@ -1819,5 +1819,8 @@
   "nextStepStageDocuments": "Hồ sơ",
   "nextStepStageUniversity": "Chọn trường",
   "nextStepStageOnline": "Nộp hồ sơ trực tuyến",
-  "nextStepStageResult": "Kết quả và visa"
+  "nextStepStageResult": "Kết quả và visa",
+  "prepGuestAiLeft": "Hôm nay còn {left}/{limit} câu hỏi",
+  "prepGuestInterviewFree": "1 lần/tuần · tuần này còn trống",
+  "prepGuestInterviewUsed": "1 lần/tuần · tuần này đã dùng"
 }

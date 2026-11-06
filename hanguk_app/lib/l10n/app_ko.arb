@@ -1819,5 +1819,8 @@
   "nextStepStageDocuments": "서류",
   "nextStepStageUniversity": "대학 선택",
   "nextStepStageOnline": "온라인 지원",
-  "nextStepStageResult": "결과 및 비자"
+  "nextStepStageResult": "결과 및 비자",
+  "prepGuestAiLeft": "오늘 질문 {limit}개 중 {left}개 남음",
+  "prepGuestInterviewFree": "주 1회 · 이번 주 사용 가능",
+  "prepGuestInterviewUsed": "주 1회 · 이번 주 사용함"
 }

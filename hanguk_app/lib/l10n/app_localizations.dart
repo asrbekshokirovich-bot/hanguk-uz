@@ -10225,6 +10225,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Result and visa'**
   String get nextStepStageResult;
+
+  /// Prepare, guest (D4): Hanguk AI questions left today; {left} is set in the mono face.
+  ///
+  /// In en, this message translates to:
+  /// **'{left} of {limit} questions left today'**
+  String prepGuestAiLeft(String limit, String left);
+
+  /// Prepare, guest (D4): the weekly interview practice is still free this week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 a week · free this week'**
+  String get prepGuestInterviewFree;
+
+  /// Prepare, guest (D4): this week's interview practice is used.
+  ///
+  /// In en, this message translates to:
+  /// **'1 a week · used this week'**
+  String get prepGuestInterviewUsed;
 }
 
 class _AppLocalizationsDelegate

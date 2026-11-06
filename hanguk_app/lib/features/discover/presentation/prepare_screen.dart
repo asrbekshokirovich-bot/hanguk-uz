@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/device_code.dart';
 import '../../../core/analytics/tracked.dart';
-import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients, SeoulColors, SeoulRadii;
+import '../../../design_system/seoul_night/seoul_night.dart' show SeoulGradients, SeoulColors, SeoulRadii, SeoulType;
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -12,6 +13,7 @@ import '../../auth/data/auth_repository.dart' show ensureTestSession;
 import '../../chat/presentation/chat_tab.dart';
 import '../../training/presentation/interview_screen.dart';
 import '../../training/presentation/study_plan_builder_screen.dart';
+import '../data/guest_ai_usage.dart';
 import 'widgets/app_nav.dart';
 
 /// Design screen 18, "Tayyorgarlik": Study Plan, the interview practice and
@@ -132,7 +134,7 @@ extension on PrepareScreen {
   /// code; Study Plan stays for clients.
   Widget _guest(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    Widget row({LucideGlyph? glyph, required String title, required String sub, VoidCallback? onTap}) {
+    Widget row({LucideGlyph? glyph, required String title, required Widget sub, VoidCallback? onTap}) {
       final locked = onTap == null;
       final card = Container(
         padding: const EdgeInsets.all(16),
@@ -161,7 +163,7 @@ extension on PrepareScreen {
                 children: [
                   Text(title, style: fdText(16, FontWeight.w800, FdColors.ink)),
                   const SizedBox(height: 2),
-                  Text(sub, style: fdText(13, FontWeight.w500, FdColors.muted)),
+                  sub,
                 ],
               ),
             ),
@@ -186,18 +188,18 @@ extension on PrepareScreen {
           row(
             glyph: LucideIcons.bot,
             title: l.prepGuestAi,
-            sub: l.prepGuestAiLimit,
+            sub: const _GuestAiLeft(),
             onTap: tracked('prepare.guest_ai', () => _openChat(context)),
           ),
           const SizedBox(height: 14),
           row(
             glyph: LucideIcons.mic,
             title: l.fdPrepareInterviewTitle,
-            sub: l.prepGuestInterviewLimit,
+            sub: const _GuestInterviewWeek(),
             onTap: tracked('prepare.guest_interview', () => _guestInterview(context)),
           ),
           const SizedBox(height: 14),
-          row(title: l.fdPrepareStudyPlanTitle, sub: l.prepGuestStudyLocked),
+          row(title: l.fdPrepareStudyPlanTitle, sub: Text(l.prepGuestStudyLocked, style: fdText(13, FontWeight.w500, FdColors.muted))),
           const SizedBox(height: 24),
           GestureDetector(
             onTap: tracked('prepare.guest_sign_in', () => _signIn(context)),
@@ -344,5 +346,51 @@ class _AskRow extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// «Bugun 10 ta savoldan 7 tasi qoldi» (D4): the count left is the server's,
+/// set in the mono face; until it is known, the plain «Kuniga 10 ta savol».
+class _GuestAiLeft extends ConsumerWidget {
+  const _GuestAiLeft();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final style = fdText(13, FontWeight.w500, FdColors.muted);
+    final u = ref.watch(guestAiUsageProvider).value;
+    if (u == null) return Text(l.prepGuestAiLimit, style: style);
+    const mark = '\u0000';
+    final parts = l.prepGuestAiLeft('${u.aiLimit}', mark).split(mark);
+    return Text.rich(
+      TextSpan(
+        style: style,
+        children: [
+          TextSpan(text: parts.first),
+          TextSpan(
+            text: '${u.aiLeft}',
+            style: const TextStyle(fontFamily: SeoulType.mono, fontWeight: FontWeight.w600, color: FdColors.ink),
+          ),
+          if (parts.length > 1) TextSpan(text: parts.sublist(1).join()),
+        ],
+      ),
+    );
+  }
+}
+
+/// «Haftasiga 1 ta · bu hafta bo'sh» (D4), from the server's weekly count.
+class _GuestInterviewWeek extends ConsumerWidget {
+  const _GuestInterviewWeek();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final u = ref.watch(guestAiUsageProvider).value;
+    final text = u == null
+        ? l.prepGuestInterviewLimit
+        : u.interviewFree
+        ? l.prepGuestInterviewFree
+        : l.prepGuestInterviewUsed;
+    return Text(text, style: fdText(13, FontWeight.w500, FdColors.muted));
   }
 }

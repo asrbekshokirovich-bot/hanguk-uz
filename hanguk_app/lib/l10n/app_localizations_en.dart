@@ -5701,4 +5701,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nextStepStageResult => 'Result and visa';
+
+  @override
+  String prepGuestAiLeft(String limit, String left) {
+    return '$left of $limit questions left today';
+  }
+
+  @override
+  String get prepGuestInterviewFree => '1 a week · free this week';
+
+  @override
+  String get prepGuestInterviewUsed => '1 a week · used this week';
 }

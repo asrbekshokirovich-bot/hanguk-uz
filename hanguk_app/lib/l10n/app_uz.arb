@@ -1819,5 +1819,8 @@
   "nextStepStageDocuments": "Hujjatlar",
   "nextStepStageUniversity": "Universitet tanlash",
   "nextStepStageOnline": "Online ariza",
-  "nextStepStageResult": "Natija va viza"
+  "nextStepStageResult": "Natija va viza",
+  "prepGuestAiLeft": "Bugun {limit} ta savoldan {left} tasi qoldi",
+  "prepGuestInterviewFree": "Haftasiga 1 ta · bu hafta bo'sh",
+  "prepGuestInterviewUsed": "Haftasiga 1 ta · bu hafta ishlatilgan"
 }

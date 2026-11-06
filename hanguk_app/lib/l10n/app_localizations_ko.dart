@@ -5498,4 +5498,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get nextStepStageResult => '결과 및 비자';
+
+  @override
+  String prepGuestAiLeft(String limit, String left) {
+    return '오늘 질문 $limit개 중 $left개 남음';
+  }
+
+  @override
+  String get prepGuestInterviewFree => '주 1회 · 이번 주 사용 가능';
+
+  @override
+  String get prepGuestInterviewUsed => '주 1회 · 이번 주 사용함';
 }

@@ -102,6 +102,8 @@ class ChatNotifier extends Notifier<ChatState> {
         'user_id': user?.id ?? 'anonymous',
         'user_type': 'student',
         'language': language,
+        // A guest's 10 questions a day are counted by the phone (D4).
+        'install_id': ?AppEvents.installId,
       });
 
       final response = await http.Client().send(request);
