@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/form_progress.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -56,6 +57,16 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
 
   /// The slider's answers, recorded when the finger lifts.
   final _slide = SlideAnswers();
+
+  /// `form_leave` when the page goes: how many answers changed on this visit.
+  late final _progress = FormProgress('university', props: {'institution_id': widget.institutionId});
+  int _total = 0;
+
+  @override
+  void dispose() {
+    _progress.leave(total: _total);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +131,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
 
   Widget _body(BuildContext context, AppLocalizations l, CatalogUniversity u, List<GlobalKey> keys) {
     final input = ref.watch(assessmentProvider);
+    _total = input.answerBands().length;
     final book = ref.watch(chanceBookProvider);
     final tests = book.testsOf(u);
     void set(AssessmentInput next, {bool sliding = false}) {
@@ -127,6 +139,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
         _started = true;
         AppEvents.track('assessment_start', props: {'kind': 'university', 'institution_id': u.institutionId});
       }
+      _progress.compare(input.answerBands(), next.answerBands());
       if (sliding) {
         _slide.moved(input);
       } else {

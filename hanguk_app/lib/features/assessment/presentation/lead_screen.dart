@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/form_progress.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
@@ -58,8 +59,16 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     if (saved != null) _phone.text = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(saved));
   }
 
+  /// `form_leave`: which of the four fields were filled when the page went.
+  final _progress = FormProgress('lead');
+
   @override
   void dispose() {
+    if (_name.text.trim().isNotEmpty) _progress.answered('name');
+    if (UzPhoneFormatter.digitsOf(_phone.text).length == kUzNationalDigits) _progress.answered('phone');
+    if (_forWhom != null) _progress.answered('for_whom');
+    if (_heard != null) _progress.answered('how_heard');
+    _progress.leave(total: 4);
     _name.dispose();
     _phone.dispose();
     super.dispose();
@@ -97,6 +106,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     );
     AppEvents.track('lead_submit', props: {'status': res.status.name});
     AppEvents.track('form_submit', props: {'form': 'lead', 'result': res.status.name});
+    if (res.status == QuizSubmitStatus.ok) _progress.sent();
     if (res.status == QuizSubmitStatus.ok) AppEvents.linkLead(res.linkCode);
     if (!mounted) return;
     setState(() => _sending = false);
