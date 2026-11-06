@@ -170,6 +170,12 @@ jobs:
           # supabase/functions/ ga ko'chirildi; #596 da manbasi sb_secret kalitni o'zi
           # tekshiradigan bo'ldi. verify_jwt = false shart — 20261105170000 migratsiyasidan
           # keyin pg_cron `apikey`da sb_secret yuboradi.
+          # 2026-11-06 (kalit migratsiyasi, 2-qism): live bilan solishtirildi, repo nusxasi
+          # yangiroq/to'g'ri: dispatch-comm-jobs (live'dagi ref_table qo'shildi; content_embed
+          # endi yuborilmaydi — embed-content 2026-11-05 da o'chirilgan, ishlar pending qoladi),
+          # db-exec (live'dagi jstr() BigInt qo'shildi; verify_jwt=false + isServiceRequest),
+          # investor-export, guest-auth, get-pdf-url, register-push-token (verify_jwt=false,
+          # live kabi), create-student (verify_jwt=true, live kabi).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -237,6 +243,13 @@ jobs:
             upload-guideline
             voice-bakeoff-tmp
             notify-tracked-changes
+            dispatch-comm-jobs
+            db-exec
+            investor-export
+            guest-auth
+            get-pdf-url
+            register-push-token
+            create-student
           "
 
           for fn in $FUNCTIONS; do

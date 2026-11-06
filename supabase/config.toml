@@ -42,8 +42,12 @@ verify_jwt = false
 [functions.create-learning-center]
 verify_jwt = true
 
+# create-student: 2026-11-06 live (v76) bilan tenglashtirildi (true). CRM uni faqat
+# xodimning sessiya JWT'si bilan chaqiradi (supabase.functions.invoke); funksiya
+# o'zi getUser() + user_roles (owner/admin/call_operator/document_handler) tekshiradi.
+# Server kaliti bilan chaqiruvchi yo'q, shuning uchun shlyuz anonimni ham to'xtatadi.
 [functions.create-student]
-verify_jwt = false
+verify_jwt = true
 
 [functions.student-login]
 verify_jwt = false
@@ -295,4 +299,17 @@ verify_jwt = false
 # migratsiyasidan keyin pg_cron `apikey`da sb_secret yuboradi (JWT emas), shuning
 # uchun shlyuz tekshiruvi o'chiq bo'lishi shart.
 [functions.notify-tracked-changes]
+verify_jwt = false
+
+# 2026-11-06 (kalit migratsiyasi, 2-qism): live bilan bir xil (verify_jwt=false).
+# guest-auth — mehmon (lid) email/parol bilan kiradi, sessiyasiz chaqiriladi.
+[functions.guest-auth]
+verify_jwt = false
+
+# get-pdf-url — funksiya o'zi getUser() + fn_is_app_user() bilan tekshiradi.
+[functions.get-pdf-url]
+verify_jwt = false
+
+# register-push-token — funksiya o'zi auth.getUser(jwt) bilan foydalanuvchini aniqlaydi.
+[functions.register-push-token]
 verify_jwt = false

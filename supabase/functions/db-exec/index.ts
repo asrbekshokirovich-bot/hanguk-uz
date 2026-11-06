@@ -21,6 +21,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, apikey, content-type",
 };
 
+// Postgres bigint/int8 arrives as JS BigInt, which JSON.stringify can't handle;
+// coerce to Number (our bigints — counts, sizes, ids — are well under 2^53).
+function jstr(obj: unknown): string {
+  return JSON.stringify(obj, (_k, v) => (typeof v === "bigint" ? Number(v) : v));
+}
+
 // Warm pool reused across invocations while the instance stays warm.
 let pool: Pool | null = null;
 function getPool(): Pool {
@@ -31,14 +37,14 @@ function getPool(): Pool {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "POST only" }), {
+    return new Response(jstr({ error: "POST only" }), {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
   if (!isServiceRequest(req)) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
+    return new Response(jstr({ error: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -48,7 +54,7 @@ serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "invalid JSON body" }), {
+    return new Response(jstr({ error: "invalid JSON body" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -56,7 +62,7 @@ serve(async (req) => {
   const sql = body.sql;
   const params = Array.isArray(body.params) ? body.params : [];
   if (typeof sql !== "string" || !sql.trim()) {
-    return new Response(JSON.stringify({ error: "sql (string) required" }), {
+    return new Response(jstr({ error: "sql (string) required" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -66,11 +72,11 @@ serve(async (req) => {
   try {
     const result = await client.queryObject({ text: sql, args: params });
     return new Response(
-      JSON.stringify({ rows: result.rows ?? [], rowCount: result.rowCount ?? (result.rows?.length ?? 0) }),
+      jstr({ rows: result.rows ?? [], rowCount: result.rowCount ?? (result.rows?.length ?? 0) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), {
+    return new Response(jstr({ error: e instanceof Error ? e.message : String(e) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
