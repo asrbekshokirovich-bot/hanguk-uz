@@ -5601,4 +5601,23 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get continueReport => 'Mở báo cáo';
+
+  @override
+  String get prepGuestIntro =>
+      'Bạn có thể dùng thử với tư cách khách. Dùng không giới hạn — bằng mã khách hàng.';
+
+  @override
+  String get prepGuestAi => 'Hanguk AI';
+
+  @override
+  String get prepGuestAiLimit => '10 câu hỏi mỗi ngày';
+
+  @override
+  String get prepGuestInterviewLimit => '1 lần mỗi tuần';
+
+  @override
+  String get prepGuestStudyLocked => 'Mở bằng mã khách hàng';
+
+  @override
+  String get prepGuestSignIn => 'Đăng nhập bằng mã khách hàng';
 }

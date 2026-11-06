@@ -5629,4 +5629,23 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get continueReport => 'Hisobotni ochish';
+
+  @override
+  String get prepGuestIntro =>
+      'Mehmon sifatida ham sinab ko\'rishingiz mumkin. Cheklovsiz foydalanish — mijoz kodi bilan.';
+
+  @override
+  String get prepGuestAi => 'Hanguk AI';
+
+  @override
+  String get prepGuestAiLimit => 'Kuniga 10 ta savol';
+
+  @override
+  String get prepGuestInterviewLimit => 'Haftasiga 1 ta';
+
+  @override
+  String get prepGuestStudyLocked => 'Mijoz kodi bilan ochiladi';
+
+  @override
+  String get prepGuestSignIn => 'Mijoz kodi bilan kirish';
 }

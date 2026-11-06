@@ -6948,5 +6948,29 @@
   "continueReport": "Open the report",
   "@continueReport": {
     "description": "Home 'Continue' card: open the report"
+  },
+  "prepGuestIntro": "You can try these as a guest too. To use them without limits, sign in with your client code.",
+  "@prepGuestIntro": {
+    "description": "Prepare tab for a guest (retention plan P19, design D4): intro"
+  },
+  "prepGuestAi": "Hanguk AI",
+  "@prepGuestAi": {
+    "description": "Prepare tab for a guest: the AI row title"
+  },
+  "prepGuestAiLimit": "10 questions a day",
+  "@prepGuestAiLimit": {
+    "description": "Prepare tab for a guest: the AI limit (AI_LIMIT_GUEST_DAY = 10)"
+  },
+  "prepGuestInterviewLimit": "1 a week",
+  "@prepGuestInterviewLimit": {
+    "description": "Prepare tab for a guest: the interview limit (P18, one a week)"
+  },
+  "prepGuestStudyLocked": "Opens with a client code",
+  "@prepGuestStudyLocked": {
+    "description": "Prepare tab for a guest: Study Plan needs a client code"
+  },
+  "prepGuestSignIn": "Sign in with a client code",
+  "@prepGuestSignIn": {
+    "description": "Prepare tab for a guest: sign-in button"
   }
 }

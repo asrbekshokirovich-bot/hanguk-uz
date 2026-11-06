@@ -10099,6 +10099,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open the report'**
   String get continueReport;
+
+  /// Prepare tab for a guest (retention plan P19, design D4): intro
+  ///
+  /// In en, this message translates to:
+  /// **'You can try these as a guest too. To use them without limits, sign in with your client code.'**
+  String get prepGuestIntro;
+
+  /// Prepare tab for a guest: the AI row title
+  ///
+  /// In en, this message translates to:
+  /// **'Hanguk AI'**
+  String get prepGuestAi;
+
+  /// Prepare tab for a guest: the AI limit (AI_LIMIT_GUEST_DAY = 10)
+  ///
+  /// In en, this message translates to:
+  /// **'10 questions a day'**
+  String get prepGuestAiLimit;
+
+  /// Prepare tab for a guest: the interview limit (P18, one a week)
+  ///
+  /// In en, this message translates to:
+  /// **'1 a week'**
+  String get prepGuestInterviewLimit;
+
+  /// Prepare tab for a guest: Study Plan needs a client code
+  ///
+  /// In en, this message translates to:
+  /// **'Opens with a client code'**
+  String get prepGuestStudyLocked;
+
+  /// Prepare tab for a guest: sign-in button
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with a client code'**
+  String get prepGuestSignIn;
 }
 
 class _AppLocalizationsDelegate

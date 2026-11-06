@@ -5427,4 +5427,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get continueReport => '보고서 열기';
+
+  @override
+  String get prepGuestIntro => '게스트로도 사용해 볼 수 있습니다. 제한 없이 쓰려면 고객 코드로 로그인하세요.';
+
+  @override
+  String get prepGuestAi => 'Hanguk AI';
+
+  @override
+  String get prepGuestAiLimit => '하루 10개 질문';
+
+  @override
+  String get prepGuestInterviewLimit => '주 1회';
+
+  @override
+  String get prepGuestStudyLocked => '고객 코드로 열립니다';
+
+  @override
+  String get prepGuestSignIn => '고객 코드로 로그인';
 }
