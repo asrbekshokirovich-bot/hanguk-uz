@@ -5457,4 +5457,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => '서류 업로드';
+
+  @override
+  String continueTitleCount(String count) {
+    return '평가가 저장되었습니다: 대학 $count곳';
+  }
+
+  @override
+  String continueNearestLine(String university, String date) {
+    return '가장 가까운 마감: $university — 온라인 지원 $date까지';
+  }
 }

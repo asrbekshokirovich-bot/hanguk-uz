@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/analytics/tracked.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -9,18 +10,19 @@ import '../../../assessment/data/assessment_controller.dart';
 import '../../../assessment/domain/assessment.dart';
 import '../../../catalog/data/catalog_repository.dart';
 import '../../../catalog/domain/catalog_models.dart';
+import '../../../client/presentation/widgets/journey_parts.dart' show journeyMonth;
 import '../../../onboarding/data/quiz_repository.dart';
 import '../../../onboarding/domain/eligibility_engine.dart';
 import '../../data/application_windows.dart';
-import '../../data/slots.dart';
 import '../discover_routes.dart';
-import '../guest_application_path_screen.dart' show daysUntil, heartedUniversities;
+import '../guest_application_path_screen.dart' show daysUntil;
 import 'app_nav.dart';
 
 /// «Davom etish» (ushlab qolish P22, Claude Design D7): a guest who comes
-/// back with answers kept (P05) and ♥ universities sees them at the top of
-/// the home: each one's admission percent, the nearest online deadline, and
-/// the way on to the application path or the report.
+/// back with answers kept (P05) sees the assessment's universities at the top
+/// of the home — «Baholashingiz saqlangan: 3 ta universitet», each one's
+/// admission percent, the nearest online deadline — and the way on to the
+/// application path or the report.
 class ContinueCard extends ConsumerWidget {
   const ContinueCard({super.key});
 
@@ -29,9 +31,10 @@ class ContinueCard extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final touched = ref.watch(assessmentTouchedProvider);
     final catalog = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
-    final hearted = heartedUniversities(ref.watch(slotsProvider), catalog);
-    if (!touched || hearted.isEmpty) return const SizedBox.shrink();
     final input = ref.watch(assessmentProvider);
+    final known = {for (final u in catalog) u.institutionId: u};
+    final unis = [for (final id in input.universityIds) ?known[id]];
+    if (!touched || unis.isEmpty) return const SizedBox.shrink();
     final rules = ref.watch(eligibilityRulesProvider).value ?? const EligibilityRules();
     final windows = ref.watch(applicationWindowsProvider).value ?? const <String, CatalogRound>{};
     final today = DateTime.now();
@@ -43,7 +46,7 @@ class ContinueCard extends ConsumerWidget {
 
     // The nearest deadline still ahead among them.
     (CatalogUniversity, String)? nearest;
-    for (final u in hearted) {
+    for (final u in unis) {
       final end = windows[guideline(u).id]?.endDate;
       final left = daysUntil(end, today);
       if (end == null || left == null || left < 0) continue;
@@ -64,9 +67,9 @@ class ContinueCard extends ConsumerWidget {
         children: [
           Text(l.continueEyebrow, style: fdText(12, FontWeight.w800, FdColors.onNavyMuted, letterSpacing: 0.5)),
           const SizedBox(height: 8),
-          Text(l.continueTitle, style: fdText(18, FontWeight.w800, Colors.white, height: 1.25)),
+          Text(l.continueTitleCount('${unis.length}'), style: fdText(18, FontWeight.w800, Colors.white, height: 1.25)),
           const SizedBox(height: 12),
-          for (final u in hearted) ...[
+          for (final u in unis) ...[
             Row(
               children: [
                 Expanded(child: Text(u.displayName, style: fdText(13.5, FontWeight.w600, Colors.white))),
@@ -77,7 +80,7 @@ class ContinueCard extends ConsumerWidget {
             const SizedBox(height: 8),
           ],
           if (nearest != null) ...[
-            Text('${l.continueNearest}: ${nearest.$1.displayName} — ${MaterialLocalizations.of(context).formatShortMonthDay(DateTime.parse(nearest.$2))}',
+            Text(l.continueNearestLine(nearest.$1.displayName, continueDay(context, DateTime.parse(nearest.$2))),
                 style: fdText(13, FontWeight.w600, FdColors.onNavyMuted, height: 1.35)),
             const SizedBox(height: 12),
           ],
@@ -104,4 +107,11 @@ class ContinueCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// «20-noyabr» in Uzbek (the design's «20-noyabrgacha»), the locale's day and
+/// full month elsewhere.
+String continueDay(BuildContext context, DateTime d) {
+  final locale = AppLocalizations.of(context)!.localeName;
+  return locale.startsWith('uz') ? '${d.day}-${journeyMonth(context, d)}' : DateFormat.MMMMd(locale).format(d);
 }
