@@ -3175,7 +3175,17 @@
     "noOffers": "Javob kutayotgan taklif yo'q",
     "noDocuments": "Hammasining hujjatlari to'liq",
     "noInactive": "Hamma 7 kun ichida ilovaga kirgan",
-    "seasonNote": "Faqat {{season}} mavsumi talabalari — shartnomasi bekor qilinganlar va Koreyaga ketganlarsiz. Mavsumni tepadagi tanlovdan almashtiring."
+    "seasonNote": "Faqat {{season}} mavsumi talabalari — shartnomasi bekor qilinganlar va Koreyaga ketganlarsiz. Mavsumni tepadagi tanlovdan almashtiring.",
+    "invite": "Ilovaga taklif",
+    "inviteAll": "Hammasiga taklif",
+    "invitePlan": "Telegram: {{telegram}} · vazifa: {{task}} · o'tkaziladi: {{skipped}}",
+    "inviteConfirm": "Yuborish",
+    "inviteCancel": "Bekor",
+    "inviteSentTelegram": "Taklif Telegram'dan yuborildi",
+    "inviteSentTask": "Telegram yo'q — konsultantga vazifa yaratildi",
+    "inviteNothing": "Ilovada bor yoki shu hafta taklif qilingan",
+    "inviteDone": "Yuborildi: Telegram {{telegram}}, vazifa {{task}}",
+    "inviteError": "Taklif yuborilmadi"
   },
   "guestPush": {
     "title": "Mehmonlarga push",
