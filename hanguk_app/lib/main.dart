@@ -26,6 +26,7 @@ import 'features/uni_db/data/notification_service.dart';
 import 'features/uni_db/data/push_token_bootstrap.dart';
 import 'features/updater/presentation/update_gate.dart';
 import 'l10n/app_localizations.dart';
+import 'core/review/review_prompt.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
@@ -156,6 +157,7 @@ class HangukApp extends ConsumerWidget {
         );
     // A guest who allowed pushes keeps a current token in the app's language.
     unawaited(GuestPush.refresh(locale?.languageCode));
+    unawaited(ReviewPrompt.noteStart());
 
     return MaterialApp.router(
       title: 'Hanguk Student App',

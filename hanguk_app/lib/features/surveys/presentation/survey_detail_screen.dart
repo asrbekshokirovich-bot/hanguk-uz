@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/analytics/form_progress.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
@@ -47,6 +48,20 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
   final Map<String, dynamic> _answers = {};
   bool _submitting = false;
   bool _submitted = false;
+
+  /// `form_leave`: how many questions were answered when the page went.
+  final _progress = FormProgress('survey');
+  int _total = 0;
+
+  @override
+  void dispose() {
+    for (final e in _answers.entries) {
+      if (_hasValue(e.value)) _progress.answered(e.key);
+    }
+    if (_submitted) _progress.sent();
+    _progress.leave(total: _total);
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -220,6 +235,7 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
           (q) => !q.isRequired || _isAnswered(q),
         );
 
+        _total = questions.length;
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(
             SeoulSizes.screenPadding,
