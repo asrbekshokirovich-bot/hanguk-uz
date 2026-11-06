@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/core/analytics/app_events.dart';
 import 'package:hanguk_app/design_system/seoul_night/seoul_night.dart';
 import 'package:hanguk_app/features/catalog/domain/catalog_models.dart';
 import 'package:hanguk_app/features/discover/presentation/study_plan_test_screen.dart';
@@ -54,5 +55,46 @@ void main() {
     await t.pump();
     await t.pump();
     expect(sent, 1);
+  });
+
+  testWidgets('the test\'s end is recorded: the mark, or leaving without one', (t) async {
+    final seen = <TrackedEvent>[];
+    AppEvents.debugOnTrack = seen.add;
+    addTearDown(() => AppEvents.debugOnTrack = null);
+    Widget screen() => MaterialApp(
+      locale: const Locale('uz'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: Scaffold(
+        body: StudyPlanTestScreen(
+          university: _uni,
+          send: (answers, seconds) async => StudyPlanTestResult.fromJson(const {'score': 55}),
+        ),
+      ),
+    );
+    List<Map<String, Object?>> results() =>
+        [for (final e in seen) if (e.event == 'study_plan_test_result') e.props!];
+
+    await t.pumpWidget(screen());
+    await t.pump();
+    final l = await AppLocalizations.delegate.load(const Locale('uz'));
+    await t.enterText(find.byType(TextField).first, 'Kompyuter injiniringini o\'rganmoqchiman');
+    await t.pump();
+    await t.tap(find.widgetWithText(HardButton, l.sptSubmit));
+    await t.pump();
+    await t.pump();
+    expect(results().single['result'], 'ok');
+    expect(results().single['score'], 55);
+    expect(results().single['institution_id'], 'u1');
+
+    // Leaving after the mark adds nothing.
+    await t.pumpWidget(const SizedBox());
+    expect(results(), hasLength(1));
+
+    // Leaving without sending is recorded as such.
+    await t.pumpWidget(screen());
+    await t.pump();
+    await t.pumpWidget(const SizedBox());
+    expect(results().last['result'], 'left');
   });
 }
