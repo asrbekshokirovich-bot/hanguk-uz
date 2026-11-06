@@ -16,7 +16,10 @@ Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohid
 | Guruh, DM | vazifa kartasiga javob (reply) | oddiy matn → izoh (CRM «Faollik», ikkinchi tomonga DM); bergan yoki owner: «ertaga 15:00», «05.11», «juma» → muddat, `@username` → boshqa xodimga |
 | Guruh | ovozli xabar | fonda matnga (Scribe, zaxira Gemini) → «🎤 …» bo'lib saqlanadi va tahlil qilinadi; ovozdan `#vazifa` chiqmaydi |
 | Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
-| Guruh | har ish kuni 09:00 | jamoa xulosasi: har xodimning kechikkan va bugungi vazifalari (hammasi), lidlar, hujjatlar, ariza muddatlari, kechagi hisobot (topshirmaganlar ismi bilan) |
+| Guruh | rasm | izohi (caption) bo'lsa — matn sifatida saqlanadi va tahlil qilinadi; izohsiz rasm faqat saqlanadi |
+| Guruh | xabarni tahrirlash | bazadagi matn yangilanadi (`edited_at`); qayta tahlil qilinmaydi, `#vazifa` qayta bajarilmaydi |
+| Guruh | reaksiya (👍, ✅ …) | `staff_group_reactions`ga saqlanadi (bot kartasiga bo'lsa — `task_id` bilan); hozircha hech narsani o'zgartirmaydi |
+| Guruh | har ish kuni 09:00 | jamoa xulosasi: har xodimning kechikkan va bugungi vazifalari (hammasi), lidlar, hujjatlar, ariza muddatlari, kechagi hisobot (topshirmaganlar ismi bilan), «💬 Kecha guruhda» — oxirgi ish kunining qisqa xulosasi |
 | DM | 🔔 bildirishnomalar | CRM'da berilgan / o'tkazilgan / muddati o'zgargan / bekor qilingan vazifa, «▶ boshladi», CRM'da yopildi; muddatga 1 soat qoldi, muddat o'tdi (22:00–08:00 da jim) |
 
 To'liq qo'llanma botda: `/help`.
@@ -33,13 +36,14 @@ Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir mart
 | 17:30, 18:00 | eslatma (topshirmaganlarga) | `staff-bot-report-remind1..3` |
 | 18:15 | ownerlarga (yoki tanlanganlarga) xulosa | `staff-bot-report-summary` |
 | har soat | 24 soatlik takliflar → expired | `staff-bot-proposals-expire` |
+| 21:30 (ish kunlari — edge'da `workdays` tekshiriladi) | kunlik guruh xulosasi → `group_daily_summaries` (xabar yuborilmaydi) | `staff-bot-group-summary` |
 | 02:30 | 90 kundan eski guruh xabarlari o'chiriladi | `staff-bot-group-retention` |
 | har 5 daqiqa (har kuni) | AI navbati (`bot_jobs`) qayta bajariladi + AI holati ogohlantirishi (`?action=jobs`) | `staff-bot-jobs` |
 | 02:40 | 90 kundan eski `ai_calls` va yakunlangan `bot_jobs` o'chiriladi | `staff-bot-ai-retention` |
 | darhol + har 5 daqiqa, 08:00–21:55 (har kuni) | bildirishnomalar navbati (`bot_notifications`) → DM; tunda yig'iladi, 08:00 da ketadi | `staff-bot-notify` |
 | har 15 daqiqa, 08:00–21:45 (ish kunlari — `workdays`; yakshanbagisi dushanba 08:00 da) | muddat nazorati: 1 soat qoldi → mas'ul; o'tdi → mas'ul + beruvchi; 2 kundan oshdi → ownerlarga yig'ma | `staff-bot-deadlines` |
 
-Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida). `staff-bot-jobs`, `staff-bot-ai-retention`, `staff-bot-notify` va `staff-bot-deadlines` migratsiyalarda qo'yilgan (`20261106060000`, `20261106061000`) — `bot_apply_schedule()` ularga tegmaydi.
+Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida). `staff-bot-jobs`, `staff-bot-ai-retention`, `staff-bot-notify`, `staff-bot-deadlines` va `staff-bot-group-summary` migratsiyalarda qo'yilgan (`20261106060000`, `20261106061000`, `20261106110000`) — `bot_apply_schedule()` ularga tegmaydi.
 
 ## Bildirishnomalar va muddat nazorati
 `task_events` → trigger `trg_task_events_notify` → `bot_notifications` (outbox) → shu zahoti `net.http_post(?action=notify)`; zaxira — cron.
@@ -60,9 +64,9 @@ Eski sana bilan (muddati o'tib bo'lgach) yaratilgan vazifaga «muddat o'tdi» yu
 Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «muddat o'tdi — yuborilgan» deb belgilangan (eski Orbit vazifalari bo'yicha xabar ketmaydi); ownerlarga eskalatsiya ham faqat 2 kuni allaqachon to'lganlar uchun belgilangan, qolganlari o'z vaqtida boradi.
 
 ## Arxitektura
-- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (provayderlar, testlar `ai_test.ts`), `aiops.ts` (AI jurnali, navbat, ogohlantirish; testlar `aiops_test.ts`), `notify.ts` (bildirishnomalar navbati va muddat nazorati, testlar `notify_test.ts`), `voice.ts` (ovoz → matn: Scribe → Gemini, guruh ovozi; `voice_test.ts`), `cards.ts` (kartaga javobni ajratish, sof; `cards_test.ts`) va `card_actions.ts` (RPC + xabarlar).
+- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (provayderlar, testlar `ai_test.ts`), `aiops.ts` (AI jurnali, navbat, ogohlantirish; testlar `aiops_test.ts`), `notify.ts` (bildirishnomalar navbati va muddat nazorati, testlar `notify_test.ts`), `voice.ts` (ovoz → matn: Scribe → Gemini, guruh ovozi; `voice_test.ts`), `cards.ts` (kartaga javobni ajratish, sof; `cards_test.ts`) va `card_actions.ts` (RPC + xabarlar), `analysis.ts` (guruh tahlili 2.0; `analysis_test.ts`), `intake.ts` (guruhdagi tahrir va reaksiya; `intake_test.ts`), `summary.ts` (kunlik guruh xulosasi; `summary_test.ts`).
 - Edge: `tv-board` — ofis TV (hanguk.uz/tv) ma'lumoti, `?k=` kalit (`bot_settings.tv_key`, faqat owner ko'radi).
-- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report|jobs|notify|deadlines`) — Supabase secret key (`apikey`).
+- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report|jobs|notify|deadlines|group_summary`) — Supabase secret key (`apikey`).
 - Secrets: `STAFF_BOT_TOKEN`, `STAFF_BOT_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY` (Scribe; bo'lmasa ovoz faqat Gemini bilan); ixtiyoriy `STAFF_BOT_GEMINI_MODEL` (standart gemini-2.5-flash), `STAFF_BOT_CLAUDE_MODEL` (standart claude-haiku-5-5).
 - AI: hisobotni 3 qismga ajratish va guruh tahlili — «AI qatlami va navbat» bo'limiga qarang.
 - Ovoz → matn (DM: vazifa, hisobot, savol; guruh): ElevenLabs Scribe (`_shared/scribe.ts`, `uzb`, fayl `voice.ogg`), xato, bo'sh javob yoki 30 s dan oshsa — Gemini. Logda: `staff-bot voice: via scribe|gemini …` yoki `… voice not transcribed`.
@@ -80,6 +84,21 @@ Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «mu
 - **CRM:** Sozlamalar → Bot → «AI holati» (`BotAiHealthCard`, RPC `bot_ai_health`, faqat owner): maqsad/provayder kesimida chaqiruv, xato, o'rtacha ms, token, narx; navbatdagi va bajarilmagan ishlar; oxirgi xato.
 - Migratsiya qo'llanmagan bo'lsa ham bot ishlaydi: jurnal/navbat xatolari faqat loglanadi.
 
+## Kunlik guruh xulosasi (2026-11-06, reja B3-1, D8)
+- **Qachon:** har kuni 21:30 cron `?action=group_summary`; dam olish kuni (`workdays`'da yo'q) — hech narsa. `bot_settings.group_summary_enabled = false` — o'chiq (UI'da hali yo'q). Qo'lda: `?action=group_summary&date=YYYY-MM-DD[&chat=<id>]` (ish kuni tekshirilmaydi, qayta yozadi).
+- **Nima kiradi:** o'sha kun (Toshkent) «Staff» guruhidagi matnli xabarlar — oddiy matn, «🎤» ovoz transkripti, rasm/fayl izohi (`bot_group_day_messages`). Ulangan xodim — ismi bilan, ulanmagan akkaunt — «tashqi», test akkauntlar chiqariladi. Xabar 3 tadan kam bo'lsa AI chaqirilmaydi, hech narsa yozilmaydi.
+- **AI:** `aiOps.structured('group_summary')` — AI qatlami tartibi (Claude Haiku 5.5, zaxira Gemini), `ai_calls`'ga yoziladi. Natija: 3–6 band (`summary`, «• …» satrma-satr), `topics`, `decisions`, `open_questions`, `message_count`, `model`. Provayderlar xato bersa — `bot_jobs` (`group_summary`, kalit `gs:<chat>:<sana>`), `staff-bot-jobs` qayta urinadi.
+- **Ertalab (D8):** 09:00 guruh xulosasining oxirida «💬 Kecha guruhda» (dushanba — «Shanba kuni guruhda»): oxirgi ish kuni xulosasining 5 tagacha bandi. Xulosa bo'lmasa bo'lim chiqmaydi. `bot_group_digest` o'zgarmagan — edge alohida `bot_group_summary_get` bilan o'qiydi.
+- **Kim ko'radi:** `group_daily_summaries` — faqat owner (D3); Hanguk AI tool'i (B3-3) shu jadvalni o'qiydi.
+
+## Guruh tahlili 2.0 (2026-11-06, reja B2-1, B2-2)
+- **Kirish:** ulangan xodimning matni, rasm izohi va ovozi («🎤 …»). Ulanmagan akkaunt xabarlari saqlanadi, tahlil qilinmaydi (D7).
+- **Kontekst:** oldingi 20 ta xabar (`[#id ↩#javob] Ism: [rasm] matn`), javob berilgan xabar (oynadan tashqarida bo'lsa ham), xodimlar ro'yxati va jamoaning ochiq vazifalari — `bot_analysis_context` (ko'pi bilan 40, oxirgi o'zgargani birinchi, faqat xodimlarniki, test akkauntlarsiz). Migratsiya qo'llanmagan bo'lsa — eski `bot_group_context`.
+- **Natija turlari:** `new_task`, `close_task`, `update_task` (muddat/mas'ul), `question` (javob talab qiladigan savol), `decision` (qaror/qoida), `none`; har birida ishonch, sabab, vazifa raqami (ro'yxatdan → id), mas'ul. O'ziga va'da («aniqlashtirib aytaman») — `new_task`, ishonch ≤ 0.6 (taklif bo'lmaydi).
+- **`bot_analyses`:** har tahlil (none ham) — xabar, muallif, provayder/model, rejim, turlar, eng yuqori ishonch, `result` (topilmalar: `proposed`, taklif qilinmagan bo'lsa `skip` sababi). 90 kun (`bot_analysis_retention`, cron `staff-bot-analysis-retention` 02:50).
+- **Takliflar:** faqat `new_task`/`close_task` → `bot_proposals` (avvalgidek: rejim, ishonch ≥ 0.75, har turdan bitta). Dublikat himoya: o'xshash ochiq vazifa, shu vazifaga kutilayotgan yopish taklifi, 24 soatda shu xodimga o'xshash `create` taklifi. `update_task`/`question`/`decision` hozircha faqat `bot_analyses`da.
+- **Webhook:** `allowed_updates` = message, edited_message, callback_query, my_chat_member, message_reaction — o'zgargach `?action=setup` qayta ochilishi kerak. Reaksiyalar faqat bot guruhda **admin** bo'lsa keladi.
+
 ## Baza (migratsiyalar 2026-10-31 … 2026-11-06)
 | Jadval | Vazifasi | O'qiydi |
 |---|---|---|
@@ -89,9 +108,12 @@ Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «mu
 | `task_events` | vazifa voqealari (via crm/dm/group/cron) | vazifani ko'ra oladigan |
 | `task_comments` | vazifa izohlari (CRM «Faollik»); botdagi kartaga javob ham shu yerga, muallif = xodim | owner, admin, operator, hujjatchi |
 | `daily_reports` | kunlik hisobot (bir kunga bitta) | o'zi, owner, admin |
-| `staff_group_messages` | guruh xabarlari (90 kun) | owner |
+| `staff_group_messages` | guruh xabarlari (90 kun; `edited_at` — tahrir) | owner |
+| `staff_group_reactions` | guruhdagi reaksiyalar (xabar + odam; bot kartasiga — `task_id`) | owner |
+| `bot_analyses` | har guruh tahlili natijasi (none ham), 90 kun | owner |
 | `bot_group_cards` | guruh kartasi → vazifa | faqat service |
 | `bot_proposals` | AI takliflari (shadow/on, holati) | owner |
+| `group_daily_summaries` | kunlik guruh xulosasi (chat, sana) | owner |
 | `ai_calls` | AI urinishlari jurnali (90 kun) | owner |
 | `bot_jobs`, `bot_alerts` | AI qayta urinish navbati, ogohlantirish vaqti | faqat service |
 | `bot_notifications` | bildirishnomalar navbati: pending → sent / skipped / failed | faqat service |

@@ -182,6 +182,8 @@ export interface GroupDigest {
   brief: Omit<MorningBrief, "my_new_leads" | "my_overdue_tasks"> | null;
   /** Oxirgi ish kunidagi kunlik hisobot; hisobot o'chirilgan bo'lsa null. */
   reports: { submitted: number; expected: number; missing?: string[] } | null;
+  /** Oxirgi ish kunining guruh xulosasi bandlari (group_daily_summaries, D8); bo'lmasa bo'lim chiqmaydi. */
+  chat?: string[] | null;
 }
 
 export const WEEKDAYS_UZ = ["", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"];
@@ -269,6 +271,12 @@ export function renderGroupDigest(d: GroupDigest, maxPerPerson = Infinity): stri
     lines.push("", `📝 ${label} kunlik hisobot: <b>${d.reports.submitted}/${d.reports.expected}</b> xodim topshirdi`);
     const missing = d.reports.missing ?? [];
     if (missing.length) lines.push(`Topshirmaganlar: ${missing.map(escapeHtml).join(", ")}`);
+  }
+
+  const chat = (d.chat ?? []).map((x) => shortTitle(String(x ?? "").replace(/^[•\-*\s]+/, ""), 200)).filter(Boolean).slice(0, 5);
+  if (chat.length) {
+    const label = yesterday ? "Kecha" : `${WEEKDAYS_UZ[isoWeekday(d.prev_date)]} kuni`;
+    lines.push("", `💬 <b>${label} guruhda</b>`, ...chat.map((x) => `• ${escapeHtml(x)}`));
   }
   return lines.join("\n");
 }
@@ -609,6 +617,9 @@ export const GROUP_HELP =
   "Har ish kuni ertalab bot shu guruhga jamoa xulosasini yuboradi.";
 
 // ── PR-8: guruh suhbati AI tahlili (faqat taklif) ─────────────────────────
+// Eslatma: index.ts endi analysis.ts (tahlil 2.0) ni ishlatadi; bu yerdan CtxStaff, Proposal, matchStaff,
+// similarTitle, MIN_CONFIDENCE, renderProposal kerak. ANALYSIS_SYSTEM/SCHEMA, buildAnalysisPrompt,
+// interpretAnalysis — eski (1-avlod), faqat testlar uchun qoldi.
 
 export interface CtxStaff {
   user_id: string;
