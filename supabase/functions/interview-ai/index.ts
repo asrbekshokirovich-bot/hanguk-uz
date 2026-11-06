@@ -5,6 +5,7 @@ import { ApiError, handleError } from "../_shared/error-handler.ts";
 import { ipLimiter } from "../_shared/rate-limiter.ts";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { serviceKey, publishableKey } from "../_shared/keys.ts";
+import { countsAgainstQuota, guestInterviewKey, guestInterviewLimit, weeklyLimitMessage } from "./guest_quota.ts";
 
 interface InterviewMessage {
   role: "interviewer" | "student";
@@ -129,6 +130,28 @@ serve(async (req) => {
         JSON.stringify({ error: "Session not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // A guest starts one interview a week (ushlab qolish P18, QU4).
+    if (user.app_metadata?.guest === true) {
+      const { count: earlier } = await adminClient
+        .from("interview_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("session_id", sessionId)
+        .eq("role", "student");
+      if (countsAgainstQuota(true, earlier ?? 0)) {
+        const { data: ok, error: qerr } = await adminClient.rpc("ai_take_quota", {
+          p_key: guestInterviewKey(user.id),
+          p_limit: guestInterviewLimit(),
+        });
+        if (qerr) console.error("[interview-ai] quota check failed:", qerr.message);
+        else if (ok === false) {
+          return new Response(
+            JSON.stringify({ error: "weekly_limit", message: weeklyLimitMessage(language) }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
     }
 
     // Save student message
