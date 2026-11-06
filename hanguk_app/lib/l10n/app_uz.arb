@@ -1771,5 +1771,9 @@
   "guestPushYes": "Ha, yuboring",
   "guestPushLater": "Keyinroq",
   "guestPushHeartTitle": "Shu universitet muddatini eslataylikmi?",
-  "guestPushHeartBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Telefon raqamingiz kerak emas."
+  "guestPushHeartBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Telefon raqamingiz kerak emas.",
+  "guestRemindersTitle": "Muddat eslatmalari",
+  "guestRemindersOn": "Yoqilgan",
+  "guestRemindersOff": "O'chirilgan",
+  "guestRemindersBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Kuniga ko'pi bilan 1 ta, haftasiga 2 ta; 22:00–08:00 da yubormaymiz."
 }

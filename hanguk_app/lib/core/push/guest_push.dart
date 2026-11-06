@@ -113,6 +113,43 @@ abstract final class GuestPush {
     }
   }
 
+  static const _remindersKey = 'guest_reminders_off_v1';
+
+  /// «Muddat eslatmalari» (ushlab qolish P10, D2): shown to a guest whose
+  /// phone may get pushes (allowed, or quietly allowed on iOS).
+  static Future<bool> remindersVisible() async {
+    if (_signedIn || !_mobile) return false;
+    return (await store.read(_allowedKey) ?? false) || (await store.read(_quietKey) ?? false);
+  }
+
+  static Future<bool> remindersOn() async => !(await store.read(_remindersKey) ?? false);
+
+  /// Turns the phone's deadline reminders on or off on the server
+  /// (app_guest_push_set); campaigns are not affected. False when it failed.
+  static Future<bool> setReminders(bool on) async {
+    final install = AppEvents.installId;
+    if (install == null) return false;
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) return false;
+      final res = await Supabase.instance.client.rpc('app_guest_push_set', params: remindersParams(install, token, on));
+      if (res is Map && res['status'] != 'ok') return false;
+      await store.write(_remindersKey, !on);
+      AppEvents.track('push_permission', props: {'result': on ? 'reminders_on' : 'reminders_off', 'source': 'guest'});
+      return true;
+    } catch (e) {
+      debugPrint('GuestPush: reminders failed: $e');
+      return false;
+    }
+  }
+
+  @visibleForTesting
+  static Map<String, Object?> remindersParams(String install, String token, bool on) => {
+    'p_install_id': install,
+    'p_token': token,
+    'p_enabled': on,
+  };
+
   static String? _lastLang;
 
   /// Keeps an allowed guest's token current (a new token, another language):

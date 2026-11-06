@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/push/guest_reminder_switch.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../applications/data/applications_repository.dart';
@@ -104,6 +105,10 @@ class NotificationsScreen extends ConsumerWidget {
               onMarkAllRead: tracked('notifications.home_notifications_mark_all_read', () {
                 ref.read(notificationStoreProvider.notifier).markAllRead();
               }),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(SeoulSizes.screenPadding, 8, SeoulSizes.screenPadding, 0),
+              child: GuestReminderSwitch(),
             ),
             Expanded(
               child: loading
