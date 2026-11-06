@@ -206,6 +206,7 @@ jobs:
             app-quality-alerts
             send-guest-push
             notify-guest-reminders
+            student-app-invite
             hanguk-ai-chat
             interview-ai
             study-plan-trainer
