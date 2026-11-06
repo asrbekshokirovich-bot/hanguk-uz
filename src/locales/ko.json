@@ -1629,6 +1629,9 @@
         "compute": "계산 중",
         "myCard": "지원서 확인 중",
         "memory": "메모리 업데이트 중",
+        "reports": "일일 보고서 읽는 중",
+        "groupSummary": "그룹 요약 읽는 중",
+        "teamHistory": "그룹 기록 검색 중",
         "data": "CRM 데이터 읽는 중"
       },
       "uni": {

@@ -72,6 +72,9 @@ export function stepKey(tool: string): string {
   if (tool === 'guideline_text_search') return 'guidelinePdf';
   if (tool.startsWith('uni_') || tool === 'gks_info' || tool === 'glossary' || tool === 'announcements') return 'guideline';
   if (tool === 'web_search' || tool === 'web_fetch') return 'web';
+  if (tool === 'daily_reports') return 'reports';
+  if (tool === 'group_summary') return 'groupSummary';
+  if (tool === 'team_history_search') return 'teamHistory';
   if (tool === 'query_database') return 'compute';
   if (tool === 'my_card') return 'myCard';
   if (tool.startsWith('memory_')) return 'memory';
