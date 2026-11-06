@@ -203,6 +203,7 @@ jobs:
             weekly-app-report
             app-quality-alerts
             send-guest-push
+            student-app-invite
             hanguk-ai-chat
             interview-ai
             study-plan-trainer

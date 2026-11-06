@@ -313,3 +313,7 @@ verify_jwt = false
 # register-push-token — funksiya o'zi auth.getUser(jwt) bilan foydalanuvchini aniqlaydi.
 [functions.register-push-token]
 verify_jwt = false
+
+# Ushlab qolish P13: pg_cron (sb_secret_) or staff JWT; requireCaller checks.
+[functions.student-app-invite]
+verify_jwt = false
