@@ -2650,7 +2650,8 @@
       "marketing": "Marketing",
       "live": "Jonli",
       "flow": "Oqim",
-      "clients": "Mijozlar faolligi"
+      "clients": "Mijozlar faolligi",
+      "retention": "Qaytish"
     },
     "quality": {
       "refreshed": "Sessiyalar va kunlik yig'indi yangilangan: {{time}}",
@@ -3729,5 +3730,21 @@
     "nameExists": "Bu ism bilan talaba allaqachon bor.",
     "missingFields": "Majburiy maydonlar to'ldirilmagan.",
     "generic": "Talaba qo'shilmadi. {{detail}}"
+  },
+  "retention": {
+    "range": "{{from}} – {{to}} · test qurilmalarsiz",
+    "audience": {
+      "mehmon": "Mehmon",
+      "talaba": "Talaba"
+    },
+    "day": "{{n}}-kun",
+    "curve": "Qaytish egri chizig'i",
+    "curveNote": "ustun — tanlangan auditoriya · sariq chiziq — Adjust, ta'lim ilovalari",
+    "cohort": "Haftalik kogorta",
+    "week": "Hafta",
+    "new": "Yangi",
+    "early": "hali erta",
+    "total": "Jami",
+    "note": "Foiz ustiga olib borsangiz «qaytgan / imkoni bor» soni ko'rinadi. N-kun = aynan N kun keyin ilovani ochib, nimanidir ko'rgan."
   }
 }
