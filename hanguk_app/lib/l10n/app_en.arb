@@ -6988,5 +6988,25 @@
   "nextStepUploadButton": "Upload documents",
   "@nextStepUploadButton": {
     "description": "Student 'Next step' card: open the documents tab"
+  },
+  "prepGuestAiLeft": "{left} of {limit} questions left today",
+  "@prepGuestAiLeft": {
+    "description": "Prepare, guest (D4): Hanguk AI questions left today; {left} is set in the mono face.",
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "prepGuestInterviewFree": "1 a week · free this week",
+  "@prepGuestInterviewFree": {
+    "description": "Prepare, guest (D4): the weekly interview practice is still free this week."
+  },
+  "prepGuestInterviewUsed": "1 a week · used this week",
+  "@prepGuestInterviewUsed": {
+    "description": "Prepare, guest (D4): this week's interview practice is used."
   }
 }

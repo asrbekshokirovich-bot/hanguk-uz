@@ -1808,5 +1808,8 @@
   "nextStepBadge": "다음 단계",
   "nextStepUploadTitle": "업로드할 서류",
   "nextStepUploadBody": "준비되면 상담사가 온라인 지원서를 제출합니다.",
-  "nextStepUploadButton": "서류 업로드"
+  "nextStepUploadButton": "서류 업로드",
+  "prepGuestAiLeft": "오늘 질문 {limit}개 중 {left}개 남음",
+  "prepGuestInterviewFree": "주 1회 · 이번 주 사용 가능",
+  "prepGuestInterviewUsed": "주 1회 · 이번 주 사용함"
 }

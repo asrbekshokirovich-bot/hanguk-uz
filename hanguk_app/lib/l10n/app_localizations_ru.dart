@@ -5660,4 +5660,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Загрузить документы';
+
+  @override
+  String prepGuestAiLeft(String limit, String left) {
+    return 'Сегодня осталось $left из $limit вопросов';
+  }
+
+  @override
+  String get prepGuestInterviewFree => '1 в неделю · на этой неделе свободно';
+
+  @override
+  String get prepGuestInterviewUsed =>
+      '1 в неделю · на этой неделе использовано';
 }
