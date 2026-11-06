@@ -617,6 +617,9 @@ export const GROUP_HELP =
   "Har ish kuni ertalab bot shu guruhga jamoa xulosasini yuboradi.";
 
 // ── PR-8: guruh suhbati AI tahlili (faqat taklif) ─────────────────────────
+// Eslatma: index.ts endi analysis.ts (tahlil 2.0) ni ishlatadi; bu yerdan CtxStaff, Proposal, matchStaff,
+// similarTitle, MIN_CONFIDENCE, renderProposal kerak. ANALYSIS_SYSTEM/SCHEMA, buildAnalysisPrompt,
+// interpretAnalysis — eski (1-avlod), faqat testlar uchun qoldi.
 
 export interface CtxStaff {
   user_id: string;
