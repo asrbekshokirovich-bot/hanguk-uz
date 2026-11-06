@@ -36,7 +36,9 @@ export function createEmbedOps(deps: EmbedDeps) {
 
   /** `runJobs({ group_embed: embedJob })`. Xato qaytarsa — qayta urinishga qo'yiladi. */
   async function embedJob(job: JobRow): Promise<string | undefined> {
-    const messageId = typeof job.payload?.message_id === "string" ? job.payload.message_id : "";
+    // staff_group_messages.id — bigint; trigger uni jsonb_build_object orqali raqam sifatida yuboradi.
+    const rawId = job.payload?.message_id;
+    const messageId = typeof rawId === "number" || typeof rawId === "string" ? rawId : "";
     const text = typeof job.payload?.text === "string" ? job.payload.text : "";
     if (!messageId || !text) return undefined; // yaroqsiz payload — qayta urinmaymiz
     if (!key) return undefined; // kalit yo'q — ish bekor, keyin kalit qo'yilsa backfill qamrab oladi

@@ -56,7 +56,7 @@ create trigger staff_group_messages_embed
 
 -- ── staff-bot/embed.ts uchun RPC'lar (service_role) ─────────────────────────
 
-create or replace function public.bot_embed_set(p_message_id uuid, p_embedding public.vector(1024))
+create or replace function public.bot_embed_set(p_message_id bigint, p_embedding public.vector(1024))
 returns void
 language sql
 security definer
@@ -69,7 +69,7 @@ $$;
 
 -- Hali vektorlanmagan (yoki jadval yaratilishidan oldingi) xabarlarni partiyalab qaytaradi.
 create or replace function public.bot_embed_backfill_claim(p_limit integer default 50)
-returns table (id uuid, text text)
+returns table (id bigint, text text)
 language sql
 security definer
 set search_path = public
@@ -86,9 +86,9 @@ as $$
    limit greatest(1, least(coalesce(p_limit, 50), 200));
 $$;
 
-revoke all on function public.bot_embed_set(uuid, public.vector) from public, anon, authenticated;
+revoke all on function public.bot_embed_set(bigint, public.vector) from public, anon, authenticated;
 revoke all on function public.bot_embed_backfill_claim(integer) from public, anon, authenticated;
-grant execute on function public.bot_embed_set(uuid, public.vector) to service_role;
+grant execute on function public.bot_embed_set(bigint, public.vector) to service_role;
 grant execute on function public.bot_embed_backfill_claim(integer) to service_role;
 
 -- ── semantik qidiruv (owner, ai_team_history_search bilan bir xil ruxsat/filtr) ─
