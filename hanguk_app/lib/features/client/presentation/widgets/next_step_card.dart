@@ -76,7 +76,13 @@ class NextStepCard extends ConsumerWidget {
               ),
               if (daysLeft != null && daysLeft! >= 0) ...[
                 const SizedBox(width: 8),
-                Text(l.catalogDaysLeft(daysLeft!), style: fdText(12, FontWeight.w700, const Color(0xFFB45309))),
+                Flexible(
+                  child: Text(
+                    l.catalogDaysLeft(daysLeft!),
+                    overflow: TextOverflow.ellipsis,
+                    style: fdText(12, FontWeight.w700, const Color(0xFFB45309)),
+                  ),
+                ),
               ],
             ],
           ),
