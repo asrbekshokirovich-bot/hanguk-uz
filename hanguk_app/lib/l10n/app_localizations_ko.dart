@@ -5467,4 +5467,35 @@ class AppLocalizationsKo extends AppLocalizations {
   String continueNearestLine(String university, String date) {
     return '가장 가까운 마감: $university — 온라인 지원 $date까지';
   }
+
+  @override
+  String nextStepUploadCount(String count) {
+    return '서류 $count개를 업로드하세요';
+  }
+
+  @override
+  String nextStepUploadNeeded(String names) {
+    return '$names이(가) 필요합니다.';
+  }
+
+  @override
+  String get nextStepAnd => '및';
+
+  @override
+  String get nextStepOrder => '순서';
+
+  @override
+  String get nextStepStageContract => '계약';
+
+  @override
+  String get nextStepStageDocuments => '서류';
+
+  @override
+  String get nextStepStageUniversity => '대학 선택';
+
+  @override
+  String get nextStepStageOnline => '온라인 지원';
+
+  @override
+  String get nextStepStageResult => '결과 및 비자';
 }

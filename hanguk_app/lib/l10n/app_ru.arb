@@ -1810,5 +1810,14 @@
   "nextStepUploadBody": "Когда они будут готовы, консультант подаст онлайн-заявку.",
   "nextStepUploadButton": "Загрузить документы",
   "continueTitleCount": "Ваша оценка сохранена: университетов — {count}",
-  "continueNearestLine": "Ближайший срок: {university} — онлайн-заявка до {date}"
+  "continueNearestLine": "Ближайший срок: {university} — онлайн-заявка до {date}",
+  "nextStepUploadCount": "Загрузите документы: {count}",
+  "nextStepUploadNeeded": "Нужны: {names}.",
+  "nextStepAnd": "и",
+  "nextStepOrder": "ПОРЯДОК",
+  "nextStepStageContract": "Договор",
+  "nextStepStageDocuments": "Документы",
+  "nextStepStageUniversity": "Выбор университета",
+  "nextStepStageOnline": "Онлайн-заявка",
+  "nextStepStageResult": "Результат и виза"
 }
