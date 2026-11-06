@@ -234,7 +234,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
+        onTap: tracked('guest_path.chip_tap', onTap),
         child: Container(
           constraints: const BoxConstraints(minHeight: 36),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -261,7 +261,7 @@ class _Button extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
         button: true,
         child: GestureDetector(
-          onTap: onTap,
+          onTap: tracked('guest_path.button', onTap),
           child: Container(
             height: 52,
             alignment: Alignment.center,
@@ -294,7 +294,7 @@ class _Empty extends StatelessWidget {
           const SizedBox(height: 8),
           Text(l.guestPathEmpty, style: fdText(13.5, FontWeight.w500, FdColors.pageMuted, height: 1.4)),
           const SizedBox(height: 16),
-          _Button(label: l.guestPathPick, color: FdColors.lime, fg: FdColors.onLime, onTap: onPick),
+          _Button(label: l.guestPathPick, color: FdColors.lime, fg: FdColors.onLime, onTap: tracked('guest_path.empty_pick', onPick)),
         ],
       ),
     );

@@ -169,7 +169,7 @@ extension on PrepareScreen {
           ],
         ),
       );
-      return locked ? card : GestureDetector(onTap: onTap, child: card);
+      return locked ? card : GestureDetector(onTap: tracked('prepare.guest_row', onTap), child: card);
     }
 
     return SafeArea(
