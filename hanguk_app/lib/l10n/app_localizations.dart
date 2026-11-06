@@ -9979,6 +9979,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get in Telegram'**
   String get guestTelegramButton;
+
+  /// Guest application path (retention plan P20, design D5): title
+  ///
+  /// In en, this message translates to:
+  /// **'Application path'**
+  String get guestPathTitle;
+
+  /// Guest application path: degree label, bachelor
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor'**
+  String get guestPathBachelor;
+
+  /// Guest application path: degree label, master
+  ///
+  /// In en, this message translates to:
+  /// **'Master'**
+  String get guestPathMaster;
+
+  /// Guest application path: the guideline has no dates yet
+  ///
+  /// In en, this message translates to:
+  /// **'The dates for this season are not published yet. We will add them as soon as the university announces them.'**
+  String get guestPathNoDates;
+
+  /// Guest application path: unit after the number of days left
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get guestPathDays;
+
+  /// Guest application path: label before a step's end date when it has no start
+  ///
+  /// In en, this message translates to:
+  /// **'Until'**
+  String get guestPathDeadline;
+
+  /// Guest application path: button to the document list (D6)
+  ///
+  /// In en, this message translates to:
+  /// **'Document list'**
+  String get guestPathDocuments;
+
+  /// Guest application path: apply with a consultant (lead form)
+  ///
+  /// In en, this message translates to:
+  /// **'Apply with a consultant'**
+  String get guestPathApply;
+
+  /// Guest application path / documents: no saved university yet
+  ///
+  /// In en, this message translates to:
+  /// **'Save a university with ♥ and its steps, dates and documents will show here.'**
+  String get guestPathEmpty;
+
+  /// Guest application path: button to the university list
+  ///
+  /// In en, this message translates to:
+  /// **'Choose universities'**
+  String get guestPathPick;
+
+  /// Guest document list (retention plan P21, design D6): title
+  ///
+  /// In en, this message translates to:
+  /// **'Document list'**
+  String get guestDocsTitle;
+
+  /// Guest document list: after the ready count
+  ///
+  /// In en, this message translates to:
+  /// **'ready · ticks stay on your phone only'**
+  String get guestDocsReady;
+
+  /// Guest document list: the guideline lists no documents
+  ///
+  /// In en, this message translates to:
+  /// **'This university\'s guideline lists no documents yet.'**
+  String get guestDocsNone;
+
+  /// Guest document list: tag on a document that needs an apostille
+  ///
+  /// In en, this message translates to:
+  /// **'apostille'**
+  String get guestDocsApostille;
+
+  /// Guest document list: footnote
+  ///
+  /// In en, this message translates to:
+  /// **'The list is from the university\'s guideline. A consultant helps with preparing and translating the documents.'**
+  String get guestDocsNote;
 }
 
 class _AppLocalizationsDelegate

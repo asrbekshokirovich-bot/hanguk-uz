@@ -1778,5 +1778,20 @@
   "guestRemindersBody": "Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Tối đa 1 tin mỗi ngày, 2 tin mỗi tuần; không gửi từ 22:00 đến 08:00.",
   "guestTelegramTitle": "Thông báo đang tắt",
   "guestTelegramBody": "Bạn có thể nhận nhắc hạn qua Telegram. Không cần số điện thoại — chỉ cần nhấn «Start» trong bot một lần.",
-  "guestTelegramButton": "Nhận qua Telegram"
+  "guestTelegramButton": "Nhận qua Telegram",
+  "guestPathTitle": "Lộ trình nộp hồ sơ",
+  "guestPathBachelor": "Cử nhân",
+  "guestPathMaster": "Thạc sĩ",
+  "guestPathNoDates": "Lịch của mùa này chưa được công bố. Chúng tôi sẽ thêm ngay khi trường thông báo.",
+  "guestPathDays": "ngày",
+  "guestPathDeadline": "Hạn",
+  "guestPathDocuments": "Danh sách giấy tờ",
+  "guestPathApply": "Nộp hồ sơ cùng tư vấn viên",
+  "guestPathEmpty": "Lưu một trường bằng ♥ để xem các bước, ngày và giấy tờ tại đây.",
+  "guestPathPick": "Chọn trường",
+  "guestDocsTitle": "Danh sách giấy tờ",
+  "guestDocsReady": "đã xong · dấu tích chỉ lưu trên điện thoại",
+  "guestDocsNone": "Hướng dẫn của trường này chưa có danh sách giấy tờ.",
+  "guestDocsApostille": "hợp pháp hóa",
+  "guestDocsNote": "Danh sách lấy từ hướng dẫn của trường. Tư vấn viên sẽ giúp chuẩn bị và dịch giấy tờ."
 }

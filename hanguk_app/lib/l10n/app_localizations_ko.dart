@@ -5367,4 +5367,49 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get guestTelegramButton => 'Telegram으로 받기';
+
+  @override
+  String get guestPathTitle => '지원 절차';
+
+  @override
+  String get guestPathBachelor => '학사';
+
+  @override
+  String get guestPathMaster => '석사';
+
+  @override
+  String get guestPathNoDates => '이번 학기 일정은 아직 발표되지 않았습니다. 대학이 발표하는 대로 추가합니다.';
+
+  @override
+  String get guestPathDays => '일';
+
+  @override
+  String get guestPathDeadline => '마감';
+
+  @override
+  String get guestPathDocuments => '서류 목록';
+
+  @override
+  String get guestPathApply => '상담사와 함께 지원';
+
+  @override
+  String get guestPathEmpty => '♥로 대학을 저장하면 단계, 일정, 서류가 여기에 표시됩니다.';
+
+  @override
+  String get guestPathPick => '대학 선택';
+
+  @override
+  String get guestDocsTitle => '서류 목록';
+
+  @override
+  String get guestDocsReady => '준비됨 · 체크는 이 휴대폰에만 저장';
+
+  @override
+  String get guestDocsNone => '이 대학의 모집요강에는 아직 서류 목록이 없습니다.';
+
+  @override
+  String get guestDocsApostille => '아포스티유';
+
+  @override
+  String get guestDocsNote => '목록은 대학 모집요강 기준입니다. 서류 준비와 번역은 상담사가 도와드립니다.';
 }

@@ -5564,4 +5564,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guestTelegramButton => 'Get in Telegram';
+
+  @override
+  String get guestPathTitle => 'Application path';
+
+  @override
+  String get guestPathBachelor => 'Bachelor';
+
+  @override
+  String get guestPathMaster => 'Master';
+
+  @override
+  String get guestPathNoDates =>
+      'The dates for this season are not published yet. We will add them as soon as the university announces them.';
+
+  @override
+  String get guestPathDays => 'days';
+
+  @override
+  String get guestPathDeadline => 'Until';
+
+  @override
+  String get guestPathDocuments => 'Document list';
+
+  @override
+  String get guestPathApply => 'Apply with a consultant';
+
+  @override
+  String get guestPathEmpty =>
+      'Save a university with ♥ and its steps, dates and documents will show here.';
+
+  @override
+  String get guestPathPick => 'Choose universities';
+
+  @override
+  String get guestDocsTitle => 'Document list';
+
+  @override
+  String get guestDocsReady => 'ready · ticks stay on your phone only';
+
+  @override
+  String get guestDocsNone =>
+      'This university\'s guideline lists no documents yet.';
+
+  @override
+  String get guestDocsApostille => 'apostille';
+
+  @override
+  String get guestDocsNote =>
+      'The list is from the university\'s guideline. A consultant helps with preparing and translating the documents.';
 }
