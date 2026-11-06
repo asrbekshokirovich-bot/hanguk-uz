@@ -31,6 +31,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { answerCallbackQuery, callTelegram, sendTelegramMessage } from "../_shared/telegram.ts";
 import { createAiOps, type JobRow } from "./aiops.ts";
+import { runDeadlines, runNotify } from "./notify.ts";
 import {
   escapeHtml,
   type MorningBrief,
@@ -1042,9 +1043,17 @@ Deno.serve(async (req) => {
     return await reportCron(new URL(req.url).searchParams.get("kind") ?? "");
   }
   // Cron (5 daqiqa): AI navbati va AI holati ogohlantirishi (aiops.ts)
-  if (new URL(req.url).searchParams.get("action") === "jobs") {
+  const act = new URL(req.url).searchParams.get("action");
+  if (act === "jobs") {
     if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
     return json({ ok: true, ...(await aiOps.runJobs({ group_analysis: retryGroupAnalysis })) });
+  }
+  // Bildirishnomalar navbati (trigger darhol + cron) va muddat nazorati — notify.ts
+  if (act === "notify" || act === "deadlines") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return json(await (act === "notify" ? runNotify : runDeadlines)({
+      db, send, taskButtons, workdays: () => settingValue("workdays"),
+    }));
   }
 
   if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {
