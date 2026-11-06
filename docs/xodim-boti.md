@@ -17,6 +17,7 @@ Vazifalar CRM'dagi `tasks` jadvalining o'zida (`source = 'telegram'`) — alohid
 | Guruh | ovozli xabar | fonda matnga (Scribe, zaxira Gemini) → «🎤 …» bo'lib saqlanadi va tahlil qilinadi; ovozdan `#vazifa` chiqmaydi |
 | Guruh | oddiy suhbat | AI taklif qiladi (rejim «Yoqilgan» bo'lsa), yozgan odam ✅ bossagina yaratiladi |
 | Guruh | har ish kuni 09:00 | jamoa xulosasi: har xodimning kechikkan va bugungi vazifalari (hammasi), lidlar, hujjatlar, ariza muddatlari, kechagi hisobot (topshirmaganlar ismi bilan) |
+| DM | 🔔 bildirishnomalar | CRM'da berilgan / o'tkazilgan / muddati o'zgargan / bekor qilingan vazifa, «▶ boshladi», CRM'da yopildi; muddatga 1 soat qoldi, muddat o'tdi (22:00–08:00 da jim) |
 
 To'liq qo'llanma botda: `/help`.
 
@@ -33,20 +34,53 @@ Bot foydalanuvchi nomidan ID topa olmaydi, shuning uchun xodimning o'zi bir mart
 | 18:15 | ownerlarga (yoki tanlanganlarga) xulosa | `staff-bot-report-summary` |
 | har soat | 24 soatlik takliflar → expired | `staff-bot-proposals-expire` |
 | 02:30 | 90 kundan eski guruh xabarlari o'chiriladi | `staff-bot-group-retention` |
+| har 5 daqiqa (har kuni) | AI navbati (`bot_jobs`) qayta bajariladi + AI holati ogohlantirishi (`?action=jobs`) | `staff-bot-jobs` |
+| 02:40 | 90 kundan eski `ai_calls` va yakunlangan `bot_jobs` o'chiriladi | `staff-bot-ai-retention` |
+| darhol + har 5 daqiqa, 08:00–21:55 (har kuni) | bildirishnomalar navbati (`bot_notifications`) → DM; tunda yig'iladi, 08:00 da ketadi | `staff-bot-notify` |
+| har 15 daqiqa, 08:00–21:45 (ish kunlari — `workdays`; yakshanbagisi dushanba 08:00 da) | muddat nazorati: 1 soat qoldi → mas'ul; o'tdi → mas'ul + beruvchi; 2 kundan oshdi → ownerlarga yig'ma | `staff-bot-deadlines` |
 
-Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida).
+Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00–23:59 oralig'ida). `staff-bot-jobs`, `staff-bot-ai-retention`, `staff-bot-notify` va `staff-bot-deadlines` migratsiyalarda qo'yilgan (`20261106060000`, `20261106061000`) — `bot_apply_schedule()` ularga tegmaydi.
+
+## Bildirishnomalar va muddat nazorati
+`task_events` → trigger `trg_task_events_notify` → `bot_notifications` (outbox) → shu zahoti `net.http_post(?action=notify)`; zaxira — cron.
+O'zgartirgan odamga (actor) xabar bormaydi; `via = system` (Orbit importi) va test akkauntlar — hech qachon.
+
+| Voqea | Qayerda | Kimga |
+|---|---|---|
+| yaratildi | CRM | mas'ul (▶/✅ kartasi bilan) |
+| boshqa odamga o'tkazildi | CRM | yangi mas'ul (karta) va eski mas'ul |
+| ▶ boshladi | bot yoki CRM | beruvchi |
+| bajarildi | CRM | beruvchi (bot/guruhda yopilgani — `index.ts` o'zi darhol yozadi) |
+| bekor qilindi / muddat o'zgardi | CRM | mas'ul |
+
+Bitta saqlashda bitta vazifa bo'yicha bitta odamga bitta xabar. 24 soatdan eski navbat yuborilmaydi (`stale`), ulanmagan odam — `skipped`.
+Muddat: soatli muddat — 60 daqiqa qolganda (`due_soon`); kechikish — soatli bo'lsa muddatning o'zi, faqat sana (00:00 UTC yoki 00:00 Toshkent)
+bo'lsa o'sha kunning oxiri. Har eslatma bir marta: `task_reminders (task_id, kind, due_date)`, muddat o'zgarsa yana ishlaydi.
+Eski sana bilan (muddati o'tib bo'lgach) yaratilgan vazifaga «muddat o'tdi» yuborilmaydi; owner'ga — yaratilganidan 2 kun keyin.
+Migratsiya paytida allaqachon kechikkan vazifalar `note = 'baseline'` bilan «muddat o'tdi — yuborilgan» deb belgilangan (eski Orbit vazifalari bo'yicha xabar ketmaydi); ownerlarga eskalatsiya ham faqat 2 kuni allaqachon to'lganlar uchun belgilangan, qolganlari o'z vaqtida boradi.
 
 ## Arxitektura
-- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (Gemini → Claude zaxira), `voice.ts` (ovoz → matn: Scribe → Gemini, guruh ovozi; `voice_test.ts`), `cards.ts` (kartaga javobni ajratish, sof; `cards_test.ts`) va `card_actions.ts` (RPC + xabarlar).
+- Edge: `supabase/functions/staff-bot/` — `index.ts` (webhook, DM, guruh, cron yo'llari), `core.ts` (sof funksiyalar, testlar `core_test.ts`), `ai.ts` (provayderlar, testlar `ai_test.ts`), `aiops.ts` (AI jurnali, navbat, ogohlantirish; testlar `aiops_test.ts`), `notify.ts` (bildirishnomalar navbati va muddat nazorati, testlar `notify_test.ts`), `voice.ts` (ovoz → matn: Scribe → Gemini, guruh ovozi; `voice_test.ts`), `cards.ts` (kartaga javobni ajratish, sof; `cards_test.ts`) va `card_actions.ts` (RPC + xabarlar).
 - Edge: `tv-board` — ofis TV (hanguk.uz/tv) ma'lumoti, `?k=` kalit (`bot_settings.tv_key`, faqat owner ko'radi).
-- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report`) — Supabase secret key (`apikey`).
+- Webhook himoyasi: `secret_token` = SHA-256(`STAFF_BOT_WEBHOOK_SECRET`). Cron yo'llari (`?action=morning|report|jobs|notify|deadlines`) — Supabase secret key (`apikey`).
 - Secrets: `STAFF_BOT_TOKEN`, `STAFF_BOT_WEBHOOK_SECRET`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY` (Scribe; bo'lmasa ovoz faqat Gemini bilan); ixtiyoriy `STAFF_BOT_GEMINI_MODEL` (standart gemini-2.5-flash), `STAFF_BOT_CLAUDE_MODEL` (standart claude-haiku-5-5).
-- AI: hisobotni 3 qismga ajratish va guruh tahlili — avval Gemini, ishlamasa Claude (`tool_use` bilan aniq JSON).
+- AI: hisobotni 3 qismga ajratish va guruh tahlili — «AI qatlami va navbat» bo'limiga qarang.
 - Ovoz → matn (DM: vazifa, hisobot, savol; guruh): ElevenLabs Scribe (`_shared/scribe.ts`, `uzb`, fayl `voice.ogg`), xato, bo'sh javob yoki 30 s dan oshsa — Gemini. Logda: `staff-bot voice: via scribe|gemini …` yoki `… voice not transcribed`.
 - Kartaga javob: guruhda `bot_group_cards` orqali, DM'da kartaning tugmasidagi id (`td:`/`ts:`, bergan odamga — `tr:` «💬 Javob yozish»). Muddat/@odam faqat javob shu iboradan iborat bo'lsa (boshqa so'z qolsa — izoh). Xabarlar: izoh → ikkinchi tomonga (owner yozsa ikkalasiga), muddat → mas'ulga, o'tkazish → yangi mas'ulga karta (▶/✅) va eskisiga.
 - «Savol»: bot xodim nomidan qisqa sessiya ochadi (`auth.admin.generateLink` → `verifyOtp`, email yuborilmaydi), `hanguk-ai-chat`ga shu JWT bilan so'raydi, keyin `auth.admin.signOut`.
 
-## Baza (migratsiyalar 2026-10-31 … 2026-11-05)
+## AI qatlami va navbat (2026-11-05, reja B0-2, B0-3, B0-5)
+- **Tartib:** `bot_settings.ai_provider_order` (standart `claude,gemini` — D1; UI'da yo'q, bazada o'zgartiriladi, 60 s kesh). Kaliti yo'q provayder o'tkazib yuboriladi.
+- **Qayta urinish:** har provayderda 429/503/529 bo'lsa ~1,5 s kutib bitta qayta urinish, keyin keyingi provayder. So'rov chegarasi 25 s. Claude'ga `temperature` yuborilmaydi (#574).
+- **Tekshiruv:** javob sxemaga (majburiy maydon, tur, enum) mos kelmasa — xato, keyingi provayder.
+- **Jurnal `ai_calls`:** har urinish — maqsad (`group_analysis`, `report_split`), provayder, model, ok, HTTP status, qisqa xato, ms, kirish/chiqish tokenlari, narx (Claude — rasmiy narx: Haiku 5.5 $0,10 / $0,50, Sonnet 5.5 $2 / $10 1 mln token uchun; Gemini — null). 90 kun.
+- **Navbat `bot_jobs`:** guruh tahlili yoki hisobotni ajratish provayder xatosi bilan natija bermasa (AI «hech narsa yo'q» degani emas) — ish navbatga tushadi (`ga:<chat>:<xabar>`, `rs:<hisobot>`). `staff-bot-jobs` muddati kelganini qayta bajaradi: muvaffaqiyat → `done` (hisobotda `daily_reports` done/blockers/plan, `ai_parsed=true` — `bot_report_apply_split`, matn o'zgarmagan bo'lsa); har urinish `attempts+1`; xato → 5 daqiqadan keyin qayta; 3-urinish ham xato bo'lsa `failed` (jarayon uzilsa ham ish yo'qolmaydi — 10 daqiqalik ijara tugagach qayta olinadi). Guruh tahlili qayta bajarilganda rejim (off/shadow/on) va dublikat himoya o'sha; muddat xabar yozilgan vaqtga nisbatan.
+- **Ogohlantirish:** `?action=jobs` oxirida — oxirgi 60 daqiqada ≥5 chaqiruv va xato ≥20% yoki yangi `failed` ish bo'lsa xulosa oluvchilarga (`bot_owner_chats`) DM «⚠️ AI: nosozlik»; soatiga ko'pi bilan 1 ta (`bot_alerts`), 22:00–08:00 da yuborilmaydi.
+- **18:15 xulosa** oxirida: «🤖 AI (24 soat): N chaqiruv, X xato, $Y» (`bot_ai_stats`).
+- **CRM:** Sozlamalar → Bot → «AI holati» (`BotAiHealthCard`, RPC `bot_ai_health`, faqat owner): maqsad/provayder kesimida chaqiruv, xato, o'rtacha ms, token, narx; navbatdagi va bajarilmagan ishlar; oxirgi xato.
+- Migratsiya qo'llanmagan bo'lsa ham bot ishlaydi: jurnal/navbat xatolari faqat loglanadi.
+
+## Baza (migratsiyalar 2026-10-31 … 2026-11-06)
 | Jadval | Vazifasi | O'qiydi |
 |---|---|---|
 | `staff_telegram_links`, `staff_link_codes` | xodim ↔ Telegram | o'zi, owner, admin |
@@ -58,8 +92,12 @@ Sozlamalar saqlanganda `bot_apply_schedule()` cron'ni qayta tuzadi (vaqt 05:00�
 | `staff_group_messages` | guruh xabarlari (90 kun) | owner |
 | `bot_group_cards` | guruh kartasi → vazifa | faqat service |
 | `bot_proposals` | AI takliflari (shadow/on, holati) | owner |
+| `ai_calls` | AI urinishlari jurnali (90 kun) | owner |
+| `bot_jobs`, `bot_alerts` | AI qayta urinish navbati, ogohlantirish vaqti | faqat service |
+| `bot_notifications` | bildirishnomalar navbati: pending → sent / skipped / failed | faqat service |
+| `task_reminders` | muddat eslatmalari (bir marta; `baseline` — migratsiyada belgilangan) | faqat service |
 
-Bot RPC'lari (`bot_*`) faqat `service_role` uchun (kartadan: `bot_set_task_due`, `bot_reassign_task` — bergan yoki owner; `bot_add_task_comment` — mas'ul, bergan yoki owner; hammasi `app.task_via`/`app.task_actor` bilan); CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
+Bot RPC'lari (`bot_*`) faqat `service_role` uchun (kartadan: `bot_set_task_due`, `bot_reassign_task` — bergan yoki owner; `bot_add_task_comment` — mas'ul, bergan yoki owner; hammasi `app.task_via`/`app.task_actor` bilan); CRM RPC'lari: `crm_daily_reports`, `bot_settings_overview`, `bot_settings_save` (owner), `bot_ai_health` (owner), `staff_telegram_link_code`, `staff_telegram_unlink`.
 
 ## Guruh AI ishonchliligi
 1. Aniq buyruqlar (`#vazifa`, kartaga ✅) — deterministik.

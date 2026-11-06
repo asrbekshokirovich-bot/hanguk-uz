@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 // Creates a partner learning center together with its login.
 //
@@ -31,8 +32,8 @@ Deno.serve(async (req) => {
     if (!authHeader) return json({ error: 'Missing authorization header' }, 401);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseKey = publishableKey();
+    const supabaseServiceKey = serviceKey();
 
     const userClient = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },

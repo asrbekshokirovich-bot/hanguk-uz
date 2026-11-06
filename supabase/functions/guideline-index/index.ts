@@ -30,9 +30,11 @@ import { extractPages } from "./pdf.ts";
 import {
   claudeTranscribe, FILES_OVER, PAGES_PER_CALL, parseProgress, parseTranscript, uploadToFiles,
 } from "./claude.ts";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") || "";
 // Voyage when its key is set (2026-11-03), otherwise Gemini; EMBED_ON = some provider.
 const VOYAGE_KEY = voyageKey();
@@ -51,21 +53,10 @@ const OCR_MODEL = Deno.env.get("GUIDELINE_OCR_MODEL") || "claude-sonnet-5-5";
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    return Object.values(JSON.parse(raw)).filter((v): v is string => typeof v === "string");
-  } catch {
-    return [];
-  }
-}
-
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  return bearer !== "" && bearer === SERVICE_KEY;
+  return isServiceRequest(req);
 }
 
 function l2(v: number[]): number[] {

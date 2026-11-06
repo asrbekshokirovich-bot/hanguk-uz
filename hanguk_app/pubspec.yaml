@@ -153,6 +153,10 @@ flutter:
     # Campus photos for the university catalogue, one per institution id.
     # Sources and licences: docs/campus_photo_credits.md.
     - assets/campus/
+    # Copies of the public catalogue reads (lib/core/cache/snapshot_queries.dart),
+    # shown on a first launch while the network loads. Committed as `[]`;
+    # CI fills them before a build (tools/fetch_data_snapshots.dart).
+    - assets/data/
     # English wordlist for the drafting workspace's spell check (~370k words,
     # sorted, one per line, LF-terminated — LocalDictionary binary-searches
     # the raw bytes). Bundled because Android only spell checks through a

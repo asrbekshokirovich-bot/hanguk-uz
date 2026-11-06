@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/core/analytics/app_events.dart';
+import 'package:hanguk_app/features/catalog/data/catalog_filters.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
 import 'package:hanguk_app/features/discover/data/slots.dart';
 import 'package:hanguk_app/features/discover/presentation/filter_screen.dart';
@@ -80,5 +82,48 @@ void main() {
       await t.scrollUntilVisible(find.text(s), 200);
       expect(find.text(s), findsOneWidget, reason: s);
     }
+  });
+
+  testWidgets('the search box: a focus, then one search once typing pauses', (t) async {
+    final seen = <TrackedEvent>[];
+    AppEvents.debugOnTrack = seen.add;
+    addTearDown(() => AppEvents.debugOnTrack = null);
+    await _pump(t, const UniversitiesScreen());
+    await t.tap(find.byType(TextField));
+    await t.pump();
+    expect(seen.where((e) => e.event == 'field_focus').map((e) => e.props), [
+      {'form': 'universities', 'field': 'search'},
+    ]);
+    await t.enterText(find.byType(TextField), 'gu');
+    await t.pump(const Duration(milliseconds: 500));
+    await t.enterText(find.byType(TextField), 'gumi');
+    await t.pump();
+    expect(seen.where((e) => e.event == 'search'), isEmpty, reason: 'not while typing');
+    await t.pump(kUniversitiesSearchPause);
+    final searches = seen.where((e) => e.event == 'search').toList();
+    expect(searches, hasLength(1));
+    expect(searches.single.props, {'chars': 4, 'q': 'gumi', 'results': 1});
+    // The same search again is not a new one.
+    await t.testTextInput.receiveAction(TextInputAction.search);
+    await t.pump();
+    expect(seen.where((e) => e.event == 'search'), hasLength(1));
+  });
+
+  testWidgets('Filtr: filter_apply when it is left with other choices, and only then', (t) async {
+    final seen = <TrackedEvent>[];
+    AppEvents.debugOnTrack = seen.add;
+    addTearDown(() => AppEvents.debugOnTrack = null);
+    await _pump(t, const FilterScreen());
+    await t.pumpWidget(const SizedBox());
+    expect(seen.where((e) => e.event == 'filter_apply'), isEmpty, reason: 'nothing changed');
+
+    final (_, c) = await _pump(t, const FilterScreen());
+    c.read(catalogFilterProvider.notifier).set(const CatalogFilter(type: 'private'));
+    await t.pump();
+    await t.pumpWidget(const SizedBox());
+    final applied = seen.where((e) => e.event == 'filter_apply').toList();
+    expect(applied, hasLength(1));
+    expect(applied.single.props?['type'], 'private');
+    expect(applied.single.props?.containsKey('results'), isTrue);
   });
 }

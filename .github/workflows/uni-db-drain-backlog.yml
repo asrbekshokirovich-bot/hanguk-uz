@@ -26,8 +26,8 @@ name: uni-db drain extraction backlog
 # dispatching with skip_groups empty.
 #
 # Required repo secrets (same ones uni-db-auto-crawl.yml already uses):
-#   UNI_DB_SUPABASE_DB_URL, UNI_DB_SUPABASE_URL,
-#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY, UNI_DB_ANTHROPIC_API_KEY
+#   SUPABASE_DB_PASSWORD, UNI_DB_SUPABASE_URL,
+#   UNI_DB_SUPABASE_SERVICE_ROLE_KEY (sb_secret_ key, not the legacy JWT), UNI_DB_ANTHROPIC_API_KEY
 #
 # Two ways to pay for the model calls. The default is the API key, billed per
 # token. Dispatching with `llm_backend: claude_cli` runs the same work through
@@ -120,7 +120,8 @@ jobs:
       # run makes 2-1 and the majority still looks like a majority. Five turns
       # the same single outlier into 4-1 and leaves room for a second.
       UNI_DB_CONSENSUS_RUNS: "5"
-      SUPABASE_DB_URL: ${{ secrets.UNI_DB_SUPABASE_DB_URL }}
+      # 2026-11-05: manzil SUPABASE_DB_PASSWORD'dan yig'iladi — parol bitta joyda saqlanadi.
+      SUPABASE_DB_URL: postgresql://postgres.lysjdtyanhdfphqyijsr:${{ secrets.SUPABASE_DB_PASSWORD }}@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
       SUPABASE_URL: ${{ secrets.UNI_DB_SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.UNI_DB_SUPABASE_SERVICE_ROLE_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.UNI_DB_ANTHROPIC_API_KEY }}
@@ -161,7 +162,7 @@ jobs:
       - name: Check required secrets are set
         run: |
           if [ -z "${SUPABASE_DB_URL}" ]; then
-            echo "::error::Missing secret UNI_DB_SUPABASE_DB_URL (Settings → Secrets and variables → Actions)."
+            echo "::error::Missing secret SUPABASE_DB_PASSWORD (Settings → Secrets and variables → Actions)."
             exit 1
           fi
           if [ "${UNI_DB_LLM_BACKEND}" = "claude_cli" ]; then

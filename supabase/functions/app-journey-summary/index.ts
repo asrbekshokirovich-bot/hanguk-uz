@@ -20,10 +20,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { generateJSON } from "../_shared/gemini.ts";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = publishableKey();
+const SERVICE_KEY = serviceKey();
 
 /** At most this many steps go to the model, newest first. */
 const MAX_STEPS = 300;

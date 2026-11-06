@@ -4,6 +4,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { ApiError, handleError } from "../_shared/error-handler.ts";
 import { ipLimiter } from "../_shared/rate-limiter.ts";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 interface InterviewMessage {
   role: "interviewer" | "student";
@@ -86,8 +87,8 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseKey = publishableKey();
+    const serviceRoleKey = serviceKey();
     
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },

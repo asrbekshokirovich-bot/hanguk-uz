@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/seen.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
@@ -19,6 +22,10 @@ import 'discover_routes.dart';
 import 'filter_board_screen.dart';
 import 'widgets/fd_parts.dart';
 
+/// How long typing in the Universitetlar search box pauses before the search
+/// goes to the analytics.
+const kUniversitiesSearchPause = Duration(milliseconds: 1500);
+
 /// "Universitetlar" (design 2026-10-21): the universities the filter leaves,
 /// as cards two to a row — the photo or the blue tile with the Korean name and
 /// the contract, the heart that picks it, then the type, the name and "city ·
@@ -33,9 +40,46 @@ class UniversitiesScreen extends ConsumerStatefulWidget {
 
 class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
   final _search = TextEditingController();
+  final _focus = FocusNode();
+
+  /// The search goes to the analytics as the search screen sends it — what
+  /// was looked for, cleaned (see [AppEvents.cleanText]), and how many
+  /// universities it left — once per search: after a pause in typing, on
+  /// submit or on leaving ([kUniversitiesSearchPause]). Until 1.1.3 this box
+  /// sent nothing at all: a search here was only a nameless tap at the top.
+  Timer? _pause;
+  String? _sent;
+  int _shown = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(_focused);
+  }
+
+  void _focused() {
+    if (_focus.hasFocus) AppEvents.track('field_focus', props: {'form': 'universities', 'field': 'search'});
+  }
+
+  void _typed() {
+    setState(() {});
+    _pause?.cancel();
+    _pause = Timer(kUniversitiesSearchPause, _report);
+  }
+
+  void _report() {
+    _pause?.cancel();
+    final q = _search.text.trim();
+    if (q.isEmpty || q == _sent) return;
+    _sent = q;
+    AppEvents.track('search', props: {'chars': q.length, 'q': AppEvents.cleanText(q), 'results': _shown});
+  }
 
   @override
   void dispose() {
+    _report();
+    _focus.removeListener(_focused);
+    _focus.dispose();
     _search.dispose();
     super.dispose();
   }
@@ -66,6 +110,7 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
     }
     // Best chance first; the sort is stable, so ties keep the catalogue's order.
     list = [...list]..sort((a, b) => book.admission(b).compareTo(book.admission(a)));
+    _shown = list.length;
 
     void pick(CatalogUniversity u) {
       final n = ref.read(slotsProvider.notifier);
@@ -125,7 +170,9 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                         Expanded(
                           child: TextField(
                             controller: _search,
-                            onChanged: (_) => setState(() {}),
+                            focusNode: _focus,
+                            onChanged: (_) => _typed(),
+                            onSubmitted: (_) => _report(),
                             textInputAction: TextInputAction.search,
                             style: fdText(14, FontWeight.w600, FdColors.ink),
                             // Ink, not the theme's lime, on this white box.

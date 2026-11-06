@@ -2,7 +2,7 @@
 //
 // Guruh: bot kartasiga (bot_group_cards) javob; DM: bot yuborgan vazifa kartasiga javob — vazifa id'si
 // kartaning tugmalaridan (td:/ts:/tr:) olinadi. O'zgarishlar faqat SECURITY DEFINER RPC'lar orqali
-// (migratsiya 20261105160000): bot_set_task_due, bot_reassign_task, bot_add_task_comment. Ular ruxsatni
+// (migratsiya 20261106062000): bot_set_task_due, bot_reassign_task, bot_add_task_comment. Ular ruxsatni
 // qayta tekshiradi va app.task_via / app.task_actor qo'yadi — task_events'da via = dm|group, aktor = xodim.
 // Izoh CRM'dagi vazifa panelining «Faollik» bo'limida ko'rinadi (task_comments, muallif = xodim).
 //

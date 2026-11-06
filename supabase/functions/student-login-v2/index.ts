@@ -26,6 +26,7 @@
 //   - Bug C (client setSession refresh-only)             — Dart-side change.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -367,15 +368,15 @@ Deno.serve(async (req) => {
 
     // ── Env o'zgaruvchilarni bir marta o'qib, darhol tekshiramiz ──
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
-    const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    const SERVICE_KEY = serviceKey()
+    const ANON_KEY = publishableKey()
 
     if (!SUPABASE_URL || !SERVICE_KEY) {
       // Bu ishlab chiqarish xatosi, foydalanuvchining aybi emas —
       // shuning uchun log'da aniq nomlab yozamiz.
       const missing = [
         !SUPABASE_URL ? 'SUPABASE_URL' : null,
-        !SERVICE_KEY ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
+        !SERVICE_KEY ? 'SUPABASE_SECRET_KEYS / SUPABASE_SERVICE_ROLE_KEY' : null,
       ].filter(Boolean).join(', ')
       logEvent({ result: 'SERVER_MISCONFIGURED', code_mask: codeMask, detail: `missing: ${missing}` })
       return errorResponse('SERVER_MISCONFIGURED', `missing env: ${missing}`, 500)

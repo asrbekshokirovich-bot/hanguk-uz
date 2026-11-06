@@ -2,6 +2,7 @@
 // then invokes enrich-lead with the service key. One lead or a backfill batch.
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { internalFunctionHeaders, publishableKey, serviceKey as getServiceKey } from "../_shared/keys.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,9 +16,9 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Unauthorized" }, 401);
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const serviceKey = getServiceKey();
 
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, { global: { headers: { Authorization: authHeader } } });
+    const userClient = createClient(supabaseUrl, publishableKey(), { global: { headers: { Authorization: authHeader } } });
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
     if (authErr || !user) return json({ error: "Unauthorized" }, 401);
     const admin = createClient(supabaseUrl, serviceKey);
@@ -27,7 +28,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const invokeOne = async (leadId: string) => {
       const res = await fetch(`${supabaseUrl}/functions/v1/enrich-lead`, {
-        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}` },
+        method: "POST", headers: internalFunctionHeaders(),
         body: JSON.stringify({ lead_id: leadId }),
       });
       return res.ok;

@@ -36,11 +36,13 @@ import { Api, TelegramClient } from "npm:telegram@2.26.22";
 import { StringSession } from "npm:telegram@2.26.22/sessions/index.js";
 import { CustomFile } from "npm:telegram@2.26.22/client/uploads.js";
 import { returnBigInt } from "npm:telegram@2.26.22/Helpers.js";
+import { internalFunctionHeaders, serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const API_ID = Number(Deno.env.get("TELEGRAM_API_ID") ?? 0);
 const API_HASH = (Deno.env.get("TELEGRAM_API_HASH") ?? "").trim();
 const SESSION = (Deno.env.get("TG_SESSION") ?? "").trim();
@@ -121,7 +123,7 @@ function missingConfig(): string[] {
 // ---------------------------------------------------------------------- run
 
 async function run(): Promise<void> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   const { data: leased, error: leaseErr } = await supabase.rpc("telegram_poll_acquire", {
     p_label: LABEL,
@@ -384,7 +386,7 @@ async function postEvents(supabase: Supabase, events: any[]): Promise<void> {
 async function sendToIngest(events: any[]): Promise<{ index: number; error: string }[]> {
   const res = await fetch(INGEST_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-ingest-secret": INGEST_SECRET },
+    headers: { ...internalFunctionHeaders(), "x-ingest-secret": INGEST_SECRET },
     body: JSON.stringify(events.length === 1 ? events[0] : { events }),
   });
   if (!res.ok) throw new Error(`telegram-ingest ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -517,7 +519,7 @@ async function rememberPeers(supabase: Supabase, users: any[]) {
 async function postOutbox(action: string, payload: Record<string, unknown>): Promise<any> {
   const res = await fetch(OUTBOX_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-ingest-secret": INGEST_SECRET },
+    headers: { ...internalFunctionHeaders(), "x-ingest-secret": INGEST_SECRET },
     body: JSON.stringify({ action, ...payload }),
   });
   if (!res.ok) throw new Error(`telegram-outbox ${action} ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -638,7 +640,7 @@ async function reportTrouble(supabase: Supabase, detail: string) {
 }
 
 async function status(missing: string[]) {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
   const { data: state } = await supabase.from("telegram_poll_state")
     .select("pts, lease_until, last_run_at, last_error, updated_at")
     .eq("account_label", LABEL).maybeSingle();
@@ -662,30 +664,10 @@ async function status(missing: string[]) {
 
 // ------------------------------------------------------------------- helpers
 
-/** Server callers only: pg_cron with the vault secret key (apikey), or the service key. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!bearer) return false;
-  if (bearer === SUPABASE_SERVICE_ROLE_KEY) return true;
-  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
-  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
-  // Faqat aniq kalit solishtiriladi.
-  return false;
-}
-
-/** Every sb_secret_ key configured for this project, whatever it is named. */
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Object.values(parsed).filter((v): v is string => typeof v === "string");
-  } catch (_e) {
-    return [];
-  }
+  return isServiceRequest(req);
 }
 
 function errText(e: unknown): string {

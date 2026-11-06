@@ -31,7 +31,7 @@ These are on the live nightly `find-guidelines` → verify → parse → approva
 | `hanguk_app/services/uni_db/src/uni_db/extract/prompt_assembler.py` | Live language-eligibility addendum. |
 | `src/components/crm/pages/ReviewApprovalQueue.tsx`, `CrawlTargetPanel.tsx`, `reliability*.tsx`, `UniDbReviewContent.tsx`; `src/hooks/useReviewQueue.ts` | Live approval UI. |
 | Prod DB: `institutions`, `guideline_documents`, `review_queue`, `intakes`, `v_review_queue_dashboard`, `v_needs_attention`, `fn_review_*` RPCs, `get-pdf-url` edge fn | Live data plane + approval RPCs. |
-| Prod edge fn `notify-tracked-changes` (`hanguk_app/supabase/functions/notify-tracked-changes/`) | **Live** — scheduled every minute via pg_cron (`20260510112635_uni_db_v3_pg_cron_notify_tracked_changes.sql:76`). Do not confuse with legacy CRM functions. |
+| Prod edge fn `notify-tracked-changes` (`supabase/functions/notify-tracked-changes/`; 2026-11-06 da `hanguk_app/supabase/functions/` dan ko'chirildi) | **Live** — scheduled every minute via pg_cron (`20260510112635_uni_db_v3_pg_cron_notify_tracked_changes.sql:76`). Do not confuse with legacy CRM functions. |
 
 ---
 

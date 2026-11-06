@@ -31,6 +31,8 @@
 // checked here instead: a secret key in `apikey`, or — during the migration off
 // the leaked legacy key — a service_role JWT in `Authorization: Bearer`.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { serviceKey } from "../_shared/keys.ts";
+import { isServiceRequest } from "../_shared/caller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,7 +40,7 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SERVICE_KEY = serviceKey();
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const ALERT_CHAT_ID = Deno.env.get("ALERT_TELEGRAM_CHAT_ID");
 
@@ -275,28 +277,10 @@ Deno.serve(async (req) => {
   }
 });
 
-/** A secret key in `apikey`, or a service_role JWT in `Authorization: Bearer`. */
+/** Server callers only: an sb_secret_ key (or, during the transition, the
+ *  legacy service_role key) on `apikey` or `Authorization: Bearer`. */
 function authorized(req: Request): boolean {
-  const apikey = (req.headers.get("apikey") || "").trim();
-  if (apikey.startsWith("sb_secret_") && knownSecretKeys().includes(apikey)) return true;
-
-  const bearer = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!bearer) return false;
-  if (bearer === SERVICE_KEY) return true;
-  // Xavfsizlik (2026-11-05): JWT imzosi tekshirilmagan holda role=service_role'ga
-  // ishonish mumkin emas (verify_jwt = false) — har kim shunday token yasay oladi.
-  // Faqat aniq kalit solishtiriladi.
-  return false;
-}
-
-/** Every sb_secret_ key configured for this project, whatever it is named. */
-function knownSecretKeys(): string[] {
-  try {
-    const raw = Deno.env.get("SUPABASE_SECRET_KEYS");
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Object.values(parsed).filter((v): v is string => typeof v === "string");
-  } catch (_e) { return []; }
+  return isServiceRequest(req);
 }
 
 function json(body: unknown, status = 200): Response {

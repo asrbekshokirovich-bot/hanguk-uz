@@ -8,10 +8,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { corsHeaders } from "../_shared/cors.ts";
 import { buildSession, clientIp, configProblems } from "./session.ts";
+import { serviceKey, publishableKey } from "../_shared/keys.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = publishableKey();
+const SERVICE_KEY = serviceKey();
 const SECRET = Deno.env.get("CAMERA_GATE_SECRET") ?? "";
 const GATE_URL = (Deno.env.get("CAMERA_GATE_URL") ?? "").trim().replace(/\/+$/, "");
 
