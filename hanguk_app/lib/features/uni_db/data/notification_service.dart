@@ -48,7 +48,14 @@ Future<void> initNotificationService({ProviderContainer? container}) async {
 
   const androidSettings =
       AndroidInitializationSettings('@mipmap/launcher_icon');
-  const initSettings = InitializationSettings(android: androidSettings);
+  // iOS (ushlab qolish P12): the plugin must not ask on its own — the app
+  // asks in its own words (GuestPush) or quietly (provisional).
+  const darwinSettings = DarwinInitializationSettings(
+    requestAlertPermission: false,
+    requestBadgePermission: false,
+    requestSoundPermission: false,
+  );
+  const initSettings = InitializationSettings(android: androidSettings, iOS: darwinSettings);
   await _localNotifications.initialize(
     initSettings,
     onDidReceiveNotificationResponse: (response) {
@@ -134,6 +141,7 @@ void _handleForegroundMessage(RemoteMessage message) {
           playSound: true,
           enableVibration: true,
         ),
+        iOS: const DarwinNotificationDetails(presentAlert: true, presentBanner: true, presentSound: true),
       ),
       payload: jsonEncode(message.data),
     );

@@ -27,6 +27,7 @@ abstract final class GuestPush {
   static const _storage = FlutterSecureStorage();
   static const _askedKey = 'guest_push_asked_v1';
   static const _allowedKey = 'guest_push_allowed_v1';
+  static const _quietKey = 'guest_push_quiet_v1';
 
   /// Reads and writes the flags; tests swap it.
   @visibleForTesting
@@ -61,6 +62,36 @@ abstract final class GuestPush {
     }
   }
 
+  /// iOS quiet start (ushlab qolish P12): a guest's iPhone is given
+  /// provisional permission on first start — no prompt, notifications land
+  /// quietly in Notification Center — so a deadline reminder reaches it
+  /// before the app has asked. The app's own question still comes after the
+  /// report (or ♥) and turns it into a full permission.
+  static bool wantsQuiet({required bool ios, required bool signedIn, required bool allowed, required bool done}) =>
+      ios && !signedIn && !allowed && !done;
+
+  static Future<void> _quietStart(String lang) async {
+    final allowed = await store.read(_allowedKey) ?? false;
+    final done = await store.read(_quietKey) ?? false;
+    if (!wantsQuiet(ios: _ios, signedIn: _signedIn, allowed: allowed, done: done)) return;
+    await store.write(_quietKey, true);
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: true,
+      );
+      final status = settings.authorizationStatus;
+      AppEvents.track('push_permission', props: {'result': status.name, 'source': 'guest_quiet'});
+      if (status == AuthorizationStatus.provisional || status == AuthorizationStatus.authorized) {
+        await register(lang);
+      }
+    } catch (e) {
+      debugPrint('GuestPush: provisional failed: $e');
+    }
+  }
+
   static String? _lastLang;
 
   /// Keeps an allowed guest's token current (a new token, another language):
@@ -69,7 +100,15 @@ abstract final class GuestPush {
     final lang = languageCode ?? 'uz';
     if (_lastLang == lang || _signedIn || !_mobile) return;
     _lastLang = lang;
-    if (!(await store.read(_allowedKey) ?? false)) return;
+    if (!(await store.read(_allowedKey) ?? false)) {
+      // a quietly allowed iPhone keeps its token current too
+      if (await store.read(_quietKey) ?? false) {
+        await register(lang);
+      } else {
+        await _quietStart(lang);
+      }
+      return;
+    }
     await register(lang);
   }
 
@@ -112,6 +151,15 @@ abstract final class GuestPush {
     if (kIsWeb) return false;
     try {
       return Platform.isAndroid || Platform.isIOS;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static bool get _ios {
+    if (kIsWeb) return false;
+    try {
+      return Platform.isIOS;
     } catch (_) {
       return false;
     }
