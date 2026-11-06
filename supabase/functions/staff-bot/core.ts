@@ -614,6 +614,7 @@ export const GROUP_HELP =
   "Bajarilganda bot kartasiga «✅» yoki «bajarildi» deb javob yozing.\n" +
   "Kartaga boshqa javob — izoh (CRM'da qoladi); vazifa bergan yoki owner: «ertaga 15:00» — yangi muddat, " +
   "<code>@username</code> — boshqa xodimga o'tkazish.\n" +
+  "Kartaga <code>/talaba Familiya Ism</code> — vazifaga talaba biriktirish.\n" +
   "Har ish kuni ertalab bot shu guruhga jamoa xulosasini yuboradi.";
 
 // ── PR-8: guruh suhbati AI tahlili (faqat taklif) ─────────────────────────
@@ -640,7 +641,7 @@ export interface AiAnalysis {
 }
 
 export interface Proposal {
-  kind: "create" | "close";
+  kind: "create" | "close" | "update";
   assignee_user_id: string;
   assignee_name: string;
   task_id: string | null;
@@ -652,6 +653,13 @@ export interface Proposal {
 }
 
 export const MIN_CONFIDENCE = 0.75;
+
+/**
+ * `on` rejimida guruhga taklif kartasi chiqishi uchun minimal ishonch (B5-1 — reja D4 ga mos).
+ * Bundan past ishonchli topilma `on` rejimida ham faqat yoziladi (bot_proposals.status='shadow'),
+ * guruhga chiqmaydi — xuddi shadow rejimidagi kabi.
+ */
+export const ON_CONFIDENCE = 0.8;
 
 /** Tahlilga arziydimi: buyruq emas, juda qisqa emas, faqat emoji emas. */
 export function shouldAnalyze(text: string | null | undefined): boolean {
@@ -750,6 +758,10 @@ export function renderProposal(p: Proposal, authorName: string): string {
   if (p.kind === "close") {
     return `🤖 <b>Taklif:</b> «${escapeHtml(p.title)}» vazifasi (${escapeHtml(p.assignee_name)}) bajarildimi?\n` +
       `<i>Tasdiqlash: ${escapeHtml(p.assignee_name)}, vazifa bergan yoki owner.</i>`;
+  }
+  if (p.kind === "update") {
+    return `🤖 <b>Taklif:</b> «${escapeHtml(p.title)}» vazifasining muddati <b>${fmtDue(p.due ?? "")}</b>ga o'zgartirilsinmi?\n` +
+      `<i>Mas'ul: ${escapeHtml(p.assignee_name)}. Tasdiqlash: xabar yozgan yoki owner.</i>`;
   }
   const meta = [p.due ? `muddat ${fmtDue(p.due)}` : "", p.priority !== "normal" ? PRIORITY_UZ[p.priority] : ""].filter(Boolean).join(" · ");
   return `🤖 <b>Taklif:</b> ${escapeHtml(p.assignee_name)} uchun vazifa\n• ${escapeHtml(p.title)}${meta ? `\n${meta}` : ""}\n` +

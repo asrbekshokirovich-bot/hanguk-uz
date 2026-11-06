@@ -17,6 +17,7 @@
 import {
   type CtxStaff,
   MIN_CONFIDENCE,
+  ON_CONFIDENCE,
   matchStaff,
   parseTaskText,
   type Priority,
@@ -288,8 +289,18 @@ export function interpretFindings(ai: AiResult | null, ctx: AnalysisContext, now
           due: null, priority: "normal", confidence, reason,
         } });
       }
-    } else if (f.kind === "update_task" && !task) {
-      c.skip = "vazifa ro'yxatda topilmadi";
+    } else if (f.kind === "update_task") {
+      if (!task) c.skip = "vazifa ro'yxatda topilmadi";
+      else if (confidence < MIN_CONFIDENCE) c.skip = "ishonch past";
+      else if (!due) c.skip = "muddat aniqlanmadi"; // B5-1: hozircha faqat muddat o'zgarishi (mas'ul o'zgarishi — qolgan taklif turlari kabi keyingi bosqich)
+      else {
+        c.proposed = true;
+        const name = ctx.staff.find((s) => s.user_id === task.assignee)?.name ?? task.assignee_name ?? "";
+        proposals.push({ index: findings.length, proposal: {
+          kind: "update", assignee_user_id: task.assignee, assignee_name: name, task_id: task.id, title: task.title,
+          due, priority: "normal", confidence, reason,
+        } });
+      }
     }
     findings.push(c);
   }
@@ -373,10 +384,10 @@ async function saveProposal(
   deps: AnalysisDeps, msg: Any, author: AnalysisAuthor, p: Proposal, mode: string,
 ): Promise<{ id: string } | { skip: string }> {
   const { db } = deps;
-  if (p.kind === "close") {
+  if (p.kind === "close" || p.kind === "update") {
     const { count } = await db.from("bot_proposals").select("id", { count: "exact", head: true })
-      .eq("task_id", p.task_id).eq("kind", "close").eq("status", "pending");
-    if (count) return { skip: "shu vazifaga yopish taklifi kutilmoqda" };
+      .eq("task_id", p.task_id).eq("kind", p.kind).eq("status", "pending");
+    if (count) return { skip: p.kind === "close" ? "shu vazifaga yopish taklifi kutilmoqda" : "shu vazifaga muddat taklifi kutilmoqda" };
   } else {
     // Oxirgi 24 soatda shu xodimga o'xshash taklif bo'lgan bo'lsa — takrorlamaymiz.
     const since = new Date((deps.now ?? Date.now)() - 24 * 3600_000).toISOString();
@@ -387,11 +398,13 @@ async function saveProposal(
       return { skip: "24 soat ichida o'xshash taklif bor" };
     }
   }
+  // `on` rejimida ham faqat yuqori ishonchli topilma guruhga chiqadi (ON_CONFIDENCE) — qolgani shadow kabi yoziladi.
+  const sendCard = mode === "on" && p.confidence >= ON_CONFIDENCE;
   const { data: row, error } = await db.from("bot_proposals").insert({
     chat_id: msg.chat.id, source_message_id: msg.message_id, kind: p.kind,
     author_user_id: author.user_id, assignee_user_id: p.assignee_user_id, task_id: p.task_id,
     title: p.title, due_date: p.due, priority: p.priority, confidence: p.confidence, reason: p.reason,
-    mode, status: mode === "on" ? "pending" : "shadow",
+    mode, status: sendCard ? "pending" : "shadow",
   }).select("id").single();
   if (error || !row) {
     if (error?.code === "23505") return { skip: "bu xabar bo'yicha taklif allaqachon bor" };
@@ -399,10 +412,11 @@ async function saveProposal(
     return { skip: "saqlab bo'lmadi" };
   }
   console.log(`staff-bot: proposal ${p.kind} (${mode}) conf=${p.confidence} for ${p.assignee_name}`);
-  if (mode === "on") {
+  if (sendCard) {
+    const yesText = p.kind === "close" ? "✅ Ha, bajarildi" : p.kind === "update" ? "✅ Ha, o'zgartirish" : "✅ Yaratish";
     const sent = await deps.reply(msg.chat.id, msg.message_id, renderProposal(p, author.full_name), {
       reply_markup: { inline_keyboard: [[
-        { text: p.kind === "close" ? "✅ Ha, bajarildi" : "✅ Yaratish", callback_data: `pr:y:${row.id}` },
+        { text: yesText, callback_data: `pr:y:${row.id}` },
         { text: "❌ Yo'q", callback_data: `pr:n:${row.id}` },
       ]] },
     });
