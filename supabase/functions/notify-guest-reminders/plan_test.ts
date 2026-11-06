@@ -40,8 +40,11 @@ Deno.test("two in seven days; the 3-day reminder leaves room for the 1-day one",
   assertEquals(planBatch([row({ sent_7d: 0, kind: "deadline_3" })], "all").send.length, 1);
 });
 
-Deno.test("a phone with no token waits", () => {
+Deno.test("a phone with no token waits, unless it subscribed in Telegram", () => {
   assertEquals(planBatch([row({ tokens: [] })], "all").wait, 1);
+  const tg = planBatch([row({ tokens: [], tg_chat: "123" })], "all").send[0];
+  assertEquals([tg.channel, tg.tg_chat], ["telegram", "123"]);
+  assertEquals(planBatch([row({ tg_chat: "123" })], "all").send[0].channel, "fcm");
 });
 
 Deno.test("quiet 22:00–08:00 Tashkent", () => {

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { ensureIdentity, extractPhoneFromText, resolveIdentity, normalizePhone } from "../_shared/identity.ts";
 import { serviceKey } from "../_shared/keys.ts";
+import { lang as subLang, linkedText, stopButton, stoppedText, subCode, unknownText } from "./deadline_sub.ts";
 
 // Telegram bot webhook: runs the student onboarding conversation AND captures
 // every message into the CRM, linked to a student/lead via the identity spine.
@@ -561,6 +562,12 @@ serve(async (req) => {
       const chatId = String(cq.message?.chat?.id ?? cq.from?.id);
       await tgAnswerCallback(cq.id);
       const data: string = cq.data ?? "";
+      // P16: «To'xtatish» under a deadline reminder.
+      if (data === "sub_stop") {
+        const { data: res } = await supabase.rpc("telegram_sub_stop", { p_chat_id: chatId });
+        await tgSend(chatId, stoppedText(subLang(res?.lang)));
+        return ok();
+      }
       if (data.startsWith("deg:")) {
         const degree = data.slice(4);
         await upsertLead(supabase, chatId, { education_level: degree });
@@ -634,6 +641,19 @@ Siz Hanguk Consulting bilan Telegram orqali bog'landingiz. Savollaringizni shu y
           return ok();
         }
         // Unknown or mistyped code: fall through to the ordinary welcome.
+      }
+    }
+
+    // --- /start D_<code>: deadline reminders in Telegram (ushlab qolish P16)
+    // A guest without push ties this chat to the phone; no lead is made.
+    if (typeof message.text === "string") {
+      const code = subCode(message.text);
+      if (code) {
+        const { data: res, error: subErr } = await supabase.rpc("telegram_sub_link", { p_code: code, p_chat_id: chatId });
+        if (subErr) console.error("telegram_sub_link failed:", subErr.message);
+        const l = subLang(res?.lang ?? message.from?.language_code);
+        await tgSend(chatId, res?.ok ? linkedText(l) : unknownText(l), res?.ok ? stopButton(l) : undefined);
+        return ok();
       }
     }
 

@@ -15,6 +15,8 @@ export interface PendingRow {
   ref_date: string;
   lang: string | null;
   tokens: string[];
+  /** P16: the Telegram chat, when the phone subscribed in the bot */
+  tg_chat?: string | null;
   is_test: boolean;
   sent_today: number;
   sent_7d: number;
@@ -22,6 +24,9 @@ export interface PendingRow {
 
 export interface Message {
   install_id: string;
+  /** push when the phone has a token, else the Telegram subscription (P16) */
+  channel: "fcm" | "telegram";
+  tg_chat: string | null;
   kind: Kind;
   lang: Lang;
   tokens: string[];
@@ -76,7 +81,7 @@ export function planBatch(rows: PendingRow[], mode: Mode): Plan {
   }
   for (const [install, list] of byPhone) {
     const first = list[0];
-    if (mode === "off" || (mode === "test" && !first.is_test) || first.tokens.length === 0) {
+    if (mode === "off" || (mode === "test" && !first.is_test) || (first.tokens.length === 0 && !first.tg_chat)) {
       plan.wait += list.length;
       continue;
     }
@@ -98,6 +103,8 @@ export function planBatch(rows: PendingRow[], mode: Mode): Plan {
     const rest = list.filter((r) => r.kind !== top.kind);
     plan.send.push({
       install_id: install,
+      channel: first.tokens.length ? "fcm" : "telegram",
+      tg_chat: first.tg_chat ?? null,
       kind: top.kind,
       lang: normalizeLang(first.lang),
       tokens: first.tokens,

@@ -86,3 +86,14 @@ export function nameFor(row: { name_en: string | null; name_ko: string | null },
   const ko = (row.name_ko ?? "").trim();
   return lang === "ko" ? ko || en : en || ko;
 }
+
+/** The Telegram form (P16): HTML, the title bold; the bot's «To'xtatish» stops it. */
+export function telegramHtml(t: Text): string {
+  const esc = (x: string) => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `<b>${esc(t.title)}</b>\n\n${esc(t.body)}`;
+}
+
+const STOP: Record<Lang, string> = { uz: "To'xtatish", ru: "Отключить", en: "Stop", ko: "중지", vi: "Dừng" };
+export function stopLabel(lang: Lang): string {
+  return STOP[lang];
+}

@@ -18,12 +18,30 @@ import { fcmAccessToken, fcmSend, type ServiceAccount } from "../_shared/fcm.ts"
 import { serviceKey } from "../_shared/keys.ts";
 import { isServiceRequest } from "../_shared/caller.ts";
 import { isQuiet, parseMode, planBatch, type PendingRow } from "./plan.ts";
-import { messageText, nameFor, pushData } from "./messages.ts";
+import { messageText, nameFor, pushData, stopLabel, telegramHtml } from "./messages.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = serviceKey();
 const FCM_SERVICE_ACCOUNT_JSON = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
 const MAX_ATTEMPTS = 3;
+const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
+
+/** P16: the reminder through the bot, with its «To'xtatish» button. */
+async function tgSend(chatId: string, html: string, stop: string): Promise<{ ok: boolean; gone: boolean; error?: string }> {
+  if (!BOT_TOKEN) return { ok: false, gone: false, error: "TELEGRAM_BOT_TOKEN is not set" };
+  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId, text: html, parse_mode: "HTML",
+      reply_markup: { inline_keyboard: [[{ text: stop, callback_data: "sub_stop" }]] },
+    }),
+  });
+  if (res.ok) return { ok: true, gone: false };
+  const text = await res.text();
+  // 403: the person blocked the bot
+  return { ok: false, gone: res.status === 403, error: text.slice(0, 300) };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -65,7 +83,7 @@ Deno.serve(async (req) => {
       phones: plan.send.length,
       wait: plan.wait,
       skip: plan.skip.length,
-      messages: plan.send.map((m) => ({ install_id: m.install_id, kind: m.kind, lang: m.lang, test: m.is_test, ...textOf(m) })),
+      messages: plan.send.map((m) => ({ install_id: m.install_id, channel: m.channel, kind: m.kind, lang: m.lang, test: m.is_test, ...textOf(m) })),
     });
   }
 
@@ -78,9 +96,10 @@ Deno.serve(async (req) => {
   if (mode === "off" || plan.send.length === 0) {
     return json({ ok: true, mode, sent: 0, wait: plan.wait, skipped: plan.skip.length });
   }
-  if (!FCM_SERVICE_ACCOUNT_JSON) return json({ error: "FCM_SERVICE_ACCOUNT_JSON is not set" }, 500);
-  const sa: ServiceAccount = JSON.parse(FCM_SERVICE_ACCOUNT_JSON);
-  const access = await fcmAccessToken(sa);
+  const needsFcm = plan.send.some((m) => m.channel === "fcm");
+  if (needsFcm && !FCM_SERVICE_ACCOUNT_JSON) return json({ error: "FCM_SERVICE_ACCOUNT_JSON is not set" }, 500);
+  const sa: ServiceAccount | null = needsFcm ? JSON.parse(FCM_SERVICE_ACCOUNT_JSON!) : null;
+  const access = sa ? await fcmAccessToken(sa) : "";
 
   let sent = 0;
   let failed = 0;
@@ -90,19 +109,29 @@ Deno.serve(async (req) => {
     let ok = false;
     let lastError: string | undefined;
     const gone: string[] = [];
-    for (const token of m.tokens) {
-      const r = await fcmSend(sa, access, token, text.title, text.body, payload);
-      if (r.ok) ok = true;
-      else {
-        lastError = r.error;
-        if (r.gone) gone.push(token);
+    let allGone = false;
+    if (m.channel === "telegram") {
+      const r = await tgSend(m.tg_chat!, telegramHtml(text), stopLabel(m.lang));
+      ok = r.ok;
+      lastError = r.error;
+      allGone = r.gone;
+      if (r.gone) await admin.rpc("telegram_sub_stop", { p_chat_id: m.tg_chat });
+    } else {
+      for (const token of m.tokens) {
+        const r = await fcmSend(sa!, access, token, text.title, text.body, payload);
+        if (r.ok) ok = true;
+        else {
+          lastError = r.error;
+          if (r.gone) gone.push(token);
+        }
       }
+      allGone = gone.length === m.tokens.length;
+      // a test phone's tokens are kept as they are (Asrbek: «tegma»)
+      if (gone.length && !m.is_test) await admin.from("app_guest_push_tokens").update({ enabled: false }).in("token", gone);
     }
-    // a test phone's tokens are kept as they are (Asrbek: «tegma»)
-    if (gone.length && !m.is_test) await admin.from("app_guest_push_tokens").update({ enabled: false }).in("token", gone);
-    const status = ok ? "sent" : gone.length === m.tokens.length ? "gone" : "failed";
+    const status = ok ? "sent" : allGone ? "gone" : "failed";
     await admin.from("app_push_sends").insert({
-      channel: "fcm", audience: "guest", install_id: m.install_id, kind: m.kind,
+      channel: m.channel, audience: "guest", install_id: m.install_id, kind: m.kind,
       institution_id: m.institution_ids[0], ref_date: m.ref_date, status, error: ok ? null : lastError ?? null,
     });
     if (ok) {
