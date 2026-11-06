@@ -5554,4 +5554,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get guestRemindersBody =>
       'Сообщим, когда в сохранённых вами университетах будет заканчиваться онлайн-подача. Не больше 1 в день и 2 в неделю; с 22:00 до 08:00 не отправляем.';
+
+  @override
+  String get guestTelegramTitle => 'Уведомления выключены';
+
+  @override
+  String get guestTelegramBody =>
+      'Напоминания о сроках можно получать в Telegram. Номер телефона не нужен — один раз нажмите «Start» в боте.';
+
+  @override
+  String get guestTelegramButton => 'Получать в Telegram';
 }

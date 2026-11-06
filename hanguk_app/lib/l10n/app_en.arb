@@ -6856,5 +6856,17 @@
   "guestRemindersBody": "We'll let you know before the online application closes at the universities you saved. At most 1 a day and 2 a week; nothing between 22:00 and 08:00.",
   "@guestRemindersBody": {
     "description": "Guest deadline reminders switch: what is sent and how often (QU2)"
+  },
+  "guestTelegramTitle": "Notifications are off",
+  "@guestTelegramTitle": {
+    "description": "Telegram reminders sheet after notifications were refused (retention plan P17, design D3): title"
+  },
+  "guestTelegramBody": "You can get deadline reminders in Telegram. No phone number needed — just tap «Start» in the bot once.",
+  "@guestTelegramBody": {
+    "description": "Telegram reminders sheet: what it does; no phone number needed"
+  },
+  "guestTelegramButton": "Get in Telegram",
+  "@guestTelegramButton": {
+    "description": "Telegram reminders sheet: the button that opens the bot"
   }
 }

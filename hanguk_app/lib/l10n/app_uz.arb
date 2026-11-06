@@ -1775,5 +1775,8 @@
   "guestRemindersTitle": "Muddat eslatmalari",
   "guestRemindersOn": "Yoqilgan",
   "guestRemindersOff": "O'chirilgan",
-  "guestRemindersBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Kuniga ko'pi bilan 1 ta, haftasiga 2 ta; 22:00–08:00 da yubormaymiz."
+  "guestRemindersBody": "Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Kuniga ko'pi bilan 1 ta, haftasiga 2 ta; 22:00–08:00 da yubormaymiz.",
+  "guestTelegramTitle": "Bildirishnomalar o'chiq",
+  "guestTelegramBody": "Muddat eslatmasini Telegram'da olishingiz mumkin. Telefon raqamingiz kerak emas — botda bir marta «Start» bosasiz.",
+  "guestTelegramButton": "Telegram'da olish"
 }

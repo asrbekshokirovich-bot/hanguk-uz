@@ -5555,4 +5555,14 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get guestRemindersBody =>
       'Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Kuniga ko\'pi bilan 1 ta, haftasiga 2 ta; 22:00–08:00 da yubormaymiz.';
+
+  @override
+  String get guestTelegramTitle => 'Bildirishnomalar o\'chiq';
+
+  @override
+  String get guestTelegramBody =>
+      'Muddat eslatmasini Telegram\'da olishingiz mumkin. Telefon raqamingiz kerak emas — botda bir marta «Start» bosasiz.';
+
+  @override
+  String get guestTelegramButton => 'Telegram\'da olish';
 }

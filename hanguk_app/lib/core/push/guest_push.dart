@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../design_system/seoul_night/widgets/hard_shadow.dart';
@@ -77,6 +78,9 @@ abstract final class GuestPush {
       if (status == AuthorizationStatus.authorized || status == AuthorizationStatus.provisional) {
         await store.write(_allowedKey, true);
         await register(lang);
+      } else if (status == AuthorizationStatus.denied && host.mounted) {
+        // P17 (D3): the phone said no — the reminders can still come by Telegram.
+        await telegramSheet(host);
       }
     } catch (e) {
       debugPrint('GuestPush: permission failed: $e');
@@ -149,6 +153,73 @@ abstract final class GuestPush {
     'p_token': token,
     'p_enabled': on,
   };
+
+  /// «Telegram'da olish» (ushlab qolish P17, Claude Design D3): the phone's
+  /// code (app_telegram_sub_code) opens t.me/<bot>?start=D_<code>; the bot
+  /// ties the chat to this phone and the reminders come there (P16).
+  static Future<void> telegramSheet(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
+    final lang = Localizations.localeOf(context).languageCode;
+    AppEvents.overlayOpened('guest_telegram');
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: FdColors.card,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l.guestTelegramTitle, style: fdText(16, FontWeight.w800, FdColors.ink)),
+              const SizedBox(height: 8),
+              Text(l.guestTelegramBody, style: fdText(13.5, FontWeight.w500, FdColors.muted, height: 1.4)),
+              const SizedBox(height: 16),
+              HardButton(
+                label: l.guestTelegramButton,
+                onPressed: tracked('guest_telegram.open', () => Navigator.of(ctx).pop(true)),
+              ),
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: tracked('guest_telegram.later', () => Navigator.of(ctx).pop(false)),
+                child: Text(l.guestPushLater, style: fdText(14, FontWeight.w700, FdColors.muted)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).whenComplete(() => AppEvents.overlayClosed('guest_telegram'));
+    if (go != true) return;
+    final uri = await telegramLink(lang);
+    if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  /// t.me/<bot>?start=D_<code> for this phone, or null when the server or the
+  /// bot cannot be reached.
+  static Future<Uri?> telegramLink(String lang) async {
+    final install = AppEvents.installId;
+    if (install == null) return null;
+    try {
+      final client = Supabase.instance.client;
+      final res = await client.rpc('app_telegram_sub_code', params: {'p_install_id': install, 'p_lang': lang});
+      final code = res is Map ? res['code'] : null;
+      final info = await client.functions.invoke('telegram-webhook?action=botinfo', method: HttpMethod.get);
+      final bot = info.data is Map ? (info.data as Map)['username'] : null;
+      return subLink(bot is String ? bot : null, code is String ? code : null);
+    } catch (e) {
+      debugPrint('GuestPush: telegram link failed: $e');
+      return null;
+    }
+  }
+
+  @visibleForTesting
+  static Uri? subLink(String? bot, String? code) {
+    final b = (bot ?? '').trim();
+    final c = (code ?? '').trim();
+    if (b.isEmpty || !RegExp(r'^[A-HJ-NP-Z2-9]{10}$').hasMatch(c)) return null;
+    return Uri.parse('https://t.me/$b?start=D_$c');
+  }
 
   static String? _lastLang;
 

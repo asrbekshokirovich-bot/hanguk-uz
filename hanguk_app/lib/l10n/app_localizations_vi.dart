@@ -5527,4 +5527,14 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get guestRemindersBody =>
       'Chúng tôi sẽ báo trước khi hạn nộp hồ sơ trực tuyến ở các trường bạn đã lưu kết thúc. Tối đa 1 tin mỗi ngày, 2 tin mỗi tuần; không gửi từ 22:00 đến 08:00.';
+
+  @override
+  String get guestTelegramTitle => 'Thông báo đang tắt';
+
+  @override
+  String get guestTelegramBody =>
+      'Bạn có thể nhận nhắc hạn qua Telegram. Không cần số điện thoại — chỉ cần nhấn «Start» trong bot một lần.';
+
+  @override
+  String get guestTelegramButton => 'Nhận qua Telegram';
 }
