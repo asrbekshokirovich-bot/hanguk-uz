@@ -289,3 +289,10 @@ verify_jwt = false
 # student-login-v2: live verify_jwt=false (2026-11-05) — ilova tizimga kirmasdan chaqiradi.
 [functions.student-login-v2]
 verify_jwt = false
+
+# notify-tracked-changes (2026-11-06): hanguk_app/supabase/functions/ dan shu yerga
+# ko'chirildi. #596 dan beri funksiya sb_secret kalitni o'zi tekshiradi; 20261105170000
+# migratsiyasidan keyin pg_cron `apikey`da sb_secret yuboradi (JWT emas), shuning
+# uchun shlyuz tekshiruvi o'chiq bo'lishi shart.
+[functions.notify-tracked-changes]
+verify_jwt = false
