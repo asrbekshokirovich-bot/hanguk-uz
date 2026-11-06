@@ -167,6 +167,10 @@ verify_jwt = false
 [functions.notify-student-stages]
 verify_jwt = false
 
+# pg_cron's sb_secret_ key is not a JWT; the function checks the caller.
+[functions.notify-guest-reminders]
+verify_jwt = false
+
 # Health heartbeat for the messaging channels, called hourly by pg_cron.
 # verify_jwt is off so pg_cron can authenticate with an sb_secret_ key in the
 # `apikey` header (secret keys are not JWTs, so they cannot go in Authorization

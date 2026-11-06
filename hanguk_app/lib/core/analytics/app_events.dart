@@ -529,6 +529,8 @@ class _Sink with WidgetsBindingObserver {
   DateTime? _sendAfter;
 
   String _sessionId = _newUuid();
+  DateTime _sessionAt = DateTime.now();
+  int _screens = 0;
   int _seq = 0;
   DateTime? _lastAt;
   DateTime? _backgroundAt;
@@ -556,6 +558,7 @@ class _Sink with WidgetsBindingObserver {
     _startSession('launch');
     // What was tracked while the id and the file were being read.
     for (final e in _early) {
+      if (e['event'] == 'screen_view') _screens++;
       _enqueue(e);
     }
     _early.clear();
@@ -614,7 +617,12 @@ class _Sink with WidgetsBindingObserver {
       case AppLifecycleState.paused:
         AppEvents._leave();
         _backgroundAt = DateTime.now();
-        add('app_background', screen: AppEvents.screen);
+        // How long the visit has lasted and how many screens it saw: the
+        // visit's last app_background is where it ended (plan R0.6).
+        add('app_background', screen: AppEvents.screen, props: {
+          'session_s': DateTime.now().difference(_sessionAt).inSeconds,
+          'screens': _screens,
+        });
         unawaited(flush());
         _saveNow();
       case AppLifecycleState.resumed:
@@ -639,6 +647,8 @@ class _Sink with WidgetsBindingObserver {
 
   void _startSession(String reason) {
     _sessionId = _newUuid();
+    _sessionAt = DateTime.now();
+    _screens = 0;
     _seq = 0;
     _lastAt = DateTime.now();
     _enqueue(_record('session_start', props: {'reason': reason}));
@@ -677,6 +687,7 @@ class _Sink with WidgetsBindingObserver {
     if (last != null && DateTime.now().difference(last) >= _idle && _backgroundAt == null) {
       _startSession('idle');
     }
+    if (event == 'screen_view') _screens++;
     _enqueue(record);
   }
 

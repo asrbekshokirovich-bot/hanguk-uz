@@ -89,8 +89,28 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
     });
   }
 
+  /// `study_plan_test_result`: the mark, or how a send failed, or that the
+  /// student left without a mark — the test's end was not recorded before
+  /// (plan R0.7).
+  bool _reported = false;
+  void _report(String result, {int? score, int? ms, bool timedOut = false, Object? error}) {
+    if (_reported) return;
+    // A failure leaves room for the retry's own end (ok, or left).
+    if (result != 'error') _reported = true;
+    AppEvents.track('study_plan_test_result', props: {
+      'institution_id': widget.university.institutionId,
+      'result': result,
+      'score': ?score,
+      'ms': ?ms,
+      'seconds': widget.minutes * 60 - _left.clamp(0, widget.minutes * 60),
+      if (timedOut) 'timed_out': true,
+      if (error != null) 'error': error.runtimeType.toString(),
+    });
+  }
+
   @override
   void dispose() {
+    if (_result == null) _report('left');
     _timer?.cancel();
     for (final c in _answers) {
       c.dispose();
@@ -125,13 +145,17 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
       _error = null;
     });
     final used = widget.minutes * 60 - _left.clamp(0, widget.minutes * 60);
+    final timedOut = _left <= 0;
+    final clock = Stopwatch()..start();
     try {
       final answers = [for (final c in _answers) c.text.trim()];
       final r = await (widget.send ?? _sendToServer)(answers, used);
+      _report('ok', score: r.score, ms: clock.elapsedMilliseconds, timedOut: timedOut);
       if (!mounted) return;
       setState(() => _result = r);
     } catch (e) {
       debugPrint('[StudyPlanTest] $e');
+      _report('error', ms: clock.elapsedMilliseconds, timedOut: timedOut, error: e);
       if (!mounted) return;
       setState(() => _error = AppLocalizations.of(context)!.sptError);
     } finally {

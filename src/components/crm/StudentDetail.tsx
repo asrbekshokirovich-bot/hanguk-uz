@@ -50,7 +50,9 @@ import {
   GraduationCap,
   Wallet,
   Ban,
+  Smartphone,
 } from 'lucide-react';
+import { inviteToApp, nothingSent } from '@/lib/appInvite';
 import {
   Dialog,
   DialogContent,
@@ -187,6 +189,7 @@ export function StudentDetail({
   const { user } = useAuth();
   const { activeIntakeId } = useActiveIntake();
   const { toast } = useToast();
+  const [inviting, setInviting] = useState(false);
   const { universities, loading: loadingUniversities } = useUniversities();
 
   const [updating, setUpdating] = useState<string | null>(null);
@@ -981,6 +984,25 @@ export function StudentDetail({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={inviting}
+                    onClick={async () => {
+                      setInviting(true);
+                      const r = await inviteToApp({ studentIds: [student.user_id] });
+                      setInviting(false);
+                      toast(
+                        r.error
+                          ? { title: t('clients.inviteError'), description: r.error, variant: 'destructive' }
+                          : { title: nothingSent(r) ? t('clients.inviteNothing') : r.telegram ? t('clients.inviteSentTelegram') : t('clients.inviteSentTask') },
+                      );
+                    }}
+                  >
+                    {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
+                    {t('clients.invite')}
+                  </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditDialogOpen(true)}>
                     <Pencil className="h-4 w-4" />
                     {t('common.edit')}

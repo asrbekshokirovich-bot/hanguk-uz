@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { plan } from './planUi';
 import { dayLabel, whenLabel } from './person';
+import { inviteToApp, type InviteResult } from '@/lib/appInvite';
 import { slotName, studentPath, useClientsActivity, useSeasonRoster, waited } from './clients';
 
 /**
@@ -23,6 +25,26 @@ export default function ClientsTab() {
   const roster = useSeasonRoster(activeIntakeId);
   const open = (id: string) => navigate(studentPath(id));
   const lang = i18n.language?.slice(0, 2) || 'uz';
+  // «Hammasiga taklif» (ushlab qolish P14): the first click shows who gets
+  // what (dry run), the second sends.
+  const [invitePlan, setInvitePlan] = useState<InviteResult | null>(null);
+  const [inviteNote, setInviteNote] = useState<string | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const planInvite = async () => {
+    setInviteBusy(true);
+    setInviteNote(null);
+    const r = await inviteToApp({ all: true }, true);
+    setInviteBusy(false);
+    if (r.error) setInviteNote(t('clients.inviteError'));
+    else setInvitePlan(r);
+  };
+  const sendInvite = async () => {
+    setInviteBusy(true);
+    const r = await inviteToApp({ all: true });
+    setInviteBusy(false);
+    setInvitePlan(null);
+    setInviteNote(r.error ? t('clients.inviteError') : t('clients.inviteDone', { telegram: r.telegram, task: r.task }));
+  };
 
   if (error && !all) return <p className={cn('text-[13px]', plan.bad)}>{t('appActivity.error')}</p>;
   if (!all || roster === undefined) return <p className={plan.note}>{t('appActivity.loading')}</p>;
@@ -124,9 +146,31 @@ export default function ClientsTab() {
       <section className={plan.frame}>
         <div className={plan.bar}>
           <span>{t('clients.inactive')}</span>
-          <span className={plan.badge}>{data.inactive.length}</span>
+          <span className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={inviteBusy}
+              onClick={planInvite}
+              className="rounded-md border px-2 py-0.5 text-[12px] font-semibold hover:bg-[#EEF2F9] disabled:opacity-50 dark:hover:bg-[#17235F]"
+            >
+              {t('clients.inviteAll')}
+            </button>
+            <span className={plan.badge}>{data.inactive.length}</span>
+          </span>
         </div>
         <div className={plan.body}>
+          {invitePlan && (
+            <div className="mb-2 flex flex-wrap items-center gap-2 text-[13px]">
+              <span>{t('clients.invitePlan', { telegram: invitePlan.telegram, task: invitePlan.task, skipped: invitePlan.skipped })}</span>
+              <button type="button" disabled={inviteBusy} onClick={sendInvite} className="rounded-md bg-[#2447D6] px-2 py-0.5 font-semibold text-white disabled:opacity-50">
+                {t('clients.inviteConfirm')}
+              </button>
+              <button type="button" onClick={() => setInvitePlan(null)} className={plan.muted}>
+                {t('clients.inviteCancel')}
+              </button>
+            </div>
+          )}
+          {inviteNote && <p className={cn('mb-2', plan.note)}>{inviteNote}</p>}
           {data.inactive.length ? (
             <div className={plan.tscroll}>
               <table className={plan.table}>

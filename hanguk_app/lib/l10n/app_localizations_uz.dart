@@ -5535,4 +5535,11 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get guestPushLater => 'Keyinroq';
+
+  @override
+  String get guestPushHeartTitle => 'Shu universitet muddatini eslataylikmi?';
+
+  @override
+  String get guestPushHeartBody =>
+      'Saqlagan universitetlaringizda onlayn ariza muddati tugashidan oldin xabar beramiz. Telefon raqamingiz kerak emas.';
 }

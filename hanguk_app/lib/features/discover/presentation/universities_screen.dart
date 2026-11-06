@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/seen.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
@@ -120,6 +121,8 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(content: Text(l.fdSlotsFull)));
+      } else {
+        unawaited(GuestPush.maybeAsk(context, reason: GuestPushReason.heart));
       }
     }
 

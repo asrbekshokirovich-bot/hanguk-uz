@@ -119,6 +119,8 @@ jobs:
           # `app-quality-alerts` and `send-guest-push` are new (the app
           # analytics plan) and deployed from here, so the repo copy is the
           # current one.
+          # Added on 2026-11-06: `notify-guest-reminders` is new (retention
+          # plan P09) and deployed from here.
           # Verified on 2026-10-27: `notify-student-stages` live version 2 was
           # read out of production — index.ts matched this repo's copy before
           # the offer_reminder kind (2ad3f2bb) line for line, messages.ts had
@@ -203,6 +205,7 @@ jobs:
             weekly-app-report
             app-quality-alerts
             send-guest-push
+            notify-guest-reminders
             student-app-invite
             hanguk-ai-chat
             interview-ai

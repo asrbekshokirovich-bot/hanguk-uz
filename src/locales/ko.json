@@ -2612,5 +2612,17 @@
     "nameExists": "같은 이름의 학생이 이미 있습니다.",
     "missingFields": "필수 항목이 입력되지 않았습니다.",
     "generic": "학생이 추가되지 않았습니다. {{detail}}"
+  },
+  "clients": {
+    "invite": "앱 초대",
+    "inviteAll": "모두 초대",
+    "invitePlan": "Telegram: {{telegram}} · 작업: {{task}} · 건너뜀: {{skipped}}",
+    "inviteConfirm": "보내기",
+    "inviteCancel": "취소",
+    "inviteSentTelegram": "Telegram으로 초대를 보냈습니다",
+    "inviteSentTask": "Telegram 없음 — 상담사 작업을 만들었습니다",
+    "inviteNothing": "이미 앱 사용 중이거나 이번 주에 초대됨",
+    "inviteDone": "보냄: Telegram {{telegram}}, 작업 {{task}}",
+    "inviteError": "초대를 보내지 못했습니다"
   }
 }

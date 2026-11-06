@@ -25,9 +25,32 @@ void main() {
     expect(await GuestPush.shouldAsk(signedIn: false, mobile: true), isFalse);
   });
 
+  test('the first ♥ asks once more, on its own flag (two asks at most)', () async {
+    store.values['guest_push_asked_v1'] = true;
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true, reason: GuestPushReason.heart), isTrue);
+    store.values['guest_push_asked_heart_v1'] = true;
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true, reason: GuestPushReason.heart), isFalse);
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true), isFalse);
+  });
+
+  test('an allowed phone is not asked again for any reason', () async {
+    store.values['guest_push_allowed_v1'] = true;
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true), isFalse);
+    expect(await GuestPush.shouldAsk(signedIn: false, mobile: true, reason: GuestPushReason.heart), isFalse);
+  });
+
   test('a signed-in student or the web app is not asked', () async {
+    expect(await GuestPush.shouldAsk(signedIn: true, mobile: true, reason: GuestPushReason.heart), isFalse);
     expect(await GuestPush.shouldAsk(signedIn: true, mobile: true), isFalse);
     expect(await GuestPush.shouldAsk(signedIn: false, mobile: false), isFalse);
+  });
+
+  test('only a guest iPhone, not yet allowed, starts quietly, once', () {
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: false, done: false), isTrue);
+    expect(GuestPush.wantsQuiet(ios: false, signedIn: false, allowed: false, done: false), isFalse);
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: true, allowed: false, done: false), isFalse);
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: true, done: false), isFalse);
+    expect(GuestPush.wantsQuiet(ios: true, signedIn: false, allowed: false, done: true), isFalse);
   });
 
   test('the token goes with the install id, platform and language', () {

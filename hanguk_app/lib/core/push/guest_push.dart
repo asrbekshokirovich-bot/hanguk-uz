@@ -23,41 +23,93 @@ import '../analytics/tracked.dart';
 /// id (`app_push_token_register`) with the app's language. The CRM sends
 /// campaigns to these phones and counts the opens (push_opened carries the
 /// campaign).
+///
+/// Ushlab qolish rejasi P11 (QU1): a guest is also asked when they first save
+/// a university (♥) — the reminder is about that university. Each reason asks
+/// once, so two asks at most; an allowed phone is never asked again.
+enum GuestPushReason { report, heart }
+
 abstract final class GuestPush {
   static const _storage = FlutterSecureStorage();
   static const _askedKey = 'guest_push_asked_v1';
+  static const _askedHeartKey = 'guest_push_asked_heart_v1';
   static const _allowedKey = 'guest_push_allowed_v1';
+  static const _quietKey = 'guest_push_quiet_v1';
 
   /// Reads and writes the flags; tests swap it.
   @visibleForTesting
   static GuestPushStore store = const _SecureStore();
 
-  /// Whether this phone may be asked now: a guest (nobody signed in) on
-  /// Android or iOS, never asked before.
-  static Future<bool> shouldAsk({required bool signedIn, required bool mobile}) async {
+  /// Whether this phone may be asked now for [reason]: a guest (nobody
+  /// signed in) on Android or iOS, not allowed yet, not asked for it before.
+  static Future<bool> shouldAsk({
+    required bool signedIn,
+    required bool mobile,
+    GuestPushReason reason = GuestPushReason.report,
+  }) async {
     if (signedIn || !mobile) return false;
-    return !(await store.read(_askedKey) ?? false);
+    if (await store.read(_allowedKey) ?? false) return false;
+    return !(await store.read(_keyFor(reason)) ?? false);
   }
 
-  /// After the report: asks once. [context] must still be mounted.
-  static Future<void> maybeAsk(BuildContext context) async {
-    final lang = Localizations.localeOf(context).languageCode;
-    if (!await shouldAsk(signedIn: _signedIn, mobile: _mobile)) return;
-    if (!context.mounted) return;
-    final answer = _sheet(context);
-    await store.write(_askedKey, true);
+  static String _keyFor(GuestPushReason reason) =>
+      reason == GuestPushReason.heart ? _askedHeartKey : _askedKey;
+
+  /// After the report, or the first ♥: asks once per reason. The sheet goes
+  /// on the root navigator, so the screen that asked may already be closing.
+  static Future<void> maybeAsk(BuildContext context, {GuestPushReason reason = GuestPushReason.report}) async {
+    final host = Navigator.of(context, rootNavigator: true).context;
+    final lang = Localizations.localeOf(host).languageCode;
+    if (!await shouldAsk(signedIn: _signedIn, mobile: _mobile, reason: reason)) return;
+    if (reason == GuestPushReason.heart) await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (!host.mounted) return;
+    final answer = _sheet(host, reason);
+    await store.write(_keyFor(reason), true);
     final yes = await answer ?? false;
     if (!yes) return;
     try {
       final settings = await FirebaseMessaging.instance.requestPermission(alert: true, badge: true, sound: true);
       final status = settings.authorizationStatus;
-      AppEvents.track('push_permission', props: {'result': status.name, 'source': 'guest'});
+      AppEvents.track('push_permission', props: {
+        'result': status.name,
+        'source': reason == GuestPushReason.heart ? 'guest_heart' : 'guest',
+      });
       if (status == AuthorizationStatus.authorized || status == AuthorizationStatus.provisional) {
         await store.write(_allowedKey, true);
         await register(lang);
       }
     } catch (e) {
       debugPrint('GuestPush: permission failed: $e');
+    }
+  }
+
+  /// iOS quiet start (ushlab qolish P12): a guest's iPhone is given
+  /// provisional permission on first start — no prompt, notifications land
+  /// quietly in Notification Center — so a deadline reminder reaches it
+  /// before the app has asked. The app's own question still comes after the
+  /// report (or ♥) and turns it into a full permission.
+  static bool wantsQuiet({required bool ios, required bool signedIn, required bool allowed, required bool done}) =>
+      ios && !signedIn && !allowed && !done;
+
+  static Future<void> _quietStart(String lang) async {
+    final allowed = await store.read(_allowedKey) ?? false;
+    final done = await store.read(_quietKey) ?? false;
+    if (!wantsQuiet(ios: _ios, signedIn: _signedIn, allowed: allowed, done: done)) return;
+    await store.write(_quietKey, true);
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: true,
+      );
+      final status = settings.authorizationStatus;
+      AppEvents.track('push_permission', props: {'result': status.name, 'source': 'guest_quiet'});
+      if (status == AuthorizationStatus.provisional || status == AuthorizationStatus.authorized) {
+        await register(lang);
+      }
+    } catch (e) {
+      debugPrint('GuestPush: provisional failed: $e');
     }
   }
 
@@ -69,7 +121,15 @@ abstract final class GuestPush {
     final lang = languageCode ?? 'uz';
     if (_lastLang == lang || _signedIn || !_mobile) return;
     _lastLang = lang;
-    if (!(await store.read(_allowedKey) ?? false)) return;
+    if (!(await store.read(_allowedKey) ?? false)) {
+      // a quietly allowed iPhone keeps its token current too
+      if (await store.read(_quietKey) ?? false) {
+        await register(lang);
+      } else {
+        await _quietStart(lang);
+      }
+      return;
+    }
     await register(lang);
   }
 
@@ -117,6 +177,15 @@ abstract final class GuestPush {
     }
   }
 
+  static bool get _ios {
+    if (kIsWeb) return false;
+    try {
+      return Platform.isIOS;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static String get _platform {
     try {
       return Platform.isIOS ? 'ios' : 'android';
@@ -126,9 +195,10 @@ abstract final class GuestPush {
   }
 
   /// The app's own question before the phone's: true for yes.
-  static Future<bool?> _sheet(BuildContext context) {
+  static Future<bool?> _sheet(BuildContext context, GuestPushReason reason) {
     final l = AppLocalizations.of(context)!;
-    AppEvents.overlayOpened('guest_push');
+    final heart = reason == GuestPushReason.heart;
+    AppEvents.overlayOpened(heart ? 'guest_push_heart' : 'guest_push');
     return showModalBottomSheet<bool>(
       context: context,
       backgroundColor: FdColors.card,
@@ -140,9 +210,9 @@ abstract final class GuestPush {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(l.guestPushTitle, style: fdText(16, FontWeight.w800, FdColors.ink)),
+              Text(heart ? l.guestPushHeartTitle : l.guestPushTitle, style: fdText(16, FontWeight.w800, FdColors.ink)),
               const SizedBox(height: 8),
-              Text(l.guestPushBody, style: fdText(13.5, FontWeight.w500, FdColors.muted, height: 1.4)),
+              Text(heart ? l.guestPushHeartBody : l.guestPushBody, style: fdText(13.5, FontWeight.w500, FdColors.muted, height: 1.4)),
               const SizedBox(height: 16),
               HardButton(label: l.guestPushYes, onPressed: tracked('guest_push.yes', () => Navigator.of(ctx).pop(true))),
               const SizedBox(height: 4),
@@ -154,7 +224,7 @@ abstract final class GuestPush {
           ),
         ),
       ),
-    ).whenComplete(() => AppEvents.overlayClosed('guest_push'));
+    ).whenComplete(() => AppEvents.overlayClosed(heart ? 'guest_push_heart' : 'guest_push'));
   }
 }
 
