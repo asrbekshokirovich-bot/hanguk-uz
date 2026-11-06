@@ -5633,15 +5633,4 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Tải giấy tờ lên';
-
-  @override
-  String prepGuestAiLeft(String limit, String left) {
-    return 'Hôm nay còn $left/$limit câu hỏi';
-  }
-
-  @override
-  String get prepGuestInterviewFree => '1 lần/tuần · tuần này còn trống';
-
-  @override
-  String get prepGuestInterviewUsed => '1 lần/tuần · tuần này đã dùng';
 }

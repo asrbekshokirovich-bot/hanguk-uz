@@ -5661,15 +5661,4 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get nextStepUploadButton => 'Hujjatlarni yuklash';
-
-  @override
-  String prepGuestAiLeft(String limit, String left) {
-    return 'Bugun $limit ta savoldan $left tasi qoldi';
-  }
-
-  @override
-  String get prepGuestInterviewFree => 'Haftasiga 1 ta · bu hafta bo\'sh';
-
-  @override
-  String get prepGuestInterviewUsed => 'Haftasiga 1 ta · bu hafta ishlatilgan';
 }
