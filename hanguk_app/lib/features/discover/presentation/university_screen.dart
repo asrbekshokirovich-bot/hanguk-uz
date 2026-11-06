@@ -10,6 +10,7 @@ import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
+import '../../../design_system/seoul_night/widgets/slow_spinner.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../catalog/data/campus_photos.dart';
 import '../../catalog/data/catalog_filters.dart';
@@ -95,7 +96,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
       body: FdPage(
         child: u == null
             ? catalog.isLoading
-                  ? const Center(child: CircularProgressIndicator(color: FdColors.lime))
+                  ? SlowSpinner(
+                      retryName: 'university.slow_retry',
+                      onRetry: () => ref.invalidate(catalogProvider),
+                    )
                   : SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -358,9 +362,10 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
     CatalogGuideline g,
   ) {
     if (async.isLoading && groups.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(child: CircularProgressIndicator(color: FdColors.lime)),
+      return SlowSpinner(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        retryName: 'university.faculties_slow_retry',
+        onRetry: () => ref.invalidate(catalogDetailProvider(g.id)),
       );
     }
     if (async.hasError && groups.isEmpty) {
@@ -924,22 +929,32 @@ class _GrantCard extends ConsumerWidget {
           Text(l.ugSubtitle, style: fdText(11, FontWeight.w500, FdColors.muted)),
           const SizedBox(height: 6),
           if (async.isLoading && tiers.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Center(
-                child: SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: FdColors.ink),
+            SlowSpinner(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              size: 20,
+              color: FdColors.ink,
+              textColor: FdColors.muted,
+              retryName: 'university.grants_slow_retry',
+              onRetry: () => ref.invalidate(universityGrantsProvider(guideline.id)),
+            )
+          else if (tiers.isEmpty && async.hasError)
+            // A failed read could try again, like the faculties (plan R1.2).
+            Row(
+              children: [
+                Expanded(
+                  child: Text(l.uniDbLoadFailed, style: fdText(12, FontWeight.w600, FdColors.muted, height: 1.35)),
                 ),
-              ),
+                SeoulOutlineButton(
+                  label: l.commonRetry,
+                  expand: false,
+                  onPressed: tracked('university.grants_retry', () => ref.invalidate(universityGrantsProvider(guideline.id))),
+                ),
+              ],
             )
           else if (tiers.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                async.hasError ? l.uniDbLoadFailed : l.ugNone,
-                style: fdText(12, FontWeight.w600, FdColors.muted, height: 1.35),
-              ),
+              child: Text(l.ugNone, style: fdText(12, FontWeight.w600, FdColors.muted, height: 1.35)),
             )
           else
             for (var i = 0; i < tiers.length; i++)
