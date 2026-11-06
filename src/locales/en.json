@@ -2590,7 +2590,8 @@
       "marketing": "Marketing",
       "live": "Live",
       "flow": "Flow",
-      "clients": "Clients' activity"
+      "clients": "Clients' activity",
+      "retention": "Return"
     },
     "quality": {
       "refreshed": "Sessions and daily totals refreshed: {{time}}",
@@ -3669,5 +3670,21 @@
     "nameExists": "A student with this name already exists.",
     "missingFields": "Required fields are missing.",
     "generic": "The student was not added. {{detail}}"
+  },
+  "retention": {
+    "range": "{{from}} – {{to}} · test devices excluded",
+    "audience": {
+      "mehmon": "Guest",
+      "talaba": "Student"
+    },
+    "day": "Day {{n}}",
+    "curve": "Return curve",
+    "curveNote": "bar — selected audience · orange line — Adjust, education apps",
+    "cohort": "Weekly cohort",
+    "week": "Week",
+    "new": "New",
+    "early": "too early",
+    "total": "Total",
+    "note": "Hover a percent to see «returned / could return». Day N = opened the app and looked at something exactly N days later."
   }
 }

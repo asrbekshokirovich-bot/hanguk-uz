@@ -8,6 +8,7 @@ import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart' show HardButton;
 import '../../../design_system/seoul_night/widgets/lucide.dart';
+import '../../../design_system/seoul_night/widgets/slow_spinner.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../applications/data/journey_repository.dart';
 import '../../applications/domain/application_journey.dart';
@@ -49,7 +50,10 @@ class _JourneyScreenState extends ConsumerState<JourneyScreen> {
     return SafeArea(
       bottom: false,
       child: journeyAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: FdColors.lime)),
+        loading: () => SlowSpinner(
+          retryName: 'journey.slow_retry',
+          onRetry: () => ref.invalidate(applicationJourneyProvider),
+        ),
         error: (_, _) => Column(
           children: [
             ClientHeader(title: l.fdJourneyTitle, subtitle: name),

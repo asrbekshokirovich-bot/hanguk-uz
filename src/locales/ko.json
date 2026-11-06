@@ -2624,5 +2624,26 @@
     "inviteNothing": "이미 앱 사용 중이거나 이번 주에 초대됨",
     "inviteDone": "보냄: Telegram {{telegram}}, 작업 {{task}}",
     "inviteError": "초대를 보내지 못했습니다"
+  },
+  "appAnalytics": {
+    "tabs": {
+      "retention": "재방문"
+    }
+  },
+  "retention": {
+    "range": "{{from}} – {{to}} · 테스트 기기 제외",
+    "audience": {
+      "mehmon": "게스트",
+      "talaba": "학생"
+    },
+    "day": "{{n}}일차",
+    "curve": "재방문 곡선",
+    "curveNote": "막대 — 선택한 사용자 · 주황선 — Adjust 교육 앱",
+    "cohort": "주간 코호트",
+    "week": "주",
+    "new": "신규",
+    "early": "집계 전",
+    "total": "합계",
+    "note": "비율에 마우스를 올리면 «재방문 / 가능» 수가 보입니다. N일차 = 정확히 N일 후 앱을 열어 무언가를 본 경우."
   }
 }
