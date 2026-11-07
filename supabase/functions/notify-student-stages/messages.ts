@@ -7,8 +7,13 @@ export type StageKind =
   | "university_confirmed"
   | "online_submitted"
   | "offline_sent"
+  | "interview_scheduled"
   | "admission_accepted"
+  | "admission_rejected"
   | "final_university"
+  | "visa_process"
+  | "visa_waiting"
+  | "visa_received"
   | "offer_reminder"
   | "deadline_7"
   | "deadline_3"
@@ -95,6 +100,42 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Your final university", body: `Your consultant recommends ${list(n, "en")}. Confirm it in the app.` }),
     ko: (n) => ({ title: "최종 대학", body: `상담사 추천: ${list(n, "ko")}. 앱에서 확인해 주세요.` }),
     vi: (n) => ({ title: "Trường cuối cùng", body: `Tư vấn viên đề xuất ${list(n, "vi")}. Hãy xác nhận trong ứng dụng.` }),
+  },
+  // 2026-11-07: har bir CRM bosqichida xabar (suhbat, rad javobi, viza).
+  interview_scheduled: {
+    uz: (n) => ({ title: "Suhbat belgilandi 🗓", body: `Suhbat sanasi belgilandi: ${list(n, "uz")}. Kun va vaqtni ilovada ko'ring.` }),
+    ru: (n) => ({ title: "Назначено собеседование 🗓", body: `Назначено собеседование: ${list(n, "ru")}. Дата и время — в приложении.` }),
+    en: (n) => ({ title: "Interview scheduled 🗓", body: `Your interview is scheduled: ${list(n, "en")}. See the date and time in the app.` }),
+    ko: (n) => ({ title: "면접 일정 확정 🗓", body: `면접 일정이 정해졌습니다: ${list(n, "ko")}. 날짜와 시간은 앱에서 확인하세요.` }),
+    vi: (n) => ({ title: "Đã có lịch phỏng vấn 🗓", body: `Lịch phỏng vấn đã được xếp: ${list(n, "vi")}. Xem ngày giờ trong ứng dụng.` }),
+  },
+  admission_rejected: {
+    uz: (n) => ({ title: "Universitet javobi", body: `${list(n, "uz")} javob berdi: bu safar qabul qilinmadingiz. Konsultantingiz keyingi qadamni aytadi.` }),
+    ru: (n) => ({ title: "Ответ университета", body: `${list(n, "ru")}: на этот раз вы не приняты. Консультант подскажет следующий шаг.` }),
+    en: (n) => ({ title: "University decision", body: `${list(n, "en")}: not admitted this time. Your consultant will tell you the next step.` }),
+    ko: (n) => ({ title: "대학 결과", body: `${list(n, "ko")}: 이번에는 불합격입니다. 상담사가 다음 단계를 안내해 드립니다.` }),
+    vi: (n) => ({ title: "Kết quả từ trường", body: `${list(n, "vi")}: lần này bạn chưa trúng tuyển. Tư vấn viên sẽ hướng dẫn bước tiếp theo.` }),
+  },
+  visa_process: {
+    uz: () => ({ title: "Viza jarayoni boshlandi", body: "Viza uchun hujjatlaringiz tayyorlanmoqda. Batafsil ilovada." }),
+    ru: () => ({ title: "Начато оформление визы", body: "Готовим документы на визу. Подробности — в приложении." }),
+    en: () => ({ title: "Visa process started", body: "We are preparing your visa documents. Details in the app." }),
+    ko: () => ({ title: "비자 절차 시작", body: "비자 서류를 준비하고 있습니다. 자세한 내용은 앱에서 확인하세요." }),
+    vi: () => ({ title: "Bắt đầu làm visa", body: "Chúng tôi đang chuẩn bị hồ sơ visa cho bạn. Chi tiết trong ứng dụng." }),
+  },
+  visa_waiting: {
+    uz: () => ({ title: "Viza arizasi topshirildi", body: "Viza arizangiz topshirildi, natijasini kutyapmiz." }),
+    ru: () => ({ title: "Заявление на визу подано", body: "Заявление на визу подано, ждём результат." }),
+    en: () => ({ title: "Visa application submitted", body: "Your visa application has been submitted; we are waiting for the result." }),
+    ko: () => ({ title: "비자 신청 완료", body: "비자 신청서가 제출되었습니다. 결과를 기다리고 있습니다." }),
+    vi: () => ({ title: "Đã nộp hồ sơ visa", body: "Hồ sơ visa của bạn đã được nộp, đang chờ kết quả." }),
+  },
+  visa_received: {
+    uz: () => ({ title: "Viza tayyor! ✈️", body: "Tabriklaymiz, vizangiz chiqdi. Parvoz va turar joy bo'yicha konsultantingiz bog'lanadi." }),
+    ru: () => ({ title: "Виза готова! ✈️", body: "Поздравляем, виза получена. Консультант свяжется по поводу перелёта и жилья." }),
+    en: () => ({ title: "Your visa is ready! ✈️", body: "Congratulations, your visa has been issued. Your consultant will contact you about the flight and housing." }),
+    ko: () => ({ title: "비자 발급 완료! ✈️", body: "축하합니다, 비자가 발급되었습니다. 항공편과 숙소는 상담사가 안내해 드립니다." }),
+    vi: () => ({ title: "Visa đã có! ✈️", body: "Chúc mừng, visa của bạn đã được cấp. Tư vấn viên sẽ liên hệ về chuyến bay và chỗ ở." }),
   },
   // 4-signal (the app analytics plan): an offer the student has not answered
   // for 48 hours. Once per offer.

@@ -64,4 +64,16 @@ describe('deadline reminders (7, 3, 1 days)', () => {
   it('opens the app home and names the reminder as the campaign', () => {
     expect(pushData('deadline_3')).toEqual({ type: 'stage', kind: 'deadline', campaign: 'deadline_3' });
   });
+
+  it('has text for every CRM stage in all five languages (2026-11-07)', () => {
+    const kinds = ['interview_scheduled', 'admission_rejected', 'visa_process', 'visa_waiting', 'visa_received'] as const;
+    for (const kind of kinds) {
+      for (const lang of ['uz', 'ru', 'en', 'ko', 'vi']) {
+        const m = stageMessage(kind, ['Duksung'], lang);
+        expect(m.title.length).toBeGreaterThan(0);
+        expect(m.body.length).toBeGreaterThan(0);
+      }
+    }
+    expect(stageMessage('interview_scheduled', ['Duksung'], 'uz').body).toContain('Duksung');
+  });
 });
