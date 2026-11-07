@@ -70,7 +70,7 @@ export const formFromLead = (lead: Lead): IntakeForm => {
   return {
     firstName,
     lastName,
-    phone: lead.phone ?? '',
+    phone: phoneForInput(lead.phone),
     age: lead.age == null ? '' : String(lead.age),
     city: lead.city ?? '',
     cert: lead.cert_level ?? '',
@@ -102,7 +102,7 @@ export const leadDataFromForm = (form: IntakeForm): CreateLeadData => {
   const age = Number.parseInt(form.age, 10);
   return {
     full_name: joinName(form.firstName, form.lastName),
-    phone: trimmed(form.phone) ?? undefined,
+    phone: phoneForSave(form.phone),
     age: Number.isFinite(age) ? age : null,
     city: trimmed(form.city) ?? undefined,
     cert_level: trimmed(form.cert),
@@ -133,6 +133,53 @@ export type IntakeErrors = Partial<Record<IntakeErrorKey, true>>;
 /** Digits only — operators paste numbers with spaces, dashes and brackets. */
 export const phoneDigits = (phone: string) => phone.replace(/\D/g, '');
 
+/** The country code the intake field always carries. */
+export const UZ_PREFIX = '+998';
+
+/**
+ * The local part (operator code + number) of an Uzbek number, at most 9 digits.
+ * A leading 998 is the country code only when more than 9 digits were given —
+ * "998 90 ..." pasted whole — so a 9-digit local number is never cut.
+ */
+export const uzLocalDigits = (phone: string | null | undefined): string => {
+  const value = (phone ?? '').trim();
+  // "+998 2" while typing: the written prefix is the country code however short the rest is.
+  if (value.startsWith(UZ_PREFIX)) return phoneDigits(value.slice(UZ_PREFIX.length)).slice(0, MIN_PHONE_DIGITS);
+  const digits = phoneDigits(value);
+  const local = digits.length > MIN_PHONE_DIGITS && digits.startsWith('998') ? digits.slice(3) : digits;
+  return local.slice(0, MIN_PHONE_DIGITS);
+};
+
+/**
+ * What the phone field shows while the operator types: "+998 20 278 97 15".
+ * Operators typed bare local numbers ("202789715") and those were saved
+ * without the country code; the field now always shows and keeps +998.
+ */
+export const formatPhoneInput = (value: string): string => {
+  const local = uzLocalDigits(value);
+  if (!local) return '';
+  const parts = [local.slice(0, 2), local.slice(2, 5), local.slice(5, 7), local.slice(7, 9)].filter(Boolean);
+  return `${UZ_PREFIX} ${parts.join(' ')}`;
+};
+
+/** A stored number loaded into the field. Anything that is not one Uzbek number stays as stored. */
+export const phoneForInput = (stored: string | null | undefined): string => {
+  const raw = (stored ?? '').trim();
+  if (!raw) return '';
+  const numbers = phoneNumbersOf(raw);
+  const digits = numbers[0] ?? '';
+  const isUz = numbers.length === 1 && (digits.length === 9 || (digits.length === 12 && digits.startsWith('998')));
+  return isUz ? formatPhoneInput(raw) : raw;
+};
+
+/** Saved as "+998XXXXXXXXX" — the canonical form the rest of the system matches on. */
+export const phoneForSave = (value: string): string | undefined => {
+  const local = uzLocalDigits(value);
+  if (local.length === MIN_PHONE_DIGITS) return `${UZ_PREFIX}${local}`;
+  const trimmed = value.trim();
+  return trimmed === '' || trimmed === UZ_PREFIX ? undefined : trimmed;
+};
+
 /**
  * Every field except the free-text note and the follow-up date is required.
  *
@@ -144,7 +191,7 @@ export const validateIntake = (form: IntakeForm): IntakeErrors => {
   const errors: IntakeErrors = {};
   if (!form.firstName.trim()) errors.firstName = true;
   if (!form.lastName.trim()) errors.lastName = true;
-  if (phoneDigits(form.phone).length < MIN_PHONE_DIGITS) errors.phone = true;
+  if (uzLocalDigits(form.phone).length !== MIN_PHONE_DIGITS) errors.phone = true;
 
   const age = Number.parseInt(form.age, 10);
   if (!(Number.isFinite(age) && age >= MIN_AGE && age <= MAX_AGE)) errors.age = true;

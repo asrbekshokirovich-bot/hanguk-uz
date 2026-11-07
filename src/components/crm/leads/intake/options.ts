@@ -42,7 +42,7 @@ export const CERTIFICATES = [
 ] as const;
 
 /** Study tracks. Stored in `education_level`. */
-export const LEVELS = ['Kasbiy ta’lim', 'Bakalavr', 'Magistr', 'GKS', 'HanBox'] as const;
+export const LEVELS = ['Kasbiy ta’lim', 'Bakalavr', 'Magistr', 'GKS', 'HanBox', 'Til kursi'] as const;
 
 /** How the lead reached us. Stored in `contact_channel`. */
 export const CHANNELS = [
@@ -98,7 +98,7 @@ export const CALL_RESULTS = ['Gaplashildi', 'Telefon ko\'tarmadi', 'Nomer xato']
 export const MIN_AGE = 15;
 export const MAX_AGE = 45;
 
-/** A phone number is considered dialable once it carries this many digits. */
+/** An Uzbek number's local part (operator code + number) is exactly this many digits. */
 export const MIN_PHONE_DIGITS = 9;
 
 /**
