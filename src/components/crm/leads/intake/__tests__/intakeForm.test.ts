@@ -402,3 +402,29 @@ describe('channelLabel', () => {
     expect(channelLabel(null)).toBe('');
   });
 });
+
+describe('intake phone field', () => {
+  it('formats a bare local number with +998 as the operator types', async () => {
+    const { formatPhoneInput } = await import('../intakeForm');
+    expect(formatPhoneInput('202789715')).toBe('+998 20 278 97 15');
+    expect(formatPhoneInput('+998 2')).toBe('+998 2');
+    expect(formatPhoneInput('+998 ')).toBe('');
+    expect(formatPhoneInput('998901234567')).toBe('+998 90 123 45 67');
+    expect(formatPhoneInput('+998 90 123 45 678')).toBe('+998 90 123 45 67');
+  });
+
+  it('saves +998XXXXXXXXX and loads stored numbers back formatted', async () => {
+    const { phoneForSave, phoneForInput } = await import('../intakeForm');
+    expect(phoneForSave('+998 20 278 97 15')).toBe('+998202789715');
+    expect(phoneForSave('')).toBeUndefined();
+    expect(phoneForInput('202789715')).toBe('+998 20 278 97 15');
+    expect(phoneForInput('+998901234567')).toBe('+998 90 123 45 67');
+    expect(phoneForInput('90 123 45 67 / 91 765 43 21')).toBe('90 123 45 67 / 91 765 43 21');
+  });
+
+  it('requires exactly nine local digits', () => {
+    const form = formFromLead(completeLead());
+    expect(validateIntake({ ...form, phone: '+998 20 278 97 15' }).phone).toBeUndefined();
+    expect(validateIntake({ ...form, phone: '+998 20 278 97' }).phone).toBe(true);
+  });
+});

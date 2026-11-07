@@ -24,6 +24,7 @@ import {
   validateIntake,
   validateSavable,
   missingCount,
+  formatPhoneInput,
 } from './intakeForm';
 import { useRelativeDate } from './useRelativeDate';
 
@@ -299,7 +300,8 @@ export const LeadIntakeScreen = ({
                   type="tel"
                   inputMode="tel"
                   value={form.phone}
-                  onChange={(event) => set('phone')(event.target.value)}
+                  onChange={(event) => set('phone')(formatPhoneInput(event.target.value))}
+                  maxLength={17}
                   placeholder={t('leads.intake.placeholders.phone')}
                   aria-invalid={errorShown('phone')}
                   className={cn(fieldClass, 'tabular-nums')}
