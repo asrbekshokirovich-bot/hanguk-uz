@@ -129,9 +129,34 @@ void main() {
     expect(received.view(JourneyStamp.visa).date, DateTime(2026, 12, 20, 9));
   });
 
-  test('a legacy completed application has every stamp', () {
-    final j = ApplicationJourney.fromJson({'universities': [uni('X', {'status': 'completed'})]});
-    expect(progressOf(j).single.finished, isTrue);
+  test('online and offline sent: submission done, the interview is next (as the CRM board)', () {
+    // KHABIBULLAYEVA, 07.11: online 23.10 and posted 27.10, no interview yet —
+    // the app held "Universitetga topshirish" while the CRM showed "Oflayn ariza".
+    final j = ApplicationJourney.fromJson({
+      ...facts,
+      'universities': [
+        uni('Duksung', {
+          'status': 'originals_sent',
+          'online_submitted_at': '2026-10-23T09:36:00',
+          'offline_sent_at': '2026-10-28T06:59:00',
+          'interview_round': '2026-11-15',
+        }),
+      ],
+    });
+    final p = progressOf(j).single;
+    expect(p.doneCount, 4);
+    expect(p.current, JourneyStamp.interview);
+    // Online only: still at submission.
+    final online = ApplicationJourney.fromJson({
+      ...facts,
+      'universities': [uni('X', {'online_submitted_at': '2026-10-23T09:36:00'})],
+    });
+    expect(progressOf(online).single.current, JourneyStamp.submission);
+  });
+
+  test('a legacy applications.status alone moves no stamp', () {
+    final j = ApplicationJourney.fromJson({...facts, 'universities': [uni('X', {'status': 'completed'})]});
+    expect(progressOf(j).single.current, JourneyStamp.submission);
   });
 
   test('not admitted: the admission stamp is refused and nothing is current', () {

@@ -6,8 +6,6 @@
 /// rules can be tested without a widget tree.
 library;
 
-import '../presentation/widgets/process_tracker.dart';
-
 /// The eight stamps, in order.
 enum JourneyStamp { contract, documents, translation, submission, interview, admission, visa, flight }
 
@@ -122,8 +120,8 @@ class JourneyUniversity {
 
   final String institutionId;
 
-  /// `applications.status` — the CRM keeps it in step with the columns below
-  /// and it still carries the older statuses set by hand.
+  /// `applications.status` — legacy, kept for the payload only; the stamps
+  /// read the submission columns, as the CRM does.
   final String status;
   final String? nameEn;
   final String? nameKo;
@@ -157,7 +155,7 @@ class JourneyUniversity {
   String get name => (nameEn?.trim().isNotEmpty ?? false) ? nameEn!.trim() : (nameKo ?? '');
 
   bool get submitted => onlineSubmittedAt != null || offlineSentAt != null;
-  bool get rejected => result == 'rejected' || status == 'rejected';
+  bool get rejected => result == 'rejected';
   bool get accepted => result == 'accepted';
 
   /// The hangul on the blue tile: "계명" for 계명대학교.
@@ -231,14 +229,16 @@ class UniversityProgress {
   UniversityProgress._(this.university, this.stamps, this.needsStudyPlan);
 
   factory UniversityProgress.of(JourneyUniversity u, JourneyFacts f, DateTime now) {
-    final step = ProcessTracker.stepFor(u.status);
-    final completed = ProcessTracker.isCompleted(u.status) && u.visaStatus == null;
+    // The same facts, and the same order, as the CRM's Arizalar board
+    // (src/lib/studentPipeline.ts submissionStep): online → offline →
+    // interview → result → final → visa. `applications.status` is NOT read —
+    // the CRM stopped writing it on 2026-10-15 (Asrbek, 2026-11-07: "bu
+    // bo'lim crm bilan bir xil ishlasin").
     final interviewPassed = u.interviewAt != null && daysUntil(u.interviewAt!, now) < 0;
-    final visaReceived = u.visaStatus == 'received' || (completed && u.finalAt == null);
 
-    // Furthest stamp each source of truth vouches for; every stamp before the
-    // furthest one is done too, even when its own record is missing (a
-    // student submitted without a contract date entered, say).
+    // Furthest stamp the CRM vouches for; every stamp before the furthest
+    // one is done too, even when its own record is missing (a student
+    // submitted without a contract date entered, say).
     final done = <JourneyStamp>{
       if (f.contractDate != null) JourneyStamp.contract,
       if (f.docsComplete) JourneyStamp.documents,
@@ -246,22 +246,21 @@ class UniversityProgress {
     };
     var furthest = -1;
     void reach(JourneyStamp s) => furthest = s.index > furthest ? s.index : furthest;
-    if (step >= 2 || u.submitted) reach(JourneyStamp.translation);
-    // Submitted counts as done once the university has moved it on: an
-    // interview, an answer, or a later status.
-    if (u.interviewAt != null || u.result != null || step >= 4) reach(JourneyStamp.submission);
-    if (interviewPassed || u.result != null || (step >= 5 && step != 9) || u.finalAt != null) {
-      reach(JourneyStamp.interview);
+    if (u.submitted) reach(JourneyStamp.translation);
+    // Submission is done once the paper documents are posted (the CRM's
+    // "Oflayn ariza" column) or the university has moved on.
+    if (u.offlineSentAt != null || u.interviewAt != null || u.result != null || u.finalAt != null) {
+      reach(JourneyStamp.submission);
     }
-    if (u.accepted || u.finalAt != null || (step >= 8 && !u.rejected)) reach(JourneyStamp.admission);
-    if (visaReceived) reach(JourneyStamp.visa);
-    if (completed && u.finalAt == null) reach(JourneyStamp.flight);
+    if (interviewPassed || u.result != null || u.finalAt != null) reach(JourneyStamp.interview);
+    if (u.accepted || u.finalAt != null) reach(JourneyStamp.admission);
+    if (u.visaStatus == 'received') reach(JourneyStamp.visa);
     for (final s in JourneyStamp.values) {
       if (s.index <= furthest) done.add(s);
     }
 
     final rejected = u.rejected && !u.accepted;
-    final needsStudyPlan = !f.studyPlanReady && !u.submitted && step < 2 && !rejected;
+    final needsStudyPlan = !f.studyPlanReady && !u.submitted && !rejected;
 
     final departure = u.departureEstimate;
     final views = <StampView>[];
