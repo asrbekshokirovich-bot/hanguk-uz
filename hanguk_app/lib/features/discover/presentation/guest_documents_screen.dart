@@ -14,8 +14,8 @@ import '../data/slots.dart';
 import 'guest_application_path_screen.dart';
 
 /// The document names a guest sees: their language where there is a
-/// translation; Vietnamese reads the English one (no vi translation yet).
-String docName(CatalogDoc d, String lang) => (d.nameIn(lang == 'vi' ? 'en' : lang) ?? '').trim();
+/// translation.
+String docName(CatalogDoc d, String lang) => (d.nameIn(lang) ?? '').trim();
 
 /// The ticks a guest made, per guideline, on this phone only.
 abstract final class GuestDocTicks {

@@ -2,7 +2,7 @@
 # Sourced from lib/features/training/presentation/training_strings.dart —
 # that file is now a back-compat shim that delegates to
 # AppLocalizations.of(context). Translations: en (canonical), uz, ko,
-# ru, vi. Non-English copies are seeded with the English strings and
+# ru. Non-English copies are seeded with the English strings and
 # marked with `// TODO: translate` so a translator can fill in later
 # without blocking the wiring.
 
@@ -16,4 +16,3 @@ preferred-supported-locales:
   - uz
   - ko
   - ru
-  - vi
