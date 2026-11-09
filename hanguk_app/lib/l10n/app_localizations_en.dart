@@ -4515,7 +4515,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ajSummary(int count, int done) {
-    return '$count universities · $done / 8 stages';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count universities',
+      one: '$count university',
+    );
+    return '$_temp0 · $done / 8 stages';
   }
 
   @override
@@ -5409,7 +5415,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String ulSubtitle(int n) {
-    return '$n universities · tap a card';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n universities',
+      one: '$n university',
+    );
+    return '$_temp0 · tap a card';
   }
 
   @override

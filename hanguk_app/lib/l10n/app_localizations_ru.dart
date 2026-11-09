@@ -4274,7 +4274,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String ucBannerPending(int count) {
-    return '$count университета ждут вашего ответа';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count университета ждут вашего ответа',
+      many: '$count университетов ждут вашего ответа',
+      few: '$count университета ждут вашего ответа',
+      one: '$count университет ждёт вашего ответа',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4517,7 +4525,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String ajSummary(int count, int done) {
-    return 'Университетов: $count · $done / 8 этапов';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count университета',
+      many: '$count университетов',
+      few: '$count университета',
+      one: '$count университет',
+    );
+    return '$_temp0 · $done / 8 этапов';
   }
 
   @override
@@ -5409,7 +5425,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String ulSubtitle(int n) {
-    return '$n университетов · нажмите на карточку';
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n университета',
+      many: '$n университетов',
+      few: '$n университета',
+      one: '$n университет',
+    );
+    return '$_temp0 · нажмите на карточку';
   }
 
   @override

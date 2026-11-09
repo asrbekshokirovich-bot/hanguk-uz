@@ -5882,7 +5882,7 @@
   "@fdListReportCta": {
     "description": "Pinned button under the university list: opens the visa report."
   },
-  "ajSummary": "{count} universities · {done} / 8 stages",
+  "ajSummary": "{count, plural, one{{count} university} other{{count} universities}} · {done} / 8 stages",
   "@ajSummary": {
     "description": "Ariza list header (design 7b): universities and stamps of the furthest one.",
     "placeholders": {
@@ -6657,7 +6657,7 @@
       }
     }
   },
-  "ulSubtitle": "{n} universities · tap a card",
+  "ulSubtitle": "{n, plural, one{{n} university} other{{n} universities}} · tap a card",
   "@ulSubtitle": {
     "placeholders": {
       "n": {

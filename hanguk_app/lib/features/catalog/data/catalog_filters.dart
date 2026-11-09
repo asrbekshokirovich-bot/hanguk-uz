@@ -177,6 +177,57 @@ CatalogGuideline? guidelineFor(CatalogUniversity u, CatalogFilter f) =>
 /// guideline.
 num? priceOf(CatalogGuideline g) => g.tuitionMin ?? g.tuitionMax;
 
+/// Cyrillic → Latin, letter by letter, so «Сеул» and «Seul» read alike.
+const Map<String, String> _cyr = {
+  'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z', 'и': 'i',
+  'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't',
+  'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sh', 'ъ': '', 'ы': 'i', 'ь': '',
+  'э': 'e', 'ю': 'yu', 'я': 'ya', 'ў': 'o', 'қ': 'q', 'ғ': 'g', 'ҳ': 'h',
+};
+
+/// How the cities are written in Uzbek and Russian (after [_cyr]) → the
+/// catalogue's English name. The search box is typed in the phone's
+/// language; the catalogue has the English and Korean names only.
+const Map<String, String> _cityAliases = {
+  'seul': 'seoul', 'pusan': 'busan', 'tegu': 'daegu', 'degu': 'daegu',
+  'inchhon': 'incheon', 'inchon': 'incheon', 'inchxon': 'incheon', 'kvandju': 'gwangju',
+  'kvanju': 'gwangju', 'gvanju': 'gwangju', 'tedjon': 'daejeon', 'tejon': 'daejeon', 'dejon': 'daejeon',
+  'ulsan': 'ulsan', 'suvon': 'suwon', 'chondju': 'jeonju', 'jonju': 'jeonju', 'chonju': 'jeonju',
+  'chhunchhon': 'chuncheon', 'chunchon': 'chuncheon', 'chhonan': 'cheonan', 'chonan': 'cheonan',
+  'chhondju': 'cheongju', 'chongju': 'cheongju', 'chedju': 'jeju', 'chechju': 'jeju', 'jeju': 'jeju',
+  'phohan': 'pohang', 'poxan': 'pohang', 'pohan': 'pohang', 'kyonsan': 'gyeongsan', 'gyonsan': 'gyeongsan',
+  'chindju': 'jinju', 'jinju': 'jinju', 'kanin': 'gangneung', 'kannin': 'gangneung', 'sejon': 'sejong',
+  'yonin': 'yongin', 'songnam': 'seongnam', 'puchhon': 'bucheon', 'buchon': 'bucheon', 'anyan': 'anyang',
+  'chhanvon': 'changwon', 'changvon': 'changwon', 'mokpho': 'mokpo', 'kimhe': 'gimhae', 'gimhe': 'gimhae',
+};
+
+String _fold(String s) {
+  final b = StringBuffer();
+  for (final ch in s.toLowerCase().split('')) {
+    b.write(_cyr[ch] ?? ch);
+  }
+  return b.toString().replaceAll(RegExp(r"[\s'ʻʼ‘’`\-.,()/]"), '');
+}
+
+/// Whether the search box's [query] finds [hay] (names, cities): case,
+/// spaces, apostrophes and Cyrillic do not matter, and a city typed the
+/// Uzbek or Russian way («Seul», «Сеул», «Пусан») finds its English name.
+bool catalogTextMatches(String hay, String query) {
+  final q = _fold(query);
+  if (q.isEmpty) return true;
+  final h = _fold(hay);
+  if (h.contains(q)) return true;
+  if (q.length < 4) return false;
+  for (final e in _cityAliases.entries) {
+    final key = _fold(e.key);
+    if (key.startsWith(q) || q.startsWith(key)) {
+      if (h.contains(e.value)) return true;
+    }
+  }
+  return false;
+}
+
+
 /// Apply [f] to [all]. Cheapest first; a university with no fee sorts last.
 /// [fieldMatches] is the field search's answer for [CatalogFilter.field]:
 /// the universities with a programme of that field (null while it loads, or
@@ -222,8 +273,8 @@ List<CatalogUniversity> applyCatalogFilter(
         u.nameKoShort,
         u.city,
         g.cityKo,
-      ].whereType<String>().join(' ').toLowerCase();
-      if (!hay.contains(q)) return false;
+      ].whereType<String>().join(' ');
+      if (!catalogTextMatches(hay, q)) return false;
     }
     if (f.ielts != null) {
       final need = g.ieltsMin;
