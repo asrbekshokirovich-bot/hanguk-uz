@@ -603,6 +603,10 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    // No recording (an old call, or one the provider no longer keeps) is not
+    // an error for the student: the analysis above stands on its own, so the
+    // player simply does not show — not a red "Audio yozuv topilmadi".
+    if (_error == 'audio_recording_not_found') return const SizedBox.shrink();
     if (_error != null) {
       // _error is the 'audio_recording_not_found' sentinel set when
       // fetchRecordingUrl returned null. Translated at render time so

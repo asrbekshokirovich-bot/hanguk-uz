@@ -15,11 +15,20 @@ import '../../domain/chat_message.dart';
 class ChatMessageBubble extends StatelessWidget {
   final ChatMessage message;
 
-  const ChatMessageBubble({super.key, required this.message});
+  /// Answers one of the AI's multiple-choice options (sent as the student's
+  /// message). Null on older questions: only the latest can be answered.
+  final ValueChanged<String>? onOption;
+
+  const ChatMessageBubble({super.key, required this.message, this.onOption});
 
   @override
   Widget build(BuildContext context) {
     final bool isUser = message.role == 'user';
+    final clarify = isUser ? null : ClarifyReply.parse(message.content);
+    // Half a clarify envelope still streaming in: the dots, not raw JSON.
+    final text = !isUser && clarify == null && ClarifyReply.isPartial(message.content)
+        ? '…'
+        : clarify?.question ?? message.content;
 
     // A squared corner on the avatar side reads as the bubble's tail.
     const tail = Radius.zero;
@@ -69,17 +78,37 @@ class ChatMessageBubble extends StatelessWidget {
                       width: 1,
                     ),
                   ),
-                  child: Text(message.content, style: SeoulType.body),
+                  child: Text(text, style: SeoulType.body),
                 ),
+                if (clarify != null && clarify.options.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final o in clarify.options)
+                        ActionChip(
+                          label: Text(o, style: SeoulType.body.copyWith(fontSize: 14)),
+                          backgroundColor: SeoulColors.glass,
+                          side: BorderSide(color: SeoulColors.lime.withValues(alpha: 0.6)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                          onPressed: tracked(
+                            'chat_message_bubble.clarify_option',
+                            onOption == null ? null : () => onOption!(o),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
 
                 // Reporting an AI answer (App Store guideline 1.2). Visible
                 // rather than hidden behind a long-press: a mechanism review
                 // cannot find is a mechanism that does not count, and a
                 // student who has just been told something wrong should not
                 // have to discover a gesture.
-                if (!isUser)
+                if (!isUser && !message.local)
                   _ReportAction(
-                    text: message.content,
+                    text: text,
                     messageId: message.id,
                   ),
               ],

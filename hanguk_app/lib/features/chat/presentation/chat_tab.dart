@@ -82,7 +82,13 @@ class _ChatTabState extends ConsumerState<ChatTab> {
                   // A real request is in flight — never a fake typing delay.
                   return const _AiThinkingRow();
                 }
-                return ChatMessageBubble(message: chatState.messages[index]);
+                final last = index == chatState.messages.length - 1;
+                return ChatMessageBubble(
+                  message: chatState.messages[index],
+                  onOption: last && !chatState.isLoading
+                      ? (o) => ref.read(chatProvider.notifier).sendMessage(o)
+                      : null,
+                );
               },
             ),
           ),
