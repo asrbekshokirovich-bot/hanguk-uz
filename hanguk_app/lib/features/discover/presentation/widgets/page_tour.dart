@@ -205,7 +205,7 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
     _scroll = _findScroll();
     if (_scroll case final pos? when pos.pixels > pos.minScrollExtent) pos.jumpTo(pos.minScrollExtent);
     _scroll?.addListener(_follow);
-    setState(() {
+    _redraw(() {
       _step = 0;
       _moving = false;
     });
@@ -217,13 +217,21 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
     }
     // One more frame: the rects are read once the page is laid out.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() {});
+      if (mounted) _redraw(() {});
     });
     _arm();
   }
 
+  /// The list scrolled under the light: only the light is drawn again.
   void _follow() {
-    if (mounted && _portal.isShowing) setState(() {});
+    if (mounted && _portal.isShowing) _redraw(() {});
+  }
+
+  /// Redraws the tour's layer alone. A setState here rebuilt the whole page
+  /// under it — on every scroll step while the tour showed.
+  void _redraw(VoidCallback change) {
+    change();
+    _tick.value++;
   }
 
   void _arm() {
@@ -247,7 +255,7 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
       _finish('done');
       return;
     }
-    setState(() => _moving = true);
+    _redraw(() => _moving = true);
     final next = _step + 1;
     // A lazy list builds the next place only near the screen: scroll on
     // until it is there.
@@ -266,13 +274,13 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
       await Scrollable.ensureVisible(ctx, alignment: 0.45, duration: const Duration(milliseconds: 300));
     }
     if (!mounted || !_portal.isShowing) return;
-    setState(() {
+    _redraw(() {
       _from = _rectOf(_keys[_step]);
       _step = next;
     });
     await _glide.forward(from: 0);
     if (!mounted) return;
-    setState(() => _moving = false);
+    _redraw(() => _moving = false);
     _arm();
   }
 

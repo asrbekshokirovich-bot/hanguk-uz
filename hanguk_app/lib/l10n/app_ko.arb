@@ -1830,5 +1830,6 @@
   "nextStepSubmissionBody": "{university}: 온라인 지원 마감. 날짜와 상태는 지원 페이지에서 확인하세요.",
   "nextStepInterviewTitle": "면접을 준비하세요",
   "nextStepInterviewBody": "{university}: 면접. 날짜와 시간은 지원 페이지에서 확인하세요.",
-  "nextStepOpenButton": "지원서 열기"
+  "nextStepOpenButton": "지원서 열기",
+  "vzAnswersCleared": "답변을 초기화했어요"
 }

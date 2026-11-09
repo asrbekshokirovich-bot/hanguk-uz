@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/seen.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -77,6 +78,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const [];
     final filter = ref.watch(catalogFilterProvider);

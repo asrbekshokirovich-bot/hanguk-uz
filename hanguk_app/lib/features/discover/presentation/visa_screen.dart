@@ -61,8 +61,26 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
   late final _progress = FormProgress('visa');
   int _total = 0;
 
+  /// The questions' list: back to the top when the round button is tapped
+  /// again on this page, or the answers are cleared — so a tap always shows
+  /// something happening.
+  final _list = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    kAssessTabReselected.addListener(_toTop);
+  }
+
+  void _toTop() {
+    if (!mounted || !_list.hasClients) return;
+    _list.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOutCubic);
+  }
+
   @override
   void dispose() {
+    kAssessTabReselected.removeListener(_toTop);
+    _list.dispose();
     _progress.leave(total: _total);
     super.dispose();
   }
@@ -410,9 +428,18 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
               ),
               _ClearButton(
                 label: l.catalogFilterClear,
-                onTap: tracked('visa.catalog_filter_clear', () => ref
-                    .read(assessmentProvider.notifier)
-                    .set(AssessmentInput(universityIds: input.universityIds, bankKrw: input.bankKrw))),
+                onTap: tracked('visa.catalog_filter_clear', () {
+                  ref
+                      .read(assessmentProvider.notifier)
+                      .set(AssessmentInput(universityIds: input.universityIds, bankKrw: input.bankKrw));
+                  // Said out loud: with the answers already at their defaults
+                  // nothing on the page changed, and people tapped it again
+                  // and again (4–12 taps in a row in the analytics).
+                  _toTop();
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(SnackBar(content: Text(l.vzAnswersCleared), duration: const Duration(seconds: 2)));
+                }),
               ),
               const SizedBox(width: 8),
               KeyedSubtree(
@@ -438,6 +465,7 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
         ),
         Expanded(
           child: ListView(
+            controller: _list,
             padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
             children: [
               const ContinueCard(),

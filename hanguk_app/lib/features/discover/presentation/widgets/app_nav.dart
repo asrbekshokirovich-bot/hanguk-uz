@@ -32,6 +32,10 @@ abstract final class AppTab {
   static bool needsClient(int tab) => tab == application || tab == documents;
 }
 
+/// Ticks when the round button is tapped while its page is already open:
+/// the page scrolls back to the top instead of the tap doing nothing.
+final ValueNotifier<int> kAssessTabReselected = ValueNotifier(0);
+
 /// The nav's four tabs, left to right, as [AppTab]s.
 const List<int> _navTabs = [AppTab.universities, AppTab.prepare, AppTab.application, AppTab.documents];
 
@@ -121,7 +125,17 @@ class AppNavOrb extends ConsumerWidget {
       value: best == null ? '?%' : '$best%',
       label: l.fdNavAssess,
       active: current == AppTab.home,
-      onTap: tracked('app_nav.nav_assess', onTap ?? () => openAppTab(context, ref, AppTab.home, onLocal: onLocal)),
+      onTap: tracked(
+        'app_nav.nav_assess',
+        onTap ??
+            () {
+              if (current == AppTab.home) {
+                kAssessTabReselected.value++;
+              } else {
+                openAppTab(context, ref, AppTab.home, onLocal: onLocal);
+              }
+            },
+      ),
     );
   }
 }

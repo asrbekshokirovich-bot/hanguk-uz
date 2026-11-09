@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../data/catalog_filters.dart';
@@ -27,6 +28,8 @@ class CatalogFilterScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final f = ref.watch(catalogFilterProvider);

@@ -5742,4 +5742,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get nextStepOpenButton => 'Arizani ochish';
+
+  @override
+  String get vzAnswersCleared => 'Javoblar tozalandi';
 }

@@ -5754,4 +5754,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nextStepOpenButton => 'Open the application';
+
+  @override
+  String get vzAnswersCleared => 'Answers cleared';
 }

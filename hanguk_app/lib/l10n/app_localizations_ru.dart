@@ -5766,4 +5766,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get nextStepOpenButton => 'Открыть заявку';
+
+  @override
+  String get vzAnswersCleared => 'Ответы сброшены';
 }

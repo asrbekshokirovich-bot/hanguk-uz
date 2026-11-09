@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_slider.dart';
@@ -30,6 +31,8 @@ class FilterScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final f = ref.watch(catalogFilterProvider);

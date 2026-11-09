@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../guest/presentation/widgets/contact_sheet.dart';
@@ -174,6 +175,8 @@ class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final u = widget.university;
     final g = u.forDegree(_degree) ?? u.primary;

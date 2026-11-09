@@ -160,9 +160,10 @@ class CachedRows {
         final rows = await fetch();
         _rows = rows;
         _at = _now();
-        unawaited(
-          _store.write(name, jsonEncode({'v': 1, 'q': query, 'at': _at!.toUtc().toIso8601String(), 'rows': rows})),
-        );
+        unawaited(() async {
+          final json = await _off(_encodeJson, {'v': 1, 'q': query, 'at': _at!.toUtc().toIso8601String(), 'rows': rows});
+          await _store.write(name, json);
+        }());
         return rows;
       } finally {
         _inFlight = null;
@@ -174,7 +175,7 @@ class CachedRows {
     try {
       final saved = await _store.read(name);
       if (saved != null) {
-        final m = jsonDecode(saved);
+        final m = await _off(_decodeJson, saved);
         if (m is Map && m['v'] == 1 && m['q'] == query && m['rows'] is List) {
           if (_rows == null) {
             _rows = m['rows'] as List;
@@ -192,7 +193,7 @@ class CachedRows {
     try {
       final shipped = await _store.bundled(asset);
       if (shipped == null) return;
-      final rows = jsonDecode(shipped);
+      final rows = await _off(_decodeJson, shipped);
       // An empty list is the placeholder a build without a snapshot ships.
       if (rows is List && rows.isNotEmpty && _rows == null) {
         _rows = rows;
@@ -215,3 +216,14 @@ class CachedRows {
     _inFlight = null;
   }
 }
+
+// The catalogue's JSON is a few hundred kilobytes: parsing or writing it on
+// the UI thread stalled the first screen on a low-end phone. It runs on a
+// background isolate instead ([compute]); the web and `flutter test` (whose
+// fake clock never lets an isolate answer) run it inline.
+Object? _decodeJson(String s) => jsonDecode(s);
+String _encodeJson(Object? o) => jsonEncode(o);
+
+final bool _inline = kIsWeb || Platform.environment.containsKey('FLUTTER_TEST');
+
+Future<R> _off<M, R>(R Function(M) fn, M message) => _inline ? Future.sync(() => fn(message)) : compute(fn, message);

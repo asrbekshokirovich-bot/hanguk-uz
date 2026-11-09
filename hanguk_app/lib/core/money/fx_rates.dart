@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -28,6 +28,10 @@ class FxRates {
 
   /// The rates in use; null until the first load.
   static FxRates? current;
+
+  /// Goes up when [current] changes. The screens that show fees watch it
+  /// ([fxRevisionProvider]) and redraw; nothing else does.
+  static final ValueNotifier<int> revision = ValueNotifier(0);
 
   static const _url = 'https://cbu.uz/uz/arkhiv-kursov-valyut/json/';
   static const _key = 'fx_rates_cbu_v1';
@@ -98,16 +102,13 @@ class FxRates {
     }
   }
 
-  /// [refresh], then redraws every screen if the rates changed, so fees on
-  /// screen follow at once.
+  /// [refresh], then — if the rates changed — only the screens that show
+  /// fees redraw ([revision]). Marking the whole element tree dirty, as this
+  /// did, rebuilt every mounted screen at once just after start: a visible
+  /// stall on a low-end phone.
   static Future<void> refreshAndRebuild() async {
     if (!await refresh()) return;
-    void mark(Element e) {
-      e.markNeedsBuild();
-      e.visitChildren(mark);
-    }
-
-    WidgetsBinding.instance.rootElement?.visitChildren(mark);
+    revision.value++;
   }
 }
 
@@ -132,3 +133,12 @@ num convertKrw(num krw, String currency, FxRates rates) {
     _ => krw,
   };
 }
+
+/// [FxRates.revision] for Riverpod: a screen that shows fees watches it and
+/// redraws when the bank's rates arrive.
+final fxRevisionProvider = Provider<int>((ref) {
+  void changed() => ref.invalidateSelf();
+  FxRates.revision.addListener(changed);
+  ref.onDispose(() => FxRates.revision.removeListener(changed));
+  return FxRates.revision.value;
+});

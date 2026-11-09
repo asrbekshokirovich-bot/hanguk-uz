@@ -60,6 +60,13 @@ class AssessmentNotifier extends Notifier<AssessmentInput> {
 
   @override
   AssessmentInput build() {
+    // A pending write is not lost when the provider goes away.
+    ref.onDispose(() {
+      _saveTimer?.cancel();
+      final pending = _pending;
+      _pending = null;
+      if (pending != null) unawaited(store.write(pending));
+    });
     _load();
     return const AssessmentInput();
   }
@@ -77,9 +84,27 @@ class AssessmentNotifier extends Notifier<AssessmentInput> {
     }
   }
 
+  /// The write waits for a pause: every pill tap and every slider step used
+  /// to write the answers to the phone's encrypted storage at once — a slow
+  /// call on Android, made dozens of times a second while a slider moved.
+  static const saveDelay = Duration(milliseconds: 500);
+  Timer? _saveTimer;
+
+  /// What the next write will store.
+  String? _pending;
+
   void _persist() {
-    final touched = ref.read(assessmentTouchedProvider);
-    unawaited(store.write(jsonEncode({...state.toJson(), 'touched': touched})));
+    _pending = jsonEncode({...state.toJson(), 'touched': ref.read(assessmentTouchedProvider)});
+    _saveTimer?.cancel();
+    _saveTimer = Timer(saveDelay, _saveNow);
+  }
+
+  void _saveNow() {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    final pending = _pending;
+    _pending = null;
+    if (pending != null) unawaited(store.write(pending));
   }
 
   /// A change the student made on the board.
@@ -93,6 +118,9 @@ class AssessmentNotifier extends Notifier<AssessmentInput> {
   /// Back to the defaults ("?%"), and forgotten on the phone.
   void clear() {
     _changed = true;
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    _pending = null;
     state = const AssessmentInput();
     ref.read(assessmentTouchedProvider.notifier).reset();
     unawaited(store.write(null));
