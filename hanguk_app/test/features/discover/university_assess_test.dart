@@ -8,6 +8,7 @@ import 'package:hanguk_app/features/discover/data/application_windows.dart';
 import 'package:hanguk_app/features/discover/data/grant_tiers.dart';
 import 'package:hanguk_app/features/discover/presentation/university_assess_screen.dart';
 import 'package:hanguk_app/features/discover/presentation/university_screen.dart';
+import 'package:hanguk_app/features/discover/presentation/widgets/fd_bottom_nav.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
 final _rows = [
@@ -72,7 +73,11 @@ void main() {
   testWidgets('the page as before with its grants, and under it the question that opens the assessment', (t) async {
     final l = await _pump(t, const UniversityScreen(institutionId: 'u1'));
     // No admission / visa percents on the page any more.
-    expect(find.text(l.fdUniAdmissionLabel), findsNothing);
+    // (The round nav button is labelled «QABUL» too; only the page counts.)
+    expect(
+      find.text(l.fdUniAdmissionLabel).evaluate().where((e) => e.findAncestorWidgetOfExactType<FdNavOrb>() == null),
+      isEmpty,
+    );
     // The grant table: each TOPIK / IELTS result and what it takes off.
     await t.pump();
     expect(find.text(l.ugTitle), findsOneWidget);
