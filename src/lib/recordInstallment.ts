@@ -4,6 +4,7 @@ import { distributeIncomeFromPayment } from '@/hooks/useIncomeDistribution';
 import { allocateBudgetsForPayment } from '@/hooks/useStudentBudgets';
 import { createBonusForPayment } from '@/hooks/useStaffBonuses';
 import { getPaymentMethodLabel } from '@/lib/paymentUtils';
+import { receiptPath } from '@/lib/receiptUrl';
 
 export interface InstallmentInput {
   paymentId: string;
@@ -101,4 +102,43 @@ export async function addReceiptsToTransfer(
     .eq('id', transactionId);
   if (error) throw error;
   return urls;
+}
+
+export interface DeletedInstallment {
+  paymentId: string;
+  removedAmount: number;
+  newPaidAmount: number;
+  /** Storage files that could not be removed (the transfer itself is gone). */
+  receiptsLeft: string[];
+}
+
+/**
+ * Delete one transfer (bo'lak) and lower the payment's paid amount by it —
+ * delete_payment_installment() (owner, admin, payment_delete_access). Its
+ * receipt files are then removed from storage; a file that cannot be removed
+ * is reported, not fatal, since nothing points at it any more.
+ */
+export async function deleteInstallment(transactionId: string): Promise<DeletedInstallment> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)('delete_payment_installment', {
+    p_transaction_id: transactionId,
+  });
+  if (error) throw error;
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | { payment_id: string; removed_amount: number; new_paid_amount: number; receipt_urls: string[] | null }
+    | undefined;
+  if (!row) throw new Error("Bo'lak topilmadi");
+  const paths = (row.receipt_urls ?? []).map((u) => receiptPath(u)).filter((p): p is string => !!p);
+  let receiptsLeft: string[] = [];
+  if (paths.length > 0) {
+    const { data: removed, error: removeError } = await supabase.storage.from('payment-receipts').remove(paths);
+    const gone = new Set((removed ?? []).map((o) => o.name));
+    receiptsLeft = removeError ? paths : paths.filter((p) => !gone.has(p));
+  }
+  return {
+    paymentId: row.payment_id,
+    removedAmount: Number(row.removed_amount),
+    newPaidAmount: Number(row.new_paid_amount),
+    receiptsLeft,
+  };
 }
