@@ -8073,7 +8073,7 @@ abstract class AppLocalizations {
   /// Ariza list header (design 7b): universities and stamps of the furthest one.
   ///
   /// In en, this message translates to:
-  /// **'{count} universities · {done} / 8 stages'**
+  /// **'{count, plural, one{{count} university} other{{count} universities}} · {done} / 8 stages'**
   String ajSummary(int count, int done);
 
   /// Lime pill under the summary: days until the nearest interview.
@@ -9705,7 +9705,7 @@ abstract class AppLocalizations {
   /// No description provided for @ulSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{n} universities · tap a card'**
+  /// **'{n, plural, one{{n} university} other{{n} universities}} · tap a card'**
   String ulSubtitle(int n);
 
   /// No description provided for @fltCount.

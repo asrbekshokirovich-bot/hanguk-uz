@@ -73,6 +73,7 @@ class _RegionMapState extends State<RegionMap> {
           onPageFinished: (_) {
             _ready = true;
             _push();
+            if (mounted) setState(() {});
           },
         ),
       )
@@ -105,7 +106,29 @@ class _RegionMapState extends State<RegionMap> {
         height: widget.height,
         decoration: BoxDecoration(color: const Color(0xFF0C1830), borderRadius: BorderRadius.circular(14)),
         child: c != null
-            ? WebViewWidget(controller: c)
+            // Until the page has drawn, a spinner — not an empty dark box.
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  WebViewWidget(controller: c),
+                  IgnorePointer(
+                    ignoring: _ready,
+                    child: AnimatedOpacity(
+                      opacity: _ready ? 0 : 1,
+                      duration: const Duration(milliseconds: 200),
+                      child: const ColoredBox(
+                        color: Color(0xFF0C1830),
+                        child: Center(
+                          child: SizedBox.square(
+                            dimension: 28,
+                            child: CircularProgressIndicator(strokeWidth: 2.5, color: FdColors.lime),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
             : Padding(
                 padding: const EdgeInsets.all(12),
                 child: Wrap(

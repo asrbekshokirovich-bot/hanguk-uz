@@ -138,7 +138,7 @@ class FilterScreen extends ConsumerWidget {
                 RegionMap(
                   counts: regionCounts,
                   selected: f.regions,
-                  labels: (r) => r == CatalogRegion.other ? l.fdRegionGangwonPlus : regionLabel(l, r),
+                  labels: (r) => regionLabel(l, r),
                   onToggle: (r) {
                     final next = {...f.regions};
                     next.contains(r) ? next.remove(r) : next.add(r);

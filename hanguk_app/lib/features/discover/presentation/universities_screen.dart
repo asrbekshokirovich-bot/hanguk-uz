@@ -46,6 +46,10 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
   final _search = TextEditingController();
   final _focus = FocusNode();
 
+  /// Back to the top whenever the filter changes: the list that comes back
+  /// is a different one, and staying mid-way hid its first (best) rows.
+  final _scroll = ScrollController();
+
   /// The search goes to the analytics as the search screen sends it — what
   /// was looked for, cleaned (see [AppEvents.cleanText]), and how many
   /// universities it left — once per search: after a pause in typing, on
@@ -85,6 +89,7 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
     _focus.removeListener(_focused);
     _focus.dispose();
     _search.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -104,6 +109,9 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final f = ref.watch(catalogFilterProvider);
+    ref.listen(catalogFilterProvider, (prev, next) {
+      if (prev != next && _scroll.hasClients) _scroll.jumpTo(0);
+    });
     final book = ref.watch(chanceBookProvider);
     final slots = ref.watch(slotsProvider);
     final picked = slots.whereType<String>().length;
@@ -119,7 +127,7 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
             u.nameKoShort,
             u.city,
             guidelineFor(u, f)?.city,
-          ].whereType<String>().any((s) => s.toLowerCase().contains(q)))
+          ].whereType<String>().any((s) => catalogTextMatches(s, q)))
             u,
       ];
     }
@@ -237,41 +245,78 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                   child: GestureDetector(
                     onTap: tracked('universities.to_discover_filter', () => context.push(kDiscoverFilterPath)),
                     behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      width: 46,
-                      height: 46,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: FdColors.blue,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: FdColors.ink, width: 1.5),
-                      ),
-                      child: const Lucide(LucideIcons.slidersHorizontal, size: 18, color: Colors.white),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: FdColors.blue,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: FdColors.ink, width: 1.5),
+                          ),
+                          child: const Lucide(LucideIcons.slidersHorizontal, size: 18, color: Colors.white),
+                        ),
+                        // How many filters are on, so a short list is never
+                        // mistaken for the whole catalogue.
+                        if (f.activeCount > 0)
+                          Positioned(
+                            top: -6,
+                            right: -6,
+                            child: Container(
+                              constraints: const BoxConstraints(minWidth: 20),
+                              height: 20,
+                              padding: const EdgeInsets.symmetric(horizontal: 5),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: FdColors.lime,
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: FdColors.ink, width: 1.5),
+                              ),
+                              child: Text('${f.activeCount}', style: fdText(11, FontWeight.w800, FdColors.onLime, height: 1)),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
-            child: Text(l.ulSubtitle(list.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
-          ),
+          if (list.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 10, 18, 6),
+              child: Text(l.ulSubtitle(list.length), style: fdText(11, FontWeight.w700, FdColors.pageMuted)),
+            ),
           Expanded(
             child: list.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text(
-                        l.catalogEmptyTitle,
-                        textAlign: TextAlign.center,
-                        style: fdText(14, FontWeight.w600, FdColors.pageMuted),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l.catalogEmptyTitle,
+                            textAlign: TextAlign.center,
+                            style: fdText(15, FontWeight.w800, FdColors.onPage),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            l.catalogEmptyBody,
+                            textAlign: TextAlign.center,
+                            style: fdText(13, FontWeight.w500, FdColors.pageMuted, height: 1.4),
+                          ),
+                        ],
                       ),
                     ),
                   )
                 : SeenList(
                     name: 'universities',
                     child: GridView.builder(
+                      controller: _scroll,
                       padding: const EdgeInsets.fromLTRB(18, 2, 18, 12),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
