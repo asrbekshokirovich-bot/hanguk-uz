@@ -42,7 +42,9 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  # write: the signed bundle also goes to a draft release (below), so it can
+  # be fetched as one file instead of a zipped artifact.
+  contents: write
 
 env:
   # The upload key certificate shown in Play Console -> App signing. This is a
@@ -266,6 +268,17 @@ jobs:
           path: hanguk_app/build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30
+
+      - name: Attach the bundle to a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${artifact_name}-aab"
+          cp build/app/outputs/bundle/release/app-release.aab "$artifact_name.aab"
+          gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1 || \
+            gh release create "$tag" --repo "${{ github.repository }}" --draft --target "${{ github.sha }}" \
+              --title "$artifact_name (signed AAB)" --notes "Signed with the upload key. Play Console → upload this .aab."
+          gh release upload "$tag" "$artifact_name.aab" --repo "${{ github.repository }}" --clobber
 
       - name: Upload test APK
         if: ${{ inputs.build_apk }}
