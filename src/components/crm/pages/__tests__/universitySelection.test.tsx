@@ -281,4 +281,11 @@ describe('UniversitySelectionContent', () => {
       expect(within(panel).queryByText('Saqlash')).not.toBeInTheDocument();
     });
   });
+
+  it('leaves students with a cancelled contract out (2026-11-09)', () => {
+    const cancelled = { ...student, user_id: 'u2', full_name: 'BEKOR QILINGAN', contractCancelled: true } as typeof student;
+    setup({ students: [cancelled, student] });
+    expect(screen.queryByText('BEKOR QILINGAN')).not.toBeInTheDocument();
+    expect(screen.getAllByText(student.full_name as string).length).toBeGreaterThan(0);
+  });
 });

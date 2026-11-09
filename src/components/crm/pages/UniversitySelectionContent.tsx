@@ -46,6 +46,8 @@ type StudentProfile = Tables<'profiles'> & {
   /** From useCRMData (src/lib/studentPipeline.ts). */
   pipeline?: Pick<StudentPipeline, 'submissions'>;
   hasPaid?: boolean;
+  /** Contract cancelled in the active season (useCRMData) — not shown here. */
+  contractCancelled?: boolean;
 };
 
 interface UniversitySelectionContentProps {
@@ -81,13 +83,16 @@ export default function UniversitySelectionContent({
   const [onlyFit, setOnlyFit] = useState(false);
   const [visible, setVisible] = useState(PAGE);
 
+  // A cancelled contract leaves nothing to choose for (Asrbek, 2026-11-09).
+  const activeStudents = useMemo(() => students.filter((s) => !s.contractCancelled), [students]);
+
   const filteredStudents = useMemo(() => {
     const q = studentSearch.trim().toLowerCase();
-    if (!q) return students;
-    return students.filter(
+    if (!q) return activeStudents;
+    return activeStudents.filter(
       (s) => (s.full_name ?? '').toLowerCase().includes(q) || (s.magic_code ?? '').toLowerCase().includes(q),
     );
-  }, [students, studentSearch]);
+  }, [activeStudents, studentSearch]);
 
   const student = filteredStudents.find((s) => s.user_id === selectedId) ?? filteredStudents[0] ?? null;
   const studentChoices = student ? choices.byStudent.get(student.user_id) ?? [] : [];

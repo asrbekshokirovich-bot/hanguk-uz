@@ -609,6 +609,11 @@
         "invalidName": "이름은 1~60자여야 합니다.",
         "invalidSort": "순서는 정수여야 합니다."
       }
+    },
+    "studentSections": {
+      "active": "학생 ({{count}})",
+      "cancelled": "계약 해지 ({{count}})",
+      "noneCancelled": "계약이 해지된 학생이 없습니다"
     }
   },
   "leads": {

@@ -613,6 +613,11 @@
         "invalidName": "Название — от 1 до 60 символов.",
         "invalidSort": "Порядок — целое число."
       }
+    },
+    "studentSections": {
+      "active": "Студенты ({{count}})",
+      "cancelled": "Договор расторгнут ({{count}})",
+      "noneCancelled": "Нет студентов с расторгнутым договором"
     }
   },
   "leads": {
