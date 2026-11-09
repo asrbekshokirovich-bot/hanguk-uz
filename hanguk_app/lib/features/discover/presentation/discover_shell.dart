@@ -9,8 +9,6 @@ import 'prepare_screen.dart';
 import 'universities_screen.dart';
 import 'widgets/app_nav.dart';
 import 'widgets/fd_bottom_nav.dart';
-import 'guest_application_path_screen.dart';
-import 'guest_documents_screen.dart';
 
 /// The guest's app in the prototype's design: the same five places the client
 /// has — Universitetlar (the list), Tayyorgarlik, the round button's home
@@ -72,10 +70,9 @@ class _DiscoverShellState extends State<DiscoverShell> {
       AppTab.universities => const UniversitiesScreen(),
       AppTab.prepare => const PrepareScreen(),
       AppTab.home => VisaScreen(embedded: true, active: _tab == AppTab.home),
-      // Ushlab qolish P20/P21 (D5, D6): a guest's application path and
-      // document list in place of the locked tabs.
-      AppTab.application => GuestApplicationPathScreen(onDocuments: () => _go(AppTab.documents)),
-      AppTab.documents => const GuestDocumentsScreen(),
+      // Arizam and Hujjatlar ask a guest for the client code, as in the Play
+      // version (owner, 2026-11-09: «Ariza yo'li» / «Hujjatlar ro'yxati»
+      // taken back out).
       _ => ClientCodeScreen(embedded: true, notice: AppLocalizations.of(context)!.fdNavNeedsClientCode),
     };
   }
