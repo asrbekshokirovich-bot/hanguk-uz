@@ -17,6 +17,7 @@ export function useUserRole() {
   const [isDocumentApprover, setIsDocumentApprover] = useState(false);
   const [hasApplicationFeeAccess, setHasApplicationFeeAccess] = useState(false);
   const [hasCameraAccess, setHasCameraAccess] = useState(false);
+  const [hasPaymentDeleteAccess, setHasPaymentDeleteAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export function useUserRole() {
         setIsDocumentApprover(false);
         setHasApplicationFeeAccess(false);
         setHasCameraAccess(false);
+        setHasPaymentDeleteAccess(false);
         setLoading(false);
         return;
       }
@@ -51,6 +53,7 @@ export function useUserRole() {
         { data: approver },
         { data: feeAccess },
         { data: cameraAccess },
+        { data: paymentDeleteAccess },
       ] = await Promise.all([
         supabase.from('user_roles').select('role').eq('user_id', user.id),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,6 +87,14 @@ export function useUserRole() {
           .select('user_id')
           .eq('user_id', user.id)
           .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+        // payment_delete_access (migration 20261109090000): who besides
+        // owner/admin may delete a payment installment and its receipt.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as unknown as { from: (n: string) => any })
+          .from('payment_delete_access')
+          .select('user_id')
+          .eq('user_id', user.id)
+          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
       ]);
 
       if (!error && data) {
@@ -94,6 +105,7 @@ export function useUserRole() {
       setIsDocumentApprover(Boolean(approver));
       setHasApplicationFeeAccess(Boolean(feeAccess));
       setHasCameraAccess(Boolean(cameraAccess));
+      setHasPaymentDeleteAccess(Boolean(paymentDeleteAccess));
       setLoading(false);
     };
 
@@ -131,6 +143,9 @@ export function useUserRole() {
   // "Kameralar": every owner, plus whoever camera_access names (admins are not
   // added automatically — owner's decision 2026-11-03). Must match has_camera_access().
   const canSeeCameras = isOwner || hasCameraAccess;
+  // Deleting a payment installment (bo'lak) and its receipt: owner, admin,
+  // plus whoever payment_delete_access names. Must match can_delete_payment_installments().
+  const canDeletePaymentInstallments = isAdmin || hasPaymentDeleteAccess;
 
   return {
     roles,
@@ -148,5 +163,6 @@ export function useUserRole() {
     canApproveDocuments,
     canSeeApplicationFees,
     canSeeCameras,
+    canDeletePaymentInstallments,
   };
 }
