@@ -623,6 +623,11 @@
         "invalidName": "The name must be 1 to 60 characters.",
         "invalidSort": "The order must be a whole number."
       }
+    },
+    "studentSections": {
+      "active": "Students ({{count}})",
+      "cancelled": "Contract cancelled ({{count}})",
+      "noneCancelled": "No students with a cancelled contract"
     }
   },
   "leads": {

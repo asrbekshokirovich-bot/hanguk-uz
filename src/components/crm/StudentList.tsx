@@ -174,6 +174,9 @@ export function StudentList({
   const [planFilter, setPlanFilter] = useState<string>('all');
   const [gksFilter, setGksFilter] = useState<string>('all');
   const [contractFilter, setContractFilter] = useState<string>('all');
+  // Cancelled contracts live in their own section, not among active students
+  // (Asrbek, 2026-11-09).
+  const [section, setSection] = useState<'active' | 'cancelled'>('active');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<StudentProfile | null>(null);
@@ -205,7 +208,12 @@ export function StudentList({
       .map((v) => v.trim())
       .filter(Boolean);
 
+  const cancelledCount = students.filter((s) => s.contractCancelled).length;
+  const activeCount = students.length - cancelledCount;
+
   const filteredStudents = students.filter((student) => {
+    if ((section === 'cancelled') !== Boolean(student.contractCancelled)) return false;
+
     // Search filter
     const matchesSearch =
       !searchQuery ||
@@ -706,9 +714,35 @@ export function StudentList({
         </div>
       </div>
 
+      {/* Active / cancelled sections */}
+      <div className="flex gap-2" role="tablist">
+        <Button
+          type="button"
+          role="tab"
+          aria-selected={section === 'active'}
+          size="sm"
+          variant={section === 'active' ? 'default' : 'outline'}
+          onClick={() => setSection('active')}
+        >
+          {t('crm.studentSections.active', { count: activeCount })}
+        </Button>
+        <Button
+          type="button"
+          role="tab"
+          aria-selected={section === 'cancelled'}
+          size="sm"
+          variant={section === 'cancelled' ? 'destructive' : 'outline'}
+          onClick={() => setSection('cancelled')}
+        >
+          {t('crm.studentSections.cancelled', { count: cancelledCount })}
+        </Button>
+      </div>
+
       {/* Results */}
       {filteredStudents.length === 0 ? (
-        students.length === 0 ? (
+        section === 'cancelled' && cancelledCount === 0 ? (
+          <EmptyState icon={Users} title={t('crm.studentSections.noneCancelled')} />
+        ) : students.length === 0 ? (
           <EmptyState
             icon={Users}
             title={t('intake.empty.title', { season: seasonLabel, year: year ?? '' })}

@@ -670,6 +670,11 @@
         "invalidName": "Nom 1 dan 60 belgigacha bo'lsin.",
         "invalidSort": "Tartib butun son bo'lsin."
       }
+    },
+    "studentSections": {
+      "active": "Talabalar ({{count}})",
+      "cancelled": "Shartnomasi bekor qilinganlar ({{count}})",
+      "noneCancelled": "Shartnomasi bekor qilingan talaba yo'q"
     }
   },
   "leads": {
