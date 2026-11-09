@@ -4301,7 +4301,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get ucFinalChosen => '✓ Siz shu universitetni tanladingiz';
 
   @override
-  String get fdNavAssess => 'BAHOLASH';
+  String get fdNavAssess => 'QABUL';
 
   @override
   String get fdNavNeedsClientCode =>

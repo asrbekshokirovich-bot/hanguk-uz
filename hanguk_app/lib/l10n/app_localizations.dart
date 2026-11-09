@@ -7713,7 +7713,7 @@ abstract class AppLocalizations {
   /// Label under the percentage on the round button of the bottom nav.
   ///
   /// In en, this message translates to:
-  /// **'ASSESS'**
+  /// **'ADMISSION'**
   String get fdNavAssess;
 
   /// Shown when a guest taps Application or Documents.

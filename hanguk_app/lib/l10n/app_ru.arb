@@ -1401,7 +1401,7 @@
   "ucFinalRecommended": "Консультант рекомендует этот университет как итоговый",
   "ucFinalGo": "Поеду в этот университет",
   "ucFinalChosen": "✓ Вы выбрали этот университет",
-  "fdNavAssess": "ОЦЕНКА",
+  "fdNavAssess": "ПРИЁМ",
   "fdNavNeedsClientCode": "Сначала нужен клиентский код — консультант пришлёт его по SMS",
   "fdListTitle": "Вам подходят {count}",
   "fdModeAdmission": "Поступление %",

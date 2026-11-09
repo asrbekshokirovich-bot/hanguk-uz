@@ -4317,7 +4317,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ucFinalChosen => '✓ Вы выбрали этот университет';
 
   @override
-  String get fdNavAssess => 'ОЦЕНКА';
+  String get fdNavAssess => 'ПРИЁМ';
 
   @override
   String get fdNavNeedsClientCode =>

@@ -4125,7 +4125,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get ucFinalChosen => '✓ 이 대학을 선택했습니다';
 
   @override
-  String get fdNavAssess => '평가';
+  String get fdNavAssess => '합격';
 
   @override
   String get fdNavNeedsClientCode => '먼저 고객 코드가 필요합니다 — 상담사가 SMS로 보내 드립니다';

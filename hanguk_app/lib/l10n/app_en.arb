@@ -5579,7 +5579,7 @@
   "@ucFinalChosen": {
     "description": "Note on the final university after the student confirmed it."
   },
-  "fdNavAssess": "ASSESS",
+  "fdNavAssess": "ADMISSION",
   "@fdNavAssess": {
     "description": "Label under the percentage on the round button of the bottom nav."
   },
