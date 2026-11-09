@@ -129,6 +129,10 @@ class _GuestDocumentsScreenState extends ConsumerState<GuestDocumentsScreen> {
                                     value: _ticks.contains(i),
                                     onChanged: (_) => _toggle(g!.id, i),
                                     activeColor: FdColors.blue,
+                                    checkColor: Colors.white,
+                                    // The dark theme's outline is white: on this
+                                    // white card an empty box was invisible.
+                                    side: const BorderSide(color: FdColors.ink, width: 1.5),
                                   ),
                                   Expanded(
                                     child: Text(docName(docs[i], lang),

@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/analytics/tracked.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
+import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
-import '../../catalog/presentation/catalog_detail_screen.dart' show catalogFirstStage;
+import '../../catalog/presentation/catalog_detail_screen.dart' show catalogFirstStage, catalogStepName, catalogStepPast;
 import '../../catalog/presentation/catalog_format.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
@@ -89,10 +90,10 @@ class _Path extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final g = university.forDegree(CatalogDegree.bachelor) ?? university.primary;
     final detail = ref.watch(catalogDetailProvider(g.id)).value;
-    final rounds = catalogFirstStage(detail?.rounds ?? const []);
+    final today = DateTime.now();
+    final rounds = catalogFirstStage(detail?.rounds ?? const [], today);
     final season = seasonLabel(l, g);
     final degree = g.degree == CatalogDegree.master ? l.guestPathMaster : l.guestPathBachelor;
-    final today = DateTime.now();
     final firstOpen = rounds.indexWhere((r) => (daysUntil(r.endDate, today) ?? -1) >= 0);
 
     return ListView(
@@ -134,6 +135,7 @@ class _Path extends ConsumerWidget {
                         n: i + 1,
                         round: rounds[i],
                         current: i == firstOpen,
+                        past: catalogStepPast(rounds[i], today),
                         daysLeft: i == firstOpen ? daysUntil(rounds[i].endDate, today) : null,
                         last: i == rounds.length - 1,
                       ),
@@ -167,11 +169,21 @@ const _cardDecoration = BoxDecoration(
 );
 
 class _Step extends StatelessWidget {
-  const _Step({required this.n, required this.round, required this.current, required this.last, this.daysLeft});
+  const _Step({
+    required this.n,
+    required this.round,
+    required this.current,
+    required this.last,
+    this.past = false,
+    this.daysLeft,
+  });
 
   final int n;
   final CatalogRound round;
   final bool current;
+
+  /// Its dates are behind today: a tick and greyed out.
+  final bool past;
   final bool last;
   final int? daysLeft;
 
@@ -193,15 +205,26 @@ class _Step extends StatelessWidget {
               shape: BoxShape.circle,
               border: current ? Border.all(color: FdColors.ink, width: 1.5) : null,
             ),
-            child: Text('$n', style: fdText(12, FontWeight.w800, FdColors.ink)),
+            child: past
+                ? const Lucide(LucideIcons.check, size: 14, color: FdColors.muted)
+                : Text('$n', style: fdText(12, FontWeight.w800, FdColors.ink)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(round.name ?? '', style: fdText(14, FontWeight.w800, FdColors.ink)),
-                if (date != null) Text(date, style: fdText(12, FontWeight.w600, FdColors.muted)),
+                Text(
+                  catalogStepName(l, round),
+                  style: fdText(14, FontWeight.w800, past ? FdColors.muted : FdColors.ink),
+                ),
+                if (date != null)
+                  Text(
+                    date,
+                    style: fdText(12, FontWeight.w600, FdColors.muted).copyWith(
+                      decoration: past ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
               ],
             ),
           ),

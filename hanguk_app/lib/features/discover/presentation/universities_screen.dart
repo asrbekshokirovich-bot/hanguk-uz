@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/seen.dart';
@@ -11,12 +12,14 @@ import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../auth/data/auth_repository.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/campus_photos.dart';
 import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_format.dart';
+import '../../entry/presentation/language_sheet.dart';
 import '../data/chances.dart';
 import '../data/slots.dart';
 import 'discover_routes.dart';
@@ -85,6 +88,17 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
     super.dispose();
   }
 
+  /// No student signed in (a guest, or the guest test account).
+  bool _isGuest() {
+    final session = ref.watch(authStateProvider).value?.session;
+    if (session != null) return !isClientSession(session);
+    try {
+      return !isClientSession(Supabase.instance.client.auth.currentSession);
+    } catch (_) {
+      return true; // Supabase not set up (tests): the guest's layout.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -150,6 +164,22 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                   decoration: BoxDecoration(color: FdColors.lime, borderRadius: BorderRadius.circular(999)),
                   child: Text(l.ulCount(list.length), style: fdText(12, FontWeight.w800, FdColors.onLime)),
                 ),
+                // A guest has no account screen: the language and the
+                // notifications (the deadline-reminder switch) open from here.
+                if (_isGuest()) ...[
+                  const SizedBox(width: 8),
+                  HardIconButton(
+                    glyph: LucideIcons.languages,
+                    semanticLabel: l.entryLanguageLabel,
+                    onTap: tracked('universities.language', () => showLanguageSheet(context, ref)),
+                  ),
+                  const SizedBox(width: 8),
+                  HardIconButton(
+                    glyph: LucideIcons.bell,
+                    semanticLabel: l.homeNotifications,
+                    onTap: tracked('universities.notifications', () => context.push('/notifications')),
+                  ),
+                ],
               ],
             ),
           ),

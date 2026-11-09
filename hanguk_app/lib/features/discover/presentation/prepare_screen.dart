@@ -63,9 +63,18 @@ class PrepareScreen extends StatelessWidget {
     if (!context.mounted) return;
     if (ok) {
       _push(context, const InterviewScreen(), 'interview');
-    } else {
-      _signIn(context);
+      return;
     }
+    // The guest's interview needs no code: a failure is the network or the
+    // server, so say that and offer to try again (it used to open the
+    // client-code screen, which a guest has no code for).
+    final l = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(l.entryErrorNetwork),
+        action: SnackBarAction(label: l.commonRetry, onPressed: tracked('prepare.guest_interview_retry', () => _guestInterview(context))),
+      ));
   }
 
   @override

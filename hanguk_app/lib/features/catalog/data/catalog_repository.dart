@@ -68,18 +68,18 @@ final catalogDetailProvider =
             .from('v_app_university_faculties')
             .select()
             .eq('guideline_id', guidelineId)
-            .order('tartib'),
+            .order('tartib', ascending: true),
         client
             .from('v_app_university_rounds')
             .select()
             .eq('guideline_id', guidelineId)
-            .order('bosqich')
-            .order('etap_raqam'),
+            .order('bosqich', ascending: true)
+            .order('etap_raqam', ascending: true),
         client
             .from('v_app_university_docs')
             .select()
             .eq('guideline_id', guidelineId)
-            .order('tartib'),
+            .order('tartib', ascending: true),
       ]).timeout(const Duration(seconds: 20));
 
       return CatalogGuidelineDetail(

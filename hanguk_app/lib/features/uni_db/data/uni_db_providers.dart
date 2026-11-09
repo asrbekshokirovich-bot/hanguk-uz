@@ -56,7 +56,7 @@ final userTrackedProvider = FutureProvider<List<UpcomingDeadline>>((ref) async {
   final rows = await client
       .from('v_user_upcoming_deadlines')
       .select()
-      .order('starts_at');
+      .order('starts_at', ascending: true);
   return (rows as List)
       .map((r) => UpcomingDeadline.fromMap(r as Map<String, dynamic>))
       .toList(growable: false);
@@ -115,7 +115,7 @@ final institutionDeadlinesProvider =
           )
           .eq('admission_cycles.institution_id', institutionId)
           .gte('starts_at', DateTime.now().toIso8601String())
-          .order('starts_at')
+          .order('starts_at', ascending: true)
           .limit(20);
       return (rows as List)
           .map((r) {
@@ -208,8 +208,8 @@ final institutionTuitionProvider =
           .select()
           .eq('institution_id', institutionId)
           .order('academic_year', ascending: false)
-          .order('faculty_group')
-          .order('semester_number');
+          .order('faculty_group', ascending: true)
+          .order('semester_number', ascending: true);
       return (rows as List)
           .map((r) => TuitionRow.fromMap(r as Map<String, dynamic>))
           .toList(growable: false);
@@ -232,7 +232,7 @@ final institutionRequirementsProvider =
           )
           .eq('admission_cycles.institution_id', institutionId)
           .eq('admission_cycles.status', 'verified')
-          .order('applicant_category');
+          .order('applicant_category', ascending: true);
       return (rows as List)
           .map((r) => RequirementsRow.fromMap(r as Map<String, dynamic>))
           .toList(growable: false);
@@ -251,7 +251,7 @@ final institutionScholarshipsProvider =
           .from('scholarships')
           .select()
           .eq('institution_id', institutionId)
-          .order('scope')
+          .order('scope', ascending: true)
           .order('award_value', ascending: false, nullsFirst: false);
       return (rows as List)
           .map((r) => ScholarshipRow.fromMap(r as Map<String, dynamic>))
@@ -291,8 +291,8 @@ final institutionDocumentsRequiredProvider =
           .select('*, admission_cycles!inner(institution_id, status)')
           .eq('admission_cycles.institution_id', institutionId)
           .eq('admission_cycles.status', 'verified')
-          .order('applicant_category')
-          .order('document_type');
+          .order('applicant_category', ascending: true)
+          .order('document_type', ascending: true);
       return (rows as List)
           .map((r) => DocumentRequirementRow.fromMap(r as Map<String, dynamic>))
           .toList(growable: false);

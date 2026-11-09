@@ -192,8 +192,8 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
       if (count >= kSlotCount) {
         context.push(kDiscoverChosenPath);
       } else {
+        // Stay on the page: the snackbar confirms, the back button returns.
         messenger.showSnackBar(SnackBar(content: Text(l.fdUniPickAdded(count))));
-        _back(context);
       }
     }
 
@@ -326,6 +326,7 @@ class _UniversityScreenState extends ConsumerState<UniversityScreen> {
                     child: _InfoCard(
                       title: season == null ? l.catalogWindowLabel : l.catalogTimeline(season),
                       rows: [for (final r in rounds) (catalogStepName(l, r), catalogRoundValue(context, l, r))],
+                      past: [for (final r in rounds) catalogStepPast(r)],
                     ),
                   ),
                 // Under it all, the way to this university's own assessment.
@@ -814,10 +815,13 @@ class _DashedBottom extends CustomPainter {
 /// The old page's requirements and timeline, kept below the faculties in the
 /// design's white-card style.
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.rows});
+  const _InfoCard({required this.title, required this.rows, this.past = const []});
 
   final String title;
   final List<(String, String)> rows;
+
+  /// Per row: its dates are behind today (struck through, greyed out).
+  final List<bool> past;
 
   @override
   Widget build(BuildContext context) {
@@ -850,7 +854,8 @@ class _InfoCard extends StatelessWidget {
                     child: Text(
                       rows[i].$2,
                       textAlign: TextAlign.right,
-                      style: fdText(12, FontWeight.w800, FdColors.ink, height: 1.35),
+                      style: fdText(12, FontWeight.w800, i < past.length && past[i] ? FdColors.muted : FdColors.ink, height: 1.35)
+                          .copyWith(decoration: i < past.length && past[i] ? TextDecoration.lineThrough : null),
                     ),
                   ),
                 ],
