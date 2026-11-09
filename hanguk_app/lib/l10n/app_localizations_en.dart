@@ -4305,7 +4305,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ucFinalChosen => '✓ You chose this university';
 
   @override
-  String get fdNavAssess => 'ASSESS';
+  String get fdNavAssess => 'ADMISSION';
 
   @override
   String get fdNavNeedsClientCode =>

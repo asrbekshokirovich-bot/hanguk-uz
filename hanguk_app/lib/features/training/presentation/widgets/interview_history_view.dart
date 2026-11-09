@@ -147,7 +147,14 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
 
   Widget _buildSessionCard(Map<String, dynamic> session) {
     final l = AppLocalizations.of(context)!;
-    String uniName = l.unknownTarget;
+    // A session without a university is named by its kind, not "Noma'lum
+    // maqsad".
+    String uniName = switch (session['session_type']) {
+      'general' => l.interviewTypeGeneral,
+      'visa' => l.interviewTypeVisa,
+      'university_specific' => l.interviewTypeUniversitySpecific,
+      _ => l.unknownTarget,
+    };
     // Phase 3R-B renamed the FK column from `target_university_id` to
     // `target_institution_id`; the embed-relation alias in
     // InterviewNotifier.getSessionHistory() now reads `institution`.
@@ -168,7 +175,12 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
     // safe to read here because the widget rebuilds on locale change.
     final locale = Localizations.localeOf(context).toLanguageTag();
     final formattedDate = DateFormat.yMMMd(locale).add_jm().format(createdAt);
-    final status = session['status'] as String? ?? 'unknown';
+    // A call that never reported its end (the app closed mid-call) stays
+    // 'active' in the table forever; after three hours it is over.
+    final stored = session['status'] as String? ?? 'unknown';
+    final status = stored == 'active' && DateTime.now().difference(createdAt) > const Duration(hours: 3)
+        ? 'abandoned'
+        : stored;
     final isCompleted = status == 'completed';
     final isAbandoned = status == 'abandoned';
 
@@ -245,7 +257,7 @@ class _InterviewHistoryViewState extends ConsumerState<InterviewHistoryView> {
                       child: Text(
                         uniName,
                         style: SeoulType.subtitle,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

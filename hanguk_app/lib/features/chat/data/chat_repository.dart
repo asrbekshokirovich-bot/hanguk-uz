@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/config/app_config.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../discover/data/guest_ai_usage.dart';
 import '../../entry/data/entry_store.dart';
 import '../domain/chat_message.dart';
 
@@ -49,7 +50,7 @@ class ChatNotifier extends Notifier<ChatState> {
     // Rebuilt (and the greeting re-said) when the app language changes.
     ref.watch(entryProvider.select((s) => s.languageCode));
     return ChatState(
-      messages: [ChatMessage(role: 'assistant', content: _l.chatGreeting)],
+      messages: [ChatMessage(role: 'assistant', content: _l.chatGreeting, local: true)],
     );
   }
 
@@ -71,9 +72,11 @@ class ChatNotifier extends Notifier<ChatState> {
 
       // Build conversation history for context
       // Cap at last 10 turns to stay within Gemini token limits
-      final history = state.messages
-          .where((m) => m.role != 'system')
-          .take(10)
+      // (The last ten: `take(10)` sent the first ten, so after ten turns
+      // the newest messages never reached the model.)
+      final turns = state.messages.where((m) => m.role != 'system' && !m.local).toList();
+      final history = turns
+          .skip(turns.length > 10 ? turns.length - 10 : 0)
           .map((m) => {'role': m.role, 'content': m.content})
           .toList();
 
@@ -181,12 +184,15 @@ class ChatNotifier extends Notifier<ChatState> {
         'chars': text.length,
         'turn': newMessages.where((m) => m.role == 'user').length,
       });
+      // The guest's "N questions left today" counts on the server; read it
+      // again now that one was asked.
+      ref.invalidate(guestAiUsageProvider);
     }
   }
 
   void clearChat() {
     state = ChatState(
-      messages: [ChatMessage(role: 'assistant', content: _l.chatCleared)],
+      messages: [ChatMessage(role: 'assistant', content: _l.chatCleared, local: true)],
     );
   }
 }
