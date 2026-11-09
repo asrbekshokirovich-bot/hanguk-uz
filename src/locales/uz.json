@@ -1547,7 +1547,12 @@
       "receiptsSaved": "Cheklar saqlandi",
       "hasAccount": "hisob bor",
       "accountExists": "Bu turdagi to'lov hisobi allaqachon bor. Yangi qarz ochilmaydi — pulni mavjud hisobga bo'lak qilib qo'shing.",
-      "editPaidHint": "To'langan summa {{count}} ta bo'lakdan yig'iladi. O'zgartirish uchun bo'lak qo'shing."
+      "editPaidHint": "To'langan summa {{count}} ta bo'lakdan yig'iladi. O'zgartirish uchun bo'lak qo'shing.",
+      "delete": "Bo'lakni o'chirish",
+      "deleteTitle": "Bo'lakni o'chirasizmi?",
+      "deleteBody": "{{date}} sanali {{amount}} bo'lak va uning cheki o'chiriladi. To'langan summa shuncha kamayadi. Buni qaytarib bo'lmaydi.",
+      "deleteConfirm": "Ha, o'chirish",
+      "deleted": "{{amount}} bo'lak o'chirildi"
     }
   },
   "tasks": {
