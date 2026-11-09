@@ -43,6 +43,7 @@ import { onGroupVoice, transcribeTelegramVoice } from "./voice.ts";
 import { type CardDeps, dmCardReply, groupCardReply } from "./card_actions.ts";
 import { CARD_HINT, replyKeyboard, taskIdFromMarkup } from "./cards.ts";
 import { attachStudentToTask, STUDENT_NO_TASK } from "./student_link.ts";
+import { parseRecurringCommand, RECURRING_CREATED, renderRecurringList, runRecurringTasks, type RecurringRow } from "./recurring.ts";
 import { runGroupAnalysis } from "./analysis.ts";
 import { type IntakeDeps, onGroupEdit, onGroupReaction } from "./intake.ts";
 import {
@@ -73,6 +74,7 @@ import {
   renderDraft,
   renderTaskCard,
   linkResultText,
+  matchStaff,
   MENU,
   MENU_KEYBOARD,
   NOT_LINKED_TEXT,
@@ -1027,6 +1029,29 @@ async function onPrivateMessage(msg: Any) {
         );
         return;
       }
+      case "takror": {
+        // B5-2: "/takror <ism> | <sarlavha> | har kuni|har hafta <kunlar> | <HH:MM>"
+        const parsed = parseRecurringCommand(cmd.arg);
+        if ("error" in parsed) { await send(chatId, parsed.error); return; }
+        const { data: list, error: lErr } = await db.rpc("bot_staff_list");
+        if (lErr) { console.error("bot_staff_list:", lErr.message); await send(chatId, "Hozir ro'yxatni olib bo'lmadi."); return; }
+        const people = (list ?? []) as { user_id: string; full_name: string }[];
+        const who = matchStaff(parsed.nameQuery, people.map((p) => ({ user_id: p.user_id, name: p.full_name, username: null, tasks: [] })));
+        if (!who) { await send(chatId, `«${parsed.nameQuery}» xodim topilmadi yoki bir nechta mos keldi. To'liq ismini yozing.`); return; }
+        const { data: id, error } = await db.rpc("bot_recurring_create", {
+          p_actor: staff.user_id, p_assigned: who.user_id, p_title: parsed.title, p_description: null,
+          p_priority: "normal", p_freq: parsed.freq, p_weekdays: parsed.weekdays, p_due_time: parsed.dueTime,
+        });
+        if (error || !id) { console.error("bot_recurring_create:", error?.message); await send(chatId, "Saqlab bo'lmadi, birozdan keyin qayta urinib ko'ring."); return; }
+        await send(chatId, RECURRING_CREATED(parsed.title, who.name, parsed.freq, parsed.weekdays, parsed.dueTime), { reply_markup: MENU_KEYBOARD });
+        return;
+      }
+      case "takrorlarim": {
+        const { data, error } = await db.rpc("bot_recurring_list", { p_actor: staff.user_id });
+        if (error) { console.error("bot_recurring_list:", error.message); await send(chatId, "Hozir ro'yxatni olib bo'lmadi."); return; }
+        await sendLong(chatId, renderRecurringList((data ?? []) as RecurringRow[]), { reply_markup: MENU_KEYBOARD });
+        return;
+      }
       default:
         await send(chatId, "Bunday buyruq yo'q. /help", { reply_markup: MENU_KEYBOARD });
         return;
@@ -1104,6 +1129,11 @@ Deno.serve(async (req) => {
     return json(await (act === "notify" ? runNotify : runDeadlines)({
       db, send, taskButtons, workdays: () => settingValue("workdays"),
     }));
+  }
+  // Cron 07:00 Toshkent: takroriy vazifalarni yaratish (recurring.ts, B5-2)
+  if (act === "recurring") {
+    if (!cronAuthorized(req)) return json({ error: "unauthorized" }, 401);
+    return json(await runRecurringTasks({ db }));
   }
 
   if (req.headers.get("x-telegram-bot-api-secret-token") !== await telegramSecret()) {
