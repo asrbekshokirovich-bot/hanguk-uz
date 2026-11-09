@@ -585,8 +585,18 @@ class _StatGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A price range («31 806 000 so'm – 36 345 000 so'm») takes a row of its
+    // own: squeezed into a third it was scaled down to unreadable.
+    final wide = [for (final s in this.stats) if (s.$3.contains(' – ')) s];
+    final stats = [for (final s in this.stats) if (!s.$3.contains(' – ')) s];
     final cols = stats.length == 4 || stats.length == 2 ? 2 : 3;
-    final rows = <Widget>[];
+    final rows = <Widget>[
+      for (final w in wide) ...[
+        _StatCell(stat: w),
+        const SizedBox(height: 6),
+      ],
+    ];
+    if (stats.isEmpty && rows.isNotEmpty) rows.removeLast();
     for (var i = 0; i < stats.length; i += cols) {
       if (i > 0) rows.add(const SizedBox(height: 6));
       rows.add(

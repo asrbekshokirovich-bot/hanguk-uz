@@ -248,6 +248,9 @@ class _VisaScreenState extends ConsumerState<VisaScreen> {
           (v) => set(input.copyWith(topik: v)),
         ),
       ),
+      // Only with a TOPIK level: «Yo'q» and «sertifikat amalda» together
+      // contradicted each other.
+      if (input.topik > 0)
       _Q(
         l.uaQTopikCert,
         (i) => i.copyWith(topikFresh: true),
