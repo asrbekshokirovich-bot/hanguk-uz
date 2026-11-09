@@ -9,7 +9,6 @@ import 'app_localizations_en.dart';
 import 'app_localizations_ko.dart';
 import 'app_localizations_ru.dart';
 import 'app_localizations_uz.dart';
-import 'app_localizations_vi.dart';
 
 // ignore_for_file: type=lint
 
@@ -101,7 +100,6 @@ abstract class AppLocalizations {
     Locale('uz'),
     Locale('ko'),
     Locale('ru'),
-    Locale('vi'),
   ];
 
   /// Title of the Training bottom-nav tab.
@@ -10304,7 +10302,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ko', 'ru', 'uz', 'vi'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ru', 'uz'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -10321,8 +10319,6 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsRu();
     case 'uz':
       return AppLocalizationsUz();
-    case 'vi':
-      return AppLocalizationsVi();
   }
 
   throw FlutterError(

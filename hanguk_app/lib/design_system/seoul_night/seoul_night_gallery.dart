@@ -78,7 +78,7 @@ class _SeoulNightGalleryState extends State<SeoulNightGallery> {
           Text('Subtitle 16/700', style: SeoulType.subtitle),
           const SizedBox(height: 6),
           Text(
-            'Body 15/400 — Oʻzbekcha, Русский, Tiếng Việt',
+            'Body 15/400 — Oʻzbekcha, Русский, 한국어',
             style: SeoulType.body,
           ),
           const SizedBox(height: 6),

@@ -181,7 +181,6 @@ class University {
         return (nameUz?.isNotEmpty ?? false) ? nameUz! : name;
       case 'en':
       case 'ru':
-      case 'vi':
       default:
         return (nameEn?.isNotEmpty ?? false) ? nameEn! : name;
     }

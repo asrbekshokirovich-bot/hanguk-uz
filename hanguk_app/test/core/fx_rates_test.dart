@@ -22,7 +22,6 @@ void main() {
     expect(displayCurrencyFor('en'), 'USD');
     expect(displayCurrencyFor('ru_RU'), 'USD');
     expect(displayCurrencyFor('ko'), isNull);
-    expect(displayCurrencyFor('vi'), isNull);
   });
 
   test('won shown in so\'m, dollars, or as quoted', () {
@@ -34,7 +33,6 @@ void main() {
     expect(convertKrw(4134000, 'USD', FxRates.current!), 3120);
     expect(money(4134000, 'KRW', locale: 'en'), '\$3,120');
     expect(money(4134000, 'KRW', locale: 'ko'), '₩4,134,000');
-    expect(money(4134000, 'KRW', locale: 'vi').startsWith('₩'), isTrue);
     expect(money(4134000, 'KRW', locale: 'uz').endsWith("so'm"), isTrue);
     expect(money(4134000, 'KRW', locale: 'ru').startsWith('\$'), isTrue);
     // Other currencies are never converted.

@@ -12,11 +12,10 @@ void main() {
     expect(daysUntil(null, today), isNull);
   });
 
-  test('a document reads in the phone language; Vietnamese reads English', () {
+  test('a document reads in the phone language', () {
     const d = CatalogDoc(name: 'Foto', translations: {'en': 'Photo', 'ru': 'Фото'});
     expect(docName(d, 'uz'), 'Foto');
     expect(docName(d, 'ru'), 'Фото');
-    expect(docName(d, 'vi'), 'Photo');
     expect(docName(d, 'ko'), 'Foto');
   });
 }

@@ -119,7 +119,6 @@ void main() {
         nameEn: 'Yonsei University',
       );
       expect(u.nameForLocale('ru'), 'Yonsei University');
-      expect(u.nameForLocale('vi'), 'Yonsei University');
       expect(u.nameForLocale('en'), 'Yonsei University');
     });
 
