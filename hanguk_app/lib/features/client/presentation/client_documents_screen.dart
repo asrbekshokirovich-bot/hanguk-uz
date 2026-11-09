@@ -292,7 +292,7 @@ class _DocRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: fdText(17, FontWeight.w800, FdColors.ink, height: 1.2)),
+                    Text(name, style: fdText(17, FontWeight.w800, FdColors.ink, height: 1.2)),
                     const SizedBox(height: 2),
                     Text(note, style: fdText(14, FontWeight.w800, noteColor)),
                   ],

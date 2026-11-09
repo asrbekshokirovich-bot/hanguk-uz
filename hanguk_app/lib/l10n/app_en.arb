@@ -2763,7 +2763,7 @@
   "@statusPendingApproval": {
     "description": "Application status chip/label: the student chose the university and a counselor has not approved it yet (applications.status pending / pending_approval)."
   },
-  "statusDocumentsCollection": "Documents collected",
+  "statusDocumentsCollection": "Documents being gathered",
   "@statusDocumentsCollection": {
     "description": "Application status label (applications.status documents_collection): the documents have been collected."
   },

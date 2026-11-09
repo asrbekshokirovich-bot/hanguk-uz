@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -201,6 +202,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final user = ref.watch(authStateProvider).value?.session?.user;
     final email = user?.email;
     final phone = user?.phone;
+    // The student's name from the profile. The magic-code login signs in
+    // with a synthetic «student-<uuid>@hanguk.local» address that means
+    // nothing to the student, so it is never shown.
+    final name = ref.watch(studentFullNameProvider).value;
+    final shownEmail = email != null && !email.endsWith('@hanguk.local') ? email : null;
+    final identity = name ??
+        ((phone ?? '').isNotEmpty ? phone : null) ??
+        shownEmail ??
+        l10n.accountUnknownAccount;
 
     return SeoulNightScaffold(
       body: SingleChildScrollView(
@@ -248,10 +258,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                       children: [
                         Text(l10n.accountSignedInAs, style: SeoulType.eyebrow),
                         const SizedBox(height: 6),
-                        Text(
-                          email ?? phone ?? l10n.accountUnknownAccount,
-                          style: SeoulType.subtitle,
-                        ),
+                        Text(identity, style: SeoulType.subtitle),
                       ],
                     ),
                   ),
@@ -381,6 +388,22 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   onTap: tracked('account.terms_of_service', () => _openLegal(AppConfig.termsOfServiceUrl)),
                 ),
               ],
+            ),
+            // Which build this is — what support asks first.
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snap) {
+                final info = snap.data;
+                if (info == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(
+                    'Hanguk ${info.version} (${info.buildNumber})',
+                    textAlign: TextAlign.center,
+                    style: SeoulType.bodySecondary.copyWith(fontSize: 12),
+                  ),
+                );
+              },
             ),
           ],
         ),
