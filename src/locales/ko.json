@@ -1213,7 +1213,12 @@
       "receiptsSaved": "영수증이 저장되었습니다",
       "hasAccount": "계정 있음",
       "accountExists": "이 유형의 결제 계정이 이미 있습니다. 새 부채를 만들지 않고 기존 계정에 분할 납부로 추가하세요.",
-      "editPaidHint": "납부 금액은 {{count}}건의 분할 납부 합계입니다. 변경하려면 분할 납부를 추가하세요."
+      "editPaidHint": "납부 금액은 {{count}}건의 분할 납부 합계입니다. 변경하려면 분할 납부를 추가하세요.",
+      "delete": "분할 납부 삭제",
+      "deleteTitle": "이 납부 내역을 삭제할까요?",
+      "deleteBody": "{{date}}의 {{amount}} 납부 내역과 영수증이 삭제됩니다. 납부액이 같은 금액만큼 줄어듭니다. 되돌릴 수 없습니다.",
+      "deleteConfirm": "예, 삭제",
+      "deleted": "{{amount}} 납부 내역이 삭제되었습니다"
     }
   },
   "tasks": {
