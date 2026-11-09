@@ -88,6 +88,17 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
     super.dispose();
   }
 
+  /// No student signed in (a guest, or the guest test account).
+  bool _isGuest() {
+    final session = ref.watch(authStateProvider).value?.session;
+    if (session != null) return !isClientSession(session);
+    try {
+      return !isClientSession(Supabase.instance.client.auth.currentSession);
+    } catch (_) {
+      return true; // Supabase not set up (tests): the guest's layout.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -155,8 +166,7 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                 ),
                 // A guest has no account screen: the language and the
                 // notifications (the deadline-reminder switch) open from here.
-                if (!isClientSession(ref.watch(authStateProvider).value?.session ??
-                    Supabase.instance.client.auth.currentSession)) ...[
+                if (_isGuest()) ...[
                   const SizedBox(width: 8),
                   HardIconButton(
                     glyph: LucideIcons.languages,
