@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-09T11:30:04+00:00",
+ "last_run": "2026-11-09T23:50:04+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -58,6 +58,7 @@
   ],
   "https://admission.dnue.ac.kr/ipsi/Main.do": [],
   "https://admission.ewha.ac.kr/admission/html/main/main.asp": [
+   "d8a3f0ea7045299e",
    "708d8927b22b88c8",
    "00edfefcdb87c88f",
    "86b137020ce2f41a",
