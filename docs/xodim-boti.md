@@ -128,6 +128,19 @@ Bot RPC'lari (`bot_*`) faqat `service_role` uchun (kartadan: `bot_set_task_due`,
 4. Vazifa holatini botda (▶/✅, guruhda ✅, AI yopish taklifi) **faqat mas'ul** o'zgartiradi; bergan odam va owner CRM orqali yopadi. Muddat va mas'ulni kartadan **bergan yoki owner** o'zgartiradi.
 Rejim: `off` | `shadow` (standart — faqat `bot_proposals`, guruhga chiqmaydi) | `on`.
 
+## Takroriy vazifalar (B5-2, 2026-11-09)
+Xodim (yoki owner) DM'da `/takror` bilan har kuni yoki har hafta avtomatik qayta yaratiladigan vazifa belgilaydi:
+```
+/takror Ism Familiya | Sarlavha | har kuni | 18:00
+/takror Ism Familiya | Sarlavha | har hafta Du,Chor | 18:00
+```
+Vaqt (oxirgi bo'lak) ixtiyoriy — bo'lmasa yangi vazifa muddatsiz yaratiladi. `/takrorlarim` — o'zi yaratgan yoki unga biriktirilgan faol takroriy vazifalar ro'yxati.
+- **Jadval:** `task_recurrences` (title, description, assigned_to, created_by, priority, freq `daily|weekly`, weekdays ISO 1-7, due_time `HH:MM` Toshkent, is_active, last_created_date). Faqat `service_role`.
+- **RPC'lar:** `bot_recurring_create`, `bot_recurring_list`, `bot_recurring_cancel` (yaratgan yoki owner), `bot_recurring_run(p_today)` — bugungi (yoki berilgan) Toshkent sanasiga mos faol yozuvlar uchun `tasks`ga yangi qator (`source='telegram'`, `via='cron'`), `last_created_date`ni yangilaydi, nechta yaratilganini qaytaradi.
+- **Cron:** `staff-bot-recurring`, har kuni 07:00 Toshkent (`0 2 * * *` UTC) → `?action=recurring` (`recurring.ts: runRecurringTasks`).
+- Yaratilgan vazifa haqida xabar alohida yuborilmaydi — mavjud `trg_task_events` → `bot_notify_claim` (kind=`created`) zanjiri orqali mas'ulga o'zi boradi.
+- Bekor qilish buyrug'i hozircha yo'q (CRM'da yoki keyingi PR'da); faol yozuvlar ko'pi bilan `bot_recurring_list` bilan ko'riladi.
+
 ## Orbit
 Orbit loyihasi (zqpglkxbtpkvyraxquao) 2026-10-28 dan to'xtatilgan. Hanguk'dagi Orbit triggerlari
 (`tasks`: `trg_orbit_instant_sync`, `trg_orbit_signal`; `leads`, `payments`: `trg_orbit_signal`) **DISABLE** qilingan —
