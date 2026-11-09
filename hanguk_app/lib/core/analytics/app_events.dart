@@ -377,6 +377,11 @@ abstract final class AppEvents {
     };
   }
 
+  /// An error the app caught and recovered from, still worth counting
+  /// (`app_error`, not fatal) — e.g. the guest test session failing.
+  static void handledError(Object error, StackTrace stack, String library) =>
+      _error(error, library, fatal: false, stack: stack);
+
   static void _error(Object error, String? library, {required bool fatal, StackTrace? stack}) {
     if (++_errors > 20) return;
     final type = error.runtimeType.toString();

@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/analytics/app_events.dart';
+
 /// Why a sign-in or sign-up failed. The screen turns it into words in the
 /// app language; the repository never hands English prose to the UI.
 enum AuthError {
@@ -83,22 +85,38 @@ Future<bool> ensureTestSession() async {
   if (auth.currentSession != null) return true;
   const storage = FlutterSecureStorage();
   const key = 'guest_test_creds_v1';
-  try {
-    var creds = await storage.read(key: key);
-    if (creds == null) {
-      final res = await Supabase.instance.client.functions.invoke('guest-test-session', body: const {});
-      final data = res.data;
-      if (data is! Map || data['email'] is! String || data['password'] is! String) return false;
-      creds = '${data['email']}\n${data['password']}';
-      await storage.write(key: key, value: creds);
+  // Saved credentials that no longer sign in (a cleared account, a keystore
+  // the phone reset) used to leave the guest on the client-code screen for
+  // good: the second attempt drops them and asks for a fresh account.
+  for (var attempt = 0; attempt < 2; attempt++) {
+    try {
+      String? creds;
+      try {
+        creds = attempt == 0 ? await storage.read(key: key) : null;
+      } catch (_) {
+        creds = null;
+      }
+      if (creds == null) {
+        final res = await Supabase.instance.client.functions.invoke('guest-test-session', body: const {});
+        final data = res.data;
+        if (data is! Map || data['email'] is! String || data['password'] is! String) return false;
+        creds = '${data['email']}\n${data['password']}';
+        try {
+          await storage.write(key: key, value: creds);
+        } catch (_) {}
+      }
+      final parts = creds.split('\n');
+      await auth.signInWithPassword(email: parts.first, password: parts.last);
+      if (auth.currentSession != null) return true;
+    } catch (e, st) {
+      debugPrint('[TestSession] $e');
+      AppEvents.handledError(e, st, 'test_session');
+      try {
+        await storage.delete(key: key);
+      } catch (_) {}
     }
-    final parts = creds.split('\n');
-    await auth.signInWithPassword(email: parts.first, password: parts.last);
-    return auth.currentSession != null;
-  } catch (e) {
-    debugPrint('[TestSession] $e');
-    return false;
   }
+  return false;
 }
 
 /// The signed-in student's display name, read from `profiles.full_name`.

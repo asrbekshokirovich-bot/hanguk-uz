@@ -121,13 +121,35 @@ String catalogRoundValue(BuildContext context, AppLocalizations l, CatalogRound 
   return r.status == 'taxminiy' ? '$text (${l.catalogRoundEstimated})' : text;
 }
 
-/// The first admission stage's steps — the round a student reading today
-/// applies to. Steps the Excel marks as not held are dropped.
-List<CatalogRound> catalogFirstStage(List<CatalogRound> rounds) {
-  final live = rounds.where((r) => r.status != 'etap_yoq').toList();
+/// The steps of the admission stage (round) a student reading today applies
+/// to, in step order: the first stage with a dated step that has not ended
+/// yet; when every stage is over, the last one. Steps the Excel marks as not
+/// held are dropped.
+List<CatalogRound> catalogFirstStage(List<CatalogRound> rounds, [DateTime? today]) {
+  final live = rounds.where((r) => r.status != 'etap_yoq').toList()
+    ..sort((a, b) => a.stage != b.stage ? a.stage.compareTo(b.stage) : a.step.compareTo(b.step));
   if (live.isEmpty) return const [];
-  final first = live.map((r) => r.stage).reduce(math.min);
-  return live.where((r) => r.stage == first).toList();
+  final now = today ?? DateTime.now();
+  final day = DateTime(now.year, now.month, now.day);
+  final stages = live.map((r) => r.stage).toSet().toList()..sort();
+  bool open(int stage) => live.any((r) {
+        if (r.stage != stage) return false;
+        final d = DateTime.tryParse(r.endDate ?? r.startDate ?? '');
+        return d != null && !d.isBefore(day);
+      });
+  bool dated(int stage) => live.any((r) => r.stage == stage && (r.endDate ?? r.startDate) != null);
+  final current = stages.where(open).firstOrNull ??
+      stages.where((s) => !dated(s)).where((s) => s > stages.where(dated).fold(0, math.max)).firstOrNull ??
+      stages.last;
+  return live.where((r) => r.stage == current).toList();
+}
+
+/// Whether a step's dates are all behind [today] (it can no longer be done).
+bool catalogStepPast(CatalogRound r, [DateTime? today]) {
+  final d = DateTime.tryParse(r.endDate ?? r.startDate ?? '');
+  if (d == null) return false;
+  final now = today ?? DateTime.now();
+  return d.isBefore(DateTime(now.year, now.month, now.day));
 }
 
 class _CatalogDetailScreenState extends ConsumerState<CatalogDetailScreen> {

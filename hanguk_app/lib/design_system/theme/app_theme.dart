@@ -86,6 +86,20 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
+      // Seoul Night snackbar: a dark floating pill (Material 3's default is
+      // a light inverse surface that reads as a stray white bar on the dark
+      // pages) that sits above the nav and the BAHOLASH orb.
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF0F213D),
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+        actionTextColor: AppColors.vibrantLime,
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0x2EFFFFFF)),
+        ),
+      ),
       cardTheme: CardThemeData(
         color: AppColors.surfaceGlass.withValues(alpha: 0.12),
         elevation: 0,
