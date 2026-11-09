@@ -4041,7 +4041,7 @@ abstract class AppLocalizations {
   /// Application status label (applications.status documents_collection): the documents have been collected.
   ///
   /// In en, this message translates to:
-  /// **'Documents collected'**
+  /// **'Documents being gathered'**
   String get statusDocumentsCollection;
 
   /// Application status label (applications.status documents_translation): the documents have been translated.

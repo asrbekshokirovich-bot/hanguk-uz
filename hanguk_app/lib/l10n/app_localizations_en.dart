@@ -2197,7 +2197,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusPendingApproval => 'Awaiting approval';
 
   @override
-  String get statusDocumentsCollection => 'Documents collected';
+  String get statusDocumentsCollection => 'Documents being gathered';
 
   @override
   String get statusDocumentsTranslation => 'Documents translated';

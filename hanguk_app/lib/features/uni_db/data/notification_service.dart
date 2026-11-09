@@ -160,8 +160,8 @@ void _handleForegroundMessage(RemoteMessage message) {
 /// is what already happened.
 /// Where a tapped push opens: a survey, the university choices screen for a
 /// university stage, or the Ariza journey for the other stages
-/// (supabase/functions/notify-student-stages).
-@visibleForTesting
+/// (supabase/functions/notify-student-stages). The Bildirishnomalar list
+/// opens its cards the same way.
 String? notificationRoute(Map<String, dynamic> data) {
   final type = data['type'];
   if (type == 'survey') {

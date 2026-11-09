@@ -789,7 +789,7 @@
   "appRoomAnnouncementFallbackTitle": "공지",
   "appRoomEventFallbackTitle": "일정",
   "statusPendingApproval": "승인 대기",
-  "statusDocumentsCollection": "서류 수집 완료",
+  "statusDocumentsCollection": "서류 준비 중",
   "statusDocumentsTranslation": "서류 번역 완료",
   "statusApostille": "아포스티유 준비 완료",
   "statusApplicationSubmitted": "지원서 제출 완료",

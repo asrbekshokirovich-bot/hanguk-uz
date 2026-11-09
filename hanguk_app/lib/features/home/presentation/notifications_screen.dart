@@ -10,9 +10,11 @@ import '../../../l10n/app_localizations.dart';
 import '../../applications/data/applications_repository.dart';
 import '../../applications/domain/application.dart';
 import '../../applications/presentation/widgets/process_tracker.dart';
+import '../../discover/presentation/widgets/app_nav.dart';
 import '../../documents/data/documents_repository.dart';
 import '../../documents/domain/document.dart';
 import '../../documents/domain/document_type.dart';
+import '../../uni_db/data/notification_service.dart' show notificationRoute;
 import '../../uni_db/data/notification_store.dart';
 import 'home_tab_provider.dart';
 
@@ -35,37 +37,32 @@ class NotificationsScreen extends ConsumerWidget {
     return false;
   }
 
+  /// The student's documents or Ariza tab. The old shell's section index
+  /// (homeTabProvider) moved nothing in the current shell: the tap only
+  /// closed this page, back to the account screen.
   void _openSection(WidgetRef ref, BuildContext context, int section) {
-    ref.read(homeTabProvider.notifier).setTab(section);
-    context.pop();
+    openAppTab(context, ref, section == SeoulSection.documents ? AppTab.documents : AppTab.application);
   }
 
-  /// Opens whatever a stored notification is about.
-  ///
-  /// Tapping the Android system notification has routed to the survey since
-  /// the notification service learned to read `survey_id`, but this list —
-  /// the one the bell opens — showed the same notifications as dead cards:
-  /// a student who cleared the shade, or who came here to find the survey
-  /// again, had no way through. The card carries the same `data` payload, so
-  /// it can answer the tap the same way.
+  /// Opens whatever a stored notification is about — the same place the
+  /// system notification opens ([notificationRoute]): a survey, the
+  /// university choices, the documents, the Ariza journey, a university.
   void _openNotification(
     BuildContext context,
     WidgetRef ref,
     NotificationItem item,
   ) {
     ref.read(notificationStoreProvider.notifier).markRead(item);
-
-    final surveyId = item.data['survey_id'];
-    if (item.data['type'] == 'survey' &&
-        surveyId is String &&
-        surveyId.isNotEmpty) {
-      context.push('/surveys/$surveyId');
+    final route = notificationRoute(item.data);
+    if (route == null) {
+      // Nothing specific (an announcement): marking it read is the answer.
       return;
     }
-
-    // Anything else has nowhere specific to go; closing the sheet at least
-    // leaves the student where they can act, instead of on a dead list.
-    context.pop();
+    if (route.startsWith('/surveys/') || route.startsWith('/university')) {
+      context.push(route);
+    } else {
+      context.go(route);
+    }
   }
 
   @override

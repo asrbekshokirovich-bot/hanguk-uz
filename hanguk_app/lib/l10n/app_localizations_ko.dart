@@ -2130,7 +2130,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get statusPendingApproval => '승인 대기';
 
   @override
-  String get statusDocumentsCollection => '서류 수집 완료';
+  String get statusDocumentsCollection => '서류 준비 중';
 
   @override
   String get statusDocumentsTranslation => '서류 번역 완료';

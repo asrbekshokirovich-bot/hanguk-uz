@@ -2210,7 +2210,7 @@ class AppLocalizationsUz extends AppLocalizations {
   String get statusPendingApproval => 'Tasdiq kutilmoqda';
 
   @override
-  String get statusDocumentsCollection => 'Hujjatlar yig‘ildi';
+  String get statusDocumentsCollection => 'Hujjatlar yig\'ilmoqda';
 
   @override
   String get statusDocumentsTranslation => 'Hujjatlar tarjima qilindi';

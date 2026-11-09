@@ -2208,7 +2208,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get statusPendingApproval => 'Ожидает одобрения';
 
   @override
-  String get statusDocumentsCollection => 'Документы собраны';
+  String get statusDocumentsCollection => 'Сбор документов';
 
   @override
   String get statusDocumentsTranslation => 'Документы переведены';
@@ -5404,7 +5404,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get ulPrivate => 'Частный университет';
 
   @override
-  String get ulState => 'Государственный университет';
+  String get ulState => 'Государственный вуз';
 
   @override
   String get ulNoRequirement => 'Без требований';
