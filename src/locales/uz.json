@@ -1558,6 +1558,15 @@
       "deleteBody": "{{date}} sanali {{amount}} bo'lak va uning cheki o'chiriladi. To'langan summa shuncha kamayadi. Buni qaytarib bo'lmaydi.",
       "deleteConfirm": "Ha, o'chirish",
       "deleted": "{{amount}} bo'lak o'chirildi"
+    },
+    "discount": {
+      "label": "Chegirma (summa)",
+      "placeholder": "Chegirma bo'lmasa bo'sh qoldiring",
+      "seasonPlaceholder": "Bo'sh bo'lsa: mavsum chegirmasi {{percent}}%",
+      "listPrice": "Narx (chegirmagacha)",
+      "due": "Chegirma: {{discount}} → to'lanadi: {{due}}",
+      "tooBig": "Chegirma narxdan kichik bo'lishi kerak",
+      "editHint": "Chegirmani yozsangiz, jami summa narxdan shuncha kamayadi"
     }
   },
   "tasks": {

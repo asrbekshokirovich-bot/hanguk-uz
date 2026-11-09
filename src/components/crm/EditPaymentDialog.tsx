@@ -199,6 +199,28 @@ export function EditPaymentDialog({ open, onOpenChange, payment, onSuccess }: Ed
               )}
             </div>
             <div className="space-y-2">
+              <Label htmlFor="edit-discount">{t('payments.discount.label')}</Label>
+              <Input
+                id="edit-discount"
+                type="number"
+                min={0}
+                placeholder={t('payments.discount.placeholder')}
+                value={listTotal > total && total > 0 ? String(listTotal - total) : ''}
+                onChange={(e) => {
+                  // Typing the discount keeps the list price and lowers what is owed:
+                  // amount = list price − discount (list price = current amount if none yet).
+                  const base = listTotal > 0 ? listTotal : total;
+                  const d = Math.max(0, Number(e.target.value) || 0);
+                  setForm({
+                    ...form,
+                    listAmount: d > 0 ? String(base) : '',
+                    amount: String(Math.max(base - d, 0)),
+                  });
+                }}
+              />
+              <p className="text-xs text-muted-foreground">{t('payments.discount.editHint')}</p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="edit-paid">To'langan summa</Label>
               <Input
                 id="edit-paid"

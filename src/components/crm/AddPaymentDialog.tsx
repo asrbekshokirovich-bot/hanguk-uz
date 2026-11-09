@@ -32,6 +32,7 @@ import { calculateGatewayFee, getGatewayFeeRate, PAYMENT_METHODS_WITH_FEES } fro
 import { MultiReceiptUpload } from '@/components/payments/MultiReceiptUpload';
 import { DateField } from '@/components/ui/date-field';
 import { AddInstallmentDialog, type InstallmentTarget } from '@/components/crm/payments/AddInstallmentDialog';
+import { applyDiscount, discountError } from '@/lib/paymentDiscount';
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -162,6 +163,7 @@ export function AddPaymentDialog({
     paymentType: getDefaultPaymentType(),
     amount: getInitialAmount(),
     paidAmount: '',
+    discount: '',
     currency: planInfo?.currency || 'UZS',
     paymentMethod: 'cash',
     gatewayFee: '',
@@ -245,16 +247,19 @@ export function AddPaymentDialog({
       return;
     }
 
+    if (discountError(Number(formData.amount), Number(formData.discount))) {
+      toast({ title: t('common.error'), description: t('payments.discount.tooBig'), variant: 'destructive' });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // The field holds the list price. With a season discount the student owes
-      // less, and both numbers are kept: list_amount feeds the P&L discount
-      // line, amount is what is actually due.
-      const listAmount = Number(formData.amount);
-      const amount = discountPercent > 0
-        ? Math.round(listAmount * (1 - discountPercent / 100))
-        : listAmount;
+      // The field holds the list price. A discount — typed as a sum, or else the
+      // season percent — lowers what the student owes, and both numbers are
+      // kept: list_amount feeds the P&L discount line, amount is what is due.
+      const priced = applyDiscount(Number(formData.amount), Number(formData.discount), discountPercent);
+      const amount = priced.amount;
       const paidAmount = Number(formData.paidAmount) || 0;
       const gatewayFee = Number(formData.gatewayFee) || 0;
 
@@ -270,7 +275,7 @@ export function AddPaymentDialog({
           student_id: studentId,
           payment_type: formData.paymentType,
           amount,
-          list_amount: discountPercent > 0 ? listAmount : null,
+          list_amount: priced.listAmount,
           paid_amount: paidAmount,
           currency: formData.currency,
           status: paidAmount >= amount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',
@@ -391,6 +396,7 @@ export function AddPaymentDialog({
         paymentType: 'initial_deposit',
         amount: '',
         paidAmount: '',
+        discount: '',
         currency: 'UZS',
         paymentMethod: 'cash',
         gatewayFee: '',
@@ -576,7 +582,7 @@ export function AddPaymentDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="amount">
-                {discountPercent > 0 ? 'List Price (before discount) *' : 'Expected Amount *'}
+                {t('payments.discount.listPrice')} *
               </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -595,16 +601,43 @@ export function AddPaymentDialog({
                   = {formatPlanAmount(Number(formData.amount), formData.currency)}
                 </p>
               )}
-              {discountPercent > 0 && Number(formData.amount) > 0 && (
-                <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
-                  &minus;{discountPercent}% &rarr;{' '}
-                  {formatPlanAmount(
-                    Math.round(Number(formData.amount) * (1 - discountPercent / 100)),
-                    formData.currency,
-                  )}{' '}
-                  due
-                </p>
-              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="discount">{t('payments.discount.label')}</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="discount"
+                  type="number"
+                  min={0}
+                  value={formData.discount}
+                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                  placeholder={
+                    discountPercent > 0
+                      ? t('payments.discount.seasonPlaceholder', { percent: discountPercent })
+                      : t('payments.discount.placeholder')
+                  }
+                  className="pl-9"
+                />
+              </div>
+              {(() => {
+                const list = Number(formData.amount);
+                if (!(list > 0)) return null;
+                if (discountError(list, Number(formData.discount))) {
+                  return <p className="text-xs font-medium text-destructive">{t('payments.discount.tooBig')}</p>;
+                }
+                const priced = applyDiscount(list, Number(formData.discount), discountPercent);
+                if (priced.discount === 0) return null;
+                return (
+                  <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
+                    {t('payments.discount.due', {
+                      discount: formatPlanAmount(priced.discount, formData.currency),
+                      due: formatPlanAmount(priced.amount, formData.currency),
+                    })}
+                  </p>
+                );
+              })()}
             </div>
 
             <div className="space-y-2">

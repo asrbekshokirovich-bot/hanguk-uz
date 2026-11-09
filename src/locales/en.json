@@ -1489,6 +1489,15 @@
       "deleteBody": "The {{amount}} transfer of {{date}} and its receipt will be deleted. The paid amount goes down by the same sum. This cannot be undone.",
       "deleteConfirm": "Yes, delete",
       "deleted": "Transfer of {{amount}} deleted"
+    },
+    "discount": {
+      "label": "Discount (amount)",
+      "placeholder": "Leave empty if there is no discount",
+      "seasonPlaceholder": "If empty: season discount {{percent}}%",
+      "listPrice": "Price (before discount)",
+      "due": "Discount: {{discount}} → due: {{due}}",
+      "tooBig": "The discount must be less than the price",
+      "editHint": "Typing a discount lowers the total by that amount"
     }
   },
   "tasks": {
