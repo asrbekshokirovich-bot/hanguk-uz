@@ -1,3 +1,5 @@
+import '../../../core/text/korean_city.dart';
+
 /// One university the consultant offered the student (the CRM's
 /// "Universitet tanlash" page): two picked by staff and the third a partner
 /// university. The student answers "Roziman" or "O'zgartirish so'rayman" on
@@ -134,7 +136,10 @@ class UniversityChoice {
       name: (en != null && en.isNotEmpty) ? en : (ko ?? ''),
       institutionId: (j['institution_id'] as String?) ?? '',
       nameKo: ko,
-      city: (j['city'] as String?)?.trim(),
+      city: switch ((j['city'] as String?)?.trim()) {
+        final String c => latinCity(c),
+        null => null,
+      },
       isPartner: j['is_partner'] == true,
       ieltsMin: _num(j['ielts_min']),
       topikMin: _num(j['topik_min']),

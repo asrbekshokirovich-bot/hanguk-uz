@@ -12,6 +12,7 @@ import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../catalog/presentation/catalog_format.dart';
 import '../../discover/presentation/discover_routes.dart';
 import '../../discover/presentation/widgets/chance_badge.dart';
 import '../../onboarding/domain/eligibility_engine.dart';
@@ -309,7 +310,8 @@ class _JobRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final label = switch (fix.kind) {
-      FixKind.bank => l.fdFixBank(l.fdMln((fix.value / 1000000).round())),
+      // The amount in the language's currency, as on the university page.
+      FixKind.bank => l.fdFixBank(money(fix.value, 'KRW', locale: l.localeName)),
       FixKind.topik => l.fdFixTopik(fix.value),
     };
     final gain = switch (fix.kind) {

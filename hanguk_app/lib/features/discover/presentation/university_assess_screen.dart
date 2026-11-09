@@ -247,6 +247,8 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
           (v) => set(input.copyWith(topik: v)),
         ),
       ),
+      // Only with a TOPIK level (see the visa page).
+      if (input.topik > 0)
       AssessQuestion(
         l.uaQTopikCert,
         (i) => i.copyWith(topikFresh: true),
