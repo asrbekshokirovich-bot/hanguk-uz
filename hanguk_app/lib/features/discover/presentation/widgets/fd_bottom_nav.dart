@@ -101,7 +101,7 @@ class _OrbLocation extends FloatingActionButtonLocation {
 
 /// The round button in the middle of the bar: the best admission chance (or
 /// "?%") over "BAHOLASH". Lime while its screen is open, white otherwise.
-class FdNavOrb extends StatelessWidget {
+class FdNavOrb extends StatefulWidget {
   const FdNavOrb({super.key, required this.value, required this.label, required this.active, required this.onTap});
 
   /// "86%" or "?%".
@@ -111,31 +111,50 @@ class FdNavOrb extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<FdNavOrb> createState() => _FdNavOrbState();
+}
+
+class _FdNavOrbState extends State<FdNavOrb> {
+  /// Pressed down: the button sinks a little, so every tap visibly lands.
+  bool _down = false;
+
+  void _press(bool down) {
+    if (_down != down) setState(() => _down = down);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final fg = active ? FdColors.onLime : FdColors.ink;
+    final fg = widget.active ? FdColors.onLime : FdColors.ink;
     return Semantics(
       button: true,
-      selected: active,
-      label: '$label $value',
+      selected: widget.active,
+      label: '${widget.label} ${widget.value}',
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: tracked('fd_bottom_nav.fd_nav_orb', onTap),
-        child: Container(
-          width: 62,
-          height: 62,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: active ? FdColors.lime : FdColors.card,
-            border: Border.all(color: FdColors.ink, width: 1.5),
-            boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(value, style: fdText(16, FontWeight.w800, fg, height: 1)),
-              const SizedBox(height: 1),
-              Text(label, style: fdText(8, FontWeight.w800, fg, height: 1.2)),
-            ],
+        onTapDown: (_) => _press(true),
+        onTapUp: (_) => _press(false),
+        onTapCancel: () => _press(false),
+        onTap: tracked('fd_bottom_nav.fd_nav_orb', widget.onTap),
+        child: AnimatedScale(
+          scale: _down ? 0.92 : 1,
+          duration: const Duration(milliseconds: 90),
+          child: Container(
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: widget.active ? FdColors.lime : FdColors.card,
+              border: Border.all(color: FdColors.ink, width: 1.5),
+              boxShadow: [BoxShadow(color: FdColors.ink, offset: _down ? const Offset(1, 1) : const Offset(3, 3))],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(widget.value, style: fdText(16, FontWeight.w800, fg, height: 1)),
+                const SizedBox(height: 1),
+                Text(widget.label, style: fdText(8, FontWeight.w800, fg, height: 1.2)),
+              ],
+            ),
           ),
         ),
       ),

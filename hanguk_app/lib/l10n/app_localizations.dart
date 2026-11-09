@@ -10289,6 +10289,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open the application'**
   String get nextStepOpenButton;
+
+  /// Snackbar after the Baholash page's «Tozalash» resets the answers.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers cleared'**
+  String get vzAnswersCleared;
 }
 
 class _AppLocalizationsDelegate

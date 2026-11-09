@@ -1830,5 +1830,6 @@
   "nextStepSubmissionBody": "{university}: срок онлайн-заявки. Дата и статус — на странице заявки.",
   "nextStepInterviewTitle": "Готовьтесь к собеседованию",
   "nextStepInterviewBody": "{university}: собеседование. Дата и время — на странице заявки.",
-  "nextStepOpenButton": "Открыть заявку"
+  "nextStepOpenButton": "Открыть заявку",
+  "vzAnswersCleared": "Ответы сброшены"
 }

@@ -1830,5 +1830,6 @@
   "nextStepSubmissionBody": "{university}: online ariza muddati. Ariza sahifasida sana va holatni ko'ring.",
   "nextStepInterviewTitle": "Suhbatga tayyorlaning",
   "nextStepInterviewBody": "{university}: suhbat. Sana va vaqtni ariza sahifasida ko'ring.",
-  "nextStepOpenButton": "Arizani ochish"
+  "nextStepOpenButton": "Arizani ochish",
+  "vzAnswersCleared": "Javoblar tozalandi"
 }

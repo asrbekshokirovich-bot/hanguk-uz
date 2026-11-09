@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
@@ -40,6 +41,8 @@ class CatalogBrowser extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(catalogProvider);
     final filter = ref.watch(catalogFilterProvider);

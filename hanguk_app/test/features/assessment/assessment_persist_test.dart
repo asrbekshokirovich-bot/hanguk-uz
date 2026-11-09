@@ -63,7 +63,10 @@ void main() {
     final c = ProviderContainer();
     addTearDown(c.dispose);
     c.read(assessmentProvider.notifier).set(_answered);
+    // Written after a pause, not on every tap.
     await Future<void>.delayed(Duration.zero);
+    expect(store.value, isNull);
+    await Future<void>.delayed(AssessmentNotifier.saveDelay + const Duration(milliseconds: 50));
     final saved = jsonDecode(store.value!) as Map<String, dynamic>;
     expect(saved['topik'], 3);
     expect(saved['touched'], isTrue);
@@ -81,5 +84,18 @@ void main() {
     c.read(assessmentProvider.notifier).set(const AssessmentInput(topik: 5));
     await Future<void>.delayed(Duration.zero);
     expect(c.read(assessmentProvider).topik, 5);
+  });
+
+  test('a burst of changes (a slider moving) is written once, with the last', () async {
+    final store = _MemoryStore();
+    AssessmentNotifier.store = store;
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+    for (var t = 1; t <= 6; t++) {
+      c.read(assessmentProvider.notifier).set(AssessmentInput(topik: t));
+    }
+    await Future<void>.delayed(AssessmentNotifier.saveDelay + const Duration(milliseconds: 50));
+    expect(store.writes, 1);
+    expect((jsonDecode(store.value!) as Map<String, dynamic>)['topik'], 6);
   });
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -23,6 +24,8 @@ class UniversityChoicesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(myUniversityChoicesProvider);
 

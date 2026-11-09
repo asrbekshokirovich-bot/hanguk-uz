@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/seen.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/money/fx_rates.dart';
 import '../../../core/push/guest_push.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -106,6 +107,8 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Fees follow the bank's rates when they arrive.
+    ref.watch(fxRevisionProvider);
     final l = AppLocalizations.of(context)!;
     final all = ref.watch(catalogProvider).value ?? const <CatalogUniversity>[];
     final f = ref.watch(catalogFilterProvider);

@@ -5537,4 +5537,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get nextStepOpenButton => '지원서 열기';
+
+  @override
+  String get vzAnswersCleared => '답변을 초기화했어요';
 }
