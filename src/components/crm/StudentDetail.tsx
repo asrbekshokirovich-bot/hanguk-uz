@@ -91,6 +91,7 @@ import { PaymentBalanceLines } from './payments/PaymentBalanceLines';
 import { summarizeBalance } from '@/lib/paymentBalance';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { useUniversities } from '@/hooks/useUniversities';
+import { useUserRole } from '@/hooks/useUserRole';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 import { StudentContacts } from './StudentContacts';
@@ -187,6 +188,7 @@ export function StudentDetail({
 }: StudentDetailProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { canDeletePaymentInstallments } = useUserRole();
   const { activeIntakeId } = useActiveIntake();
   const { toast } = useToast();
   const [inviting, setInviting] = useState(false);
@@ -1517,6 +1519,7 @@ export function StudentDetail({
                           currency={payment.currency}
                           studentId={student.user_id}
                           canAdd={payment.status !== 'refunded' && Number(payment.paid_amount) < Number(payment.amount)}
+                          canDelete={canDeletePaymentInstallments}
                           onAddInstallment={() => setInstallmentFor(payment)}
                           onChanged={fetchPayments}
                         />

@@ -363,6 +363,8 @@ export const HELP_GUIDE = [
   "/bugun — bugungi va kechikkan vazifalar",
   "/cancel — boshlangan amalni bekor qilish",
   "/help — shu qo'llanma",
+  "/takror Ism Familiya | Sarlavha | har kuni | 18:00 — takroriy vazifa (masalan: «har kuni soat 18:00 da hisobot yozish»). Kunlik o'rniga: <code>har hafta Du,Chor</code>. Vaqt ixtiyoriy.",
+  "/takrorlarim — faol takroriy vazifalar ro'yxati",
   "",
   "Har kuni 09:00 da (Du–Sha) kechikkan va bugungi vazifalaringizni yuboraman.",
   "🔔 CRM'da sizga vazifa berilsa yoki muddati o'zgarsa, bergan vazifangiz boshlansa yoki CRM'da yopilsa, muddatga 1 soat qolganda va muddat o'tganda ham yozaman (22:00–08:00 da yozmayman; muddat eslatmalari — faqat ish kunlari).",
