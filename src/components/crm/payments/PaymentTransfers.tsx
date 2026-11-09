@@ -1,14 +1,24 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { ImagePlus, Plus, Receipt } from 'lucide-react';
+import { ImagePlus, Plus, Receipt, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { MultiReceiptUpload } from '@/components/payments/MultiReceiptUpload';
 import { formatAmount } from '@/hooks/useStudentPlan';
 import { getPaymentMethodLabel } from '@/lib/paymentUtils';
-import { addReceiptsToTransfer } from '@/lib/recordInstallment';
+import { addReceiptsToTransfer, deleteInstallment } from '@/lib/recordInstallment';
 import { receiptsOf } from '@/lib/paymentBalance';
 import { SignedReceiptLink } from '@/components/payments/SignedReceipt';
 
@@ -32,6 +42,7 @@ export function PaymentTransfers({
   currency,
   studentId,
   canAdd,
+  canDelete = false,
   onAddInstallment,
   onChanged,
 }: {
@@ -39,6 +50,8 @@ export function PaymentTransfers({
   currency: string;
   studentId: string;
   canAdd: boolean;
+  /** Owner, admin or payment_delete_access — useUserRole().canDeletePaymentInstallments. */
+  canDelete?: boolean;
   onAddInstallment: () => void;
   onChanged: () => void;
 }) {
@@ -47,6 +60,27 @@ export function PaymentTransfers({
   const [receiptFor, setReceiptFor] = useState<TransferRow | null>(null);
   const [added, setAdded] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [deleteFor, setDeleteFor] = useState<TransferRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!deleteFor) return;
+    setDeleting(true);
+    try {
+      const res = await deleteInstallment(deleteFor.id);
+      toast({
+        title: t('common.success'),
+        description: t('payments.installment.deleted', { amount: formatAmount(res.removedAmount, currency) }),
+      });
+      setDeleteFor(null);
+      onChanged();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({ title: t('common.error'), description: message, variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const rows = [...(transfers ?? [])].sort((a, b) =>
     (a.paid_on ?? a.created_at).localeCompare(b.paid_on ?? b.created_at),
@@ -129,12 +163,53 @@ export function PaymentTransfers({
                   >
                     <ImagePlus className="h-4 w-4" />
                   </Button>
+                  {canDelete && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      title={t('payments.installment.delete')}
+                      aria-label={t('payments.installment.delete')}
+                      onClick={() => setDeleteFor(tx)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </li>
             );
           })}
         </ul>
       )}
+
+      <AlertDialog open={!!deleteFor} onOpenChange={(o) => !o && !deleting && setDeleteFor(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('payments.installment.deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteFor &&
+                t('payments.installment.deleteBody', {
+                  amount: formatAmount(Number(deleteFor.amount), currency),
+                  date: format(new Date(deleteFor.paid_on ?? deleteFor.created_at), 'dd.MM.yyyy'),
+                })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmDelete();
+              }}
+            >
+              {deleting ? t('common.loading') : t('payments.installment.deleteConfirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={!!receiptFor} onOpenChange={(o) => !o && setReceiptFor(null)}>
         <DialogContent className="sm:max-w-[440px]">

@@ -1478,7 +1478,12 @@
       "receiptsSaved": "Receipts saved",
       "hasAccount": "account exists",
       "accountExists": "An account of this type already exists. No new debt is opened — add the money to it as a transfer.",
-      "editPaidHint": "The paid amount is the sum of {{count}} transfers. Add a transfer to change it."
+      "editPaidHint": "The paid amount is the sum of {{count}} transfers. Add a transfer to change it.",
+      "delete": "Delete transfer",
+      "deleteTitle": "Delete this transfer?",
+      "deleteBody": "The {{amount}} transfer of {{date}} and its receipt will be deleted. The paid amount goes down by the same sum. This cannot be undone.",
+      "deleteConfirm": "Yes, delete",
+      "deleted": "Transfer of {{amount}} deleted"
     }
   },
   "tasks": {
