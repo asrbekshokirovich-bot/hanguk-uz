@@ -311,13 +311,13 @@ class ShiftTakenScreen extends ConsumerWidget {
                           child: Container(
                             width: 104,
                             height: 104,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: HiColors.lime,
                               shape: BoxShape.circle,
-                              border: Border.fromBorderSide(HiBorders.ink),
+                              border: const Border.fromBorderSide(HiBorders.ink),
                               boxShadow: [
-                                BoxShadow(color: HiColors.ink, offset: Offset(4, 4)),
-                                BoxShadow(color: Color.fromRGBO(212, 233, 76, 0.35), blurRadius: 16),
+                                const BoxShadow(color: HiColors.ink, offset: Offset(4, 4)),
+                                BoxShadow(color: const Color.fromRGBO(212, 233, 76, 0.35), blurRadius: HiShadows.blur(16)),
                               ],
                             ),
                             alignment: Alignment.center,

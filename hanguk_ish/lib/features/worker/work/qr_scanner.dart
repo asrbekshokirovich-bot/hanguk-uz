@@ -9,10 +9,6 @@ import '../../../data/repositories/shift_repository.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 
-/// CSS `blur(b)` of a box-shadow as a Flutter blur radius (CSS uses a
-/// Gaussian of σ = b / 2; Flutter turns a radius r into σ = 0.577 r + 0.5).
-double cssShadowBlur(double b) => b <= 0 ? 0 : (b / 2 - 0.5) / 0.57735;
-
 /// Which camera A07 uses: the phone's, or — in the demo without a backend —
 /// the prototype's picture of a printed code, which reads when tapped.
 enum QrCameraKind { device, demo }
@@ -157,7 +153,7 @@ class DemoQrScene extends StatelessWidget {
                   color: const Color(0xFFF7F8FB),
                   borderRadius: BorderRadius.circular(6),
                   boxShadow: [
-                    BoxShadow(color: const Color.fromRGBO(0, 0, 0, 0.35), offset: const Offset(0, 10), blurRadius: cssShadowBlur(24)),
+                    BoxShadow(color: const Color.fromRGBO(0, 0, 0, 0.35), offset: const Offset(0, 10), blurRadius: HiShadows.blur(24)),
                   ],
                 ),
                 child: Column(

@@ -412,9 +412,7 @@ class AtWorkScreen extends ConsumerWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: const Color.fromRGBO(212, 233, 76, 0.16), blurRadius: cssShadowBlur(40)),
-                            ],
+                            boxShadow: [HiShadows.glow(const Color.fromRGBO(212, 233, 76, 0.16), 40)],
                           ),
                           child: CustomPaint(
                             painter: _RingPainter(progress),
