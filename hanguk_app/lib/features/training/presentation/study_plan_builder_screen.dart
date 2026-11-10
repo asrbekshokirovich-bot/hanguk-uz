@@ -60,6 +60,11 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   /// The way out while it saves: a second one waits for it (see [_leave]).
   Future<void>? _leaving;
 
+  /// The plan's text whose save failed on a way out: the screen stayed once
+  /// for it. A next way out with this same text leaves even if its save
+  /// fails again — the phone's copy holds it (see [_leave]).
+  String? _failedOnLeave;
+
   // The mic button: the device's own speech recognizer, writing into the box.
   final _speech = SpeechToText();
   bool _listening = false;
@@ -328,10 +333,12 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   /// close took the page under the builder — the home — leaving a blank
   /// screen. The screen closes only itself, and only while it is on top.
   ///
-  /// When the save fails the screen stays, with its text, and says it was not
-  /// saved (audit C-F5: it closed, and the text was gone). The phone's copy
-  /// keeps that text: even if the student then closes the app, the next open
-  /// brings it back.
+  /// When the save fails the phone's copy keeps the text (audit C-F5: the
+  /// screen closed, and the text was gone): even if the student then closes
+  /// the app, the next open brings it back. The first time for a text the
+  /// screen stays and says it was not saved; a next way out tries the save
+  /// again and, failing again, leaves — offline, the student is not shut in.
+  /// Text written since (typed or dictated) gets its own stay.
   Future<void> _leave() => _leaving ??= _leaveOnce().whenComplete(() => _leaving = null);
 
   Future<void> _leaveOnce() async {
@@ -342,22 +349,29 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     final l = AppLocalizations.of(context)!;
     final saved = await _save();
     if (!mounted) return;
-    if (!saved) {
+    if (saved) {
+      _failedOnLeave = null;
+      // Nothing was left to save, yet the copy still holds text an earlier
+      // way out could not save (the student since wrote the plan back as it
+      // was): the copy is the server's again.
+      if (_copyUnsaved) {
+        final plan = _newestSaved;
+        if (plan != null) _keepCopy(plan.session, plan.version, _savedContent ?? '');
+      }
+    } else {
+      final content = serializePlan(_parts);
       final plan = _newestSaved;
-      if (plan != null) _keepCopy(plan.session, plan.version, serializePlan(_parts), unsaved: true);
+      if (plan != null) _keepCopy(plan.session, plan.version, content, unsaved: true);
       final code = ref.read(documentSessionProvider(_type)).error;
-      messenger
-        ..removeCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(studyPlanErrorMessage(l, code ?? studyPlanErrorSave))));
       _notifier.clearError(_type);
-      return;
-    }
-    // Nothing was left to save, yet the copy still holds text an earlier way
-    // out could not save (the student since wrote the plan back as it was):
-    // the copy is the server's again.
-    if (_copyUnsaved) {
-      final plan = _newestSaved;
-      if (plan != null) _keepCopy(plan.session, plan.version, _savedContent ?? '');
+      if (_failedOnLeave != content) {
+        _failedOnLeave = content;
+        messenger
+          ..removeCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(studyPlanErrorMessage(l, code ?? studyPlanErrorSave))));
+        return;
+      }
+      // The same text failed before: leave. The phone's copy holds it.
     }
     if (route != null && route.isCurrent) navigator.pop();
   }

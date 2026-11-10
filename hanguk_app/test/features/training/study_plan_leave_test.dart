@@ -7,7 +7,9 @@
 //    under the builder (a blank screen);
 //  * C-F5: a save that fails keeps the builder open, with its text, and says
 //    so — it used to close, and the text was gone; the phone's copy keeps
-//    the text too.
+//    the text too. A next way out with the same text leaves even if the
+//    save fails again (offline the student must not be shut in); text
+//    written since gets its own stay.
 //
 // The first test is the QA audit's evidence (qa/code-audit,
 // test/qa/qa_study_plan_leave_test.dart), which failed on main 8d7a150.
@@ -221,7 +223,9 @@ void main() {
     expect(find.text('home tab 1'), findsOneWidget, reason: 'the home is still there');
   });
 
-  testWidgets('a save that fails on the way out keeps the builder open with its text, and says so', (t) async {
+  testWidgets('a save that fails on the way out keeps the builder open with its text and says so; the next way out leaves', (
+    t,
+  ) async {
     final plans = _SlowSaves()..ok = false;
     final copies = _Copies();
     final l = await _openBuilder(t, plans, copies: copies);
@@ -238,25 +242,76 @@ void main() {
     expect(t.widget<TextField>(_field).controller!.text, _goal, reason: 'the text is kept');
     expect(find.text(l.saveStatusError), findsOneWidget, reason: 'it says the plan was not saved');
     // The phone keeps it too: closing the app now loses nothing.
-    final unsaved = copies.copies[_copyKey]!;
-    expect((unsaved.sessionId, unsaved.version, unsaved.content, unsaved.unsaved), ('s1', 0, plan, true));
+    var copy = copies.copies[_copyKey]!;
+    expect((copy.sessionId, copy.version, copy.content, copy.unsaved), ('s1', 0, plan, true));
 
-    // The back arrow, again while the save fails: the same.
+    // The back arrow: the save is tried again and fails again — and the
+    // builder closes. Offline the student is not shut in; the phone keeps
+    // the text, and the next open brings it back.
+    await t.tap(_back(t));
+    await _settle(t, 40);
+    expect(plans.saved, [plan, plan], reason: 'the save was tried again');
+    expect(find.byType(StudyPlanBuilderScreen), findsNothing);
+    expect(find.text('home tab 1'), findsOneWidget, reason: 'only the builder closed');
+    copy = copies.copies[_copyKey]!;
+    expect((copy.sessionId, copy.version, copy.content, copy.unsaved), ('s1', 0, plan, true));
+  });
+
+  testWidgets('after a failed way out, text written since gets its own stay', (t) async {
+    final plans = _SlowSaves()..ok = false;
+    final copies = _Copies();
+    final l = await _openBuilder(t, plans, copies: copies);
+    await t.enterText(_field, _goal);
+    await t.pump();
     await t.tap(_back(t));
     await _settle(t);
-    expect(plans.saved, [plan, plan]);
-    expect(find.byType(StudyPlanBuilderScreen), findsOneWidget);
-    expect(find.text(l.saveStatusError), findsOneWidget, reason: 'one message, not one queued per try');
+    expect(find.byType(StudyPlanBuilderScreen), findsOneWidget, reason: 'the first failure stays');
 
-    // Once the save goes through, the way out saves and closes the builder,
-    // and the copy is the server's again.
+    // An edit, then the way out: the save fails again, and the builder
+    // stays again — for the new text — and says so once.
+    const more = '$_goal Yana bir jumla.';
+    await t.enterText(_field, more);
+    await t.pump();
+    await t.tap(_back(t));
+    await _settle(t);
+    final plan = serializePlan([more, '', '', '']);
+    expect(plans.saved, hasLength(2));
+    expect(plans.saved.last, plan);
+    expect(find.byType(StudyPlanBuilderScreen), findsOneWidget, reason: 'new text, its own stay');
+    expect(t.widget<TextField>(_field).controller!.text, more);
+    expect(find.text(l.saveStatusError), findsOneWidget, reason: 'one message, not one queued per try');
+    expect((copies.copies[_copyKey]!.content, copies.copies[_copyKey]!.unsaved), (plan, true));
+
+    // The next way out with that text leaves.
+    await t.tap(_back(t));
+    await _settle(t, 40);
+    expect(plans.saved, hasLength(3));
+    expect(find.byType(StudyPlanBuilderScreen), findsNothing);
+    expect(find.text('home tab 1'), findsOneWidget);
+    expect((copies.copies[_copyKey]!.content, copies.copies[_copyKey]!.unsaved), (plan, true));
+  });
+
+  testWidgets("a failed way out, then a save that goes through: the builder closes, and the copy is the server's", (
+    t,
+  ) async {
+    final plans = _SlowSaves()..ok = false;
+    final copies = _Copies();
+    await _openBuilder(t, plans, copies: copies);
+    await t.enterText(_field, _goal);
+    await t.pump();
+    await t.tap(_back(t));
+    await _settle(t);
+    expect(find.byType(StudyPlanBuilderScreen), findsOneWidget);
+    expect(copies.copies[_copyKey]!.unsaved, isTrue);
+
     plans.ok = true;
     await t.tap(_back(t));
     await _settle(t, 40);
-    expect(plans.saved, [plan, plan, plan]);
+    final plan = serializePlan([_goal, '', '', '']);
+    expect(plans.saved, [plan, plan]);
     expect(find.byType(StudyPlanBuilderScreen), findsNothing);
     expect(find.text('home tab 1'), findsOneWidget);
-    final saved = copies.copies[_copyKey]!;
-    expect((saved.sessionId, saved.version, saved.content, saved.unsaved), ('s1', 1, plan, false));
+    final copy = copies.copies[_copyKey]!;
+    expect((copy.sessionId, copy.version, copy.content, copy.unsaved), ('s1', 1, plan, false));
   });
 }
