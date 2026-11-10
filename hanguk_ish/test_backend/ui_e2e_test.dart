@@ -521,8 +521,9 @@ void main() {
     phone(tester);
     await tester.pumpWidget(workerApp(location: WorkerRoutes.myShifts));
     await _until(tester, _text('E2E 수동 확정'));
-    // The shift's own address (BA2 «주소»), not the business's.
-    expect(find.textContaining('부산 해운대구 구남로 30'), findsOneWidget);
+    // The shift's own address (BA2 «주소»), not the business's, and how far
+    // it is from where the app last saw the worker.
+    expect(find.textContaining(RegExp(r'^부산 해운대구 구남로 30 · [\d,.]+ km$')), findsOneWidget);
     // Upcoming, by start: «E2E 홀 보조» today, then this one in three days —
     // its «Bekor qilish» is the last.
     await _tap(tester, find.text('Bekor qilish').last);
