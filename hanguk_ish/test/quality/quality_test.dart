@@ -2,8 +2,6 @@
 // largest text size the apps allow (×1.2, HiTextScaleCap): nothing
 // overflows, every tappable thing has a name and a 44 pt target (the design
 // system's minimum, iOS guideline), and text keeps its contrast.
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
@@ -20,8 +18,9 @@ import '../helpers/worker_harness.dart';
 const maxTextScale = 1.2;
 
 Future<void> expectAccessible(WidgetTester tester, String name) async {
-  expect(tester.takeException(), isNull, reason: '$name: no layout error');
   final failures = <String>[];
+  final layout = tester.takeException();
+  if (layout != null) failures.add('[layout] $layout');
   for (final (label, guideline) in [
     ('named tap targets', labeledTapTargetGuideline),
     ('44 pt tap targets', iOSTapTargetGuideline),
@@ -72,9 +71,12 @@ void main() {
       for (final language in AppLanguage.values) {
         testWidgets('$name ${language.code}', (tester) async {
           final semantics = tester.ensureSemantics();
-          addTearDown(semantics.dispose);
-          await open(tester, location, language: language);
-          await expectAccessible(tester, '$name ${language.code}');
+          try {
+            await open(tester, location, language: language);
+            await expectAccessible(tester, '$name ${language.code}');
+          } finally {
+            semantics.dispose();
+          }
         });
       }
     }
@@ -104,9 +106,12 @@ void main() {
     for (final MapEntry(key: name, value: location) in screens.entries) {
       testWidgets(name, (tester) async {
         final semantics = tester.ensureSemantics();
-        addTearDown(semantics.dispose);
-        await open(tester, location);
-        await expectAccessible(tester, name);
+        try {
+          await open(tester, location);
+          await expectAccessible(tester, name);
+        } finally {
+          semantics.dispose();
+        }
       });
     }
   });
