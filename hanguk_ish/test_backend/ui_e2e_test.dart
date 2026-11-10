@@ -370,13 +370,19 @@ void main() {
     await _until(tester, _text('Bildirishnomalar'));
     await _until(tester, _text('Smena tasdiqlandi'));
     expect(_text("Maosh to'landi"), findsWidgets);
+    // Opening A12 marks them read: let the screen's request go out (the app
+    // runs on the test's clock) and ask the server.
     final account = SupabaseAccountRepository(worker);
-    final all = await tester.runAsync(() async {
-      // Opening A12 marks them read; give it a moment.
-      await Future<void>.delayed(const Duration(seconds: 1));
-      return account.notifications();
-    });
-    expect(all!.where((n) => !n.read), isEmpty, reason: 'opening A12 marked them read');
+    var unread = -1;
+    for (var i = 0; i < 20 && unread != 0; i++) {
+      for (var j = 0; j < 5; j++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final all = await tester.runAsync(account.notifications);
+      unread = all!.where((n) => !n.read).length;
+    }
+    expect(unread, 0, reason: 'opening A12 marked them read');
     await _close(tester);
   });
 }
