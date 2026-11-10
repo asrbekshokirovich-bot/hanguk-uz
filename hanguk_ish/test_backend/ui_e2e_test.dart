@@ -474,8 +474,10 @@ void main() {
     await _until(tester, find.byType(BottomSheet));
     await tester.enterText(find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), 'E2E 새 근무');
     await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, '저장하기')));
-    await _until(tester, _text('내일'));
-    await _tap(tester, _text('내일'));
+    // The day chips read «내일 11.13» (word and date in one line).
+    final tomorrowChip = find.textContaining(RegExp('^내일'), findRichText: true);
+    await _until(tester, tomorrowChip);
+    await _tap(tester, tomorrowChip);
     await _shot(tester, 'ba2-form');
     expect(_text('최저시급 10,320원 이상'), findsWidgets, reason: 'the wage starts at the legal minimum');
     await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
