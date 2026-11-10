@@ -83,6 +83,30 @@ bool isClientSession(Session? s) => s != null && !s.user.isAnonymous && s.user.a
 Future<bool> ensureTestSession() async {
   final auth = Supabase.instance.client.auth;
   if (auth.currentSession != null) return true;
+  // `data_ready` guest_session: how long the guest waited for the test user
+  // (Tayyorgarlik T0, 2026-11-10) — made now ('created'), signed in again
+  // from the phone's copy ('saved'), or not had ('failed').
+  final clock = Stopwatch()..start();
+  var created = false;
+  var ok = false;
+  try {
+    ok = await _signInTestUser(auth, () => created = true);
+    return ok;
+  } finally {
+    AppEvents.track(
+      'data_ready',
+      props: {
+        'name': 'guest_session',
+        'source': ok ? (created ? 'created' : 'saved') : 'failed',
+        'ms': clock.elapsedMilliseconds,
+      },
+    );
+  }
+}
+
+/// [ensureTestSession]'s sign-in; [onCreate] when it asks the server for a
+/// new test user.
+Future<bool> _signInTestUser(GoTrueClient auth, VoidCallback onCreate) async {
   const storage = FlutterSecureStorage();
   const key = 'guest_test_creds_v1';
   // Saved credentials that no longer sign in (a cleared account, a keystore
@@ -97,6 +121,7 @@ Future<bool> ensureTestSession() async {
         creds = null;
       }
       if (creds == null) {
+        onCreate();
         final res = await Supabase.instance.client.functions.invoke('guest-test-session', body: const {});
         final data = res.data;
         if (data is! Map || data['email'] is! String || data['password'] is! String) return false;
