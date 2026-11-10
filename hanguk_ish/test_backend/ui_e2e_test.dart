@@ -336,6 +336,8 @@ void main() {
     final decided = await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(manual.id));
     expect(decided!.confirmed, 1, reason: 'the server has the decision');
 
+    // The list scrolled down to the button; back up to the header's «뒤로».
+    await tester.dragUntilVisible(find.bySemanticsLabel('뒤로'), find.byType(Scrollable).first, const Offset(0, 300));
     await _tap(tester, find.bySemanticsLabel('뒤로'));
     await _until(tester, _text('리포트'));
     await _tap(tester, _text('리포트'));
