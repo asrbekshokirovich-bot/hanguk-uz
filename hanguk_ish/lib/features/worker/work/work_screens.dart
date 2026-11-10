@@ -16,6 +16,7 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
+import '../../../design/widgets/controls.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
@@ -965,7 +966,7 @@ class _RateBusinessScreenState extends ConsumerState<RateBusinessScreen> {
                           runSpacing: 8,
                           children: [
                             for (final tag in RatingTag.values)
-                              _TagChip(
+                              HiToggleChip(
                                 label: tagLabels[tag]!,
                                 selected: _tags.contains(tag),
                                 onTap: () => setState(() {
@@ -1000,40 +1001,3 @@ class _RateBusinessScreenState extends ConsumerState<RateBusinessScreen> {
   }
 }
 
-class _TagChip extends StatelessWidget {
-  const _TagChip({required this.label, required this.selected, required this.onTap});
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return HiPressable(
-      onTap: onTap,
-      selected: selected,
-      builder: (context, pressed) => Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: selected ? HiColors.white : (pressed ? HiColors.white08 : null),
-          borderRadius: BorderRadius.circular(HiRadii.pill),
-          border: selected ? Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white30, width: HiBorders.width),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (selected) ...[
-              const HiIcon(HiIcons.check, size: 16, strokeWidth: 3, color: HiColors.ink),
-              const SizedBox(width: 6),
-            ],
-            HiText(
-              label,
-              style: hiStyle(15, selected ? FontWeight.w800 : FontWeight.w700, color: selected ? HiColors.ink : HiColors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

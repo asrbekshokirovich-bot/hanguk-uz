@@ -247,11 +247,15 @@ class HiSegmentedTabs extends StatelessWidget {
     required this.onSelect,
     this.flex,
     this.semanticsLabel,
+    this.counts,
   });
 
   final List<String> labels;
   final int current;
   final ValueChanged<int> onSelect;
+
+  /// A number after each label in JetBrains Mono («즐겨찾기 6»); none if null.
+  final List<String>? counts;
 
   /// Column widths (`grid-template-columns` fr values × 100); equal if null.
   final List<int>? flex;
@@ -284,16 +288,7 @@ class HiSegmentedTabs extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   alignment: Alignment.center,
-                  child: HiText(
-                    labels[i],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: hiStyle(
-                      15,
-                      i == current ? FontWeight.w800 : FontWeight.w700,
-                      color: i == current ? HiColors.ink : HiColors.textSoft,
-                    ),
-                  ),
+                  child: _label(i),
                 ),
               ),
             ),
@@ -303,6 +298,26 @@ class HiSegmentedTabs extends StatelessWidget {
     );
     final label = semanticsLabel;
     return label == null ? tabs : Semantics(container: true, label: label, child: tabs);
+  }
+
+  Widget _label(int i) {
+    final style = hiStyle(
+      15,
+      i == current ? FontWeight.w800 : FontWeight.w700,
+      color: i == current ? HiColors.ink : HiColors.textSoft,
+    );
+    final count = counts?[i];
+    if (count == null) {
+      return HiText(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+    }
+    final mono = style.copyWith(fontFamily: HiFamily.mono.family, fontFamilyFallback: HiFamily.mono.fallback);
+    return HiRichText(
+      TextSpan(text: '${labels[i]} ', children: [TextSpan(text: count, style: mono)]),
+      style: style,
+      also: [mono],
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
   }
 }
 

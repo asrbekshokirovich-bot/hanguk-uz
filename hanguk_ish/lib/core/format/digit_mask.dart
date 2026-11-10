@@ -60,3 +60,38 @@ class DigitGroupsFormatter extends TextInputFormatter {
     );
   }
 }
+
+/// Groups digits by thousands with commas while typing (`10,500`), as the
+/// employer app writes amounts. Non-digits are dropped; at most [maxDigits].
+class ThousandsFormatter extends TextInputFormatter {
+  ThousandsFormatter({this.maxDigits = 7});
+
+  final int maxDigits;
+
+  /// `10500` → `10,500`.
+  static String format(String digits) {
+    final out = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) out.write(',');
+      out.write(digits[i]);
+    }
+    return out.toString();
+  }
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    var digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    digits = digits.replaceFirst(RegExp(r'^0+(?=\d)'), '');
+    if (digits.length > maxDigits) digits = digits.substring(0, maxDigits);
+    final text = format(digits);
+    final caret = math.max(0, math.min(newValue.selection.end, newValue.text.length));
+    final digitsAfterCaret = newValue.text.substring(caret).replaceAll(RegExp(r'\D'), '').length;
+    var offset = text.length;
+    var seen = 0;
+    while (offset > 0 && seen < digitsAfterCaret) {
+      offset--;
+      if (text.codeUnitAt(offset) != 0x2C) seen++;
+    }
+    return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: offset));
+  }
+}

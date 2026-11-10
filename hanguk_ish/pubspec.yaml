@@ -25,6 +25,10 @@ dependencies:
   mobile_scanner: '>=6.0.0 <8.0.0'
   # A06 «Yo'nalish»: opens the route in the map app.
   url_launcher: ^6.3.0
+  # BA3 출퇴근 QR: the code each shift's workers scan (pure Dart encoder).
+  qr: ^3.0.2
+  # BA3 «QR 인쇄·공유», BA5 «CSV 다운로드»: the phone's share sheet.
+  share_plus: '>=11.0.0 <14.0.0'
 
 dev_dependencies:
   flutter_test:

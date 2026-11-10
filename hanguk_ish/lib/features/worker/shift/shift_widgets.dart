@@ -54,7 +54,9 @@ class BusinessAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg) = _avatarColors(business.category);
     final icon = _logoIcon(business.logoIcon);
-    final radius = switch (size) { 52 => 15.0, 44 => 13.0, _ => 14.0 };
+    // The prototype's corner radii per size (A05 52, cards 48, sheet 44,
+    // chat 40, employer header 36).
+    final radius = switch (size) { 52 => 15.0, 48 => 14.0, 44 => 13.0, 40 => 12.0, 36 => 11.0, _ => size * 0.29 };
     return ExcludeSemantics(
       child: Container(
         width: size,

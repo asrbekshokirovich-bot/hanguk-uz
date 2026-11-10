@@ -109,3 +109,43 @@ class HiOptionTile extends StatelessWidget {
     );
   }
 }
+
+/// A pill that toggles: white with a check when on, outlined on navy when
+/// off (A08 «Nima yoqdi?» tags, BA2 템플릿).
+class HiToggleChip extends StatelessWidget {
+  const HiToggleChip({super.key, required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      selected: selected,
+      builder: (context, pressed) => Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: selected ? HiColors.white : (pressed ? HiColors.white08 : null),
+          borderRadius: BorderRadius.circular(HiRadii.pill),
+          border: selected ? Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white30, width: HiBorders.width),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              const HiIcon(HiIcons.check, size: 16, strokeWidth: 3, color: HiColors.ink),
+              const SizedBox(width: 6),
+            ],
+            HiText(
+              label,
+              style: hiStyle(15, selected ? FontWeight.w800 : FontWeight.w700, color: selected ? HiColors.ink : HiColors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

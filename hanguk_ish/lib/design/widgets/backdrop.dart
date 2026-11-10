@@ -19,7 +19,10 @@ enum HiGlow {
   success(1.20, 0.56, 0.60),
 
   /// The long shift detail page (A05): `120% 40%`, alpha 0.5.
-  detail(1.20, 0.40, 0.50);
+  detail(1.20, 0.40, 0.50),
+
+  /// The employer's shift page (BA3, 1 380 px): `120% 34%`, alpha 0.55.
+  employerDetail(1.20, 0.34, 0.55);
 
   const HiGlow(this.radiusX, this.radiusY, this.alpha);
 

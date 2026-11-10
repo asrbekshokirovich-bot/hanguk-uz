@@ -5,8 +5,8 @@ import '../models/business.dart';
 import '../models/employer.dart';
 
 /// Everything the employer app («Hanguk Ish 사장님») reads and changes.
-/// Errors are [ShiftActionException]s with the backend's codes
-/// ('SHIFT_FULL', 'NOT_PENDING', …) or an [OfflineException].
+/// Errors are `ShiftActionException`s with the backend's codes
+/// ('SHIFT_FULL', 'NOT_PENDING', …) or an `OfflineException`.
 abstract interface class EmployerRepository {
   /// The businesses the signed-in owner or manager runs.
   Future<List<Business>> businesses();
@@ -37,6 +37,10 @@ abstract interface class EmployerRepository {
 
   /// BA2 «근무 올리기».
   Future<EmployerShift> createShift(ShiftDraft draft);
+
+  /// BA3 «수정» → BA2 «저장하기». Times can change only while nobody holds a
+  /// place; places never drop below the confirmed workers.
+  Future<EmployerShift> updateShift(String shiftId, ShiftDraft draft);
 
   /// BA4: everyone who has worked at [businessId], most recent first, with
   /// the favourite flag.

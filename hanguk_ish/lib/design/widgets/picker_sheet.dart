@@ -29,6 +29,8 @@ Future<String?> showHiPicker(
 }) {
   return showModalBottomSheet<String>(
     context: context,
+    // Above the bottom menu of the tab screens.
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x99040716),
@@ -56,6 +58,7 @@ Future<Set<String>?> showHiMultiPicker(
 }) {
   return showModalBottomSheet<Set<String>>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x99040716),
@@ -76,6 +79,7 @@ Future<int?> showHiActions(
 }) {
   return showModalBottomSheet<int>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color(0x99040716),
     builder: (context) => _SheetFrame(
