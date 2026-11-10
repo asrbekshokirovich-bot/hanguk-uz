@@ -4340,6 +4340,15 @@
   "@fdPrepareNew": {
     "description": "Preparation interview card tag."
   },
+  "fdPrepareInterviewDone": "Practices: {n}",
+  "@fdPrepareInterviewDone": {
+    "description": "Preparation interview card tag: interview practices the student has finished.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "fdPrepareInterviewTitle": "Interview practice",
   "@fdPrepareInterviewTitle": {
     "description": "Preparation card title."

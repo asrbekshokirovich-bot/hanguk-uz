@@ -3430,6 +3430,11 @@ class AppLocalizationsUz extends AppLocalizations {
   String get fdPrepareNew => 'Yangi';
 
   @override
+  String fdPrepareInterviewDone(int n) {
+    return '$n ta mashq';
+  }
+
+  @override
   String get fdPrepareInterviewTitle => 'Suhbatga tayyorgarlik';
 
   @override

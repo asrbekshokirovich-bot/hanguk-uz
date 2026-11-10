@@ -3279,6 +3279,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get fdPrepareNew => '신규';
 
   @override
+  String fdPrepareInterviewDone(int n) {
+    return '연습 $n회';
+  }
+
+  @override
   String get fdPrepareInterviewTitle => '면접 준비';
 
   @override

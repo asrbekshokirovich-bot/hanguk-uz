@@ -341,4 +341,14 @@ abstract final class LucideIcons {
   static const upload = LucideGlyph(
     paths: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M17 8L12 3L7 8', 'M12 3L12 15'],
   );
+
+  /// lucide `message-circle` (Tayyorgarlik, Hanguk AI — Claude Design D4)
+  static const messageCircle = LucideGlyph(
+    paths: ['M7.9 20A9 9 0 1 0 4 16.1L2 22Z'],
+  );
+
+  /// lucide `lock`
+  static const lock = LucideGlyph(
+    paths: ['M5 11H19A2 2 0 0 1 21 13V20A2 2 0 0 1 19 22H5A2 2 0 0 1 3 20V13A2 2 0 0 1 5 11Z', 'M7 11V7a5 5 0 0 1 10 0v4'],
+  );
 }
