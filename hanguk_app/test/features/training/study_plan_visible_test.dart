@@ -563,6 +563,11 @@ void main() {
       expect(contrastRatio(colour, FdColors.page), greaterThanOrEqualTo(4.5), reason: '$colour on ${FdColors.page}');
       final shot = await capture(t, 'builder_0_failed');
       expectLabelVisible(t, shot, find.text(l.fdPlanLoadFailed));
+      // Board 7's retry button: as wide as its label, in the page's middle.
+      final retry = t.getRect(find.ancestor(of: find.text(l.commonRetry), matching: find.byType(Container)).first);
+      final middle = t.view.physicalSize.width / t.view.devicePixelRatio / 2;
+      expect(retry.width, lessThan(180), reason: 'the retry button fills the row: $retry');
+      expect(retry.center.dx, moreOrLessEquals(middle, epsilon: 1), reason: 'the retry button is off centre: $retry');
       expect(ready().map((p) => p['source']), ['saved', 'failed']);
 
       // «Qayta urinish» opens it.

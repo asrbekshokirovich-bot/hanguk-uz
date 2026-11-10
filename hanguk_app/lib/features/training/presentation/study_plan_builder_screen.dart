@@ -739,12 +739,30 @@ class _Failed extends StatelessWidget {
               style: fdText(13, FontWeight.w700, FdColors.onPage, height: 1.4),
             ),
             const SizedBox(height: 14),
-            HardChoice(
+            // Board 7's button: as wide as its label, centred by the column,
+            // with a 3px hard shadow (no `alignment`: that would fill the row).
+            Semantics(
+              button: true,
               label: l.commonRetry,
-              selected: false,
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              onTap: tracked('study_plan_builder.failed_retry', onRetry),
+              excludeSemantics: true,
+              child: GestureDetector(
+                onTap: tracked('study_plan_builder.failed_retry', onRetry),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: FdColors.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: FdColors.ink, width: 1.5),
+                    boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
+                  ),
+                  child: Center(
+                    widthFactor: 1,
+                    child: Text(l.commonRetry, style: fdText(14, FontWeight.w800, FdColors.ink)),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
