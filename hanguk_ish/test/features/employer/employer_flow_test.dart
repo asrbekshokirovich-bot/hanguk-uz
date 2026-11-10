@@ -10,6 +10,19 @@ import '../../helpers/employer_harness.dart';
 import '../../helpers/fonts.dart';
 import '../../helpers/phone.dart';
 
+/// The demo business that notes the year of every minimum-wage question.
+class CountingMinimum extends DemoEmployerRepository {
+  CountingMinimum() : super(now: employerPrototypeNow, clock: () => employerPrototypeNow);
+
+  final List<int> asked = [];
+
+  @override
+  Future<int> minimumWage(DateTime at) {
+    asked.add(Kst.wallClock(at).year);
+    return super.minimumWage(at);
+  }
+}
+
 void main() {
   setUpAll(loadHiFonts);
 
@@ -153,6 +166,22 @@ void main() {
     expect(file.mimeType, 'image/png');
     expect(file.bytes.sublist(1, 4), 'PNG'.codeUnits);
     expect(file.text, '달빛카페 신촌점 · 마감 정리 보조 · 11월 10일 18:00–22:00 출퇴근 QR');
+  });
+
+  testWidgets('BA2: another day of the same year keeps the minimum — asked once, the hint stays', (tester) async {
+    usePhone(tester);
+    final repo = CountingMinimum();
+    final container = employerContainer(location: EmployerRoutes.create, repository: repo);
+    addTearDown(container.dispose);
+    await tester.pumpWidget(employerHarness(container));
+    await tester.pumpAndSettle();
+    expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
+    await tester.tap(find.text('목 11.12', findRichText: true));
+    await tester.pump();
+    expect(find.text('최저시급 10,320원 이상'), findsOneWidget, reason: 'it does not blink while asked again');
+    await tester.pumpAndSettle();
+    expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
+    expect(repo.asked, [2026]);
   });
 
   testWidgets('BA2: post a shift from a template; it shows on the home', (tester) async {

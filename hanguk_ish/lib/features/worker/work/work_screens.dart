@@ -618,6 +618,10 @@ class ShiftResultScreen extends ConsumerWidget {
     final name = ref.watch(workerProfileDraftProvider.select((d) => d.firstName.trim()));
     final bottom = HiInsets.bottom(context, 30);
     final rated = app?.myStars != null;
+    // Right after the check-out the provider still holds the checked-in
+    // shift while it reloads; the card waits for the finished one, so it
+    // never shows the planned times and pay first.
+    final done = app != null && app.status == ApplicationStatus.completed;
     return Scaffold(
       backgroundColor: HiColors.navy,
       body: HiBackdrop(
@@ -684,7 +688,7 @@ class ShiftResultScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  if (app != null)
+                  if (done)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 22, 22, 0),
                       child: _ResultCard(app: app, lang: lang, now: now),
@@ -696,6 +700,11 @@ class ShiftResultScreen extends ConsumerWidget {
                         error: loaded.error!,
                         onRetry: () => ref.invalidate(myShiftProvider(applicationId)),
                       ),
+                    )
+                  else if (loaded.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 48),
+                      child: Center(child: CircularProgressIndicator(color: HiColors.lime)),
                     ),
                 ],
               ),
@@ -708,7 +717,7 @@ class ShiftResultScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (!rated) ...[
-                    HiButton(label: l10n.rateEmployer, onPressed: app == null ? null : onRate),
+                    HiButton(label: l10n.rateEmployer, onPressed: done ? onRate : null),
                     const SizedBox(height: 8),
                   ],
                   HiButton(

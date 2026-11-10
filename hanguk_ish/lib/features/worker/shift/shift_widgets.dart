@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/format/dates.dart';
+import '../../../core/format/text.dart';
 import '../../../core/money/won.dart';
 import '../../../data/models/business.dart';
 import '../../../data/models/shift.dart';
@@ -247,7 +248,7 @@ class ShiftCard extends StatelessWidget {
         '${HiDates.timeRange(shift.startsAt, shift.endsAt)} · '
         '${HiDates.duration(shift.plannedMinutes, lang)}';
     final distance = shift.distanceKm;
-    final where = distance == null ? b.displayArea(lang) : '${b.displayArea(lang)} · ${formatKm(distance, lang)}';
+    final where = dotJoin([b.displayArea(lang), if (distance != null) formatKm(distance, lang)]);
     final taken = shift.holdsMyPlace;
     return HiPressable(
       onTap: onOpen,

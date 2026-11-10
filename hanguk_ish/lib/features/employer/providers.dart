@@ -60,9 +60,11 @@ final templatesProvider = FutureProvider.autoDispose<List<ShiftTemplate>>((ref) 
   return ref.watch(employerRepositoryProvider).templates(business.id);
 }, retry: (count, error) => null);
 
-/// The statutory minimum hourly wage on a Korean date.
-final minimumWageProvider = FutureProvider.autoDispose.family<int, DateTime>(
-  (ref, at) => ref.watch(employerRepositoryProvider).minimumWage(at),
+/// The statutory minimum hourly wage of a Korean calendar year (it changes
+/// on 1 January). By year, so switching BA2's day keeps the value instead of
+/// asking again (and the hint does not blink).
+final minimumWageProvider = FutureProvider.autoDispose.family<int, int>(
+  (ref, year) => ref.watch(employerRepositoryProvider).minimumWage(Kst.instantOf(year, 7, 1)),
   retry: (count, error) => null,
 );
 

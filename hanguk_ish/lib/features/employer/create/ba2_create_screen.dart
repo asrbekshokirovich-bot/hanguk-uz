@@ -293,7 +293,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
         } else {
           // No template yet: the wage starts at the legal minimum once it is
           // known, and empty when it cannot be.
-          final minimum = ref.watch(minimumWageProvider(_day));
+          final minimum = ref.watch(minimumWageProvider(_day.year));
           if (!minimum.isLoading || minimum.hasValue) {
             final value = minimum.value ?? 0;
             if (value > 0) _wage.text = ThousandsFormatter.format('$value');
@@ -358,7 +358,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
 
   Widget _form(BuildContext context, DateTime now, List<ShiftTemplate> templates, double top, double bottomPad) {
     // Unknown (not loaded, or no row for the year) shows no hint.
-    final minimumValue = ref.watch(minimumWageProvider(_day)).value;
+    final minimumValue = ref.watch(minimumWageProvider(_day.year)).value;
     final minimum = minimumValue != null && minimumValue > 0 ? minimumValue : null;
     final wageOk = minimum == null || _wageValue >= minimum;
     final today = _todayDate(now);

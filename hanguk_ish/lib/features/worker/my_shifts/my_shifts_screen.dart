@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format/dates.dart';
+import '../../../core/format/text.dart';
 import '../../../core/money/won.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
@@ -187,7 +188,7 @@ class _MyShiftCard extends ConsumerWidget {
     final b = shift.business;
     final detail = hiStyle(15, FontWeight.w600, color: HiColors.ink);
     final distance = shift.distanceKm;
-    final where = distance == null ? b.displayAddress(lang) : '${b.displayAddress(lang)} · ${formatKm(distance, lang)}';
+    final where = dotJoin([b.displayAddress(lang), if (distance != null) formatKm(distance, lang)]);
 
     final (Widget left, Widget right) = _pills(l10n, lang, now);
     final rows = <Widget>[

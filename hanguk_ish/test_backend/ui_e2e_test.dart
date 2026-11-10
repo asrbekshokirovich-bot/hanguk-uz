@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/core/format/dates.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
@@ -236,6 +237,11 @@ void main() {
     // shows the title as the owner wrote it (no translation yet). The
     // business has more shifts today: the card of this one.
     await _until(tester, _text('E2E Kafe'));
+    // The business was registered without an area: the card's place line is
+    // the distance alone, with no dot in front of it.
+    final dangling = find.byWidgetPredicate((w) => w is Text && RegExp(r'^· [\d,.]+ km$').hasMatch(w.data ?? ''));
+    expect(dangling, findsNothing);
+    expect(find.textContaining(RegExp(r'^[\d,.]+ km$')), findsWidgets);
     await _shot(tester, 'a03-feed');
     await _tap(tester, find.bySemanticsLabel(RegExp('E2E 홀 보조')));
     await _until(tester, _text('E2E 홀 보조'));
@@ -314,9 +320,15 @@ void main() {
     await _shot(tester, 'a07-at-work');
     await _tap(tester, _text('Chiqish — QR skanerlash'));
     await _until(tester, _text('Smena yakunlandi'));
-    await _shot(tester, 'a07-result');
     final done = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
-    expect(done!.singleWhere((a) => a.shift.id == soon.id).status, ApplicationStatus.completed);
+    final finished = done!.singleWhere((a) => a.shift.id == soon.id);
+    expect(finished.status, ApplicationStatus.completed);
+    expect(finished.workedMinutes, isNotNull);
+    // The card shows what the server counted (out before the start: 0),
+    // never the planned hour first.
+    await _until(tester, _text(HiDates.durationHm(finished.workedMinutes!, 'uz')));
+    expect(_text(HiDates.durationHm(soon.endsAt.difference(soon.startsAt).inMinutes, 'uz')), findsNothing);
+    await _shot(tester, 'a07-result');
 
     await _tap(tester, _text('Ish beruvchini baholash'));
     await _until(tester, find.bySemanticsLabel('5 yulduz'));
@@ -478,8 +490,13 @@ void main() {
     final tomorrowChip = find.textContaining(RegExp('^내일'), findRichText: true);
     await _until(tester, tomorrowChip);
     await _tap(tester, tomorrowChip);
+    // The wage starts at the legal minimum of the shift's year, kept across
+    // days (고용노동부 고시: 2026 → 10,320원, 2027 → 10,700원).
+    final year = Kst.wallClock(DateTime.now()).add(const Duration(days: 1)).year;
+    final minimum = year >= 2027 ? 10700 : 10320;
+    final minimumText = '${minimum ~/ 1000},${(minimum % 1000).toString().padLeft(3, '0')}';
+    await _until(tester, _text('최저시급 $minimumText원 이상'));
     await _shot(tester, 'ba2-form');
-    expect(_text('최저시급 10,320원 이상'), findsWidgets, reason: 'the wage starts at the legal minimum');
     await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
     await _until(tester, _text('근무를 올렸어요'));
     await _until(tester, _text('E2E 새 근무'));
@@ -489,7 +506,7 @@ void main() {
       return SupabaseEmployerRepository(owner, _config).shifts(business.id, now, now.add(const Duration(days: 3)));
     });
     final created = posted!.singleWhere((s) => s.title == 'E2E 새 근무');
-    expect(created.hourlyWage, 10320);
+    expect(created.hourlyWage, minimum);
     await _close(tester);
   });
 

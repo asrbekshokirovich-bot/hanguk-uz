@@ -7,3 +7,9 @@
 String keepSlashTogether(String text) => text.replaceAllMapped(_slashBeforeWord, (match) => '/⁠');
 
 final _slashBeforeWord = RegExp(r'/(?=[\p{L}\p{N}])', unicode: true);
+
+/// «Haeundae · 0,3 km»: the parts that have text, joined by a middle dot.
+///
+/// A business registered with only its number has no area or address yet;
+/// the line then reads «0,3 km», not «· 0,3 km».
+String dotJoin(Iterable<String> parts) => parts.where((p) => p.trim().isNotEmpty).join(' · ');

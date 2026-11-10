@@ -15,4 +15,13 @@ void main() {
     expect(keepSlashTogether('Smenalar'), 'Smenalar');
     expect(keepSlashTogether(''), '');
   });
+
+  test('dotJoin leaves out the parts that have no text', () {
+    expect(dotJoin(['Sinchon', '1,2 km']), 'Sinchon · 1,2 km');
+    expect(dotJoin(['', '1,2 km']), '1,2 km', reason: 'no area yet: not «· 1,2 km»');
+    expect(dotJoin([' ', '1,2 km']), '1,2 km');
+    expect(dotJoin(['Sinchon']), 'Sinchon');
+    expect(dotJoin(['', '']), '');
+    expect(dotJoin(const []), '');
+  });
 }
