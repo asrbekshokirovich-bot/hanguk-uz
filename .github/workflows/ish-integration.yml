@@ -4,6 +4,8 @@ name: Hanguk Ish — integratsiya (ilova ↔ baza)
 # stack'da: telefon orqali kirish (config.toml'dagi test raqamlar), har
 # ekranning o'qishi, bazadagi qoidalar, Storage (avatarlar).
 # Testlar: hanguk_ish/test_backend/ — kalitlar bo'lmasa o'tkazib yuboriladi.
+#   backend_test.dart — repozitoriylar; ui_e2e_test.dart — ikkala ilovaning
+#   haqiqiy ekranlari haqiqiy ma'lumot bilan (lentadan smena olish, BA1/BA3).
 
 on:
   push:
@@ -60,8 +62,9 @@ jobs:
       - name: Dependencies
         run: flutter pub get && flutter gen-l10n
 
+      # One file at a time: they share the database.
       - name: Integration tests
-        run: flutter test test_backend --reporter github
+        run: flutter test test_backend --concurrency=1 --reporter github
 
       - name: Server logs
         if: failure()
