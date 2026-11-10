@@ -486,10 +486,18 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                           const SizedBox(height: 8),
                           _Stepper(
                             value: _slots,
-                            min: _editing == null ? 1 : (_editing!.confirmed < 1 ? 1 : _editing!.confirmed),
-                            onChanged: (v) => setState(() => _slots = v),
-                            onBelowMin: () => (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(
-                                SnackBar(content: Text(Ko.slotsLocked(_editing?.confirmed ?? 0)))),
+                            // Relative to the current value, so two quick taps count twice.
+                            onStep: (delta) {
+                              final min = _editing == null || _editing!.confirmed < 1 ? 1 : _editing!.confirmed;
+                              final next = _slots + delta;
+                              if (next < min) {
+                                (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(
+                                    SnackBar(content: Text(Ko.slotsLocked(_editing?.confirmed ?? 0))));
+                                return;
+                              }
+                              if (next > _Stepper.max) return;
+                              setState(() => _slots = next);
+                            },
                           ),
                         ],
                       ),
@@ -756,12 +764,12 @@ class _WageField extends StatelessWidget {
 
 /// «− 3명 +».
 class _Stepper extends StatelessWidget {
-  const _Stepper({required this.value, required this.min, required this.onChanged, required this.onBelowMin});
+  const _Stepper({required this.value, required this.onStep});
 
   final int value;
-  final int min;
-  final ValueChanged<int> onChanged;
-  final VoidCallback onBelowMin;
+
+  /// −1 or +1; the parent applies it to its current value.
+  final ValueChanged<int> onStep;
 
   static const max = 50;
 
@@ -784,7 +792,7 @@ class _Stepper extends StatelessWidget {
         );
     return Row(
       children: [
-        button(HiIcons.minus, Ko.fewer, () => value > min ? onChanged(value - 1) : onBelowMin()),
+        button(HiIcons.minus, Ko.fewer, () => onStep(-1)),
         const SizedBox(width: 6),
         Expanded(
           child: Semantics(
@@ -802,7 +810,7 @@ class _Stepper extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        button(HiIcons.plus, Ko.more, value < max ? () => onChanged(value + 1) : null),
+        button(HiIcons.plus, Ko.more, value < max ? () => onStep(1) : null),
       ],
     );
   }
