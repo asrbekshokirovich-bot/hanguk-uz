@@ -29,6 +29,8 @@ import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../test/helpers/fonts.dart';
+
 final _env = Platform.environment;
 final _url = _env['SUPABASE_URL'] ?? '';
 final _anonKey = _env['SUPABASE_ANON_KEY'] ?? '';
@@ -61,6 +63,10 @@ class _AtTheBeach implements LocationService {
   @override
   Future<FeedArea> current() async => const FeedArea(place: seoulPlace, lat: _lat, lng: _lng);
 }
+
+/// Text on screen, also inside rich text (a title mixing Latin and Hangul
+/// is drawn in spans, one font each).
+Finder _text(String text) => find.text(text, findRichText: true);
 
 /// Lets the real network answer (outside the test's fake clock) and the
 /// screens rebuild, until [finder] shows something or [seconds] pass.
@@ -97,6 +103,8 @@ void main() {
 
   setUpAll(() async {
     if (_skip != null) return;
+    // The real fonts: with the test font's wide boxes the cards overflow.
+    await loadHiFonts();
     final admin = _client(_serviceKey);
     worker = await _signIn('+821000000021');
     owner = await _signIn('+821000000031');
@@ -153,27 +161,28 @@ void main() {
     ));
 
     // The start screen loads the saved profile and opens the feed.
-    await _until(tester, find.text('Smenalar'));
+    await _until(tester, _text('Smenalar'));
     final today = Kst.wallClock(DateTime.now());
     final day = Kst.wallClock(shift.startsAt);
-    if (day.day != today.day) await _tap(tester, find.text('Ertaga'));
-    await _until(tester, find.text('E2E Kafe'));
-    expect(find.text('E2E 홀 보조'), findsWidgets, reason: 'the title as the owner wrote it (no translation yet)');
-
-    await _tap(tester, find.text('E2E Kafe'));
-    await _until(tester, find.text('Smenani olish'));
-    await _tap(tester, find.text('Smenani olish'));
-    await _until(tester, find.text('Tasdiqlash'));
-    await _tap(tester, find.text('Tasdiqlash'));
-    await _until(tester, find.text('Smena olindi!'));
+    if (day.day != today.day) await _tap(tester, _text('Ertaga'));
+    // The card names the business; A05 shows the title as the owner wrote
+    // it (no translation yet).
+    await _until(tester, _text('E2E Kafe'));
+    await _tap(tester, _text('E2E Kafe'));
+    await _until(tester, _text('E2E 홀 보조'));
+    await _until(tester, _text('Smenani olish'));
+    await _tap(tester, _text('Smenani olish'));
+    await _until(tester, _text('Tasdiqlash'));
+    await _tap(tester, _text('Tasdiqlash'));
+    await _until(tester, _text('Smena olindi!'));
 
     final mine = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
     expect(mine!.where((a) => a.shift.id == shift.id), hasLength(1), reason: 'the server has the application');
 
-    await _tap(tester, find.text('Lentaga qaytish'));
-    await _until(tester, find.text('Mening smenalarim'));
-    await _tap(tester, find.text('Mening smenalarim'));
-    await _until(tester, find.text('E2E 홀 보조'));
+    await _tap(tester, _text('Lentaga qaytish'));
+    await _until(tester, _text('Mening smenalarim'));
+    await _tap(tester, _text('Mening smenalarim'));
+    await _until(tester, _text('E2E 홀 보조'));
     await _close(tester);
   });
 
@@ -191,11 +200,11 @@ void main() {
       child: const EmployerApp(),
     ));
 
-    await _until(tester, find.text('오늘의 근무'));
-    await _until(tester, find.text('해운대 E2E 카페'));
-    await _until(tester, find.text('E2E 홀 보조'));
-    await _tap(tester, find.text('E2E 홀 보조'));
-    await _until(tester, find.text('Sardor Testov'));
+    await _until(tester, _text('오늘의 근무'));
+    await _until(tester, _text('해운대 E2E 카페'));
+    await _until(tester, _text('E2E 홀 보조'));
+    await _tap(tester, _text('E2E 홀 보조'));
+    await _until(tester, _text('Sardor Testov'));
     await _close(tester);
   });
 }
