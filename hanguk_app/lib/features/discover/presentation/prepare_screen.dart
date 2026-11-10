@@ -199,6 +199,7 @@ class _GuestPrepareState extends State<_GuestPrepare> {
       case _Interview.opening:
         return _GuestRow(
           busy: true,
+          holdChevron: true,
           icon: const SizedBox(
             width: 22,
             height: 22,
@@ -256,9 +257,7 @@ class _GuestPrepareState extends State<_GuestPrepare> {
 /// A row of the guest's page (D4): an icon tile, a title over a line, and a
 /// chevron 12px from them when it opens something. A [locked] row is the pale
 /// one with no shadow; a [busy] row (preparing, or failed) is not a button
-/// itself and keeps the chevron's room empty, so its texts keep their width
-/// and the page does not move when the row changes; [top] aligns the tile
-/// with the title for a taller line.
+/// itself; [top] aligns the tile with the title for a taller line.
 class _GuestRow extends StatelessWidget {
   const _GuestRow({
     required this.icon,
@@ -267,6 +266,7 @@ class _GuestRow extends StatelessWidget {
     this.onTap,
     this.locked = false,
     this.busy = false,
+    this.holdChevron = false,
     this.top = false,
   });
 
@@ -276,6 +276,12 @@ class _GuestRow extends StatelessWidget {
   final VoidCallback? onTap;
   final bool locked;
   final bool busy;
+
+  /// The chevron's room stays, empty: the row being prepared keeps its
+  /// texts' width, so nothing moves on the tap. A failed row has none and
+  /// its texts run to the card's edge (board 3).
+  final bool holdChevron;
+
   final bool top;
 
   @override
@@ -310,7 +316,7 @@ class _GuestRow extends StatelessWidget {
               ],
             ),
           ),
-          if (opens || busy) ...[
+          if (opens || holdChevron) ...[
             const SizedBox(width: 12),
             if (opens)
               const Lucide(LucideIcons.chevronRight, size: 18, color: FdColors.muted)

@@ -138,7 +138,7 @@ void main() {
       expect(chevronGap(t, 'Suhbat mashqi'), moreOrLessEquals(12, epsilon: 0.01));
     });
 
-    testWidgets('the interview row keeps the chevron\'s room while it is prepared and when it failed (ru: no reflow)', (t) async {
+    testWidgets('the interview row keeps the chevron\'s room while it is prepared (ru: no reflow), not when it failed (board 3)', (t) async {
       final session = prepareGuestSession;
       addTearDown(() => prepareGuestSession = session);
       final pending = Completer<bool>();
@@ -146,6 +146,7 @@ void main() {
       final l = lookupAppLocalizations(const Locale('ru'));
       final title = find.text(l.interviewPracticeTitle);
       final row = find.ancestor(of: texts(l.interviewPracticeTitle), matching: find.byType(Row)).first;
+      final card = find.ancestor(of: row, matching: find.byType(Container)).first;
 
       await pump(t, locale: const Locale('ru'));
       final width = t.getSize(texts(l.interviewPracticeTitle)).width;
@@ -163,8 +164,13 @@ void main() {
       await t.pump();
       expect(find.text(l.entryErrorNetwork), findsOneWidget);
       expect(find.descendant(of: row, matching: chevrons()), findsNothing, reason: 'failed: the retry button is the tap');
-      expect(t.getSize(texts(l.interviewPracticeTitle)).width, moreOrLessEquals(width, epsilon: 0.01), reason: 'failed');
-      expect(t.getSize(title).height, moreOrLessEquals(titleHeight, epsilon: 0.01), reason: 'failed');
+      // Board 3: no chevron room; the texts run to the card's padding (16 and the 1.5 border).
+      expect(
+        t.getTopRight(texts(l.interviewPracticeTitle)).dx,
+        moreOrLessEquals(t.getTopRight(card).dx - 17.5, epsilon: 0.01),
+        reason: 'failed: the texts as wide as board 3 draws them',
+      );
+      expect(t.getSize(texts(l.interviewPracticeTitle)).width, greaterThan(width));
     });
 
     testWidgets('the sign-in button is a button to a screen reader', (t) async {
