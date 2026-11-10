@@ -1,0 +1,80 @@
+name: Hanguk Ish — baza testlari
+
+# hanguk_ish/supabase: migratsiyalar, RLS va funksiyalar.
+#
+# postgres:   oddiy PostgreSQL 16 + tests/supabase_shim.sql — tez (≈1 daqiqa).
+# supabase:   haqiqiy lokal Supabase stack (supabase start + db reset) — xuddi
+#             shu testlar Supabase'ning o'z auth sxemasi va rollari bilan.
+
+on:
+  push:
+    branches:
+      - 'ish/**'
+    paths:
+      - 'hanguk_ish/supabase/**'
+      - '.github/workflows/ish-backend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ish-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    name: Tests on PostgreSQL 16
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        working-directory: hanguk_ish/supabase
+        run: bash tests/run.sh
+
+  supabase:
+    name: Tests on the Supabase stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      # The release download link needs no GitHub API call (setup-cli's
+      # «latest» lookup hit the anonymous API rate limit).
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin supabase
+          supabase --version
+      - name: Start Supabase (database, auth, REST)
+        working-directory: hanguk_ish
+        run: |
+          supabase --version
+          supabase start -x studio,imgproxy,inbucket,vector,logflare,supavisor,edge-runtime,realtime,storage-api,postgres-meta
+      - name: Apply migrations
+        working-directory: hanguk_ish
+        run: supabase db reset --local
+      - name: Run tests
+        working-directory: hanguk_ish/supabase
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: bash tests/run.sh
+      - name: Lint (Supabase advisors)
+        if: always()
+        working-directory: hanguk_ish
+        run: supabase db lint --local --level warning || true

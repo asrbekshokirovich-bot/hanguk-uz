@@ -1,0 +1,45 @@
+# Hanguk Ish — local Supabase stack (supabase start --workdir hanguk_ish).
+# The hosted project «hanguk-ish» (Seoul) is not created yet; when it is,
+# put its ref here and link with `supabase link`.
+project_id = "hanguk-ish"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+
+# Phone sign-in (both apps). Production uses an SMS provider configured in
+# the dashboard; locally and in CI these numbers get a fixed code.
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Hanguk Ish kodi: {{ .Code }}"
+
+[auth.sms.test_otp]
+821000000001 = "123456"
+821000000011 = "123456"
+
+[auth.email]
+enable_signup = false
+
+[functions.telegram-login]
+verify_jwt = false
+
+[functions.business-register]
+verify_jwt = true
