@@ -99,6 +99,60 @@ void main() {
     expect(dalbit.business.nameWithArea('uz'), 'Dalbit Kafe · Sinchon');
   });
 
+  group('where the shift is', () {
+    const business = Business(
+      id: 'b',
+      name: '해운대 카페',
+      category: BusinessCategory.cafe,
+      address: '부산 해운대구 해운대해변로 264',
+      addresses: {'uz': 'Busan, Haeundae-gu, Haeundaehaebyeon-ro 264'},
+      addressDetail: '1층',
+      addressDetails: {'uz': '1-qavat'},
+    );
+    ShiftListing at(String address, {Business b = business, Map<String, ShiftText> translations = const {}}) =>
+        ShiftListing(
+          id: 's',
+          business: b,
+          title: '홀 보조',
+          address: address,
+          translations: translations,
+          startsAt: now,
+          endsAt: now.add(const Duration(hours: 4)),
+          hourlyWage: 10320,
+          slots: 1,
+          slotsLeft: 1,
+        );
+
+    test("no address of its own, or the business's: the business's, translated", () {
+      for (final s in [at(''), at('부산 해운대구 해운대해변로 264'), at('부산 해운대구 해운대해변로 264, 1층')]) {
+        expect(s.placeAddress('uz'), 'Busan, Haeundae-gu, Haeundaehaebyeon-ro 264, 1-qavat');
+        expect(s.placeStreet('uz'), 'Busan, Haeundae-gu, Haeundaehaebyeon-ro 264');
+      }
+    });
+
+    test('another address written in BA2: that one, translated when it is', () {
+      final s = at('부산 해운대구 구남로 30');
+      expect(s.placeAddress('uz'), '부산 해운대구 구남로 30', reason: 'no translation yet: the Korean original');
+      expect(s.placeStreet('ru'), '부산 해운대구 구남로 30');
+      final translated =
+          at('부산 해운대구 구남로 30', translations: const {'uz': ShiftText(address: 'Busan, Haeundae-gu, Gunam-ro 30')});
+      expect(translated.placeAddress('uz'), 'Busan, Haeundae-gu, Gunam-ro 30');
+      expect(translated.placeStreet('uz'), 'Busan, Haeundae-gu, Gunam-ro 30');
+    });
+
+    test("a business registered with only its number: the shift's address is the only one", () {
+      const bare = Business(id: 'n', name: '사업장 123-45-67891', category: BusinessCategory.other);
+      expect(at('서울 마포구 양화로 160', b: bare).placeAddress('uz'), '서울 마포구 양화로 160');
+      expect(at('', b: bare).placeAddress('uz'), '');
+    });
+
+    test('the sample shifts keep the business address with its floor', () async {
+      final dalbit = (await DemoShiftRepository(now: now).shift('demo-1'))!;
+      expect(dalbit.placeAddress('uz'), 'Mapo-gu, Sinchon-ro 12-gil, 2-qavat');
+      expect(dalbit.placeStreet('uz'), 'Mapo-gu, Sinchon-ro 12-gil');
+    });
+  });
+
   test('rating, walking time', () {
     expect(formatRating(4.8, 'uz'), '4,8');
     expect(formatRating(4.8, 'ru'), '4,8');

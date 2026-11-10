@@ -169,7 +169,7 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
                     const SizedBox(height: 8),
                     _DetailLine(
                       icon: HiIcons.mapPin,
-                      child: HiText(b.displayAddress(lang), style: detail),
+                      child: HiText(shift.placeStreet(lang), style: detail),
                     ),
                     const SizedBox(height: 8),
                     _DetailLine(
@@ -441,7 +441,7 @@ class _TakenCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            _DetailLine(icon: HiIcons.mapPin, child: HiText(b.fullAddress(lang), style: detail)),
+            _DetailLine(icon: HiIcons.mapPin, child: HiText(shift.placeAddress(lang), style: detail)),
             const SizedBox(height: 10),
             // A flex row in the prototype: a 10 px gap, not a space, before the total.
             Row(

@@ -197,7 +197,7 @@ class _Detail extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 HiText(
-                                  b.fullAddress(lang),
+                                  shift.placeAddress(lang),
                                   style: hiStyle(15, FontWeight.w700, height: 1.45, color: HiColors.ink),
                                 ),
                                 if (distance != null) ...[

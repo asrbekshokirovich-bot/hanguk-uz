@@ -188,7 +188,7 @@ class _MyShiftCard extends ConsumerWidget {
     final b = shift.business;
     final detail = hiStyle(15, FontWeight.w600, color: HiColors.ink);
     final distance = shift.distanceKm;
-    final where = dotJoin([b.displayAddress(lang), if (distance != null) formatKm(distance, lang)]);
+    final where = dotJoin([shift.placeStreet(lang), if (distance != null) formatKm(distance, lang)]);
 
     final (Widget left, Widget right) = _pills(l10n, lang, now);
     final rows = <Widget>[

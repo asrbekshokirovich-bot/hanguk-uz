@@ -27,6 +27,7 @@ import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/employer_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/design/widgets/qr.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
@@ -191,6 +192,8 @@ void main() {
     manual = await employer.createShift(ShiftDraft(
       businessId: businessId,
       title: 'E2E 수동 확정',
+      // Not at the business: workers see this address, not the business's.
+      address: '부산 해운대구 구남로 30',
       startsAt: inThreeDays,
       endsAt: inThreeDays.add(const Duration(hours: 3)),
       hourlyWage: 12000,
@@ -284,6 +287,8 @@ void main() {
     await _shot(tester, 'ba1-home');
     await _tap(tester, _text('E2E 홀 보조'));
     await _until(tester, _text('Sardor Testov'));
+    // The door code comes from the server (shift_qr).
+    await _until(tester, find.byType(HiQrCode));
     await _shot(tester, 'ba3-shift');
     await _close(tester);
   });
@@ -514,6 +519,8 @@ void main() {
     phone(tester);
     await tester.pumpWidget(workerApp(location: WorkerRoutes.myShifts));
     await _until(tester, _text('E2E 수동 확정'));
+    // The shift's own address (BA2 «주소»), not the business's.
+    expect(find.textContaining('부산 해운대구 구남로 30'), findsOneWidget);
     // Upcoming, by start: «E2E 홀 보조» today, then this one in three days —
     // its «Bekor qilish» is the last.
     await _tap(tester, find.text('Bekor qilish').last);

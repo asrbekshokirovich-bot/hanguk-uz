@@ -62,7 +62,7 @@ void main() {
       expect(s1.displayDuties('uz'), ['Buyurtma qabul qilish', 'Ichimliklar', 'Zalni tartibga solish']);
       expect(s1.displayDuties('ko'), ['주문 접수', '음료 보조', '홀 정리']);
       expect(s1.displayDress('uz'), 'Qora shim, krossovka');
-      expect(s1.displayAddress('uz'), 'Mapo-gu, Sinchon-ro 12-gil 15, 2-qavat');
+      expect(s1.placeAddress('uz'), 'Mapo-gu, Sinchon-ro 12-gil 15, 2-qavat');
       expect(s1.totalPay, 52500);
     });
 

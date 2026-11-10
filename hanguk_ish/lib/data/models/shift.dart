@@ -96,8 +96,24 @@ class ShiftListing {
 
   String displayDress(String lang) => translations[lang]?.dress ?? dress;
 
-  String displayAddress(String lang) =>
-      translations[lang]?.address ?? (address.isNotEmpty ? address : business.displayAddress(lang));
+  /// Where the work is, with floor or unit (A05 detail, «Smena olindi!»):
+  /// the address the business wrote for this shift (BA2 «주소»), or its own
+  /// when it wrote none or the same one.
+  String placeAddress(String lang) => _ownAddress(lang) ?? business.fullAddress(lang);
+
+  /// The same, the business's without its floor or unit (A05 sheet, A06).
+  String placeStreet(String lang) => _ownAddress(lang) ?? business.displayAddress(lang);
+
+  /// The shift's own address in [lang] (its translation, else the Korean
+  /// original); null when it has none or it is just the business's.
+  String? _ownAddress(String lang) {
+    final own = address.trim();
+    final street = business.address.trim();
+    final detail = business.addressDetail.trim();
+    if (own.isEmpty || own == street || (detail.isNotEmpty && own == '$street, $detail')) return null;
+    final translated = translations[lang]?.address?.trim();
+    return translated != null && translated.isNotEmpty ? translated : own;
+  }
 
   /// Duties as a list: one per line of the text.
   List<String> displayDuties(String lang) => (translations[lang]?.duties ?? duties)

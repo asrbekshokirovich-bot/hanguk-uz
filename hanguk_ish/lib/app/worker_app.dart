@@ -92,7 +92,7 @@ Future<void> _openDirections(BuildContext context, WidgetRef ref, MyShift app) a
   final lang = ref.read(appLanguageProvider).code;
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l10n = WorkerL10n.of(context);
-  final opened = await ref.read(linkOpenerProvider)(directionsUri(app.shift.business, app.shift.business.displayName(lang)));
+  final opened = await ref.read(linkOpenerProvider)(directionsUri(app.shift, app.shift.business.displayName(lang)));
   if (!opened) messenger?.showSnackBar(SnackBar(content: Text(l10n.errorGeneric)));
 }
 

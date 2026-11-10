@@ -10,6 +10,7 @@ import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
 import '../../../data/demo/demo_shifts.dart';
 import '../../../data/models/my_shift.dart';
+import '../../../data/models/shift.dart';
 import '../../../data/repositories/shift_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';

@@ -87,8 +87,7 @@ void main() {
 
   /// The texts on screen that end with a distance («Sinchon · 1,2 km»).
   List<String> distanceLines(WidgetTester tester) => [
-        for (final text in tester.widgetList<Text>(find.textContaining(RegExp(r'\d km$'))))
-          if (text.data case final data?) data,
+        for (final text in tester.widgetList<Text>(find.textContaining(RegExp(r'\d km$')))) ?text.data,
       ];
 
   testWidgets('A03: a business with no area yet shows the distance alone, not «· 1,2 km»', (tester) async {
@@ -114,7 +113,7 @@ void main() {
     final repo = SlowReload(clock);
     final app = await repo.apply('demo-1');
     clock.at(14);
-    await repo.checkIn(ShiftQr(app.shift.id, DemoShiftRepository.qrToken).payload);
+    await repo.checkIn(const ShiftQr('demo-1', DemoShiftRepository.qrToken).payload);
     await open(tester, repo, clock, WorkerRoutes.atWork(app.applicationId));
     expect(find.byType(AtWorkScreen), findsOneWidget);
 
