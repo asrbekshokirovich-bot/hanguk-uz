@@ -445,7 +445,8 @@ class _TakenCard extends StatelessWidget {
               children: [
                 const HiIcon(HiIcons.wallet, size: 18, strokeWidth: 2, color: HiColors.inkMuted),
                 const SizedBox(width: 10),
-                Flexible(child: HiText(l10n.perHourTotal(Won.worker(shift.hourlyWage)), style: detail)),
+                // The prototype's flex item keeps the space after «Jami».
+                Flexible(child: HiText('${l10n.perHourTotal(Won.worker(shift.hourlyWage))} ', style: detail)),
                 const SizedBox(width: 10),
                 HiText(Won.worker(shift.totalPay), style: detail.copyWith(fontWeight: FontWeight.w800)),
               ],
