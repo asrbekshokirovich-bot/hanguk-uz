@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 /// Font families bundled in `assets/fonts` (see pubspec.yaml).
@@ -5,6 +7,9 @@ abstract final class HiFonts {
   static const inter = 'Inter';
   static const korean = 'NotoSansKR';
   static const mono = 'JetBrainsMono';
+
+  /// The ₩ glyph the browser takes from DejaVu Sans Mono for monospace text.
+  static const wonSign = 'HiWonSign';
 }
 
 /// The prototype's three `font-family` stacks.
@@ -19,7 +24,8 @@ enum HiFamily {
   korean(HiFonts.korean, [HiFonts.inter]),
 
   /// `'JetBrains Mono',ui-monospace,monospace` — numbers, times, money.
-  mono(HiFonts.mono, [HiFonts.inter, HiFonts.korean]);
+  /// JetBrains Mono has no ₩; the browser's monospace fallback draws it.
+  mono(HiFonts.mono, [HiFonts.wonSign, HiFonts.inter, HiFonts.korean]);
 
   const HiFamily(this.family, this.fallback);
 
@@ -87,22 +93,27 @@ const _fontMetrics = <String, (double, double)>{
 /// for a strut of size `s`, so a forced strut whose size is solved for
 /// Chrome's baseline gives the same line height and the same baseline:
 /// stacked text does not drift from the prototype.
-StrutStyle hiStrut(TextStyle style) {
+StrutStyle hiStrut(TextStyle style, {List<TextStyle> also = const []}) {
   final size = style.fontSize ?? 15;
   final family = style.fontFamily ?? HiFonts.inter;
-  final factor = style.height ?? hiInheritedLineHeight;
   final (a, d) = _fontMetrics[family] ?? _fontMetrics[HiFonts.inter]!;
-  final lineHeight = factor * size;
-  final ascent = (a * size).roundToDouble();
-  final descent = (d * size).roundToDouble();
-  final leadingAbove = ((lineHeight - ascent - descent) / 2 + 1e-6).floorToDouble();
-  final strutSize = 2 * (leadingAbove + ascent - lineHeight / 2) / (a - d);
+  var (lineHeight, baseline) = _cssLine(style);
+  // Inline runs in other fonts (a monospace amount in a sentence) can push
+  // the line box up or down, as their own boxes do in CSS.
+  for (final other in also) {
+    final (h, b) = _cssLine(other);
+    final above = math.max(baseline, b);
+    final below = math.max(lineHeight - baseline, h - b);
+    baseline = above;
+    lineHeight = above + below;
+  }
+  final strutSize = 2 * (baseline - lineHeight / 2) / (a - d);
   if (strutSize <= 0) {
     return StrutStyle(
       fontFamily: family,
       fontSize: size,
       fontWeight: style.fontWeight,
-      height: factor,
+      height: lineHeight / size,
       leadingDistribution: TextLeadingDistribution.even,
       forceStrutHeight: true,
     );
@@ -115,6 +126,20 @@ StrutStyle hiStrut(TextStyle style) {
     leadingDistribution: TextLeadingDistribution.even,
     forceStrutHeight: true,
   );
+}
+
+/// Chrome's line box for [style]: its height and the baseline's distance
+/// from its top.
+(double, double) _cssLine(TextStyle style) {
+  final size = style.fontSize ?? 15;
+  final family = style.fontFamily ?? HiFonts.inter;
+  final factor = style.height ?? hiInheritedLineHeight;
+  final (a, d) = _fontMetrics[family] ?? _fontMetrics[HiFonts.inter]!;
+  final lineHeight = factor * size;
+  final ascent = (a * size).roundToDouble();
+  final descent = (d * size).roundToDouble();
+  final leadingAbove = ((lineHeight - ascent - descent) / 2 + 1e-6).floorToDouble();
+  return (lineHeight, leadingAbove + ascent);
 }
 
 /// [Text] with the CSS line box of [hiStrut].

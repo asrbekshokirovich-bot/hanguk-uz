@@ -12,6 +12,12 @@ enum HiButtonStyle {
 
   /// Transparent with a 1.5 px `rgba(255,255,255,0.45)` outline, on navy.
   ghost,
+
+  /// Solid ink, white text, no outline (card «Olish»).
+  ink,
+
+  /// Text only («Orqaga», «Lentaga qaytish»); colour from [HiButton.textColor].
+  text,
 }
 
 /// A prototype button: label (and optional leading icon) centred in a
@@ -30,6 +36,8 @@ class HiButton extends StatelessWidget {
     this.fontSize = 17,
     this.iconSize = 20,
     this.iconStroke = 2.2,
+    this.horizontalPadding = 0,
+    this.textColor,
   });
 
   final String label;
@@ -41,6 +49,12 @@ class HiButton extends StatelessWidget {
   final double iconSize;
   final double iconStroke;
 
+  /// Inner side padding; 0 = the button fills its width (most screens).
+  final double horizontalPadding;
+
+  /// Label colour of [HiButtonStyle.text] buttons (white on navy, ink on white).
+  final Color? textColor;
+
   @override
   Widget build(BuildContext context) {
     final (Color fill, Color fg, BorderSide side, bool shadow) = switch (style) {
@@ -49,6 +63,13 @@ class HiButton extends StatelessWidget {
           const Color(0x00000000),
           HiColors.white,
           const BorderSide(color: HiColors.white45, width: 1.5),
+          false,
+        ),
+      HiButtonStyle.ink => (HiColors.ink, HiColors.white, BorderSide.none, false),
+      HiButtonStyle.text => (
+          const Color(0x00000000),
+          textColor ?? HiColors.white,
+          BorderSide.none,
           false,
         ),
     };
@@ -63,10 +84,13 @@ class HiButton extends StatelessWidget {
             offset: Offset(sink, sink),
             child: Container(
               height: height,
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               decoration: BoxDecoration(
-                color: !shadow && pressed ? HiColors.white08 : fill,
+                color: !shadow && pressed
+                    ? (style == HiButtonStyle.ink ? const Color(0xFF1C2C4A) : HiColors.white08)
+                    : fill,
                 borderRadius: BorderRadius.circular(HiRadii.button),
-                border: Border.fromBorderSide(side),
+                border: side == BorderSide.none ? null : Border.fromBorderSide(side),
                 boxShadow: shadow
                     ? [
                         BoxShadow(

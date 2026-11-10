@@ -265,5 +265,402 @@
   "errorGeneric": "Xatolik yuz berdi. Qayta urinib ko'ring.",
   "@errorGeneric": {
     "description": "Umumiy xato xabari."
+  },
+  "navShifts": "Smenalar",
+  "@navShifts": {
+    "description": "Pastki menyu: lenta."
+  },
+  "navMap": "Xarita",
+  "@navMap": {
+    "description": "Pastki menyu: xarita."
+  },
+  "navMyShifts": "Mening smenalarim",
+  "@navMyShifts": {
+    "description": "Pastki menyu: mening smenalarim."
+  },
+  "navEarnings": "Daromad",
+  "@navEarnings": {
+    "description": "Pastki menyu: daromad."
+  },
+  "navProfile": "Profil",
+  "@navProfile": {
+    "description": "Pastki menyu: profil."
+  },
+  "feedTitle": "Smenalar",
+  "@feedTitle": {
+    "description": "A03 sarlavha."
+  },
+  "mapTitle": "Xarita",
+  "@mapTitle": {
+    "description": "A04 sarlavha."
+  },
+  "viewList": "Ro'yxat",
+  "@viewList": {
+    "description": "Ko'rinish: ro'yxat (ekran o'quvchi uchun)."
+  },
+  "viewMap": "Xarita",
+  "@viewMap": {
+    "description": "Ko'rinish: xarita (ekran o'quvchi uchun)."
+  },
+  "notifications": "Bildirishnomalar",
+  "@notifications": {
+    "description": "Qo'ng'iroqcha tugmasi (ekran o'quvchi uchun)."
+  },
+  "shiftCount": "· {n} ta smena",
+  "@shiftCount": {
+    "description": "A03: joylashuv yonidagi smenalar soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "dayToday": "Bugun",
+  "@dayToday": {
+    "description": "Kun tanlash."
+  },
+  "dayTomorrow": "Ertaga",
+  "@dayTomorrow": {
+    "description": "Kun tanlash."
+  },
+  "dayWeekend": "Hafta oxiri",
+  "@dayWeekend": {
+    "description": "Kun tanlash."
+  },
+  "allFilters": "Barcha filtrlar",
+  "@allFilters": {
+    "description": "Filtr tugmasi (ekran o'quvchi uchun)."
+  },
+  "filterPay": "Maosh",
+  "@filterPay": {
+    "description": "Filtr: maosh."
+  },
+  "filterPayValue": "Maosh: {amount}+",
+  "@filterPayValue": {
+    "description": "Faol maosh filtri.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "filterDistance": "Masofa",
+  "@filterDistance": {
+    "description": "Filtr: masofa."
+  },
+  "filterDistanceValue": "Masofa: {km} km",
+  "@filterDistanceValue": {
+    "description": "Faol masofa filtri.",
+    "placeholders": {
+      "km": {
+        "type": "int"
+      }
+    }
+  },
+  "filterCategory": "Soha",
+  "@filterCategory": {
+    "description": "Filtr: soha."
+  },
+  "filterTime": "Vaqt",
+  "@filterTime": {
+    "description": "Filtr: vaqt."
+  },
+  "filterAny": "Farqi yo'q",
+  "@filterAny": {
+    "description": "Filtr: hammasi."
+  },
+  "filterApply": "Qo'llash",
+  "@filterApply": {
+    "description": "Filtr oynasi tugmasi."
+  },
+  "filterReset": "Tozalash",
+  "@filterReset": {
+    "description": "Filtrlarni tozalash."
+  },
+  "catCafe": "Kafe",
+  "@catCafe": {
+    "description": "Soha."
+  },
+  "catRestaurant": "Restoran",
+  "@catRestaurant": {
+    "description": "Soha."
+  },
+  "catRetail": "Do'kon",
+  "@catRetail": {
+    "description": "Soha."
+  },
+  "catLogistics": "Logistika",
+  "@catLogistics": {
+    "description": "Soha."
+  },
+  "catEvent": "Tadbir",
+  "@catEvent": {
+    "description": "Soha."
+  },
+  "catOffice": "Ofis",
+  "@catOffice": {
+    "description": "Soha."
+  },
+  "catOther": "Boshqa",
+  "@catOther": {
+    "description": "Soha."
+  },
+  "verified": "Tasdiqlangan",
+  "@verified": {
+    "description": "Tasdiqlangan ish beruvchi."
+  },
+  "slotsLeft": "{n} joy qoldi",
+  "@slotsLeft": {
+    "description": "Qolgan o'rinlar.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "perHour": "/ soat",
+  "@perHour": {
+    "description": "Soatlik maosh yonida."
+  },
+  "total": "Jami",
+  "@total": {
+    "description": "Smena uchun jami."
+  },
+  "take": "Olish",
+  "@take": {
+    "description": "Kartadagi tugma."
+  },
+  "emptyTitle": "Yaqin atrofda smena yo'q",
+  "@emptyTitle": {
+    "description": "A03 bo'sh holat."
+  },
+  "emptyText": "Filtrni o'zgartiring",
+  "@emptyText": {
+    "description": "A03 bo'sh holat izohi."
+  },
+  "emptyAction": "Filtrni o'zgartirish",
+  "@emptyAction": {
+    "description": "A03 bo'sh holat tugmasi."
+  },
+  "offlineBanner": "Oflayn rejim",
+  "@offlineBanner": {
+    "description": "A03 internet yo'q: yuqoridagi belgi."
+  },
+  "offlineTitle": "Internet aloqasi yo'q",
+  "@offlineTitle": {
+    "description": "A03 internet yo'q."
+  },
+  "offlineText": "Ulanishni tekshirib, qayta urinib ko'ring.",
+  "@offlineText": {
+    "description": "A03 internet yo'q izohi."
+  },
+  "retry": "Qayta urinish",
+  "@retry": {
+    "description": "Qayta urinish tugmasi."
+  },
+  "loadingShifts": "Smenalar yuklanmoqda",
+  "@loadingShifts": {
+    "description": "Yuklanish (ekran o'quvchi uchun)."
+  },
+  "workplacePhoto": "Ish joyi rasmi",
+  "@workplacePhoto": {
+    "description": "A05: rasm o'rni."
+  },
+  "completedShifts": "{n} ta smena bajarilgan",
+  "@completedShifts": {
+    "description": "A05: ish beruvchi bajargan smenalar.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "payCalc": "Maosh hisobi",
+  "@payCalc": {
+    "description": "A05: maosh hisobi."
+  },
+  "duties": "Vazifalar",
+  "@duties": {
+    "description": "A05: vazifalar."
+  },
+  "dress": "Kiyim",
+  "@dress": {
+    "description": "A05: kiyim."
+  },
+  "address": "Manzil",
+  "@address": {
+    "description": "A05: manzil."
+  },
+  "walkMinutes": "piyoda {n} daqiqa",
+  "@walkMinutes": {
+    "description": "A05: piyoda yurish vaqti.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cancelPolicyTitle": "Bekor qilish qoidasi",
+  "@cancelPolicyTitle": {
+    "description": "A05: bekor qilish qoidasi."
+  },
+  "cancelPolicyText": "Smena boshlanishiga 24 soatdan ko'p qolganda bekor qilish bepul. Kechroq bekor qilsangiz yoki kelmasangiz, ishonchlilik balingiz pasayadi.",
+  "@cancelPolicyText": {
+    "description": "A05: qoida matni."
+  },
+  "takeShift": "Smenani olish",
+  "@takeShift": {
+    "description": "A05: pastki tugma."
+  },
+  "back": "Orqaga",
+  "@back": {
+    "description": "Orqaga tugmasi."
+  },
+  "close": "Yopish",
+  "@close": {
+    "description": "Yopish tugmasi."
+  },
+  "confirmTitle": "Smenani olasizmi?",
+  "@confirmTitle": {
+    "description": "A05 tasdiqlash sarlavhasi."
+  },
+  "confirmText": "Tasdiqlaganingizdan so'ng smena sizga biriktiriladi.",
+  "@confirmText": {
+    "description": "A05 tasdiqlash izohi."
+  },
+  "confirmTextPending": "Tasdiqlaganingizdan so'ng ariza ish beruvchiga yuboriladi.",
+  "@confirmTextPending": {
+    "description": "A05 tasdiqlash izohi (avto-tasdiq o'chiq smena)."
+  },
+  "startsIn": "Smena {time}dan keyin boshlanadi. Bekor qilsangiz, ishonchlilik balingiz pasayadi.",
+  "@startsIn": {
+    "description": "A05: 24 soatdan kam qolganda ogohlantirish.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "confirm": "Tasdiqlash",
+  "@confirm": {
+    "description": "Tasdiqlash tugmasi."
+  },
+  "takenTitle": "Smena olindi!",
+  "@takenTitle": {
+    "description": "A05 muvaffaqiyat sarlavhasi."
+  },
+  "takenText": "{business} sizni {day} {time} da kutadi. Smena oldidan eslatma yuboramiz.",
+  "@takenText": {
+    "description": "A05 muvaffaqiyat izohi.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingTitle": "Ariza yuborildi!",
+  "@pendingTitle": {
+    "description": "A05: avto-tasdiq o'chiq smenada yuborilgandan keyin."
+  },
+  "pendingText": "{business} tasdiqlashi bilan xabar beramiz.",
+  "@pendingText": {
+    "description": "A05: ariza yuborildi izohi.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      }
+    }
+  },
+  "scanQrOnArrival": "Ishga kirishda joyidagi QR kodni skanerlang",
+  "@scanQrOnArrival": {
+    "description": "A05: QR eslatma."
+  },
+  "goToMyShifts": "Mening smenalarimga o'tish",
+  "@goToMyShifts": {
+    "description": "A05: tugma."
+  },
+  "backToFeed": "Lentaga qaytish",
+  "@backToFeed": {
+    "description": "A05: tugma."
+  },
+  "perHourTotal": "{wage} / soat · Jami",
+  "@perHourTotal": {
+    "description": "A05: maosh qatori.",
+    "placeholders": {
+      "wage": {
+        "type": "String"
+      }
+    }
+  },
+  "errShiftFull": "Afsuski, bo'sh joy qolmadi.",
+  "@errShiftFull": {
+    "description": "Xato: joy tugagan."
+  },
+  "errTimeConflict": "Bu vaqtda sizda boshqa smena bor.",
+  "@errTimeConflict": {
+    "description": "Xato: vaqt kesishadi."
+  },
+  "errAlreadyApplied": "Bu smenani allaqachon olgansiz.",
+  "@errAlreadyApplied": {
+    "description": "Xato: allaqachon olingan."
+  },
+  "errShiftClosed": "Bu smena endi mavjud emas.",
+  "@errShiftClosed": {
+    "description": "Xato: smena yopilgan."
+  },
+  "errProfileIncomplete": "Avval profilni to'ldiring.",
+  "@errProfileIncomplete": {
+    "description": "Xato: profil to'liq emas."
+  },
+  "notificationsUnread": "Bildirishnomalar, {n} ta yangi",
+  "@notificationsUnread": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    },
+    "description": "A03/A04: qo'ng'iroqcha tugmasining ekran o'quvchi nomi, o'qilmagan bildirishnomalar bilan."
+  },
+  "myLocation": "Mening joylashuvim",
+  "selectedShift": "Tanlangan smena",
+  "employerSection": "Ish beruvchi",
+  "aboutShift": "Ish haqida",
+  "workplaceOnMap": "Ish joyi xaritada",
+  "closeSheet": "Oynani yopish",
+  "shiftInfo": "Smena ma'lumoti",
+  "errOffline": "Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring.",
+  "shiftNotFound": "Smena topilmadi",
+  "@myLocation": {
+    "description": "A04: xaritadagi «mening joylashuvim» tugmasi (ekran o'quvchi)."
+  },
+  "@selectedShift": {
+    "description": "A04: xarita pastidagi tanlangan smena kartasi (ekran o'quvchi)."
+  },
+  "@employerSection": {
+    "description": "A05: ish beruvchi kartasi (ekran o'quvchi)."
+  },
+  "@aboutShift": {
+    "description": "A05: vazifalar va kiyim kartasi (ekran o'quvchi)."
+  },
+  "@workplaceOnMap": {
+    "description": "A05: manzil kartasidagi kichik xarita (ekran o'quvchi)."
+  },
+  "@closeSheet": {
+    "description": "A05: tasdiqlash oynasi orqasini bosib yopish (ekran o'quvchi)."
+  },
+  "@shiftInfo": {
+    "description": "A05 «Smena olindi»: smena ma'lumoti kartasi (ekran o'quvchi)."
+  },
+  "@errOffline": {
+    "description": "Amal internet yo'qligi sababli bajarilmaganda."
+  },
+  "@shiftNotFound": {
+    "description": "A05: smena o'chirilgan yoki havola noto'g'ri."
   }
 }

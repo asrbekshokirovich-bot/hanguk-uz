@@ -13,6 +13,7 @@ Future<void> loadHiFonts() async {
     'Inter': [400, 500, 600, 700, 800, 900],
     'NotoSansKR': [400, 500, 600, 700, 800, 900],
     'JetBrainsMono': [500, 600, 700, 800],
+    'HiWonSign': [400, 700],
   };
   for (final entry in families.entries) {
     final loader = FontLoader(entry.key);

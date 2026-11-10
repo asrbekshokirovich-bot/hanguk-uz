@@ -15,9 +15,9 @@ class HiPickerOption {
   final String label;
 }
 
-/// A white bottom sheet listing [options] with a search box. Returns the
-/// chosen value; when [allowTyped] is set and the search text matches no
-/// option, the text itself can be chosen.
+/// A white bottom sheet listing [options], with a search box unless
+/// [searchable] is off. Returns the chosen value; when [allowTyped] is set
+/// and the search text matches no option, the text itself can be chosen.
 Future<String?> showHiPicker(
   BuildContext context, {
   required String title,
@@ -25,6 +25,7 @@ Future<String?> showHiPicker(
   required String searchHint,
   String? selected,
   String Function(String typed)? allowTyped,
+  bool searchable = true,
 }) {
   return showModalBottomSheet<String>(
     context: context,
@@ -37,6 +38,33 @@ Future<String?> showHiPicker(
       searchHint: searchHint,
       selected: selected,
       allowTyped: allowTyped,
+      searchable: searchable,
+    ),
+  );
+}
+
+/// A white bottom sheet with checkable [options] and «apply» / «reset»
+/// buttons. Returns the chosen values (empty after reset), or null when the
+/// sheet is dismissed.
+Future<Set<String>?> showHiMultiPicker(
+  BuildContext context, {
+  required String title,
+  required List<HiPickerOption> options,
+  required Set<String> selected,
+  required String apply,
+  required String reset,
+}) {
+  return showModalBottomSheet<Set<String>>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: const Color(0x99040716),
+    builder: (context) => _MultiPickerSheet(
+      title: title,
+      options: options,
+      selected: selected,
+      apply: apply,
+      reset: reset,
     ),
   );
 }
@@ -163,6 +191,7 @@ class _PickerSheet extends StatefulWidget {
     required this.searchHint,
     required this.selected,
     required this.allowTyped,
+    required this.searchable,
   });
 
   final String title;
@@ -170,6 +199,7 @@ class _PickerSheet extends StatefulWidget {
   final String searchHint;
   final String? selected;
   final String Function(String typed)? allowTyped;
+  final bool searchable;
 
   @override
   State<_PickerSheet> createState() => _PickerSheetState();
@@ -203,13 +233,15 @@ class _PickerSheetState extends State<_PickerSheet> {
         children: [
           HiText(widget.title, style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
           const SizedBox(height: 12),
-          HiInputField(
-            controller: _query,
-            placeholder: widget.searchHint,
-            textInputAction: TextInputAction.search,
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 10),
+          if (widget.searchable) ...[
+            HiInputField(
+              controller: _query,
+              placeholder: widget.searchHint,
+              textInputAction: TextInputAction.search,
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 10),
+          ],
           Flexible(
             child: ListView(
               shrinkWrap: true,
@@ -230,6 +262,110 @@ class _PickerSheetState extends State<_PickerSheet> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MultiPickerSheet extends StatefulWidget {
+  const _MultiPickerSheet({
+    required this.title,
+    required this.options,
+    required this.selected,
+    required this.apply,
+    required this.reset,
+  });
+
+  final String title;
+  final List<HiPickerOption> options;
+  final Set<String> selected;
+  final String apply;
+  final String reset;
+
+  @override
+  State<_MultiPickerSheet> createState() => _MultiPickerSheetState();
+}
+
+class _MultiPickerSheetState extends State<_MultiPickerSheet> {
+  late final Set<String> _chosen = {...widget.selected};
+
+  @override
+  Widget build(BuildContext context) {
+    return _SheetFrame(
+      maxHeightFactor: 0.85,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HiText(widget.title, style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
+          const SizedBox(height: 6),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (final option in widget.options)
+                  _SheetRow(
+                    label: option.label,
+                    selected: _chosen.contains(option.value),
+                    onTap: () => setState(() {
+                      if (!_chosen.remove(option.value)) _chosen.add(option.value);
+                    }),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _SheetButton(
+                  label: widget.reset,
+                  filled: false,
+                  onTap: () => Navigator.of(context).pop(<String>{}),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: _SheetButton(
+                  label: widget.apply,
+                  filled: true,
+                  onTap: () => Navigator.of(context).pop(_chosen),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SheetButton extends StatelessWidget {
+  const _SheetButton({required this.label, required this.filled, required this.onTap});
+
+  final String label;
+  final bool filled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      builder: (context, pressed) => Container(
+        height: 52,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: filled ? (pressed ? HiColors.blueDeep : HiColors.ink) : (pressed ? HiColors.surface : HiColors.white),
+          borderRadius: BorderRadius.circular(HiRadii.button),
+          border: Border.fromBorderSide(HiBorders.ink),
+        ),
+        child: HiText(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: hiStyle(16, FontWeight.w800, color: filled ? HiColors.white : HiColors.ink),
+        ),
       ),
     );
   }

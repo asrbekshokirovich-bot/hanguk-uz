@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/models/shift.dart';
 import '../design/theme.dart';
-import '../design/tokens.dart';
-import '../design/widgets/backdrop.dart';
+import '../features/worker/feed/feed_screen.dart';
+import '../features/worker/map/map_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
 import '../features/worker/profile/profile_screens.dart';
 import '../features/worker/settings/app_language.dart';
+import '../features/worker/shell/worker_shell.dart';
+import '../features/worker/shift/shift_detail_screen.dart';
+import '../features/worker/shift/take_shift.dart';
 import '../l10n/gen/worker_l10n.dart';
 import 'text_scale.dart';
 
@@ -17,12 +21,45 @@ abstract final class WorkerRoutes {
   static const profileName = '/profile/name';
   static const profileLanguages = '/profile/languages';
   static const profileSchedule = '/profile/schedule';
-  static const home = '/home';
+
+  /// The tabs.
+  static const feed = '/feed';
+  static const map = '/map';
+  static const myShifts = '/my-shifts';
+  static const earnings = '/earnings';
+  static const me = '/me';
+
+  static const notifications = '/notifications';
+
+  /// Where the app opens once signed in.
+  static const home = feed;
+
+  static String shift(String id) => '/shift/$id';
+  static String taken(String id, {required bool pending}) => '/shift/$id/taken${pending ? '?pending=1' : ''}';
 }
+
+/// «Olish» / «Smenani olish»: the confirmation sheet, then the success page.
+Future<void> takeShift(BuildContext context, ShiftListing shift) async {
+  final result = await showTakeShiftSheet(context, shift);
+  if (result == null || !context.mounted) return;
+  await context.push(WorkerRoutes.taken(shift.id, pending: result.status == ApplicationStatus.pending));
+}
+
+FeedActions _feedActions(BuildContext context) => FeedActions(
+      openShift: (shift) => context.push(WorkerRoutes.shift(shift.id)),
+      takeShift: (shift) => takeShift(context, shift),
+      openFeed: () => context.go(WorkerRoutes.feed),
+      openMap: () => context.go(WorkerRoutes.map),
+      openNotifications: () => context.push(WorkerRoutes.notifications),
+    );
+
+/// Where the app opens (tests open a screen directly).
+final workerInitialLocationProvider = Provider<String>((ref) => WorkerRoutes.login);
 
 /// Routes of the worker app.
 final workerRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
+    initialLocation: ref.watch(workerInitialLocationProvider),
     routes: [
       GoRoute(
         path: WorkerRoutes.login,
@@ -54,28 +91,72 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
           onDone: () => context.go(WorkerRoutes.home),
         ),
       ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => WorkerShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.feed,
+              builder: (context, state) => FeedScreen(actions: _feedActions(context)),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.map,
+              builder: (context, state) => WorkerMapScreen(actions: _feedActions(context)),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.myShifts,
+              builder: (context, state) => WorkerPendingScreen(title: WorkerL10n.of(context).navMyShifts),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.earnings,
+              builder: (context, state) => WorkerPendingScreen(title: WorkerL10n.of(context).navEarnings),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.me,
+              builder: (context, state) => WorkerPendingScreen(title: WorkerL10n.of(context).navProfile),
+            ),
+          ]),
+        ],
+      ),
       GoRoute(
-        path: WorkerRoutes.home,
-        builder: (context, state) => const _HomePlaceholder(),
+        path: '/shift/:id',
+        builder: (context, state) => ShiftDetailScreen(
+          shiftId: state.pathParameters['id']!,
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+          onTake: (shift) => takeShift(context, shift),
+        ),
+        routes: [
+          GoRoute(
+            path: 'taken',
+            builder: (context, state) => ShiftTakenScreen(
+              shiftId: state.pathParameters['id']!,
+              pending: state.uri.queryParameters['pending'] == '1',
+              onClose: () => context.go(WorkerRoutes.feed),
+              onMyShifts: () => context.go(WorkerRoutes.myShifts),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: WorkerRoutes.notifications,
+        builder: (context, state) => WorkerPendingScreen(
+          title: WorkerL10n.of(context).notifications,
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+        ),
       ),
     ],
   );
   ref.onDispose(router.dispose);
   return router;
 });
-
-/// The shift feed arrives in P3 (A03).
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: HiColors.navy,
-      body: HiBackdrop(child: SizedBox.expand()),
-    );
-  }
-}
 
 /// «Hanguk Ish» — the worker app.
 class WorkerApp extends ConsumerWidget {

@@ -66,6 +66,14 @@ flutter:
           weight: 800
         - asset: assets/fonts/NotoSansKR-900.ttf
           weight: 900
+    # ₩ in monospace text: the browser falls back to DejaVu Sans Mono for it;
+    # this is that glyph alone, renamed (assets/fonts/LICENSE-HiWonSign.txt).
+    - family: HiWonSign
+      fonts:
+        - asset: assets/fonts/HiWonSign-400.ttf
+          weight: 400
+        - asset: assets/fonts/HiWonSign-700.ttf
+          weight: 700
     - family: JetBrainsMono
       fonts:
         - asset: assets/fonts/JetBrainsMono-500.ttf

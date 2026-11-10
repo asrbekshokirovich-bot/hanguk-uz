@@ -13,7 +13,13 @@ enum HiGlow {
   entry(1.30, 0.60, 0.65),
 
   /// Every other screen: `120% 52%`, alpha 0.6.
-  screen(1.20, 0.52, 0.60);
+  screen(1.20, 0.52, 0.60),
+
+  /// «Smena olindi!» (A05): `120% 56%`, alpha 0.6.
+  success(1.20, 0.56, 0.60),
+
+  /// The long shift detail page (A05): `120% 40%`, alpha 0.5.
+  detail(1.20, 0.40, 0.50);
 
   const HiGlow(this.radiusX, this.radiusY, this.alpha);
 
@@ -36,6 +42,8 @@ class HiBackdrop extends StatelessWidget {
     this.watermark,
     this.watermarkSize = 230,
     this.watermarkTop = 150,
+    this.watermarkRight = -40,
+    this.watermarkColor = HiColors.white07,
     required this.child,
   });
 
@@ -47,8 +55,12 @@ class HiBackdrop extends StatelessWidget {
   /// Watermark `font-size` in px.
   final double watermarkSize;
 
-  /// Watermark `top:` in the prototype frame.
+  /// Watermark `top:` / `right:` in the prototype frame.
   final double watermarkTop;
+  final double watermarkRight;
+
+  /// `rgba(255,255,255,0.07)` on entry screens, 0.08 on the feed.
+  final Color watermarkColor;
 
   final Widget child;
 
@@ -64,7 +76,7 @@ class HiBackdrop extends StatelessWidget {
           if (mark != null)
             Positioned(
               top: watermarkTop + HiInsets.shift(context),
-              right: -40,
+              right: watermarkRight,
               child: ExcludeSemantics(
                 child: IgnorePointer(
                   child: HiText(
@@ -75,7 +87,7 @@ class HiBackdrop extends StatelessWidget {
                     style: hiStyle(
                       watermarkSize,
                       FontWeight.w900,
-                      color: HiColors.white07,
+                      color: watermarkColor,
                       height: 1,
                       family: HiFamily.korean,
                     ),
@@ -122,4 +134,20 @@ class _GlowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GlowPainter old) => old.glow != glow;
+}
+
+/// Navy plus the corner glow, sized to its parent — for pages whose glow
+/// scrolls with long content (A05 detail).
+class HiGlowLayer extends StatelessWidget {
+  const HiGlowLayer({super.key, required this.glow});
+
+  final HiGlow glow;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: HiColors.navy,
+      child: CustomPaint(painter: _GlowPainter(glow), child: const SizedBox.expand()),
+    );
+  }
 }
