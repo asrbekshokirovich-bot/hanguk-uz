@@ -111,6 +111,7 @@ void main() {
       final (_, auth) = await openPhone(tester);
       auth.sendError = const ShiftActionException('SMS_FAILED');
       await tester.enterText(find.byType(TextField), '01012345678');
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Kod olish'));
       await tester.pumpAndSettle();
       expect(find.text("SMS yuborib bo'lmadi. Raqamni tekshirib, qayta urinib ko'ring."), findsOneWidget);
@@ -131,6 +132,7 @@ void main() {
       final (container, auth) = await openPhone(tester, profile: profile);
       container.read(workerProfileDraftProvider.notifier).replace(const WorkerProfileDraft());
       await tester.enterText(find.byType(TextField), '01012345678');
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Kod olish'));
       await tester.pumpAndSettle();
 
@@ -151,6 +153,7 @@ void main() {
     testWidgets('a new code after a minute', (tester) async {
       final (_, auth) = await openPhone(tester);
       await tester.enterText(find.byType(TextField), '01012345678');
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Kod olish'));
       await tester.pumpAndSettle();
       expect(find.text('Qayta yuborish: 1:00'), findsOneWidget);
@@ -175,6 +178,7 @@ void main() {
         final (_, auth) = await openPhone(tester);
         auth.sendError = ShiftActionException(code);
         await tester.enterText(find.byType(TextField), '01012345678');
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Kod olish'));
         await tester.pumpAndSettle();
         expect(find.text(text), findsOneWidget);

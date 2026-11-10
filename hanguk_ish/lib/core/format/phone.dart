@@ -1,7 +1,8 @@
 /// Korean mobile numbers: what people type (010-1234-5678) and what the SMS
 /// service needs (+821012345678).
 abstract final class KoreanPhone {
-  static final _mobile = RegExp(r'^01[016789]\d{7,8}$');
+  // 010 numbers have eight digits after the prefix; old 011/016–019 seven or eight.
+  static final _mobile = RegExp(r'^(010\d{8}|01[16789]\d{7,8})$');
 
   /// `+821012345678` for a Korean mobile number typed with or without dashes,
   /// spaces or the +82 prefix; null when it is not one.
