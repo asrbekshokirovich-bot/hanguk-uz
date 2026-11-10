@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/time/kst.dart';
+
 import '../demo/demo_shifts.dart';
 import '../models/account.dart';
 import '../models/business.dart';
@@ -29,6 +31,12 @@ class FeedQuery {
 
   /// 0 = 06–12, 1 = 12–18, 2 = 18–24, 3 = 00–06 (start time, Korean clock).
   final Set<int> dayParts;
+
+  /// The [dayParts] value of a shift starting at [startsAt].
+  static int dayPartOf(DateTime startsAt) {
+    final h = Kst.wallClock(startsAt).hour;
+    return h >= 6 && h < 12 ? 0 : h >= 12 && h < 18 ? 1 : h >= 18 ? 2 : 3;
+  }
 }
 
 /// A refusal from the server, with its stable code ('SHIFT_FULL', …).

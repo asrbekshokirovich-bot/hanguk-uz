@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What the worker fills in on A02 (three steps), before it is saved.
@@ -19,7 +22,8 @@ class WorkerProfileDraft {
   final String firstName;
   final String lastName;
 
-  /// Local file of the chosen photo, until it is uploaded.
+  /// The photo: a file just picked on the phone, or the URL of the one saved
+  /// before (loaded from the server).
   final String? photoPath;
 
   /// Language codes: uz, ru, en, ko, kk, ky, tg.
@@ -114,3 +118,8 @@ class WorkerProfileDraftController extends Notifier<WorkerProfileDraft> {
 
   void replace(WorkerProfileDraft draft) => state = draft;
 }
+
+/// The image of a [WorkerProfileDraft.photoPath]: the saved photo from the
+/// network, a newly picked one from the phone.
+ImageProvider profilePhoto(String path) =>
+    path.startsWith('http://') || path.startsWith('https://') ? NetworkImage(path) : FileImage(File(path));

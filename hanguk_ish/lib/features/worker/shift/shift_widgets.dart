@@ -242,7 +242,7 @@ class ShiftCard extends StatelessWidget {
         '${HiDates.duration(shift.plannedMinutes, lang)}';
     final distance = shift.distanceKm;
     final where = distance == null ? b.displayArea(lang) : '${b.displayArea(lang)} · ${formatKm(distance, lang)}';
-    final taken = shift.myStatus == ApplicationStatus.confirmed || shift.myStatus == ApplicationStatus.pending;
+    final taken = shift.holdsMyPlace;
     return HiPressable(
       onTap: onOpen,
       semanticsLabel: '${b.displayName(lang)}, ${shift.displayTitle(lang)}, $when',

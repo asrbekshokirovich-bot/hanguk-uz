@@ -82,6 +82,13 @@ class ShiftListing {
 
   int get plannedMinutes => endsAt.difference(startsAt).inMinutes;
 
+  /// The worker has taken this shift: waiting for the business, confirmed,
+  /// or already checked in (QR opens 30 minutes before the start).
+  bool get holdsMyPlace =>
+      myStatus == ApplicationStatus.pending ||
+      myStatus == ApplicationStatus.confirmed ||
+      myStatus == ApplicationStatus.checkedIn;
+
   /// What the whole shift pays (hours × hourly wage).
   int get totalPay => Pay.forMinutes(hourlyWage, plannedMinutes);
 

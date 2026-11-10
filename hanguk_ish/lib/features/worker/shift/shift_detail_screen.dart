@@ -131,7 +131,7 @@ class _Detail extends ConsumerWidget {
     final lang = ref.watch(appLanguageProvider).code;
     final now = ref.watch(clockProvider)();
     final b = shift.business;
-    final taken = shift.myStatus == ApplicationStatus.confirmed || shift.myStatus == ApplicationStatus.pending;
+    final taken = shift.holdsMyPlace;
     final full = shift.slotsLeft <= 0;
     final duties = shift.displayDuties(lang);
     final dress = shift.displayDress(lang);

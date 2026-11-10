@@ -228,6 +228,11 @@ abstract final class Ko {
         'WAGE_BELOW_MINIMUM' => '최저시급보다 낮아요',
         'NOT_FOUND' => '근무를 찾을 수 없어요',
         'HAS_CREW' => timeLocked,
+        'SLOTS_BELOW_CREW' => '확정된 인원보다 적게 줄일 수 없어요',
+        'BUSINESS_NOT_VERIFIED' => '사업자 확인이 끝나면 근무를 올릴 수 있어요',
+        'INVALID' => '입력한 내용을 확인해 주세요',
+        'NOT_AUTHENTICATED' => '다시 로그인해 주세요',
+        'FORBIDDEN' => '이 사업장의 근무가 아니에요',
         'OFFLINE' => '인터넷 연결을 확인해 주세요',
         _ => '다시 시도해 주세요',
       };

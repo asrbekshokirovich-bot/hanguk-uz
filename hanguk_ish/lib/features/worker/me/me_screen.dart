@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -95,7 +93,7 @@ class MeScreen extends ConsumerWidget {
                             clipBehavior: Clip.antiAlias,
                             alignment: Alignment.center,
                             child: photo != null
-                                ? Image.file(File(photo), width: 68, height: 68, fit: BoxFit.cover)
+                                ? Image(image: profilePhoto(photo), width: 68, height: 68, fit: BoxFit.cover)
                                 : HiText(initials, style: hiStyle(24, FontWeight.w800, color: HiColors.ink)),
                           ),
                         ),

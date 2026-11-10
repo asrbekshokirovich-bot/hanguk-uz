@@ -370,11 +370,7 @@ class DemoShiftRepository implements ShiftRepository {
       if (query.minWage != null && s.hourlyWage < query.minWage!) return false;
       if (query.radiusKm != null && (s.distanceKm ?? 0) > query.radiusKm!) return false;
       if (query.categories.isNotEmpty && !query.categories.contains(s.business.category)) return false;
-      if (query.dayParts.isNotEmpty) {
-        final h = Kst.wallClock(s.startsAt).hour;
-        final part = h >= 6 && h < 12 ? 0 : h >= 12 && h < 18 ? 1 : h >= 18 ? 2 : 3;
-        if (!query.dayParts.contains(part)) return false;
-      }
+      if (query.dayParts.isNotEmpty && !query.dayParts.contains(FeedQuery.dayPartOf(s.startsAt))) return false;
       return true;
     }).toList()
       ..sort((a, b) {

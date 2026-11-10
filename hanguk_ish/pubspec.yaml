@@ -29,6 +29,11 @@ dependencies:
   qr: ^3.0.2
   # BA3 «QR 인쇄·공유», BA5 «CSV 다운로드»: the phone's share sheet.
   share_plus: '>=11.0.0 <14.0.0'
+  # The Hanguk Ish database (supabase/): sign-in, functions, tables, Storage.
+  # Used only when the build names a backend (lib/data/backend/backend.dart).
+  supabase_flutter: ^2.9.0
+  # Connection failures of the Supabase client (→ OfflineException).
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -181,7 +179,7 @@ class _ProfileNameScreenState extends ConsumerState<ProfileNameScreen> {
                   onTap: _pickPhoto,
                   child: Column(
                     children: [
-                      HiPhotoCircle(image: photo == null ? null : FileImage(File(photo))),
+                      HiPhotoCircle(image: photo == null ? null : profilePhoto(photo)),
                       const SizedBox(height: 10),
                       ExcludeSemantics(
                         child: HiText(l10n.photoUpload, style: hiStyle(16, FontWeight.w800)),
