@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/json.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
+import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
 import 'package:hanguk_ish/data/models/account.dart';
@@ -467,6 +468,104 @@ void main() {
               hourlyWage: 9000,
               slots: 1)),
           code('WAGE_BELOW_MINIMUM'));
+    });
+  });
+
+  group('sign-in', () {
+    Map<String, Object?> session() => {
+          'access_token': _jwt(me),
+          'token_type': 'bearer',
+          'expires_in': 3600,
+          'expires_at': DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
+          'refresh_token': 'refresh',
+          'user': {
+            'id': me,
+            'aud': 'authenticated',
+            'role': 'authenticated',
+            'phone': '821012345678',
+            'app_metadata': {'provider': 'phone'},
+            'user_metadata': <String, Object?>{},
+            'created_at': '2026-11-10T00:00:00Z',
+          },
+        };
+
+    test('a code by SMS, then the session', () async {
+      final backend = FakeBackend((r) => switch (r.url.path) {
+            '/auth/v1/otp' => <String, Object?>{},
+            '/auth/v1/verify' => session(),
+            _ => null,
+          });
+      final auth = SupabaseAuthRepository(backend.client);
+      expect(auth.userId, isNull);
+      final changes = <String?>[];
+      final subscription = auth.changes.listen(changes.add);
+      addTearDown(subscription.cancel);
+
+      await auth.sendCode('010-1234-5678');
+      final otp = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
+      expect(otp['phone'], '+821012345678');
+      await auth.verifyCode('010-1234-5678', ' 123456 ');
+      final verify = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
+      expect(verify['type'], 'sms');
+      expect(verify['token'], '123456');
+      expect(verify['phone'], '+821012345678');
+      expect(auth.userId, me);
+      await pumpEventQueue();
+      expect(changes.last, me);
+    });
+
+    test('refusals are named; bad input never leaves the phone', () async {
+      var answer = reply({'code': 403, 'error_code': 'otp_expired', 'msg': 'Token has expired or is invalid'}, 403);
+      final backend = FakeBackend((r) => answer);
+      final auth = SupabaseAuthRepository(backend.client);
+      Matcher code(String c) => throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', c));
+      await expectLater(auth.verifyCode('01012345678', '000000'), code('CODE_INVALID'));
+      answer = reply({'code': 429, 'error_code': 'over_sms_send_rate_limit', 'msg': 'For security purposes…'}, 429);
+      await expectLater(auth.sendCode('01012345678'), code('TOO_MANY_REQUESTS'));
+      answer = reply({'code': 500, 'error_code': 'sms_send_failed', 'msg': 'Error sending sms'}, 500);
+      await expectLater(auth.sendCode('01012345678'), code('SMS_FAILED'));
+      answer = reply({'code': 'unexpected_failure', 'msg': 'boom'}, 502);
+      await expectLater(auth.sendCode('01012345678'), code('SERVER_ERROR'));
+      final sent = backend.requests.length;
+      await expectLater(auth.sendCode('02-123-4567'), code('PHONE_INVALID'));
+      await expectLater(auth.verifyCode('01012345678', '12345'), code('CODE_INVALID'));
+      expect(backend.requests.length, sent);
+      expect(authErrorCode(null, '429', 'slow down'), 'TOO_MANY_REQUESTS');
+      expect(authErrorCode(null, '400', 'Token has expired or is invalid'), 'CODE_INVALID');
+      expect(authErrorCode('phone_provider_disabled', '400', 'Unsupported phone provider'), 'SIGN_IN_UNAVAILABLE');
+      expect(authErrorCode(null, '500', 'boom'), 'AUTH_FAILED');
+      final offline = SupabaseAuthRepository(FakeBackend((r) => throw const SocketException('no route')).client);
+      await expectLater(offline.sendCode('01012345678'), throwsA(isA<OfflineException>()));
+    });
+  });
+
+  group('owner registration (business-register)', () {
+    test('the 국세청 check runs on the server; the new business comes back', () async {
+      var refusal = '';
+      final backend = FakeBackend((r) {
+        if (r.url.path == '/functions/v1/business-register') {
+          return refusal.isEmpty
+              ? {'business_id': '10000000-0000-0000-0000-000000000001', 'status': 'verified'}
+              : reply({'error': refusal}, 409);
+        }
+        if (rpcName(r) == 'my_businesses') return samples['my_businesses'];
+        return null;
+      });
+      await backend.signIn();
+      final repo = SupabaseEmployerRepository(backend.client, config);
+      final business = await repo.registerBusiness('124-81-00998');
+      expect(business.id, '10000000-0000-0000-0000-000000000001');
+      final call = backend.requests.firstWhere((r) => r.url.path == '/functions/v1/business-register');
+      expect(jsonDecode(call.body), {'biz_no': '1248100998'});
+      expect(call.headers['Authorization'] ?? call.headers['authorization'], 'Bearer ${backend.accessToken}');
+
+      refusal = 'BIZ_NO_TAKEN';
+      await expectLater(repo.registerBusiness('1248100998'),
+          throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', 'BIZ_NO_TAKEN')));
+      final count = backend.requests.length;
+      await expectLater(repo.registerBusiness('1234567890'),
+          throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', 'BIZ_NO_INVALID')));
+      expect(backend.requests.length, count, reason: 'a wrong check digit is caught on the phone');
     });
   });
 }

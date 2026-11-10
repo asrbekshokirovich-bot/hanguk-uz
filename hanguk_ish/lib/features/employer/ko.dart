@@ -19,6 +19,17 @@ abstract final class Ko {
   static const termsLink = '이용약관';
   static const termsSuffix = '에 동의하게 됩니다';
   static const loginIncomplete = '휴대폰 번호와 사업자등록번호를 모두 입력해 주세요';
+  static const bizNoInvalid = '사업자등록번호를 확인해 주세요';
+
+  // Sign-in code (T2; not in the prototype — drawn for approval)
+  static const codeTopTitle = '로그인';
+  static const codeTitle = '인증번호 입력';
+  static String codeSentTo(String phone) => '$phone 번호로 보낸 6자리 숫자를 입력해 주세요.';
+  static const codeLabel = '인증번호';
+  static const codeConfirm = '확인';
+  static const codeResend = '인증번호 다시 받기';
+  static String codeResendIn(String time) => '$time 후 다시 받을 수 있어요';
+  static const codeResent = '새 인증번호를 보냈어요.';
 
   // Menu
   static const navHome = '홈';
@@ -233,6 +244,15 @@ abstract final class Ko {
         'INVALID' => '입력한 내용을 확인해 주세요',
         'NOT_AUTHENTICATED' => '다시 로그인해 주세요',
         'FORBIDDEN' => '이 사업장의 근무가 아니에요',
+        'CODE_INVALID' => '인증번호가 틀렸거나 만료됐어요. 다시 입력해 주세요',
+        'TOO_MANY_REQUESTS' => '시도가 너무 많아요. 잠시 후 다시 시도해 주세요',
+        'PHONE_INVALID' => '휴대폰 번호를 확인해 주세요',
+        'SMS_FAILED' => '문자를 보내지 못했어요. 번호를 확인해 주세요',
+        'SIGN_IN_UNAVAILABLE' => '지금은 로그인할 수 없어요. 잠시 후 다시 시도해 주세요',
+        'BIZ_NO_INVALID' => bizNoInvalid,
+        'BIZ_NO_UNKNOWN' => '국세청에 등록되지 않은 사업자등록번호예요',
+        'BIZ_NO_TAKEN' => '이미 다른 계정에 등록된 사업자등록번호예요',
+        'BUSINESS_CLOSED' => '폐업한 사업자는 등록할 수 없어요',
         'OFFLINE' => '인터넷 연결을 확인해 주세요',
         _ => '다시 시도해 주세요',
       };

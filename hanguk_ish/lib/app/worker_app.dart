@@ -3,9 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/links/directions.dart';
+import '../data/backend/backend.dart';
+import '../data/repositories/auth_repository.dart';
 import '../data/models/my_shift.dart';
 import '../data/models/shift.dart';
 import '../design/theme.dart';
+import '../design/tokens.dart';
+import '../design/widgets/backdrop.dart';
+import '../design/widgets/brand.dart';
 import '../features/worker/feed/feed_screen.dart';
 import '../features/worker/chat/chat_screen.dart';
 import '../features/worker/earnings/earnings_screen.dart';
@@ -14,7 +19,10 @@ import '../features/worker/me/me_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
+import '../features/worker/onboarding/phone_screens.dart';
 import '../features/worker/profile/profile_screens.dart';
+import '../features/worker/profile/worker_profile_draft.dart';
+import '../features/worker/profile/worker_profile_repository.dart';
 import '../features/worker/settings/app_language.dart';
 import '../features/worker/shell/worker_shell.dart';
 import '../features/worker/shift/shift_detail_screen.dart';
@@ -25,7 +33,15 @@ import 'text_scale.dart';
 
 /// Paths of the worker app.
 abstract final class WorkerRoutes {
+  /// Decides where a launch opens (signed in? profile done?).
+  static const start = '/start';
+
   static const login = '/';
+
+  /// T1 phone number, T2 code.
+  static const phone = '/phone';
+  static String phoneCode(String phone) => '/phone/code?n=${Uri.encodeQueryComponent(phone)}';
+
   static const profileName = '/profile/name';
   static const profileLanguages = '/profile/languages';
   static const profileSchedule = '/profile/schedule';
@@ -86,27 +102,108 @@ FeedActions _feedActions(BuildContext context) => FeedActions(
       openNotifications: () => context.push(WorkerRoutes.notifications),
     );
 
-/// Where the app opens (tests open a screen directly).
-final workerInitialLocationProvider = Provider<String>((ref) => WorkerRoutes.login);
+/// Where the app opens: with a backend, the start gate (a saved session
+/// skips sign-in); the demo starts at A01. Tests open a screen directly.
+final workerInitialLocationProvider = Provider<String>(
+  (ref) => ref.watch(backendConfigProvider).isConfigured ? WorkerRoutes.start : WorkerRoutes.login,
+);
+
+/// After signing in: the saved profile opens the feed, a new account fills
+/// A02 first.
+Future<void> continueAfterSignIn(BuildContext context, WidgetRef ref) async {
+  WorkerProfileDraft? saved;
+  try {
+    saved = await ref.read(workerProfileRepositoryProvider).load();
+  } on Exception {
+    saved = null;
+  }
+  if (!context.mounted) return;
+  if (saved == null) {
+    context.go(WorkerRoutes.profileName);
+    return;
+  }
+  ref.read(workerProfileDraftProvider.notifier).replace(saved);
+  context.go(WorkerRoutes.home);
+}
+
+/// The first frame of a launch with a backend: the brand on navy while the
+/// session and profile are checked.
+class _StartGate extends ConsumerStatefulWidget {
+  const _StartGate();
+
+  @override
+  ConsumerState<_StartGate> createState() => _StartGateState();
+}
+
+class _StartGateState extends ConsumerState<_StartGate> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (ref.read(authRepositoryProvider).userId == null) {
+        context.go(WorkerRoutes.login);
+      } else {
+        continueAfterSignIn(context, ref);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        backgroundColor: HiColors.navy,
+        body: HiBackdrop(glow: HiGlow.entry, child: Center(child: HiBrandTile())),
+      );
+}
 
 /// Routes of the worker app.
 final workerRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: ref.watch(workerInitialLocationProvider),
     routes: [
+      GoRoute(path: WorkerRoutes.start, builder: (context, state) => const _StartGate()),
       GoRoute(
         path: WorkerRoutes.login,
-        builder: (context, state) => A01LoginScreen(
-          // Phone and Telegram sign-in screens are not designed yet (T1, T2);
-          // until they are, both continue to the profile.
-          onPhone: () => context.push(WorkerRoutes.profileName),
-          onTelegram: () => context.push(WorkerRoutes.profileName),
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => A01LoginScreen(
+            onPhone: () => context.push(WorkerRoutes.phone),
+            // Telegram sign-in needs the bot (T2): with a backend it says
+            // so; the demo continues to the profile as before.
+            onTelegram: () {
+              if (ref.read(backendConfigProvider).isConfigured) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(WorkerL10n.of(context).telegramSoon)));
+              } else {
+                context.push(WorkerRoutes.profileName);
+              }
+            },
+          ),
         ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.phone,
+        builder: (context, state) => PhoneEntryScreen(
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.login),
+          onSent: (phone) => context.push(WorkerRoutes.phoneCode(phone)),
+        ),
+        routes: [
+          GoRoute(
+            path: 'code',
+            builder: (context, state) => Consumer(
+              builder: (context, ref, _) => PhoneCodeScreen(
+                phone: state.uri.queryParameters['n'] ?? '',
+                onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.phone),
+                onVerified: () => continueAfterSignIn(context, ref),
+              ),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: WorkerRoutes.profileName,
         builder: (context, state) => ProfileNameScreen(
-          onBack: () => context.pop(),
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.login),
           onNext: () => context.push(WorkerRoutes.profileLanguages),
         ),
       ),

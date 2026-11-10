@@ -11,6 +11,11 @@ abstract interface class EmployerRepository {
   /// The businesses the signed-in owner or manager runs.
   Future<List<Business>> businesses();
 
+  /// BA0 «시작하기» for an owner with no business yet: checks the
+  /// 사업자등록번호 with 국세청 and registers it (`business-register`). Codes:
+  /// BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED.
+  Future<Business> registerBusiness(String businessNumber);
+
   /// Shifts of [businessId] starting in [from, to), earliest first.
   Future<List<EmployerShift>> shifts(String businessId, DateTime from, DateTime to);
 
