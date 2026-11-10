@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "Hanguk Ish",
+  "appTagline": "Day jobs and short shifts in Korea",
+  "appLanguage": "App language",
+  "termsPrefix": "I agree to the ",
+  "termsLink": "Terms of Use",
+  "termsSuffix": "",
+  "loginWithPhone": "Continue with phone",
+  "loginWithTelegram": "Continue with Telegram"
+}

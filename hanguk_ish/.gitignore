@@ -1,0 +1,40 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Generated localizations (flutter gen-l10n writes them on pub get / build)
+lib/l10n/gen/
+
+# IDE
+*.iml
+*.ipr
+*.iws
+.idea/
+.DS_Store
+
+# Android
+android/.gradle/
+android/local.properties
+android/gradlew
+android/gradlew.bat
+android/gradle/wrapper/gradle-wrapper.jar
+android/app/debug
+android/app/profile
+android/app/release
+android/key.properties
+android/app/google-services.json
+**/GeneratedPluginRegistrant.java
+**/*.jks
+**/*.keystore
+# The sideload TEST key is stable on purpose (each test APK must install over
+# the last one); throwaway, published password, never signs a store build.
+!android/app/sideload-test.keystore
+
+# Test output written by the golden/screen tests
+test/**/failures/

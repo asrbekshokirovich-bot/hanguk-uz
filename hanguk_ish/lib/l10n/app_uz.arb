@@ -1,0 +1,35 @@
+{
+  "@@locale": "uz",
+  "appTitle": "Hanguk Ish",
+  "@appTitle": {
+    "description": "Ilova nomi (A01)."
+  },
+  "appTagline": "Koreyada kunlik va qisqa smenali ishlar",
+  "@appTagline": {
+    "description": "A01: nom ostidagi qisqa ta'rif."
+  },
+  "appLanguage": "Ilova tili",
+  "@appLanguage": {
+    "description": "A01: til tanlash bo'limi sarlavhasi."
+  },
+  "termsPrefix": "",
+  "@termsPrefix": {
+    "description": "A01: rozilik jumlasi, havoladan OLDINGI qism (o'zbekchada bo'sh)."
+  },
+  "termsLink": "Foydalanish shartlari",
+  "@termsLink": {
+    "description": "A01: rozilik jumlasidagi havola (tagiga chizilgan)."
+  },
+  "termsSuffix": "ga roziman",
+  "@termsSuffix": {
+    "description": "A01: rozilik jumlasi, havoladan KEYINGI qism."
+  },
+  "loginWithPhone": "Telefon raqam bilan",
+  "@loginWithPhone": {
+    "description": "A01: asosiy tugma — telefon orqali kirish."
+  },
+  "loginWithTelegram": "Telegram bilan",
+  "@loginWithTelegram": {
+    "description": "A01: ikkinchi tugma — Telegram orqali kirish."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "@@locale": "ko",
+  "appTitle": "Hanguk Ish",
+  "appTagline": "한국의 하루·단기 근무 일자리",
+  "appLanguage": "앱 언어",
+  "termsPrefix": "",
+  "termsLink": "이용약관",
+  "termsSuffix": "에 동의합니다",
+  "loginWithPhone": "휴대폰 번호로 시작",
+  "loginWithTelegram": "텔레그램으로 시작"
+}

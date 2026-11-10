@@ -1,0 +1,11 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Hanguk Ish",
+  "appTagline": "Подработка на день и короткие смены в Корее",
+  "appLanguage": "Язык приложения",
+  "termsPrefix": "Я принимаю ",
+  "termsLink": "условия использования",
+  "termsSuffix": "",
+  "loginWithPhone": "По номеру телефона",
+  "loginWithTelegram": "Через Telegram"
+}

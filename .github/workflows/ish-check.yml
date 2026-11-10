@@ -1,0 +1,150 @@
+name: Hanguk Ish — tekshiruv, ekranlar, APK
+
+# «Hanguk Ish» (hanguk_ish/): kunlik smena ilovasi — bitta kod, ikki ilova
+# (ishchi uz.hanguk.ish va ish beruvchi uz.hanguk.ish.biz).
+#
+# check: flutter analyze + unit/widget testlar + ekran rasmlari (haqiqiy
+#        shriftlar bilan, prototip bilan solishtirish uchun).
+# apk:   ikkala flavor'ning release APK'si (arm64, sideload test kaliti).
+#
+# Natijalar bitta prerelease'da (hanguk-ish-ci), har PR uchun alohida nom:
+#   pr<N>-screens.zip, pr<N>-worker-arm64.apk, pr<N>-employer-arm64.apk
+# Repo public — Actions daqiqalari bepul, shuning uchun har push'da ishlaydi.
+
+on:
+  pull_request:
+    paths:
+      - 'hanguk_ish/**'
+      - '.github/workflows/ish-check.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ish-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GH_REPO: ${{ github.repository }}
+  RELEASE_TAG: hanguk-ish-ci
+  ASSET_PREFIX: ${{ github.event_name == 'pull_request' && format('pr{0}', github.event.number) || format('run{0}', github.run_number) }}
+
+jobs:
+  check:
+    name: Analyze, test, render screens
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Toolchain
+        run: flutter --version
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Localizations
+        run: flutter gen-l10n
+
+      # Warnings and errors fail the job; lint infos are listed but do not.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Unit and widget tests
+        run: |
+          mkdir -p build
+          flutter test --exclude-tags screens --reporter github --file-reporter expanded:build/test_report.txt
+
+      # Full screens with the real fonts, written as PNGs for review against
+      # the prototype. Runs even when the tests above failed.
+      - name: Render screens
+        if: always()
+        run: flutter test --tags screens --update-goldens --reporter github
+
+      - name: Publish screens
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -u
+          mkdir -p build/screens
+          cp -r test/screens/goldens/. build/screens/ 2>/dev/null || true
+          [ -f build/test_report.txt ] && cp build/test_report.txt build/screens/ || true
+          [ -n "$(ls -A build/screens)" ] || exit 0
+          (cd build/screens && zip -qr "../../${ASSET_PREFIX}-screens.zip" .)
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+            gh release create "$RELEASE_TAG" --prerelease --title "Hanguk Ish CI" \
+              --notes "ish-check.yml natijalari: ekran rasmlari va test APK'lar (sideload, Play uchun emas)." || true
+          for i in 1 2 3; do
+            gh release upload "$RELEASE_TAG" "${ASSET_PREFIX}-screens.zip" --clobber && break
+            sleep 5
+          done
+
+      - name: Keep screens as an artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanguk-ish-screens
+          path: hanguk_ish/build/screens/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  apk:
+    name: Build APKs (worker + employer, arm64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            hanguk_ish/android/*.gradle*
+            hanguk_ish/android/app/*.gradle*
+            hanguk_ish/android/gradle/wrapper/gradle-wrapper.properties
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Worker APK
+        run: flutter build apk --release --flavor worker -t lib/main_worker.dart --target-platform android-arm64
+
+      - name: Employer APK
+        run: flutter build apk --release --flavor employer -t lib/main_employer.dart --target-platform android-arm64
+
+      - name: Publish APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          out=build/app/outputs/flutter-apk
+          ls -la "$out"
+          cp "$out/app-worker-release.apk" "${ASSET_PREFIX}-worker-arm64.apk"
+          cp "$out/app-employer-release.apk" "${ASSET_PREFIX}-employer-arm64.apk"
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+            gh release create "$RELEASE_TAG" --prerelease --title "Hanguk Ish CI" \
+              --notes "ish-check.yml natijalari: ekran rasmlari va test APK'lar (sideload, Play uchun emas)." || true
+          for i in 1 2 3; do
+            gh release upload "$RELEASE_TAG" "${ASSET_PREFIX}-worker-arm64.apk" "${ASSET_PREFIX}-employer-arm64.apk" --clobber && break
+            sleep 5
+          done

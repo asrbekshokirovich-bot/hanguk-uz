@@ -1,0 +1,4 @@
+tags:
+  # Full-screen renders with the real fonts (test/screens). CI runs them with
+  # --update-goldens and publishes the PNGs for comparison with the prototype.
+  screens:
