@@ -13,6 +13,52 @@ interface Message {
   content: string;
 }
 
+// The four steps of the app's Study Plan builder (hanguk_app plan_sections.dart).
+const STUDY_PLAN_STEPS = [
+  { title: "Goal", job: "what the student wants to study and why they need it — a clear, specific academic goal." },
+  { title: "Why Korea", job: "a personal reason for choosing Korea (family, career, language, experience), not generalities." },
+  { title: "Why this university", job: "why this particular university and programme fits the student — specific to that university." },
+  { title: "Future plan", job: "what the student will do after graduating and how the degree leads there." },
+];
+
+/** Strip markdown so nothing like ### or ** reaches the student. */
+function plainText(s: string): string {
+  return s
+    .replace(/```[a-z]*\n?/gi, "")
+    .replace(/^\s{0,3}#{1,6}\s*/gm, "")
+    .replace(/^\s*[-*•]\s+/gm, "")
+    .replace(/^\s*-{3,}\s*$/gm, "")
+    .replace(/\*\*|__|\*/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
+ * The step review as { content_feedback, strengths, improvements } — the shape
+ * the app's feedback sheet renders. An unparseable reply degrades to its text,
+ * cleaned of markdown, as content_feedback.
+ */
+function parseStepReview(raw: string): { content_feedback: string; strengths: string[]; improvements: string[] } {
+  const list = (v: unknown) =>
+    Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => plainText(x)).slice(0, 4) : [];
+  const first = raw.indexOf("{");
+  const last = raw.lastIndexOf("}");
+  if (first !== -1 && last > first) {
+    try {
+      const p = JSON.parse(raw.slice(first, last + 1));
+      const out = {
+        content_feedback: typeof p.content_feedback === "string" ? plainText(p.content_feedback) : "",
+        strengths: list(p.strengths),
+        improvements: list(p.improvements),
+      };
+      if (out.content_feedback || out.strengths.length || out.improvements.length) return out;
+    } catch (e) {
+      console.error("step review: unparseable model reply:", e);
+    }
+  }
+  return { content_feedback: plainText(raw) || "Sorry, I couldn't generate feedback.", strengths: [], improvements: [] };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,7 +78,11 @@ serve(async (req) => {
       documentType, // 'study_plan' or 'personal_statement'
       content, // The document content or chat message
       targetUniversityId,
-      language = 'en'
+      language = 'en',
+      // Study Plan builder (4 steps): which step is being reviewed (1-4) and
+      // the plan written so far, for context only.
+      step,
+      planSoFar,
     } = await req.json();
     
     if (!action || !documentType) {
@@ -210,6 +260,9 @@ ${applicationsContext}
       ? 'Study Plan'
       : 'Personal Statement';
     const isSupervise = action === 'draft_supervise';
+    const stepNo = Number(step);
+    const isStepReview = action === 'analyze' && documentType === 'study_plan' &&
+      Number.isInteger(stepNo) && stepNo >= 1 && stepNo <= STUDY_PLAN_STEPS.length;
 
     if (isSupervise) {
       systemPrompt = `You supervise a student writing a ${documentLabel} for a Korean university application, while they type.
@@ -240,6 +293,43 @@ Rules for "ghostText":
 ${universityContext ? `\nTARGET UNIVERSITY:\n${universityContext}` : ''}
 ${studentContext}`;
       userPrompt = `Draft so far:\n---\n${content ?? ''}\n---`;
+    } else if (isStepReview) {
+      // Audit 2026-11-10: the 4-step builder sent one step's 3-5 sentences to
+      // the full-plan reviewer, which scored the step as a whole plan ("2/10,
+      // lacks almost all components"), answered in markdown the sheet showed
+      // raw, and rewrote the student's sentences — while the screen warns
+      // "do not submit AI-written text; Hanguk AI only gives feedback".
+      // Now: review only this step's job, as JSON the sheet renders as lists,
+      // and never hand back replacement text.
+      const s = STUDY_PLAN_STEPS[stepNo - 1];
+      systemPrompt = `You review ONE step of a student's Study Plan for a Korean university application.
+
+${langInstruction}
+
+This is step ${stepNo} of ${STUDY_PLAN_STEPS.length}: "${s.title}".
+What this step should do: ${s.job}
+Judge the text ONLY against this step's job. The other steps are written separately, so do not
+ask for content that belongs to them${planSoFar ? ' (the plan so far is given for context only)' : ''}.
+The step is meant to be short: 3-5 sentences, at most 300 characters. Do not ask for more length.
+
+STRICT RULES:
+- Give feedback only. Never write sentences, phrases or example wording the student could copy.
+  Do not offer "better versions", rewrites, or corrected sentences. Describe what to change instead.
+- You may name a grammar or spelling problem by quoting the student's own words (at most a few words),
+  but do not supply the corrected text.
+- Plain text only: no markdown, no #, no *, no bullet symbols, no emoji.
+- Be encouraging and specific.
+
+Return ONLY a JSON object of this exact shape:
+{
+  "content_feedback": "<1-2 sentences: overall, how well this step does its job>",
+  "strengths": ["<what is good, 1-3 items>"],
+  "improvements": ["<what to change or add, 1-4 items, most important first>"]
+}
+
+${universityContext ? `\nTARGET UNIVERSITY INFO:\n${universityContext}` : ''}
+${studentContext}`;
+      userPrompt = `${planSoFar ? `Plan so far (context only):\n---\n${String(planSoFar).slice(0, 2000)}\n---\n\n` : ''}Step ${stepNo} text to review:\n---\n${content ?? ''}\n---`;
     } else if (documentType === 'study_plan') {
       if (action === 'teach') {
         systemPrompt = `You are an expert advisor helping international students write effective Study Plans for Korean university applications.
@@ -515,11 +605,13 @@ ${studentContext}`;
         // is capped at six issues plus one sentence — it needs a fraction of
         // the room a full lesson or analysis does, and the student is waiting
         // on it. The teaching actions keep their original budget.
-        max_tokens: isSupervise ? 1200 : 3000,
+        max_tokens: isSupervise || isStepReview ? 1200 : 3000,
         // Same draft, same marks. Without this the underlines flicker on and
         // off between keystrokes as the model changes its mind.
         ...(isSupervise
           ? { temperature: 0, response_format: { type: "json_object" } }
+          : isStepReview
+          ? { temperature: 0.2, response_format: { type: "json_object" } }
           : {}),
       }),
     });
@@ -577,6 +669,8 @@ ${studentContext}`;
           console.error("draft_supervise: unparseable model reply:", e);
         }
       }
+    } else if (isStepReview) {
+      response = JSON.stringify(parseStepReview(rawContent));
     } else {
       response = rawContent || "Sorry, I couldn't generate a response.";
     }

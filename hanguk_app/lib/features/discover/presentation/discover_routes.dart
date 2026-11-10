@@ -45,6 +45,7 @@ const String kDiscoverComparePath = '/guest/compare';
 /// Screen 16, the saved universities.
 const String kDiscoverSavedPath = '/guest/saved';
 
-/// The home with one of its tabs open (0 Universitetlar, 1 xarita,
-/// 2 Tayyorgarlik), for the bottom nav of a screen pushed over it.
-String discoverTabPath(int tab) => tab == 0 ? kDiscoverPath : '$kDiscoverPath?tab=$tab';
+/// The guest home with one of its tabs open (an `AppTab`), for the bottom nav
+/// of a screen pushed over it. Tab 0 (Universitetlar) too: a bare `/guest`
+/// is the round button's page (audit C-F1).
+String discoverTabPath(int tab) => '$kDiscoverPath?tab=$tab';

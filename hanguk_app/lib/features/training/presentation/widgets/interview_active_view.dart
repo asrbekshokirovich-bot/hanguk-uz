@@ -12,6 +12,7 @@ import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/platform/screen_awake.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../discover/presentation/widgets/app_nav.dart' show dropPendingTab;
 import '../../data/interview_repository.dart';
 import '../../data/vapi_event_parser.dart' as vapi;
 
@@ -725,6 +726,59 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     unawaited(_completeAutoEnd());
   }
 
+  /// A call is running — connecting or under way — that leaving the screen
+  /// would end: [dispose] stops it and marks the session abandoned.
+  bool get _live => _isCallActive && !_isStopping && !_didEndSession;
+
+  bool _askingToLeave = false;
+
+  /// A tab in the nav, the round button or the system back while the call is
+  /// [_live]: they ended it with no question (audit C-F3; owner: «jonli
+  /// suhbatda menyu tasdiq so'raydi»). "Suhbatni tugatish" leaves as before;
+  /// "Bekor qilish" keeps the call going, and the tab tapped does not open.
+  Future<void> _confirmLeave() async {
+    final navigator = Navigator.of(context);
+    final route = ModalRoute.of(context);
+    if (!_live) {
+      // It ended a moment ago: nothing left to lose.
+      if (route?.isCurrent ?? false) navigator.pop();
+      return;
+    }
+    if (_askingToLeave) return;
+    _askingToLeave = true;
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final dl = AppLocalizations.of(ctx)!;
+        // The interview's own confirmation, as its history's "delete?".
+        return AlertDialog(
+          backgroundColor: SeoulColors.mapWater,
+          shape: const RoundedRectangleBorder(
+            borderRadius: SeoulRadii.cardR,
+            side: BorderSide(color: SeoulColors.glassBorder),
+          ),
+          title: Text(dl.endInterview, style: SeoulType.title),
+          actions: [
+            TextButton(
+              onPressed: tracked('interview_active.leave_cancel', () => Navigator.pop(ctx, false)),
+              child: Text(dl.cancel, style: SeoulType.button.copyWith(color: SeoulColors.textSecondary)),
+            ),
+            TextButton(
+              onPressed: tracked('interview_active.leave_end', () => Navigator.pop(ctx, true)),
+              child: Text(dl.endInterview, style: SeoulType.button.copyWith(color: SeoulColors.dangerText)),
+            ),
+          ],
+        );
+      },
+    );
+    _askingToLeave = false;
+    if (leave == true) {
+      if (route?.isCurrent ?? false) navigator.pop();
+    } else {
+      dropPendingTab();
+    }
+  }
+
   /// Starts the header clock on the interviewer's first words.
   void _startClock() {
     if (_clock != null) return;
@@ -815,8 +869,17 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     super.dispose();
   }
 
+  // Closed only while the call is live: leaving then asks first.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_live,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) unawaited(_confirmLeave());
+    },
+    child: _screen(context),
+  );
+
+  Widget _screen(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final state = ref.watch(interviewProvider);
     final uni = state.targetUniversityName;

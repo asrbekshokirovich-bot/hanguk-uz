@@ -169,14 +169,20 @@ export function useCRMData() {
         untyped.from('student_university_submissions').select(SUBMISSION_COLUMNS).in('student_id', studentUserIds),
         untyped
           .from('student_university_choices')
-          .select('student_id, institution_id, rank')
+          .select('student_id, institution_id, rank, faculty_name, faculty_college')
           .in('student_id', studentUserIds)
           .eq('status', 'confirmed'),
       ]);
       if (subsResult.error) console.error('Error fetching submissions:', subsResult.error);
       if (choicesResult.error) console.error('Error fetching university choices:', choicesResult.error);
       const allSubs = (subsResult.data ?? []) as SubmissionFacts[];
-      const allChoices = ((choicesResult.data ?? []) as { student_id: string; institution_id: string; rank: number | null }[])
+      const allChoices = ((choicesResult.data ?? []) as {
+        student_id: string;
+        institution_id: string;
+        rank: number | null;
+        faculty_name?: string | null;
+        faculty_college?: string | null;
+      }[])
         .sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
 
       if (appsResult.error) {
@@ -257,6 +263,14 @@ export function useCRMData() {
       for (const s of allSubs) subsByStudent.set(s.student_id, [...(subsByStudent.get(s.student_id) ?? []), s]);
       const choicesByStudent = new Map<string, string[]>();
       for (const c of allChoices) choicesByStudent.set(c.student_id, [...(choicesByStudent.get(c.student_id) ?? []), c.institution_id]);
+      // Faculty staff entered in Universitet tanlash (migration 20261110090000).
+      const facultiesByStudent = new Map<string, Record<string, string>>();
+      for (const c of allChoices) {
+        if (!c.faculty_name) continue;
+        const m = facultiesByStudent.get(c.student_id) ?? {};
+        m[c.institution_id] = c.faculty_college ? `${c.faculty_name} · ${c.faculty_college}` : c.faculty_name;
+        facultiesByStudent.set(c.student_id, m);
+      }
 
       const pipelines = new Map(
         memberProfiles.map((profile) => [
@@ -266,6 +280,7 @@ export function useCRMData() {
             documents: docsByStudent.get(profile.user_id) || [],
             submissions: subsByStudent.get(profile.user_id) || [],
             confirmedChoiceIds: choicesByStudent.get(profile.user_id) || [],
+            faculties: facultiesByStudent.get(profile.user_id),
           }),
         ]),
       );

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { StudentPipeline } from '@/lib/studentPipeline';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, CheckCircle2, GraduationCap, Handshake, Lock, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, BookOpen, CheckCircle2, GraduationCap, Handshake, ListChecks, Lock, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,9 @@ import {
   operatorCities,
 } from '@/components/crm/pages/university-catalog/format';
 import { StudentFeePanel } from '@/components/crm/pages/application-fees/StudentFeePanel';
+import { FacultyDialog } from '@/components/crm/university-selection/FacultyDialog';
+import { SubmissionListDialog } from '@/components/crm/university-selection/SubmissionListDialog';
+import { buildSubmissionRows } from '@/lib/submissionList';
 
 type StudentProfile = Tables<'profiles'> & {
   /** From useCRMData (src/lib/studentPipeline.ts). */
@@ -122,6 +125,16 @@ export default function UniversitySelectionContent({
   const partnerChoice = studentChoices.find((c) => c.rank === PARTNER_RANK) ?? null;
   const [partnerPick, setPartnerPick] = useState('');
   const [unlocking, setUnlocking] = useState<UniversityChoice | null>(null);
+  const [facultyFor, setFacultyFor] = useState<UniversityChoice | null>(null);
+  const [listOpen, setListOpen] = useState(false);
+  const submissionRows = useMemo(
+    () =>
+      buildSubmissionRows(students, choices.byStudent, (id) => {
+        const e = entryById.get(id);
+        return e ? displayName(e).primary : '—';
+      }),
+    [students, choices.byStudent, entryById],
+  );
 
   // Universities with an uploaded guideline first — those carry the
   // requirements, fees and deadlines a choice is made on.
@@ -171,6 +184,10 @@ export default function UniversitySelectionContent({
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[300px_1fr] lg:items-start">
       {/* ---- students ---- */}
       <div className="space-y-2">
+        <Button variant="outline" className="w-full gap-2" onClick={() => setListOpen(true)}>
+          <ListChecks className="h-4 w-4" />
+          Topshirish ro'yxati (universitet va fakultet)
+        </Button>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -272,6 +289,7 @@ export default function UniversitySelectionContent({
                           : 'available'
                     }
                     onChangeConfirmed={() => setUnlocking(c)}
+                    onFaculty={() => setFacultyFor(c)}
                     onMove={(direction) => choices.move.mutate({ choice: c, direction }, { onError })}
                     onRemove={() => choices.remove.mutate(c, { onError })}
                     onConfirm={() =>
@@ -472,6 +490,41 @@ export default function UniversitySelectionContent({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {facultyFor && (
+        <FacultyDialog
+          open={!!facultyFor}
+          onOpenChange={(o) => !o && setFacultyFor(null)}
+          institutionId={facultyFor.institution_id}
+          universityName={entryById.get(facultyFor.institution_id) ? displayName(entryById.get(facultyFor.institution_id)!).primary : '—'}
+          studentName={students.find((s) => s.user_id === facultyFor.student_id)?.full_name ?? ''}
+          current={{ faculty: facultyFor.faculty_name, college: facultyFor.faculty_college }}
+          saving={choices.setFaculty.isPending}
+          onSave={(faculty, college) =>
+            choices.setFaculty.mutate(
+              { choice: facultyFor, faculty, college },
+              {
+                onSuccess: () => {
+                  toast.success(faculty ? `Fakultet saqlandi: ${faculty}` : 'Fakultet olib tashlandi');
+                  setFacultyFor(null);
+                },
+                onError,
+              },
+            )
+          }
+        />
+      )}
+
+      <SubmissionListDialog
+        open={listOpen}
+        onOpenChange={setListOpen}
+        rows={submissionRows}
+        onOpenStudent={(id) => {
+          setSelectedId(id);
+          setStudentSearch('');
+          setListOpen(false);
+        }}
+      />
     </div>
   );
 }
@@ -489,6 +542,8 @@ interface ChoiceRowProps {
   /** Confirmed choices: may this user use the student's one change? */
   changeOnce: 'none' | 'available' | 'used';
   onChangeConfirmed: () => void;
+  /** Open the faculty picker for this choice. */
+  onFaculty: () => void;
 }
 
 function fmtDay(iso: string | null) {
@@ -533,7 +588,7 @@ function StatusBadge({ choice }: { choice: UniversityChoice }) {
   }
 }
 
-function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm, changeOnce, onChangeConfirmed }: ChoiceRowProps) {
+function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove, onConfirm, changeOnce, onChangeConfirmed, onFaculty }: ChoiceRowProps) {
   const name = entry ? displayName(entry) : { primary: '—', secondary: null };
   const isPartner = choice.rank === PARTNER_RANK;
   const confirmed = choice.status === 'confirmed';
@@ -595,6 +650,20 @@ function ChoiceRow({ choice, entry, first, last, applied, busy, onMove, onRemove
             </Button>
           </div>
         )}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 pl-10" data-testid="choice-faculty">
+        <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+        {choice.faculty_name ? (
+          <span className="text-xs text-foreground">
+            <span className="font-semibold">Fakultet:</span> {choice.faculty_name}
+            {choice.faculty_college && <span className="text-muted-foreground"> · {choice.faculty_college}</span>}
+          </span>
+        ) : (
+          <span className="text-xs text-amber-600 dark:text-amber-500">Fakultet kiritilmagan</span>
+        )}
+        <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" disabled={busy} onClick={onFaculty}>
+          {choice.faculty_name ? "O'zgartirish" : 'Fakultet tanlash'}
+        </Button>
       </div>
       {changeRequested && (
         <div className="flex flex-wrap items-center justify-between gap-2 pl-10">

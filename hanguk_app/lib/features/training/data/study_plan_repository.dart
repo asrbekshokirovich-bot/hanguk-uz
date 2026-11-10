@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../entry/data/entry_store.dart';
+import 'plan_sections.dart';
 
 /// Sentinel written into `StudyPlanSessionState.error` when the analysis call
 /// fails, so the feedback step can explain *why* in the student's language.
@@ -164,6 +165,135 @@ class ChatMessage {
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(role: json['role'], content: json['content']);
   }
+}
+
+// ── Which plan the builder opens (audit P-F1, 2026-11-10) ─────────────────
+//
+// A plan written before the student chose a university is a session with no
+// target (target_institution_id NULL). The builder and the Tayyorgarlik card
+// read only the chosen university's sessions, so once one was chosen that
+// plan disappeared from both — for 14 of the 23 students with an open plan,
+// the newest session had no target. Both now choose with
+// [pickStudyPlanSession] among the same rows ([fetchStudyPlanCandidates]),
+// so they always show the same plan.
+
+/// A session with its university's name and its drafts, of which
+/// [fetchStudyPlanCandidates] reads only the newest.
+const String _candidateColumns =
+    '*, institution:target_institution_id(name_en, name_ko), study_plan_drafts(id, content, version)';
+
+/// At most this many sessions are read. A student had up to 17 open ones
+/// (2026-11-10), most started in the older step-by-step screen.
+const int _candidateLimit = 50;
+
+/// A student's unfinished sessions of [type] that the builder may open for
+/// [targetUniversityId] — that university's and the ones written before any
+/// university was chosen (no target); every one when it is null — newest
+/// first, each with only its newest draft under `study_plan_drafts`.
+Future<List<Map<String, dynamic>>> fetchStudyPlanCandidates(
+  SupabaseClient client, {
+  required String userId,
+  required String type,
+  String? targetUniversityId,
+}) {
+  var query = client
+      .from('study_plan_sessions')
+      .select(_candidateColumns)
+      .eq('student_id', userId)
+      .eq('document_type', type)
+      .neq('status', 'completed');
+  if (targetUniversityId != null) {
+    query = query.or('target_institution_id.eq.$targetUniversityId,target_institution_id.is.null');
+  }
+  return query
+      .order('updated_at', ascending: false)
+      .order('version', ascending: false, referencedTable: 'study_plan_drafts')
+      .limit(1, referencedTable: 'study_plan_drafts')
+      .limit(_candidateLimit);
+}
+
+/// What [pickStudyPlanSession] chose.
+@immutable
+class StudyPlanPick {
+  const StudyPlanPick(this.row, {this.adopt = false});
+
+  /// The session's row, as [fetchStudyPlanCandidates] read it.
+  final Map<String, dynamic> row;
+
+  /// The session has no university yet and is to become the chosen one's
+  /// ([adoptStudyPlanSession]).
+  final bool adopt;
+
+  /// Its newest draft's text; empty when it has none.
+  String get content => studyPlanRowContent(row);
+}
+
+/// The newest draft's text in a [fetchStudyPlanCandidates] row; empty when
+/// the session has no draft.
+String studyPlanRowContent(Map<String, dynamic> row) {
+  final drafts = row['study_plan_drafts'];
+  if (drafts is! List || drafts.isEmpty) return '';
+  final newest = drafts.first;
+  return newest is Map ? (newest['content'] as String? ?? '') : '';
+}
+
+/// Whether the row's newest draft has something written in it.
+bool _hasText(Map<String, dynamic> row) => parsePlan(studyPlanRowContent(row)).any((p) => p.trim().isNotEmpty);
+
+/// Which of [rows] — [fetchStudyPlanCandidates]', newest first — the builder
+/// opens for [targetUniversityId], and the Tayyorgarlik card counts. In
+/// order:
+///
+///  1. the university's own session with text;
+///  2. the newest session with text written before a university was chosen,
+///     to be adopted ([StudyPlanPick.adopt]): it becomes the university's;
+///  3. the university's own session, even with nothing written;
+///  4. none (null): a new session is to be started.
+///
+/// With no university: the newest session with text, else the newest.
+StudyPlanPick? pickStudyPlanSession(List<Map<String, dynamic>> rows, {String? targetUniversityId}) {
+  if (targetUniversityId == null) {
+    final row = rows.where(_hasText).firstOrNull ?? rows.firstOrNull;
+    return row == null ? null : StudyPlanPick(row);
+  }
+  final own = rows.where((r) => r['target_institution_id'] == targetUniversityId);
+  final written = own.where(_hasText).firstOrNull;
+  if (written != null) return StudyPlanPick(written);
+  final loose = rows.where((r) => r['target_institution_id'] == null).where(_hasText).firstOrNull;
+  if (loose != null) return StudyPlanPick(loose, adopt: true);
+  final empty = own.firstOrNull;
+  return empty == null ? null : StudyPlanPick(empty);
+}
+
+/// Makes the session [sessionId], written before a university was chosen,
+/// [targetUniversityId]'s — the student's own row, and only while it still
+/// has no university. Its updated_at moves too (the table's BEFORE UPDATE
+/// trigger), so it is the newest. The updated row; null when nothing changed
+/// (it had a university by then).
+Future<Map<String, dynamic>?> adoptStudyPlanSession(
+  SupabaseClient client, {
+  required String sessionId,
+  required String userId,
+  required String targetUniversityId,
+}) async {
+  final rows = await client
+      .from('study_plan_sessions')
+      .update({'target_institution_id': targetUniversityId})
+      .eq('id', sessionId)
+      .eq('student_id', userId)
+      .isFilter('target_institution_id', null)
+      .select('*, institution:target_institution_id(name_en, name_ko)');
+  return rows.firstOrNull;
+}
+
+/// Moves the session's updated_at to now (the table's BEFORE UPDATE trigger
+/// sets it on any update). The builder's open and the sessions list sort by
+/// it, and a new draft alone did not move it (audit P-F7).
+Future<void> touchStudyPlanSession(SupabaseClient client, String sessionId) async {
+  await client
+      .from('study_plan_sessions')
+      .update({'updated_at': DateTime.now().toUtc().toIso8601String()})
+      .eq('id', sessionId);
 }
 
 class StudyPlanSessionState {
@@ -435,13 +565,15 @@ class StudyPlanSessionNotifier
   }
 
   /// The Study Plan builder's open in one request (Tayyorgarlik T3,
-  /// 2026-11-10): the newest unfinished session of [type] for
-  /// [targetUniversityId] (any when null) with only its newest draft — all the
-  /// builder shows. [fetchSessions] + [loadSession] made up to five requests
-  /// one after another (the sessions, the session, every draft version, the
-  /// analyses, the chat) for the same text; the analyses and the chat are not
-  /// on that screen. Starts a session when there is none; null when neither
-  /// works. The older step-by-step screen keeps the full [loadSession].
+  /// 2026-11-10): the unfinished session of [type] that
+  /// [pickStudyPlanSession] chooses for [targetUniversityId], with only its
+  /// newest draft — all the builder shows. [fetchSessions] + [loadSession]
+  /// made up to five requests one after another (the sessions, the session,
+  /// every draft version, the analyses, the chat) for the same text; the
+  /// analyses and the chat are not on that screen. A plan written before a
+  /// university was chosen becomes that university's (a second request, once
+  /// per plan). Starts a session when there is none; null when neither works.
+  /// The older step-by-step screen keeps the full [loadSession].
   Future<StudyPlanSession?> openLatest(String type, {String? targetUniversityId}) async {
     final client = Supabase.instance.client;
     final user = client.auth.currentUser;
@@ -449,28 +581,24 @@ class StudyPlanSessionNotifier
 
     _setState(type, _getState(type).copyWith(isLoading: true, clearError: true));
     try {
-      var query = client
-          .from('study_plan_sessions')
-          .select('*, institution:target_institution_id(name_en, name_ko), study_plan_drafts(id, content, version)')
-          .eq('student_id', user.id)
-          .eq('document_type', type)
-          .neq('status', 'completed');
-      if (targetUniversityId != null) {
-        query = query.eq('target_institution_id', targetUniversityId);
-      }
-      final rows = await query
-          .order('updated_at', ascending: false)
-          .order('version', ascending: false, referencedTable: 'study_plan_drafts')
-          .limit(1, referencedTable: 'study_plan_drafts')
-          .limit(1);
-      if (rows.isEmpty) {
+      final rows = await fetchStudyPlanCandidates(
+        client,
+        userId: user.id,
+        type: type,
+        targetUniversityId: targetUniversityId,
+      );
+      final pick = pickStudyPlanSession(rows, targetUniversityId: targetUniversityId);
+      if (pick == null) {
         return await createSession(type, targetUniversityId: targetUniversityId);
       }
-      final row = Map<String, dynamic>.of(rows.first);
+      final row = Map<String, dynamic>.of(pick.row);
       final drafts = ((row.remove('study_plan_drafts') as List?) ?? const [])
           .map((j) => StudyPlanDraft.fromJson(Map<String, dynamic>.from(j as Map)))
           .toList();
-      final session = StudyPlanSession.fromJson(row);
+      var session = StudyPlanSession.fromJson(row);
+      if (pick.adopt && targetUniversityId != null) {
+        session = await _adopt(client, session, userId: user.id, targetUniversityId: targetUniversityId);
+      }
       _setState(
         type,
         _getState(type).copyWith(
@@ -490,6 +618,30 @@ class StudyPlanSessionNotifier
         _getState(type).copyWith(isLoading: false, error: studyPlanErrorLoad),
       );
       return null;
+    }
+  }
+
+  /// [session], written before a university was chosen, made
+  /// [targetUniversityId]'s ([adoptStudyPlanSession]). When that does not go
+  /// through the plan still opens as it is — its text is what the student
+  /// came for — and the next open tries again.
+  Future<StudyPlanSession> _adopt(
+    SupabaseClient client,
+    StudyPlanSession session, {
+    required String userId,
+    required String targetUniversityId,
+  }) async {
+    try {
+      final row = await adoptStudyPlanSession(
+        client,
+        sessionId: session.id,
+        userId: userId,
+        targetUniversityId: targetUniversityId,
+      );
+      return row == null ? session : StudyPlanSession.fromJson(row);
+    } catch (e) {
+      debugPrint('adoptStudyPlanSession failed: $e');
+      return session;
     }
   }
 
@@ -538,6 +690,10 @@ class StudyPlanSessionNotifier
   /// Audit D2: no longer overwrites `draftContent` after a successful
   /// save — the latest text is already in state from `setDraftContent`,
   /// and overwriting could clobber characters typed during the save.
+  ///
+  /// Audit P-F7 (2026-11-10): a saved draft also moves its session's
+  /// updated_at ([touchStudyPlanSession]), which [openLatest] and
+  /// [fetchSessions] sort by.
   Future<bool> saveDraft(String type, String content) async {
     final client = Supabase.instance.client;
     final user = client.auth.currentUser;
@@ -610,6 +766,9 @@ class StudyPlanSessionNotifier
         final draft = StudyPlanDraft.fromJson(response);
         final stateNow = _getState(type);
         _setState(type, stateNow.copyWith(drafts: [draft, ...stateNow.drafts]));
+        // The session is now the newest: the next open picks it by
+        // updated_at. Not waited for — the draft is saved either way.
+        unawaited(_touch(sessionId));
         return true;
       } on Exception catch (e) {
         debugPrint('saveDraft failed: $e');
@@ -617,6 +776,16 @@ class StudyPlanSessionNotifier
         return false;
       }
     });
+  }
+
+  /// [touchStudyPlanSession] after a save; a failure only leaves the order
+  /// as it was.
+  Future<void> _touch(String sessionId) async {
+    try {
+      await touchStudyPlanSession(Supabase.instance.client, sessionId);
+    } catch (e) {
+      debugPrint('touchStudyPlanSession failed: $e');
+    }
   }
 
   // ── Per-session save mutex (audit D1) ───────────────────────────────────
@@ -719,8 +888,12 @@ class StudyPlanSessionNotifier
     _setState(type, StudyPlanSessionState(sessions: s.sessions));
   }
 
-  /// AI Invocation using Edge Functions
-  Future<StudyPlanAnalysis?> analyzeCurrentDraft(String type) async {
+  /// AI Invocation using Edge Functions.
+  ///
+  /// With [step] (1-based) and [stepText] the trainer reviews only that step
+  /// of the 4-step builder and answers as JSON lists (no rewritten text); the
+  /// whole draft goes along as context. Without them it reviews the full plan.
+  Future<StudyPlanAnalysis?> analyzeCurrentDraft(String type, {int? step, String? stepText}) async {
     final currentState = _getState(type);
     final draft = currentState.drafts.isNotEmpty
         ? currentState.drafts.first
@@ -735,7 +908,8 @@ class StudyPlanSessionNotifier
         body: {
           'action': 'analyze',
           'documentType': currentState.currentSession!.documentType,
-          'content': draft.content,
+          'content': step != null && stepText != null ? stepText : draft.content,
+          if (step != null && stepText != null) ...{'step': step, 'planSoFar': draft.content},
           'targetUniversityId': currentState.currentSession!.targetUniversityId,
           'selectedTrack': currentState.currentSession!.selectedTrack,
           'language': _language,

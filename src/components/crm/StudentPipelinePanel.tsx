@@ -119,7 +119,15 @@ export function StudentPipelineUniversities({
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
+              <p className="text-sm" data-testid="pipeline-faculty">
+                <span className="text-xs text-muted-foreground">{t('pipeline.faculty', { defaultValue: 'Fakultet' })}: </span>
+                {pipeline.faculties?.[id] ?? (
+                  <span className="text-muted-foreground">
+                    {t('pipeline.facultyMissing', { defaultValue: 'kiritilmagan (Universitet tanlash bo\'limida kiritiladi)' })}
+                  </span>
+                )}
+              </p>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
                 {facts.map(([k, v]) => (
                   <div key={k}>

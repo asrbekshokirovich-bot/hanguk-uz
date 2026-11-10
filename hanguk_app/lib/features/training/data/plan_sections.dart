@@ -3,7 +3,9 @@
 /// single text, so the parts are joined under fixed markers.
 const int kPlanStepCount = 4;
 
-/// Longest a single part may be (the design's "184 / 300").
+/// Longest a single part may grow as it is typed (the design's "184 / 300").
+/// A part written elsewhere — the older step-by-step screen took a whole
+/// plan in one box — may already be longer: it is kept whole, never cut.
 const int kPlanMaxChars = 300;
 
 /// A part counts as written from this many characters on.
@@ -56,11 +58,26 @@ List<String> parsePlan(String content) {
 int writtenParts(List<String> parts) => parts.where((p) => p.trim().length >= kPlanMinChars).length;
 
 /// [base] with [spoken] appended after a space, cut to [max] characters:
-/// what the box holds while the student dictates.
+/// what the box holds while the student dictates. A [base] already longer
+/// than [max] (a plan written in the older step-by-step screen) is kept
+/// whole, with nothing added: dictation never cuts what was written.
 String appendDictation(String base, String spoken, int max) {
+  if (base.length >= max) return base;
   final words = spoken.trim();
-  if (words.isEmpty) return base.length > max ? base.substring(0, max) : base;
+  if (words.isEmpty) return base;
   final glue = base.isEmpty || base.endsWith(' ') || base.endsWith('\n') ? '' : ' ';
   final text = '$base$glue$words';
   return text.length > max ? text.substring(0, max) : text;
 }
+
+/// [text] without markdown marks (headings, bold, bullets, rules, code
+/// fences): how AI prose is shown in the feedback sheet, which renders plain
+/// text.
+String plainFeedbackText(String text) => text
+    .replaceAll(RegExp(r'```[a-zA-Z]*\n?'), '')
+    .replaceAll(RegExp(r'^\s{0,3}#{1,6}\s*', multiLine: true), '')
+    .replaceAll(RegExp(r'^\s*-{3,}\s*$', multiLine: true), '')
+    .replaceAllMapped(RegExp(r'^(\s*)[-*•]\s+', multiLine: true), (m) => '${m[1]}• ')
+    .replaceAll(RegExp(r'\*\*|__|\*'), '')
+    .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+    .trim();
