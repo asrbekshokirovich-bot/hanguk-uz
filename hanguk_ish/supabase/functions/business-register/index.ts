@@ -6,9 +6,14 @@
 // 계속사업자 is verified at once (T8), 휴업자 waits, 폐업자 is refused.
 // Answers {"business_id", "status"} or {"error": CODE} with CODE one of
 // BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED,
-// NOT_AUTHENTICATED, INVALID, UNKNOWN.
+// TOO_MANY_REQUESTS, NOT_AUTHENTICATED, INVALID, UNKNOWN.
+//
+// At most ten tries an hour per person: each may ask 국세청, and a script
+// could try numbers to learn which businesses use the app.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { isValidBizNo, ntsStatus, placeholderName } from "./nts.ts";
+
+const MAX_TRIES_PER_HOUR = 10;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -36,6 +41,19 @@ Deno.serve(async (request) => {
   if (!isValidBizNo(bizNo)) return json({ error: "BIZ_NO_INVALID" }, 400);
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count: tries, error: triesError } = await admin
+    .from("business_register_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .gte("created_at", since);
+  if (triesError) return json({ error: "UNKNOWN" }, 500);
+  if ((tries ?? 0) >= MAX_TRIES_PER_HOUR) return json({ error: "TOO_MANY_REQUESTS" }, 429);
+  const { error: logError } = await admin
+    .from("business_register_attempts")
+    .insert({ user_id: user.id, biz_no: bizNo });
+  if (logError) return json({ error: "UNKNOWN" }, 500);
+
   const { data: existing, error: readError } = await admin
     .from("businesses")
     .select("id, owner_id, status")

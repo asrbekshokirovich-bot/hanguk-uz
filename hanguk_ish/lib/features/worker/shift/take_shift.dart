@@ -28,6 +28,7 @@ String takeShiftError(WorkerL10n l10n, Object error) => switch (error) {
       ShiftActionException(code: 'ALREADY_APPLIED') => l10n.errAlreadyApplied,
       ShiftActionException(code: 'SHIFT_CLOSED' || 'SHIFT_STARTED') => l10n.errShiftClosed,
       ShiftActionException(code: 'PROFILE_INCOMPLETE') => l10n.errProfileIncomplete,
+      ShiftActionException(code: 'TOO_MANY_REQUESTS') => l10n.errTooManyRequests,
       OfflineException() => l10n.errOffline,
       _ => l10n.errorGeneric,
     };

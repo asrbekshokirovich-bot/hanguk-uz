@@ -15,6 +15,8 @@ papkada, CI'da lokal bazada sinaladi.
 | `migrations/…_ish_app_reads.sql` | ilovalar ekranlari uchun JSON: lenta kartalari (`shift_feed`, `shift_details`), `my_shifts`, `my_notifications`, `my_profile` / `save_worker_profile`, `my_businesses`; biznesning mahalla/qavat/tarjima/logo ustunlari; chat xabari bildirishnomasi; «avatars» bucket |
 | `migrations/…_ish_upkeep.sql` | smena eslatmasi (2 soat oldin) va pg_cron: kelmaganlar / muddati o'tgan arizalar har 10 daqiqada |
 | `migrations/…_ish_matching.sql` | yangi smena yaqindagi (5 km), o'sha vaqtda bo'sh ishchilarga xabar beriladi (kuniga ≤3); har kuni 18:00 da 3 km ichidagi smenalar yig'masi |
+| `migrations/…_ish_realtime*.sql` | Realtime: bildirishnomalar, chat xabarlari va arizalar ochiq ekranlarga darhol yetadi (RLS bo'yicha) |
+| `migrations/…_ish_limits.sql` | suiiste'molga qarshi cheklovlar (pastda) |
 | `functions/business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `nts_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
@@ -28,6 +30,12 @@ papkada, CI'da lokal bazada sinaladi.
 - Maosh: QR bo'yicha haqiqiy vaqt, rejadan oshmaydi (T7).
 - Ishonchlilik: bajarilgan +1 (100 gacha), 24 soatdan kam qolganda bekor −5, kelmaslik −20 (T5).
 - NTS «01 계속사업자» bo'lsa biznes darhol tasdiqlanadi (T8).
+- Cheklovlar (oshsa `TOO_MANY_REQUESTS`, ilovalar «urinishlar juda ko'p» deb tushuntiradi):
+  - chat — daqiqasiga 20, kuniga 300 xabar;
+  - arizalar — kuniga 30, bitta smenaga 3 marta;
+  - shikoyat — kuniga 10;
+  - «다시 요청» — har ishchi va smenaga bir marta;
+  - BA0 ro'yxatdan o'tish — soatiga 10 urinish (edge funksiya, `business_register_attempts`).
 
 ## Testlar
 
@@ -43,7 +51,7 @@ SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres bash tes
 
 | Funksiya | Kim chaqiradi | Nima qiladi |
 |---|---|---|
-| `business-register` | sajangnim ilovasi, BA0 dan keyin (kirgan foydalanuvchi) | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED |
+| `business-register` | sajangnim ilovasi, BA0 dan keyin (kirgan foydalanuvchi) | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED, TOO_MANY_REQUESTS |
 
 Sirlar (dashboard → Edge Functions → Secrets): `NTS_SERVICE_KEY` — data.go.kr «국세청_사업자등록정보 진위확인 및 상태조회 서비스», «Decoding» kalit.
 

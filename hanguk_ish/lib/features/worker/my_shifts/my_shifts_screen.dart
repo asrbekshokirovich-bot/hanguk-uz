@@ -418,6 +418,7 @@ String myShiftError(WorkerL10n l10n, Object error) => switch (error) {
       ShiftActionException(code: 'TOO_LATE') => l10n.errTooLate,
       ShiftActionException(code: 'NOT_CHECKED_IN') => l10n.errNotCheckedIn,
       ShiftActionException(code: 'ALREADY_CHECKED_OUT') => l10n.errAlreadyCheckedOut,
+      ShiftActionException(code: 'TOO_MANY_REQUESTS') => l10n.errTooManyRequests,
       OfflineException() => l10n.errOffline,
       _ => l10n.errorGeneric,
     };

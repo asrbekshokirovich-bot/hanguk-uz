@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/catalog/places.dart';
 import '../../../data/models/account.dart';
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/shift_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';
 import '../../../design/tokens.dart';
@@ -300,8 +301,12 @@ class MeScreen extends ConsumerWidget {
     try {
       await ref.read(accountRepositoryProvider).report(result.$1, result.$2);
       messenger?.showSnackBar(SnackBar(content: Text(l10n.reportSent)));
-    } on Object {
-      messenger?.showSnackBar(SnackBar(content: Text(l10n.errorGeneric)));
+    } on Object catch (error) {
+      messenger?.showSnackBar(SnackBar(content: Text(switch (error) {
+        ShiftActionException(code: 'TOO_MANY_REQUESTS') => l10n.errTooManyRequests,
+        OfflineException() => l10n.errOffline,
+        _ => l10n.errorGeneric,
+      })));
     }
   }
 

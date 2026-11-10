@@ -458,6 +458,18 @@ void main() {
       await expectLater(employer.registerBusiness('123-45-67890'), _refused('BIZ_NO_INVALID'));
     });
 
+    test('ten tries an hour, then «too many»', () async {
+      // Malika has no business; each try with Minjun's number is refused as taken.
+      final malikaOwner = SupabaseEmployerRepository(malika, config);
+      for (var i = 0; i < 10; i++) {
+        await expectLater(malikaOwner.registerBusiness('124-81-00998'), _refused('BIZ_NO_TAKEN'));
+      }
+      await expectLater(malikaOwner.registerBusiness('124-81-00998'), _refused('TOO_MANY_REQUESTS'));
+      await expectLater(malikaOwner.registerBusiness('220-81-62517'), _refused('TOO_MANY_REQUESTS'),
+          reason: 'per person, whatever the number');
+      expect(await minjun.businesses(), hasLength(1), reason: 'others are not held back');
+    });
+
     test('the function refuses a caller who is not signed in', () async {
       final anonymous = SupabaseEmployerRepository(_client(_anonKey), config);
       await expectLater(anonymous.registerBusiness('1234567891'), throwsA(isA<ShiftActionException>()));
