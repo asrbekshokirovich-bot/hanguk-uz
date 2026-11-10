@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
+import 'package:hanguk_ish/data/backend/supabase_live_updates.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
 import 'package:hanguk_ish/data/models/account.dart';
 import 'package:hanguk_ish/data/models/business.dart';
@@ -371,6 +372,19 @@ void main() {
       final news = await SupabaseAccountRepository(aziz).notifications();
       expect(news.where((n) => n.kind == NotificationKind.newShift && n.shiftId == later.id), isNotEmpty);
       await expectLater(employer.requestAgain(later.id, malika.auth.currentUser!.id), _refused('NOT_FOUND'));
+    });
+
+    test('live: a change reaches the person at once (Realtime)', () async {
+      final events = <void>[];
+      final subscription = SupabaseLiveUpdates(aziz).changes().listen(events.add);
+      addTearDown(subscription.cancel);
+      await Future<void>.delayed(const Duration(seconds: 3));
+      await employer.requestAgain(tomorrow.id, aziz.auth.currentUser!.id);
+      final deadline = DateTime.now().add(const Duration(seconds: 20));
+      while (events.isEmpty && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+      expect(events, isNotEmpty, reason: 'the invitation arrives while the app is open');
     });
 
     test('A12 is marked read; A11 reports are stored', () async {

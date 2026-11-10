@@ -2,10 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/account.dart';
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/live_updates.dart';
 
 /// A12's notifications, newest first.
 final notificationsProvider = FutureProvider.autoDispose<List<HiNotification>>(
-  (ref) => ref.watch(accountRepositoryProvider).notifications(),
+  (ref) {
+    ref.watch(liveTickProvider);
+    return ref.watch(accountRepositoryProvider).notifications();
+  },
   retry: (count, error) => null,
 );
 

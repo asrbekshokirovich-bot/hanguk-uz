@@ -5,6 +5,7 @@ import '../../../core/format/dates.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
 import '../../../data/models/account.dart';
+import '../../../data/repositories/live_updates.dart';
 import '../../../data/repositories/shift_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';
@@ -20,7 +21,10 @@ import '../shift/shift_widgets.dart';
 
 /// One application's chat (A10).
 final chatProvider = FutureProvider.autoDispose.family<List<ChatMessage>, String>(
-  (ref, applicationId) => ref.watch(shiftRepositoryProvider).messages(applicationId),
+  (ref, applicationId) {
+    ref.watch(liveTickProvider);
+    return ref.watch(shiftRepositoryProvider).messages(applicationId);
+  },
   retry: (count, error) => null,
 );
 

@@ -5,6 +5,7 @@ import '../../core/time/kst.dart';
 import '../../data/models/business.dart';
 import '../../data/models/employer.dart';
 import '../../data/repositories/employer_repository.dart';
+import '../../data/repositories/live_updates.dart';
 
 /// The business chosen in the BA1 header (null = the first one).
 final selectedBusinessIdProvider = NotifierProvider<SelectedBusiness, String?>(SelectedBusiness.new);
@@ -37,6 +38,7 @@ DateTime kstDayStart(DateTime instant, [int addDays = 0]) {
 
 /// Today's shifts and the next two weeks' (BA1).
 final homeShiftsProvider = FutureProvider.autoDispose<List<EmployerShift>>((ref) async {
+  ref.watch(liveTickProvider);
   final business = await ref.watch(currentBusinessProvider.future);
   final now = ref.watch(clockProvider)();
   return ref.watch(employerRepositoryProvider).shifts(business.id, kstDayStart(now), kstDayStart(now, 15));
@@ -44,7 +46,10 @@ final homeShiftsProvider = FutureProvider.autoDispose<List<EmployerShift>>((ref)
 
 /// One shift with its applicants (BA3).
 final employerShiftProvider = FutureProvider.autoDispose.family<EmployerShift?, String>(
-  (ref, id) => ref.watch(employerRepositoryProvider).shift(id),
+  (ref, id) {
+    ref.watch(liveTickProvider);
+    return ref.watch(employerRepositoryProvider).shift(id);
+  },
   retry: (count, error) => null,
 );
 
@@ -98,7 +103,10 @@ final reportProvider = FutureProvider.autoDispose.family<BusinessReport, ReportP
 
 /// The bell on BA1.
 final employerNotificationsProvider = FutureProvider.autoDispose<List<EmployerNotification>>(
-  (ref) => ref.watch(employerRepositoryProvider).notifications(),
+  (ref) {
+    ref.watch(liveTickProvider);
+    return ref.watch(employerRepositoryProvider).notifications();
+  },
   retry: (count, error) => null,
 );
 
