@@ -28,24 +28,27 @@ class EmployerNotificationsScreen extends ConsumerStatefulWidget {
 }
 
 class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificationsScreen> {
+  /// The list as it was when the screen opened (unread marks included).
   List<EmployerNotification>? _shown;
+  bool _marked = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // Show them as they were (unread marks included), then mark them read.
-    Future.microtask(() async {
-      final list = await ref.read(employerNotificationsProvider.future);
-      if (!mounted) return;
-      setState(() => _shown = list);
+  void _markRead() {
+    if (_marked) return;
+    _marked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(employerRepositoryProvider).markNotificationsRead();
-      ref.invalidate(employerNotificationsProvider);
+      if (mounted) ref.invalidate(employerNotificationsProvider);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final now = ref.watch(clockProvider)();
+    final loaded = ref.watch(employerNotificationsProvider).value;
+    if (_shown == null && loaded != null) {
+      _shown = loaded;
+      _markRead();
+    }
     final list = _shown;
     final today = kstDayStart(now);
     final yesterday = kstDayStart(now, -1);

@@ -180,8 +180,12 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
       ),
     );
     if (result == null || !mounted) return;
+    final (title, duties, dress, address) = result;
     setState(() {
-      (_title, _duties, _dress, _address) = result;
+      _title = title;
+      _duties = duties;
+      _dress = dress;
+      _address = address;
     });
     final templateId = _templateId;
     if (_editing != null || templateId == null) return;
