@@ -220,7 +220,7 @@ class HiInputField extends StatelessWidget {
         controller: controller,
         focusNode: focusNode,
         style: text,
-        strutStyle: hiStrut(text, mono ? '0' : 'A'),
+        strutStyle: hiStrut(text),
         cursorColor: HiColors.ink,
         keyboardType: keyboardType,
         textCapitalization: textCapitalization,
