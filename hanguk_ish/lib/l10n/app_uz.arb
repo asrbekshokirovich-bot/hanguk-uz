@@ -1481,5 +1481,89 @@
   "emptyNotifications": "Hozircha bildirishnoma yo'q",
   "@emptyNotifications": {
     "description": "A12: bo'sh holat."
+  },
+  "phoneTopTitle": "Kirish",
+  "@phoneTopTitle": {
+    "description": "T1/T2: yuqori qatordagi sarlavha."
+  },
+  "phoneTitle": "Telefon raqamingiz",
+  "@phoneTitle": {
+    "description": "T1: sarlavha."
+  },
+  "phoneSubtitle": "Unga 6 xonali tasdiqlash kodini SMS qilib yuboramiz.",
+  "@phoneSubtitle": {
+    "description": "T1: sarlavha ostidagi matn."
+  },
+  "phoneLabel": "Telefon raqami",
+  "@phoneLabel": {
+    "description": "T1: maydon yorlig'i."
+  },
+  "phoneHint": "Koreya raqami, 010 bilan boshlanadi",
+  "@phoneHint": {
+    "description": "T1: maydon ostidagi izoh."
+  },
+  "getCode": "Kod olish",
+  "@getCode": {
+    "description": "T1: tugma."
+  },
+  "codeTitle": "Kodni kiriting",
+  "@codeTitle": {
+    "description": "T2: sarlavha."
+  },
+  "codeSentTo": "{phone} raqamiga SMS yuborildi.",
+  "@codeSentTo": {
+    "description": "T2: kod qaysi raqamga yuborilgani.",
+    "placeholders": {
+      "phone": {
+        "type": "String",
+        "example": "010-1234-5678"
+      }
+    }
+  },
+  "codeLabel": "SMS kod",
+  "@codeLabel": {
+    "description": "T2: maydon yorlig'i."
+  },
+  "confirmCode": "Tasdiqlash",
+  "@confirmCode": {
+    "description": "T2: tugma."
+  },
+  "resendCode": "Kodni qayta yuborish",
+  "@resendCode": {
+    "description": "T2: kodni qayta yuborish havolasi."
+  },
+  "resendIn": "Qayta yuborish: {time}",
+  "@resendIn": {
+    "description": "T2: qayta yuborishgacha qolgan vaqt.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "0:45"
+      }
+    }
+  },
+  "codeResent": "Yangi kod yuborildi.",
+  "@codeResent": {
+    "description": "T2: kod qayta yuborilgach."
+  },
+  "errCodeInvalid": "Kod noto'g'ri yoki eskirgan. Qaytadan kiriting.",
+  "@errCodeInvalid": {
+    "description": "T2: noto'g'ri kod."
+  },
+  "errTooManyRequests": "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring.",
+  "@errTooManyRequests": {
+    "description": "T1/T2: so'rovlar chegarasi."
+  },
+  "errPhoneInvalid": "Raqam noto'g'ri. 010-0000-0000 ko'rinishida kiriting.",
+  "@errPhoneInvalid": {
+    "description": "T1: noto'g'ri raqam."
+  },
+  "errSmsFailed": "SMS yuborib bo'lmadi. Raqamni tekshirib, qayta urinib ko'ring.",
+  "@errSmsFailed": {
+    "description": "T1: SMS yuborilmadi."
+  },
+  "telegramSoon": "Telegram orqali kirish tez orada. Hozircha telefon raqam bilan kiring.",
+  "@telegramSoon": {
+    "description": "A01: Telegram orqali kirish hali ulanmagan."
   }
 }

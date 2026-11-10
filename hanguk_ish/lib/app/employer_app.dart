@@ -3,12 +3,22 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/format/business_number.dart';
+import '../core/format/phone.dart';
+import '../data/backend/backend.dart';
+import '../data/repositories/auth_repository.dart';
+import '../data/repositories/employer_repository.dart';
 import '../design/theme.dart';
+import '../design/tokens.dart';
+import '../design/widgets/backdrop.dart';
+import '../design/widgets/brand.dart';
 import '../features/employer/create/ba2_create_screen.dart';
 import '../features/employer/home/ba1_home_screen.dart';
 import '../features/employer/ko.dart';
+import '../features/employer/login/ba0_code_screen.dart';
 import '../features/employer/login/ba0_login_screen.dart';
 import '../features/employer/notifications/employer_notifications_screen.dart';
+import '../features/employer/providers.dart';
 import '../features/employer/report/ba5_report_screen.dart';
 import '../features/employer/shell/employer_shell.dart';
 import '../features/employer/shift/ba3_shift_screen.dart';
@@ -17,7 +27,15 @@ import 'text_scale.dart';
 
 /// Paths of the employer app.
 abstract final class EmployerRoutes {
+  /// Decides where a launch opens (signed in with a business?).
+  static const start = '/start';
+
   static const login = '/';
+
+  /// T2: the SMS code after BA0.
+  static String code(String phone, String businessNumber) =>
+      '/code?n=${Uri.encodeQueryComponent(phone)}&b=${Uri.encodeQueryComponent(businessNumber)}';
+
   static const home = '/home';
   static const workers = '/workers';
   static const report = '/report';
@@ -29,26 +47,116 @@ abstract final class EmployerRoutes {
   static String invite(String workerId) => '$create?invite=${Uri.encodeQueryComponent(workerId)}';
 }
 
-/// Where the app opens (tests open a screen directly).
-final employerInitialLocationProvider = Provider<String>((ref) => EmployerRoutes.login);
+/// Where the app opens: with a backend, the start gate (a saved session
+/// skips BA0); the demo starts at BA0. Tests open a screen directly.
+final employerInitialLocationProvider = Provider<String>(
+  (ref) => ref.watch(backendConfigProvider).isConfigured ? EmployerRoutes.start : EmployerRoutes.login,
+);
+
+void _say(BuildContext context, String text) => (ScaffoldMessenger.of(context)..hideCurrentSnackBar())
+    .showSnackBar(SnackBar(content: Text(text)));
+
+/// After signing in: an owner with a business opens BA1; a new owner's
+/// [businessNumber] is checked with 국세청 and registered first. A refusal
+/// goes back to BA0 with the reason.
+Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref, {String? businessNumber}) async {
+  final repo = ref.read(employerRepositoryProvider);
+  try {
+    final businesses = await repo.businesses();
+    if (businesses.isEmpty) {
+      if (businessNumber == null) {
+        if (context.mounted) context.go(EmployerRoutes.login);
+        return;
+      }
+      await repo.registerBusiness(businessNumber);
+    }
+    ref.invalidate(businessesProvider);
+    if (context.mounted) context.go(EmployerRoutes.home);
+  } catch (error) {
+    if (!context.mounted) return;
+    if (businessNumber == null) {
+      // A launch while offline: BA1 shows the error and retries.
+      context.go(EmployerRoutes.home);
+      return;
+    }
+    context.go(EmployerRoutes.login);
+    _say(context, Ko.error(error));
+  }
+}
+
+class _OwnerStartGate extends ConsumerStatefulWidget {
+  const _OwnerStartGate();
+
+  @override
+  ConsumerState<_OwnerStartGate> createState() => _OwnerStartGateState();
+}
+
+class _OwnerStartGateState extends ConsumerState<_OwnerStartGate> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (ref.read(authRepositoryProvider).userId == null) {
+        context.go(EmployerRoutes.login);
+      } else {
+        continueOwnerAfterSignIn(context, ref);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        backgroundColor: HiColors.navy,
+        body: HiBackdrop(glow: HiGlow.entry, child: Center(child: HiBrandTile())),
+      );
+}
 
 /// Routes of the employer app.
 final employerRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: ref.watch(employerInitialLocationProvider),
     routes: [
+      GoRoute(path: EmployerRoutes.start, builder: (context, state) => const _OwnerStartGate()),
       GoRoute(
         path: EmployerRoutes.login,
-        builder: (context, state) => Ba0LoginScreen(
-          onStart: (phone, businessNumber) {
-            String digits(String s) => s.replaceAll(RegExp(r'\D'), '');
-            if (digits(phone).length != 11 || digits(businessNumber).length != 10) {
-              (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(const SnackBar(content: Text(Ko.loginIncomplete)));
-              return;
-            }
-            // Demo: no SMS check or 국세청 lookup until the backend is connected.
-            context.go(EmployerRoutes.home);
-          },
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => Ba0LoginScreen(
+            onStart: (phone, businessNumber) async {
+              if (KoreanPhone.toE164(phone) == null || businessNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+                _say(context, Ko.loginIncomplete);
+                return;
+              }
+              if (!isValidBusinessNumber(businessNumber)) {
+                _say(context, Ko.bizNoInvalid);
+                return;
+              }
+              final auth = ref.read(authRepositoryProvider);
+              if (auth.userId != null) {
+                // Back from a refused registration: signed in already.
+                await continueOwnerAfterSignIn(context, ref, businessNumber: businessNumber);
+                return;
+              }
+              try {
+                await auth.sendCode(phone);
+              } catch (error) {
+                if (context.mounted) _say(context, Ko.error(error));
+                return;
+              }
+              if (context.mounted) context.push(EmployerRoutes.code(phone, businessNumber));
+            },
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/code',
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => Ba0CodeScreen(
+            phone: state.uri.queryParameters['n'] ?? '',
+            onBack: () => context.canPop() ? context.pop() : context.go(EmployerRoutes.login),
+            onVerified: () =>
+                continueOwnerAfterSignIn(context, ref, businessNumber: state.uri.queryParameters['b'] ?? ''),
+          ),
         ),
       ),
       StatefulShellRoute.indexedStack(

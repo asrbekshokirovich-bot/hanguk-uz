@@ -9,6 +9,7 @@
 /// their time has passed, so the demo makes sense at any hour.
 library;
 
+import '../../core/format/business_number.dart';
 import '../../core/money/won.dart';
 import '../../core/time/kst.dart';
 import '../models/business.dart';
@@ -336,6 +337,13 @@ class DemoEmployerRepository implements EmployerRepository {
   Future<List<Business>> businesses() async {
     await _wait();
     return const [demoDalbit];
+  }
+
+  @override
+  Future<Business> registerBusiness(String businessNumber) async {
+    await _wait();
+    if (!isValidBusinessNumber(businessNumber)) throw const ShiftActionException('BIZ_NO_INVALID');
+    return demoDalbit;
   }
 
   @override

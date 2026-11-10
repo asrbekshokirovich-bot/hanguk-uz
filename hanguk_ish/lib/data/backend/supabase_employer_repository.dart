@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/format/business_number.dart';
 import '../models/business.dart';
 import '../models/employer.dart';
 import '../repositories/employer_repository.dart';
@@ -27,6 +28,25 @@ class SupabaseEmployerRepository implements EmployerRepository {
   Future<List<Business>> businesses() => backendCall(() async {
         final cards = await _client.rpc('my_businesses') as List;
         return [for (final card in cards) businessFromJson(card as Json, publicUrl: _config.publicUrl)];
+      });
+
+  @override
+  Future<Business> registerBusiness(String businessNumber) => backendCall(() async {
+        final digits = businessNumber.replaceAll(RegExp(r'\D'), '');
+        if (!isValidBusinessNumber(digits)) throw const ShiftActionException('BIZ_NO_INVALID');
+        final Json answer;
+        try {
+          final response = await _client.functions.invoke('business-register', body: {'biz_no': digits});
+          answer = response.data is Map ? (response.data as Map).cast<String, dynamic>() : const {};
+        } on FunctionException catch (e) {
+          final details = e.details;
+          final code = details is Map ? details['error'] : null;
+          throw ShiftActionException(code is String && code.isNotEmpty ? code : 'UNKNOWN');
+        }
+        final cards = await _client.rpc('my_businesses') as List;
+        final businesses = [for (final card in cards) businessFromJson(card as Json, publicUrl: _config.publicUrl)];
+        if (businesses.isEmpty) throw const ShiftActionException('UNKNOWN');
+        return businesses.firstWhere((b) => b.id == answer['business_id'], orElse: () => businesses.first);
       });
 
   @override
