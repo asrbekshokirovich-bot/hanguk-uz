@@ -2,9 +2,8 @@
 // tests without a client code (owner, 2026-10-21). Supabase's anonymous
 // sign-in is off for the project, so this makes the same thing by hand: a
 // confirmed user "guest-<uuid>@hanguk.local" with a random password, marked
-// guest in app_metadata, signed in here and handed to the app as a session
-// (with the credentials, which the app keeps on the phone to sign in with
-// later). The app does not count such a session as a client's (the
+// guest in app_metadata, whose credentials the app keeps on the phone to sign
+// in with later. The app does not count such a session as a client's (the
 // application and documents stay locked), and handle_new_user gives it no
 // profile, so it never shows in the CRM as a student.
 //
@@ -12,10 +11,17 @@
 // waiting on four database calls in a row, each 0.3–0.9 s from the region the
 // phone reaches (eu-central-1) to the project's (ap-northeast-2); booting took
 // 31 ms. Now only what decides the answer is waited for — the throttle count,
-// the new user and its session. The throttle row and the cleanup run while the
-// user is made (EdgeRuntime.waitUntil), and the phone no longer signs in
-// itself. The app asks for this function in ap-northeast-2
-// (?forceFunctionRegion), next to the database, where a call takes ~26 ms.
+// the new user and, when asked for, its session. The throttle row and the
+// cleanup run while the user is made (EdgeRuntime.waitUntil). The app asks
+// for this function in ap-northeast-2 (?forceFunctionRegion), next to the
+// database, where a call takes ~26 ms.
+//
+// The session only when asked for (audit P-F4, 2026-11-10): an app that sets
+// it itself sends {"session": true} and gets the user signed in here, so the
+// phone does not sign in itself. Older builds send {} and ignore a session:
+// for them the sign-in here only made a second auth session per guest and
+// ~0.4 s more wait, so they get {email, password} alone, as before T2. A
+// body that is empty or not JSON counts as {}.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { publishableKey, serviceKey } from "../_shared/keys.ts";
 
@@ -83,6 +89,17 @@ async function overLimit(admin: any, req: Request): Promise<boolean> {
   return false;
 }
 
+/** Whether the body asks for the new guest's session: {"session": true}. */
+async function asksForSession(req: Request): Promise<boolean> {
+  try {
+    const body: unknown = JSON.parse(await req.text());
+    return typeof body === "object" && body !== null && (body as { session?: unknown }).session === true;
+  } catch {
+    // Empty or not JSON: as {}.
+    return false;
+  }
+}
+
 /**
  * The new guest's session, as the app's own sign-in would get it; null when
  * it could not be had (the app then signs in with the credentials). On a
@@ -118,6 +135,7 @@ Deno.serve(async (req) => {
   try {
     const url = Deno.env.get("SUPABASE_URL")!;
     const admin = createClient(url, serviceKey(), noSession);
+    const withSession = await asksForSession(req);
     // Xavfsizlik (2026-11-05): bitta IP soatiga 20 tadan, hammasi kuniga 300 tadan
     // ko'p mehmon akkaunt ocholmaydi (oldin cheksiz edi). Kuniga eng ko'pi 19 ta
     // ochilgan, bitta IP soatiga eng ko'pi 6 ta (2026-11-04; ofis/mobil NAT bitta IP), shuning uchun oddiy foydalanuvchiga ta'sir qilmaydi.
@@ -139,6 +157,7 @@ Deno.serve(async (req) => {
       return json({ error: "failed" }, 500);
     }
     // email/password stay for the app versions that sign in themselves.
+    if (!withSession) return json({ email, password });
     const session = await signIn(url, email, password);
     return json(session ? { email, password, session } : { email, password });
   } catch (e) {
