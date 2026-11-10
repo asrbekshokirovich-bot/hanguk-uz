@@ -64,7 +64,8 @@ void main() {
   testWidgets('1 · guest (D4)', (t) async {
     final l = await _pump(t, signedIn: false);
     final shot = await capture(t, 'prepare_1_mehmon');
-    expectLabelVisible(t, shot, find.text(l.fdNavPrepare));
+    // The page's title (the nav's own «Tayyorgarlik» is the same word).
+    expectLabelVisible(t, shot, find.descendant(of: find.byType(PrepareScreen), matching: find.text(l.fdNavPrepare)));
     expectLabelVisible(t, shot, find.text(l.prepGuestSignIn));
   });
 
