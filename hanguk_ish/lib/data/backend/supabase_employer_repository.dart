@@ -161,8 +161,7 @@ class SupabaseEmployerRepository implements EmployerRepository {
         final cards = await _client.rpc('my_notifications',
             params: {'p_limit': 100, 'p_kinds': employerNotificationKinds}) as List;
         return [
-          for (final card in cards)
-            if (employerNotificationFromJson(card as Json) case final notification?) notification,
+          for (final card in cards) ?employerNotificationFromJson(card as Json),
         ];
       });
 

@@ -21,7 +21,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'json_test.dart' show samples;
 
 const me = '00000000-0000-0000-0000-0000000000a1';
-const config = BackendConfig(url: 'https://ish.test', anonKey: 'anon-key');
+const config = BackendConfig(url: 'https://ish.test', publishableKey: 'anon-key');
 
 /// A Supabase client whose server is [respond]: every request is recorded,
 /// and a signed-in session is set up without a network call.
@@ -34,13 +34,19 @@ class FakeBackend {
 
   late final SupabaseClient client = SupabaseClient(
     config.url,
-    config.anonKey,
+    config.publishableKey,
     httpClient: MockClient((request) async {
       requests.add(request);
       final answer = respond(request);
-      if (answer is http.Response) return answer;
-      if (answer == null) return reply({'message': 'not found'}, 404);
-      return reply(answer);
+      final response = switch (answer) {
+        http.Response r => r,
+        null => reply({'message': 'not found'}, 404),
+        _ => reply(answer),
+      };
+      // The client reads the request back from the response (as a real
+      // server's response carries it).
+      return http.Response.bytes(response.bodyBytes, response.statusCode,
+          headers: response.headers, request: request);
     }),
     authOptions: const AuthClientOptions(autoRefreshToken: false),
   );

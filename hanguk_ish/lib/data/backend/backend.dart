@@ -10,24 +10,31 @@ import '../repositories/shift_repository.dart';
 /// Where the backend is, given at build time:
 ///
 ///     flutter build apk --dart-define=SUPABASE_URL=https://….supabase.co \
-///                       --dart-define=SUPABASE_ANON_KEY=…
+///                       --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_…
+///
+/// (a legacy `SUPABASE_ANON_KEY` works too).
 ///
 /// Without both the apps run on demo data (nothing leaves the phone).
 class BackendConfig {
-  const BackendConfig({required this.url, required this.anonKey});
+  const BackendConfig({required this.url, required this.publishableKey});
 
   static const fromEnvironment = BackendConfig(
     url: String.fromEnvironment('SUPABASE_URL'),
-    anonKey: String.fromEnvironment('SUPABASE_ANON_KEY'),
+    publishableKey: String.fromEnvironment(
+      'SUPABASE_PUBLISHABLE_KEY',
+      defaultValue: String.fromEnvironment('SUPABASE_ANON_KEY'),
+    ),
   );
 
   /// No backend: demo data.
-  static const none = BackendConfig(url: '', anonKey: '');
+  static const none = BackendConfig(url: '', publishableKey: '');
 
   final String url;
-  final String anonKey;
 
-  bool get isConfigured => url.isNotEmpty && anonKey.isNotEmpty;
+  /// The project's public client key (safe in the app: RLS decides).
+  final String publishableKey;
+
+  bool get isConfigured => url.isNotEmpty && publishableKey.isNotEmpty;
 
   /// The public URL of [path] in a public Storage bucket; null for no file.
   String? publicUrl(String bucket, String? path) {

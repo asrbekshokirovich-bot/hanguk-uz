@@ -22,7 +22,7 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
   const backend = BackendConfig.fromEnvironment;
   final overrides = <Override>[flavorProvider.overrideWithValue(flavor)];
   if (backend.isConfigured) {
-    await Supabase.initialize(url: backend.url, anonKey: backend.anonKey);
+    await Supabase.initialize(url: backend.url, publishableKey: backend.publishableKey);
     overrides.addAll(backendOverrides(backend, Supabase.instance.client));
   }
   runApp(ProviderScope(overrides: overrides, child: app));

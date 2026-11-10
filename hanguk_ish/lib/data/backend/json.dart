@@ -46,7 +46,7 @@ Json _obj(Object? v) => v is Map ? v.cast<String, dynamic>() : const {};
 
 List<Object?> _list(Object? v) => v is List ? v : const [];
 
-/// {"uz": "…"} → Map<String, String>, skipping empty values.
+/// `{"uz": "…"}` → `Map<String, String>`, skipping empty values.
 Map<String, String> _texts(Object? v) => {
       for (final e in _obj(v).entries)
         if (e.value is String && (e.value as String).isNotEmpty) e.key: e.value as String,
