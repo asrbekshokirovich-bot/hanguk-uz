@@ -429,7 +429,10 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Salom, ertaga 13:50 da boraman');
     await tester.pump(const Duration(milliseconds: 100));
     await _tap(tester, find.bySemanticsLabel('Yuborish'));
-    await _until(tester, _text('Salom, ertaga 13:50 da boraman'));
+    // Sent: the composer empties and the bubble is in the thread (the
+    // composer's own text matched before).
+    await _until(tester, find.descendant(of: find.byType(ListView), matching: _text('Salom, ertaga 13:50 da boraman')));
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
     final thread = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).messages(app.applicationId));
     expect(thread!.last.body, 'Salom, ertaga 13:50 da boraman');
     await _close(tester);
