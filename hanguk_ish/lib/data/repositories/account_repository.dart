@@ -16,6 +16,10 @@ abstract interface class WorkerAccountRepository {
 
   /// A11 «Shikoyat qilish» → `reports`.
   Future<void> report(ReportSubject subject, String text);
+
+  /// The worker's approximate position (about 100 m), for shifts nearby
+  /// (`worker_profiles.lat/lng`).
+  Future<void> savePosition(double lat, double lng);
 }
 
 /// The repository the app uses. Demo data until a backend is configured.

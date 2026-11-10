@@ -40,12 +40,24 @@ class SupabaseAccountRepository implements WorkerAccountRepository {
       });
 
   @override
+  Future<void> savePosition(double lat, double lng) => backendCall(() async {
+        await _client
+            .from('worker_profiles')
+            .update({'lat': roundPosition(lat), 'lng': roundPosition(lng)})
+            .eq('user_id', _me);
+      });
+
+  @override
   Future<void> report(ReportSubject subject, String text) => backendCall(() async {
         final body = text.trim();
         if (body.length > 2000) throw const ShiftActionException('INVALID');
         await _client.from('reports').insert({'reason': reportReason(subject), 'body': body});
       });
 }
+
+/// A position kept to three decimals (about 100 m): enough for «nearby»,
+/// not a home address.
+double roundPosition(double degrees) => (degrees * 1000).roundToDouble() / 1000;
 
 /// `reports.reason` of an A11 subject.
 String reportReason(ReportSubject subject) => switch (subject) {

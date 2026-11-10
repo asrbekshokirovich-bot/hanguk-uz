@@ -249,7 +249,7 @@ void main() {
     test('stats, notifications, reports', () async {
       var stats = samples['worker_stats'];
       final backend = FakeBackend((r) {
-        if (r.url.path == '/rest/v1/reports') return <Object?>[];
+        if (r.url.path == '/rest/v1/reports' || r.url.path == '/rest/v1/worker_profiles') return <Object?>[];
         return switch (rpcName(r)) {
           'worker_stats' => stats,
           'my_notifications' => samples['my_notifications_worker'],
@@ -268,6 +268,11 @@ void main() {
       expect(backend.params('my_notifications'), {'p_limit': 100, 'p_kinds': workerNotificationKinds});
       await repo.markNotificationsRead();
       expect(backend.params('mark_notifications_read'), {'p_kinds': workerNotificationKinds});
+      await repo.savePosition(37.55612, 126.93678);
+      final position = backend.requests.lastWhere((r) => r.url.path == '/rest/v1/worker_profiles');
+      expect(position.method, 'PATCH');
+      expect(position.url.queryParameters['user_id'], 'eq.$me');
+      expect(jsonDecode(position.body), {'lat': 37.556, 'lng': 126.937});
       await repo.report(ReportSubject.safety, ' Sirpanchiq pol ');
       final report = backend.requests.lastWhere((r) => r.url.path == '/rest/v1/reports');
       expect(jsonDecode(report.body), {'reason': 'safety', 'body': 'Sirpanchiq pol'});

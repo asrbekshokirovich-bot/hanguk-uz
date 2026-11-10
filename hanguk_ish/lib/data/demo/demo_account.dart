@@ -90,4 +90,9 @@ class DemoAccountRepository implements WorkerAccountRepository {
   Future<void> report(ReportSubject subject, String text) async {
     reports.add((subject, text));
   }
+
+  final List<(double, double)> positions = [];
+
+  @override
+  Future<void> savePosition(double lat, double lng) async => positions.add((lat, lng));
 }
