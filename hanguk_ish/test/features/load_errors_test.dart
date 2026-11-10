@@ -303,6 +303,13 @@ void main() {
       expect(find.textContaining('최저시급'), findsNothing);
     });
 
+    testWidgets("BA2 without a template starts with the store's address", (tester) async {
+      final repo = OfflineEmployer()..offline.add('templates');
+      await open(tester, repo, location: EmployerRoutes.create);
+      expect(find.text('마포구 신촌로12길 15, 2층'), findsOneWidget);
+      expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
+    });
+
     testWidgets('BA2 for a shift that did not load: the close button and 다시 시도', (tester) async {
       final repo = OfflineEmployer()..offline.add('shift');
       await open(tester, repo, location: EmployerRoutes.edit('demo-es-close'));

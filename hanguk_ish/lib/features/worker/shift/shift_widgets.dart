@@ -248,13 +248,13 @@ class ShiftCard extends StatelessWidget {
         '${HiDates.timeRange(shift.startsAt, shift.endsAt)} · '
         '${HiDates.duration(shift.plannedMinutes, lang)}';
     final distance = shift.distanceKm;
-    // The neighbourhood; a business that has not named one yet shows where
-    // the shift is instead.
+    final km = distance == null ? null : formatKm(distance, lang);
+    // «Sinchon · 1,2 km». A business that has not named its neighbourhood
+    // yet shows the street instead; a long one is cut, never the distance.
     final area = b.displayArea(lang);
-    final where = dotJoin([
-      area.isNotEmpty ? area : shift.placeStreet(lang),
-      if (distance != null) formatKm(distance, lang),
-    ]);
+    final street = area.isEmpty ? shift.placeStreet(lang) : '';
+    final where = area.isNotEmpty ? dotJoin([area, ?km]) : (street.isNotEmpty ? street : km ?? '');
+    final whereKm = area.isEmpty && street.isNotEmpty && km != null ? ' · $km' : null;
     final taken = shift.holdsMyPlace;
     return HiPressable(
       onTap: onOpen,
@@ -308,6 +308,7 @@ class ShiftCard extends StatelessWidget {
                   child: _InfoLine(
                     icon: HiIcons.mapPin,
                     text: where,
+                    trailing: whereKm,
                     style: hiStyle(15, FontWeight.w600, color: HiColors.inkMuted),
                   ),
                 ),
@@ -343,14 +344,18 @@ class ShiftCard extends StatelessWidget {
 }
 
 class _InfoLine extends StatelessWidget {
-  const _InfoLine({required this.icon, required this.text, required this.style});
+  const _InfoLine({required this.icon, required this.text, required this.style, this.trailing});
 
   final HiIconData icon;
   final String text;
   final TextStyle style;
 
+  /// Kept whole after [text], which is cut when the two do not fit.
+  final String? trailing;
+
   @override
   Widget build(BuildContext context) {
+    final end = trailing;
     return Row(
       children: [
         HiIcon(icon, size: 18, strokeWidth: 2, color: HiColors.inkMuted),
@@ -358,6 +363,7 @@ class _InfoLine extends StatelessWidget {
         Flexible(
           child: HiText(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
         ),
+        if (end != null) HiText(end, maxLines: 1, softWrap: false, style: style),
       ],
     );
   }

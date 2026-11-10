@@ -241,10 +241,11 @@ void main() {
     // business has more shifts today: the card of this one.
     await _until(tester, _text('E2E Kafe'));
     // The business has no area (neighbourhood) yet: the card's place line is
-    // its address and the distance, with no dot in front.
+    // its street (cut when long) and the distance, with no dot in front.
     final dangling = find.byWidgetPredicate((w) => w is Text && RegExp(r'^· [\d,.]+ km$').hasMatch(w.data ?? ''));
     expect(dangling, findsNothing);
-    expect(find.textContaining(RegExp(r'^부산 해운대구 해운대해변로 264 · [\d,.]+ km$')), findsWidgets);
+    expect(_text('부산 해운대구 해운대해변로 264'), findsWidgets);
+    expect(find.textContaining(RegExp(r'^ · [\d,.]+ km$')), findsWidgets);
     await _shot(tester, 'a03-feed');
     await _tap(tester, find.bySemanticsLabel(RegExp('E2E 홀 보조')));
     await _until(tester, _text('E2E 홀 보조'));
@@ -512,6 +513,7 @@ void main() {
     });
     final created = posted!.singleWhere((s) => s.title == 'E2E 새 근무');
     expect(created.hourlyWage, minimum);
+    expect(created.address, '부산 해운대구 해운대해변로 264', reason: "no template: the store's address");
     await _close(tester);
   });
 

@@ -292,11 +292,16 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
           _ready = true;
         } else {
           // No template yet: the wage starts at the legal minimum once it is
-          // known, and empty when it cannot be.
+          // known, and empty when it cannot be; the address is the store's
+          // (what workers see when a shift has none of its own).
           final minimum = ref.watch(minimumWageProvider(_day.year));
-          if (!minimum.isLoading || minimum.hasValue) {
+          final store = ref.watch(currentBusinessProvider);
+          if ((!minimum.isLoading || minimum.hasValue) && (!store.isLoading || store.hasValue)) {
             final value = minimum.value ?? 0;
             if (value > 0) _wage.text = ThousandsFormatter.format('$value');
+            if (store.value case final b?) {
+              _address = [b.address.trim(), b.addressDetail.trim()].where((p) => p.isNotEmpty).join(', ');
+            }
             _ready = true;
           }
         }

@@ -10,6 +10,7 @@ import 'package:hanguk_ish/data/models/my_shift.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
 import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 
 import '../../helpers/fonts.dart';
@@ -124,9 +125,21 @@ void main() {
   testWidgets("A03: the shift's own address stands in for the area the business has not named", (tester) async {
     final clock = TestClock(prototypeNow);
     await open(tester, NumberOnlyBusinesses(clock, shiftAddress: '서울 마포구 양화로 160'), clock, WorkerRoutes.feed);
+    expect(find.text('서울 마포구 양화로 160'), findsWidgets);
+    // The distance is its own text: a long street is cut, the distance stays.
     final lines = distanceLines(tester);
-    expect(lines.where((l) => RegExp(r'^서울 마포구 양화로 160 · \d+,\d km$').hasMatch(l)), isNotEmpty,
-        reason: lines.join(' | '));
+    expect(lines.where((l) => RegExp(r'^ · \d+,\d km$').hasMatch(l)), isNotEmpty, reason: lines.join(' | '));
+  });
+
+  testWidgets('A03: a long street is cut before the distance, which stays whole', (tester) async {
+    final clock = TestClock(prototypeNow);
+    const long = '서울특별시 마포구 신촌로12길 15 달빛빌딩 지하 1층 오른쪽 끝 매장';
+    await open(tester, NumberOnlyBusinesses(clock, shiftAddress: long), clock, WorkerRoutes.feed);
+    final street = tester.widget<Text>(find.text(long).first);
+    expect(street.overflow, TextOverflow.ellipsis);
+    final km = find.textContaining(RegExp(r'^ · \d+,\d km$')).first;
+    expect(tester.getRect(km).right, lessThanOrEqualTo(tester.getRect(find.byType(ShiftCard).first).right));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets("A05 and A06 show the shift's own address", (tester) async {
