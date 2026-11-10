@@ -152,6 +152,8 @@ void main() {
         district: 'mapo',
       ));
       expect((await SupabaseAccountRepository(malika).stats()).reliability, 100);
+      // Her phone's approximate position (P9): near Sinchon.
+      await SupabaseAccountRepository(malika).savePosition(37.5581, 126.9502);
     });
   });
 
@@ -235,6 +237,18 @@ void main() {
       final details = await azizShifts.shift(tomorrow.id);
       expect(details?.hourlyWage, 11000);
       expect(details?.distanceKm, isNotNull, reason: 'from where the feed was read');
+    });
+
+    test('a worker nearby who is free then hears of the new shifts (at most 3 a day)', () async {
+      final news = await SupabaseAccountRepository(malika).notifications();
+      final matches = [for (final n in news) if (n.kind == NotificationKind.newShift) n];
+      expect(matches, hasLength(3));
+      expect(matches.every((n) => n.distanceKm != null && n.distanceKm! < 5), isTrue);
+      expect(matches.map((n) => n.shiftId), containsAll([now.id, tomorrow.id, later.id]));
+      expect(matches.first.businessName('uz'), 'Dalbit Kafe · Sinchon');
+      final azizNews = await SupabaseAccountRepository(aziz).notifications();
+      expect(azizNews.where((n) => n.kind == NotificationKind.newShift), isEmpty,
+          reason: 'Aziz shared no position');
     });
 
     test('taking: at once, or waiting for the owner', () async {

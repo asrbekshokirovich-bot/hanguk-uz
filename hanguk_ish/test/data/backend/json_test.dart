@@ -135,6 +135,25 @@ void main() {
       expect(invite.shiftId, '20000000-0000-0000-0000-000000000001');
     });
 
+    test('the evening digest names the worker\'s district by its code', () {
+      final digest = hiNotificationFromJson({
+        'id': 20,
+        'kind': 'nearby_digest',
+        'data': {'count': 4, 'area_code': 'mapo', 'categories': ['cafe'], 'wage_min': 10500, 'wage_max': 11000},
+        'created_at': '2026-11-10T09:00:00+00:00',
+      })!;
+      expect(digest.areaName('uz'), 'Mapo-gu, Seul');
+      expect(digest.areaName('ko'), '서울 마포구');
+      expect(digest.count, 4);
+      final typed = hiNotificationFromJson({
+        'id': 21,
+        'kind': 'nearby_digest',
+        'data': {'count': 1, 'area_code': 'Mapo-gu'},
+        'created_at': '2026-11-10T09:00:00+00:00',
+      })!;
+      expect(typed.areaName('ru'), 'Mapo-gu', reason: 'typed text is shown as typed');
+    });
+
     test('a cancelled shift and an unmarked payment', () {
       final cancelled = hiNotificationFromJson({
         'id': 9,

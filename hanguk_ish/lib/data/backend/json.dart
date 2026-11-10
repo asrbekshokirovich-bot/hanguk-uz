@@ -10,6 +10,7 @@ import '../models/business.dart';
 import '../models/employer.dart';
 import '../models/my_shift.dart';
 import '../models/shift.dart';
+import '../../features/worker/feed/feed_area.dart' show areaPlace;
 import '../../features/worker/profile/worker_profile_draft.dart';
 
 typedef Json = Map<String, dynamic>;
@@ -212,6 +213,9 @@ HiNotification? hiNotificationFromJson(Json json) {
   final application = _obj(json['application']);
   final digest = kind == NotificationKind.nearbyShifts;
   final area = _str(data['area']);
+  // The evening digest names the worker's own A02 district by its code.
+  final areaCode = _strOrNull(data['area_code']);
+  final district = areaCode == null ? null : areaPlace(areaCode);
   return HiNotification(
     id: '${json['id']}',
     kind: kind,
@@ -229,7 +233,11 @@ HiNotification? hiNotificationFromJson(Json json) {
     amount: _intOrNull(application['pay_amount']),
     distanceKm: _double(data['distance_km']),
     count: _intOrNull(data['count']),
-    areaNames: {if (area.isNotEmpty) 'ko': area, ..._texts(data['area_i18n'])},
+    areaNames: {
+      if (district != null) for (final l in appLanguages) l: district.name(l),
+      if (area.isNotEmpty) 'ko': area,
+      ..._texts(data['area_i18n']),
+    },
     categories: [for (final c in _list(data['categories'])) if (c is String) c],
     lat: _double(shift['lat']) ?? _double(data['lat']),
     lng: _double(shift['lng']) ?? _double(data['lng']),
