@@ -64,3 +64,15 @@ String appendDictation(String base, String spoken, int max) {
   final text = '$base$glue$words';
   return text.length > max ? text.substring(0, max) : text;
 }
+
+/// [text] without markdown marks (headings, bold, bullets, rules, code
+/// fences): how AI prose is shown in the feedback sheet, which renders plain
+/// text.
+String plainFeedbackText(String text) => text
+    .replaceAll(RegExp(r'```[a-zA-Z]*\n?'), '')
+    .replaceAll(RegExp(r'^\s{0,3}#{1,6}\s*', multiLine: true), '')
+    .replaceAll(RegExp(r'^\s*-{3,}\s*$', multiLine: true), '')
+    .replaceAllMapped(RegExp(r'^(\s*)[-*•]\s+', multiLine: true), (m) => '${m[1]}• ')
+    .replaceAll(RegExp(r'\*\*|__|\*'), '')
+    .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+    .trim();

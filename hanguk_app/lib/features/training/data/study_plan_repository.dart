@@ -719,8 +719,12 @@ class StudyPlanSessionNotifier
     _setState(type, StudyPlanSessionState(sessions: s.sessions));
   }
 
-  /// AI Invocation using Edge Functions
-  Future<StudyPlanAnalysis?> analyzeCurrentDraft(String type) async {
+  /// AI Invocation using Edge Functions.
+  ///
+  /// With [step] (1-based) and [stepText] the trainer reviews only that step
+  /// of the 4-step builder and answers as JSON lists (no rewritten text); the
+  /// whole draft goes along as context. Without them it reviews the full plan.
+  Future<StudyPlanAnalysis?> analyzeCurrentDraft(String type, {int? step, String? stepText}) async {
     final currentState = _getState(type);
     final draft = currentState.drafts.isNotEmpty
         ? currentState.drafts.first
@@ -735,7 +739,8 @@ class StudyPlanSessionNotifier
         body: {
           'action': 'analyze',
           'documentType': currentState.currentSession!.documentType,
-          'content': draft.content,
+          'content': step != null && stepText != null ? stepText : draft.content,
+          if (step != null && stepText != null) ...{'step': step, 'planSoFar': draft.content},
           'targetUniversityId': currentState.currentSession!.targetUniversityId,
           'selectedTrack': currentState.currentSession!.selectedTrack,
           'language': _language,

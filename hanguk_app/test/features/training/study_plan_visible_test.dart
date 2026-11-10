@@ -146,13 +146,23 @@ class _Plans extends StudyPlanSessionNotifier {
     return true;
   }
 
+  /// What each feedback request reviewed: (step, step text).
+  final reviewed = <(int?, String?)>[];
+
+  /// The next answer: null → the structured lists below; otherwise prose.
+  String? prose;
+
   @override
-  Future<StudyPlanAnalysis?> analyzeCurrentDraft(String type) async => StudyPlanAnalysis(
+  Future<StudyPlanAnalysis?> analyzeCurrentDraft(String type, {int? step, String? stepText}) async {
+    reviewed.add((step, stepText));
+    if (prose != null) return StudyPlanAnalysis(id: 'a2', aiResponse: prose);
+    return StudyPlanAnalysis(
     id: 'a1',
     contentFeedback: 'Maqsadingiz aniq yozilgan.',
     strengths: const ['Aniq maqsad'],
     improvements: const ['Universitet nomini ham yozing'],
   );
+  }
 }
 
 /// The phone's copies of plans, in memory (secure storage is a platform
@@ -343,6 +353,52 @@ void main() {
       final shot = await capture(t, 'builder_7_feedback');
       expectLabelVisible(t, shot, find.text('Maqsadingiz aniq yozilgan.'));
       expectLabelVisible(t, shot, find.text('Universitet nomini ham yozing'));
+    });
+
+    testWidgets('feedback reviews only the open step\'s text', (t) async {
+      final plans = _Plans();
+      final l = await _pump(
+        t,
+        const NavScaffold(current: AppTab.prepare, child: StudyPlanBuilderScreen()),
+        plans: plans,
+      );
+      final field = find.descendant(of: find.byType(StudyPlanField), matching: find.byType(TextField));
+      await t.enterText(field, _goal);
+      await _settle(t);
+      await t.tap(find.text(l.fdPlanStepKorea));
+      await _settle(t);
+
+      // Step 2 is empty: nothing to review, no request.
+      await t.tap(find.widgetWithText(HardButton, l.fdPlanFeedback));
+      await _settle(t);
+      expect(plans.reviewed, isEmpty);
+      expect(find.text(l.fdPlanWriteFirst), findsOneWidget);
+      // The snackbar sits over the button; let it go before the next tap.
+      ScaffoldMessenger.of(t.element(field)).removeCurrentSnackBar();
+      await _settle(t);
+
+      await t.enterText(field, _korea);
+      await _settle(t);
+      await t.tap(find.widgetWithText(HardButton, l.fdPlanFeedback));
+      await _settle(t, 20);
+      expect(plans.reviewed, [(2, _korea.trim())]);
+    });
+
+    testWidgets('prose feedback shows without markdown marks', (t) async {
+      final plans = _Plans()..prose = '### 1. Overall\n**Good** start.\n\n---\n* Add **details**';
+      final l = await _pump(
+        t,
+        const NavScaffold(current: AppTab.prepare, child: StudyPlanBuilderScreen()),
+        plans: plans,
+      );
+      final field = find.descendant(of: find.byType(StudyPlanField), matching: find.byType(TextField));
+      await t.enterText(field, _goal);
+      await _settle(t);
+      await t.tap(find.widgetWithText(HardButton, l.fdPlanFeedback));
+      await _settle(t, 20);
+      expect(find.textContaining('#'), findsNothing);
+      expect(find.textContaining('**'), findsNothing);
+      expect(find.text('1. Overall\nGood start.\n\n• Add details'), findsOneWidget);
     });
   });
 
