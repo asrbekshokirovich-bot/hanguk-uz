@@ -193,9 +193,8 @@ class ShiftPay extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 2),
-        Text.rich(
+        HiRichText(
           TextSpan(
-            style: muted,
             children: [
               TextSpan(text: '${l10n.total} '),
               TextSpan(
@@ -204,7 +203,7 @@ class ShiftPay extends StatelessWidget {
               ),
             ],
           ),
-          strutStyle: hiStrut(muted),
+          style: muted,
         ),
       ],
     );

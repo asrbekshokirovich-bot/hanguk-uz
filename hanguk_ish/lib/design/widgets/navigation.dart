@@ -73,6 +73,7 @@ class _NavButton extends StatelessWidget {
         // padding: its grid row, where the item is centred, is 57 px.
         constraints: const BoxConstraints(minHeight: 57),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(

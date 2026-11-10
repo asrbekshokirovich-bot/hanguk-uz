@@ -87,6 +87,7 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
     final b = shift.business;
     final untilStart = Kst.minutesBetween(now, shift.startsAt);
     final detail = hiStyle(15, FontWeight.w600, color: HiColors.ink);
+    final money = hiStyle(15, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono);
     return Semantics(
       scopesRoute: true,
       namesRoute: true,
@@ -170,24 +171,18 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
                     const SizedBox(height: 8),
                     _DetailLine(
                       icon: HiIcons.wallet,
-                      child: Text.rich(
+                      child: HiRichText(
                         TextSpan(
-                          style: detail,
                           children: [
                             TextSpan(
                               text: '${HiDates.duration(shift.plannedMinutes, lang)} × '
                                   '${Won.worker(shift.hourlyWage)} = ',
                             ),
-                            TextSpan(
-                              text: Won.worker(shift.totalPay),
-                              style: hiStyle(15, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono),
-                            ),
+                            TextSpan(text: Won.worker(shift.totalPay), style: money),
                           ],
                         ),
-                        strutStyle: hiStrut(
-                          detail,
-                          also: [hiStyle(15, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono)],
-                        ),
+                        style: detail,
+                        also: [money],
                       ),
                     ),
                   ],

@@ -41,7 +41,7 @@ void main() {
 
   test('distances', () {
     expect(formatKm(1.2, 'uz'), '1,2 km');
-    expect(formatKm(1.2, 'ru'), '1,2 km');
+    expect(formatKm(1.2, 'ru'), '1,2 км');
     expect(formatKm(1.2, 'en'), '1.2 km');
     expect(formatKm(1.2, 'ko'), '1.2km');
   });

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 /// Font families bundled in `assets/fonts` (see pubspec.yaml).
@@ -142,6 +143,92 @@ StrutStyle hiStrut(TextStyle style, {List<TextStyle> also = const []}) {
   return (lineHeight, leadingAbove + ascent);
 }
 
+/// The CSS line box height of [style] (plus inline runs in [also]).
+double hiCssLineHeight(TextStyle style, {List<TextStyle> also = const []}) {
+  var (lineHeight, baseline) = _cssLine(style);
+  for (final other in also) {
+    final (h, b) = _cssLine(other);
+    final above = math.max(baseline, b);
+    final below = math.max(lineHeight - baseline, h - b);
+    baseline = above;
+    lineHeight = above + below;
+  }
+  return lineHeight;
+}
+
+/// Flutter rounds every line of a paragraph to whole pixels; CSS keeps the
+/// fraction (a 15 px / 1.45 line is 21.75 px, not 22). This reports the CSS
+/// height of a paragraph whose lines are all [lineHeight] tall, so text
+/// stacked down a screen lands where the prototype has it. The glyphs stay
+/// where they are; only the box the next widget is placed after shrinks or
+/// grows by the rounding.
+class HiCssLines extends SingleChildRenderObjectWidget {
+  const HiCssLines({super.key, required this.lineHeight, super.child});
+
+  /// The unrounded line height, in logical pixels (text scale included).
+  final double lineHeight;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderCssLines(lineHeight);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderCssLines renderObject) {
+    renderObject.lineHeight = lineHeight;
+  }
+}
+
+class _RenderCssLines extends RenderProxyBox {
+  _RenderCssLines(this._lineHeight);
+
+  double _lineHeight;
+
+  set lineHeight(double value) {
+    if (value == _lineHeight) return;
+    _lineHeight = value;
+    markNeedsLayout();
+  }
+
+  double _css(double height) {
+    final rounded = _lineHeight.roundToDouble();
+    if (rounded <= 0 || height <= 0) return height;
+    final lines = (height / rounded).round();
+    if (lines <= 0 || (lines * rounded - height).abs() > 0.5) return height;
+    return lines * _lineHeight;
+  }
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    if (child == null) {
+      size = constraints.smallest;
+      return;
+    }
+    child.layout(constraints, parentUsesSize: true);
+    size = constraints.constrain(Size(child.size.width, _css(child.size.height)));
+  }
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    final child = this.child;
+    if (child == null) return constraints.smallest;
+    final childSize = child.getDryLayout(constraints);
+    return constraints.constrain(Size(childSize.width, _css(childSize.height)));
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) => _css(super.computeMinIntrinsicHeight(width));
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => _css(super.computeMaxIntrinsicHeight(width));
+}
+
+/// The CSS line height of [style] at the text scale of [context].
+double _scaledLineHeight(BuildContext context, TextStyle style, TextScaler? textScaler, List<TextStyle> also) {
+  final size = style.fontSize ?? 15;
+  final scaler = textScaler ?? MediaQuery.textScalerOf(context);
+  return hiCssLineHeight(style, also: also) * scaler.scale(size) / size;
+}
+
 /// [Text] with the CSS line box of [hiStrut].
 class HiText extends StatelessWidget {
   const HiText(
@@ -165,15 +252,53 @@ class HiText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      data,
-      style: style,
-      strutStyle: hiStrut(style),
-      textAlign: textAlign,
-      maxLines: maxLines,
-      overflow: overflow,
-      softWrap: softWrap,
-      textScaler: textScaler,
+    return HiCssLines(
+      lineHeight: _scaledLineHeight(context, style, textScaler, const []),
+      child: Text(
+        data,
+        style: style,
+        strutStyle: hiStrut(style),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+        softWrap: softWrap,
+        textScaler: textScaler,
+      ),
+    );
+  }
+}
+
+/// Rich text (runs in other weights or fonts) with the CSS line box of its
+/// base [style] and the inline runs in [also].
+class HiRichText extends StatelessWidget {
+  const HiRichText(
+    this.span, {
+    super.key,
+    required this.style,
+    this.also = const [],
+    this.textAlign,
+    this.maxLines,
+    this.overflow,
+  });
+
+  final InlineSpan span;
+  final TextStyle style;
+  final List<TextStyle> also;
+  final TextAlign? textAlign;
+  final int? maxLines;
+  final TextOverflow? overflow;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiCssLines(
+      lineHeight: _scaledLineHeight(context, style, null, also),
+      child: Text.rich(
+        TextSpan(style: style, children: [span]),
+        strutStyle: hiStrut(style, also: also),
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+      ),
     );
   }
 }

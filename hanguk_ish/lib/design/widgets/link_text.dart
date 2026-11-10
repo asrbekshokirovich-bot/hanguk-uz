@@ -76,11 +76,14 @@ class _HiLinkSentenceState extends State<HiLinkSentence> {
         color: widget.linkStyle.color ?? const Color(0xFFFFFFFF),
         fontSize: widget.linkStyle.fontSize ?? widget.style.fontSize ?? 14,
       ),
-      child: Text.rich(
-        span,
-        textAlign: widget.textAlign,
-        textScaler: scaler,
-        strutStyle: strut,
+      child: HiCssLines(
+        lineHeight: hiCssLineHeight(widget.style) * scaler.scale(widget.style.fontSize ?? 15) / (widget.style.fontSize ?? 15),
+        child: Text.rich(
+          span,
+          textAlign: widget.textAlign,
+          textScaler: scaler,
+          strutStyle: strut,
+        ),
       ),
     );
   }
