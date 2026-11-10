@@ -1,24 +1,25 @@
 -- Lists and numbers the apps show: feed, stats, earnings, report, payment,
 -- favourites, rating.
 
--- Feed (A03): a1's view of the next three days around Sinchon.
+-- Feed (A03): a1's view of the next three days around Sinchon (JSON cards).
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
-select tests.eq((select count(*)::int from public.shift_feed(now(), now() + interval '4 days')), 5,
+select tests.eq(jsonb_array_length(public.shift_feed(now(), now() + interval '4 days')), 5,
                 'feed lists the open future shifts of verified businesses');
-select tests.ok(not exists (select 1 from public.shift_feed(now(), now() + interval '4 days')
-                            where business_id = '10000000-0000-0000-0000-000000000002'),
+select tests.ok(not exists (select 1 from jsonb_array_elements(public.shift_feed(now(), now() + interval '4 days')) c
+                            where c -> 'business' ->> 'id' = '10000000-0000-0000-0000-000000000002'),
                 'never the unverified business');
-select tests.eq((select slots_left from public.shift_feed(now(), now() + interval '4 days')
-                 where id = '20000000-0000-0000-0000-000000000004'), 2, 's4: 3 slots, 1 taken');
-select tests.eq((select my_status::text from public.shift_feed(now(), now() + interval '4 days')
-                 where id = '20000000-0000-0000-0000-000000000004'), 'confirmed', 'the card knows I hold it');
-select tests.eq((select count(*)::int from public.shift_feed(now(), now() + interval '4 days', p_min_wage => 11000)),
+select tests.eq((select (c ->> 'slots_left')::int from jsonb_array_elements(public.shift_feed(now(), now() + interval '4 days')) c
+                 where c ->> 'id' = '20000000-0000-0000-0000-000000000004'), 2, 's4: 3 slots, 1 taken');
+select tests.eq((select c ->> 'my_status' from jsonb_array_elements(public.shift_feed(now(), now() + interval '4 days')) c
+                 where c ->> 'id' = '20000000-0000-0000-0000-000000000004'), 'confirmed', 'the card knows I hold it');
+select tests.eq(jsonb_array_length(public.shift_feed(now(), now() + interval '4 days', p_min_wage => 11000)),
                 1, 'wage filter');
-select tests.eq((select count(*)::int from public.shift_feed(now(), now() + interval '4 days', p_categories => '{restaurant}')),
+select tests.eq(jsonb_array_length(public.shift_feed(now(), now() + interval '4 days', p_categories => '{restaurant}')),
                 0, 'category filter');
-select tests.ok((select distance_km between 0 and 0.01 from public.shift_feed(now(), now() + interval '4 days', 37.5559, 126.9368)
-                 where id = '20000000-0000-0000-0000-000000000001'), 'distance from the worker');
-select tests.eq((select count(*)::int from public.shift_feed(now(), now() + interval '4 days', 37.5665, 126.9780, 1.0)),
+select tests.ok((select (c ->> 'distance_km')::numeric between 0 and 0.01
+                 from jsonb_array_elements(public.shift_feed(now(), now() + interval '4 days', 37.5559, 126.9368)) c
+                 where c ->> 'id' = '20000000-0000-0000-0000-000000000001'), 'distance from the worker');
+select tests.eq(jsonb_array_length(public.shift_feed(now(), now() + interval '4 days', 37.5665, 126.9780, 1.0)),
                 0, 'radius filter (City Hall is 3.8 km away)');
 
 -- Completed work: a2 finishes s5 (12 000/h) and the business pays.

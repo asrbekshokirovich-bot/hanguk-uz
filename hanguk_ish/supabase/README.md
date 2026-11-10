@@ -11,7 +11,9 @@ papkada, CI'da lokal bazada sinaladi.
 | `migrations/…_ish_core.sql` | jadvallar, turlar, triggerlar (eng kam ish haqi, QR siri, tarjimani yangilash) |
 | `migrations/…_ish_rls.sql` | RLS siyosatlari va ustun darajasidagi huquqlar |
 | `migrations/…_ish_rpc.sql` | ilovalar chaqiradigan funksiyalar: smena olish/bekor qilish, tasdiqlash, QR kirish/chiqish, baho, hisobotlar |
-| `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql` |
+| `migrations/…_ish_employer.sql` | ish beruvchi ilovasi o'qishlari (`business_board`, `employer_shift`, `business_workers`) va smenani tahrirlash qoidalari (`shifts_guard`) |
+| `migrations/…_ish_app_reads.sql` | ilovalar ekranlari uchun JSON: lenta kartalari (`shift_feed`, `shift_details`), `my_shifts`, `my_notifications`, `my_profile` / `save_worker_profile`, `my_businesses`; biznesning mahalla/qavat/tarjima/logo ustunlari; chat xabari bildirishnomasi; «avatars» bucket |
+| `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
 
 ## Qoidalar (bazada tekshiriladi)
