@@ -317,13 +317,17 @@ class _PhotoHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = photoUrl;
-    final placeholder = Column(
+    // Centred in the padding box, above the 1 px bottom border.
+    final placeholder = Padding(
+      padding: const EdgeInsets.only(bottom: HiBorders.width),
+      child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const HiIcon(HiIcons.image, size: 30, strokeWidth: 2, color: HiColors.textMuted),
         const SizedBox(height: 8),
         HiText(label, style: hiStyle(14, FontWeight.w700, color: HiColors.textMuted)),
       ],
+      ),
     );
     return SizedBox(
       height: 220,

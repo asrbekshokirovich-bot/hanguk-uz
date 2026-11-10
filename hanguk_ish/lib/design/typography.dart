@@ -190,10 +190,11 @@ class RenderHiCssLines extends RenderProxyBox {
   }
 
   double _css(double height) {
-    final rounded = _lineHeight.roundToDouble();
-    if (rounded <= 0 || height <= 0) return height;
-    final lines = (height / rounded).round();
-    if (lines <= 0 || (lines * rounded - height).abs() > 0.5) return height;
+    if (_lineHeight <= 0 || height <= 0) return height;
+    // Each line was rounded by at most half a pixel (which way depends on
+    // float error at .5), so n lines are within n / 2 px of n × lineHeight.
+    final lines = (height / _lineHeight).round();
+    if (lines <= 0 || (height - lines * _lineHeight).abs() > lines * 0.5 + 0.01) return height;
     return lines * _lineHeight;
   }
 
