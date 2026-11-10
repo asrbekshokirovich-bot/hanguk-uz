@@ -373,6 +373,9 @@ void main() {
       await _settle(t);
       expect(plans.reviewed, isEmpty);
       expect(find.text(l.fdPlanWriteFirst), findsOneWidget);
+      // The snackbar sits over the button; let it go before the next tap.
+      ScaffoldMessenger.of(t.element(field)).removeCurrentSnackBar();
+      await _settle(t);
 
       await t.enterText(field, _korea);
       await _settle(t);
