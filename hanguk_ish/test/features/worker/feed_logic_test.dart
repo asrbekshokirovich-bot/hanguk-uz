@@ -81,8 +81,8 @@ void main() {
 
     test('apply refusals', () async {
       await repo.apply('demo-1');
-      expect(() => repo.apply('demo-1'), throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', 'ALREADY_APPLIED')));
-      expect(() => repo.apply('nope'), throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', 'SHIFT_CLOSED')));
+      await expectLater(repo.apply('demo-1'), throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', 'ALREADY_APPLIED')));
+      await expectLater(repo.apply('nope'), throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', 'SHIFT_CLOSED')));
       await repo.apply('demo-11'); // 1 place, auto-confirmed
       final other = DemoShiftRepository(now: now);
       await other.apply('demo-11');
