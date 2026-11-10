@@ -35,6 +35,20 @@ export interface UniversityChoice {
   change_reason: string | null;
   change_note: string | null;
   confirmed_at: string | null;
+  /** Faculty the student applies to — entered by staff (migration 20261110090000). */
+  faculty_name: string | null;
+  faculty_college: string | null;
+}
+
+/** One faculty from the university's guideline (choice_faculty_options RPC). */
+export interface FacultyOption {
+  college: string | null;
+  faculty: string;
+  faculty_kr: string | null;
+  degree: string | null;
+  track: string | null;
+  intake_year: number | null;
+  semester: string | null;
 }
 
 /** Reason codes the mobile app sends with "O'zgartirish so'rayman". */
@@ -98,7 +112,7 @@ export function useUniversityChoices() {
       ((await run(
         db
           .from('student_university_choices')
-          .select('id, student_id, institution_id, rank, created_at, status, responded_at, change_reason, change_note, confirmed_at')
+          .select('id, student_id, institution_id, rank, created_at, status, responded_at, change_reason, change_note, confirmed_at, faculty_name, faculty_college')
           .order('rank'),
       )) ?? []) as UniversityChoice[],
   });
@@ -208,6 +222,26 @@ export function useUniversityChoices() {
     onSettled: invalidate,
   });
 
+  /** Staff record the faculty the student applies to; null clears it. */
+  const setFaculty = useMutation({
+    mutationFn: async ({ choice, faculty, college }: { choice: UniversityChoice; faculty: string | null; college: string | null }) => {
+      const { data: auth } = await supabase.auth.getUser();
+      const name = faculty?.trim() || null;
+      await run(
+        db
+          .from('student_university_choices')
+          .update({
+            faculty_name: name,
+            faculty_college: name ? college?.trim() || null : null,
+            faculty_set_at: name ? new Date().toISOString() : null,
+            faculty_set_by: name ? auth.user?.id ?? null : null,
+          })
+          .eq('id', choice.id),
+      );
+    },
+    onSettled: invalidate,
+  });
+
   const remove = useMutation({
     mutationFn: async (choice: UniversityChoice) => {
       await run(db.from('student_university_choices').delete().eq('id', choice.id));
@@ -256,8 +290,17 @@ export function useUniversityChoices() {
     remove,
     move,
     confirm,
+    setFaculty,
     unlockConfirmed,
     canChangeConfirmed: canChangeQuery.data === true,
     changedStudents: changesQuery.data ?? new Set<string>(),
   };
+}
+
+/** Faculties listed in the university's guideline (active season, else the latest year). */
+export async function loadFacultyOptions(institutionId: string): Promise<FacultyOption[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.rpc as any)('choice_faculty_options', { p_institution: institutionId });
+  if (error) throw error;
+  return (data ?? []) as FacultyOption[];
 }
