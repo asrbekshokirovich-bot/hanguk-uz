@@ -265,10 +265,10 @@ class ShiftCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Wraps like the prototype («Ttukbaegi / Sikdang» next to
+                      // the wide «Restoran» pill).
                       HiText(
                         b.displayName(lang),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: hiStyle(17, FontWeight.w800, height: 1.3, color: HiColors.ink),
                       ),
                       const SizedBox(height: 3),

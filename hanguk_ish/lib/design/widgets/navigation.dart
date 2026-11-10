@@ -308,7 +308,7 @@ class HiFilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? HiColors.white : (pressed ? HiColors.white08 : background),
           borderRadius: BorderRadius.circular(HiRadii.pill),
-          border: active ? Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white30, width: 1.5),
+          border: active ? Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white30, width: HiBorders.width),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -345,7 +345,7 @@ class HiFilterAllButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: pressed ? HiColors.white08 : background,
           shape: BoxShape.circle,
-          border: Border.all(color: HiColors.white30, width: 1.5),
+          border: Border.all(color: HiColors.white30, width: HiBorders.width),
         ),
         alignment: Alignment.center,
         child: const HiIcon(HiIcons.slidersHorizontal, size: 18, strokeWidth: 2, color: HiColors.white),

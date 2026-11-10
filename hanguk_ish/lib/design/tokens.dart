@@ -92,6 +92,12 @@ abstract final class HiShadows {
 
 /// Outlines.
 abstract final class HiBorders {
-  /// `1.5px solid #0A1A34`, on every white surface.
-  static const ink = BorderSide(color: HiColors.ink, width: 1.5);
+  /// The width the prototype's `1.5px` borders are drawn at. Chrome floors
+  /// border widths to whole CSS pixels (getComputedStyle reports 1px at any
+  /// device pixel ratio), so every 1.5 px outline in the prototype is 1 px
+  /// on screen — and the boxes' contents sit 0.5 px further out per side.
+  static const width = 1.0;
+
+  /// `1.5px solid #0A1A34` (drawn 1 px), on every white surface.
+  static const ink = BorderSide(color: HiColors.ink, width: width);
 }
