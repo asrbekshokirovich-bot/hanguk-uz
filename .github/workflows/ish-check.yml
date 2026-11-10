@@ -7,12 +7,16 @@ name: Hanguk Ish — tekshiruv, ekranlar, APK
 #        shriftlar bilan, prototip bilan solishtirish uchun).
 # apk:   ikkala flavor'ning release APK'si (arm64, sideload test kaliti).
 #
-# Natijalar bitta prerelease'da (hanguk-ish-ci), har PR uchun alohida nom:
-#   pr<N>-screens.zip, pr<N>-worker-arm64.apk, pr<N>-employer-arm64.apk
+# Natijalar bitta prerelease'da (hanguk-ish-ci), har branch uchun alohida nom:
+#   <branch>-screens.zip, <branch>-worker-arm64.apk, <branch>-employer-arm64.apk
+#   (branch nomidagi «/» → «-», masalan ish-p0-poydevor-screens.zip)
 # Repo public — Actions daqiqalari bepul, shuning uchun har push'da ishlaydi.
+# Trigger — ish/* branch'ga push (PR sahifasida ham shu natija ko'rinadi).
 
 on:
-  pull_request:
+  push:
+    branches:
+      - 'ish/**'
     paths:
       - 'hanguk_ish/**'
       - '.github/workflows/ish-check.yml'
@@ -28,7 +32,6 @@ permissions:
 env:
   GH_REPO: ${{ github.repository }}
   RELEASE_TAG: hanguk-ish-ci
-  ASSET_PREFIX: ${{ github.event_name == 'pull_request' && format('pr{0}', github.event.number) || format('run{0}', github.run_number) }}
 
 jobs:
   check:
@@ -76,6 +79,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -u
+          ASSET_PREFIX="${GITHUB_REF_NAME//\//-}"
           mkdir -p build/screens
           cp -r test/screens/goldens/. build/screens/ 2>/dev/null || true
           [ -f build/test_report.txt ] && cp build/test_report.txt build/screens/ || true
@@ -137,6 +141,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
+          ASSET_PREFIX="${GITHUB_REF_NAME//\//-}"
           out=build/app/outputs/flutter-apk
           ls -la "$out"
           cp "$out/app-worker-release.apk" "${ASSET_PREFIX}-worker-arm64.apk"
