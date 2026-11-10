@@ -427,11 +427,11 @@ class _AttendanceRow extends StatelessWidget {
       chip = late > 0
           ? EmployerChip(label: Ko.late(late), background: HiColors.amberSoft)
           : const EmployerChip(label: Ko.atWork, background: HiColors.greenSoft);
-    } else if (now.isBefore(shift.startsAt)) {
+    } else if (now.isBefore(a.dueAt(shift.startsAt))) {
       chip = const EmployerChip(label: Ko.beforeStart, background: HiColors.surface);
     } else {
       chip = EmployerChip(
-        label: Ko.missing(Kst.minutesBetween(shift.startsAt, now)),
+        label: Ko.missing(Kst.minutesBetween(a.dueAt(shift.startsAt), now)),
         background: HiColors.redSoft,
         foreground: HiColors.redInk,
       );

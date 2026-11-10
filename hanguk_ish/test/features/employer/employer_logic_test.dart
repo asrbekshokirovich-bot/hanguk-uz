@@ -150,7 +150,7 @@ void main() {
   test('the CSV has a row per shift, readable by Excel', () async {
     final (from, to) = reportRange(ReportPeriod.thisMonth, now);
     final csv = reportCsv(await repo().report(demoDalbit.id, from, to));
-    final lines = csv.trim().split('\r\n');
+    final lines = csv.trimRight().split('\r\n');
     expect(lines.first, '﻿${Ko.csvHeader}');
     expect(lines.length, 10);
     expect(lines[1], '2026-11-10,화요일,오픈 바리스타 보조,2,10,105000,지급 대기');
@@ -171,7 +171,7 @@ void main() {
     }
 
     Matcher code(String c) => throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', c));
-    await expectLater(r.createShift(draft(wage: 10000)), code('BELOW_MINIMUM_WAGE'));
+    await expectLater(r.createShift(draft(wage: 10000)), code('WAGE_BELOW_MINIMUM'));
     await expectLater(r.createShift(draft(dayOffset: 0, startH: 9)), code('IN_THE_PAST'));
     await expectLater(r.createShift(draft(hours: 17)), code('TOO_LONG'));
     final created = await r.createShift(draft());

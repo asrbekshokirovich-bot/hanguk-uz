@@ -225,7 +225,7 @@ abstract final class Ko {
         'IN_THE_PAST' => '이미 지난 시간이에요',
         'INVALID_TIME' => '종료 시간이 시작 시간보다 늦어야 해요',
         'TOO_LONG' => '근무는 16시간을 넘을 수 없어요',
-        'BELOW_MINIMUM_WAGE' => '최저시급보다 낮아요',
+        'WAGE_BELOW_MINIMUM' => '최저시급보다 낮아요',
         'NOT_FOUND' => '근무를 찾을 수 없어요',
         'HAS_CREW' => timeLocked,
         'OFFLINE' => '인터넷 연결을 확인해 주세요',

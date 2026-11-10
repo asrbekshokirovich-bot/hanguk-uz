@@ -129,7 +129,7 @@ void main() {
     usePhone(tester);
     final sharer = RecordingSharer();
     await open(tester, location: EmployerRoutes.shift('demo-es-close'), sharer: sharer);
-    await tester.ensureVisible(find.text('QR 인쇄·공유'));
+    await tester.scrollUntilVisible(find.text('QR 인쇄·공유'), 300, scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     await tester.runAsync(() async {
       await tester.tap(find.text('QR 인쇄·공유'));

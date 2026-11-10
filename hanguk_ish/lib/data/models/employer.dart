@@ -90,6 +90,7 @@ class ShiftApplicant {
     required this.worker,
     required this.status,
     this.appliedAt,
+    this.decidedAt,
     this.checkInAt,
     this.checkOutAt,
     this.lateMinutes,
@@ -102,6 +103,9 @@ class ShiftApplicant {
   final WorkerCard worker;
   final ApplicationStatus status;
   final DateTime? appliedAt;
+
+  /// When the business accepted (or turned down) the application.
+  final DateTime? decidedAt;
   final DateTime? checkInAt;
   final DateTime? checkOutAt;
   final int? lateMinutes;
@@ -110,6 +114,16 @@ class ShiftApplicant {
   final DateTime? paidAt;
 
   /// Holds one of the shift's places (확정): confirmed, at work or done.
+  /// From when a confirmed worker who has not checked in counts as missing:
+  /// the start, or — for someone confirmed after the start — half an hour
+  /// after the confirmation, so they have time to come.
+  DateTime dueAt(DateTime startsAt) {
+    final decided = decidedAt;
+    return decided != null && decided.isAfter(startsAt) ? decided.add(lateConfirmGrace) : startsAt;
+  }
+
+  static const lateConfirmGrace = Duration(minutes: 30);
+
   bool get holdsPlace =>
       status == ApplicationStatus.confirmed ||
       status == ApplicationStatus.checkedIn ||
@@ -118,6 +132,7 @@ class ShiftApplicant {
   ShiftApplicant copyWith({
     ApplicationStatus? status,
     WorkerCard? worker,
+    DateTime? decidedAt,
     DateTime? checkInAt,
     DateTime? checkOutAt,
     int? lateMinutes,
@@ -131,6 +146,7 @@ class ShiftApplicant {
         worker: worker ?? this.worker,
         status: status ?? this.status,
         appliedAt: appliedAt,
+        decidedAt: decidedAt ?? this.decidedAt,
         checkInAt: checkInAt ?? this.checkInAt,
         checkOutAt: checkOutAt ?? this.checkOutAt,
         lateMinutes: lateMinutes ?? this.lateMinutes,
@@ -221,7 +237,7 @@ class EmployerShift {
   int noShows(DateTime now) => applicants
       .where((a) =>
           a.status == ApplicationStatus.noShow ||
-          (a.status == ApplicationStatus.confirmed && !now.isBefore(startsAt)))
+          (a.status == ApplicationStatus.confirmed && !now.isBefore(a.dueAt(startsAt))))
       .length;
 
   /// What the planned shift costs: places × hours × wage (예상 인건비).

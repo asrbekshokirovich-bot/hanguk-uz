@@ -153,6 +153,7 @@ List<EmployerShift> demoEmployerShifts(DateTime now) {
           ? ApplicationStatus.completed
           : (checkInAt != null ? ApplicationStatus.checkedIn : ApplicationStatus.confirmed),
       appliedAt: base.startsAt.subtract(const Duration(days: 1)),
+      decidedAt: base.startsAt.subtract(const Duration(hours: 20)),
       checkInAt: checkInAt,
       checkOutAt: checkOutAt,
       lateMinutes: checkInAt == null ? null : (late > 0 ? late : 0),
@@ -361,14 +362,15 @@ class DemoEmployerRepository implements EmployerRepository {
     var apps = [
       for (final a in s.applicants)
         a.applicationId == applicationId
-            ? a.copyWith(status: accept ? ApplicationStatus.confirmed : ApplicationStatus.rejected)
+            ? a.copyWith(status: accept ? ApplicationStatus.confirmed : ApplicationStatus.rejected, decidedAt: _clock())
             : a,
     ];
     var updated = s.copyWith(applicants: apps);
     if (accept && updated.openSlots == 0) {
       // The last place is taken: nobody keeps waiting for a full shift.
       apps = [
-        for (final a in apps) a.status == ApplicationStatus.pending ? a.copyWith(status: ApplicationStatus.rejected) : a,
+        for (final a in apps)
+          a.status == ApplicationStatus.pending ? a.copyWith(status: ApplicationStatus.rejected, decidedAt: _clock()) : a,
       ];
       updated = updated.copyWith(applicants: apps);
     }
@@ -429,7 +431,7 @@ class DemoEmployerRepository implements EmployerRepository {
       throw const ShiftActionException('TOO_LONG');
     }
     if (!draft.startsAt.isAfter(_clock())) throw const ShiftActionException('IN_THE_PAST');
-    if (draft.hourlyWage < minimumWageAt(draft.startsAt)) throw const ShiftActionException('BELOW_MINIMUM_WAGE');
+    if (draft.hourlyWage < minimumWageAt(draft.startsAt)) throw const ShiftActionException('WAGE_BELOW_MINIMUM');
     if (draft.slots < 1 || draft.slots > 50) throw const ShiftActionException('INVALID');
     final shift = EmployerShift(
       id: 'demo-es-new-${_nextShift++}',
@@ -460,7 +462,7 @@ class DemoEmployerRepository implements EmployerRepository {
     if (draft.endsAt.difference(draft.startsAt) > const Duration(hours: 16)) {
       throw const ShiftActionException('TOO_LONG');
     }
-    if (draft.hourlyWage < minimumWageAt(draft.startsAt)) throw const ShiftActionException('BELOW_MINIMUM_WAGE');
+    if (draft.hourlyWage < minimumWageAt(draft.startsAt)) throw const ShiftActionException('WAGE_BELOW_MINIMUM');
     if (draft.slots < s.confirmed || draft.slots > 50) throw const ShiftActionException('INVALID');
     final updated = EmployerShift(
       id: s.id,

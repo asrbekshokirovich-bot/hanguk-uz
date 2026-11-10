@@ -52,7 +52,11 @@ class _HiPressableState extends State<HiPressable> {
         onTapDown: enabled ? (_) => _set(true) : null,
         onTapUp: enabled ? (_) => _set(false) : null,
         onTapCancel: enabled ? () => _set(false) : null,
-        child: widget.builder(context, enabled && _pressed),
+        // A label replaces what the content would read (the tap action
+        // stays on this node).
+        child: widget.semanticsLabel == null
+            ? widget.builder(context, enabled && _pressed)
+            : ExcludeSemantics(child: widget.builder(context, enabled && _pressed)),
       ),
     );
   }
