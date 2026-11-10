@@ -21,6 +21,7 @@ import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
+import 'package:hanguk_ish/data/models/business.dart';
 import 'package:hanguk_ish/data/models/employer.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/account_repository.dart';
@@ -655,6 +656,39 @@ void main() {
     phone(tester);
     await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
     await _until(tester, _text('Smena bekor qilindi'));
+    await _close(tester);
+  });
+
+  testWidgets('owner: a new owner signs up on BA0; with no 국세청 key the business waits and BA1 says so',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    final newcomer = _client(_anonKey);
+    await tester.pumpWidget(capture(ProviderScope(
+      overrides: [
+        backendConfigProvider.overrideWithValue(_config),
+        supabaseClientProvider.overrideWithValue(newcomer),
+        authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(newcomer)),
+        employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(newcomer, _config)),
+      ],
+      child: const EmployerApp(),
+    )));
+    // Signed out: the start gate opens BA0.
+    await _until(tester, find.widgetWithText(HiButton, '시작하기'));
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '01000000051');
+    await tester.enterText(fields.at(1), '9990000054');
+    await _tap(tester, find.widgetWithText(HiButton, '시작하기'));
+    await _until(tester, _text('인증번호 입력'));
+    await tester.enterText(find.byType(TextField), '123456');
+    // The code signs in; business-register files the number (no key in the
+    // local stack: it waits for 국세청) and BA1 opens on it.
+    await _until(tester, _text('오늘의 근무'));
+    await _until(tester, _text(Ko.reviewPendingTitle));
+    expect(_text('사업장 999-00-00054'), findsWidgets, reason: 'the name until the store details are set');
+    await _shot(tester, 'ba0-ba1-waiting');
+    final mine = await tester.runAsync(() => SupabaseEmployerRepository(newcomer, _config).businesses());
+    expect(mine!.single.review, BusinessReview.pending);
+    expect(mine.single.bizNo, '9990000054');
     await _close(tester);
   });
 }

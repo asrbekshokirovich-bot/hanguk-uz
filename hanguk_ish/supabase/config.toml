@@ -40,6 +40,8 @@ template = "Hanguk Ish kodi: {{ .Code }}"
 # the worker and the owner of the screen tests (test_backend/ui_e2e_test.dart)
 821000000021 = "123456"
 821000000031 = "123456"
+# a new owner who signs up on BA0 in the screen tests
+821000000051 = "123456"
 
 # GoTrue accepts phone sign-in only with a provider enabled; the test numbers
 # above never reach it. Local stack only — production uses the provider set

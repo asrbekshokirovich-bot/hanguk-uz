@@ -7,6 +7,7 @@ import '../../data/models/business.dart';
 import '../../data/models/employer.dart';
 import '../../data/repositories/employer_repository.dart';
 import '../../data/repositories/live_updates.dart';
+import '../../data/repositories/shift_repository.dart' show ShiftActionException;
 
 /// The business chosen in the BA1 header (null = the first one).
 final selectedBusinessIdProvider = NotifierProvider<SelectedBusiness, String?>(SelectedBusiness.new);
@@ -23,6 +24,34 @@ final businessesProvider = FutureProvider<List<Business>>(
   (ref) => ref.watch(employerRepositoryProvider).businesses(),
   retry: (count, error) => null,
 );
+
+/// Once a session (BA1 starts it): 국세청 is asked again for the owner's
+/// businesses still waiting — BA0 may have had no key or no answer — and the
+/// list reloads when one is decided. Offline or too many tries: next time.
+final businessRecheckProvider = FutureProvider<void>((ref) async {
+  final repo = ref.read(employerRepositoryProvider);
+  final List<Business> businesses;
+  try {
+    businesses = await ref.read(businessesProvider.future);
+  } on Object {
+    return;
+  }
+  var decided = false;
+  for (final b in businesses) {
+    final number = b.bizNo;
+    if (b.review != BusinessReview.pending || number == null) continue;
+    try {
+      final now = await repo.registerBusiness(number);
+      if (now.review != BusinessReview.pending) decided = true;
+    } on ShiftActionException catch (e) {
+      // 폐업 found now: the business is refused.
+      if (e.code == 'BUSINESS_CLOSED') decided = true;
+    } on Object {
+      // Offline: next time.
+    }
+  }
+  if (decided) ref.invalidate(businessesProvider);
+});
 
 /// The business every screen works on.
 final currentBusinessProvider = FutureProvider<Business>((ref) async {

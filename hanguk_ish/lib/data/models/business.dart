@@ -8,6 +8,10 @@ BusinessCategory businessCategoryFrom(String? value) => BusinessCategory.values.
       orElse: () => BusinessCategory.other,
     );
 
+/// Where 국세청's check of a business stands (database `businesses.status`).
+/// Only verified businesses' shifts reach workers.
+enum BusinessReview { verified, pending, rejected }
+
 /// A business as workers see it.
 @immutable
 class Business {
@@ -30,6 +34,8 @@ class Business {
     this.rating,
     this.ratingCount = 0,
     this.completedShifts = 0,
+    this.review = BusinessReview.verified,
+    this.bizNo,
   });
 
   final String id;
@@ -66,6 +72,13 @@ class Business {
   final double? rating;
   final int ratingCount;
   final int completedShifts;
+
+  /// 국세청's check, known for the owner's own businesses (workers only ever
+  /// see verified ones).
+  final BusinessReview review;
+
+  /// 사업자등록번호, ten digits: the owner's own businesses only.
+  final String? bizNo;
 
   String displayName(String lang) => names[lang] ?? names['en'] ?? name;
 

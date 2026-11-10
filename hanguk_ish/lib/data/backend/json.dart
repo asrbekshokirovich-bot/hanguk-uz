@@ -100,6 +100,14 @@ Business businessFromJson(Json json, {PublicUrl publicUrl = _noUrl}) {
     rating: _double(json['rating']),
     ratingCount: _int(json['rating_count']),
     completedShifts: _int(json['completed_shifts']),
+    // `status` comes with the owner's own businesses (my_businesses).
+    review: switch (_strOrNull(json['status'])) {
+      'pending' => BusinessReview.pending,
+      'rejected' => BusinessReview.rejected,
+      'verified' => BusinessReview.verified,
+      _ => _bool(json['verified'], true) ? BusinessReview.verified : BusinessReview.pending,
+    },
+    bizNo: _strOrNull(json['biz_no']),
   );
 }
 

@@ -58,6 +58,23 @@ export async function ntsStatus(
   }
 }
 
+/// What a business still waiting (pending) becomes when 국세청 is asked
+/// again: 계속사업자 is verified, 폐업자 refused, 휴업자 keeps waiting with
+/// its code. Null: no new answer (no key, no answer, or a number 국세청 does
+/// not list yet) — it keeps waiting as it is.
+export function recheckUpdate(nts: NtsResult): { status?: "verified" | "rejected"; nts_status: string } | null {
+  switch (nts.kind) {
+    case "active":
+      return { status: "verified", nts_status: "01" };
+    case "suspended":
+      return { nts_status: "02" };
+    case "closed":
+      return { status: "rejected", nts_status: "03" };
+    default:
+      return null;
+  }
+}
+
 /// The name a business has until its owner or an admin sets the real one
 /// (BA0 asks only for the number): 사업장 123-45-67891.
 export function placeholderName(bizNo: string): string {

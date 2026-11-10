@@ -39,6 +39,8 @@ class Ba1HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final now = ref.watch(clockProvider)();
     final business = ref.watch(currentBusinessProvider).value;
+    // A business still waiting is checked with 국세청 again, once a session.
+    ref.watch(businessRecheckProvider);
     final shifts = ref.watch(homeShiftsProvider);
     final unread = ref.watch(employerUnreadProvider);
     final all = shifts.value ?? const <EmployerShift>[];
@@ -93,6 +95,13 @@ class Ba1HomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            if (business != null && business.review != BusinessReview.verified) ...[
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
+                child: _ReviewNotice(rejected: business.review == BusinessReview.rejected),
+              ),
+            ],
             if (shifts.isLoading && !shifts.hasValue)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
@@ -152,6 +161,61 @@ class Ba1HomeScreen extends ConsumerWidget {
                   ),
               ],
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A business 국세청 has not confirmed: its shifts do not reach workers yet
+/// (pending) or at all (rejected), so the owner is told why nobody applies.
+class _ReviewNotice extends StatelessWidget {
+  const _ReviewNotice({required this.rejected});
+
+  final bool rejected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      child: EmployerCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: rejected ? HiColors.redSoft : HiColors.amberSoft,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: HiIcon(
+                rejected ? HiIcons.triangleAlert : HiIcons.clock,
+                size: 20,
+                strokeWidth: 2,
+                color: rejected ? HiColors.redInk : HiColors.ink,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HiText(
+                    rejected ? Ko.reviewRejectedTitle : Ko.reviewPendingTitle,
+                    style: hiStyle(16, FontWeight.w800, color: HiColors.ink),
+                  ),
+                  const SizedBox(height: 3),
+                  HiText(
+                    rejected ? Ko.reviewRejectedText : Ko.reviewPendingText,
+                    style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

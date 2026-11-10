@@ -233,6 +233,17 @@ void main() {
       final businesses = [for (final c in sampleList('my_businesses')) businessFromJson(c)];
       expect(businesses.single.name, '달빛카페 신촌점');
       expect(businesses.single.verified, isTrue);
+      expect(businesses.single.review, BusinessReview.verified);
+      expect(businesses.single.bizNo, '1234567890');
+    });
+
+    test("a business still waiting for 국세청, or refused", () {
+      Business card(String status) => businessFromJson({'id': 'b', 'name': '사업장 999-00-00054', 'status': status});
+      expect(card('pending').review, BusinessReview.pending);
+      expect(card('rejected').review, BusinessReview.rejected);
+      expect(businessFromJson({'id': 'b', 'name': 'n', 'verified': false}).review, BusinessReview.pending,
+          reason: "a worker's card says only whether it is verified");
+      expect(businessFromJson({'id': 'b', 'name': 'n'}).bizNo, isNull);
     });
 
     test('the board: shifts with applicants and what is known about them', () {

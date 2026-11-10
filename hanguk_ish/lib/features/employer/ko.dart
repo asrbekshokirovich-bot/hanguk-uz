@@ -214,6 +214,12 @@ abstract final class Ko {
   /// «117시간», «4시간 30분».
   static String hours(int minutes) => duration(minutes);
 
+  // 국세청 check (BA1)
+  static const reviewPendingTitle = '사업자 확인 중';
+  static const reviewPendingText = '국세청 확인이 끝나면 올린 근무가 근무자에게 보여요.';
+  static const reviewRejectedTitle = '확인되지 않은 사업자';
+  static const reviewRejectedText = '국세청에서 폐업 사업자로 확인되어 근무가 근무자에게 보이지 않아요.';
+
   // Notifications
   static const notificationsTitle = '알림';
   static const yesterday = '어제';

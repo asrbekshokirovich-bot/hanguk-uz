@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { isValidBizNo, NTS_STATUS_URL, ntsStatus, placeholderName } from "./nts.ts";
+import { isValidBizNo, NTS_STATUS_URL, ntsStatus, placeholderName, recheckUpdate } from "./nts.ts";
 
 Deno.test("사업자등록번호 check digit", () => {
   assertEquals(isValidBizNo("1248100998"), true);
@@ -40,4 +40,12 @@ Deno.test("no key or no answer: a person checks it", async () => {
 
 Deno.test("placeholder name", () => {
   assertEquals(placeholderName("1234567891"), "사업장 123-45-67891");
+});
+
+Deno.test("asked again, a waiting business is verified, refused or keeps waiting", () => {
+  assertEquals(recheckUpdate({ kind: "active", code: "01" }), { status: "verified", nts_status: "01" });
+  assertEquals(recheckUpdate({ kind: "closed", code: "03" }), { status: "rejected", nts_status: "03" });
+  assertEquals(recheckUpdate({ kind: "suspended", code: "02" }), { nts_status: "02" }, "휴업: still waiting");
+  assertEquals(recheckUpdate({ kind: "unchecked" }), null, "no key or no answer: as it was");
+  assertEquals(recheckUpdate({ kind: "unknown" }), null, "not listed (yet): as it was");
 });
