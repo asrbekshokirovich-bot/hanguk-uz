@@ -181,7 +181,7 @@ class _LanguageSection extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(
+          child: HiText(
             title,
             style: hiStyle(15, FontWeight.w700, color: HiColors.textMuted),
           ),

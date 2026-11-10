@@ -90,7 +90,7 @@ class HiButton extends StatelessWidget {
                     const SizedBox(width: 10),
                   ],
                   Flexible(
-                    child: Text(
+                    child: HiText(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

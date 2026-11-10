@@ -75,7 +75,7 @@ class HiOptionTile extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(
+                child: HiText(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

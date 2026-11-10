@@ -67,7 +67,7 @@ class HiBackdrop extends StatelessWidget {
               right: -40,
               child: ExcludeSemantics(
                 child: IgnorePointer(
-                  child: Text(
+                  child: HiText(
                     mark,
                     maxLines: 1,
                     softWrap: false,

@@ -107,7 +107,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(Ko.phoneLabel, style: label),
+                      HiText(Ko.phoneLabel, style: label),
                       const SizedBox(height: 8),
                       HiMonoField(
                         controller: _phone,
@@ -117,7 +117,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                         inputFormatters: [_phoneMask],
                       ),
                       const SizedBox(height: 18),
-                      Text(Ko.bizNoLabel, style: label),
+                      HiText(Ko.bizNoLabel, style: label),
                       const SizedBox(height: 8),
                       HiMonoField(
                         controller: _bizNo,
@@ -127,7 +127,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                         onSubmitted: (_) => _start(),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      HiText(
                         Ko.bizNoHint,
                         style: hiStyle(
                           14,

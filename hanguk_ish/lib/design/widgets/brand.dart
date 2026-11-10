@@ -20,7 +20,7 @@ class HiBrandTile extends StatelessWidget {
           boxShadow: HiShadows.hard,
         ),
         alignment: Alignment.center,
-        child: Text(
+        child: HiText(
           '한',
           textScaler: TextScaler.noScaling,
           style: hiStyle(
@@ -52,7 +52,7 @@ class HiNavyPill extends StatelessWidget {
         border: Border.all(color: HiColors.white20),
       ),
       alignment: Alignment.center,
-      child: Text(
+      child: HiText(
         label,
         style: hiStyle(13, FontWeight.w700, color: HiColors.white),
       ),

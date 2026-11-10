@@ -62,7 +62,10 @@ class _HiLinkSentenceState extends State<HiLinkSentence> {
       ],
     );
     final scaler = MediaQuery.textScalerOf(context);
-    final strut = hiStrut(widget.style);
+    final strut = hiStrut(
+      widget.style,
+      '${widget.prefix}${widget.link}${widget.suffix}',
+    );
     return CustomPaint(
       foregroundPainter: _LinkUnderlinePainter(
         span: span,
@@ -101,7 +104,7 @@ class _LinkUnderlinePainter extends CustomPainter {
   });
 
   final TextSpan span;
-  final StrutStyle? strut;
+  final StrutStyle strut;
   final int start;
   final int end;
   final TextAlign textAlign;
