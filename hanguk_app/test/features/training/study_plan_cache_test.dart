@@ -52,6 +52,32 @@ void main() {
     expect((back.sessionId, back.version, back.content, back.savedAt), (copy.sessionId, copy.version, copy.content, copy.savedAt));
   });
 
+  test('text that could not be saved is kept, and read back, as such (audit C-F5)', () async {
+    const cache = SecureStudyPlanCache();
+    final key = studyPlanCopyKey(userId: 'me', type: 'study_plan', targetUniversityId: 'u1');
+    final copy = StudyPlanCopy(
+      sessionId: 's1',
+      version: 2,
+      content: '## Goal\nSaqlanmagan matn.',
+      savedAt: DateTime.utc(2026, 11, 10, 9, 30),
+      unsaved: true,
+    );
+    await cache.write(key, copy);
+    expect(jsonDecode(stored[key]!), {
+      'sessionId': 's1',
+      'version': 2,
+      'content': '## Goal\nSaqlanmagan matn.',
+      'savedAt': '2026-11-10T09:30:00.000Z',
+      'unsaved': true,
+    });
+    final back = (await cache.read(key))!;
+    expect((back.sessionId, back.version, back.content, back.unsaved), ('s1', 2, '## Goal\nSaqlanmagan matn.', true));
+
+    // A copy kept before the mark existed is the server's text.
+    stored[key] = jsonEncode({'sessionId': 's1', 'version': 1, 'content': 'x', 'savedAt': '2026-11-10T09:30:00Z'});
+    expect((await cache.read(key))!.unsaved, isFalse);
+  });
+
   test('one copy per student, document type and university', () {
     final keys = {
       studyPlanCopyKey(userId: 'me', type: 'study_plan', targetUniversityId: 'u1'),
