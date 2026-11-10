@@ -1,15 +1,15 @@
 // QA audit evidence (Tayyorgarlik D2/T2, commit 47ecd0b) — not to be merged.
 //
-// 1. Analytics names. `tracked(name, fn)` is generic in fn's type and hands
-//    back a callback typed more narrowly than VoidCallback (one returning a
-//    Future) unwrapped (tracked.dart:26-28). `_openInterview` is a
-//    Future<void> method, and the row passes its tear-off:
-//      tracked('prepare.guest_interview', _openInterview)        (prepare_screen.dart:185)
-//      tracked('prepare.guest_interview_retry', _openInterview)  (prepare_screen.dart:218)
-//    Before 47ecd0b both were closures (`() => _guestInterview(context)`),
-//    which infer as void Function() and are wrapped.
+// Checks that hold (all QA-OK):
+// 1. Analytics names. `tracked(name, fn)` hands back a callback typed more
+//    narrowly than VoidCallback (one returning a Future) unwrapped
+//    (tracked.dart:26-28), and the row now passes the Future<void> tear-off
+//    `_openInterview` (prepare_screen.dart:185, :218). In a VoidCallback
+//    context the type argument is inferred as VoidCallback, so the tear-off
+//    is still wrapped and both taps keep their names (first CI run of this
+//    PR: the tear-off was named).
 // 2. The row's "only while this page is in front" gate (Visibility.of +
-//    ModalRoute.isCurrent) and the mounted check, which should hold.
+//    ModalRoute.isCurrent) and the mounted check.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -84,7 +84,7 @@ void main() {
   }
 
   group('analytics names of the guest interview row', () {
-    test('QA-PROOF: tracked() names a void closure but returns a Future-returning tear-off unwrapped', () async {
+    test('QA-OK: in a VoidCallback context tracked() names a Future-returning tear-off too', () async {
       var ran = 0;
       Future<void> open() async {
         ran++;
@@ -97,10 +97,10 @@ void main() {
       tearOff();
       await Future<void>.delayed(Duration.zero);
       expect(ran, 2, reason: 'both ran');
-      expect(taps(), ['qa.closure'], reason: 'the tear-off ran without naming a tap');
+      expect(taps(), ['qa.closure', 'qa.tear_off']);
     });
 
-    testWidgets('QA-BUG: a tap on «Suhbat mashqi» is recorded as prepare.guest_interview', (t) async {
+    testWidgets('QA-OK: a tap on «Suhbat mashqi» is recorded as prepare.guest_interview', (t) async {
       final pending = Completer<bool>();
       prepareGuestSession = () => pending.future;
       final l = await pump(t, const PrepareScreen());
@@ -113,7 +113,7 @@ void main() {
       expect(names, contains('prepare.guest_interview'), reason: 'tap events recorded: $names');
     });
 
-    testWidgets('QA-BUG: a tap on «Qayta urinish» is recorded as prepare.guest_interview_retry', (t) async {
+    testWidgets('QA-OK: a tap on «Qayta urinish» is recorded as prepare.guest_interview_retry', (t) async {
       prepareGuestSession = () async => false;
       final l = await pump(t, const PrepareScreen());
       await t.tap(find.text(l.interviewPracticeTitle));
