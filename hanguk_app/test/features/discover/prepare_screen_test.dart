@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/design_system/seoul_night/widgets/fd_kit.dart' show FdColors;
 import 'package:hanguk_app/design_system/seoul_night/widgets/lucide.dart';
 import 'package:hanguk_app/features/auth/data/auth_repository.dart' show signedInProvider;
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart' show catalogProvider;
@@ -17,9 +18,17 @@ import 'package:hanguk_app/l10n/app_localizations.dart';
 /// failed interview row (boards 1–3); the student's page shows what the
 /// student has done (board 4, variant A).
 void main() {
-  Future<void> pump(WidgetTester t, {bool signedIn = false, Locale locale = const Locale('uz'), PrepareProgress? done}) async {
+  /// [statusBar]: the phone's status bar, in logical pixels (the boards draw 48).
+  Future<void> pump(
+    WidgetTester t, {
+    bool signedIn = false,
+    Locale locale = const Locale('uz'),
+    PrepareProgress? done,
+    double statusBar = 0,
+  }) async {
     t.view.physicalSize = const Size(390, 844);
     t.view.devicePixelRatio = 1;
+    if (statusBar > 0) t.view.padding = FakeViewPadding(top: statusBar);
     addTearDown(t.view.reset);
     await t.pumpWidget(
       ProviderScope(
@@ -44,6 +53,17 @@ void main() {
     );
     await t.pump();
     await t.pump();
+  }
+
+  Finder chevrons() => find.byWidgetPredicate((w) => w is Lucide && w.glyph == LucideIcons.chevronRight);
+
+  /// The column of texts in the row or card whose title is [title].
+  Finder texts(String title) => find.ancestor(of: find.text(title), matching: find.byType(Column)).first;
+
+  /// The chevron's gap to the texts of the row whose title is [title].
+  double chevronGap(WidgetTester t, String title) {
+    final row = find.ancestor(of: texts(title), matching: find.byType(Row)).first;
+    return t.getTopLeft(find.descendant(of: row, matching: chevrons())).dx - t.getTopRight(texts(title)).dx;
   }
 
   group('guest (D4)', () {
@@ -110,6 +130,55 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('interview open'), findsOneWidget);
     });
+
+    testWidgets('board 1: the title 8px under the status bar, the chevrons 12px from the texts', (t) async {
+      await pump(t, statusBar: 48);
+      expect(t.getTopLeft(find.text('Tayyorgarlik')).dy, moreOrLessEquals(56, epsilon: 0.01), reason: 'board 1: 48 + 8');
+      expect(chevronGap(t, 'Hanguk AI'), moreOrLessEquals(12, epsilon: 0.01));
+      expect(chevronGap(t, 'Suhbat mashqi'), moreOrLessEquals(12, epsilon: 0.01));
+    });
+
+    testWidgets('the interview row keeps the chevron\'s room while it is prepared and when it failed (ru: no reflow)', (t) async {
+      final session = prepareGuestSession;
+      addTearDown(() => prepareGuestSession = session);
+      final pending = Completer<bool>();
+      prepareGuestSession = () => pending.future;
+      final l = lookupAppLocalizations(const Locale('ru'));
+      final title = find.text(l.interviewPracticeTitle);
+      final row = find.ancestor(of: texts(l.interviewPracticeTitle), matching: find.byType(Row)).first;
+
+      await pump(t, locale: const Locale('ru'));
+      final width = t.getSize(texts(l.interviewPracticeTitle)).width;
+      final titleHeight = t.getSize(title).height;
+      expect(find.descendant(of: row, matching: chevrons()), findsOneWidget);
+
+      await t.tap(title);
+      await t.pump();
+      expect(find.text(l.interviewSettingUp), findsOneWidget);
+      expect(find.descendant(of: row, matching: chevrons()), findsNothing, reason: 'preparing: nothing to tap');
+      expect(t.getSize(texts(l.interviewPracticeTitle)).width, moreOrLessEquals(width, epsilon: 0.01), reason: 'preparing');
+      expect(t.getSize(title).height, moreOrLessEquals(titleHeight, epsilon: 0.01), reason: 'preparing');
+
+      pending.complete(false);
+      await t.pump();
+      expect(find.text(l.entryErrorNetwork), findsOneWidget);
+      expect(find.descendant(of: row, matching: chevrons()), findsNothing, reason: 'failed: the retry button is the tap');
+      expect(t.getSize(texts(l.interviewPracticeTitle)).width, moreOrLessEquals(width, epsilon: 0.01), reason: 'failed');
+      expect(t.getSize(title).height, moreOrLessEquals(titleHeight, epsilon: 0.01), reason: 'failed');
+    });
+
+    testWidgets('the sign-in button is a button to a screen reader', (t) async {
+      final semantics = t.ensureSemantics();
+      try {
+        await pump(t);
+        expect(
+          t.getSemantics(find.text('Mijoz kodi bilan kirish')),
+          containsSemantics(label: 'Mijoz kodi bilan kirish', isButton: true, hasTapAction: true),
+        );
+      } finally {
+        semantics.dispose();
+      }
+    });
   });
 
   group('student (variant A)', () {
@@ -131,6 +200,50 @@ void main() {
       await pump(t, signedIn: true);
       expect(find.text('0 / 4 bosqich'), findsNothing);
       expect(find.text('Yangi'), findsNothing);
+    });
+
+    testWidgets('the Study Plan meter: none while unknown, its room kept; four steps for 0 and for 1', (t) async {
+      final l = lookupAppLocalizations(const Locale('uz'));
+      final card = find.ancestor(of: find.text(l.fdPrepareStudyPlanTitle), matching: find.byType(Container)).first;
+      // The meter's steps, or only the lit ones.
+      Finder steps({bool lit = false}) => find.descendant(
+        of: card,
+        matching: find.byWidgetPredicate((w) {
+          if (w is! Container || w.constraints != const BoxConstraints.tightFor(height: 6)) return false;
+          final d = w.decoration;
+          return !lit || (d is BoxDecoration && d.color == FdColors.lime);
+        }),
+      );
+
+      await pump(t, signedIn: true);
+      expect(steps(), findsNothing, reason: 'an empty meter reads as «0 / 4» before the number is known');
+      final unknown = t.getSize(card).height;
+
+      await t.pumpWidget(const SizedBox());
+      await pump(t, signedIn: true, done: const PrepareProgress(planParts: 0, interviews: 0));
+      expect(steps(), findsNWidgets(4));
+      expect(steps(lit: true), findsNothing);
+      expect(t.getSize(card).height, moreOrLessEquals(unknown, epsilon: 0.01), reason: 'the card does not grow when the number comes');
+
+      await t.pumpWidget(const SizedBox());
+      await pump(t, signedIn: true, done: const PrepareProgress(planParts: 1, interviews: 0));
+      expect(steps(), findsNWidgets(4));
+      expect(steps(lit: true), findsOneWidget);
+    });
+
+    testWidgets('board 4: the title 8px under the status bar, 8px between a kicker and its tag, the chevron 12px from the texts', (t) async {
+      final l = lookupAppLocalizations(const Locale('uz'));
+      await pump(t, signedIn: true, done: const PrepareProgress(planParts: 1, interviews: 2), statusBar: 48);
+      expect(
+        t.getTopLeft(find.text('${l.fdPrepareEyebrow} ${l.fdPrepareTitle}')).dy,
+        moreOrLessEquals(56, epsilon: 0.01),
+        reason: 'board 4: 48 + 8',
+      );
+      for (final (kicker, tag) in [(l.fdPrepareStudyKicker, '1 / 4 bosqich'), (l.fdPrepareInterviewKicker, '2 ta mashq')]) {
+        final gap = t.getTopLeft(find.text(tag)).dx - t.getTopRight(find.text(kicker)).dx;
+        expect(gap, moreOrLessEquals(8, epsilon: 0.01), reason: kicker);
+      }
+      expect(chevronGap(t, l.fdPrepareAskTitle), moreOrLessEquals(12, epsilon: 0.01));
     });
   });
 }
