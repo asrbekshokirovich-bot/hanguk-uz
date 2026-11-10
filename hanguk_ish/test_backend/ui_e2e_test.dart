@@ -34,6 +34,7 @@ import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../test/helpers/fonts.dart';
+import '../test/helpers/phone.dart';
 
 final _env = Platform.environment;
 final _url = _env['SUPABASE_URL'] ?? '';
@@ -113,6 +114,13 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pump(const Duration(milliseconds: 300));
   await tester.tap(finder.first);
   await tester.pump(const Duration(milliseconds: 100));
+}
+
+/// The screen as it is, for looking at real data drawn by the apps
+/// (`build/screens2x/e2e-<name>.png`, kept by the integration workflow).
+Future<void> _shot(WidgetTester tester, String name) async {
+  await tester.pump(const Duration(milliseconds: 600));
+  await saveHiRes(tester, 'e2e-$name');
 }
 
 /// Unmounts the app and lets its timers run out.
@@ -206,7 +214,7 @@ void main() {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(capture(ProviderScope(
       overrides: [
         backendConfigProvider.overrideWithValue(_config),
         supabaseClientProvider.overrideWithValue(worker),
@@ -217,7 +225,7 @@ void main() {
         locationServiceProvider.overrideWithValue(const _AtTheBeach()),
       ],
       child: const WorkerApp(),
-    ));
+    )));
 
     // The start screen loads the saved profile and opens the feed.
     await _until(tester, _text('Smenalar'));
@@ -228,13 +236,16 @@ void main() {
     // shows the title as the owner wrote it (no translation yet). The
     // business has more shifts today: the card of this one.
     await _until(tester, _text('E2E Kafe'));
+    await _shot(tester, 'a03-feed');
     await _tap(tester, find.bySemanticsLabel(RegExp('E2E 홀 보조')));
     await _until(tester, _text('E2E 홀 보조'));
     await _until(tester, _text('Smenani olish'));
+    await _shot(tester, 'a05-detail');
     await _tap(tester, _text('Smenani olish'));
     await _until(tester, _text('Tasdiqlash'));
     await _tap(tester, _text('Tasdiqlash'));
     await _until(tester, _text('Smena olindi!'));
+    await _shot(tester, 'a05-taken');
 
     final mine = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
     expect(mine!.where((a) => a.shift.id == shift.id), hasLength(1), reason: 'the server has the application');
@@ -243,6 +254,7 @@ void main() {
     await _until(tester, _text('Mening smenalarim'));
     await _tap(tester, _text('Mening smenalarim'));
     await _until(tester, _text('E2E 홀 보조'));
+    await _shot(tester, 'a06-my-shifts');
     await _close(tester);
   });
 
@@ -250,7 +262,7 @@ void main() {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(capture(ProviderScope(
       overrides: [
         backendConfigProvider.overrideWithValue(_config),
         supabaseClientProvider.overrideWithValue(owner),
@@ -258,13 +270,15 @@ void main() {
         employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(owner, _config)),
       ],
       child: const EmployerApp(),
-    ));
+    )));
 
     await _until(tester, _text('오늘의 근무'));
     await _until(tester, _text('해운대 E2E 카페'));
     await _until(tester, _text('E2E 홀 보조'));
+    await _shot(tester, 'ba1-home');
     await _tap(tester, _text('E2E 홀 보조'));
     await _until(tester, _text('Sardor Testov'));
+    await _shot(tester, 'ba3-shift');
     await _close(tester);
   });
 
@@ -273,7 +287,7 @@ void main() {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(capture(ProviderScope(
       overrides: [
         backendConfigProvider.overrideWithValue(_config),
         supabaseClientProvider.overrideWithValue(worker),
@@ -288,7 +302,7 @@ void main() {
         ),
       ],
       child: const WorkerApp(),
-    ));
+    )));
 
     await _until(tester, _text('Mening smenalarim'));
     await _tap(tester, _text('Mening smenalarim'));
@@ -297,8 +311,10 @@ void main() {
     // The entry screen reads the code at once; the server checks it in.
     await _until(tester, _text('Chiqish — QR skanerlash'));
     expect(find.byType(AtWorkScreen), findsOneWidget);
+    await _shot(tester, 'a07-at-work');
     await _tap(tester, _text('Chiqish — QR skanerlash'));
     await _until(tester, _text('Smena yakunlandi'));
+    await _shot(tester, 'a07-result');
     final done = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
     expect(done!.singleWhere((a) => a.shift.id == soon.id).status, ApplicationStatus.completed);
 
@@ -317,7 +333,7 @@ void main() {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(capture(ProviderScope(
       overrides: [
         backendConfigProvider.overrideWithValue(_config),
         supabaseClientProvider.overrideWithValue(owner),
@@ -325,7 +341,7 @@ void main() {
         employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(owner, _config)),
       ],
       child: const EmployerApp(),
-    ));
+    )));
 
     await _until(tester, _text('E2E 수동 확정'));
     await _tap(tester, _text('E2E 수동 확정'));
@@ -346,6 +362,7 @@ void main() {
     await _until(tester, _text('지급 완료로 표시'));
     await _tap(tester, _text('지급 완료로 표시'));
     await _until(tester, _text('지급 완료 · 1건'));
+    await _shot(tester, 'ba5-report');
     await _close(tester);
   });
 
@@ -353,7 +370,7 @@ void main() {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(ProviderScope(
+    await tester.pumpWidget(capture(ProviderScope(
       overrides: [
         backendConfigProvider.overrideWithValue(_config),
         supabaseClientProvider.overrideWithValue(worker),
@@ -365,11 +382,12 @@ void main() {
         workerInitialLocationProvider.overrideWithValue(WorkerRoutes.notifications),
       ],
       child: const WorkerApp(),
-    ));
+    )));
 
     await _until(tester, _text('Bildirishnomalar'));
     await _until(tester, _text('Smena tasdiqlandi'));
     expect(_text("Maosh to'landi"), findsWidgets);
+    await _shot(tester, 'a12-notifications');
     // Opening A12 marks them read: let the screen's request go out (the app
     // runs on the test's clock) and ask the server.
     final account = SupabaseAccountRepository(worker);
@@ -387,7 +405,7 @@ void main() {
   });
 
   /// The worker's app, signed in, opened at [location] (or the start).
-  Widget workerApp({String? location}) => ProviderScope(
+  Widget workerApp({String? location}) => capture(ProviderScope(
         overrides: [
           backendConfigProvider.overrideWithValue(_config),
           supabaseClientProvider.overrideWithValue(worker),
@@ -400,10 +418,10 @@ void main() {
           if (location != null) workerInitialLocationProvider.overrideWithValue(location),
         ],
         child: const WorkerApp(),
-      );
+      ));
 
   /// The owner's app, signed in, opened at [location] (or the start).
-  Widget ownerApp({String? location}) => ProviderScope(
+  Widget ownerApp({String? location}) => capture(ProviderScope(
         overrides: [
           backendConfigProvider.overrideWithValue(_config),
           supabaseClientProvider.overrideWithValue(owner),
@@ -412,7 +430,7 @@ void main() {
           if (location != null) employerInitialLocationProvider.overrideWithValue(location),
         ],
         child: const EmployerApp(),
-      );
+      ));
 
   void phone(WidgetTester tester) {
     tester.view.physicalSize = const Size(1170, 2532);
@@ -433,6 +451,7 @@ void main() {
     // composer's own text matched before).
     await _until(tester, find.descendant(of: find.byType(ListView), matching: _text('Salom, ertaga 13:50 da boraman')));
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
+    await _shot(tester, 'a10-chat');
     final thread = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).messages(app.applicationId));
     expect(thread!.last.body, 'Salom, ertaga 13:50 da boraman');
     await _close(tester);
@@ -443,6 +462,7 @@ void main() {
     phone(tester);
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
     await _until(tester, _text('Sardor Testov님이 메시지를 보냈어요 · E2E 홀 보조'));
+    await _shot(tester, 'ba-notifications');
     await _close(tester);
 
     await tester.pumpWidget(ownerApp());
@@ -456,6 +476,7 @@ void main() {
     await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, '저장하기')));
     await _until(tester, _text('내일'));
     await _tap(tester, _text('내일'));
+    await _shot(tester, 'ba2-form');
     expect(_text('최저시급 10,320원 이상'), findsWidgets, reason: 'the wage starts at the legal minimum');
     await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
     await _until(tester, _text('근무를 올렸어요'));

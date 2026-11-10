@@ -66,6 +66,16 @@ jobs:
       - name: Integration tests
         run: flutter test test_backend --concurrency=1 --reporter github
 
+      # Real data as the apps draw it (test_backend/ui_e2e_test.dart).
+      - name: Keep the E2E screens
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hanguk-ish-e2e-screens
+          path: hanguk_ish/build/screens2x/
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Server logs
         if: failure()
         run: |
