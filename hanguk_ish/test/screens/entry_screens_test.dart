@@ -24,8 +24,7 @@ void main() {
       container.read(appLanguageProvider.notifier).select(language);
       await tester.pumpWidget(capture(UncontrolledProviderScope(container: container, child: const WorkerApp())));
       await tester.pumpAndSettle();
-      final name = language == AppLanguage.uz ? 'A01-Kirish' : 'A01-Kirish.${language.code}';
-      await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/$name.png'));
+      await expectScreen(tester, language == AppLanguage.uz ? 'A01-Kirish' : 'A01-Kirish.${language.code}');
     });
   }
 
@@ -34,7 +33,7 @@ void main() {
       usePhone(tester, phone);
       await tester.pumpWidget(capture(const ProviderScope(child: WorkerApp())));
       await tester.pumpAndSettle();
-      await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/A01-Kirish.${phone.name}.png'));
+      await expectScreen(tester, 'A01-Kirish.${phone.name}');
     });
   }
 
@@ -42,13 +41,13 @@ void main() {
     usePhone(tester);
     await tester.pumpWidget(capture(const ProviderScope(child: EmployerApp())));
     await tester.pumpAndSettle();
-    await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/BA0-App-Login.png'));
+    await expectScreen(tester, 'BA0-App-Login');
   });
 
   testWidgets('BA0 App Login — android', (tester) async {
     usePhone(tester, TestPhone.android);
     await tester.pumpWidget(capture(const ProviderScope(child: EmployerApp())));
     await tester.pumpAndSettle();
-    await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/BA0-App-Login.android.png'));
+    await expectScreen(tester, 'BA0-App-Login.android');
   });
 }

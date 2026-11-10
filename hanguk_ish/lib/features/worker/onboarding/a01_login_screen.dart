@@ -9,6 +9,7 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/brand.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/controls.dart';
+import '../../../design/widgets/layout.dart';
 import '../../../design/widgets/link_text.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../settings/app_language.dart';
@@ -46,66 +47,59 @@ class _A01LoginScreenState extends ConsumerState<A01LoginScreen> {
         glow: HiGlow.entry,
         watermark: '일',
         watermarkSize: 230,
-        child: CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Header(l10n: l10n),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
-                    child: _LanguageSection(
-                      title: l10n.appLanguage,
-                      selected: language,
-                      onSelect: (value) => ref
-                          .read(appLanguageProvider.notifier)
-                          .select(value),
-                    ),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      18,
-                      0,
-                      22,
-                      HiInsets.bottom(context, 30),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _TermsRow(
-                          agreed: _agreed,
-                          prefix: l10n.termsPrefix,
-                          link: l10n.termsLink,
-                          suffix: l10n.termsSuffix,
-                          onToggle: () => setState(() => _agreed = !_agreed),
-                          onLink: widget.onTerms,
-                        ),
-                        const SizedBox(height: 12),
-                        HiButton(
-                          label: l10n.loginWithPhone,
-                          icon: HiIcons.smartphone,
-                          iconStroke: 2.2,
-                          onPressed: canContinue ? (widget.onPhone ?? () {}) : null,
-                        ),
-                        const SizedBox(height: 12),
-                        HiButton(
-                          label: l10n.loginWithTelegram,
-                          style: HiButtonStyle.ghost,
-                          icon: HiIcons.send,
-                          iconStroke: 2,
-                          onPressed:
-                              canContinue ? (widget.onTelegram ?? () {}) : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+        child: HiPinnedBottomLayout(
+          top: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Header(l10n: l10n),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
+                child: _LanguageSection(
+                  title: l10n.appLanguage,
+                  selected: language,
+                  onSelect: (value) =>
+                      ref.read(appLanguageProvider.notifier).select(value),
+                ),
               ),
+            ],
+          ),
+          bottom: Padding(
+            padding: EdgeInsets.fromLTRB(
+              18,
+              // Keeps the block clear of the language grid on short screens.
+              24,
+              22,
+              HiInsets.bottom(context, 30),
             ),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _TermsRow(
+                  agreed: _agreed,
+                  prefix: l10n.termsPrefix,
+                  link: l10n.termsLink,
+                  suffix: l10n.termsSuffix,
+                  onToggle: () => setState(() => _agreed = !_agreed),
+                  onLink: widget.onTerms,
+                ),
+                const SizedBox(height: 12),
+                HiButton(
+                  label: l10n.loginWithPhone,
+                  icon: HiIcons.smartphone,
+                  iconStroke: 2.2,
+                  onPressed: canContinue ? (widget.onPhone ?? () {}) : null,
+                ),
+                const SizedBox(height: 12),
+                HiButton(
+                  label: l10n.loginWithTelegram,
+                  style: HiButtonStyle.ghost,
+                  icon: HiIcons.send,
+                  iconStroke: 2,
+                  onPressed: canContinue ? (widget.onTelegram ?? () {}) : null,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -129,7 +123,7 @@ class _Header extends StatelessWidget {
           const SizedBox(height: 20),
           Semantics(
             header: true,
-            child: Text(
+            child: HiText(
               l10n.appTitle,
               style: hiStyle(
                 34,
@@ -141,9 +135,11 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
+          // `max-width:300px`; 4 px of slack because the test renderer measures
+          // glyphs slightly wider than Chrome (the Uzbek line is 299 px).
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 300),
-            child: Text(
+            constraints: const BoxConstraints(maxWidth: 304),
+            child: HiText(
               l10n.appTagline,
               style: hiStyle(
                 16,

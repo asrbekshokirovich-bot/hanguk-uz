@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../typography.dart';
+
 /// A sentence with one link in it, underlined like the prototype:
 /// `text-decoration: underline; text-underline-offset: 3px`.
 ///
@@ -60,9 +62,11 @@ class _HiLinkSentenceState extends State<HiLinkSentence> {
       ],
     );
     final scaler = MediaQuery.textScalerOf(context);
+    final strut = hiStrut(widget.style);
     return CustomPaint(
       foregroundPainter: _LinkUnderlinePainter(
         span: span,
+        strut: strut,
         start: widget.prefix.length,
         end: widget.prefix.length + widget.link.length,
         textAlign: widget.textAlign,
@@ -72,7 +76,12 @@ class _HiLinkSentenceState extends State<HiLinkSentence> {
         color: widget.linkStyle.color ?? const Color(0xFFFFFFFF),
         fontSize: widget.linkStyle.fontSize ?? widget.style.fontSize ?? 14,
       ),
-      child: Text.rich(span, textAlign: widget.textAlign, textScaler: scaler),
+      child: Text.rich(
+        span,
+        textAlign: widget.textAlign,
+        textScaler: scaler,
+        strutStyle: strut,
+      ),
     );
   }
 }
@@ -80,6 +89,7 @@ class _HiLinkSentenceState extends State<HiLinkSentence> {
 class _LinkUnderlinePainter extends CustomPainter {
   _LinkUnderlinePainter({
     required this.span,
+    required this.strut,
     required this.start,
     required this.end,
     required this.textAlign,
@@ -91,6 +101,7 @@ class _LinkUnderlinePainter extends CustomPainter {
   });
 
   final TextSpan span;
+  final StrutStyle? strut;
   final int start;
   final int end;
   final TextAlign textAlign;
@@ -104,6 +115,7 @@ class _LinkUnderlinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final painter = TextPainter(
       text: span,
+      strutStyle: strut,
       textAlign: textAlign,
       textDirection: direction,
       textScaler: scaler,
@@ -139,6 +151,7 @@ class _LinkUnderlinePainter extends CustomPainter {
   @override
   bool shouldRepaint(_LinkUnderlinePainter old) =>
       old.span != span ||
+      old.strut != strut ||
       old.start != start ||
       old.end != end ||
       old.textAlign != textAlign ||

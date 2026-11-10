@@ -62,7 +62,9 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 
+      # Runs even when Analyze failed, so one lint does not hide test results.
       - name: Unit and widget tests
+        if: success() || failure()
         run: |
           mkdir -p build
           flutter test --exclude-tags screens --reporter github --file-reporter expanded:build/test_report.txt
@@ -82,6 +84,7 @@ jobs:
           ASSET_PREFIX="${GITHUB_REF_NAME//\//-}"
           mkdir -p build/screens
           cp -r test/screens/goldens/. build/screens/ 2>/dev/null || true
+          [ -d build/screens2x ] && cp -r build/screens2x build/screens/2x || true
           [ -f build/test_report.txt ] && cp build/test_report.txt build/screens/ || true
           [ -n "$(ls -A build/screens)" ] || exit 0
           (cd build/screens && zip -qr "../../${ASSET_PREFIX}-screens.zip" .)

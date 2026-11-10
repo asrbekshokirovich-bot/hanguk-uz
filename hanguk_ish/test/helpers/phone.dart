@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -39,3 +43,24 @@ const screenKey = ValueKey('screen');
 
 /// Wraps [app] so the whole screen can be captured with [matchesGoldenFile].
 Widget capture(Widget app) => RepaintBoundary(key: screenKey, child: app);
+
+/// Writes the captured screen at [pixelRatio]× to `build/screens2x/<name>.png`
+/// — a sharper copy of the golden for reviewing details against the
+/// prototype rendered at the same scale.
+Future<void> saveHiRes(WidgetTester tester, String name, {double pixelRatio = 2}) async {
+  final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(screenKey));
+  await tester.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    final file = File('build/screens2x/$name.png');
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(bytes!.buffer.asUint8List());
+  });
+}
+
+/// The golden at 1× (compared with the prototype) plus the 2× copy.
+Future<void> expectScreen(WidgetTester tester, String name) async {
+  await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/$name.png'));
+  await saveHiRes(tester, name);
+}
