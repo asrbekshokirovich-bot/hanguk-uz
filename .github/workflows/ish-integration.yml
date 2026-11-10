@@ -41,7 +41,7 @@ jobs:
       # Database, auth (phone OTP), REST, Storage and the gateway; the rest is
       # not needed by the apps' repositories.
       - name: Start Supabase
-        run: supabase start -x studio,imgproxy,inbucket,vector,logflare,supavisor,edge-runtime,realtime,postgres-meta
+        run: supabase start -x studio,imgproxy,mailpit,vector,logflare,supavisor,edge-runtime,realtime,postgres-meta
 
       - name: Keys
         run: |

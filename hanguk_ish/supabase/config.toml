@@ -38,6 +38,15 @@ template = "Hanguk Ish kodi: {{ .Code }}"
 821000000011 = "123456"
 821000000012 = "123456"
 
+# GoTrue accepts phone sign-in only with a provider enabled; the test numbers
+# above never reach it. Local stack only — production uses the provider set
+# in the dashboard (Twilio Verify recommended), with real credentials.
+[auth.sms.twilio]
+enabled = true
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
+auth_token = "local-test-only"
+
 [auth.email]
 enable_signup = false
 

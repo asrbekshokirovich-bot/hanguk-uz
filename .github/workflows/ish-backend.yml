@@ -65,7 +65,7 @@ jobs:
         working-directory: hanguk_ish
         run: |
           supabase --version
-          supabase start -x studio,imgproxy,inbucket,vector,logflare,supavisor,edge-runtime,realtime,storage-api,postgres-meta
+          supabase start -x studio,imgproxy,mailpit,vector,logflare,supavisor,edge-runtime,realtime,storage-api,postgres-meta
       - name: Apply migrations
         working-directory: hanguk_ish
         run: supabase db reset --local
