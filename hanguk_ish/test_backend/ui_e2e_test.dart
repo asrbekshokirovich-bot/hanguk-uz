@@ -25,6 +25,7 @@ import 'package:hanguk_ish/data/repositories/account_repository.dart';
 import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/employer_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
+import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
@@ -106,6 +107,8 @@ Future<void> _until(WidgetTester tester, Finder finder, {int seconds = 20}) asyn
 }
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
+  // Past any page transition (taps are blocked while one runs).
+  await tester.pump(const Duration(milliseconds: 500));
   await tester.ensureVisible(finder.first);
   await tester.pump(const Duration(milliseconds: 300));
   await tester.tap(finder.first);
@@ -326,8 +329,9 @@ void main() {
 
     await _until(tester, _text('E2E 수동 확정'));
     await _tap(tester, _text('E2E 수동 확정'));
-    await _until(tester, _text('확정'));
-    await _tap(tester, _text('확정'));
+    // BA3 with the applicant; then its «확정» button (chips say 확정 too).
+    await _until(tester, _text('지원자 1명'));
+    await _tap(tester, find.widgetWithText(HiButton, '확정'));
     await _until(tester, _text('Sardor Testov님을 확정했어요'));
     final decided = await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(manual.id));
     expect(decided!.confirmed, 1, reason: 'the server has the decision');
