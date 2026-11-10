@@ -237,7 +237,7 @@ void main() {
       expect(businesses.single.bizNo, '1234567890');
     });
 
-    test("a business still waiting for 국세청, or refused", () {
+    test('a business still waiting for 국세청, or refused', () {
       Business card(String status) => businessFromJson({'id': 'b', 'name': '사업장 999-00-00054', 'status': status});
       expect(card('pending').review, BusinessReview.pending);
       expect(card('rejected').review, BusinessReview.rejected);

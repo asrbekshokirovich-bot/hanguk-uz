@@ -129,6 +129,14 @@ Future<void> _shot(WidgetTester tester, String name) async {
   await saveHiRes(tester, 'e2e-$name');
 }
 
+/// Past a page transition: both pages are on screen while it runs (two text
+/// fields, taps blocked).
+Future<void> _settle(WidgetTester tester) async {
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 /// Unmounts the app and lets its timers run out.
 Future<void> _close(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());
@@ -674,12 +682,14 @@ void main() {
     )));
     // Signed out: the start gate opens BA0.
     await _until(tester, find.widgetWithText(HiButton, '시작하기'));
+    await _settle(tester);
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), '01000000051');
     await tester.enterText(fields.at(1), '9990000054');
     await _tap(tester, find.widgetWithText(HiButton, '시작하기'));
     await _until(tester, _text('인증번호 입력'));
-    await tester.enterText(find.byType(TextField), '123456');
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).last, '123456');
     // The code signs in; business-register files the number (no key in the
     // local stack: it waits for 국세청) and BA1 opens on it.
     await _until(tester, _text('오늘의 근무'));
