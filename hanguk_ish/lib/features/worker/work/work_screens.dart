@@ -136,29 +136,29 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
               child: _CameraProblemMessage(problem: problem),
             )
           else ...[
-          Positioned.fill(
-            child: IgnorePointer(
-              child: QrViewfinder(
-                frame: frame,
-                lineTop: checkIn ? 150 : 96,
-                animate: ref.watch(qrScanAnimationProvider),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: QrViewfinder(
+                  frame: frame,
+                  lineTop: checkIn ? 150 : 96,
+                  animate: ref.watch(qrScanAnimationProvider),
+                ),
               ),
             ),
-          ),
-          // The frame: in the demo, tapping it reads the printed code.
-          Positioned.fromRect(
-            rect: frame,
-            child: Semantics(
-              button: kind == QrCameraKind.demo,
-              label: l10n.scanQr,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: kind == QrCameraKind.demo && app != null
-                    ? () => _onCode(ShiftQr(app.shift.id, DemoShiftRepository.qrToken).payload)
-                    : null,
+            // The frame: in the demo, tapping it reads the printed code.
+            Positioned.fromRect(
+              rect: frame,
+              child: Semantics(
+                button: kind == QrCameraKind.demo,
+                label: l10n.scanQr,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: kind == QrCameraKind.demo && app != null
+                      ? () => _onCode(ShiftQr(app.shift.id, DemoShiftRepository.qrToken).payload)
+                      : null,
+                ),
               ),
             ),
-          ),
           ],
           // The header stays, problem or not: the way out.
           Positioned(
@@ -202,26 +202,26 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
             ),
           ),
           if (_problem == null)
-          Positioned(
-            left: 18,
-            right: 18,
-            top: 508 + shift,
-            child: Column(
-              children: [
-                HiText(
-                  checkIn ? l10n.alignQr : l10n.scanOutTitle,
-                  textAlign: TextAlign.center,
-                  style: hiStyle(19, FontWeight.w800, height: 1.3),
-                ),
-                const SizedBox(height: 6),
-                HiText(
-                  checkIn ? l10n.autoRead : l10n.scanOutText,
-                  textAlign: TextAlign.center,
-                  style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.textSoft),
-                ),
-              ],
+            Positioned(
+              left: 18,
+              right: 18,
+              top: 508 + shift,
+              child: Column(
+                children: [
+                  HiText(
+                    checkIn ? l10n.alignQr : l10n.scanOutTitle,
+                    textAlign: TextAlign.center,
+                    style: hiStyle(19, FontWeight.w800, height: 1.3),
+                  ),
+                  const SizedBox(height: 6),
+                  HiText(
+                    checkIn ? l10n.autoRead : l10n.scanOutText,
+                    textAlign: TextAlign.center,
+                    style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.textSoft),
+                  ),
+                ],
+              ),
             ),
-          ),
           if (app != null)
             Positioned(
               left: 18,
