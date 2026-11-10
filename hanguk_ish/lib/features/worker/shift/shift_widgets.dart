@@ -383,7 +383,9 @@ class ShiftCardSkeleton extends StatelessWidget {
           borderRadius: BorderRadius.circular(HiRadii.card),
           border: Border.all(color: HiColors.white10),
         ),
-        padding: const EdgeInsets.all(16),
+        // The prototype's bars total 1 px more than its 210 px card leaves
+        // inside; CSS lets the last row run into the bottom padding.
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/core/money/won.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
@@ -46,8 +47,8 @@ void main() {
     expect(find.text('Dalbit Kafe · Sinchon'), findsOneWidget);
     expect(find.text('4,8'), findsOneWidget);
     expect(find.text('· 126 ta smena bajarilgan'), findsOneWidget);
-    expect(find.text('5 soat × 10 500 ₩'), findsOneWidget);
-    expect(find.text('52 500 ₩'), findsOneWidget);
+    expect(find.text('5 soat × ${Won.worker(10500)}'), findsOneWidget);
+    expect(find.text(Won.worker(52500)), findsOneWidget);
     expect(find.text('Mapo-gu, Sinchon-ro 12-gil, 2-qavat'), findsOneWidget);
     expect(find.text('1,2 km · piyoda 15 daqiqa'), findsOneWidget);
 
@@ -139,9 +140,9 @@ void main() {
     // Pay filter: 13 000 ₩+ (shown on the chip).
     await tester.tap(find.text('Maosh'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('13 000 ₩+'));
+    await tester.tap(find.text('${Won.worker(13000)}+'));
     await tester.pumpAndSettle();
-    expect(find.text('Maosh: 13 000 ₩+'), findsOneWidget);
+    expect(find.text('Maosh: ${Won.worker(13000)}+'), findsOneWidget);
   });
 
   testWidgets('day tabs: tomorrow has 4 shifts', (tester) async {
@@ -158,12 +159,12 @@ void main() {
     var card = tester.widget<ShiftCard>(find.byType(ShiftCard));
     expect(card.shift.business.id, 'demo-dalbit');
 
-    await tester.tap(find.text('12 000 ₩'));
+    await tester.tap(find.text(Won.worker(12000)));
     await tester.pumpAndSettle();
     card = tester.widget<ShiftCard>(find.byType(ShiftCard));
     expect(card.shift.business.id, 'demo-sangam');
 
-    await tester.tap(find.text('12 000 ₩').first);
+    await tester.tap(find.text(Won.worker(12000)).first);
     await tester.pumpAndSettle();
     expect(find.byType(ShiftDetailScreen), findsOneWidget);
     expect(find.text('Yuk saralash'), findsOneWidget);
