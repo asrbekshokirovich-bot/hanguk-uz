@@ -33,6 +33,10 @@ enum HiFamily {
 /// (null = `normal`), [letterSpacingEm] is `letter-spacing` in em.
 /// Leading is split evenly above and below the glyphs, as CSS does, so a
 /// line sits at the same place as in the prototype.
+///
+/// The style does not inherit: Material's default text style (M3 body: 1.43
+/// line height, 0.25 px letter spacing) would otherwise fill every property
+/// left unset here, widening text and changing `line-height: normal` lines.
 TextStyle hiStyle(
   double size,
   FontWeight weight, {
@@ -43,15 +47,19 @@ TextStyle hiStyle(
   TextDecoration? decoration,
 }) {
   return TextStyle(
+    inherit: false,
     fontFamily: family.family,
     fontFamilyFallback: family.fallback,
     fontSize: size,
     fontWeight: weight,
-    color: color,
+    fontStyle: FontStyle.normal,
+    color: color ?? const Color(0xFFFFFFFF),
     height: height,
-    letterSpacing: letterSpacingEm == 0 ? null : letterSpacingEm * size,
+    letterSpacing: letterSpacingEm * size,
+    wordSpacing: 0,
+    textBaseline: TextBaseline.alphabetic,
     leadingDistribution: TextLeadingDistribution.even,
-    decoration: decoration,
+    decoration: decoration ?? TextDecoration.none,
   );
 }
 

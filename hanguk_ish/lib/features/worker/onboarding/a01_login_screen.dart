@@ -135,10 +135,8 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // `max-width:300px`; 4 px of slack because the test renderer measures
-          // glyphs slightly wider than Chrome (the Uzbek line is 299 px).
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 304),
+            constraints: const BoxConstraints(maxWidth: 300),
             child: HiText(
               l10n.appTagline,
               style: hiStyle(

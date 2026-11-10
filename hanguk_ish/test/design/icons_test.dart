@@ -29,7 +29,8 @@ void main() {
     };
     icons.forEach((name, icon) {
       final bounds = icon.path.getBounds();
-      expect(bounds.isEmpty, isFalse, reason: name);
+      // A straight line (minus) has zero height, so only require some extent.
+      expect(bounds.width > 0 || bounds.height > 0, isTrue, reason: name);
       expect(const Rect.fromLTRB(-0.5, -0.5, 24.5, 24.5).contains(bounds.topLeft), isTrue, reason: '$name $bounds');
       expect(bounds.right <= 24.5 && bounds.bottom <= 24.5, isTrue, reason: '$name $bounds');
     });
