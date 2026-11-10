@@ -30,8 +30,7 @@ class SupabaseAccountRepository implements WorkerAccountRepository {
         final cards = await _client.rpc('my_notifications',
             params: {'p_limit': 100, 'p_kinds': workerNotificationKinds}) as List;
         return [
-          for (final card in cards)
-            if (hiNotificationFromJson(card as Json) case final notification?) notification,
+          for (final card in cards) ?hiNotificationFromJson(card as Json),
         ];
       });
 

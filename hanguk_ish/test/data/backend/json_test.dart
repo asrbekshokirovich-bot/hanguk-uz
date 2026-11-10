@@ -17,7 +17,7 @@ final Map<String, dynamic> samples =
 List<Json> sampleList(String name) => [for (final e in samples[name] as List) e as Json];
 
 const a1 = '00000000-0000-0000-0000-0000000000a1';
-const config = BackendConfig(url: 'https://ish.supabase.co', anonKey: 'anon');
+const config = BackendConfig(url: 'https://ish.supabase.co', publishableKey: 'anon');
 
 void main() {
   group('worker app', () {
@@ -337,7 +337,7 @@ void main() {
 
     test('public file URLs', () {
       expect(config.publicUrl('avatars', 'u/a b.jpg'), 'https://ish.supabase.co/storage/v1/object/public/avatars/u/a%20b.jpg');
-      expect(const BackendConfig(url: 'https://x.co/', anonKey: 'k').publicUrl('b', 'p'),
+      expect(const BackendConfig(url: 'https://x.co/', publishableKey: 'k').publicUrl('b', 'p'),
           'https://x.co/storage/v1/object/public/b/p');
       expect(config.publicUrl('avatars', null), isNull);
       expect(BackendConfig.none.publicUrl('avatars', 'p'), isNull);
