@@ -88,6 +88,14 @@ abstract final class HiShadows {
   static const hardSmall = [
     BoxShadow(color: HiColors.ink, offset: Offset(3, 3)),
   ];
+
+  /// CSS `box-shadow` blur `b` as a Flutter blur radius: CSS blurs with a
+  /// Gaussian of σ = b / 2, Flutter turns a radius r into σ = 0.57735 r + 0.5.
+  static double blur(double b) => b <= 0 ? 0 : (b / 2 - 0.5) / 0.57735;
+
+  /// `box-shadow: 0 0 <b>px <color>` around a box with no background: CSS
+  /// draws a shadow only outside the box, so the inside stays clear.
+  static BoxShadow glow(Color color, double b) => BoxShadow(color: color, blurRadius: blur(b), blurStyle: BlurStyle.outer);
 }
 
 /// Outlines.
