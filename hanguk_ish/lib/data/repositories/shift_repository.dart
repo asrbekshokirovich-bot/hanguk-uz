@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../demo/demo_shifts.dart';
 import '../models/business.dart';
+import '../models/my_shift.dart';
 import '../models/shift.dart';
 
 /// What the feed asks for (A03 / A04 filters).
@@ -60,6 +61,23 @@ abstract interface class ShiftRepository {
 
   /// A05 «Tasdiqlash» → `apply_to_shift`.
   Future<ApplyResult> apply(String shiftId);
+
+  /// A06: the worker's applications, newest shifts last.
+  Future<List<MyShift>> myShifts();
+
+  Future<MyShift?> myShift(String applicationId);
+
+  /// A06 «Bekor qilish» → `cancel_application`.
+  Future<MyShift> cancelApplication(String applicationId);
+
+  /// A07 entry QR → `check_in`.
+  Future<MyShift> checkIn(String payload);
+
+  /// A07 exit QR → `check_out`.
+  Future<MyShift> checkOut(String payload);
+
+  /// A08 → `rate_business`.
+  Future<void> rateBusiness(String applicationId, int stars, Set<RatingTag> tags);
 }
 
 /// The repository the app uses. Demo data until a backend is configured.

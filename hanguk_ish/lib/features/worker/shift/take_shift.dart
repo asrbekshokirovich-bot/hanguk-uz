@@ -16,6 +16,7 @@ import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../feed/feed_controller.dart';
+import '../my_shifts/my_shifts_providers.dart';
 import '../settings/app_language.dart';
 import 'shift_detail_screen.dart';
 import 'shift_widgets.dart';
@@ -74,6 +75,7 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
     }
     ref
       ..invalidate(feedProvider)
+      ..invalidate(myShiftsProvider)
       ..invalidate(shiftDetailProvider(widget.shift.id));
     if (mounted) navigator.pop(outcome);
   }

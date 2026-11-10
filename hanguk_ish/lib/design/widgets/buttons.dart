@@ -18,6 +18,13 @@ enum HiButtonStyle {
 
   /// Text only («Orqaga», «Lentaga qaytish»); colour from [HiButton.textColor].
   text,
+
+  /// White with an ink outline, no shadow (A06 «Chat»).
+  outline,
+
+  /// Red fill, ink outline and hard shadow — confirming something that
+  /// cannot be undone («Ha, bekor qilish»).
+  danger,
 }
 
 /// A prototype button: label (and optional leading icon) centred in a
@@ -38,6 +45,7 @@ class HiButton extends StatelessWidget {
     this.iconStroke = 2.2,
     this.horizontalPadding = 0,
     this.textColor,
+    this.iconGap = 10,
   });
 
   final String label;
@@ -54,6 +62,9 @@ class HiButton extends StatelessWidget {
 
   /// Label colour of [HiButtonStyle.text] buttons (white on navy, ink on white).
   final Color? textColor;
+
+  /// Space between the icon and the label.
+  final double iconGap;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +83,8 @@ class HiButton extends StatelessWidget {
           BorderSide.none,
           false,
         ),
+      HiButtonStyle.outline => (HiColors.white, HiColors.ink, HiBorders.ink, false),
+      HiButtonStyle.danger => (HiColors.red, HiColors.white, HiBorders.ink, true),
     };
     final leading = icon;
     return Opacity(
@@ -87,7 +100,11 @@ class HiButton extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               decoration: BoxDecoration(
                 color: !shadow && pressed
-                    ? (style == HiButtonStyle.ink ? const Color(0xFF1C2C4A) : HiColors.white08)
+                    ? switch (style) {
+                        HiButtonStyle.ink => const Color(0xFF1C2C4A),
+                        HiButtonStyle.outline => HiColors.surface,
+                        _ => HiColors.white08,
+                      }
                     : fill,
                 borderRadius: BorderRadius.circular(HiRadii.button),
                 border: side == BorderSide.none ? null : Border.fromBorderSide(side),
@@ -111,7 +128,7 @@ class HiButton extends StatelessWidget {
                       strokeWidth: iconStroke,
                       color: fg,
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: iconGap),
                   ],
                   Flexible(
                     child: HiText(

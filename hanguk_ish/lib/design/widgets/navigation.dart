@@ -230,15 +230,23 @@ class HiSegmentedTabs extends StatelessWidget {
     required this.labels,
     required this.current,
     required this.onSelect,
+    this.flex,
+    this.semanticsLabel,
   });
 
   final List<String> labels;
   final int current;
   final ValueChanged<int> onSelect;
 
+  /// Column widths (`grid-template-columns` fr values × 100); equal if null.
+  final List<int>? flex;
+
+  /// Name of the tab group for screen readers.
+  final String? semanticsLabel;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final tabs = Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: HiColors.white08,
@@ -250,6 +258,7 @@ class HiSegmentedTabs extends StatelessWidget {
           for (var i = 0; i < labels.length; i++) ...[
             if (i > 0) const SizedBox(width: 4),
             Expanded(
+              flex: flex?[i] ?? 1,
               child: HiPressable(
                 onTap: () => onSelect(i),
                 selected: i == current,
@@ -277,6 +286,8 @@ class HiSegmentedTabs extends StatelessWidget {
         ],
       ),
     );
+    final label = semanticsLabel;
+    return label == null ? tabs : Semantics(container: true, label: label, child: tabs);
   }
 }
 
@@ -362,18 +373,20 @@ class HiStatusMessage extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.text,
-    required this.action,
-    required this.actionIcon,
-    required this.onAction,
+    this.action,
+    this.actionIcon,
+    this.onAction,
     this.textMaxWidth,
   });
 
   final HiIconData icon;
   final String title;
   final String text;
-  final String action;
-  final HiIconData actionIcon;
-  final VoidCallback onAction;
+
+  /// The lime button; none when null.
+  final String? action;
+  final HiIconData? actionIcon;
+  final VoidCallback? onAction;
   final double? textMaxWidth;
 
   @override
@@ -408,16 +421,18 @@ class HiStatusMessage extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 10 + 12),
-          IntrinsicWidth(
-            child: HiButton(
-              label: action,
-              icon: actionIcon,
-              iconStroke: 2.2,
-              horizontalPadding: 26,
-              onPressed: onAction,
+          if (action != null) ...[
+            const SizedBox(height: 10 + 12),
+            IntrinsicWidth(
+              child: HiButton(
+                label: action!,
+                icon: actionIcon,
+                iconStroke: 2.2,
+                horizontalPadding: 26,
+                onPressed: onAction,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

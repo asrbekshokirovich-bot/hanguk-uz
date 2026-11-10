@@ -662,5 +662,431 @@
   },
   "@shiftNotFound": {
     "description": "A05: smena o'chirilgan yoki havola noto'g'ri."
+  },
+  "tabUpcoming": "Kelgusi",
+  "@tabUpcoming": {
+    "description": "A06: kelgusi smenalar tabi."
+  },
+  "tabDone": "Bajarilgan",
+  "@tabDone": {
+    "description": "A06: bajarilgan smenalar tabi."
+  },
+  "tabCancelled": "Bekor qilingan",
+  "@tabCancelled": {
+    "description": "A06: bekor qilingan smenalar tabi."
+  },
+  "myShiftsTabs": "Smenalar holati",
+  "@myShiftsTabs": {
+    "description": "A06: tablar guruhi (ekran o'quvchi)."
+  },
+  "timeLeft": "{time} qoldi",
+  "@timeLeft": {
+    "description": "A06/A07: smena boshlanishigacha qolgan vaqt.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "lateBy": "{time} kechikish",
+  "@lateBy": {
+    "description": "A07: smena boshlanganidan beri o'tgan vaqt (kechikish).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "statusConfirmed": "Tasdiqlangan",
+  "@statusConfirmed": {
+    "description": "A06: ariza holati."
+  },
+  "statusPending": "Tasdiq kutilmoqda",
+  "@statusPending": {
+    "description": "A06: ariza holati."
+  },
+  "statusAtWork": "Ishdasiz",
+  "@statusAtWork": {
+    "description": "A06/A07: ishga kirgan holat."
+  },
+  "statusDone": "Bajarildi",
+  "@statusDone": {
+    "description": "A06: bajarilgan smena."
+  },
+  "statusNoShow": "Kelmadingiz",
+  "@statusNoShow": {
+    "description": "A06: ishchi kelmagan smena."
+  },
+  "statusCancelled": "Bekor qilindi",
+  "@statusCancelled": {
+    "description": "A06: ishchi bekor qilgan."
+  },
+  "statusRejected": "Rad etildi",
+  "@statusRejected": {
+    "description": "A06: ish beruvchi rad etgan."
+  },
+  "paymentPending": "Kutilmoqda",
+  "@paymentPending": {
+    "description": "A07/A09: maosh hali to'lanmagan."
+  },
+  "paymentPaid": "To'landi",
+  "@paymentPaid": {
+    "description": "A07/A09: maosh to'langan."
+  },
+  "directions": "Yo'nalish",
+  "@directions": {
+    "description": "A06: xaritada yo'l ko'rsatish."
+  },
+  "chat": "Chat",
+  "@chat": {
+    "description": "A06: ish beruvchi bilan chat."
+  },
+  "cancelShift": "Bekor qilish",
+  "@cancelShift": {
+    "description": "A06: smenani bekor qilish."
+  },
+  "rateShort": "Baholash",
+  "@rateShort": {
+    "description": "A06: bajarilgan smenani baholash tugmasi."
+  },
+  "ratedStars": "Bahoyingiz: {stars} ★",
+  "@ratedStars": {
+    "description": "A06: berilgan baho.",
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "workedPay": "{duration} · {amount}",
+  "@workedPay": {
+    "description": "A06: ishlangan vaqt va maosh.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyUpcomingTitle": "Kelgusi smenalar yo'q",
+  "@emptyUpcomingTitle": {
+    "description": "A06: bo'sh holat."
+  },
+  "emptyUpcomingText": "Lentadan o'zingizga mos smenani tanlang.",
+  "@emptyUpcomingText": {
+    "description": "A06: bo'sh holat matni."
+  },
+  "emptyDoneTitle": "Hali bajarilgan smena yo'q",
+  "@emptyDoneTitle": {
+    "description": "A06: bo'sh holat."
+  },
+  "emptyDoneText": "Smenani tugatganingizdan so'ng u shu yerda ko'rinadi.",
+  "@emptyDoneText": {
+    "description": "A06: bo'sh holat matni."
+  },
+  "emptyCancelledTitle": "Bekor qilingan smena yo'q",
+  "@emptyCancelledTitle": {
+    "description": "A06: bo'sh holat."
+  },
+  "findShifts": "Smenalarni ko'rish",
+  "@findShifts": {
+    "description": "A06: lentaga o'tish tugmasi."
+  },
+  "cancelTitle": "Smenani bekor qilasizmi?",
+  "@cancelTitle": {
+    "description": "A06: bekor qilish oynasi sarlavhasi."
+  },
+  "cancelTextFree": "Smena boshlanishiga 24 soatdan ko'p qoldi — bekor qilish bepul.",
+  "@cancelTextFree": {
+    "description": "A06: erta bekor qilish."
+  },
+  "cancelTextLate": "Smena boshlanishiga 24 soatdan kam qoldi. Bekor qilsangiz, ishonchlilik balingiz pasayadi.",
+  "@cancelTextLate": {
+    "description": "A06: kech bekor qilish ogohlantirishi."
+  },
+  "cancelTextPending": "Ariza qaytarib olinadi.",
+  "@cancelTextPending": {
+    "description": "A06: kutilayotgan arizani bekor qilish."
+  },
+  "cancelConfirm": "Ha, bekor qilish",
+  "@cancelConfirm": {
+    "description": "A06: bekor qilishni tasdiqlash."
+  },
+  "cancelDone": "Smena bekor qilindi.",
+  "@cancelDone": {
+    "description": "A06: bekor qilingandan keyin xabar."
+  },
+  "errCannotCancel": "Bu smenani endi bekor qilib bo'lmaydi.",
+  "@errCannotCancel": {
+    "description": "A06: bekor qilish rad etildi."
+  },
+  "errShiftStarted": "Smena allaqachon boshlangan.",
+  "@errShiftStarted": {
+    "description": "A06: boshlangan smena."
+  },
+  "checkInTitle": "Ishga kirish",
+  "@checkInTitle": {
+    "description": "A07: kirish QR sarlavhasi."
+  },
+  "checkOutTitle": "Ishdan chiqish",
+  "@checkOutTitle": {
+    "description": "A07: chiqish QR sarlavhasi."
+  },
+  "flashlightOn": "Fonarni yoqish",
+  "@flashlightOn": {
+    "description": "A07: fonar tugmasi (ekran o'quvchi)."
+  },
+  "flashlightOff": "Fonarni o'chirish",
+  "@flashlightOff": {
+    "description": "A07: fonar tugmasi (ekran o'quvchi)."
+  },
+  "scanQr": "QR kodni skanerlash",
+  "@scanQr": {
+    "description": "A07: skanerlash ramkasi (ekran o'quvchi)."
+  },
+  "alignQr": "QR kodni ramkaga to'g'rilang",
+  "@alignQr": {
+    "description": "A07: kirish skaneri matni."
+  },
+  "autoRead": "Ish joyidagi kod avtomatik o'qiladi",
+  "@autoRead": {
+    "description": "A07: kirish skaneri izohi."
+  },
+  "scanOutTitle": "Chiqish uchun QR kodni skanerlang",
+  "@scanOutTitle": {
+    "description": "A07: chiqish skaneri matni."
+  },
+  "scanOutText": "Kirishdagi o'sha kod — ish joyida osilgan",
+  "@scanOutText": {
+    "description": "A07: chiqish skaneri izohi."
+  },
+  "currentShift": "Joriy smena",
+  "@currentShift": {
+    "description": "A07: pastki karta (ekran o'quvchi)."
+  },
+  "shiftSection": "Smena",
+  "@shiftSection": {
+    "description": "A07: pastki karta (ekran o'quvchi)."
+  },
+  "planUntil": "Reja: {time} gacha",
+  "@planUntil": {
+    "description": "A07: chiqish skaneri, smena tugash vaqti.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraDeniedTitle": "Kameraga ruxsat yo'q",
+  "@cameraDeniedTitle": {
+    "description": "A07: kamera ruxsati berilmagan."
+  },
+  "cameraDeniedText": "QR kodni skanerlash uchun sozlamalarda kameraga ruxsat bering.",
+  "@cameraDeniedText": {
+    "description": "A07: kamera ruxsati izohi."
+  },
+  "errQrInvalid": "Bu QR kod bu smenaga tegishli emas.",
+  "@errQrInvalid": {
+    "description": "A07: noto'g'ri QR."
+  },
+  "errNotConfirmed": "Bu smena sizga tasdiqlanmagan.",
+  "@errNotConfirmed": {
+    "description": "A07: tasdiqlanmagan smena."
+  },
+  "errAlreadyCheckedIn": "Siz allaqachon ishga kirgansiz.",
+  "@errAlreadyCheckedIn": {
+    "description": "A07: qayta kirish."
+  },
+  "errTooEarly": "Kirish smena boshlanishidan 30 daqiqa oldin ochiladi.",
+  "@errTooEarly": {
+    "description": "A07: juda erta."
+  },
+  "errTooLate": "Smena vaqti tugagan.",
+  "@errTooLate": {
+    "description": "A07: juda kech."
+  },
+  "errNotCheckedIn": "Avval ishga kirish QR kodini skanerlang.",
+  "@errNotCheckedIn": {
+    "description": "A07: kirmasdan chiqish."
+  },
+  "errAlreadyCheckedOut": "Siz allaqachon ishdan chiqqansiz.",
+  "@errAlreadyCheckedOut": {
+    "description": "A07: qayta chiqish."
+  },
+  "atWorkTitle": "Ish kuni",
+  "@atWorkTitle": {
+    "description": "A07: ishdasiz ekrani sarlavhasi."
+  },
+  "workedTime": "Ishlangan vaqt",
+  "@workedTime": {
+    "description": "A07: taymer yorlig'i."
+  },
+  "planDuration": "Reja: {duration}",
+  "@planDuration": {
+    "description": "A07: rejadagi davomiylik.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInLabel": "Kirish",
+  "@checkInLabel": {
+    "description": "A07: kirish vaqti."
+  },
+  "checkOutLabel": "Chiqish",
+  "@checkOutLabel": {
+    "description": "A07: chiqish vaqti."
+  },
+  "plannedEnd": "Tugash (reja)",
+  "@plannedEnd": {
+    "description": "A07: rejadagi tugash vaqti."
+  },
+  "scanOutHint": "Ishni tugatgach, chiqish QR kodini skanerlang",
+  "@scanOutHint": {
+    "description": "A07: ishdasiz ekrani izohi."
+  },
+  "scanOutButton": "Chiqish — QR skanerlash",
+  "@scanOutButton": {
+    "description": "A07: chiqish tugmasi."
+  },
+  "workedA11y": "Ishlangan vaqt {hours} soat {minutes} daqiqa {seconds} soniya",
+  "@workedA11y": {
+    "description": "A07: taymer (ekran o'quvchi).",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "resultTitle": "Smena yakunlandi",
+  "@resultTitle": {
+    "description": "A07: natija sarlavhasi."
+  },
+  "resultThanks": "Rahmat, {name}! Bugungi ishingiz qayd etildi.",
+  "@resultThanks": {
+    "description": "A07: natija matni.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "resultThanksNoName": "Rahmat! Bugungi ishingiz qayd etildi.",
+  "@resultThanksNoName": {
+    "description": "A07: natija matni (ism yo'q)."
+  },
+  "workSummary": "Ish yakuni",
+  "@workSummary": {
+    "description": "A07: natija kartasi (ekran o'quvchi)."
+  },
+  "hourlyWage": "Soatlik maosh",
+  "@hourlyWage": {
+    "description": "A07: soatlik maosh."
+  },
+  "employerPays": "Maoshni ish beruvchi to'laydi",
+  "@employerPays": {
+    "description": "A07/A09: maosh kim tomonidan to'lanishi."
+  },
+  "rateEmployer": "Ish beruvchini baholash",
+  "@rateEmployer": {
+    "description": "A07: baholash tugmasi."
+  },
+  "later": "Keyinroq",
+  "@later": {
+    "description": "A07/A08: keyinga qoldirish."
+  },
+  "rateTitle": "Ish beruvchini baholang",
+  "@rateTitle": {
+    "description": "A08: sarlavha."
+  },
+  "rateText": "Fikringiz boshqa ishchilarga yordam beradi.",
+  "@rateText": {
+    "description": "A08: izoh."
+  },
+  "ratingGroup": "Baho",
+  "@ratingGroup": {
+    "description": "A08: yulduzlar guruhi (ekran o'quvchi)."
+  },
+  "starLabel": "{n} yulduz",
+  "@starLabel": {
+    "description": "A08: yulduz tugmasi (ekran o'quvchi).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "rating1": "Yomon",
+  "@rating1": {
+    "description": "A08: 1 yulduz."
+  },
+  "rating2": "Qoniqarsiz",
+  "@rating2": {
+    "description": "A08: 2 yulduz."
+  },
+  "rating3": "O'rtacha",
+  "@rating3": {
+    "description": "A08: 3 yulduz."
+  },
+  "rating4": "Yaxshi",
+  "@rating4": {
+    "description": "A08: 4 yulduz."
+  },
+  "rating5": "A'lo!",
+  "@rating5": {
+    "description": "A08: 5 yulduz."
+  },
+  "ratingHint": "Yulduzni tanlang",
+  "@ratingHint": {
+    "description": "A08: baho tanlanmagan."
+  },
+  "whatLiked": "Nima yoqdi?",
+  "@whatLiked": {
+    "description": "A08: teglar sarlavhasi."
+  },
+  "tagOnTime": "Vaqtida boshlandi",
+  "@tagOnTime": {
+    "description": "A08: teg."
+  },
+  "tagPolite": "Xushmuomala",
+  "@tagPolite": {
+    "description": "A08: teg."
+  },
+  "tagExplainedWell": "Yaxshi tushuntirdi",
+  "@tagExplainedWell": {
+    "description": "A08: teg."
+  },
+  "tagAsDescribed": "Ish tavsifga mos",
+  "@tagAsDescribed": {
+    "description": "A08: teg."
+  },
+  "tagBreakGiven": "Tanaffus berildi",
+  "@tagBreakGiven": {
+    "description": "A08: teg."
+  },
+  "tagCleanWorkplace": "Toza ish joyi",
+  "@tagCleanWorkplace": {
+    "description": "A08: teg."
+  },
+  "tagWouldReturn": "Yana ishlardim",
+  "@tagWouldReturn": {
+    "description": "A08: teg."
+  },
+  "sendRating": "Bahoni yuborish",
+  "@sendRating": {
+    "description": "A08: yuborish."
+  },
+  "ratingSent": "Rahmat! Bahoingiz yuborildi.",
+  "@ratingSent": {
+    "description": "A08: yuborilgandan keyin."
   }
 }

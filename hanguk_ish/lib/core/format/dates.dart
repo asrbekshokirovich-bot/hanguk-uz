@@ -162,6 +162,44 @@ abstract final class HiDates {
     return '$h$sep$hu $m$sep$mu';
   }
 
+  /// Time left or gone: «1 kun 5 soat», «2 soat 40 daq», «4 daq» — minutes
+  /// are dropped once there is a whole day (A06, A07).
+  static String countdown(int minutes, String lang) {
+    final m = minutes.abs();
+    final days = m ~/ (24 * 60);
+    final hours = (m % (24 * 60)) ~/ 60;
+    final mins = m % 60;
+    final (du, hu, mu) = switch (lang) {
+      'ru' => ('д', 'ч', 'мин'),
+      'en' => ('d', 'h', 'min'),
+      'ko' => ('일', '시간', '분'),
+      _ => ('kun', 'soat', 'daq'),
+    };
+    final sep = lang == 'ko' ? '' : ' ';
+    if (days > 0) return hours == 0 ? '$days$sep$du' : '$days$sep$du $hours$sep$hu';
+    if (hours > 0) return mins == 0 ? '$hours$sep$hu' : '$hours$sep$hu $mins$sep$mu';
+    return '$mins$sep$mu';
+  }
+
+  /// Worked time with two-digit minutes: «5 soat 00 daq» (A07, A09).
+  static String durationHm(int minutes, String lang) {
+    final h = minutes ~/ 60;
+    final m = (minutes % 60).toString().padLeft(2, '0');
+    return switch (lang) {
+      'ru' => '$h ч $m мин',
+      'en' => '$h h $m min',
+      'ko' => '$h시간 $m분',
+      _ => '$h soat $m daq',
+    };
+  }
+
+  /// A running timer: «02:14:37».
+  static String clock(Duration d) {
+    final s = d.inSeconds < 0 ? 0 : d.inSeconds;
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(s ~/ 3600)}:${two(s % 3600 ~/ 60)}:${two(s % 60)}';
+  }
+
   static const _todayLower = {'uz': 'bugun', 'ru': 'сегодня', 'en': 'today', 'ko': '오늘'};
   static const _tomorrowLower = {'uz': 'ertaga', 'ru': 'завтра', 'en': 'tomorrow', 'ko': '내일'};
 

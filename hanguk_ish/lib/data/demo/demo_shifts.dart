@@ -3,8 +3,10 @@
 /// 14:00–19:00, 10 500 ₩ …) and are never shown when a backend is set up.
 library;
 
+import '../../core/money/won.dart';
 import '../../core/time/kst.dart';
 import '../models/business.dart';
+import '../models/my_shift.dart';
 import '../models/shift.dart';
 import '../repositories/shift_repository.dart';
 
@@ -142,7 +144,7 @@ ShiftListing _shift(
   required int wage,
   required int slots,
   required int left,
-  required double km,
+  required double? km,
   bool auto = true,
   required String ko,
   required Map<String, String> title,
@@ -275,15 +277,83 @@ List<ShiftListing> demoShifts(DateTime now) {
     });
 }
 
+/// The worker's finished shifts in the demo: the prototype's November on
+/// A09 (1, 3, 5, 7 and 8 November, the first four already paid).
+List<MyShift> demoHistory(DateTime now) {
+  final today = Kst.wallClock(now);
+  DateTime day(int back) => Kst.instantOf(today.year, today.month, today.day - back);
+  MyShift done(String id, Business b, int back, int hour, int hours, int wage, String ko, Map<String, String> title,
+      {required bool paid, int? stars}) {
+    final shift = _shift('demo-past-$id', b,
+        day: day(back), startHour: hour, hours: hours, wage: wage, slots: 2, left: 0, km: null, ko: ko, title: title);
+    return MyShift(
+      applicationId: 'demo-app-past-$id',
+      shift: shift.copyWith(myStatus: ApplicationStatus.completed, myApplicationId: 'demo-app-past-$id'),
+      status: ApplicationStatus.completed,
+      checkInAt: shift.startsAt,
+      checkOutAt: shift.endsAt,
+      lateMinutes: 0,
+      workedMinutes: shift.plannedMinutes,
+      payAmount: shift.totalPay,
+      paidAt: paid ? shift.endsAt.add(const Duration(hours: 2)) : null,
+      myStars: stars,
+    );
+  }
+
+  return [
+    done('1', _dalbit, 9, 14, 4, 10500, '홀·카운터 보조',
+        {'uz': 'Kassa va zal yordamchisi', 'ru': 'Помощник на кассе и в зале', 'en': 'Counter and floor assistant'},
+        paid: true, stars: 5),
+    done('2', _nanum, 7, 10, 6, 13000, '행사 진행 보조',
+        {'uz': 'Tadbir yordamchisi', 'ru': 'Помощник на мероприятии', 'en': 'Event assistant'},
+        paid: true, stars: 4),
+    done('3', _ttukbaegi, 5, 17, 5, 11000, '홀 서빙',
+        {'uz': 'Zal yordamchisi', 'ru': 'Помощник в зале', 'en': 'Floor assistant'},
+        paid: true),
+    done('4', _bomMart, 3, 15, 4, 11000, '매장 진열 보조',
+        {'uz': 'Tokchalarni tartiblash', 'ru': 'Выкладка товара', 'en': 'Shelf stocking'},
+        paid: true, stars: 5),
+    done('5', _sangam, 2, 9, 6, 12000, '물류 분류',
+        {'uz': 'Yuk saralash', 'ru': 'Сортировка грузов', 'en': 'Parcel sorting'},
+        paid: false),
+  ];
+}
+
 /// In-memory [ShiftRepository] over [demoShifts].
+///
+/// [clock] is the time check-in and check-out use. With [strictTimes] the QR
+/// windows of the real backend apply (from 30 minutes before the start to the
+/// end; check-out until 2 hours after it); the demo app leaves them off so
+/// the whole flow can be tried at any hour.
 class DemoShiftRepository implements ShiftRepository {
-  DemoShiftRepository({DateTime? now, this.latency = Duration.zero})
-      : _shifts = {for (final s in demoShifts(now ?? DateTime.now())) s.id: s};
+  DemoShiftRepository({
+    DateTime? now,
+    this.latency = Duration.zero,
+    DateTime Function()? clock,
+    this.strictTimes = false,
+    bool history = true,
+  })  : _clock = clock ?? DateTime.now,
+        _shifts = {for (final s in demoShifts(now ?? DateTime.now())) s.id: s} {
+    if (history) {
+      for (final past in demoHistory(now ?? DateTime.now())) {
+        _apps[past.applicationId] = past;
+        _shifts[past.shift.id] = past.shift;
+      }
+    }
+  }
 
   final Map<String, ShiftListing> _shifts;
+  final Map<String, MyShift> _apps = {};
+  final DateTime Function() _clock;
 
   /// Pretend network delay (the demo app shows the loading state with it).
   final Duration latency;
+
+  /// Enforce the backend's check-in and check-out windows.
+  final bool strictTimes;
+
+  /// The token the demo's printed QR codes carry.
+  static const qrToken = 'demo';
 
   int _nextApplication = 1;
 
@@ -327,11 +397,124 @@ class DemoShiftRepository implements ShiftRepository {
     if (shift.slotsLeft <= 0) throw const ShiftActionException('SHIFT_FULL');
     final status = shift.autoConfirm ? ApplicationStatus.confirmed : ApplicationStatus.pending;
     final id = 'demo-app-${_nextApplication++}';
-    _shifts[shiftId] = shift.copyWith(
+    final updated = shift.copyWith(
       myStatus: status,
       myApplicationId: id,
       slotsLeft: shift.autoConfirm ? shift.slotsLeft - 1 : shift.slotsLeft,
     );
+    _shifts[shiftId] = updated;
+    _apps[id] = MyShift(applicationId: id, shift: updated, status: status);
     return ApplyResult(applicationId: id, status: status);
+  }
+
+  /// Applications with their shift as it is now.
+  MyShift _fresh(MyShift app) => app.copyWith(shift: _shifts[app.shift.id] ?? app.shift);
+
+  @override
+  Future<List<MyShift>> myShifts() async {
+    await _wait();
+    return [for (final app in _apps.values) _fresh(app)]..sort((a, b) => a.shift.startsAt.compareTo(b.shift.startsAt));
+  }
+
+  @override
+  Future<MyShift?> myShift(String applicationId) async {
+    await _wait();
+    final app = _apps[applicationId];
+    return app == null ? null : _fresh(app);
+  }
+
+  void _store(MyShift app) {
+    _apps[app.applicationId] = app;
+    final shift = _shifts[app.shift.id];
+    if (shift != null) _shifts[shift.id] = shift.copyWith(myStatus: app.status);
+  }
+
+  @override
+  Future<MyShift> cancelApplication(String applicationId) async {
+    await _wait();
+    final app = _apps[applicationId];
+    if (app == null) throw const ShiftActionException('NOT_FOUND');
+    if (app.status != ApplicationStatus.pending && app.status != ApplicationStatus.confirmed) {
+      throw const ShiftActionException('CANNOT_CANCEL');
+    }
+    final now = _clock();
+    final shift = _shifts[app.shift.id] ?? app.shift;
+    if (!shift.startsAt.isAfter(now)) throw const ShiftActionException('SHIFT_STARTED');
+    final late = app.status == ApplicationStatus.confirmed && shift.startsAt.difference(now) < const Duration(hours: 24);
+    final freed = app.status == ApplicationStatus.confirmed;
+    _shifts[shift.id] = shift.copyWith(slotsLeft: freed ? shift.slotsLeft + 1 : shift.slotsLeft);
+    final cancelled = app.copyWith(status: ApplicationStatus.cancelled, cancelledAt: now, lateCancel: late);
+    _store(cancelled);
+    return _fresh(cancelled);
+  }
+
+  MyShift _appForQr(String payload) {
+    final qr = ShiftQr.parse(payload);
+    if (qr == null || qr.token != qrToken || !_shifts.containsKey(qr.shiftId)) {
+      throw const ShiftActionException('QR_INVALID');
+    }
+    final app = _apps.values.where((a) =>
+        a.shift.id == qr.shiftId &&
+        (a.status == ApplicationStatus.confirmed ||
+            a.status == ApplicationStatus.checkedIn ||
+            a.status == ApplicationStatus.completed));
+    if (app.isEmpty) throw const ShiftActionException('NOT_CONFIRMED');
+    return app.first;
+  }
+
+  @override
+  Future<MyShift> checkIn(String payload) async {
+    await _wait();
+    final app = _appForQr(payload);
+    if (app.status != ApplicationStatus.confirmed) throw const ShiftActionException('ALREADY_CHECKED_IN');
+    final shift = _shifts[app.shift.id]!;
+    final now = _clock();
+    if (strictTimes) {
+      if (now.isBefore(shift.startsAt.subtract(const Duration(minutes: 30)))) {
+        throw const ShiftActionException('TOO_EARLY');
+      }
+      if (!now.isBefore(shift.endsAt)) throw const ShiftActionException('TOO_LATE');
+    }
+    final late = now.isAfter(shift.startsAt) ? now.difference(shift.startsAt).inMinutes : 0;
+    final updated = app.copyWith(status: ApplicationStatus.checkedIn, checkInAt: now, lateMinutes: late);
+    _store(updated);
+    return _fresh(updated);
+  }
+
+  @override
+  Future<MyShift> checkOut(String payload) async {
+    await _wait();
+    final app = _appForQr(payload);
+    if (app.status == ApplicationStatus.confirmed) throw const ShiftActionException('NOT_CHECKED_IN');
+    if (app.status == ApplicationStatus.completed) throw const ShiftActionException('ALREADY_CHECKED_OUT');
+    final shift = _shifts[app.shift.id]!;
+    final now = _clock();
+    if (strictTimes && now.isAfter(shift.endsAt.add(const Duration(hours: 2)))) {
+      throw const ShiftActionException('TOO_LATE');
+    }
+    final planned = shift.plannedMinutes;
+    final checkIn = app.checkInAt ?? now;
+    // The backend counts inside the planned window only; the lenient demo
+    // counts the time actually spent, still never more than planned.
+    final from = strictTimes && checkIn.isBefore(shift.startsAt) ? shift.startsAt : checkIn;
+    final to = strictTimes && now.isAfter(shift.endsAt) ? shift.endsAt : now;
+    final worked = to.difference(from).inMinutes.clamp(0, planned);
+    final updated = app.copyWith(
+      status: ApplicationStatus.completed,
+      checkOutAt: now,
+      workedMinutes: worked,
+      payAmount: Pay.forMinutes(shift.hourlyWage, worked),
+    );
+    _store(updated);
+    return _fresh(updated);
+  }
+
+  @override
+  Future<void> rateBusiness(String applicationId, int stars, Set<RatingTag> tags) async {
+    await _wait();
+    final app = _apps[applicationId];
+    if (app == null || app.status != ApplicationStatus.completed) throw const ShiftActionException('NOT_FOUND');
+    if (stars < 1 || stars > 5) throw const ShiftActionException('INVALID');
+    _store(app.copyWith(myStars: stars, myTags: tags));
   }
 }
