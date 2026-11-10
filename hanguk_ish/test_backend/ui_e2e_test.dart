@@ -532,12 +532,20 @@ void main() {
     await _until(tester, _text('Sardor Testov'));
     expect(_text(Ko.timesHere(1, 3)), findsOneWidget, reason: 'one finished shift here, TOPIK 3');
     await _tap(tester, find.bySemanticsLabel(Ko.favorite('Sardor Testov')));
+    // The star turns at once; the server's answer follows (the app runs on
+    // the test's clock, so let its request go out while asking the server).
     await _until(tester, find.bySemanticsLabel(Ko.unfavorite('Sardor Testov')));
-    final workers = await tester.runAsync(() async {
-      final repo = SupabaseEmployerRepository(owner, _config);
-      return repo.workers((await repo.businesses()).single.id);
-    });
-    expect(workers!.single.favorite, isTrue, reason: 'the server keeps the favourite');
+    final repo = SupabaseEmployerRepository(owner, _config);
+    var favorite = false;
+    for (var i = 0; i < 20 && !favorite; i++) {
+      for (var j = 0; j < 3; j++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final workers = await tester.runAsync(() async => repo.workers((await repo.businesses()).single.id));
+      favorite = workers!.single.favorite;
+    }
+    expect(favorite, isTrue, reason: 'the server keeps the favourite');
     await _tap(tester, find.textContaining(RegExp('^${Ko.favorites} '), findRichText: true));
     await _until(tester, _text('Sardor Testov'));
     await _shot(tester, 'ba4-workers');
