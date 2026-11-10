@@ -75,8 +75,10 @@ class _ProfileStepFrame extends StatelessWidget {
               ...children,
             ],
           ),
+          // The prototype pins the button with `position:absolute`; the 16 px
+          // only keeps it off the content on phones too short for both.
           bottom: Padding(
-            padding: EdgeInsets.fromLTRB(18, 24, 22, HiInsets.bottom(context, 30)),
+            padding: EdgeInsets.fromLTRB(18, 16, 22, HiInsets.bottom(context, 30)),
             child: HiButton(label: action, onPressed: onAction),
           ),
         ),
