@@ -718,7 +718,9 @@ class _WageField extends StatelessWidget {
     final text = hiStyle(18, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono);
     return Container(
       height: 52,
-      padding: const EdgeInsets.only(left: 14, right: 14),
+      // «원» sits `right:14px` from the field's outer edge (the 1 px border
+      // included), the text 14 px inside the border.
+      padding: const EdgeInsets.only(left: 14, right: 13),
       decoration: BoxDecoration(
         color: HiColors.white,
         borderRadius: BorderRadius.circular(HiRadii.field),

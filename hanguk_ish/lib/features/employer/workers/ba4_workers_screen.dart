@@ -228,8 +228,6 @@ class _WorkerCardView extends StatelessWidget {
                           Flexible(
                             child: HiText(
                               Ko.timesHere(w.timesHere, w.topik),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted),
                             ),
                           ),

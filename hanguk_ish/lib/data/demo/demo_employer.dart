@@ -180,13 +180,15 @@ List<EmployerShift> demoEmployerShifts(DateTime now) {
     );
     final apps = [
       for (final c in crew) crewMember(base, c, dayOffset),
+      // Applications that have come in by now (09:12 and 10:47).
       for (final (i, w) in waiting.indexed)
-        ShiftApplicant(
-          applicationId: 'demo-app-${nextApp++}',
-          worker: demoWorker(w),
-          status: ApplicationStatus.pending,
-          appliedAt: at(dayOffset, 9 * 60 + 12 + i * 95),
-        ),
+        if (!now.isBefore(at(dayOffset, 9 * 60 + 12 + i * 95)))
+          ShiftApplicant(
+            applicationId: 'demo-app-${nextApp++}',
+            worker: demoWorker(w),
+            status: ApplicationStatus.pending,
+            appliedAt: at(dayOffset, 9 * 60 + 12 + i * 95),
+          ),
     ];
     final paidAt = paid ? base.endsAt.add(const Duration(days: 1)) : null;
     return base.copyWith(applicants: [
@@ -250,6 +252,7 @@ List<EmployerNotification> demoEmployerNotifications(DateTime now) {
   final today = Kst.wallClock(now);
   DateTime at(int dayOffset, int h, int m) => Kst.instantOf(today.year, today.month, today.day + dayOffset, h, m);
   return [
+    for (final n in [
     EmployerNotification(
       id: 'demo-en-4',
       kind: EmployerNotificationKind.newApplicant,
@@ -284,6 +287,8 @@ List<EmployerNotification> demoEmployerNotifications(DateTime now) {
       workerName: 'Aziz Karimov',
       read: true,
     ),
+    ])
+      if (!n.createdAt.isAfter(now)) n,
   ];
 }
 

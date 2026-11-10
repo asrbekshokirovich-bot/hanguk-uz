@@ -199,7 +199,8 @@ void main() {
     await open(tester, location: EmployerRoutes.create);
     await tester.tap(find.bySemanticsLabel('종료 시간 19:00'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('21:30'), 200, scrollable: find.byType(Scrollable).last);
+    // The list opens around the current end time.
+    expect(find.text('18:00'), findsOneWidget);
     await tester.tap(find.text('21:30'));
     await tester.pumpAndSettle();
     expect(find.text('7시간 30분'), findsOneWidget);
@@ -241,6 +242,8 @@ void main() {
     expect(find.text('확정된 근무자가 있어 날짜와 시간은 바꿀 수 없어요'), findsWidgets);
     await tester.tap(find.bySemanticsLabel('인원 늘리기'));
     await tester.tap(find.bySemanticsLabel('인원 늘리기'));
+    // The message bar covers the button until it goes.
+    await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
     await tester.tap(find.text('저장하기'));
     await tester.pumpAndSettle();

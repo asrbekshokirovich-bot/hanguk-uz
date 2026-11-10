@@ -212,9 +212,21 @@ class _PickerSheet extends StatefulWidget {
 class _PickerSheetState extends State<_PickerSheet> {
   final _query = TextEditingController();
 
+  /// Opens with the chosen option in view (two rows above it), so a long
+  /// list (times, dates) does not start from the top.
+  late final _scroll = ScrollController(
+    initialScrollOffset: () {
+      final i = widget.options.indexWhere((o) => o.value == widget.selected);
+      return i > 2 ? (i - 2) * _rowHeight : 0.0;
+    }(),
+  );
+
+  static const _rowHeight = 52.0;
+
   @override
   void dispose() {
     _query.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -248,6 +260,7 @@ class _PickerSheetState extends State<_PickerSheet> {
           ],
           Flexible(
             child: ListView(
+              controller: _scroll,
               shrinkWrap: true,
               children: [
                 if (offerTyped)
