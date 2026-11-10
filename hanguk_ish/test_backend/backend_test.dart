@@ -387,6 +387,25 @@ void main() {
       expect(events, isNotEmpty, reason: 'the invitation arrives while the app is open');
     });
 
+    test('live: a change to an application reaches its owner, not other workers', () async {
+      final ownerEvents = <void>[];
+      final strangerEvents = <void>[];
+      final ownerSubscription = SupabaseLiveUpdates(owner).changes().listen(ownerEvents.add);
+      final strangerSubscription = SupabaseLiveUpdates(malika).changes().listen(strangerEvents.add);
+      addTearDown(ownerSubscription.cancel);
+      addTearDown(strangerSubscription.cancel);
+      await Future<void>.delayed(const Duration(seconds: 3));
+      // A change no notification is made for (as a check-in is to the owner).
+      await admin.from('applications').update({'updated_at': DateTime.now().toUtc().toIso8601String()}).eq('id', azizNow);
+      final deadline = DateTime.now().add(const Duration(seconds: 20));
+      while (ownerEvents.isEmpty && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+      expect(ownerEvents, isNotEmpty, reason: 'BA1 and BA3 reload when a worker scans in');
+      await Future<void>.delayed(const Duration(seconds: 3));
+      expect(strangerEvents, isEmpty, reason: 'row-level security: Malika does not see Aziz\'s application');
+    });
+
     test('A12 is marked read; A11 reports are stored', () async {
       final account = SupabaseAccountRepository(aziz);
       await account.markNotificationsRead();

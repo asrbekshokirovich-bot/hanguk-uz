@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/demo/demo_account.dart';
@@ -77,6 +79,27 @@ void main() {
     await pumpEventQueue();
     await container.read(employerNotificationsProvider.future);
     expect(employer.bells, before + 1);
+  });
+
+  test('coming back to the app reloads too', () async {
+    final resumes = StreamController<void>.broadcast();
+    addTearDown(resumes.close);
+    final account = CountingAccount();
+    final container = ProviderContainer(overrides: [
+      liveUpdatesProvider.overrideWithValue(ManualLive()),
+      appResumesProvider.overrideWithValue(resumes.stream),
+      accountRepositoryProvider.overrideWithValue(account),
+    ]);
+    addTearDown(container.dispose);
+    final subscription = container.listen(unreadNotificationsProvider, (_, _) {});
+    addTearDown(subscription.close);
+    await container.read(notificationsProvider.future);
+    await pumpEventQueue();
+    final before = account.loads;
+    resumes.add(null);
+    await pumpEventQueue();
+    await container.read(notificationsProvider.future);
+    expect(account.loads, before + 1, reason: 'changes made while the phone slept are fetched');
   });
 
   test('signing in reconnects; the demo has no live updates', () async {
