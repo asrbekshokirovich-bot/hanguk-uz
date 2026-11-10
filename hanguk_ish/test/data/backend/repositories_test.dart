@@ -524,6 +524,8 @@ void main() {
       await expectLater(auth.sendCode('01012345678'), code('TOO_MANY_REQUESTS'));
       answer = reply({'code': 500, 'error_code': 'sms_send_failed', 'msg': 'Error sending sms'}, 500);
       await expectLater(auth.sendCode('01012345678'), code('SMS_FAILED'));
+      answer = reply({'code': 'unexpected_failure', 'msg': 'boom'}, 502);
+      await expectLater(auth.sendCode('01012345678'), code('SERVER_ERROR'));
       final sent = backend.requests.length;
       await expectLater(auth.sendCode('02-123-4567'), code('PHONE_INVALID'));
       await expectLater(auth.verifyCode('01012345678', '12345'), code('CODE_INVALID'));
@@ -532,6 +534,8 @@ void main() {
       expect(authErrorCode(null, '400', 'Token has expired or is invalid'), 'CODE_INVALID');
       expect(authErrorCode('phone_provider_disabled', '400', 'Unsupported phone provider'), 'SIGN_IN_UNAVAILABLE');
       expect(authErrorCode(null, '500', 'boom'), 'AUTH_FAILED');
+      final offline = SupabaseAuthRepository(FakeBackend((r) => throw const SocketException('no route')).client);
+      await expectLater(offline.sendCode('01012345678'), throwsA(isA<OfflineException>()));
     });
   });
 

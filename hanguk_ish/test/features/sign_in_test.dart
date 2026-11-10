@@ -7,6 +7,7 @@ import 'package:hanguk_ish/core/format/business_number.dart';
 import 'package:hanguk_ish/core/format/phone.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/demo/demo_employer.dart';
+import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/business.dart';
 import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';

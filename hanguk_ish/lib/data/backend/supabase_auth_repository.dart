@@ -38,12 +38,18 @@ class SupabaseAuthRepository implements AuthRepository {
 Future<T> authCall<T>(Future<T> Function() call) => backendCall(() async {
       try {
         return await call();
-      } on AuthRetryableFetchException {
-        throw const OfflineException();
+      } on AuthRetryableFetchException catch (e) {
+        // No answer at all — or a server failure (5xx), whose body names it.
+        if (e.statusCode == null) throw const OfflineException();
+        final code = _bodyCode.firstMatch(e.message)?.group(1);
+        final mapped = authErrorCode(code, e.statusCode, e.message);
+        throw ShiftActionException(mapped == 'AUTH_FAILED' ? 'SERVER_ERROR' : mapped);
       } on AuthException catch (e) {
         throw ShiftActionException(authErrorCode(e.code, e.statusCode, e.message));
       }
     });
+
+final _bodyCode = RegExp(r'"(?:error_)?code"\s*:\s*"([a-z_]+)"');
 
 /// The app's code for a Supabase Auth error.
 String authErrorCode(String? code, String? status, String message) {
