@@ -159,6 +159,8 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
               ),
             ),
           ),
+          ],
+          // The header stays, problem or not: the way out.
           Positioned(
             left: 18,
             right: 18,
@@ -199,6 +201,7 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
               ],
             ),
           ),
+          if (_problem == null)
           Positioned(
             left: 18,
             right: 18,
@@ -219,7 +222,6 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
               ],
             ),
           ),
-          ],
           if (app != null)
             Positioned(
               left: 18,
