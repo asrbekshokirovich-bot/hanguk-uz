@@ -115,6 +115,8 @@ void main() {
             jsonEncode(answers.isEmpty ? const [] : answers.removeAt(0)),
             200,
             headers: {'content-type': 'application/json; charset=utf-8'},
+            // postgrest reads the method back from the response's request.
+            request: request,
           );
         }),
       );

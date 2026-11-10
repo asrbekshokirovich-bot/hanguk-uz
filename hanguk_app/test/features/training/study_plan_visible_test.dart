@@ -688,9 +688,9 @@ void main() {
       expect(appendDictation(shorter, 'yana', kPlanMaxChars), shorter);
 
       // Another part and back: still whole. (The steps are above the long
-      // text, out of view while it is typed in.)
+      // text: out of view, and out of the list, while it is typed in.)
       Future<void> step(String label) async {
-        await t.ensureVisible(find.text(label));
+        t.state<ScrollableState>(find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first).position.jumpTo(0);
         await _settle(t);
         await t.tap(find.text(label));
         await _settle(t);
