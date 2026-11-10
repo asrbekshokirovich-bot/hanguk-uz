@@ -6,11 +6,14 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:hanguk_ish/app/text_scale.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/core/time/clock.dart';
+import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/theme.dart';
 import 'package:hanguk_ish/features/worker/notifications/unread.dart';
+import 'package:hanguk_ish/features/worker/work/qr_scanner.dart';
+import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 import 'package:hanguk_ish/l10n/gen/worker_l10n.dart';
@@ -86,11 +89,14 @@ ProviderContainer appContainer({
   String location = WorkerRoutes.feed,
   ShiftRepository? repository,
   int unread = demoUnreadNotifications,
+  DateTime Function()? clock,
   List<Override> overrides = const [],
 }) {
   final container = ProviderContainer(overrides: [
     workerInitialLocationProvider.overrideWithValue(location),
-    clockProvider.overrideWithValue(() => prototypeNow),
+    clockProvider.overrideWithValue(clock ?? () => prototypeNow),
+    liveTimersProvider.overrideWithValue(false),
+    qrScanAnimationProvider.overrideWithValue(false),
     shiftRepositoryProvider.overrideWithValue(repository ?? DemoShiftRepository(now: prototypeNow)),
     unreadNotificationsProvider.overrideWithValue(unread),
     ...overrides,
@@ -137,3 +143,20 @@ class RefusingShiftRepository extends DemoShiftRepository {
   @override
   Future<ApplyResult> apply(String shiftId) async => throw ShiftActionException(code);
 }
+
+/// A clock the test moves (for check-in and check-out times).
+class TestClock {
+  TestClock(this.now);
+
+  DateTime now;
+
+  DateTime call() => now;
+
+  /// Today (the prototype's date) at [hour]:[minute]:[second] in Seoul.
+  void at(int hour, [int minute = 0, int second = 0]) =>
+      now = Kst.instantOf(2026, 11, 10, hour, minute).add(Duration(seconds: second));
+}
+
+/// The demo repository at the prototype's date, on [clock].
+DemoShiftRepository demoRepository(TestClock clock, {bool strict = false, bool history = true}) =>
+    DemoShiftRepository(now: prototypeNow, clock: clock.call, strictTimes: strict, history: history);

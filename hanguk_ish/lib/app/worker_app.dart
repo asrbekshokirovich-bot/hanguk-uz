@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/links/directions.dart';
+import '../data/models/my_shift.dart';
 import '../data/models/shift.dart';
 import '../design/theme.dart';
 import '../features/worker/feed/feed_screen.dart';
 import '../features/worker/map/map_screen.dart';
+import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
 import '../features/worker/profile/profile_screens.dart';
 import '../features/worker/settings/app_language.dart';
 import '../features/worker/shell/worker_shell.dart';
 import '../features/worker/shift/shift_detail_screen.dart';
 import '../features/worker/shift/take_shift.dart';
+import '../features/worker/work/work_screens.dart';
 import '../l10n/gen/worker_l10n.dart';
 import 'text_scale.dart';
 
@@ -35,6 +39,12 @@ abstract final class WorkerRoutes {
   static const home = feed;
 
   static String shift(String id) => '/shift/$id';
+  static String checkIn(String app) => '/work/$app/check-in';
+  static String atWork(String app) => '/work/$app';
+  static String checkOut(String app) => '/work/$app/check-out';
+  static String result(String app) => '/work/$app/result';
+  static String rate(String app) => '/work/$app/rate';
+  static String chat(String app) => '/chat/$app';
   static String taken(String id, {required bool pending}) => '/shift/$id/taken${pending ? '?pending=1' : ''}';
 }
 
@@ -43,6 +53,25 @@ Future<void> takeShift(BuildContext context, ShiftListing shift) async {
   final result = await showTakeShiftSheet(context, shift);
   if (result == null || !context.mounted) return;
   await context.push(WorkerRoutes.taken(shift.id, pending: result.status == ApplicationStatus.pending));
+}
+
+MyShiftsActions _myShiftsActions(BuildContext context, WidgetRef ref) => MyShiftsActions(
+      openShift: (app) => context.push(WorkerRoutes.shift(app.shift.id)),
+      openCheckIn: (app) => context.push(WorkerRoutes.checkIn(app.applicationId)),
+      openAtWork: (app) => context.push(WorkerRoutes.atWork(app.applicationId)),
+      openResult: (app) => context.push(WorkerRoutes.result(app.applicationId)),
+      openRate: (app) => context.push(WorkerRoutes.rate(app.applicationId)),
+      openChat: (app) => context.push(WorkerRoutes.chat(app.applicationId)),
+      openDirections: (app) => _openDirections(context, ref, app),
+      openFeed: () => context.go(WorkerRoutes.feed),
+    );
+
+Future<void> _openDirections(BuildContext context, WidgetRef ref, MyShift app) async {
+  final lang = ref.read(appLanguageProvider).code;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = WorkerL10n.of(context);
+  final opened = await ref.read(linkOpenerProvider)(directionsUri(app.shift.business, app.shift.business.displayName(lang)));
+  if (!opened) messenger?.showSnackBar(SnackBar(content: Text(l10n.errorGeneric)));
 }
 
 FeedActions _feedActions(BuildContext context) => FeedActions(
@@ -109,7 +138,9 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: WorkerRoutes.myShifts,
-              builder: (context, state) => WorkerPendingScreen(title: WorkerL10n.of(context).navMyShifts),
+              builder: (context, state) => Consumer(
+                builder: (context, ref, _) => MyShiftsScreen(actions: _myShiftsActions(context, ref)),
+              ),
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -144,6 +175,57 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/work/:app',
+        builder: (context, state) => AtWorkScreen(
+          applicationId: state.pathParameters['app']!,
+          onClose: () => context.go(WorkerRoutes.myShifts),
+          onScanOut: () => context.push(WorkerRoutes.checkOut(state.pathParameters['app']!)),
+        ),
+        routes: [
+          GoRoute(
+            path: 'check-in',
+            builder: (context, state) => QrScanScreen(
+              applicationId: state.pathParameters['app']!,
+              mode: QrScanMode.checkIn,
+              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+              onDone: (app) => context.pushReplacement(WorkerRoutes.atWork(app.applicationId)),
+            ),
+          ),
+          GoRoute(
+            path: 'check-out',
+            builder: (context, state) => QrScanScreen(
+              applicationId: state.pathParameters['app']!,
+              mode: QrScanMode.checkOut,
+              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.atWork(state.pathParameters['app']!)),
+              onDone: (app) => context.go(WorkerRoutes.result(app.applicationId)),
+            ),
+          ),
+          GoRoute(
+            path: 'result',
+            builder: (context, state) => ShiftResultScreen(
+              applicationId: state.pathParameters['app']!,
+              onClose: () => context.go(WorkerRoutes.feed),
+              onRate: () => context.push(WorkerRoutes.rate(state.pathParameters['app']!)),
+            ),
+          ),
+          GoRoute(
+            path: 'rate',
+            builder: (context, state) => RateBusinessScreen(
+              applicationId: state.pathParameters['app']!,
+              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+              onSent: () => context.go(WorkerRoutes.feed),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/chat/:app',
+        builder: (context, state) => WorkerPendingScreen(
+          title: WorkerL10n.of(context).chat,
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+        ),
       ),
       GoRoute(
         path: WorkerRoutes.notifications,

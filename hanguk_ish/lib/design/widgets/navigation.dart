@@ -120,6 +120,8 @@ class HiGlassIconButton extends StatelessWidget {
     this.radius = 16,
     this.iconSize = 21,
     this.badge = false,
+    this.light = false,
+    this.selected,
   });
 
   final HiIconData icon;
@@ -132,24 +134,37 @@ class HiGlassIconButton extends StatelessWidget {
   /// The amber dot for unread notifications.
   final bool badge;
 
+  /// Lighter glass over the camera (A07: `rgba(255,255,255,0.14)` with a
+  /// 0.22 outline).
+  final bool light;
+
+  /// For toggles (the flashlight): whether it is on.
+  final bool? selected;
+
   @override
   Widget build(BuildContext context) {
+    final on = selected ?? false;
     return HiPressable(
       onTap: onTap,
       semanticsLabel: semanticsLabel,
+      selected: selected,
       builder: (context, pressed) => Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: pressed ? HiColors.white14 : HiColors.white08,
+          color: on
+              ? HiColors.lime
+              : light
+                  ? (pressed ? HiColors.white22 : HiColors.white14)
+                  : (pressed ? HiColors.white14 : HiColors.white08),
           borderRadius: BorderRadius.circular(radius),
-          border: Border.all(color: HiColors.white14),
+          border: Border.all(color: on ? HiColors.ink : (light ? HiColors.white22 : HiColors.white14)),
         ),
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            HiIcon(icon, size: iconSize, strokeWidth: 2, color: HiColors.white),
+            HiIcon(icon, size: iconSize, strokeWidth: 2, color: on ? HiColors.onLime : HiColors.white),
             if (badge)
               Positioned(
                 top: 11 - 1,

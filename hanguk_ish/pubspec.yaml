@@ -21,6 +21,10 @@ dependencies:
   path_parsing: ^1.0.1
   # A02 «Rasm yuklash»: camera or gallery.
   image_picker: ^1.1.2
+  # A07 entry / exit QR codes (camera, ML Kit barcode reader).
+  mobile_scanner: '>=6.0.0 <8.0.0'
+  # A06 «Yo'nalish»: opens the route in the map app.
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:
