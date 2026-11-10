@@ -76,17 +76,20 @@ List<RouteBase> _accountRoutes() => [
   ),
 ];
 
+/// The guest's home: `/guest?tab=` names the [AppTab] to open, and a bare
+/// `/guest` opens the round button's page.
+GoRoute guestHomeRoute() => GoRoute(
+  path: kDiscoverPath,
+  builder: (context, state) => DiscoverShell(tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? AppTab.home),
+);
+
 /// The full design's guest flow: the home (03) with its search (04), filter
 /// board (05), results and slots (06), the duel (07), the chosen three (08),
 /// the comparison (09) and the saved list (16), a university's page (10),
 /// and "Koreaga keta olamanmi o'zi?" (11–13). Plain GoRoutes so the catalogue can be reached
 /// without a session — see the redirect below.
 List<RouteBase> _guestRoutes() => [
-  GoRoute(
-    path: kDiscoverPath,
-    builder: (context, state) =>
-        DiscoverShell(tab: int.tryParse(state.uri.queryParameters['tab'] ?? '') ?? AppTab.home),
-  ),
+  guestHomeRoute(),
   GoRoute(
     path: kDiscoverSearchPath,
     builder: (context, state) => const NavScaffold(current: AppTab.universities, child: SearchScreen()),

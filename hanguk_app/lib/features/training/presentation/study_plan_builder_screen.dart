@@ -16,6 +16,7 @@ import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../discover/data/slots.dart';
 import '../../discover/presentation/filter_board_screen.dart' show fieldLabel;
+import '../../discover/presentation/widgets/app_nav.dart' show dropPendingTab;
 import '../data/plan_sections.dart';
 import '../data/study_plan_cache.dart';
 import '../data/study_plan_repository.dart';
@@ -366,6 +367,9 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
       _notifier.clearError(_type);
       if (_failedOnLeave != content) {
         _failedOnLeave = content;
+        // It stays: a nav tab that asked it to close opens no tab when the
+        // student leaves later by the back arrow.
+        dropPendingTab();
         messenger
           ..removeCurrentSnackBar()
           ..showSnackBar(SnackBar(content: Text(studyPlanErrorMessage(l, code ?? studyPlanErrorSave))));
