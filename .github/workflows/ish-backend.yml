@@ -5,6 +5,7 @@ name: Hanguk Ish — baza testlari
 # postgres:   oddiy PostgreSQL 16 + tests/supabase_shim.sql — tez (≈1 daqiqa).
 # supabase:   haqiqiy lokal Supabase stack (supabase start + db reset) — xuddi
 #             shu testlar Supabase'ning o'z auth sxemasi va rollari bilan.
+# functions:  edge funksiyalar (Deno): tip tekshiruvi va unit testlar.
 
 on:
   push:
@@ -78,3 +79,20 @@ jobs:
         if: always()
         working-directory: hanguk_ish
         run: supabase db lint --local --level warning || true
+
+  functions:
+    name: Edge functions (Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: hanguk_ish/supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check
+        run: deno check */index.ts
+      - name: Unit tests
+        run: deno test --allow-env --allow-net

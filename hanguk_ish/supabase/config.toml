@@ -61,8 +61,8 @@ public = true
 file_size_limit = "2MiB"
 allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
 
-[functions.telegram-login]
-verify_jwt = false
-
+# BA0: 국세청 check and registration (supabase/functions/business-register).
+# NTS_SERVICE_KEY (data.go.kr «Decoding» key) is a secret set in the
+# dashboard; without it new businesses wait for a person (pending).
 [functions.business-register]
 verify_jwt = true

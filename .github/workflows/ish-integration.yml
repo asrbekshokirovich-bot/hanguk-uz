@@ -38,10 +38,10 @@ jobs:
             | sudo tar -xz -C /usr/local/bin supabase
           supabase --version
 
-      # Database, auth (phone OTP), REST, Storage and the gateway; the rest is
-      # not needed by the apps' repositories.
+      # Database, auth (phone OTP), REST, Storage, edge functions and the
+      # gateway; the rest is not needed by the apps' repositories.
       - name: Start Supabase
-        run: supabase start -x studio,imgproxy,mailpit,vector,logflare,supavisor,edge-runtime,realtime,postgres-meta
+        run: supabase start -x studio,imgproxy,mailpit,vector,logflare,supavisor,realtime,postgres-meta
 
       - name: Keys
         run: |
@@ -66,6 +66,6 @@ jobs:
       - name: Server logs
         if: failure()
         run: |
-          for c in auth rest storage kong db; do
+          for c in auth rest storage edge_runtime kong db; do
             echo "::group::$c"; docker logs --tail 80 "supabase_${c}_hanguk-ish" 2>&1 || true; echo "::endgroup::"
           done

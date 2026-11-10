@@ -13,6 +13,7 @@ papkada, CI'da lokal bazada sinaladi.
 | `migrations/…_ish_rpc.sql` | ilovalar chaqiradigan funksiyalar: smena olish/bekor qilish, tasdiqlash, QR kirish/chiqish, baho, hisobotlar |
 | `migrations/…_ish_employer.sql` | ish beruvchi ilovasi o'qishlari (`business_board`, `employer_shift`, `business_workers`) va smenani tahrirlash qoidalari (`shifts_guard`) |
 | `migrations/…_ish_app_reads.sql` | ilovalar ekranlari uchun JSON: lenta kartalari (`shift_feed`, `shift_details`), `my_shifts`, `my_notifications`, `my_profile` / `save_worker_profile`, `my_businesses`; biznesning mahalla/qavat/tarjima/logo ustunlari; chat xabari bildirishnomasi; «avatars» bucket |
+| `functions/business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `nts_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
 
@@ -35,3 +36,18 @@ PGHOST=… PGPORT=… PGUSER=postgres bash tests/run.sh
 supabase start --workdir hanguk_ish && supabase db reset --local --workdir hanguk_ish
 SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres bash tests/run.sh
 ```
+
+## Edge funksiyalar
+
+| Funksiya | Kim chaqiradi | Nima qiladi |
+|---|---|---|
+| `business-register` | sajangnim ilovasi, BA0 dan keyin (kirgan foydalanuvchi) | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED |
+
+Sirlar (dashboard → Edge Functions → Secrets): `NTS_SERVICE_KEY` — data.go.kr «국세청_사업자등록정보 진위확인 및 상태조회 서비스», «Decoding» kalit.
+
+BA0 da do'kon nomi so'ralmaydi (prototipda yo'q): yangi biznes nomi vaqtincha `사업장 123-45-67891` bo'ladi — nomi va manzili keyin admin yoki sozlamalar ekrani orqali o'rnatiladi (savol ochiq).
+
+```sh
+cd supabase/functions && deno test --allow-env --allow-net
+```
+
