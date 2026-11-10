@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,7 +53,7 @@ void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>
     } else if (onLocal != null) {
       onLocal(tab);
     } else {
-      context.go(discoverTabPath(tab));
+      unawaited(goOverPushed(context, discoverTabPath(tab)));
     }
     return;
   }
@@ -59,7 +61,67 @@ void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>
     onLocal(tab);
     return;
   }
-  context.go(signedIn ? '/?tab=$tab' : discoverTabPath(tab));
+  unawaited(goOverPushed(context, signedIn ? '/?tab=$tab' : discoverTabPath(tab)));
+}
+
+/// True while [goOverPushed] is closing screens: a second tap waits for the
+/// first instead of closing the page under them as well.
+bool _goingOverPushed = false;
+
+/// Goes to [location] from a screen pushed over the home with
+/// `Navigator.push` (the Study Plan, the interview), closing those screens
+/// first the way the back button does: one that saves on its way out (the
+/// Study Plan) still saves, then closes itself.
+///
+/// `go` alone left them on top. go_router keys a page by its path, and
+/// '/?tab=1' → '/?tab=0' changes only the query, so the home page and every
+/// screen pushed over it stayed while the tab switched underneath — 51 of 75
+/// nav taps on the interview did only that (app_events, 2026-10-20…11-10).
+Future<void> goOverPushed(BuildContext context, String location) async {
+  if (_goingOverPushed) return;
+  _goingOverPushed = true;
+  try {
+    final router = GoRouter.of(context);
+    final navigator = Navigator.maybeOf(context);
+    if (navigator != null) {
+      // A page's own route (go_router's) is where pushed screens end.
+      for (var i = 0; i < 8; i++) {
+        final top = _topRoute(navigator);
+        if (top == null || top.settings is Page<Object?>) break;
+        // One that would not close (it guards something) keeps the tap.
+        if (!await _closeRoute(navigator, top)) return;
+      }
+    }
+    router.go(location);
+  } finally {
+    _goingOverPushed = false;
+  }
+}
+
+Route<Object?>? _topRoute(NavigatorState navigator) {
+  Route<Object?>? top;
+  navigator.popUntil((route) {
+    top = route;
+    return true;
+  });
+  return top;
+}
+
+/// Asks [route] to close as the back button would; true once it is gone.
+Future<bool> _closeRoute(NavigatorState navigator, Route<Object?> route) async {
+  final closed = Completer<bool>();
+  final timeout = Timer(const Duration(seconds: 20), () {
+    if (!closed.isCompleted) closed.complete(false);
+  });
+  unawaited(
+    route.popped.then((_) {
+      if (!closed.isCompleted) closed.complete(true);
+    }),
+  );
+  await navigator.maybePop();
+  final ok = await closed.future;
+  timeout.cancel();
+  return ok;
 }
 
 /// The bottom nav of the home and of the screens pushed over it.
