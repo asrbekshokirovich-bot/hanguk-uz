@@ -54,9 +54,13 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # The release download link needs no GitHub API call (setup-cli's
+      # «latest» lookup hit the anonymous API rate limit).
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin supabase
+          supabase --version
       - name: Start Supabase (database, auth, REST)
         working-directory: hanguk_ish
         run: |
