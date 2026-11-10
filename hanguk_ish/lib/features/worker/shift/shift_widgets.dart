@@ -248,7 +248,13 @@ class ShiftCard extends StatelessWidget {
         '${HiDates.timeRange(shift.startsAt, shift.endsAt)} · '
         '${HiDates.duration(shift.plannedMinutes, lang)}';
     final distance = shift.distanceKm;
-    final where = dotJoin([b.displayArea(lang), if (distance != null) formatKm(distance, lang)]);
+    // The neighbourhood; a business that has not named one yet shows where
+    // the shift is instead.
+    final area = b.displayArea(lang);
+    final where = dotJoin([
+      area.isNotEmpty ? area : shift.placeStreet(lang),
+      if (distance != null) formatKm(distance, lang),
+    ]);
     final taken = shift.holdsMyPlace;
     return HiPressable(
       onTap: onOpen,

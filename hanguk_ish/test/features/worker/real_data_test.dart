@@ -22,9 +22,12 @@ import '../../helpers/worker_harness.dart';
 /// The sample shifts as a business registered with only its number sends
 /// them: no neighbourhood and no street address yet (BA0 asks for neither).
 class NumberOnlyBusinesses extends DemoShiftRepository {
-  NumberOnlyBusinesses(TestClock clock) : super(now: prototypeNow, clock: clock.call);
+  NumberOnlyBusinesses(TestClock clock, {this.shiftAddress = ''}) : super(now: prototypeNow, clock: clock.call);
 
-  static ShiftListing bare(ShiftListing s) => ShiftListing(
+  /// What the business wrote in BA2 «주소» for every shift ('' = nothing).
+  final String shiftAddress;
+
+  ShiftListing bare(ShiftListing s) => ShiftListing(
         id: s.id,
         business: Business(
           id: s.business.id,
@@ -37,7 +40,11 @@ class NumberOnlyBusinesses extends DemoShiftRepository {
         title: s.title,
         duties: s.duties,
         dress: s.dress,
-        translations: s.translations,
+        address: shiftAddress,
+        translations: {
+          for (final e in s.translations.entries)
+            e.key: ShiftText(title: e.value.title, duties: e.value.duties, dress: e.value.dress),
+        },
         startsAt: s.startsAt,
         endsAt: s.endsAt,
         hourlyWage: s.hourlyWage,
@@ -53,6 +60,12 @@ class NumberOnlyBusinesses extends DemoShiftRepository {
 
   @override
   Future<List<ShiftListing>> feed(FeedQuery query) async => [for (final s in await super.feed(query)) bare(s)];
+
+  @override
+  Future<ShiftListing?> shift(String id) async {
+    final s = await super.shift(id);
+    return s == null ? null : bare(s);
+  }
 
   @override
   Future<List<MyShift>> myShifts() async => [for (final a in await super.myShifts()) a.copyWith(shift: bare(a.shift))];
@@ -106,6 +119,28 @@ void main() {
     expect(find.text('Dalbit Kafe'), findsOneWidget, reason: 'the name without « · » and an area');
     expect(find.text('1,2 km'), findsOneWidget);
     expect(distanceLines(tester), everyElement(isNot(startsWith('·'))));
+  });
+
+  testWidgets("A03: the shift's own address stands in for the area the business has not named", (tester) async {
+    final clock = TestClock(prototypeNow);
+    await open(tester, NumberOnlyBusinesses(clock, shiftAddress: '서울 마포구 양화로 160'), clock, WorkerRoutes.feed);
+    final lines = distanceLines(tester);
+    expect(lines.where((l) => RegExp(r'^서울 마포구 양화로 160 · \d+,\d km$').hasMatch(l)), isNotEmpty,
+        reason: lines.join(' | '));
+  });
+
+  testWidgets("A05 and A06 show the shift's own address", (tester) async {
+    final clock = TestClock(prototypeNow);
+    final repo = NumberOnlyBusinesses(clock, shiftAddress: '서울 마포구 양화로 160');
+    await repo.apply('demo-1');
+    await open(tester, repo, clock, WorkerRoutes.myShifts);
+    expect(find.text('서울 마포구 양화로 160 · 1,2 km'), findsOneWidget);
+    await tester.tap(find.text('Dalbit Kafe'));
+    await tester.pumpAndSettle();
+    // A confirmed shift opens its entry screen; the detail page has it too.
+    await tester.pumpWidget(const SizedBox());
+    await open(tester, repo, clock, WorkerRoutes.shift('demo-1'));
+    expect(find.text('서울 마포구 양화로 160'), findsOneWidget);
   });
 
   testWidgets('A07 waits for the finished shift instead of showing the plan first', (tester) async {
