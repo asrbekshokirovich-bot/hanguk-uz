@@ -14,6 +14,7 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
+import '../../../design/widgets/layout.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
@@ -198,7 +199,7 @@ class _MyShiftCard extends ConsumerWidget {
 
     final (Widget left, Widget right) = _pills(l10n, lang, now);
     final rows = <Widget>[
-      Row(children: [left, const Spacer(), right]),
+      HiSplitRow(start: left, end: right),
       HiPressable(
         onTap: () => _openFromCard(),
         button: false,

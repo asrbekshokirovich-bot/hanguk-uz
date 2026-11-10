@@ -53,7 +53,7 @@ void main() {
     expect(late.status, ApplicationStatus.cancelled);
     expect(late.lateCancel, isTrue);
     expect((await repo.shift('demo-1'))!.slotsLeft, 2);
-    expect(() => repo.cancelApplication(dalbit.applicationId), refused('CANNOT_CANCEL'));
+    await expectLater(repo.cancelApplication(dalbit.applicationId), refused('CANNOT_CANCEL'));
 
     final tomorrow = await repo.apply('demo-14'); // tomorrow 14:00, 26 h 40 min away
     expect((await repo.cancelApplication(tomorrow.applicationId)).lateCancel, isFalse);
@@ -63,30 +63,30 @@ void main() {
 
     final started = await repo.apply('demo-6'); // 12:30 today
     clock.at(12, 40);
-    expect(() => repo.cancelApplication(started.applicationId), refused('SHIFT_STARTED'));
+    await expectLater(repo.cancelApplication(started.applicationId), refused('SHIFT_STARTED'));
   });
 
   test('check-in and check-out with the backend\'s windows', () async {
     final clock = TestClock(prototypeNow);
     final repo = demoRepository(clock, strict: true, history: false);
-    expect(() => repo.checkIn('garbage'), refused('QR_INVALID'));
-    expect(() => repo.checkIn(qr('demo-1')), refused('NOT_CONFIRMED'));
+    await expectLater(repo.checkIn('garbage'), refused('QR_INVALID'));
+    await expectLater(repo.checkIn(qr('demo-1')), refused('NOT_CONFIRMED'));
     final app = await repo.apply('demo-1');
-    expect(() => repo.checkIn(qr('demo-1')), refused('TOO_EARLY'));
-    expect(() => repo.checkOut(qr('demo-1')), refused('NOT_CHECKED_IN'));
+    await expectLater(repo.checkIn(qr('demo-1')), refused('TOO_EARLY'));
+    await expectLater(repo.checkOut(qr('demo-1')), refused('NOT_CHECKED_IN'));
     clock.at(13, 31);
     final inside = await repo.checkIn(qr('demo-1'));
     expect(inside.status, ApplicationStatus.checkedIn);
     expect(inside.lateMinutes, 0);
-    expect(() => repo.checkIn(qr('demo-1')), refused('ALREADY_CHECKED_IN'));
+    await expectLater(repo.checkIn(qr('demo-1')), refused('ALREADY_CHECKED_IN'));
     clock.at(19, 30);
     final out = await repo.checkOut(qr('demo-1'));
     expect(out.workedMinutes, 300, reason: 'counted inside 14:00–19:00 only');
     expect(out.payAmount, 52500);
-    expect(() => repo.checkOut(qr('demo-1')), refused('ALREADY_CHECKED_OUT'));
+    await expectLater(repo.checkOut(qr('demo-1')), refused('ALREADY_CHECKED_OUT'));
     await repo.rateBusiness(app.applicationId, 5, {RatingTag.polite});
     expect((await repo.myShift(app.applicationId))!.myStars, 5);
-    expect(() => repo.rateBusiness(app.applicationId, 6, const {}), refused('INVALID'));
+    await expectLater(repo.rateBusiness(app.applicationId, 6, const {}), refused('INVALID'));
   });
 
   test('late check-in counts the lateness; late check-out is refused', () async {
@@ -96,7 +96,7 @@ void main() {
     clock.at(14, 12);
     expect((await repo.checkIn(qr('demo-1'))).lateMinutes, 12);
     clock.at(21, 1);
-    expect(() => repo.checkOut(qr('demo-1')), refused('TOO_LATE'));
+    await expectLater(repo.checkOut(qr('demo-1')), refused('TOO_LATE'));
   });
 
   test('the lenient demo counts the time actually worked', () async {
