@@ -5,7 +5,9 @@ name: Hanguk Ish — tekshiruv, ekranlar, APK
 #
 # check: flutter analyze + unit/widget testlar + ekran rasmlari (haqiqiy
 #        shriftlar bilan, prototip bilan solishtirish uchun).
-# apk:   ikkala flavor'ning release APK'si (arm64, sideload test kaliti).
+# apk:   ikkala flavor'ning release APK'si (arm64, sideload test kaliti);
+#        secrets'da Supabase manzili bo'lsa — o'sha bazaga ulanadi, bo'lmasa
+#        demo; yuklash kaliti bo'lsa — Play uchun imzolangan .aab ham.
 #
 # Natijalar bitta prerelease'da (hanguk-ish-ci), har branch uchun alohida nom:
 #   <branch>-screens.zip, <branch>-worker-arm64.apk, <branch>-employer-arm64.apk
@@ -134,11 +136,59 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
+      # With the repository secrets ISH_SUPABASE_URL and
+      # ISH_SUPABASE_PUBLISHABLE_KEY the apps use that database; without
+      # them, the demo data. (The publishable key ships in every app build;
+      # it is kept in secrets only so no project is named in the code.)
       - name: Worker APK
-        run: flutter build apk --release --flavor worker -t lib/main_worker.dart --target-platform android-arm64 --split-per-abi
+        env:
+          SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY }}
+        run: >-
+          flutter build apk --release --flavor worker -t lib/main_worker.dart
+          --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
+          --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       - name: Employer APK
-        run: flutter build apk --release --flavor employer -t lib/main_employer.dart --target-platform android-arm64 --split-per-abi
+        env:
+          SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY }}
+        run: >-
+          flutter build apk --release --flavor employer -t lib/main_employer.dart
+          --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
+          --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+
+      # Play: with the upload key in the repository secrets (ISH_UPLOAD_KEYSTORE
+      # as base64, ISH_UPLOAD_KEYSTORE_PASSWORD, ISH_UPLOAD_KEY_ALIAS,
+      # ISH_UPLOAD_KEY_PASSWORD) the two app bundles are built and signed for
+      # upload. The APKs above stay on the sideload test key.
+      - name: Play bundles (when the upload key is set)
+        env:
+          UPLOAD_KEYSTORE: ${{ secrets.ISH_UPLOAD_KEYSTORE }}
+          UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ISH_UPLOAD_KEYSTORE_PASSWORD }}
+          UPLOAD_KEY_ALIAS: ${{ secrets.ISH_UPLOAD_KEY_ALIAS }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.ISH_UPLOAD_KEY_PASSWORD }}
+          SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -eu
+          if [ -z "$UPLOAD_KEYSTORE" ]; then
+            echo "No upload key in the secrets: no Play bundles."
+            exit 0
+          fi
+          echo "$UPLOAD_KEYSTORE" | base64 -d > android/upload.keystore
+          {
+            echo "storeFile=upload.keystore"
+            echo "storePassword=$UPLOAD_KEYSTORE_PASSWORD"
+            echo "keyAlias=$UPLOAD_KEY_ALIAS"
+            echo "keyPassword=$UPLOAD_KEY_PASSWORD"
+          } > android/key.properties
+          for app in worker employer; do
+            flutter build appbundle --release --flavor "$app" -t "lib/main_$app.dart" \
+              --build-number=${{ github.run_number }} \
+              --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
+          done
+          rm -f android/key.properties android/upload.keystore
 
       - name: Publish APKs
         env:
@@ -151,10 +201,18 @@ jobs:
           # --split-per-abi: only arm64 native libraries (ML Kit ships every ABI).
           cp "$out/app-arm64-v8a-worker-release.apk" "${ASSET_PREFIX}-worker-arm64.apk"
           cp "$out/app-arm64-v8a-employer-release.apk" "${ASSET_PREFIX}-employer-arm64.apk"
+          assets=("${ASSET_PREFIX}-worker-arm64.apk" "${ASSET_PREFIX}-employer-arm64.apk")
+          bundles=build/app/outputs/bundle
+          for app in worker employer; do
+            if [ -f "$bundles/${app}Release/app-${app}-release.aab" ]; then
+              cp "$bundles/${app}Release/app-${app}-release.aab" "${ASSET_PREFIX}-${app}.aab"
+              assets+=("${ASSET_PREFIX}-${app}.aab")
+            fi
+          done
           gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
             gh release create "$RELEASE_TAG" --prerelease --title "Hanguk Ish CI" \
               --notes "ish-check.yml natijalari: ekran rasmlari va test APK'lar (sideload, Play uchun emas)." || true
           for i in 1 2 3; do
-            gh release upload "$RELEASE_TAG" "${ASSET_PREFIX}-worker-arm64.apk" "${ASSET_PREFIX}-employer-arm64.apk" --clobber && break
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber && break
             sleep 5
           done
