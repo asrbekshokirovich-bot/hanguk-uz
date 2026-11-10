@@ -665,15 +665,20 @@ void main() {
       // All of it, in part 1 — it used to be cut to 300 here. (The box is
       // taller than the phone now; builder_8 shows its top.)
       expect(text(t), _legacy);
+      expect(find.text('$length / $kPlanMaxChars'), findsOneWidget);
       await capture(t, 'builder_8_legacy_long');
-      // The counter, under the text, says how long it really is: in red.
-      final counter = find.text('$length / $kPlanMaxChars');
-      expect(counter, findsOneWidget);
-      expect(t.widget<Text>(counter).style!.color, FdColors.bad);
-      await t.ensureVisible(counter);
+
+      // Another part and back: still whole. (The steps first: once the long
+      // part is typed in, the list follows its caret and the steps scroll
+      // out of it.)
+      await t.tap(find.text(l.fdPlanStepKorea));
       await _settle(t);
-      final shot = await capture(t, 'builder_9_legacy_long_counter');
-      expectLabelVisible(t, shot, counter);
+      expect(text(t), isEmpty);
+      await t.enterText(field(), _korea);
+      await _settle(t);
+      await t.tap(find.text(l.fdPlanStepGoal));
+      await _settle(t);
+      expect(text(t), _legacy);
 
       // It may shrink — the first key used to cut it to 300 …
       final shorter = _legacy.substring(0, _legacy.length - 12);
@@ -687,21 +692,14 @@ void main() {
       // Dictation adds nothing to it, and cuts nothing from it.
       expect(appendDictation(shorter, 'yana', kPlanMaxChars), shorter);
 
-      // Another part and back: still whole. (The steps are above the long
-      // text: out of view, and out of the list, while it is typed in.)
-      Future<void> step(String label) async {
-        t.state<ScrollableState>(find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first).position.jumpTo(0);
-        await _settle(t);
-        await t.tap(find.text(label));
-        await _settle(t);
-      }
-
-      await step(l.fdPlanStepKorea);
-      expect(text(t), isEmpty);
-      await t.enterText(field(), _korea);
+      // The counter, under the text, says how long it really is: in red.
+      final counter = find.text('${shorter.characters.length} / $kPlanMaxChars');
+      expect(counter, findsOneWidget);
+      expect(t.widget<Text>(counter).style!.color, FdColors.bad);
+      await t.ensureVisible(counter);
       await _settle(t);
-      await step(l.fdPlanStepGoal);
-      expect(text(t), shorter);
+      final shot = await capture(t, 'builder_9_legacy_long_counter');
+      expectLabelVisible(t, shot, counter);
 
       // The save, and the phone's copy, keep all of it.
       await t.tap(back(t));
