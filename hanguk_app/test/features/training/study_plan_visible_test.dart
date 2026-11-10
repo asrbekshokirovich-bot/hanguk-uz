@@ -13,16 +13,22 @@
 // skeleton instead of a spinner, the phone's copy of the plan at once and
 // read-only until the server answers, and a failed open's message readable
 // on the page.
+//
+// And the audit's fixes (2026-11-10): a part written longer than the limit
+// is never cut (P-F3); text that could not be saved comes back (C-F5);
+// boards 6–7's chip labels, failed message and screen-reader announcements
+// (D-F6, D-F7, D-F8).
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:hanguk_app/core/analytics/app_events.dart';
 import 'package:hanguk_app/design_system/seoul_night/seoul_night.dart' show HardButton;
-import 'package:hanguk_app/design_system/seoul_night/widgets/fd_kit.dart' show FdColors;
+import 'package:hanguk_app/design_system/seoul_night/widgets/fd_kit.dart' show FdColors, HardIconButton;
 import 'package:hanguk_app/design_system/theme/app_theme.dart';
 import 'package:hanguk_app/features/auth/data/auth_repository.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
@@ -61,6 +67,11 @@ const _korea = 'Koreya texnologiya bo‘yicha dunyoda yetakchi, universitetlarda
 
 /// 400 characters: more than a part may hold.
 final String _long = List.filled(10, 'Bu mening rejamning davomi. ').join() * 2;
+
+/// A plan written in the older step-by-step screen: one text with no part
+/// markers, far longer than a part may grow (two students' newest drafts
+/// were, 2026-11-10).
+final String _legacy = List.filled(24, 'Men Koreyada o‘qib, yurtimga foyda keltirmoqchiman.').join(' ');
 
 class _Slots extends SlotsNotifier {
   @override
@@ -634,6 +645,177 @@ void main() {
       expect(t.widget<TextField>(field()).controller!.text, _goal);
       expect(t.widget<TextField>(field()).readOnly, isFalse);
       expect(plans.opens, 2);
+    });
+  });
+
+  group('Study Plan builder: the audit fixes (2026-11-10)', () {
+    Finder field() => find.descendant(of: find.byType(StudyPlanField), matching: find.byType(TextField));
+    String text(WidgetTester t) => t.widget<TextField>(field()).controller!.text;
+    const builder = NavScaffold(current: AppTab.prepare, child: StudyPlanBuilderScreen());
+    Finder back(WidgetTester t) =>
+        find.bySemanticsLabel(MaterialLocalizations.of(t.element(find.byType(StudyPlanBuilderScreen))).backButtonTooltip).first;
+
+    testWidgets('P-F3: a part written longer than the limit opens whole, and survives an edit and a save', (t) async {
+      final cache = _Copies();
+      final plans = _Plans(existing: _legacy);
+      final l = await _pump(t, builder, plans: plans, cache: cache);
+      final length = _legacy.characters.length;
+      expect(length, greaterThan(kPlanMaxChars));
+
+      // All of it, in part 1 — it used to be cut to 300 here. (The box is
+      // taller than the phone now; builder_8 shows its top.)
+      expect(text(t), _legacy);
+      await capture(t, 'builder_8_legacy_long');
+      // The counter, under the text, says how long it really is: in red.
+      final counter = find.text('$length / $kPlanMaxChars');
+      expect(counter, findsOneWidget);
+      expect(t.widget<Text>(counter).style!.color, FdColors.bad);
+      await t.ensureVisible(counter);
+      await _settle(t);
+      final shot = await capture(t, 'builder_9_legacy_long_counter');
+      expectLabelVisible(t, shot, counter);
+
+      // It may shrink — the first key used to cut it to 300 …
+      final shorter = _legacy.substring(0, _legacy.length - 12);
+      await t.enterText(field(), shorter);
+      await _settle(t);
+      expect(text(t), shorter);
+      // … and may not grow.
+      await t.enterText(field(), '$shorter Yana bir jumla.');
+      await _settle(t);
+      expect(text(t), shorter);
+      // Dictation adds nothing to it, and cuts nothing from it.
+      expect(appendDictation(shorter, 'yana', kPlanMaxChars), shorter);
+
+      // Another part and back: still whole. (The steps are above the long
+      // text, out of view while it is typed in.)
+      Future<void> step(String label) async {
+        await t.ensureVisible(find.text(label));
+        await _settle(t);
+        await t.tap(find.text(label));
+        await _settle(t);
+      }
+
+      await step(l.fdPlanStepKorea);
+      expect(text(t), isEmpty);
+      await t.enterText(field(), _korea);
+      await _settle(t);
+      await step(l.fdPlanStepGoal);
+      expect(text(t), shorter);
+
+      // The save, and the phone's copy, keep all of it.
+      await t.tap(back(t));
+      await _settle(t);
+      final plan = serializePlan([shorter, _korea, '', '']);
+      expect(plans.saved, [plan]);
+      expect(parsePlan(plans.saved.single).first, shorter);
+      expect((cache.copies[_copyKey]!.content, cache.copies[_copyKey]!.unsaved), (plan, false));
+    });
+
+    test('P-F3: the part limit holds a shorter part to it as before; a longer one may shrink, never grow', () {
+      final limit = StudyPlanLengthFormatter(10);
+      TextEditingValue value(String s) => TextEditingValue(text: s, selection: TextSelection.collapsed(offset: s.length));
+      String edit(String from, String to) => limit.formatEditUpdate(value(from), value(to)).text;
+
+      expect(edit('abc', 'abcd'), 'abcd');
+      expect(edit('abc', 'abcdefghijklmn'), 'abcdefghij', reason: 'pasted past the limit: cut to it');
+      expect(edit('abcdefghij', 'abcdefghijk'), 'abcdefghij', reason: 'at the limit: no more');
+      final long = 'x' * 15;
+      expect(edit(long, 'x' * 14), 'x' * 14, reason: 'an over-long part shrinks');
+      expect(edit(long, 'y' * 15), 'y' * 15, reason: 'an edit that keeps its length');
+      expect(edit(long, 'x' * 16), long, reason: 'it does not grow');
+      expect(edit(long, 'abc'), 'abc');
+      // Android keyboards mark the word under the cursor as being composed:
+      // that must not get it cut either.
+      final composing = TextEditingValue(
+        text: long,
+        selection: const TextSelection.collapsed(offset: 15),
+        composing: const TextRange(start: 10, end: 15),
+      );
+      final deleted = TextEditingValue(
+        text: 'x' * 14,
+        selection: const TextSelection.collapsed(offset: 14),
+        composing: const TextRange(start: 10, end: 14),
+      );
+      expect(limit.formatEditUpdate(composing, deleted).text, 'x' * 14);
+    });
+
+    testWidgets('C-F5: text that could not be saved on the way out comes back on the next open, and is saved then', (
+      t,
+    ) async {
+      // The server still holds version 1; the phone, what could not be saved
+      // on top of it.
+      final unsaved = serializePlan(['$_goal Qo‘shimcha jumla.', _korea, '', '']);
+      final cache = _Copies({
+        _copyKey: StudyPlanCopy(sessionId: 's1', version: 1, content: unsaved, savedAt: DateTime.now(), unsaved: true),
+      });
+      final plans = _Plans(existing: serializePlan([_goal, '', '', '']));
+      final l = await _pump(t, builder, plans: plans, cache: cache);
+
+      expect(text(t), '$_goal Qo‘shimcha jumla.');
+      expect(t.widget<TextField>(field()).readOnly, isFalse);
+      expect(cache.copies[_copyKey]!.unsaved, isTrue, reason: 'kept until the server takes it');
+      await t.tap(find.text(l.fdPlanStepKorea));
+      await _settle(t);
+      expect(text(t), _korea);
+
+      await t.tap(back(t));
+      await _settle(t);
+      expect(plans.saved, [unsaved]);
+      final copy = cache.copies[_copyKey]!;
+      expect((copy.sessionId, copy.version, copy.content, copy.unsaved), ('s1', 2, unsaved, false));
+    });
+
+    testWidgets("C-F5: such text on an older draft gives way to the server's newer one", (t) async {
+      final cache = _Copies({
+        _copyKey: StudyPlanCopy(sessionId: 's1', version: 0, content: serializePlan([_korea, '', '', '']), savedAt: DateTime.now(), unsaved: true),
+      });
+      final plans = _Plans(existing: serializePlan([_goal, '', '', '']));
+      await _pump(t, builder, plans: plans, cache: cache);
+
+      expect(text(t), _goal, reason: 'a newer draft was saved since: the server is the source of truth');
+      final copy = cache.copies[_copyKey]!;
+      expect((copy.sessionId, copy.version, copy.content, copy.unsaved), ('s1', 1, serializePlan([_goal, '', '', '']), false));
+    });
+
+    testWidgets('D-F6, board 6: a step label too long for its chip is cut with … at 8px, not shrunk', (t) async {
+      final l = await _pump(t, builder, plans: _Plans());
+      for (final label in [l.fdPlanStepGoal, l.fdPlanStepKorea, l.fdPlanStepUni, l.fdPlanStepFuture]) {
+        final f = find.text(label);
+        expect(find.ancestor(of: f, matching: find.byType(FittedBox)), findsNothing, reason: label);
+        final widget = t.widget<Text>(f);
+        expect((widget.maxLines, widget.overflow, widget.style!.fontSize), (1, TextOverflow.ellipsis, 8.0), reason: label);
+        final chip = t.getRect(find.ancestor(of: f, matching: find.byType(Container)).first);
+        expect(t.getRect(f).width, lessThanOrEqualTo(chip.width - 2 * 1.5 - 2 * 2), reason: '$label overflows its chip');
+      }
+      // «Nega bu universitet» does not fit a 360px phone's chip: it is cut.
+      expect(t.renderObject<RenderParagraph>(find.text(l.fdPlanStepUni)).didExceedMaxLines, isTrue);
+    });
+
+    testWidgets("D-F7, board 7: the message and the button sit above the board's 80px bottom padding", (t) async {
+      final l = await _pump(t, builder, plans: _Plans(fail: true));
+      // The space under the header (36px button, 8 above and 14 below it).
+      final top = t.getRect(find.byType(HardIconButton)).bottom + 14;
+      final bottom = t.getRect(find.byType(StudyPlanBuilderScreen)).bottom;
+      final message = t.getRect(find.text(l.fdPlanLoadFailed));
+      final retry = t.getRect(find.ancestor(of: find.text(l.commonRetry), matching: find.byType(Container)).first);
+      expect((message.top + retry.bottom) / 2, moreOrLessEquals(top + (bottom - top - 80) / 2, epsilon: 0.5));
+    });
+
+    testWidgets('D-F8, boards 6–7: a screen reader hears the skeleton and the failed message as they appear', (t) async {
+      final plans = _Plans(hold: Completer<void>(), fail: true);
+      final l = await _pump(t, builder, plans: plans);
+      expect(
+        t.getSemantics(find.byType(StudyPlanFieldSkeleton)),
+        containsSemantics(label: l.loadingLabel, isLiveRegion: true),
+      );
+
+      plans.hold!.complete();
+      await _settle(t);
+      expect(
+        t.getSemantics(find.text(l.fdPlanLoadFailed)),
+        containsSemantics(label: l.fdPlanLoadFailed, isLiveRegion: true),
+      );
     });
   });
 
