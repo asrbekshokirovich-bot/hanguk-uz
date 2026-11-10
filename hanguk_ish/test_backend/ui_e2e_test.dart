@@ -29,6 +29,7 @@ import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/employer_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
 import 'package:hanguk_ish/features/employer/ko.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
@@ -664,6 +665,106 @@ void main() {
     phone(tester);
     await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
     await _until(tester, _text('Smena bekor qilindi'));
+    await _close(tester);
+  });
+
+  testWidgets('worker: a new worker signs up — A01, T1, T2, the three A02 steps, then the feed', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    final newcomer = _client(_anonKey);
+    await tester.pumpWidget(capture(ProviderScope(
+      overrides: [
+        backendConfigProvider.overrideWithValue(_config),
+        supabaseClientProvider.overrideWithValue(newcomer),
+        authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(newcomer)),
+        shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(newcomer, _config)),
+        accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(newcomer)),
+        workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(newcomer, _config)),
+        locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+      ],
+      child: const WorkerApp(),
+    )));
+    // Signed out: the start gate opens A01.
+    await _until(tester, _text('Telefon raqam bilan'));
+    await _tap(tester, _text('Telefon raqam bilan'));
+    await _until(tester, _text('Telefon raqamingiz'));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).last, '01000000041');
+    await _tap(tester, find.widgetWithText(HiButton, 'Kod olish'));
+    await _until(tester, _text('Kodni kiriting'));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).last, '123456');
+    // A new account: A02 first.
+    await _until(tester, _text('Profil · 1 / 3'));
+    await _settle(tester);
+    final names = find.byType(TextField);
+    expect(names, findsNWidgets(2), reason: 'only A02 on screen');
+    await tester.enterText(names.at(0), 'Dilnoza');
+    await tester.enterText(names.at(1), 'Testova');
+    await _tap(tester, find.widgetWithText(HiButton, 'Davom etish'));
+    await _until(tester, _text('Profil · 2 / 3'));
+    await _settle(tester);
+    await _tap(tester, _text("O'zbekcha"));
+    await _tap(tester, _text('Koreyscha'));
+    await _tap(tester, _text('3'));
+    await _tap(tester, find.byType(HiSelectField).at(1));
+    await _until(tester, find.byType(TextField));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField).last, 'Mapo');
+    await _until(tester, _text('Mapo-gu, Seul'));
+    await _tap(tester, _text('Mapo-gu, Seul'));
+    await _tap(tester, find.widgetWithText(HiButton, 'Davom etish'));
+    await _until(tester, _text('Profil · 3 / 3'));
+    await _settle(tester);
+    await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
+    await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
+    await _until(tester, _text('Smenalar'));
+    await _shot(tester, 'a02-signed-up-feed');
+    final saved = await tester.runAsync(() => SupabaseWorkerProfileRepository(newcomer, _config).load());
+    expect(saved!.firstName, 'Dilnoza');
+    expect(saved.lastName, 'Testova');
+    expect(saved.languages, containsAll(['uz', 'ko']));
+    expect(saved.topik, 3);
+    expect(saved.district, 'mapo');
+    expect(saved.availability, WorkerProfileDraft.bit(5, 0), reason: 'Saturday morning only');
+    await _close(tester);
+  });
+
+  testWidgets('owner: BA3 stays open and the applicant arrives by itself (Realtime)', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    final employer = SupabaseEmployerRepository(owner, _config);
+    final business = (await tester.runAsync(employer.businesses))!.single;
+    final start = DateTime.now().toUtc().add(const Duration(days: 2));
+    final live = (await tester.runAsync(() => employer.createShift(ShiftDraft(
+          businessId: business.id,
+          title: 'E2E 실시간',
+          startsAt: start,
+          endsAt: start.add(const Duration(hours: 3)),
+          hourlyWage: 11000,
+          slots: 1,
+          autoConfirm: false,
+        ))))!;
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(live.id)));
+    await _until(tester, _text('E2E 실시간'));
+    expect(_text(Ko.applicants(1)), findsNothing);
+    // The worker applies elsewhere; nothing is tapped here.
+    final applied = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).apply(live.id));
+    await _until(tester, _text(Ko.applicants(1)));
+    await _until(tester, _text('Sardor Testov'));
+    await _shot(tester, 'ba3-live-applicant');
+    await _close(tester);
+
+    // A12 open on the worker's side: the 확정 arrives by itself too.
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await _until(tester, _text('Smena tasdiqlandi'));
+    final before = _text('Smena tasdiqlandi').evaluate().length;
+    await tester.runAsync(() => employer.decide(applied!.applicationId, accept: true));
+    for (var i = 0; i < 200 && _text('Smena tasdiqlandi').evaluate().length == before; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(_text('Smena tasdiqlandi'), findsNWidgets(before + 1));
     await _close(tester);
   });
 
