@@ -74,6 +74,9 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
 
     final pins = <String, _Pin>{};
     for (final s in shifts) {
+      // A shift whose place is not known yet (a business registered with
+      // only its number) cannot be put on the map; the list has it.
+      if ((s.lat ?? s.business.lat) == null || (s.lng ?? s.business.lng) == null) continue;
       (pins[s.business.id] ??= _Pin([])).shifts.add(s);
     }
     final selectedId = pins.containsKey(_selectedBusiness) ? _selectedBusiness : (pins.isEmpty ? null : pins.keys.first);
@@ -186,8 +189,9 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
   }
 
   Widget _placedPin(FeedArea area, _Pin pin, {required bool selected, required String lang, required WorkerL10n l10n}) {
-    final b = pin.first.business;
-    final at = mapOffset(area, b.lat ?? area.lat ?? sinchonArea.lat!, b.lng ?? area.lng ?? sinchonArea.lng!);
+    final first = pin.first;
+    final b = first.business;
+    final at = mapOffset(area, (first.lat ?? b.lat)!, (first.lng ?? b.lng)!);
     return Positioned(
       left: at.dx,
       top: at.dy,

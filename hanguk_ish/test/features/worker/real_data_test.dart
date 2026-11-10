@@ -10,6 +10,7 @@ import 'package:hanguk_ish/data/models/my_shift.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/features/worker/map/map_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
 import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 
@@ -23,10 +24,14 @@ import '../../helpers/worker_harness.dart';
 /// The sample shifts as a business registered with only its number sends
 /// them: no neighbourhood and no street address yet (BA0 asks for neither).
 class NumberOnlyBusinesses extends DemoShiftRepository {
-  NumberOnlyBusinesses(TestClock clock, {this.shiftAddress = ''}) : super(now: prototypeNow, clock: clock.call);
+  NumberOnlyBusinesses(TestClock clock, {this.shiftAddress = '', this.placed = true})
+      : super(now: prototypeNow, clock: clock.call);
 
   /// What the business wrote in BA2 «주소» for every shift ('' = nothing).
   final String shiftAddress;
+
+  /// False: no point on the map either (no distance, no pin).
+  final bool placed;
 
   ShiftListing bare(ShiftListing s) => ShiftListing(
         id: s.id,
@@ -35,8 +40,8 @@ class NumberOnlyBusinesses extends DemoShiftRepository {
           name: s.business.name,
           names: s.business.names,
           category: s.business.category,
-          lat: s.business.lat,
-          lng: s.business.lng,
+          lat: placed ? s.business.lat : null,
+          lng: placed ? s.business.lng : null,
         ),
         title: s.title,
         duties: s.duties,
@@ -52,9 +57,9 @@ class NumberOnlyBusinesses extends DemoShiftRepository {
         slots: s.slots,
         slotsLeft: s.slotsLeft,
         autoConfirm: s.autoConfirm,
-        distanceKm: s.distanceKm,
-        lat: s.lat,
-        lng: s.lng,
+        distanceKm: placed ? s.distanceKm : null,
+        lat: placed ? s.lat : null,
+        lng: placed ? s.lng : null,
         myStatus: s.myStatus,
         myApplicationId: s.myApplicationId,
       );
@@ -154,6 +159,22 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await open(tester, repo, clock, WorkerRoutes.shift('demo-1'));
     expect(find.text('서울 마포구 양화로 160'), findsOneWidget);
+  });
+
+  testWidgets('A04: a shift with no known place gets no pin (not one on the worker)', (tester) async {
+    final clock = TestClock(prototypeNow);
+    await open(tester, NumberOnlyBusinesses(clock, placed: false), clock, WorkerRoutes.map);
+    expect(find.byType(WorkerMapScreen), findsOneWidget);
+    expect(find.byType(ShiftCard), findsNothing, reason: 'no pin, so nothing selected');
+    expect(find.textContaining('₩'), findsNothing, reason: 'no price pins');
+  });
+
+  testWidgets('A03: with no place the card shows the street, without a distance', (tester) async {
+    final clock = TestClock(prototypeNow);
+    await open(tester, NumberOnlyBusinesses(clock, shiftAddress: '서울 마포구 양화로 160', placed: false), clock,
+        WorkerRoutes.feed);
+    expect(find.text('서울 마포구 양화로 160'), findsWidgets);
+    expect(find.textContaining(RegExp(r'\d,\d km$')), findsNothing, reason: 'no distance on any card');
   });
 
   testWidgets('A07 waits for the finished shift instead of showing the plan first', (tester) async {
