@@ -711,9 +711,10 @@ class _ResultCard extends StatelessWidget {
     final label = hiStyle(15, FontWeight.w600, color: HiColors.inkMuted);
     final mono = hiStyle(15, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono);
     final plain = hiStyle(15, FontWeight.w800, color: HiColors.ink);
+    // CSS `display:flex` (stretch): each text keeps its own line box, so the
+    // JetBrains Mono values sit 1 px higher than the Inter labels.
     Widget row(String name, String value, TextStyle style) => Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: HiText(name, style: label)),
             const SizedBox(width: 12),
@@ -1019,7 +1020,7 @@ class _TagChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? HiColors.white : (pressed ? HiColors.white08 : null),
           borderRadius: BorderRadius.circular(HiRadii.pill),
-          border: selected ? Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white30, width: 1.5),
+          border: selected ? Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white30, width: HiBorders.width),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

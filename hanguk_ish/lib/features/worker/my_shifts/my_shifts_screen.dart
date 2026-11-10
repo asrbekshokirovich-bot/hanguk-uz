@@ -199,7 +199,9 @@ class _MyShiftCard extends ConsumerWidget {
 
     final (Widget left, Widget right) = _pills(l10n, lang, now);
     final rows = <Widget>[
-      HiSplitRow(start: left, end: right),
+      // In the prototype the second card's pills run 9 px into the card's
+      // 16 px padding; only a longer translation goes to its own line.
+      HiSplitRow(start: left, end: right, overflowAllowance: 12),
       HiPressable(
         onTap: () => _openFromCard(),
         button: false,
