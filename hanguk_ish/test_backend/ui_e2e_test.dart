@@ -20,6 +20,7 @@ import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
 import 'package:hanguk_ish/data/models/employer.dart';
+import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/account_repository.dart';
 import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/employer_repository.dart';
@@ -27,6 +28,8 @@ import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
+import 'package:hanguk_ish/features/worker/work/qr_scanner.dart';
+import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../test/helpers/fonts.dart';
@@ -62,6 +65,30 @@ class _AtTheBeach implements LocationService {
 
   @override
   Future<FeedArea> current() async => const FeedArea(place: seoulPlace, lat: _lat, lng: _lng);
+}
+
+/// A07's camera, reading the business's printed code as soon as it opens.
+class _ReadsTheDoorCode extends StatefulWidget {
+  const _ReadsTheDoorCode(this.payload, this.onCode);
+
+  final String payload;
+  final ValueChanged<String> onCode;
+
+  @override
+  State<_ReadsTheDoorCode> createState() => _ReadsTheDoorCodeState();
+}
+
+class _ReadsTheDoorCodeState extends State<_ReadsTheDoorCode> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onCode(widget.payload);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const ColoredBox(color: Color(0xFF000000));
 }
 
 /// Text on screen, also inside rich text (a title mixing Latin and Hangul
@@ -100,6 +127,11 @@ void main() {
   late SupabaseClient worker;
   late SupabaseClient owner;
   late EmployerShift shift;
+  // Starts in 20 minutes: the door code works already (A07).
+  late EmployerShift soon;
+  late String doorCode;
+  // The owner decides (BA3 확정).
+  late EmployerShift manual;
 
   setUpAll(() async {
     if (_skip != null) return;
@@ -132,6 +164,27 @@ void main() {
       hourlyWage: 11000,
       slots: 2,
     ));
+    final employer = SupabaseEmployerRepository(owner, _config);
+    final inTwenty = DateTime.now().toUtc().add(const Duration(minutes: 20));
+    soon = await employer.createShift(ShiftDraft(
+      businessId: businessId,
+      title: 'E2E 아침 보조',
+      startsAt: inTwenty,
+      endsAt: inTwenty.add(const Duration(hours: 1)),
+      hourlyWage: 11000,
+      slots: 1,
+    ));
+    doorCode = await employer.shiftQr(soon.id);
+    final inThreeDays = DateTime.now().toUtc().add(const Duration(days: 3));
+    manual = await employer.createShift(ShiftDraft(
+      businessId: businessId,
+      title: 'E2E 수동 확정',
+      startsAt: inThreeDays,
+      endsAt: inThreeDays.add(const Duration(hours: 3)),
+      hourlyWage: 12000,
+      slots: 1,
+      autoConfirm: false,
+    ));
     await SupabaseWorkerProfileRepository(worker, _config).save(const WorkerProfileDraft(
       firstName: 'Sardor',
       lastName: 'Testov',
@@ -140,6 +193,9 @@ void main() {
       district: 'mapo',
       visa: 'D-2',
     ));
+    final shifts = SupabaseShiftRepository(worker, _config);
+    await shifts.apply(soon.id);
+    await shifts.apply(manual.id);
   });
 
   testWidgets('worker: the new shift is in the feed; taken, it is in «Mening smenalarim»', skip: _skip != null,
@@ -165,10 +221,11 @@ void main() {
     final today = Kst.wallClock(DateTime.now());
     final day = Kst.wallClock(shift.startsAt);
     if (day.day != today.day) await _tap(tester, _text('Ertaga'));
-    // The card names the business; A05 shows the title as the owner wrote
-    // it (no translation yet).
+    // The card names the business (its title is in the card's label); A05
+    // shows the title as the owner wrote it (no translation yet). The
+    // business has more shifts today: the card of this one.
     await _until(tester, _text('E2E Kafe'));
-    await _tap(tester, _text('E2E Kafe'));
+    await _tap(tester, find.bySemanticsLabel(RegExp('E2E 홀 보조')));
     await _until(tester, _text('E2E 홀 보조'));
     await _until(tester, _text('Smenani olish'));
     await _tap(tester, _text('Smenani olish'));
@@ -205,6 +262,84 @@ void main() {
     await _until(tester, _text('E2E 홀 보조'));
     await _tap(tester, _text('E2E 홀 보조'));
     await _until(tester, _text('Sardor Testov'));
+    await _close(tester);
+  });
+
+  testWidgets('worker: the workday by the door code — in, at work, out, result, rating', skip: _skip != null,
+      (tester) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        backendConfigProvider.overrideWithValue(_config),
+        supabaseClientProvider.overrideWithValue(worker),
+        authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
+        shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
+        accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+        workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
+        locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+        liveTimersProvider.overrideWithValue(false),
+        qrCameraBuilderProvider.overrideWithValue(
+          ({required onCode, required torch, required onProblem}) => _ReadsTheDoorCode(doorCode, onCode),
+        ),
+      ],
+      child: const WorkerApp(),
+    ));
+
+    await _until(tester, _text('Mening smenalarim'));
+    await _tap(tester, _text('Mening smenalarim'));
+    await _until(tester, _text('E2E 아침 보조'));
+    await _tap(tester, _text('E2E 아침 보조'));
+    // The entry screen reads the code at once; the server checks it in.
+    await _until(tester, _text('Chiqish — QR skanerlash'));
+    expect(find.byType(AtWorkScreen), findsOneWidget);
+    await _tap(tester, _text('Chiqish — QR skanerlash'));
+    await _until(tester, _text('Smena yakunlandi'));
+    final done = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
+    expect(done!.singleWhere((a) => a.shift.id == soon.id).status, ApplicationStatus.completed);
+
+    await _tap(tester, _text('Ish beruvchini baholash'));
+    await _until(tester, find.bySemanticsLabel('5 yulduz'));
+    await tester.tap(find.bySemanticsLabel('5 yulduz'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await _tap(tester, _text('Bahoni yuborish'));
+    await _until(tester, _text('Rahmat! Bahoingiz yuborildi.'));
+    final rated = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
+    expect(rated!.singleWhere((a) => a.shift.id == soon.id).myStars, 5);
+    await _close(tester);
+  });
+
+  testWidgets('owner: 확정 on BA3; the finished shift on BA5, marked paid', skip: _skip != null, (tester) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        backendConfigProvider.overrideWithValue(_config),
+        supabaseClientProvider.overrideWithValue(owner),
+        authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(owner)),
+        employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(owner, _config)),
+      ],
+      child: const EmployerApp(),
+    ));
+
+    await _until(tester, _text('E2E 수동 확정'));
+    await _tap(tester, _text('E2E 수동 확정'));
+    await _until(tester, _text('확정'));
+    await _tap(tester, _text('확정'));
+    await _until(tester, _text('Sardor Testov님을 확정했어요'));
+    final decided = await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(manual.id));
+    expect(decided!.confirmed, 1, reason: 'the server has the decision');
+
+    await _tap(tester, find.bySemanticsLabel('뒤로'));
+    await _until(tester, _text('리포트'));
+    await _tap(tester, _text('리포트'));
+    await _until(tester, _text('E2E 아침 보조'));
+    await _tap(tester, _text('E2E 아침 보조'));
+    await _until(tester, _text('지급 완료로 표시'));
+    await _tap(tester, _text('지급 완료로 표시'));
+    await _until(tester, _text('지급 완료 · 1건'));
     await _close(tester);
   });
 }
