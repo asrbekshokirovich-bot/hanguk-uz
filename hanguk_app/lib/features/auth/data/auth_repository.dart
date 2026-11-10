@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/analytics/app_events.dart';
+import '../../../core/config/app_config.dart';
 
 /// Why a sign-in or sign-up failed. The screen turns it into words in the
 /// app language; the repository never hands English prose to the UI.
@@ -80,9 +81,20 @@ bool isClientSession(Session? s) => s != null && !s.user.isAnonymous && s.user.a
 /// ask for no client code): the student's own, or else the guest's test
 /// user — made once by `guest-test-session`, its credentials kept on the
 /// phone. False when neither can be had.
-Future<bool> ensureTestSession() async {
-  final auth = Supabase.instance.client.auth;
-  if (auth.currentSession != null) return true;
+///
+/// One at a time (Tayyorgarlik T2, 2026-11-10): a call made while another is
+/// on its way gets that one's answer. Every tap used to start its own and
+/// make its own guest account — 46 accounts in a day from 11 phones, 8 of
+/// them from one phone in 2.4 s.
+Future<bool> ensureTestSession() => _testSessionInFlight ??= _ensureTestSession().whenComplete(() {
+  _testSessionInFlight = null;
+});
+
+Future<bool>? _testSessionInFlight;
+
+Future<bool> _ensureTestSession() async {
+  final backend = debugTestSessionBackend ?? _SupabaseTestSession(Supabase.instance.client);
+  if (backend.hasSession) return true;
   // `data_ready` guest_session: how long the guest waited for the test user
   // (Tayyorgarlik T0, 2026-11-10) — made now ('created'), signed in again
   // from the phone's copy ('saved'), or not had ('failed').
@@ -90,7 +102,7 @@ Future<bool> ensureTestSession() async {
   var created = false;
   var ok = false;
   try {
-    ok = await _signInTestUser(auth, () => created = true);
+    ok = await _signInTestUser(backend, () => created = true);
     return ok;
   } finally {
     AppEvents.track(
@@ -106,9 +118,8 @@ Future<bool> ensureTestSession() async {
 
 /// [ensureTestSession]'s sign-in; [onCreate] when it asks the server for a
 /// new test user.
-Future<bool> _signInTestUser(GoTrueClient auth, VoidCallback onCreate) async {
-  const storage = FlutterSecureStorage();
-  const key = 'guest_test_creds_v1';
+Future<bool> _signInTestUser(TestSessionBackend b, VoidCallback onCreate) async {
+  var asked = 0;
   // Saved credentials that no longer sign in (a cleared account, a keystore
   // the phone reset) used to leave the guest on the client-code screen for
   // good: the second attempt drops them and asks for a fresh account.
@@ -116,32 +127,132 @@ Future<bool> _signInTestUser(GoTrueClient auth, VoidCallback onCreate) async {
     try {
       String? creds;
       try {
-        creds = attempt == 0 ? await storage.read(key: key) : null;
+        creds = attempt == 0 ? await b.readCreds() : null;
       } catch (_) {
         creds = null;
       }
       if (creds == null) {
         onCreate();
-        final res = await Supabase.instance.client.functions.invoke('guest-test-session', body: const {});
-        final data = res.data;
+        // The first ask in the project's region; a second one wherever the
+        // platform sends it (a region asked for by name is not re-routed
+        // when it is down).
+        final data = await b.createGuest(inProjectRegion: asked++ == 0);
         if (data is! Map || data['email'] is! String || data['password'] is! String) return false;
         creds = '${data['email']}\n${data['password']}';
         try {
-          await storage.write(key: key, value: creds);
+          await b.writeCreds(creds);
         } catch (_) {}
+        // The function signs the new user in itself and sends the session:
+        // set as it is, with no second round trip (T2). One that sends none
+        // (an older deploy), or one that does not take, falls through to
+        // the sign-in below, as before.
+        final session = data['session'];
+        if (session is Map) {
+          try {
+            if (await b.recoverSession(jsonEncode(session))) return true;
+          } catch (e, st) {
+            debugPrint('[TestSession] recover: $e');
+            AppEvents.handledError(e, st, 'test_session');
+          }
+        }
       }
       final parts = creds.split('\n');
-      await auth.signInWithPassword(email: parts.first, password: parts.last);
-      if (auth.currentSession != null) return true;
+      if (await b.signInWithPassword(parts.first, parts.last)) return true;
     } catch (e, st) {
       debugPrint('[TestSession] $e');
       AppEvents.handledError(e, st, 'test_session');
       try {
-        await storage.delete(key: key);
+        await b.deleteCreds();
       } catch (_) {}
     }
   }
   return false;
+}
+
+/// What [ensureTestSession] does on the phone and with the server, so a test
+/// can stand in for Supabase ([debugTestSessionBackend]).
+@visibleForTesting
+abstract interface class TestSessionBackend {
+  /// Whether the app has a session already (a student's or a guest's).
+  bool get hasSession;
+
+  /// The test user's "email\npassword" kept on the phone, or null.
+  Future<String?> readCreds();
+
+  Future<void> writeCreds(String creds);
+
+  Future<void> deleteCreds();
+
+  /// `guest-test-session`'s answer: `{email, password, session?}`. With
+  /// [inProjectRegion] the function runs in the project's region, next to
+  /// the database, instead of the one nearest the phone.
+  Future<Object?> createGuest({required bool inProjectRegion});
+
+  /// Sets the session [sessionJson] holds, without the network; true when
+  /// it is set.
+  Future<bool> recoverSession(String sessionJson);
+
+  /// Signs the test user in; true when a session is set.
+  Future<bool> signInWithPassword(String email, String password);
+}
+
+/// Tests only: stands in for Supabase in [ensureTestSession].
+@visibleForTesting
+TestSessionBackend? debugTestSessionBackend;
+
+class _SupabaseTestSession implements TestSessionBackend {
+  _SupabaseTestSession(this._client);
+
+  final SupabaseClient _client;
+
+  static const _storage = FlutterSecureStorage();
+  static const _key = 'guest_test_creds_v1';
+
+  GoTrueClient get _auth => _client.auth;
+
+  @override
+  bool get hasSession => _auth.currentSession != null;
+
+  @override
+  Future<String?> readCreds() => _storage.read(key: _key);
+
+  @override
+  Future<void> writeCreds(String creds) => _storage.write(key: _key, value: creds);
+
+  @override
+  Future<void> deleteCreds() => _storage.delete(key: _key);
+
+  @override
+  Future<Object?> createGuest({required bool inProjectRegion}) async {
+    // By default the function runs in the region nearest the phone
+    // (eu-central-1 from Uzbekistan), and each of its database calls then
+    // crossed to Seoul and back: 0.3–0.9 s apiece, 2.8 s in all (edge logs,
+    // 2026-11-10); from the database's own region one takes ~26 ms. Asked
+    // for by a query parameter, not the x-region header: on the web that
+    // header would need a CORS preflight the function does not allow.
+    final call = _client.functions.invoke(
+      'guest-test-session',
+      body: const {},
+      queryParameters: inProjectRegion ? const {'forceFunctionRegion': AppConfig.supabaseRegion} : null,
+    );
+    // A region asked for by name is not re-routed when it is down: one that
+    // has not answered in 15 s (the slowest answer in a day was 3.8 s) is
+    // given up on, and the next ask goes wherever the platform sends it.
+    final res = inProjectRegion ? await call.timeout(const Duration(seconds: 15)) : await call;
+    return res.data;
+  }
+
+  @override
+  Future<bool> recoverSession(String sessionJson) async {
+    await _auth.recoverSession(sessionJson);
+    return _auth.currentSession != null;
+  }
+
+  @override
+  Future<bool> signInWithPassword(String email, String password) async {
+    await _auth.signInWithPassword(email: email, password: password);
+    return _auth.currentSession != null;
+  }
 }
 
 /// The signed-in student's display name, read from `profiles.full_name`.

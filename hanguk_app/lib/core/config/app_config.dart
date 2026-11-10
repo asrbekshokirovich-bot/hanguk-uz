@@ -7,6 +7,11 @@ class AppConfig {
   // ── Supabase ─────────────────────────────────────────────────────────────
   static const String supabaseUrl = 'https://lysjdtyanhdfphqyijsr.supabase.co';
 
+  /// The project's region (Seoul), where its database is. An edge function
+  /// that makes several database calls in a row is asked to run here
+  /// (`forceFunctionRegion`) rather than in the region nearest the phone.
+  static const String supabaseRegion = 'ap-northeast-2';
+
   /// The Supabase publishable key (`sb_publishable_…`). Public by design —
   /// safe to ship in the client; it is never a secret/service_role key.
   ///
