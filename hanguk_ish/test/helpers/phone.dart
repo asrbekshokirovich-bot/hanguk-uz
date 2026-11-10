@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_ish/design/typography.dart';
 
 /// A phone the tests render on.
 class TestPhone {
@@ -79,11 +80,11 @@ void dumpLayout(WidgetTester tester, String name) {
     final trimmed = text.trimLeft();
     if (trimmed.isEmpty) continue;
     final lead = text.length - trimmed.length;
-    final baseline = paragraph.computeDistanceToActualBaseline(TextBaseline.alphabetic) ?? 0;
+    final baseline = paragraph.computeDistanceToActualBaseline(TextBaseline.alphabetic);
     final caret = paragraph.getOffsetForCaret(TextPosition(offset: lead), Rect.zero);
     final at = paragraph.localToGlobal(Offset(caret.dx, baseline));
     final parent = paragraph.parent;
-    final box = parent is RenderBox && parent.runtimeType.toString() == '_RenderCssLines' ? parent : paragraph;
+    final RenderBox box = parent is RenderHiCssLines ? parent : paragraph;
     items.add({
       'text': trimmed.split('\n').first,
       'x': double.parse(at.dx.toStringAsFixed(2)),

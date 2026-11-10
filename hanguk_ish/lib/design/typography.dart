@@ -169,16 +169,17 @@ class HiCssLines extends SingleChildRenderObjectWidget {
   final double lineHeight;
 
   @override
-  RenderObject createRenderObject(BuildContext context) => _RenderCssLines(lineHeight);
+  RenderObject createRenderObject(BuildContext context) => RenderHiCssLines(lineHeight);
 
   @override
-  void updateRenderObject(BuildContext context, _RenderCssLines renderObject) {
+  void updateRenderObject(BuildContext context, RenderHiCssLines renderObject) {
     renderObject.lineHeight = lineHeight;
   }
 }
 
-class _RenderCssLines extends RenderProxyBox {
-  _RenderCssLines(this._lineHeight);
+/// Render object of [HiCssLines].
+class RenderHiCssLines extends RenderProxyBox {
+  RenderHiCssLines(this._lineHeight);
 
   double _lineHeight;
 
