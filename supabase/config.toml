@@ -321,3 +321,8 @@ verify_jwt = false
 # Ushlab qolish P13: pg_cron (sb_secret_) or staff JWT; requireCaller checks.
 [functions.student-app-invite]
 verify_jwt = false
+
+# 2026-11-10: manbasi repo'ga olindi (live v63). Foydalanuvchi JWT bilan chaqiriladi;
+# kodda yozuv egasi (interview_sessions.student_id) yoki xodim tekshiriladi.
+[functions.vapi-fetch-recording]
+verify_jwt = true

@@ -254,6 +254,7 @@ jobs:
             get-pdf-url
             register-push-token
             create-student
+            vapi-fetch-recording
           "
 
           for fn in $FUNCTIONS; do
