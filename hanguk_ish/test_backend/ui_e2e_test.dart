@@ -342,4 +342,35 @@ void main() {
     await _until(tester, _text('지급 완료 · 1건'));
     await _close(tester);
   });
+
+  testWidgets('worker: A12 tells of the 확정 and the payment', skip: _skip != null, (tester) async {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        backendConfigProvider.overrideWithValue(_config),
+        supabaseClientProvider.overrideWithValue(worker),
+        authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
+        shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
+        accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+        workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
+        locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+        workerInitialLocationProvider.overrideWithValue(WorkerRoutes.notifications),
+      ],
+      child: const WorkerApp(),
+    ));
+
+    await _until(tester, _text('Bildirishnomalar'));
+    await _until(tester, _text('Smena tasdiqlandi'));
+    expect(_text("Maosh to'landi"), findsWidgets);
+    final account = SupabaseAccountRepository(worker);
+    final all = await tester.runAsync(() async {
+      // Opening A12 marks them read; give it a moment.
+      await Future<void>.delayed(const Duration(seconds: 1));
+      return account.notifications();
+    });
+    expect(all!.where((n) => !n.read), isEmpty, reason: 'opening A12 marked them read');
+    await _close(tester);
+  });
 }
