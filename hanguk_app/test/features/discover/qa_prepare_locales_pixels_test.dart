@@ -7,18 +7,22 @@
 // for a person to compare with the mockups; what each screen measures, and
 // its semantics, are printed as "QA| …" lines into build/test_report.txt.
 //
-// The tests render and measure; only the "board 1" group at the end states
-// what the mockup draws under the sign-in button and fails where the app
-// differs. The setup is copied from prepare_screens_pixels_test.dart and
-// study_plan_visible_test.dart; nothing under lib/ is changed.
+// The tests render and measure. Two groups at the end assert and are
+// expected to fail on main 8d7a150: "screen-reader activation" (the Study
+// Plan's buttons do not answer SemanticsAction.tap) and "board 1" (what the
+// mockup draws under the sign-in button). The setup is copied from
+// prepare_screens_pixels_test.dart and study_plan_visible_test.dart; nothing
+// under lib/ is changed.
 import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/core/analytics/app_events.dart';
 import 'package:hanguk_app/design_system/seoul_night/seoul_night.dart' show HardButton;
 import 'package:hanguk_app/design_system/seoul_night/widgets/fd_kit.dart' show HardIconButton;
 import 'package:hanguk_app/design_system/theme/app_theme.dart';
@@ -289,12 +293,13 @@ class _Slots extends SlotsNotifier {
 }
 
 /// The trainer's sessions without a server: the open waits for [hold] when
-/// given, and answers nothing while [fail].
+/// given, and answers nothing while [fail]; [opens] counts the opens.
 class _Plans extends StudyPlanSessionNotifier {
   _Plans({this.hold, this.fail = false});
 
   final Completer<void>? hold;
-  final bool fail;
+  bool fail;
+  int opens = 0;
 
   @override
   String? get userId => 'me';
@@ -319,6 +324,7 @@ class _Plans extends StudyPlanSessionNotifier {
 
   @override
   Future<StudyPlanSession?> openLatest(String type, {String? targetUniversityId}) async {
+    opens++;
     if (hold != null) await hold!.future;
     if (fail) return null;
     return createSession(type, targetUniversityId: targetUniversityId);
@@ -572,6 +578,12 @@ void main() {
       await capture(t, 'qa_student_uz_ts130');
       _measureStudent(t, 'qa_student_uz_ts130', l, progress);
     });
+
+    testWidgets('qa_student_ru_320x640_ts130 (worst case for the kicker and the tag)', (t) async {
+      final l = await _prepare(t, lang: 'ru', signedIn: true, done: progress, phone: _small, scale: 1.3);
+      await capture(t, 'qa_student_ru_320x640_ts130');
+      _measureStudent(t, 'qa_student_ru_320x640_ts130', l, progress);
+    });
   });
 
   group('QA Study Plan builder while it opens (boards 6–7)', () {
@@ -658,6 +670,144 @@ void main() {
         ('failed text', find.text(l.fdPlanLoadFailed)),
         ('retry', find.text(l.commonRetry)),
       ]);
+    });
+  });
+
+  // A screen reader activates a control with SemanticsAction.tap (TalkBack's
+  // and VoiceOver's double tap). Each test does that first, then taps the
+  // same control with a finger to show the setup itself works, and only then
+  // checks the screen reader's tap. The guest's retry button is the control
+  // (it passes); the Study Plan's three are expected to FAIL on main 8d7a150:
+  // `Semantics(button: true, excludeSemantics: true)` around a GestureDetector
+  // drops the detector's tap action and gives none of its own.
+  group('QA screen-reader activation (SemanticsAction.tap)', () {
+    /// Performs a screen reader's tap on the semantics node of [f].
+    Future<void> srTap(WidgetTester t, String name, Finder f) async {
+      final node = t.getSemantics(f.first);
+      _qa('$name node before the screen-reader tap: ${node.toStringDeep().replaceAll('\n', ' ⏎ ')}');
+      node.owner!.performAction(node.id, SemanticsAction.tap);
+      await _settle(t);
+    }
+
+    testWidgets('control · board 3: the guest\'s «Qayta urinish» answers a screen reader', (t) async {
+      final l = await _prepare(t, lang: 'uz', signedIn: false);
+      var calls = 0;
+      final session = prepareGuestSession;
+      addTearDown(() => prepareGuestSession = session);
+      prepareGuestSession = () async {
+        calls++;
+        return false;
+      };
+      await t.tap(find.text(l.interviewPracticeTitle));
+      await _settle(t);
+      expect(find.text(l.commonRetry), findsOneWidget, reason: 'setup: the failed row (board 3)');
+      final handle = t.ensureSemantics();
+      try {
+        await t.pump();
+        await srTap(t, 'sr guest retry', find.text(l.commonRetry));
+        _qa('sr guest retry: guest session asked $calls times (1 = the row, 2 = the screen reader retried)');
+        expect(calls, 2, reason: 'the screen reader\'s tap did not retry');
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('board 7: the Study Plan\'s «Qayta urinish» answers a screen reader', (t) async {
+      final plans = _Plans(fail: true);
+      final l = await _builder(t, lang: 'uz', plans: plans);
+      expect(find.text(l.fdPlanLoadFailed), findsOneWidget, reason: 'setup: the failed state (board 7)');
+      plans.fail = false;
+      final handle = t.ensureSemantics();
+      try {
+        await t.pump();
+        await srTap(t, 'sr builder retry', find.text(l.commonRetry));
+        final bySr = plans.opens;
+        if (find.text(l.commonRetry).evaluate().isNotEmpty) {
+          await t.tap(find.text(l.commonRetry));
+          await _settle(t);
+        }
+        _qa('sr builder retry: opens after the screen-reader tap=$bySr, after a finger tap=${plans.opens}');
+        expect(plans.opens, 2, reason: 'setup: a finger tap retries');
+        expect(bySr, 2, reason: 'the screen reader\'s tap on «Qayta urinish» did nothing (its node has no tap action)');
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('board 6, once open: «Fikr-mulohaza olish» answers a screen reader', (t) async {
+      final seen = <TrackedEvent>[];
+      AppEvents.debugOnTrack = seen.add;
+      addTearDown(() => AppEvents.debugOnTrack = null);
+      int asked() => seen.where((e) => e.event == 'study_plan_feedback').length;
+      final l = await _builder(t, lang: 'uz', plans: _Plans());
+      expect(t.widget<HardButton>(find.byType(HardButton)).onPressed, isNotNull, reason: 'setup: the plan is open');
+      final handle = t.ensureSemantics();
+      try {
+        await t.pump();
+        await srTap(t, 'sr builder feedback', find.byType(HardButton));
+        final bySr = asked();
+        var byFinger = bySr;
+        if (bySr == 0) {
+          await t.tap(find.widgetWithText(HardButton, l.fdPlanFeedback));
+          await _settle(t);
+          byFinger = asked();
+        }
+        _qa('sr builder feedback: study_plan_feedback after the screen-reader tap=$bySr, after a finger tap=$byFinger');
+        expect(byFinger, 1, reason: 'setup: a finger tap asks for feedback');
+        expect(bySr, 1, reason: 'the screen reader\'s tap on «Fikr-mulohaza olish» did nothing (HardButton\'s node has no tap action)');
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('boards 6–7: the back button «Orqaga» answers a screen reader', (t) async {
+      _phone(t, _std);
+      final nav = GlobalKey<NavigatorState>();
+      await t.pumpWidget(
+        ProviderScope(
+          overrides: [
+            signedInProvider.overrideWith((ref) => true),
+            catalogProvider.overrideWith((ref) async => [_uni]),
+            slotsProvider.overrideWith(_Slots.new),
+            studyPlanSessionProvider.overrideWith(_Plans.new),
+            studyPlanCacheProvider.overrideWith((ref) => _Copies()),
+          ],
+          child: MaterialApp(
+            navigatorKey: nav,
+            theme: AppTheme.materialTheme,
+            locale: const Locale('uz'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: const Scaffold(body: Center(child: Text('home'))),
+          ),
+        ),
+      );
+      unawaited(
+        nav.currentState!.push(
+          MaterialPageRoute<void>(
+            builder: (_) => const NavScaffold(current: AppTab.prepare, child: StudyPlanBuilderScreen()),
+          ),
+        ),
+      );
+      await _settle(t, 20);
+      expect(find.byType(StudyPlanBuilderScreen), findsOneWidget, reason: 'setup: the builder is open over a page');
+      final handle = t.ensureSemantics();
+      try {
+        await t.pump();
+        await srTap(t, 'sr builder back', find.byType(HardIconButton));
+        final closedBySr = find.byType(StudyPlanBuilderScreen).evaluate().isEmpty;
+        var closedByFinger = closedBySr;
+        if (!closedBySr) {
+          await t.tap(find.byType(HardIconButton));
+          await _settle(t, 20);
+          closedByFinger = find.byType(StudyPlanBuilderScreen).evaluate().isEmpty;
+        }
+        _qa('sr builder back: closed by the screen-reader tap=$closedBySr, by a finger tap=$closedByFinger');
+        expect(closedByFinger, isTrue, reason: 'setup: a finger tap closes the builder');
+        expect(closedBySr, isTrue, reason: 'the screen reader\'s tap on «Orqaga» did nothing (HardIconButton\'s node has no tap action)');
+      } finally {
+        handle.dispose();
+      }
     });
   });
 
