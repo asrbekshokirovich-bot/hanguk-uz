@@ -3574,7 +3574,9 @@
     "interview": "Suhbat",
     "result": "Natija",
     "noUniversities": "Hali universitet tanlanmagan yoki topshirilmagan.",
-    "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil."
+    "whereToEdit": "Bu ma'lumot Hujjatlar, Universitet tanlash, Onlayn ariza va Oflayn ariza bo'limlaridan avtomatik olinadi — Arizalar taxtasi bilan bir xil.",
+    "faculty": "Fakultet",
+    "facultyMissing": "kiritilmagan (Universitet tanlash bo'limida kiritiladi)"
   },
   "appLeads": {
     "forbidden": "Bu bo'lim faqat ruxsat berilgan operatorga ko'rinadi.",
