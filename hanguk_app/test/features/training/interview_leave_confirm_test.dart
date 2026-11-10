@@ -92,7 +92,7 @@ void main() {
   }
 
   Future<void> frames(WidgetTester t) async {
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 10; i++) {
       await t.pump(const Duration(milliseconds: 100));
     }
   }

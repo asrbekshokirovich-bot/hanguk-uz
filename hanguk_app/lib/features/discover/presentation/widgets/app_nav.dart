@@ -159,12 +159,12 @@ Future<void> _closeAndGo() async {
       return;
     }
   }
-  final ask = _wanted;
-  if (ask == null) return;
+  final wanted = _wanted;
+  if (wanted == null) return;
   _wanted = null;
-  if (ask.router.routeInformationProvider.value.uri != ask.from) return;
-  ask.router.go(ask.location);
-  kAppTabRequest.value = AppTabRequest(ask.tab);
+  if (wanted.router.routeInformationProvider.value.uri != wanted.from) return;
+  wanted.router.go(wanted.location);
+  kAppTabRequest.value = AppTabRequest(wanted.tab);
 }
 
 /// Carries on with the tab asked for once [route] has gone.

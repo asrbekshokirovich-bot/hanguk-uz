@@ -151,6 +151,25 @@ void main() {
       expect(find.text(_pushedText), findsNothing);
       expect(_shellTab(t, ClientShell), AppTab.documents);
     });
+
+    testWidgets('the round button from a pushed screen, the URL already on its tab, opens its page', (t) async {
+      final router = GoRouter(initialLocation: '/?tab=${AppTab.home}', routes: [$homeRoute]);
+      addTearDown(router.dispose);
+      final l = await _pump(t, router, signedIn: true);
+      expect(_shellTab(t, ClientShell), AppTab.home);
+
+      await _tapNav(t, find.byType(ClientShell), l.fdNavPrepare);
+      await _pushOverHome(t, find.byType(ClientShell));
+      await t.tap(find.descendant(of: find.byType(NavScaffold), matching: find.byType(FdNavOrb)));
+      await _settle(t);
+
+      expect(find.text(_pushedText), findsNothing);
+      expect(
+        _shellTab(t, ClientShell),
+        AppTab.home,
+        reason: 'URL "/?tab=${AppTab.home}" -> "${router.routeInformationProvider.value.uri}"',
+      );
+    });
   });
 
   group('guest (DiscoverShell, the app\'s own /guest route)', () {
