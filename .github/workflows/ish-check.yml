@@ -85,6 +85,7 @@ jobs:
           mkdir -p build/screens
           cp -r test/screens/goldens/. build/screens/ 2>/dev/null || true
           [ -d build/screens2x ] && cp -r build/screens2x build/screens/2x || true
+          [ -d build/layout ] && cp -r build/layout build/screens/layout || true
           [ -f build/test_report.txt ] && cp build/test_report.txt build/screens/ || true
           [ -n "$(ls -A build/screens)" ] || exit 0
           (cd build/screens && zip -qr "../../${ASSET_PREFIX}-screens.zip" .)

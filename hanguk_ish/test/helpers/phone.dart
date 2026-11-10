@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -59,8 +60,39 @@ Future<void> saveHiRes(WidgetTester tester, String name, {double pixelRatio = 2}
   });
 }
 
-/// The golden at 1× (compared with the prototype) plus the 2× copy.
+/// The golden at 1× (compared with the prototype) plus the 2× copy and
+/// the layout probe.
 Future<void> expectScreen(WidgetTester tester, String name) async {
   await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/$name.png'));
   await saveHiRes(tester, name);
+  dumpLayout(tester, name);
+}
+
+/// Writes `build/layout/<name>.json`: every visible text's first line — its
+/// start x and baseline y in logical pixels — for comparing positions with
+/// the prototype's (tool/layout_diff.py) rather than eyeballing pixels.
+void dumpLayout(WidgetTester tester, String name) {
+  final items = <Map<String, Object>>[];
+  for (final paragraph in tester.renderObjectList<RenderParagraph>(find.byType(RichText))) {
+    if (!paragraph.hasSize) continue;
+    final text = paragraph.text.toPlainText(includeSemanticsLabels: false);
+    final trimmed = text.trimLeft();
+    if (trimmed.isEmpty) continue;
+    final lead = text.length - trimmed.length;
+    final baseline = paragraph.computeDistanceToActualBaseline(TextBaseline.alphabetic) ?? 0;
+    final caret = paragraph.getOffsetForCaret(TextPosition(offset: lead), Rect.zero);
+    final at = paragraph.localToGlobal(Offset(caret.dx, baseline));
+    final parent = paragraph.parent;
+    final box = parent is RenderBox && parent.runtimeType.toString() == '_RenderCssLines' ? parent : paragraph;
+    items.add({
+      'text': trimmed.split('\n').first,
+      'x': double.parse(at.dx.toStringAsFixed(2)),
+      'y': double.parse(at.dy.toStringAsFixed(2)),
+      'h': double.parse(box.size.height.toStringAsFixed(2)),
+      'size': paragraph.text.style?.fontSize ?? 0,
+    });
+  }
+  final file = File('build/layout/$name.json');
+  file.parent.createSync(recursive: true);
+  file.writeAsStringSync(const JsonEncoder.withIndent(' ').convert(items));
 }
