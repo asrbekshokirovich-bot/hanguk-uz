@@ -327,7 +327,7 @@ class HiChoiceChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(HiRadii.pill),
           border: selected
               ? Border.fromBorderSide(HiBorders.ink)
-              : Border.all(color: HiColors.white30, width: 1.5),
+              : Border.all(color: HiColors.white30, width: HiBorders.width),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

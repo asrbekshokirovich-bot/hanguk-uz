@@ -265,10 +265,10 @@ class ShiftCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Wraps like the prototype («Ttukbaegi / Sikdang» next to
+                      // the wide «Restoran» pill).
                       HiText(
                         b.displayName(lang),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: hiStyle(17, FontWeight.w800, height: 1.3, color: HiColors.ink),
                       ),
                       const SizedBox(height: 3),
@@ -383,7 +383,9 @@ class ShiftCardSkeleton extends StatelessWidget {
           borderRadius: BorderRadius.circular(HiRadii.card),
           border: Border.all(color: HiColors.white10),
         ),
-        padding: const EdgeInsets.all(16),
+        // The prototype's bars total 1 px more than its 210 px card leaves
+        // inside; CSS lets the last row run into the bottom padding.
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

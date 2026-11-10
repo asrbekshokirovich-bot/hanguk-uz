@@ -430,7 +430,7 @@ class _TakenCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            const CustomPaint(size: Size(double.infinity, 1.5), painter: _DashedRulePainter()),
+            const CustomPaint(size: Size(double.infinity, HiBorders.width), painter: _DashedRulePainter()),
             const SizedBox(height: 14),
             _DetailLine(
               icon: HiIcons.calendar,
@@ -486,19 +486,19 @@ class _TakenCard extends StatelessWidget {
   }
 }
 
-/// `border-top: 1.5px dashed #C9D3E6` (Chrome draws dashes 3 × the width).
+/// `border-top: 1.5px dashed #C9D3E6`, which Chrome draws 1 px thick with
+/// 3 px dashes and gaps stretched so the line starts and ends with a dash.
 class _DashedRulePainter extends CustomPainter {
   const _DashedRulePainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    const dash = 4.5;
+    const dash = 3.0;
     final paint = Paint()..color = const Color(0xFFC9D3E6);
-    final count = (size.width / (dash * 2)).floor();
-    // Chrome stretches the gaps so the dashes start and end flush.
-    final gap = count > 1 ? (size.width - dash * (count + 1)) / count : dash;
-    for (var x = 0.0; x < size.width; x += dash + gap) {
-      canvas.drawRect(Rect.fromLTWH(x, 0, dash, 1.5), paint);
+    final count = ((size.width + dash) / (dash * 2)).floor();
+    final gap = count > 1 ? (size.width - dash * count) / (count - 1) : 0.0;
+    for (var i = 0; i < count; i++) {
+      canvas.drawRect(Rect.fromLTWH(i * (dash + gap), 0, dash, size.height), paint);
     }
   }
 

@@ -366,7 +366,7 @@ class _StripesPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final box = Size(size.width, size.height - 1.5);
+    final box = Size(size.width, size.height - HiBorders.width);
     const dir = Offset(math.sqrt1_2, math.sqrt1_2);
     final length = (box.width + box.height) * math.sqrt1_2;
     final start = box.center(Offset.zero) - dir * (length / 2);

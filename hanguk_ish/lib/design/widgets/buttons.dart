@@ -10,7 +10,7 @@ enum HiButtonStyle {
   /// Lime fill, ink outline and hard shadow — the main action of a screen.
   lime,
 
-  /// Transparent with a 1.5 px `rgba(255,255,255,0.45)` outline, on navy.
+  /// Transparent with a `1.5px` (drawn 1 px) `rgba(255,255,255,0.45)` outline, on navy.
   ghost,
 
   /// Solid ink, white text, no outline (card «Olish»).
@@ -73,7 +73,7 @@ class HiButton extends StatelessWidget {
       HiButtonStyle.ghost => (
           const Color(0x00000000),
           HiColors.white,
-          const BorderSide(color: HiColors.white45, width: 1.5),
+          const BorderSide(color: HiColors.white45, width: HiBorders.width),
           false,
         ),
       HiButtonStyle.ink => (HiColors.ink, HiColors.white, BorderSide.none, false),
