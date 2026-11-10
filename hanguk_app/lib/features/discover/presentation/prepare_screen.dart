@@ -122,8 +122,14 @@ class _GuestPrepareState extends State<_GuestPrepare> {
       bottom: false,
       child: CustomScrollView(
         slivers: [
+          // Board 1: the title 8px under the status bar, 24px under the
+          // sign-in button. Those 24px are in the column, not padding under
+          // the fill: the fill is as tall as the page, so padding under it
+          // only made the page scroll by 24px, and the round button covered
+          // the bottom of the sign-in button. When the content does not fit,
+          // it scrolls, and the button stays at its end.
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 0),
             sliver: SliverFillRemaining(
               hasScrollBody: false,
               child: Column(
@@ -151,20 +157,26 @@ class _GuestPrepareState extends State<_GuestPrepare> {
                   const SizedBox(height: 14),
                   const Spacer(),
                   const SizedBox(height: 14),
-                  GestureDetector(
-                    onTap: tracked('prepare.guest_sign_in', () => _signIn(context)),
-                    child: Container(
-                      height: 52,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: FdColors.lime,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: FdColors.ink, width: 1.5),
-                        boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+                  Semantics(
+                    button: true,
+                    child: GestureDetector(
+                      onTap: tracked('prepare.guest_sign_in', () => _signIn(context)),
+                      child: Container(
+                        height: 52,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: FdColors.lime,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: FdColors.ink, width: 1.5),
+                          boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(4, 4))],
+                        ),
+                        child: Text(l.prepGuestSignIn, style: fdText(15, FontWeight.w800, FdColors.onLime)),
                       ),
-                      child: Text(l.prepGuestSignIn, style: fdText(15, FontWeight.w800, FdColors.onLime)),
                     ),
                   ),
+                  // The round button rises 8px into the page: it stays 16px
+                  // clear of the sign-in button.
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -187,6 +199,7 @@ class _GuestPrepareState extends State<_GuestPrepare> {
       case _Interview.opening:
         return _GuestRow(
           busy: true,
+          holdChevron: true,
           icon: const SizedBox(
             width: 22,
             height: 22,
@@ -242,9 +255,9 @@ class _GuestPrepareState extends State<_GuestPrepare> {
 }
 
 /// A row of the guest's page (D4): an icon tile, a title over a line, and a
-/// chevron when it opens something. A [locked] row is the pale one with no
-/// shadow; a [busy] row (preparing, or failed) has no chevron and is not a
-/// button itself; [top] aligns the tile with the title for a taller line.
+/// chevron 12px from them when it opens something. A [locked] row is the pale
+/// one with no shadow; a [busy] row (preparing, or failed) is not a button
+/// itself; [top] aligns the tile with the title for a taller line.
 class _GuestRow extends StatelessWidget {
   const _GuestRow({
     required this.icon,
@@ -253,6 +266,7 @@ class _GuestRow extends StatelessWidget {
     this.onTap,
     this.locked = false,
     this.busy = false,
+    this.holdChevron = false,
     this.top = false,
   });
 
@@ -262,10 +276,17 @@ class _GuestRow extends StatelessWidget {
   final VoidCallback? onTap;
   final bool locked;
   final bool busy;
+
+  /// The chevron's room stays, empty: the row being prepared keeps its
+  /// texts' width, so nothing moves on the tap. A failed row has none and
+  /// its texts run to the card's edge (board 3).
+  final bool holdChevron;
+
   final bool top;
 
   @override
   Widget build(BuildContext context) {
+    final opens = onTap != null && !locked && !busy;
     final card = Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -295,14 +316,17 @@ class _GuestRow extends StatelessWidget {
               ],
             ),
           ),
-          if (onTap != null && !locked && !busy) ...[
-            const SizedBox(width: 8),
-            const Lucide(LucideIcons.chevronRight, size: 18, color: FdColors.muted),
+          if (opens || holdChevron) ...[
+            const SizedBox(width: 12),
+            if (opens)
+              const Lucide(LucideIcons.chevronRight, size: 18, color: FdColors.muted)
+            else
+              const SizedBox.square(dimension: 18),
           ],
         ],
       ),
     );
-    if (onTap == null || locked || busy) return card;
+    if (!opens) return card;
     return Semantics(
       button: true,
       child: GestureDetector(onTap: tracked('prepare.guest_row', onTap), behavior: HitTestBehavior.opaque, child: card),
@@ -371,8 +395,8 @@ class _StudentPrepare extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    // No number until it is known (it used to say «0 / 4» and «Yangi» to
-    // every student — 21 accounts had a plan written).
+    // No number and no meter until it is known (it used to say «0 / 4» and
+    // «Yangi» to every student — 21 accounts had a plan written).
     final done = ref.watch(prepareProgressProvider).value;
     final interviewTag = done == null
         ? ''
@@ -382,7 +406,8 @@ class _StudentPrepare extends ConsumerWidget {
     return SafeArea(
       bottom: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 2, 18, 24),
+        // Board 4: the title 8px under the status bar.
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
         children: [
           _title('${l.fdPrepareEyebrow} ${l.fdPrepareTitle}'),
           const SizedBox(height: 14),
@@ -392,7 +417,8 @@ class _StudentPrepare extends ConsumerWidget {
             tag: done == null ? '' : l.fdPrepareStudyPlanSteps(done.planParts, kPlanStepCount),
             title: l.fdPrepareStudyPlanTitle,
             body: l.fdPrepareStudyPlanBody,
-            progress: done?.planParts ?? 0,
+            meter: true,
+            progress: done?.planParts,
             onTap: tracked('prepare.study_plan_title', () => _open(context, ref, const StudyPlanBuilderScreen(), 'study_plan')),
           ),
           const SizedBox(height: 14),
@@ -426,6 +452,7 @@ class _ToolCard extends StatelessWidget {
     required this.title,
     required this.body,
     required this.onTap,
+    this.meter = false,
     this.progress,
   });
 
@@ -436,7 +463,12 @@ class _ToolCard extends StatelessWidget {
   final String body;
   final VoidCallback onTap;
 
-  /// Steps done of four; null for no progress bar.
+  /// The card has the four-step meter under its text (the Study Plan's).
+  final bool meter;
+
+  /// Steps done of four. Null while unknown: no meter is drawn (an empty one
+  /// reads as «0 / 4»), but its room is kept, so the card does not grow when
+  /// the number comes.
   final int? progress;
 
   @override
@@ -462,6 +494,9 @@ class _ToolCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(child: Text(kicker, style: fdText(12, FontWeight.w800, blue ? FdColors.lime : FdColors.muted, letterSpacing: 0.3))),
+                  // Board 4: 8px between them, so a kicker that wraps never
+                  // runs into the tag.
+                  const SizedBox(width: 8),
                   Text(tag, style: fdText(12, FontWeight.w800, blue ? FdColors.lime : FdColors.blue)),
                 ],
               ),
@@ -469,24 +504,27 @@ class _ToolCard extends StatelessWidget {
               Text(title, style: fdText(22, FontWeight.w800, fg, height: 1.2, letterSpacing: -0.3)),
               const SizedBox(height: 6),
               Text(body, style: fdText(14, FontWeight.w400, muted, height: 1.4)),
-              if (progress != null) ...[
+              if (meter) ...[
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    for (var i = 0; i < kPlanStepCount; i++) ...[
-                      if (i > 0) const SizedBox(width: 4),
-                      Expanded(
-                        child: Container(
-                          height: 6,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(3),
-                            color: i < progress! ? FdColors.lime : const Color(0x4DFFFFFF),
+                if (progress case final done?)
+                  Row(
+                    children: [
+                      for (var i = 0; i < kPlanStepCount; i++) ...[
+                        if (i > 0) const SizedBox(width: 4),
+                        Expanded(
+                          child: Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(3),
+                              color: i < done ? FdColors.lime : const Color(0x4DFFFFFF),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
-                ),
+                  )
+                else
+                  const SizedBox(height: 6),
               ],
             ],
           ),
@@ -537,7 +575,7 @@ class _AskRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               const Lucide(LucideIcons.chevronRight, size: 18, color: FdColors.muted),
             ],
           ),
