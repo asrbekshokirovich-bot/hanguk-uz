@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/core/format/text.dart';
 import 'package:hanguk_ish/core/money/won.dart';
 import 'package:hanguk_ish/data/demo/demo_account.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
@@ -115,6 +116,9 @@ void main() {
     expect(find.text("Shikoyatingiz qabul qilindi. Tez orada ko'rib chiqamiz."), findsOneWidget);
     expect(account.reports.single.$1, ReportSubject.payment);
     expect(account.reports.single.$2, "Maosh hali to'lanmadi");
+    // Let the confirmation snack bar go away; it covers the lower rows.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
 
     // Help.
     await tester.tap(find.text('Yordam'));
@@ -148,9 +152,9 @@ void main() {
     expect(find.text('Smenangizga 2 soat qoldi'), findsOneWidget);
     expect(find.text('Dalbit Kafe · Sinchon, 14:00–19:00. Kirishda QR kodni skanerlang.'), findsOneWidget);
     expect(find.text('Bom Mart · Hongdae: shanba, 14-noyabr, 10:00–15:00 smenangiz tasdiqlandi.'), findsOneWidget);
-    expect(find.text('Sangam Logistika · payshanba, 18:00–23:00 · ${Won.worker(12000)}/soat · 3,8 km'), findsOneWidget);
+    expect(find.text(keepSlashTogether('Sangam Logistika · payshanba, 18:00–23:00 · ${Won.worker(12000)}/soat · 3,8 km')), findsOneWidget);
     expect(find.text('Hongdae yaqinida 3 ta yangi smena'), findsOneWidget);
-    expect(find.text("Kafe va do'kon · ${Won.workerDigits(10500)}–${Won.worker(11500)}/soat"), findsOneWidget);
+    expect(find.text(keepSlashTogether("Kafe va do'kon · ${Won.workerDigits(10500)}–${Won.worker(11500)}/soat")), findsOneWidget);
     expect(container.read(unreadNotificationsProvider), 0);
 
     await tester.tap(find.byType(HiBackButton));

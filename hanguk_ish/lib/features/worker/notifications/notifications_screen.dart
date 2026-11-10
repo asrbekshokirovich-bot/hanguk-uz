@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format/dates.dart';
+import '../../../core/format/text.dart';
 import '../../../core/money/won.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
@@ -185,7 +186,8 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.nearbyShifts => l10n.notifNearbyTitle(n.areaName(lang), n.count ?? 0),
     };
     final day = n.startsAt == null ? '' : HiDates.weekdayAndDate(n.startsAt!, lang);
-    final text = switch (n.kind) {
+    // «12 000 ₩/soat» stays together, as in the prototype.
+    final text = keepSlashTogether(switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderText(business, range),
       NotificationKind.confirmed => l10n.notifConfirmedText(business, day, range),
       NotificationKind.rejected => l10n.notifRejectedText(business, day, range),
@@ -200,7 +202,7 @@ class _NotificationCard extends StatelessWidget {
           n.distanceKm == null ? '' : formatKm(n.distanceKm!, lang),
         ),
       NotificationKind.nearbyShifts => l10n.notifNearbyText(_categories(l10n), _wageRange()),
-    };
+    });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);
 
     final Widget? action = switch (n.kind) {

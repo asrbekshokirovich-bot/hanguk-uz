@@ -123,72 +123,67 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ],
             ),
           ),
-          Expanded(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: Semantics(
-                    label: l10n.messages,
-                    child: messages.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 40),
-                              child: HiText(
-                                l10n.chatEmpty,
-                                textAlign: TextAlign.center,
-                                style: hiStyle(15, FontWeight.w600, color: HiColors.textMuted),
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            reverse: true,
-                            // The prototype's log ends 3 px above the composer, plus its 10 px padding.
-                            padding: EdgeInsets.fromLTRB(18, showNote ? 62 : 12, 18, 13),
-                            itemCount: messages.length,
-                            itemBuilder: (context, index) {
-                              final i = messages.length - 1 - index;
-                              final m = messages[i];
-                              final next = i + 1 < messages.length ? messages[i + 1] : null;
-                              // A time under the last of a run from the same
-                              // sender in the same minute (as in the prototype).
-                              final showTime = next == null ||
-                                  next.fromMe != m.fromMe ||
-                                  Kst.hm(next.createdAt) != Kst.hm(m.createdAt);
-                              return Padding(
-                                padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
-                                child: _Bubble(message: m, lang: lang, showTime: showTime),
-                              );
-                            },
-                          ),
-                  ),
+          // The prototype pins the note 124 px and the message log 186 px from
+          // the top of the screen: 10.5 px under its 113.5 px header and 2.2 px
+          // under the two-line note. The log is clipped there.
+          if (showNote)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 10.5, 22, 2.2),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16205A),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: HiColors.white14),
                 ),
-                if (showNote)
-                  Positioned(
-                    left: 18,
-                    right: 22,
-                    top: 11,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF16205A),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: HiColors.white14),
-                      ),
-                      child: Row(
-                        children: [
-                          const HiIcon(HiIcons.languages, size: 20, strokeWidth: 2, color: HiColors.lime),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: HiText(
-                              l10n.chatTranslateNote,
-                              style: hiStyle(14, FontWeight.w600, height: 1.35, color: HiColors.textSoft),
-                            ),
-                          ),
-                        ],
+                child: Row(
+                  children: [
+                    const HiIcon(HiIcons.languages, size: 20, strokeWidth: 2, color: HiColors.lime),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: HiText(
+                        l10n.chatTranslateNote,
+                        style: hiStyle(14, FontWeight.w600, height: 1.35, color: HiColors.textSoft),
                       ),
                     ),
-                  ),
-              ],
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: Semantics(
+              label: l10n.messages,
+              child: messages.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: HiText(
+                          l10n.chatEmpty,
+                          textAlign: TextAlign.center,
+                          style: hiStyle(15, FontWeight.w600, color: HiColors.textMuted),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      reverse: true,
+                      // The prototype's log ends 3 px above the composer, plus its 10 px padding.
+                      padding: EdgeInsets.fromLTRB(18, showNote ? 0 : 12, 18, 13),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final i = messages.length - 1 - index;
+                        final m = messages[i];
+                        final next = i + 1 < messages.length ? messages[i + 1] : null;
+                        // A time under the last of a run from the same
+                        // sender in the same minute (as in the prototype).
+                        final showTime = next == null ||
+                            next.fromMe != m.fromMe ||
+                            Kst.hm(next.createdAt) != Kst.hm(m.createdAt);
+                        return Padding(
+                          padding: EdgeInsets.only(top: i == 0 ? 0 : 12),
+                          child: _Bubble(message: m, lang: lang, showTime: showTime),
+                        );
+                      },
+                    ),
             ),
           ),
           // Composer.
@@ -270,13 +265,17 @@ class _Bubble extends StatelessWidget {
     final l10n = WorkerL10n.of(context);
     final mine = message.fromMe;
     final korean = message.lang == 'ko' || isKorean(message.body);
-    final bodyStyle = hiStyle(
+    final style = hiStyle(
       16,
       FontWeight.w500,
       height: 1.5,
       color: mine ? HiColors.white : HiColors.ink,
       family: korean ? HiFamily.korean : HiFamily.inter,
     );
+    // `<p lang="ko">`: Korean glyphs for the punctuation and spaces (the
+    // font's KOR forms), so a line is as wide as in the prototype; screen
+    // readers also read it as Korean.
+    final bodyStyle = korean ? style.copyWith(locale: const Locale('ko')) : style;
     final translation = !mine && message.lang != lang ? message.translations[lang] : null;
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
