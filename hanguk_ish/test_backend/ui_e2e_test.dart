@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/core/format/dates.dart';
+import 'package:hanguk_ish/core/money/won.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
@@ -28,9 +29,11 @@ import 'package:hanguk_ish/data/repositories/employer_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
+import 'package:hanguk_ish/features/employer/ko.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
+import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
 import 'package:hanguk_ish/features/worker/work/qr_scanner.dart';
 import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -324,16 +327,35 @@ void main() {
     await _until(tester, _text('Chiqish — QR skanerlash'));
     expect(find.byType(AtWorkScreen), findsOneWidget);
     await _shot(tester, 'a07-at-work');
+    // An hour and a half of work: the shift (now 95 minutes long) began 90
+    // minutes ago and the worker came in on time. The server pays the time
+    // inside the planned window: 90 minutes × 11,000원 = 16,500원.
+    final began = DateTime.now().toUtc().subtract(const Duration(minutes: 90));
+    await tester.runAsync(() async {
+      final admin = _client(_serviceKey);
+      await admin.from('shifts').update({
+        'starts_at': began.toIso8601String(),
+        'ends_at': began.add(const Duration(minutes: 95)).toIso8601String(),
+      }).eq('id', soon.id);
+      await admin
+          .from('applications')
+          .update({'check_in_at': began.toIso8601String()})
+          .eq('shift_id', soon.id)
+          .eq('worker_id', worker.auth.currentUser!.id);
+    });
     await _tap(tester, _text('Chiqish — QR skanerlash'));
     await _until(tester, _text('Smena yakunlandi'));
     final done = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
     final finished = done!.singleWhere((a) => a.shift.id == soon.id);
     expect(finished.status, ApplicationStatus.completed);
-    expect(finished.workedMinutes, isNotNull);
-    // The card shows what the server counted (out before the start: 0),
-    // never the planned hour first.
-    await _until(tester, _text(HiDates.durationHm(finished.workedMinutes!, 'uz')));
-    expect(_text(HiDates.durationHm(soon.endsAt.difference(soon.startsAt).inMinutes, 'uz')), findsNothing);
+    expect(finished.workedMinutes, 90);
+    expect(finished.payAmount, 16500);
+    // The card shows what the server counted, never the planned 95 minutes
+    // and their pay first.
+    await _until(tester, _text(HiDates.durationHm(90, 'uz')));
+    expect(_text(HiDates.durationHm(95, 'uz')), findsNothing);
+    expect(_text(Won.worker(16500)), findsOneWidget, reason: 'the total');
+    expect(_text(Kst.hm(began)), findsOneWidget, reason: 'in');
     await _shot(tester, 'a07-result');
 
     await _tap(tester, _text('Ish beruvchini baholash'));
@@ -380,6 +402,8 @@ void main() {
     await _until(tester, _text('지급 완료로 표시'));
     await _tap(tester, _text('지급 완료로 표시'));
     await _until(tester, _text('지급 완료 · 1건'));
+    expect(find.textContaining('16,500', findRichText: true), findsWidgets, reason: 'the hour and a half paid');
+    expect(find.textContaining('근무 1건 · 1시간 30분', findRichText: true), findsOneWidget);
     await _shot(tester, 'ba5-report');
     await _close(tester);
   });
@@ -405,6 +429,7 @@ void main() {
     await _until(tester, _text('Bildirishnomalar'));
     await _until(tester, _text('Smena tasdiqlandi'));
     expect(_text("Maosh to'landi"), findsWidgets);
+    expect(find.textContaining(Won.worker(16500), findRichText: true), findsOneWidget, reason: 'the amount paid');
     await _shot(tester, 'a12-notifications');
     // Opening A12 marks them read: let the screen's request go out (the app
     // runs on the test's clock) and ask the server.
@@ -455,6 +480,69 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
   }
+
+  testWidgets('worker: A09 counts the paid shift; A11 the finished one', skip: _skip != null, (tester) async {
+    phone(tester);
+    // Through the start gate, which loads the saved profile (A11's name).
+    await tester.pumpWidget(workerApp());
+    await _until(tester, _text('Smenalar'));
+    await _tap(tester, _text('Daromad'));
+    // The month total, the paid tile and the shift's row.
+    await _until(tester, _text(Won.worker(16500)));
+    expect(_text(Won.worker(16500)), findsNWidgets(3));
+    expect(_text('1 smena · 1 soat'), findsOneWidget);
+    expect(_text('E2E Kafe'), findsWidgets);
+    await _shot(tester, 'a09-earnings');
+
+    await _tap(tester, _text('Profil'));
+    await _until(tester, _text('Sardor Testov'));
+    final done = find.ancestor(
+      of: _text('Bajarilgan smenalar'),
+      matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatCard'),
+    );
+    await _until(tester, find.descendant(of: done, matching: _text('1')));
+    // Finished +1, never above 100; no business can rate a worker yet.
+    expect(_text('100'), findsWidgets);
+    await _shot(tester, 'a11-profile');
+    await _close(tester);
+  });
+
+  testWidgets('worker: A04 puts the business on the map; its card is the open shift', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.map));
+    final today = Kst.wallClock(DateTime.now());
+    final day = Kst.wallClock(shift.startsAt);
+    if (day.day != today.day) await _tap(tester, _text('Ertaga'));
+    await _until(tester, find.byType(ShiftCard));
+    // One pin for the business, placed from its point; selected, its card.
+    expect(find.bySemanticsLabel(RegExp('^E2E Kafe, ')), findsOneWidget);
+    expect(find.descendant(of: find.byType(ShiftCard), matching: _text('E2E Kafe')), findsOneWidget);
+    await _shot(tester, 'a04-map');
+    await _close(tester);
+  });
+
+  testWidgets('owner: BA4 lists the worker who finished a shift; ★ makes them a favourite', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.workers));
+    await _until(tester, _text(Ko.noFavorites));
+    // The tabs read «최근 근무자 1» (the hint below says «최근 근무자에서…»).
+    await _tap(tester, find.textContaining(RegExp('^${Ko.recentWorkers} '), findRichText: true));
+    await _until(tester, _text('Sardor Testov'));
+    expect(_text(Ko.timesHere(1, 3)), findsOneWidget, reason: 'one finished shift here, TOPIK 3');
+    await _tap(tester, find.bySemanticsLabel(Ko.favorite('Sardor Testov')));
+    await _until(tester, find.bySemanticsLabel(Ko.unfavorite('Sardor Testov')));
+    final workers = await tester.runAsync(() async {
+      final repo = SupabaseEmployerRepository(owner, _config);
+      return repo.workers((await repo.businesses()).single.id);
+    });
+    expect(workers!.single.favorite, isTrue, reason: 'the server keeps the favourite');
+    await _tap(tester, find.textContaining(RegExp('^${Ko.favorites} '), findRichText: true));
+    await _until(tester, _text('Sardor Testov'));
+    await _shot(tester, 'ba4-workers');
+    await _close(tester);
+  });
 
   testWidgets('worker: a message in A10 reaches the server', skip: _skip != null, (tester) async {
     phone(tester);
