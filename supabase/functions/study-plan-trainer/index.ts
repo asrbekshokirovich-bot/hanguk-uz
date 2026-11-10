@@ -128,7 +128,7 @@ serve(async (req) => {
           const { data: programs } = await adminClient
             .from("university_programs")
             .select("program_name, faculty_name, language_track, program_level")
-            .eq("university_id", uni.id)
+            .eq("institution_id", uni.id)
             .eq("is_available_for_international", true)
             .limit(5);
           
@@ -161,7 +161,7 @@ Location: ${university.city_ko || 'South Korea'}
         const { data: programs } = await adminClient
           .from("university_programs")
           .select("program_name, faculty_name, language_track, program_level, topik_requirement, ielts_requirement")
-          .eq("university_id", targetUniversityId)
+          .eq("institution_id", targetUniversityId)
           .eq("is_available_for_international", true)
           .limit(10);
         

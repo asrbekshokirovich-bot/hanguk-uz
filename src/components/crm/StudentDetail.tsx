@@ -305,7 +305,7 @@ export function StudentDetail({
   const fetchSuggestions = async () => {
     const { data } = await supabase
       .from('student_suggestions')
-      .select('institution_id, university:institutions!applications_institution_id_fkey(id, name_en, name_ko, is_partner)')
+      .select('institution_id, university:institutions!student_suggestions_institution_id_fkey(id, name_en, name_ko, is_partner)')
       .eq('student_id', student.user_id);
     if (data) {
       setExistingSuggestedUniversityIds(data.map(d => d.institution_id));
