@@ -30,4 +30,17 @@ void main() {
     expect(appendDictation('abc', '   ', 300), 'abc');
     expect(appendDictation('x' * 298, 'yyyy', 300).length, 300);
   });
+
+  test('AI prose loses its markdown marks', () {
+    const raw = '### 1. 📊 Overall Score\n**Good** start, *keep* going.\n\n---\n\n\n* **❌ "I like"**\n   * note\n```json\n{}\n```';
+    final out = plainFeedbackText(raw);
+    expect(out, isNot(contains('#')));
+    expect(out, isNot(contains('*')));
+    expect(out, isNot(contains('---')));
+    expect(out, isNot(contains('```')));
+    expect(out, startsWith('1. 📊 Overall Score\nGood start, keep going.'));
+    expect(out, contains('• ❌ "I like"'));
+    expect(out, contains('   • note'));
+  });
 }
+

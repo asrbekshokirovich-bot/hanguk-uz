@@ -258,14 +258,17 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     _parts[_step] = _controller.text;
-    if (serializePlan(_parts).isEmpty) {
+    // Feedback is on this step's own text, so this step must have some.
+    if (_parts[_step].trim().isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(l.fdPlanWriteFirst)));
       return;
     }
     setState(() => _busy = true);
     final saved = await _save();
     StudyPlanAnalysis? analysis;
-    if (saved) analysis = await _notifier.analyzeCurrentDraft(_type);
+    if (saved) {
+      analysis = await _notifier.analyzeCurrentDraft(_type, step: _step + 1, stepText: _parts[_step].trim());
+    }
     if (!mounted) return;
     setState(() => _busy = false);
     if (analysis == null) {
@@ -789,8 +792,10 @@ class _FeedbackSheet extends StatelessWidget {
     final strengths = _lines(analysis.strengths);
     final improvements = _lines(analysis.improvements);
     final summary = (analysis.contentFeedback ?? '').trim();
+    // Older answers (and any reply that was not JSON) are prose with
+    // markdown; show it as plain text rather than with raw ### and **.
     final prose = strengths.isEmpty && improvements.isEmpty && summary.isEmpty
-        ? (analysis.aiResponse ?? '').trim()
+        ? plainFeedbackText(analysis.aiResponse ?? '')
         : '';
     final body = fdText(13, FontWeight.w400, FdColors.ink, height: 1.5);
 
