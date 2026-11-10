@@ -1146,6 +1146,7 @@
   "fdPrepareStudyPlanTitle": "학업계획서 작성",
   "fdPrepareStudyPlanBody": "4단계로 학업계획서를 작성하면 Hanguk AI가 피드백을 줍니다.",
   "fdPrepareNew": "신규",
+  "fdPrepareInterviewDone": "연습 {n}회",
   "fdPrepareInterviewTitle": "면접 준비",
   "fdPrepareInterviewBody": "Hanguk AI 면접관과 8개 질문을 음성으로 연습하세요.",
   "fdPrepareAskTitle": "Hanguk AI에게 질문하기",

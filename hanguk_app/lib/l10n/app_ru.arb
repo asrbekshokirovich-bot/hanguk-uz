@@ -1146,6 +1146,7 @@
   "fdPrepareStudyPlanTitle": "Учебный план",
   "fdPrepareStudyPlanBody": "Напишите учебный план в 4 этапа — Hanguk AI даст отзыв.",
   "fdPrepareNew": "Новое",
+  "fdPrepareInterviewDone": "Тренировок: {n}",
   "fdPrepareInterviewTitle": "Подготовка к собеседованию",
   "fdPrepareInterviewBody": "Отработайте вслух 8 вопросов с интервьюером Hanguk AI.",
   "fdPrepareAskTitle": "Спросите Hanguk AI",

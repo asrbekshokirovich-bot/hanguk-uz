@@ -36,8 +36,8 @@ void openKeyboard(WidgetTester t) => t.view.viewInsets = const FakeViewPadding(b
 
 void closeKeyboard(WidgetTester t) => t.view.viewInsets = FakeViewPadding.zero;
 
-/// The app's own fonts (Inter, Noto Sans KR) instead of the test font's
-/// boxes, so screenshots read like the phone.
+/// The app's own fonts (Inter, Noto Sans KR, JetBrains Mono for numbers)
+/// instead of the test font's boxes, so screenshots read like the phone.
 Future<void> loadAppFonts() async {
   Future<void> family(String name, List<String> files) async {
     final loader = FontLoader(name);
@@ -49,6 +49,7 @@ Future<void> loadAppFonts() async {
 
   await family('Inter', [for (final w in const [400, 500, 600, 700, 800, 900]) 'Inter-$w.ttf']);
   await family('NotoSansKR', const ['NotoSansKR-500.ttf', 'NotoSansKR-700.ttf', 'NotoSansKR-900.ttf']);
+  await family('JetBrainsMono', const ['JetBrainsMono-600.ttf']);
 }
 
 /// A dark grey slab where the keyboard is, drawn over everything like the
