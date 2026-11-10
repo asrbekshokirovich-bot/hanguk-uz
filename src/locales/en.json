@@ -3514,7 +3514,9 @@
     "interview": "Interview",
     "result": "Result",
     "noUniversities": "No university chosen or submitted yet.",
-    "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board."
+    "whereToEdit": "This comes automatically from Documents, University selection, Online and Offline application — the same as the Applications board.",
+    "faculty": "Faculty",
+    "facultyMissing": "not set (entered in University selection)"
   },
   "appLeads": {
     "forbidden": "This section is open only to the operators it was granted to.",

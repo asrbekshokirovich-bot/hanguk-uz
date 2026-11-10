@@ -41,6 +41,25 @@ final ValueNotifier<int> kAssessTabReselected = ValueNotifier(0);
 /// The nav's four tabs, left to right, as [AppTab]s.
 const List<int> _navTabs = [AppTab.universities, AppTab.prepare, AppTab.application, AppTab.documents];
 
+/// One tab asked for from a screen over the home ([goOverPushed]). A new
+/// object each time, so the same tab asked for twice still reaches the home.
+class AppTabRequest {
+  AppTabRequest(this.tab);
+
+  /// The [AppTab] to open.
+  final int tab;
+}
+
+/// The tab the nav of a screen over the home asked for, set once the screens
+/// over the home have closed: the home's shell (ClientShell, DiscoverShell)
+/// opens it.
+///
+/// The URL's `?tab=` reaches a shell only when it changes, and a tab picked in
+/// the home's own nav never changes the URL. So «Arizam» from a Study Plan
+/// opened over Tayyorgarlik closed the Study Plan and left Tayyorgarlik open:
+/// the URL was "/" (Arizam) before and after (audit C-F1, 2026-11-10).
+final ValueNotifier<AppTabRequest?> kAppTabRequest = ValueNotifier(null);
+
 /// Opens [tab] of the home from a screen pushed over it (or from the home's
 /// own nav when [onLocal] is null). A client's tab for a guest opens in the
 /// guest home itself, where it asks for the client code (owner, 2026-10-22).
@@ -53,7 +72,7 @@ void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>
     } else if (onLocal != null) {
       onLocal(tab);
     } else {
-      unawaited(goOverPushed(context, discoverTabPath(tab)));
+      unawaited(goOverPushed(context, discoverTabPath(tab), tab: tab));
     }
     return;
   }
@@ -61,41 +80,104 @@ void openAppTab(BuildContext context, WidgetRef ref, int tab, {ValueChanged<int>
     onLocal(tab);
     return;
   }
-  unawaited(goOverPushed(context, signedIn ? '/?tab=$tab' : discoverTabPath(tab)));
+  unawaited(goOverPushed(context, signedIn ? '/?tab=$tab' : discoverTabPath(tab), tab: tab));
 }
 
-/// True while [goOverPushed] is closing screens: a second tap waits for the
-/// first instead of closing the page under them as well.
-bool _goingOverPushed = false;
+/// A tab asked for from a screen over the home, until it opens.
+class _TabAsk {
+  _TabAsk(this.router, this.navigator, this.location, this.tab) : from = router.routeInformationProvider.value.uri;
 
-/// Goes to [location] from a screen pushed over the home with
-/// `Navigator.push` (the Study Plan, the interview), closing those screens
-/// first the way the back button does: one that saves on its way out (the
-/// Study Plan) still saves, then closes itself.
+  final GoRouter router;
+  final NavigatorState? navigator;
+  final String location;
+  final int tab;
+
+  /// Where the app was when it was asked for: a link opened meanwhile (a
+  /// notification's) wins over it.
+  final Uri from;
+}
+
+/// The newest tab asked for that has not opened yet: a newer tap replaces it,
+/// and [dropPendingTab] forgets it.
+_TabAsk? _wanted;
+
+/// True while a screen over the home is being asked to close.
+bool _asking = false;
+
+/// A screen that stayed when it was asked to close: the tab asked for opens
+/// when it goes.
+Route<Object?>? _waitingOn;
+
+/// Goes to [location], the home with [tab] open, from a screen pushed over the
+/// home with `Navigator.push` (the Study Plan, the interview), closing those
+/// screens first the way the back button does: one that saves on its way out
+/// (the Study Plan) still saves, then closes itself.
 ///
 /// `go` alone left them on top. go_router keys a page by its path, and
 /// '/?tab=1' → '/?tab=0' changes only the query, so the home page and every
 /// screen pushed over it stayed while the tab switched underneath — 51 of 75
 /// nav taps on the interview did only that (app_events, 2026-10-20…11-10).
-Future<void> goOverPushed(BuildContext context, String location) async {
-  if (_goingOverPushed) return;
-  _goingOverPushed = true;
-  try {
-    final router = GoRouter.of(context);
-    final navigator = Navigator.maybeOf(context);
-    if (navigator != null) {
-      // A page's own route (go_router's) is where pushed screens end.
-      for (var i = 0; i < 8; i++) {
-        final top = _topRoute(navigator);
-        if (top == null || top.settings is Page<Object?>) break;
-        // One that would not close (it guards something) keeps the tap.
-        if (!await _closeRoute(navigator, top)) return;
-      }
+///
+/// A screen that does not close at once — it saves first, or it asks first
+/// (a live interview) — keeps the tab until it does close, and the nav answers
+/// other taps meanwhile: the newest one is the tab that opens. One lock held
+/// for up to 20 s used to drop every tap in that time, and then the tab itself
+/// when the save took longer (audit C-F6). A screen that stays (its save
+/// failed, its "leave?" was answered "stay") opens no tab.
+Future<void> goOverPushed(BuildContext context, String location, {required int tab}) {
+  _wanted = _TabAsk(GoRouter.of(context), Navigator.maybeOf(context), location, tab);
+  // The screen being asked right now answers for this tap too.
+  if (_asking) return Future<void>.value();
+  return _closeAndGo();
+}
+
+/// Forgets the tab a nav tap asked for while the screen it was tapped on was
+/// closing: that screen stays after all (its "leave?" was answered "stay", or
+/// its save failed), so when it goes later, by its own back button, it goes
+/// back to the home as it is.
+void dropPendingTab() => _wanted = null;
+
+/// Closes the screens over the home, top first, then opens the newest tab
+/// asked for.
+Future<void> _closeAndGo() async {
+  for (var i = 0; i < 8; i++) {
+    final ask = _wanted;
+    if (ask == null) return;
+    final navigator = ask.navigator;
+    final top = navigator == null || !navigator.mounted ? null : _topRoute(navigator);
+    // A page's own route (go_router's) is where pushed screens end.
+    if (navigator == null || top == null || top.settings is Page<Object?>) break;
+    _asking = true;
+    try {
+      await navigator.maybePop();
+    } finally {
+      _asking = false;
     }
-    router.go(location);
-  } finally {
-    _goingOverPushed = false;
+    if (top.isActive) {
+      // It stays for now; the nav is free again.
+      _waitFor(top);
+      return;
+    }
   }
+  final wanted = _wanted;
+  if (wanted == null) return;
+  _wanted = null;
+  if (wanted.router.routeInformationProvider.value.uri != wanted.from) return;
+  wanted.router.go(wanted.location);
+  kAppTabRequest.value = AppTabRequest(wanted.tab);
+}
+
+/// Carries on with the tab asked for once [route] has gone.
+void _waitFor(Route<Object?> route) {
+  if (identical(_waitingOn, route)) return;
+  _waitingOn = route;
+  unawaited(
+    route.popped.then((_) {
+      if (!identical(_waitingOn, route)) return;
+      _waitingOn = null;
+      if (!_asking) unawaited(_closeAndGo());
+    }),
+  );
 }
 
 Route<Object?>? _topRoute(NavigatorState navigator) {
@@ -105,23 +187,6 @@ Route<Object?>? _topRoute(NavigatorState navigator) {
     return true;
   });
   return top;
-}
-
-/// Asks [route] to close as the back button would; true once it is gone.
-Future<bool> _closeRoute(NavigatorState navigator, Route<Object?> route) async {
-  final closed = Completer<bool>();
-  final timeout = Timer(const Duration(seconds: 20), () {
-    if (!closed.isCompleted) closed.complete(false);
-  });
-  unawaited(
-    route.popped.then((_) {
-      if (!closed.isCompleted) closed.complete(true);
-    }),
-  );
-  await navigator.maybePop();
-  final ok = await closed.future;
-  timeout.cancel();
-  return ok;
 }
 
 /// The bottom nav of the home and of the screens pushed over it.

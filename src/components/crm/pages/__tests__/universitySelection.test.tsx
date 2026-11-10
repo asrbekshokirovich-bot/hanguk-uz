@@ -8,11 +8,14 @@ const remove = vi.fn();
 const move = vi.fn();
 const confirm = vi.fn();
 const unlockConfirmed = vi.fn();
+const setFaculty = vi.fn();
+const loadFacultyOptions = vi.fn(async () => [{ college: 'Business College', faculty: 'Business Administration', faculty_kr: null, degree: 'bakalavr', track: 'korean', intake_year: 2027, semester: 'bahor' }]);
 let canChangeConfirmed = false;
 let changedStudents = new Set<string>();
 type Choice = {
   id: string; student_id: string; institution_id: string; rank: number; created_at: string;
   status: string; responded_at: string | null; change_reason: string | null; change_note: string | null; confirmed_at: string | null;
+  faculty_name?: string | null; faculty_college?: string | null;
 };
 let choices: Choice[] = [];
 const choice = (id: string, institution_id: string, rank: number, status = 'offered', extra: Partial<Choice> = {}): Choice => ({
@@ -24,6 +27,7 @@ vi.mock('@/hooks/useUniversityChoices', async (orig) => {
   const real = await orig<typeof import('@/hooks/useUniversityChoices')>();
   return {
     ...real,
+    loadFacultyOptions: (id: string) => loadFacultyOptions(id),
     useUniversityChoices: () => {
       const byStudent = new Map<string, Choice[]>();
       for (const c of choices) byStudent.set(c.student_id, [...(byStudent.get(c.student_id) ?? []), c]);
@@ -38,6 +42,7 @@ vi.mock('@/hooks/useUniversityChoices', async (orig) => {
         move: { mutate: move, isPending: false },
         confirm: { mutate: confirm, isPending: false },
         unlockConfirmed: { mutate: unlockConfirmed, isPending: false },
+        setFaculty: { mutate: setFaculty, isPending: false },
         canChangeConfirmed,
         changedStudents,
       };
@@ -287,5 +292,31 @@ describe('UniversitySelectionContent', () => {
     setup({ students: [cancelled, student] });
     expect(screen.queryByText('BEKOR QILINGAN')).not.toBeInTheDocument();
     expect(screen.getAllByText(student.full_name as string).length).toBeGreaterThan(0);
+  });
+
+  it('shows the faculty on each choice and saves one picked from the guideline (2026-11-10)', async () => {
+    choices = [
+      choice('c1', 'ku', 1, 'confirmed', { confirmed_at: '2026-10-14T00:00:00Z', faculty_name: 'Law', faculty_college: 'Law School' }),
+      choice('c2', 'pn', 2, 'accepted'),
+    ];
+    setup();
+    const rows = screen.getAllByTestId('choice-faculty');
+    expect(rows[0]).toHaveTextContent('Fakultet: Law · Law School');
+    expect(rows[1]).toHaveTextContent('Fakultet kiritilmagan');
+    fireEvent.click(within(rows[1]).getByText('Fakultet tanlash'));
+    fireEvent.click(await screen.findByText('Business Administration'));
+    fireEvent.click(screen.getByText('Saqlash'));
+    expect(setFaculty).toHaveBeenCalledWith(
+      { choice: choices[1], faculty: 'Business Administration', college: 'Business College' },
+      expect.anything(),
+    );
+  });
+
+  it("lists every choice with its faculty in Topshirish ro'yxati", () => {
+    choices = [choice('c1', 'ku', 1, 'confirmed', { faculty_name: 'Law' }), choice('c2', 'pn', 2, 'accepted')];
+    setup();
+    fireEvent.click(screen.getByText(/Topshirish ro'yxati/));
+    expect(screen.getByText(/2 ta tanlov · fakulteti kiritilgan: 1/)).toBeInTheDocument();
+    expect(screen.getByText('Kiritilmagan')).toBeInTheDocument();
   });
 });

@@ -31,6 +31,20 @@ void main() {
     expect(appendDictation('x' * 298, 'yyyy', 300).length, 300);
   });
 
+  test('dictation never cuts a part already over the limit, and adds nothing to it (audit P-F3)', () {
+    final long = 'x' * 1200;
+    expect(appendDictation(long, 'men koreyani', 300), long);
+    expect(appendDictation(long, '', 300), long);
+    expect(appendDictation('x' * 300, 'yana', 300), 'x' * 300);
+  });
+
+  test('a plan without markers longer than a part may grow stays whole (audit P-F3)', () {
+    final legacy = List.filled(40, 'Eski ekranda yozilgan uzun reja.').join(' ');
+    expect(legacy.length, greaterThan(kPlanMaxChars));
+    expect(parsePlan(legacy), [legacy, '', '', '']);
+    expect(parsePlan(serializePlan(parsePlan(legacy))), [legacy, '', '', '']);
+  });
+
   test('AI prose loses its markdown marks', () {
     const raw = '### 1. 📊 Overall Score\n**Good** start, *keep* going.\n\n---\n\n\n* **❌ "I like"**\n   * note\n```json\n{}\n```';
     final out = plainFeedbackText(raw);

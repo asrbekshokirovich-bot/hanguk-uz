@@ -36,6 +36,25 @@ class _DiscoverShellState extends State<DiscoverShell> {
   bool _told = false;
 
   @override
+  void initState() {
+    super.initState();
+    kAppTabRequest.addListener(_onTabRequest);
+  }
+
+  @override
+  void dispose() {
+    kAppTabRequest.removeListener(_onTabRequest);
+    super.dispose();
+  }
+
+  /// A tab asked for from a screen over this home: it opens even when the
+  /// URL's `?tab=` stayed the same (see [kAppTabRequest]).
+  void _onTabRequest() {
+    final tab = kAppTabRequest.value?.tab;
+    if (tab != null && mounted) _go(tab.clamp(0, AppTab.count - 1));
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final route = ModalRoute.of(context)?.settings.name;

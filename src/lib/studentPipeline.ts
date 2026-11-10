@@ -45,6 +45,8 @@ export interface StudentPipeline {
   /** At least one university answered "accepted". */
   admitted: boolean;
   finalUniversityId: string | null;
+  /** institution_id → faculty the student applies to (staff-entered), when known. */
+  faculties: Record<string, string>;
 }
 
 export function buildStudentPipeline(input: {
@@ -52,6 +54,7 @@ export function buildStudentPipeline(input: {
   documents?: Tables<'documents'>[] | null;
   submissions?: SubmissionFacts[] | null;
   confirmedChoiceIds?: string[] | null;
+  faculties?: Record<string, string> | null;
 }): StudentPipeline {
   const subs = input.submissions ?? [];
   const pack = buildApplicationPack(input.documents ?? []);
@@ -87,6 +90,7 @@ export function buildStudentPipeline(input: {
     sentCount: sent.length,
     admitted: subs.some((s) => s.result === 'accepted'),
     finalUniversityId: final?.institution_id ?? null,
+    faculties: input.faculties ?? {},
   };
 }
 

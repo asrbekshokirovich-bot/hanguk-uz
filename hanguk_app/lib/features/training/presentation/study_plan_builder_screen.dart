@@ -16,6 +16,7 @@ import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../discover/data/slots.dart';
 import '../../discover/presentation/filter_board_screen.dart' show fieldLabel;
+import '../../discover/presentation/widgets/app_nav.dart' show dropPendingTab;
 import '../data/plan_sections.dart';
 import '../data/study_plan_cache.dart';
 import '../data/study_plan_repository.dart';
@@ -53,6 +54,18 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   /// Where this plan's phone copy is kept; null when no one is signed in.
   String? _copyKey;
 
+  /// The phone's copy holds text the server has not taken (a way out whose
+  /// save failed, or such a copy brought back by the open).
+  bool _copyUnsaved = false;
+
+  /// The way out while it saves: a second one waits for it (see [_leave]).
+  Future<void>? _leaving;
+
+  /// The plan's text whose save failed on a way out: the screen stayed once
+  /// for it. A next way out with this same text leaves even if its save
+  /// fails again — the phone's copy holds it (see [_leave]).
+  String? _failedOnLeave;
+
   // The mic button: the device's own speech recognizer, writing into the box.
   final _speech = SpeechToText();
   bool _listening = false;
@@ -79,7 +92,8 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   /// or starts one — in one request ([StudyPlanSessionNotifier.openLatest]).
   /// Meanwhile the phone's copy of its text (kept on every open and save) is
   /// shown at once, read-only, instead of the skeleton; the server's newest
-  /// draft then takes its place.
+  /// draft then takes its place — unless the copy is text that could not be
+  /// saved on that very draft, which stays.
   Future<void> _open() async {
     // `data_ready` prepare.study_plan: the open to the plan's text — the
     // phone's copy ('saved', when it is shown) and the server's ('network',
@@ -95,25 +109,24 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     final opened = _notifier.openLatest(_type, targetUniversityId: target).whenComplete(() {
       answered = true;
     });
-    if (key != null) {
-      unawaited(
-        ref.read(studyPlanCacheProvider).read(key).then((copy) {
-          // Only while it spares a wait: before the server has answered.
-          if (copy == null || copy.content.trim().isEmpty || answered || !mounted) return;
-          _fill(copy.content);
-          setState(() => _fromCopy = true);
-          AppEvents.track(
-            'data_ready',
-            props: {
-              'name': 'prepare.study_plan',
-              'source': 'saved',
-              'ms': clock.elapsedMilliseconds,
-              'age_h': DateTime.now().difference(copy.savedAt).inHours,
-            },
-          );
-        }),
-      );
-    }
+    final copied = key == null ? Future<StudyPlanCopy?>.value() : ref.read(studyPlanCacheProvider).read(key);
+    unawaited(
+      copied.then((copy) {
+        // Only while it spares a wait: before the server has answered.
+        if (copy == null || copy.content.trim().isEmpty || answered || !mounted) return;
+        _fill(copy.content);
+        setState(() => _fromCopy = true);
+        AppEvents.track(
+          'data_ready',
+          props: {
+            'name': 'prepare.study_plan',
+            'source': 'saved',
+            'ms': clock.elapsedMilliseconds,
+            'age_h': DateTime.now().difference(copy.savedAt).inHours,
+          },
+        );
+      }),
+    );
     final session = await opened;
     AppEvents.track(
       'data_ready',
@@ -130,33 +143,61 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     }
     // The server is the source of truth: its newest draft replaces the copy.
     final newest = ref.read(documentSessionProvider(_type)).drafts.firstOrNull;
+    final version = newest?.version ?? 0;
     final content = newest?.content ?? '';
     _fill(content);
     _savedContent = serializePlan(_parts);
+    // Text that could not be saved last time, written on this very draft
+    // (nothing newer was saved since): it comes back, and the next save
+    // keeps it.
+    final copy = await copied;
+    if (!mounted) return;
+    final unsaved = copy != null && copy.unsaved && copy.sessionId == session.id && copy.version == version;
+    if (unsaved) _fill(copy.content);
+    _copyUnsaved = unsaved;
     setState(() {
       _opening = false;
       _fromCopy = false;
     });
-    _keepCopy(session.id, newest?.version ?? 0, content);
+    if (!unsaved) _keepCopy(session.id, version, content);
   }
 
-  /// [content] (a draft) into the four parts, each cut to what a part may
-  /// hold, and the part on screen into the box.
+  /// [content] (a draft) into the four parts, and the part on screen into
+  /// the box. Nothing is cut: a part longer than [kPlanMaxChars] (a plan
+  /// written in the older step-by-step screen is all one part) is kept whole
+  /// — cutting it here made the next save the cut text's (audit P-F3).
   void _fill(String content) {
     final loaded = parsePlan(content);
     for (var i = 0; i < kPlanStepCount; i++) {
-      _parts[i] = loaded[i].length > kPlanMaxChars ? loaded[i].substring(0, kPlanMaxChars) : loaded[i];
+      _parts[i] = loaded[i];
     }
     _controller.text = _parts[_step];
   }
 
-  /// Keeps [content] — the server's newest draft, [version] of [sessionId] —
-  /// as the phone's copy for the next open.
-  void _keepCopy(String sessionId, int version, String content) {
+  /// Keeps [content] — the server's newest draft, [version] of [sessionId];
+  /// or, when [unsaved], text the server did not take, written on that
+  /// version — as the phone's copy for the next open.
+  void _keepCopy(String sessionId, int version, String content, {bool unsaved = false}) {
     final key = _copyKey;
     if (key == null) return;
-    final copy = StudyPlanCopy(sessionId: sessionId, version: version, content: content, savedAt: DateTime.now());
+    _copyUnsaved = unsaved;
+    final copy = StudyPlanCopy(
+      sessionId: sessionId,
+      version: version,
+      content: content,
+      savedAt: DateTime.now(),
+      unsaved: unsaved,
+    );
     unawaited(ref.read(studyPlanCacheProvider).write(key, copy));
+  }
+
+  /// The plan's session and the newest version saved in it, as the state
+  /// holds them; null before it is open.
+  ({String session, int version})? get _newestSaved {
+    final plan = ref.read(documentSessionProvider(_type));
+    final session = plan.currentSession;
+    if (session == null) return null;
+    return (session: session.id, version: plan.drafts.fold<int>(0, (v, d) => d.version > v ? d.version : v));
   }
 
   void _go(int step) {
@@ -181,10 +222,8 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
       _savedContent = content;
       if (mounted) {
         // The version just saved: saveDraft puts the new draft in the state.
-        final plan = ref.read(documentSessionProvider(_type));
-        final session = plan.currentSession;
-        final version = plan.drafts.fold<int>(0, (v, d) => d.version > v ? d.version : v);
-        if (session != null) _keepCopy(session.id, version, content);
+        final saved = _newestSaved;
+        if (saved != null) _keepCopy(saved.session, saved.version, content);
       }
     }
     return ok;
@@ -286,11 +325,59 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     if (next == true && mounted && _step < kPlanStepCount - 1) _go(_step + 1);
   }
 
-  Future<void> _leave() async {
+  /// The way out — the back arrow, the system back, or a tab of the bottom
+  /// nav (goOverPushed asks the screen to close): saves the plan, then closes
+  /// the screen.
+  ///
+  /// One at a time (audit C-F2): a second way out while the first one saves
+  /// waits for it. It used to save again and close again, and the second
+  /// close took the page under the builder — the home — leaving a blank
+  /// screen. The screen closes only itself, and only while it is on top.
+  ///
+  /// When the save fails the phone's copy keeps the text (audit C-F5: the
+  /// screen closed, and the text was gone): even if the student then closes
+  /// the app, the next open brings it back. The first time for a text the
+  /// screen stays and says it was not saved; a next way out tries the save
+  /// again and, failing again, leaves — offline, the student is not shut in.
+  /// Text written since (typed or dictated) gets its own stay.
+  Future<void> _leave() => _leaving ??= _leaveOnce().whenComplete(() => _leaving = null);
+
+  Future<void> _leaveOnce() async {
     _stopDictation();
     final navigator = Navigator.of(context);
-    await _save();
-    if (navigator.mounted) navigator.pop();
+    final route = ModalRoute.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final l = AppLocalizations.of(context)!;
+    final saved = await _save();
+    if (!mounted) return;
+    if (saved) {
+      _failedOnLeave = null;
+      // Nothing was left to save, yet the copy still holds text an earlier
+      // way out could not save (the student since wrote the plan back as it
+      // was): the copy is the server's again.
+      if (_copyUnsaved) {
+        final plan = _newestSaved;
+        if (plan != null) _keepCopy(plan.session, plan.version, _savedContent ?? '');
+      }
+    } else {
+      final content = serializePlan(_parts);
+      final plan = _newestSaved;
+      if (plan != null) _keepCopy(plan.session, plan.version, content, unsaved: true);
+      final code = ref.read(documentSessionProvider(_type)).error;
+      _notifier.clearError(_type);
+      if (_failedOnLeave != content) {
+        _failedOnLeave = content;
+        // It stays: a nav tab that asked it to close opens no tab when the
+        // student leaves later by the back arrow.
+        dropPendingTab();
+        messenger
+          ..removeCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(studyPlanErrorMessage(l, code ?? studyPlanErrorSave))));
+        return;
+      }
+      // The same text failed before: leave. The phone's copy holds it.
+    }
+    if (route != null && route.isCurrent) navigator.pop();
   }
 
   @override
@@ -583,11 +670,15 @@ class _StepChip extends StatelessWidget {
             children: [
               Text(state == _ChipState.done ? '✓' : '$number', style: fdText(12, FontWeight.w800, fg, height: 1.1)),
               const SizedBox(height: 1),
+              // Board 6: a label too long for the chip is cut with "…" at its
+              // 8px, not shrunk (it was drawn at 6–7px).
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(label, maxLines: 1, style: fdText(8, FontWeight.w700, fg, height: 1.1)),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: fdText(8, FontWeight.w700, fg, height: 1.1),
                 ),
               ),
             ],
@@ -623,6 +714,9 @@ class StudyPlanField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The real length, also of a part written longer than the limit in the
+    // older screen («1200 / 300», in red): it is shown whole, not cut.
+    final length = controller.text.characters.length;
     return Container(
       constraints: const BoxConstraints(minHeight: 132),
       decoration: BoxDecoration(
@@ -640,8 +734,8 @@ class StudyPlanField extends StatelessWidget {
             onChanged: (_) => onChanged(),
             minLines: 5,
             maxLines: null,
-            maxLength: kPlanMaxChars,
-            inputFormatters: [LengthLimitingTextInputFormatter(kPlanMaxChars)],
+            // No `maxLength`: the field would add the standard limit back.
+            inputFormatters: [StudyPlanLengthFormatter(kPlanMaxChars)],
             keyboardType: TextInputType.multiline,
             textCapitalization: TextCapitalization.sentences,
             cursorColor: FdColors.ink,
@@ -663,14 +757,37 @@ class StudyPlanField extends StatelessWidget {
             bottom: 8,
             child: IgnorePointer(
               child: Text(
-                '${controller.text.length} / $kPlanMaxChars',
-                style: fdText(10, FontWeight.w700, FdColors.muted),
+                '$length / $kPlanMaxChars',
+                style: fdText(10, FontWeight.w700, length > kPlanMaxChars ? FdColors.bad : FdColors.muted),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// The part's limit as it is typed: up to [max] characters, as the standard
+/// [LengthLimitingTextInputFormatter] holds it — but a part already longer
+/// (a plan written in the older step-by-step screen) is not cut to [max] at
+/// the first key, as that one did (audit P-F3). Such a part may shrink, or
+/// be edited at the same length; it may not grow. Public only so the tests
+/// can use it on its own.
+class StudyPlanLengthFormatter extends TextInputFormatter {
+  StudyPlanLengthFormatter(this.max) : _limit = LengthLimitingTextInputFormatter(max);
+
+  final int max;
+  final LengthLimitingTextInputFormatter _limit;
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final before = oldValue.text.characters.length;
+    if (before <= max) return _limit.formatEditUpdate(oldValue, newValue);
+    // Already longer: never handed to the standard formatter, which would cut
+    // it — not even while a keyboard marks a word as being composed, as
+    // Android keyboards do on the word under the cursor.
+    return newValue.text.characters.length <= before ? newValue : oldValue;
   }
 }
 
@@ -689,7 +806,11 @@ class StudyPlanFieldSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Board 6's role="status": a screen reader says it as it appears. Its
+    // own node (container), not merged into the card's.
     return Semantics(
+      container: true,
+      liveRegion: true,
       label: label,
       child: Container(
         width: double.infinity,
@@ -728,18 +849,24 @@ class _Failed extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
+    // Board 7: centred above an 80px bottom padding, not in the middle.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 0, 28, 80),
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // On the page, not on a card: white (canvas board 7). It was ink,
             // dark on the dark-blue page — the message could not be read.
-            Text(
-              l.fdPlanLoadFailed,
-              textAlign: TextAlign.center,
-              style: fdText(13, FontWeight.w700, FdColors.onPage, height: 1.4),
+            // Board 7's role="alert": a screen reader says it as it appears.
+            Semantics(
+              container: true,
+              liveRegion: true,
+              child: Text(
+                l.fdPlanLoadFailed,
+                textAlign: TextAlign.center,
+                style: fdText(13, FontWeight.w700, FdColors.onPage, height: 1.4),
+              ),
             ),
             const SizedBox(height: 14),
             // Board 7's button: as wide as its label, centred by the column,

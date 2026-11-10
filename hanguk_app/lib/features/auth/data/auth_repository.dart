@@ -86,11 +86,28 @@ bool isClientSession(Session? s) => s != null && !s.user.isAnonymous && s.user.a
 /// on its way gets that one's answer. Every tap used to start its own and
 /// make its own guest account — 46 accounts in a day from 11 phones, 8 of
 /// them from one phone in 2.4 s.
+///
+/// Never longer than [kTestSessionTimeout] (audit C-F4, 2026-11-10): one
+/// request that never answered (a stalled mobile connection) held that
+/// shared answer, and every later tap with it, until the app was restarted.
+/// The call that runs out of time is false, and the next one starts afresh.
 Future<bool> ensureTestSession() => _testSessionInFlight ??= _ensureTestSession().whenComplete(() {
   _testSessionInFlight = null;
 });
 
 Future<bool>? _testSessionInFlight;
+
+/// The longest [ensureTestSession] takes in all, whatever it is waiting on:
+/// the phone's store has no limit of its own, and two asks and a sign-in at
+/// [kTestSessionCallTimeout] each would take longer.
+@visibleForTesting
+const kTestSessionTimeout = Duration(seconds: 30);
+
+/// The longest one network call of [ensureTestSession] (an ask to
+/// `guest-test-session`, the password sign-in) is waited for. The slowest
+/// answer of the function in a day was 3.8 s (edge logs, 2026-11-10).
+@visibleForTesting
+const kTestSessionCallTimeout = Duration(seconds: 15);
 
 Future<bool> _ensureTestSession() async {
   final backend = debugTestSessionBackend ?? _SupabaseTestSession(Supabase.instance.client);
@@ -102,7 +119,20 @@ Future<bool> _ensureTestSession() async {
   var created = false;
   var ok = false;
   try {
-    ok = await _signInTestUser(backend, () => created = true);
+    // Out of time, the step it is stuck on is not waited for any more. Should
+    // it finish after all, the session it leaves is this guest's, and the
+    // next call finds it.
+    ok = await _signInTestUser(backend, () => created = true).timeout(
+      kTestSessionTimeout,
+      onTimeout: () {
+        AppEvents.handledError(
+          TimeoutException('guest test session', kTestSessionTimeout),
+          StackTrace.current,
+          'test_session',
+        );
+        return false;
+      },
+    );
     return ok;
   } finally {
     AppEvents.track(
@@ -120,10 +150,13 @@ Future<bool> _ensureTestSession() async {
 /// new test user.
 Future<bool> _signInTestUser(TestSessionBackend b, VoidCallback onCreate) async {
   var asked = 0;
-  // Saved credentials that no longer sign in (a cleared account, a keystore
-  // the phone reset) used to leave the guest on the client-code screen for
-  // good: the second attempt drops them and asks for a fresh account.
+  // Saved credentials that no longer sign in (a cleared account) used to
+  // leave the guest on the client-code screen for good: the second attempt
+  // drops them and asks for a fresh account.
   for (var attempt = 0; attempt < 2; attempt++) {
+    // Whether the failure caught below came from a sign-in (with the
+    // phone's credentials or a new user's) rather than from an ask.
+    var signingIn = false;
     try {
       String? creds;
       try {
@@ -134,18 +167,20 @@ Future<bool> _signInTestUser(TestSessionBackend b, VoidCallback onCreate) async 
       if (creds == null) {
         onCreate();
         // The first ask in the project's region; a second one wherever the
-        // platform sends it (a region asked for by name is not re-routed
-        // when it is down).
-        final data = await b.createGuest(inProjectRegion: asked++ == 0);
+        // platform sends it. A region asked for by name is not re-routed
+        // when it is down, so an ask that has not answered in
+        // [kTestSessionCallTimeout] is given up on — the second one too
+        // (audit C-F4: it had no limit).
+        final data = await b.createGuest(inProjectRegion: asked++ == 0).timeout(kTestSessionCallTimeout);
         if (data is! Map || data['email'] is! String || data['password'] is! String) return false;
         creds = '${data['email']}\n${data['password']}';
         try {
           await b.writeCreds(creds);
         } catch (_) {}
-        // The function signs the new user in itself and sends the session:
-        // set as it is, with no second round trip (T2). One that sends none
-        // (an older deploy), or one that does not take, falls through to
-        // the sign-in below, as before.
+        // Asked for ({"session": true}), the function signs the new user in
+        // itself and sends the session: set as it is, with no second round
+        // trip (T2). One that sends none (an older deploy), or one that does
+        // not take, falls through to the sign-in below, as before.
         final session = data['session'];
         if (session is Map) {
           try {
@@ -156,18 +191,44 @@ Future<bool> _signInTestUser(TestSessionBackend b, VoidCallback onCreate) async 
           }
         }
       }
+      signingIn = true;
       final parts = creds.split('\n');
-      if (await b.signInWithPassword(parts.first, parts.last)) return true;
+      if (await b.signInWithPassword(parts.first, parts.last).timeout(kTestSessionCallTimeout)) return true;
     } catch (e, st) {
       debugPrint('[TestSession] $e');
       AppEvents.handledError(e, st, 'test_session');
-      try {
-        await b.deleteCreds();
-      } catch (_) {}
+      // Dropped only when the auth server says they no longer sign in (audit
+      // C-F7): any failure used to drop them, so a tap while offline lost the
+      // guest's account, and back online a new one was made — its interviews
+      // and weekly count started over, the old one orphaned.
+      if (isInvalidCredentials(e)) {
+        try {
+          await b.deleteCreds();
+        } catch (_) {}
+        continue;
+      }
+      // Kept otherwise, and no new account made: a network failure, a
+      // timeout or a server error says nothing about the credentials, and a
+      // new account would replace them. A failed ask is asked once more only
+      // when the backend did not answer: a 429 is the guest limit (20 an
+      // hour from one IP, 300 a day), which a second ask now would meet too.
+      if (signingIn || !isTransientBackendFailure(e) || (e is FunctionException && e.status == 429)) {
+        return false;
+      }
     }
   }
   return false;
 }
+
+/// True when [error] is the auth server's answer that these credentials do
+/// not sign in ("Invalid login credentials": the user is gone, or its
+/// password is not this one). A request that never reached it or that it
+/// failed to serve ([AuthRetryableFetchException]: offline, a 5xx) is not.
+@visibleForTesting
+bool isInvalidCredentials(Object error) =>
+    error is AuthException &&
+    error is! AuthRetryableFetchException &&
+    (error.code == 'invalid_credentials' || error.message.toLowerCase().contains('invalid login credentials'));
 
 /// What [ensureTestSession] does on the phone and with the server, so a test
 /// can stand in for Supabase ([debugTestSessionBackend]).
@@ -183,7 +244,9 @@ abstract interface class TestSessionBackend {
 
   Future<void> deleteCreds();
 
-  /// `guest-test-session`'s answer: `{email, password, session?}`. With
+  /// `guest-test-session`'s answer to `{"session": true}`:
+  /// `{email, password, session?}`; a non-2xx status is thrown, as the
+  /// Supabase client throws it ([FunctionException]). With
   /// [inProjectRegion] the function runs in the project's region, next to
   /// the database, instead of the one nearest the phone.
   Future<Object?> createGuest({required bool inProjectRegion});
@@ -199,6 +262,11 @@ abstract interface class TestSessionBackend {
 /// Tests only: stands in for Supabase in [ensureTestSession].
 @visibleForTesting
 TestSessionBackend? debugTestSessionBackend;
+
+/// Tests only: the backend [ensureTestSession] uses, on [client] — to see
+/// what it sends to the server and how it reads the answers.
+@visibleForTesting
+TestSessionBackend supabaseTestSessionBackend(SupabaseClient client) => _SupabaseTestSession(client);
 
 class _SupabaseTestSession implements TestSessionBackend {
   _SupabaseTestSession(this._client);
@@ -230,15 +298,13 @@ class _SupabaseTestSession implements TestSessionBackend {
     // 2026-11-10); from the database's own region one takes ~26 ms. Asked
     // for by a query parameter, not the x-region header: on the web that
     // header would need a CORS preflight the function does not allow.
-    final call = _client.functions.invoke(
+    final res = await _client.functions.invoke(
       'guest-test-session',
-      body: const {},
+      // The session, signed in by the function, is sent only when asked for
+      // (audit P-F4): older builds send {} and sign in themselves.
+      body: const {'session': true},
       queryParameters: inProjectRegion ? const {'forceFunctionRegion': AppConfig.supabaseRegion} : null,
     );
-    // A region asked for by name is not re-routed when it is down: one that
-    // has not answered in 15 s (the slowest answer in a day was 3.8 s) is
-    // given up on, and the next ask goes wherever the platform sends it.
-    final res = inProjectRegion ? await call.timeout(const Duration(seconds: 15)) : await call;
     return res.data;
   }
 
