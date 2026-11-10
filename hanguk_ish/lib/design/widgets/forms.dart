@@ -216,26 +216,34 @@ class HiInputField extends StatelessWidget {
         boxShadow: HiShadows.hard,
       ),
       alignment: Alignment.centerLeft,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        style: text,
-        strutStyle: hiStrut(text),
-        cursorColor: HiColors.ink,
-        keyboardType: keyboardType,
-        textCapitalization: textCapitalization,
-        inputFormatters: [
-          if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
-          ...inputFormatters,
-        ],
-        autofillHints: autofillHints,
-        textInputAction: textInputAction,
-        onSubmitted: onSubmitted,
-        onChanged: onChanged,
-        maxLines: 1,
-        decoration: InputDecoration.collapsed(
-          hintText: placeholder,
-          hintStyle: text.copyWith(color: HiColors.inkMuted),
+      // The field fills the box (text centred as before), so the whole 56 px
+      // is its tap target and its accessibility bounds.
+      child: SizedBox(
+        height: double.infinity,
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          style: text,
+          strutStyle: hiStrut(text),
+          cursorColor: HiColors.ink,
+          keyboardType: keyboardType,
+          textCapitalization: textCapitalization,
+          inputFormatters: [
+            FilteringTextInputFormatter.singleLineFormatter,
+            if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
+            ...inputFormatters,
+          ],
+          autofillHints: autofillHints,
+          textInputAction: textInputAction,
+          onSubmitted: onSubmitted,
+          onChanged: onChanged,
+          expands: true,
+          maxLines: null,
+          textAlignVertical: TextAlignVertical.center,
+          decoration: InputDecoration.collapsed(
+            hintText: placeholder,
+            hintStyle: text.copyWith(color: HiColors.inkMuted),
+          ),
         ),
       ),
     );
