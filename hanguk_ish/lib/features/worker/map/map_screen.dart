@@ -25,10 +25,14 @@ const _userPoint = Offset(110, 400);
 const _pxPerKm = 95.0;
 
 /// Where a point lies on the stylised map, relative to [area]'s position.
+/// The stylised map is drawn around a known position: [area] when located,
+/// otherwise the prototype's Sinchon.
 Offset mapOffset(FeedArea area, double lat, double lng) {
   const kmPerDegree = 111.32;
-  final dxKm = (lng - area.lng) * kmPerDegree * math.cos(area.lat * math.pi / 180);
-  final dyKm = (lat - area.lat) * kmPerDegree;
+  final centerLat = area.lat ?? sinchonArea.lat!;
+  final centerLng = area.lng ?? sinchonArea.lng!;
+  final dxKm = (lng - centerLng) * kmPerDegree * math.cos(centerLat * math.pi / 180);
+  final dyKm = (lat - centerLat) * kmPerDegree;
   return _userPoint + Offset(dxKm * _pxPerKm, -dyKm * _pxPerKm);
 }
 
@@ -183,7 +187,7 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
 
   Widget _placedPin(FeedArea area, _Pin pin, {required bool selected, required String lang, required WorkerL10n l10n}) {
     final b = pin.first.business;
-    final at = mapOffset(area, b.lat ?? area.lat, b.lng ?? area.lng);
+    final at = mapOffset(area, b.lat ?? area.lat ?? sinchonArea.lat!, b.lng ?? area.lng ?? sinchonArea.lng!);
     return Positioned(
       left: at.dx,
       top: at.dy,

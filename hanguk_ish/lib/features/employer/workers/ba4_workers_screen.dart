@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/employer.dart';
@@ -171,17 +172,25 @@ class _SearchField extends StatelessWidget {
             child: Semantics(
               label: Ko.searchLabel,
               textField: true,
-              child: TextField(
-                controller: controller,
-                style: text,
-                strutStyle: hiStrut(text),
-                cursorColor: HiColors.ink,
-                textInputAction: TextInputAction.search,
-                onChanged: (_) => onChanged(),
-                maxLines: 1,
-                decoration: InputDecoration.collapsed(
-                  hintText: Ko.searchPlaceholder,
-                  hintStyle: text.copyWith(color: HiColors.inkMuted),
+              // Fills the bar's height: the whole bar is the tap target.
+              child: SizedBox(
+                height: double.infinity,
+                child: TextField(
+                  controller: controller,
+                  style: text,
+                  strutStyle: hiStrut(text),
+                  cursorColor: HiColors.ink,
+                  textInputAction: TextInputAction.search,
+                  onChanged: (_) => onChanged(),
+                  inputFormatters: [FilteringTextInputFormatter.singleLineFormatter],
+                  expands: true,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration.collapsed(
+                    hintText: Ko.searchPlaceholder,
+                    hintStyle: text.copyWith(color: HiColors.inkMuted),
+                  ),
                 ),
               ),
             ),

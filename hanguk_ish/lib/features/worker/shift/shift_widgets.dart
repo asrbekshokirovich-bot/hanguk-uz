@@ -159,9 +159,15 @@ class VerifiedLine extends StatelessWidget {
       children: [
         const HiIcon(HiIcons.badgeCheck, size: 16, strokeWidth: 2, color: HiColors.blue),
         const SizedBox(width: 5),
-        HiText(
-          WorkerL10n.of(context).verified,
-          style: hiStyle(fontSize, FontWeight.w700, color: HiColors.blue),
+        // Shortened rather than spilling out of a narrow card (360 dp phone,
+        // large text); the prototype's sizes always fit.
+        Flexible(
+          child: HiText(
+            WorkerL10n.of(context).verified,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: hiStyle(fontSize, FontWeight.w700, color: HiColors.blue),
+          ),
         ),
       ],
     );

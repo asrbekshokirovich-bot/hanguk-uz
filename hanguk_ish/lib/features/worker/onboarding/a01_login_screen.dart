@@ -238,6 +238,7 @@ class _TermsRow extends StatelessWidget {
     );
     return Semantics(
       checked: agreed,
+      label: '$prefix$link$suffix'.trim(),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onToggle,
