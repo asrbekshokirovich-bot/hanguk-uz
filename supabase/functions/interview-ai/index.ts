@@ -251,7 +251,7 @@ Location: ${university.city_ko || 'South Korea'}
       const { data: programs } = await adminClient
         .from("university_programs")
         .select("program_name, faculty_name, language_track, topik_requirement, ielts_requirement, program_level")
-        .eq("university_id", targetUniId)
+        .eq("institution_id", targetUniId)
         .eq("is_available_for_international", true)
         .limit(20);
       
