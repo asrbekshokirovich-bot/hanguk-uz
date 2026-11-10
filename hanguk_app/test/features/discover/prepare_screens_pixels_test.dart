@@ -77,7 +77,9 @@ void main() {
 
     final l = await _pump(t, signedIn: false);
     await t.tap(find.text(l.interviewPracticeTitle));
-    await t.pump(const Duration(milliseconds: 100));
+    await t.pump();
+    // The spinner's arc is longest about 0.65 s into its turn (board 2 draws it so).
+    await t.pump(const Duration(milliseconds: 650));
     var shot = await capture(t, 'prepare_2_mehmon_tayyorlanmoqda');
     expectLabelVisible(t, shot, find.text(l.interviewSettingUp));
 
@@ -86,6 +88,10 @@ void main() {
     shot = await capture(t, 'prepare_3_mehmon_xato');
     expectLabelVisible(t, shot, find.text(l.entryErrorNetwork));
     expectLabelVisible(t, shot, find.text(l.commonRetry));
+    // Board 3: the button is as wide as «Qayta urinish», at the left, not the whole row.
+    final retry = find.ancestor(of: find.text(l.commonRetry), matching: find.byType(Container)).first;
+    expect(t.getSize(retry).width, lessThan(180));
+    expect(t.getTopLeft(retry).dx, moreOrLessEquals(t.getTopLeft(find.text(l.entryErrorNetwork)).dx, epsilon: 0.5));
   });
 
   testWidgets('4 · student (variant A): what they have done', (t) async {

@@ -217,17 +217,20 @@ class _GuestPrepareState extends State<_GuestPrepare> {
                 child: GestureDetector(
                   onTap: tracked('prepare.guest_interview_retry', _openInterview),
                   behavior: HitTestBehavior.opaque,
+                  // As wide as its label, at the left (board 3), not the row.
                   child: Container(
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: FdColors.card,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: FdColors.ink, width: 1.5),
                       boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
                     ),
-                    child: Text(l.commonRetry, style: fdText(14, FontWeight.w800, FdColors.ink)),
+                    child: Center(
+                      widthFactor: 1,
+                      child: Text(l.commonRetry, style: fdText(14, FontWeight.w800, FdColors.ink)),
+                    ),
                   ),
                 ),
               ),
