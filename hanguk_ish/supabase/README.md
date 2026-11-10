@@ -17,6 +17,7 @@ papkada, CI'da lokal bazada sinaladi.
 | `migrations/…_ish_matching.sql` | yangi smena yaqindagi (5 km), o'sha vaqtda bo'sh ishchilarga xabar beriladi (kuniga ≤3); har kuni 18:00 da 3 km ichidagi smenalar yig'masi |
 | `migrations/…_ish_realtime*.sql` | Realtime: bildirishnomalar, chat xabarlari va arizalar ochiq ekranlarga darhol yetadi (RLS bo'yicha) |
 | `migrations/…_ish_limits.sql` | suiiste'molga qarshi cheklovlar (pastda) |
+| `migrations/…_ish_storage_limits.sql` | «avatars» bucket: faqat rasm, 2 MiB gacha — hosted loyihada ham (`config.toml` faqat lokal) |
 | `functions/business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `nts_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
@@ -36,6 +37,23 @@ papkada, CI'da lokal bazada sinaladi.
   - shikoyat — kuniga 10;
   - «다시 요청» — har ishchi va smenaga bir marta;
   - BA0 ro'yxatdan o'tish — soatiga 10 urinish (edge funksiya, `business_register_attempts`).
+
+## Prod'ga chiqarish ro'yxati
+
+Loyiha yaratilgach (Seul, `ap-northeast-2`), bir marta. Prod bazadagi har bir o'zgarish Asrbekning ruxsati bilan.
+
+1. `supabase link --project-ref <ref> --workdir hanguk_ish`, keyin `supabase db push --workdir hanguk_ish` — barcha migratsiyalar.
+   - Shular bilan birga pg_cron ishlari (3 ta: `select jobname from cron.job`), Realtime jadvallari (notifications, messages, applications) va «avatars» bucket limitlari ham o'rnatiladi.
+2. Auth → Providers → Phone:
+   - yoqish, SMS provayderi (Twilio Verify: Account SID, Auth Token, Verify Service SID);
+   - kod 6 raqam;
+   - Auth → Rate Limits: SMS chegarasi.
+   - `config.toml` dagi test raqamlar prod'ga o'tmaydi.
+3. Edge funksiya:
+   - `supabase functions deploy business-register --workdir hanguk_ish`;
+   - sir: `supabase secrets set NTS_SERVICE_KEY=…`. Kalitsiz yangi bizneslar `pending` bo'lib qoladi.
+4. GitHub secrets: `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API). Shundan keyin CI APK'lari shu bazaga ulanadi (`hanguk_ish/README.md`, «Reliz»).
+5. Tekshiruv: ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan kirish va chiqish.
 
 ## Testlar
 

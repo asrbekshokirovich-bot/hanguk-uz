@@ -8,6 +8,7 @@
 // Without those variables every test is skipped.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
@@ -143,6 +144,26 @@ void main() {
             .uploadBinary('${owner.auth.currentUser!.id}/x.png', _png, fileOptions: const FileOptions(contentType: 'image/png')),
         throwsA(isA<StorageException>()),
       );
+    });
+
+    test('only a photo, and a small one (the bucket limits)', () async {
+      final folder = aziz.auth.currentUser!.id;
+      await expectLater(
+        aziz.storage.from('avatars').uploadBinary('$folder/page.html', utf8.encode('<h1>hi</h1>'),
+            fileOptions: const FileOptions(contentType: 'text/html')),
+        throwsA(isA<StorageException>()),
+        reason: 'not an image',
+      );
+      final big = Uint8List(2 * 1024 * 1024 + 1)..setRange(0, _png.length, _png);
+      await expectLater(
+        aziz.storage.from('avatars').uploadBinary('$folder/big.png', big,
+            fileOptions: const FileOptions(contentType: 'image/png')),
+        throwsA(isA<StorageException>()),
+        reason: 'over 2 MiB',
+      );
+      final bucket = await admin.storage.getBucket('avatars');
+      expect(bucket.allowedMimeTypes, ['image/png', 'image/jpeg', 'image/webp']);
+      expect(bucket.fileSizeLimit, 2 * 1024 * 1024);
     });
 
     test('Malika too (no photo)', () async {
