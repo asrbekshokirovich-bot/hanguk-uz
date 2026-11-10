@@ -385,4 +385,127 @@ void main() {
     expect(unread, 0, reason: 'opening A12 marked them read');
     await _close(tester);
   });
+
+  /// The worker's app, signed in, opened at [location] (or the start).
+  Widget workerApp({String? location}) => ProviderScope(
+        overrides: [
+          backendConfigProvider.overrideWithValue(_config),
+          supabaseClientProvider.overrideWithValue(worker),
+          authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
+          shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
+          accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+          workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
+          locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+          liveTimersProvider.overrideWithValue(false),
+          if (location != null) workerInitialLocationProvider.overrideWithValue(location),
+        ],
+        child: const WorkerApp(),
+      );
+
+  /// The owner's app, signed in, opened at [location] (or the start).
+  Widget ownerApp({String? location}) => ProviderScope(
+        overrides: [
+          backendConfigProvider.overrideWithValue(_config),
+          supabaseClientProvider.overrideWithValue(owner),
+          authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(owner)),
+          employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(owner, _config)),
+          if (location != null) employerInitialLocationProvider.overrideWithValue(location),
+        ],
+        child: const EmployerApp(),
+      );
+
+  void phone(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+  }
+
+  testWidgets('worker: a message in A10 reaches the server', skip: _skip != null, (tester) async {
+    phone(tester);
+    final mine = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
+    final app = mine!.singleWhere((a) => a.shift.id == shift.id);
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.chat(app.applicationId)));
+    await _until(tester, find.byType(TextField));
+    await tester.enterText(find.byType(TextField), 'Salom, ertaga 13:50 da boraman');
+    await tester.pump(const Duration(milliseconds: 100));
+    await _tap(tester, find.bySemanticsLabel('Yuborish'));
+    await _until(tester, _text('Salom, ertaga 13:50 da boraman'));
+    final thread = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).messages(app.applicationId));
+    expect(thread!.last.body, 'Salom, ertaga 13:50 da boraman');
+    await _close(tester);
+  });
+
+  testWidgets('owner: 알림 shows the message; BA2 posts a shift through the form', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
+    await _until(tester, _text('Sardor Testov님이 메시지를 보냈어요 · E2E 홀 보조'));
+    await _close(tester);
+
+    await tester.pumpWidget(ownerApp());
+    await _until(tester, _text('오늘의 근무'));
+    await _tap(tester, _text('근무 올리기'));
+    // A new business has no template: the content first, from «근무 올리기».
+    await _until(tester, find.widgetWithText(HiButton, '근무 올리기'));
+    await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
+    await _until(tester, find.byType(BottomSheet));
+    await tester.enterText(find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), 'E2E 새 근무');
+    await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, '저장하기')));
+    await _until(tester, _text('내일'));
+    await _tap(tester, _text('내일'));
+    expect(_text('최저시급 10,320원 이상'), findsWidgets, reason: 'the wage starts at the legal minimum');
+    await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
+    await _until(tester, _text('근무를 올렸어요'));
+    await _until(tester, _text('E2E 새 근무'));
+    final posted = await tester.runAsync(() async {
+      final business = (await SupabaseEmployerRepository(owner, _config).businesses()).single;
+      final now = DateTime.now().toUtc();
+      return SupabaseEmployerRepository(owner, _config).shifts(business.id, now, now.add(const Duration(days: 3)));
+    });
+    final created = posted!.singleWhere((s) => s.title == 'E2E 새 근무');
+    expect(created.hourlyWage, 10320);
+    await _close(tester);
+  });
+
+  testWidgets('worker: cancelling in A06 (more than a day ahead: free)', skip: _skip != null, (tester) async {
+    phone(tester);
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.myShifts));
+    await _until(tester, _text('E2E 수동 확정'));
+    // Upcoming, by start: «E2E 홀 보조» today, then this one in three days —
+    // its «Bekor qilish» is the last.
+    await _tap(tester, find.text('Bekor qilish').last);
+    await _until(tester, _text('Ha, bekor qilish'));
+    await _tap(tester, _text('Ha, bekor qilish'));
+    await _until(tester, _text('Smena bekor qilindi.'));
+    final mine = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
+    expect(mine!.singleWhere((a) => a.shift.id == manual.id).status, ApplicationStatus.cancelled);
+    await _close(tester);
+  });
+
+  testWidgets('owner: 알림 tells of the cancellation; the owner calls a shift off on BA3', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
+    await _until(tester, _text('Sardor Testov님이 E2E 수동 확정 근무를 취소했어요'));
+    await _close(tester);
+
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(shift.id)));
+    await _until(tester, _text('수정'));
+    await _tap(tester, _text('수정'));
+    await _until(tester, _text('근무 취소'));
+    await _tap(tester, _text('근무 취소'));
+    await _until(tester, _text('근무를 취소할까요?'));
+    await _tap(tester, find.widgetWithText(HiButton, '근무 취소'));
+    await _until(tester, _text('근무를 취소했어요'));
+    final gone = await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(shift.id));
+    expect(gone!.cancelled, isTrue);
+    await _close(tester);
+  });
+
+  testWidgets('worker: A12 says the business called the shift off', skip: _skip != null, (tester) async {
+    phone(tester);
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await _until(tester, _text('Smena bekor qilindi'));
+    await _close(tester);
+  });
 }
