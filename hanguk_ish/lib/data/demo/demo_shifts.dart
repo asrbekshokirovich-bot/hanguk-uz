@@ -21,7 +21,8 @@ const demoUnreadNotifications = 2;
 // Business positions are placed around the demo location (Sinchon) so that
 // the stylised map (A04) draws their pins where the prototype has them.
 
-const _dalbit = Business(
+/// Dalbit Kafe (달빛카페 신촌점): the business of both prototypes.
+const demoDalbit = Business(
   id: 'demo-dalbit',
   name: '달빛카페 신촌점',
   names: {'uz': 'Dalbit Kafe', 'ru': 'Dalbit Kafe', 'en': 'Dalbit Cafe', 'ko': '달빛카페'},
@@ -190,7 +191,7 @@ List<ShiftListing> demoShifts(DateTime now) {
   final today = now;
   final tomorrow = now.add(const Duration(days: 1));
   return [
-    _shift('demo-1', _dalbit,
+    _shift('demo-1', demoDalbit,
         day: today, startHour: 14, hours: 5, wage: 10500, slots: 3, left: 2, km: 1.2,
         ko: '홀·카운터 보조',
         title: {'uz': 'Kassa va zal yordamchisi', 'ru': 'Помощник на кассе и в зале', 'en': 'Counter and floor assistant'},
@@ -236,7 +237,7 @@ List<ShiftListing> demoShifts(DateTime now) {
         day: today, startHour: 13, hours: 5, wage: 10800, slots: 2, left: 2, km: 2.9,
         ko: '베이커리 판매 보조',
         title: {'uz': 'Novvoyxonada sotuvchi', 'ru': 'Продавец в пекарне', 'en': 'Bakery sales assistant'}),
-    _shift('demo-8', _dalbit,
+    _shift('demo-8', demoDalbit,
         day: tomorrow, startHour: 18, hours: 4, wage: 11000, slots: 4, left: 1, km: 1.2, auto: false,
         ko: '마감 정리 보조',
         title: {'uz': 'Yopilishdagi tozalash', 'ru': 'Помощник на закрытии', 'en': 'Closing assistant'}),
@@ -268,7 +269,7 @@ List<ShiftListing> demoShifts(DateTime now) {
         day: tomorrow, startHour: 17, hours: 5, wage: 11000, slots: 2, left: 1, km: 2.4, auto: false,
         ko: '홀 서빙',
         title: {'uz': 'Zal yordamchisi', 'ru': 'Помощник в зале', 'en': 'Floor assistant'}),
-    _shift('demo-14', _dalbit,
+    _shift('demo-14', demoDalbit,
         day: tomorrow, startHour: 14, hours: 5, wage: 10500, slots: 3, left: 3, km: 1.2,
         ko: '홀·카운터 보조',
         title: {'uz': 'Kassa va zal yordamchisi', 'ru': 'Помощник на кассе и в зале', 'en': 'Counter and floor assistant'}),
@@ -302,7 +303,7 @@ List<MyShift> demoHistory(DateTime now) {
   }
 
   return [
-    done('1', _dalbit, 9, 14, 4, 10500, '홀·카운터 보조',
+    done('1', demoDalbit, 9, 14, 4, 10500, '홀·카운터 보조',
         {'uz': 'Kassa va zal yordamchisi', 'ru': 'Помощник на кассе и в зале', 'en': 'Counter and floor assistant'},
         paid: true, stars: 5),
     done('2', _nanum, 7, 10, 6, 13000, '행사 진행 보조',
