@@ -27,16 +27,21 @@ enum HiFamily {
   final List<String> fallback;
 }
 
+/// The `line-height` every prototype screen inherits from the page body
+/// (`body{font-size:15px;line-height:1.45}`): text without its own
+/// `line-height` uses it, not `normal`.
+const double hiInheritedLineHeight = 1.45;
+
 /// A text style written the way the prototype's CSS is.
 ///
 /// [size] is `font-size` in px, [height] is a unitless CSS `line-height`
-/// (null = `normal`), [letterSpacingEm] is `letter-spacing` in em.
-/// Leading is split evenly above and below the glyphs, as CSS does, so a
-/// line sits at the same place as in the prototype.
+/// (null = the inherited [hiInheritedLineHeight]), [letterSpacingEm] is
+/// `letter-spacing` in em. Leading is split evenly above and below the
+/// glyphs, as CSS does, so a line sits at the same place as in the prototype.
 ///
 /// The style does not inherit: Material's default text style (M3 body: 1.43
 /// line height, 0.25 px letter spacing) would otherwise fill every property
-/// left unset here, widening text and changing `line-height: normal` lines.
+/// left unset here and widen the text.
 TextStyle hiStyle(
   double size,
   FontWeight weight, {
@@ -54,7 +59,7 @@ TextStyle hiStyle(
     fontWeight: weight,
     fontStyle: FontStyle.normal,
     color: color ?? const Color(0xFFFFFFFF),
-    height: height,
+    height: height ?? hiInheritedLineHeight,
     letterSpacing: letterSpacingEm * size,
     wordSpacing: 0,
     textBaseline: TextBaseline.alphabetic,
@@ -70,67 +75,43 @@ const _fontMetrics = <String, (double, double)>{
   HiFonts.mono: (1.020, 0.300),
 };
 
-/// Whether [text] has glyphs that Inter lacks and Noto Sans KR supplies
-/// (Hangul, CJK punctuation, ₩) — they make the browser use Noto's taller
-/// metrics for a `line-height: normal` line.
-bool _usesKoreanFallback(String text) {
-  for (final r in text.runes) {
-    if ((r >= 0xAC00 && r <= 0xD7A3) ||
-        (r >= 0x1100 && r <= 0x11FF) ||
-        (r >= 0x3000 && r <= 0x303F) ||
-        (r >= 0x3130 && r <= 0x318F) ||
-        r == 0x20A9) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/// The line box the prototype's browser gives [text] in [style].
+/// The line box the prototype's browser gives text in [style].
 ///
-/// * Explicit `line-height`: CSS sizes the line from the element's first font
-///   only (Inter for body text), even where glyphs come from a fallback font;
-///   Flutter would grow it to Noto Sans KR's taller metrics.
-/// * `line-height: normal` (no [TextStyle.height]): Chrome rounds each font's
-///   ascent and descent to whole pixels and the line takes the largest of
-///   each, so a 15 px Inter line is 19 px tall, not 18.16.
+/// CSS sizes a line from the element's first font only (Inter for body
+/// text), even where glyphs come from a fallback font; Flutter would grow it
+/// to Noto Sans KR's taller metrics. Chrome also rounds that font's ascent
+/// and descent to whole pixels and floors the leading above the text, so the
+/// baseline of a 15 px / 1.45 line is 16 px from its top, not 16.33.
 ///
-/// A forced strut of the font whose ascent wins, stretched evenly to that
-/// height, puts every line and baseline within a fraction of a pixel of the
-/// browser's, so stacked text does not drift from the prototype.
-StrutStyle hiStrut(TextStyle style, [String text = '']) {
-  final size = style.fontSize ?? 14;
+/// Flutter puts the baseline of an evenly led strut at `(L + (a − d)·s)/2`
+/// for a strut of size `s`, so a forced strut whose size is solved for
+/// Chrome's baseline gives the same line height and the same baseline:
+/// stacked text does not drift from the prototype.
+StrutStyle hiStrut(TextStyle style) {
+  final size = style.fontSize ?? 15;
   final family = style.fontFamily ?? HiFonts.inter;
-  final height = style.height;
-  if (height != null) {
+  final factor = style.height ?? hiInheritedLineHeight;
+  final (a, d) = _fontMetrics[family] ?? _fontMetrics[HiFonts.inter]!;
+  final lineHeight = factor * size;
+  final ascent = (a * size).roundToDouble();
+  final descent = (d * size).roundToDouble();
+  final leadingAbove = ((lineHeight - ascent - descent) / 2 + 1e-6).floorToDouble();
+  final strutSize = 2 * (leadingAbove + ascent - lineHeight / 2) / (a - d);
+  if (strutSize <= 0) {
     return StrutStyle(
       fontFamily: family,
       fontSize: size,
       fontWeight: style.fontWeight,
-      height: height,
+      height: factor,
       leadingDistribution: TextLeadingDistribution.even,
       forceStrutHeight: true,
     );
   }
-  final (a, d) = _fontMetrics[family] ?? _fontMetrics[HiFonts.inter]!;
-  var ascent = (a * size).roundToDouble();
-  var descent = (d * size).roundToDouble();
-  var strutFamily = family;
-  if (family != HiFonts.korean && _usesKoreanFallback(text)) {
-    final (ka, kd) = _fontMetrics[HiFonts.korean]!;
-    final koreanAscent = (ka * size).roundToDouble();
-    final koreanDescent = (kd * size).roundToDouble();
-    if (koreanAscent >= ascent) {
-      ascent = koreanAscent;
-      strutFamily = HiFonts.korean;
-    }
-    if (koreanDescent > descent) descent = koreanDescent;
-  }
   return StrutStyle(
-    fontFamily: strutFamily,
-    fontSize: size,
+    fontFamily: family,
+    fontSize: strutSize,
     fontWeight: style.fontWeight,
-    height: (ascent + descent) / size,
+    height: lineHeight / strutSize,
     leadingDistribution: TextLeadingDistribution.even,
     forceStrutHeight: true,
   );
@@ -162,7 +143,7 @@ class HiText extends StatelessWidget {
     return Text(
       data,
       style: style,
-      strutStyle: hiStrut(style, data),
+      strutStyle: hiStrut(style),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
