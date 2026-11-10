@@ -423,6 +423,65 @@ class StudyPlanSessionNotifier
     }
   }
 
+  /// The Study Plan builder's open in one request (Tayyorgarlik T3,
+  /// 2026-11-10): the newest unfinished session of [type] for
+  /// [targetUniversityId] (any when null) with only its newest draft — all the
+  /// builder shows. [fetchSessions] + [loadSession] made up to five requests
+  /// one after another (the sessions, the session, every draft version, the
+  /// analyses, the chat) for the same text; the analyses and the chat are not
+  /// on that screen. Starts a session when there is none; null when neither
+  /// works. The older step-by-step screen keeps the full [loadSession].
+  Future<StudyPlanSession?> openLatest(String type, {String? targetUniversityId}) async {
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user == null) return null;
+
+    _setState(type, _getState(type).copyWith(isLoading: true, clearError: true));
+    try {
+      var query = client
+          .from('study_plan_sessions')
+          .select('*, institution:target_institution_id(name_en, name_ko), study_plan_drafts(id, content, version)')
+          .eq('student_id', user.id)
+          .eq('document_type', type)
+          .neq('status', 'completed');
+      if (targetUniversityId != null) {
+        query = query.eq('target_institution_id', targetUniversityId);
+      }
+      final rows = await query
+          .order('updated_at', ascending: false)
+          .order('version', ascending: false, referencedTable: 'study_plan_drafts')
+          .limit(1, referencedTable: 'study_plan_drafts')
+          .limit(1);
+      if (rows.isEmpty) {
+        return await createSession(type, targetUniversityId: targetUniversityId);
+      }
+      final row = Map<String, dynamic>.of(rows.first);
+      final drafts = ((row.remove('study_plan_drafts') as List?) ?? const [])
+          .map((j) => StudyPlanDraft.fromJson(Map<String, dynamic>.from(j as Map)))
+          .toList();
+      final session = StudyPlanSession.fromJson(row);
+      _setState(
+        type,
+        _getState(type).copyWith(
+          isLoading: false,
+          currentSession: session,
+          drafts: drafts,
+          analyses: const [],
+          chatHistory: const [],
+          draftContent: drafts.isNotEmpty ? drafts.first.content : '',
+        ),
+      );
+      return session;
+    } on Exception catch (e) {
+      debugPrint('openLatest failed: $e');
+      _setState(
+        type,
+        _getState(type).copyWith(isLoading: false, error: studyPlanErrorLoad),
+      );
+      return null;
+    }
+  }
+
   Future<void> updateSessionStep(String type, int step) async {
     final currentSession = _getState(type).currentSession;
     if (currentSession == null) return;

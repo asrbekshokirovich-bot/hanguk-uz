@@ -101,6 +101,18 @@ class _Plans extends StudyPlanSessionNotifier {
     return _session;
   }
 
+  /// The builder's one-request open: the plan with its newest draft, or a
+  /// new one. [opens] counts the calls.
+  int opens = 0;
+
+  @override
+  Future<StudyPlanSession?> openLatest(String type, {String? targetUniversityId}) async {
+    opens++;
+    if (existing.isEmpty) return createSession(type, targetUniversityId: targetUniversityId);
+    await loadSession(type, _session.id);
+    return _session;
+  }
+
   @override
   Future<bool> saveDraft(String type, String content) async {
     saved.add(content);
@@ -295,6 +307,8 @@ void main() {
     );
     final field = find.descendant(of: find.byType(StudyPlanField), matching: find.byType(TextField));
     expect(t.widget<TextField>(field).controller!.text, _goal);
+    // One open (Tayyorgarlik T3), not the sessions list and then the session.
+    expect(plans.opens, 1);
     var shot = await capture(t, 'arizam_1_resumed');
     expectTypedTextVisible(t, shot, field, where: 'resumed');
 
