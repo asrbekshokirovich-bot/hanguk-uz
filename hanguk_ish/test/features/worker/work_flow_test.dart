@@ -113,7 +113,10 @@ void main() {
     await repo.apply('demo-13');
     await start(tester, repo, clock);
 
-    // Ttukbaegi (waiting): the request is withdrawn.
+    // Ttukbaegi (waiting): the request is withdrawn. Its card is below the
+    // fold, under the bottom menu.
+    await tester.ensureVisible(find.text('Bekor qilish').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Bekor qilish').last);
     await tester.pumpAndSettle();
     expect(find.text('Smenani bekor qilasizmi?'), findsOneWidget);
@@ -124,6 +127,8 @@ void main() {
     expect(find.text('Tasdiq kutilmoqda'), findsNothing);
 
     // Dalbit starts in 2 h 40 min: the late warning.
+    await tester.ensureVisible(find.text('Bekor qilish').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Bekor qilish').first);
     await tester.pumpAndSettle();
     expect(
