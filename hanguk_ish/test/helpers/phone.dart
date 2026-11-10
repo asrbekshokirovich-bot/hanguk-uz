@@ -63,10 +63,35 @@ Future<void> saveHiRes(WidgetTester tester, String name, {double pixelRatio = 2}
 
 /// The golden at 1× (compared with the prototype) plus the 2× copy and
 /// the layout probe.
+///
+/// Widget tests draw every shadow as a solid block (`debugDisableShadows`);
+/// the screens are captured with real, blurred shadows instead, as a phone
+/// draws them, so glows can be compared with the prototype.
 Future<void> expectScreen(WidgetTester tester, String name) async {
-  await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/$name.png'));
-  await saveHiRes(tester, name);
+  final solid = debugDisableShadows;
+  debugDisableShadows = false;
+  try {
+    _repaintAll(tester);
+    await tester.pump();
+    await expectLater(find.byKey(screenKey), matchesGoldenFile('goldens/$name.png'));
+    await saveHiRes(tester, name);
+  } finally {
+    debugDisableShadows = solid;
+  }
   dumpLayout(tester, name);
+}
+
+/// Marks every render object for repaint, so the next frame paints the
+/// whole screen again (layers are otherwise reused).
+void _repaintAll(WidgetTester tester) {
+  void visit(RenderObject object) {
+    object.markNeedsPaint();
+    object.visitChildren(visit);
+  }
+
+  for (final view in tester.binding.renderViews) {
+    visit(view);
+  }
 }
 
 /// Writes `build/layout/<name>.json`: every visible text's first line — its
