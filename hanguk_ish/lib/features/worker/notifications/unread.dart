@@ -1,6 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/demo/demo_shifts.dart';
+import '../../../data/models/account.dart';
+import '../../../data/repositories/account_repository.dart';
+
+/// A12's notifications, newest first.
+final notificationsProvider = FutureProvider.autoDispose<List<HiNotification>>(
+  (ref) => ref.watch(accountRepositoryProvider).notifications(),
+  retry: (count, error) => null,
+);
 
 /// Unread notifications: the amber dot on the bell (A03, A04).
-final unreadNotificationsProvider = Provider<int>((ref) => demoUnreadNotifications);
+final unreadNotificationsProvider = Provider.autoDispose<int>(
+  (ref) => ref.watch(notificationsProvider).value?.where((n) => !n.read).length ?? 0,
+);

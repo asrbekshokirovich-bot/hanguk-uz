@@ -5,6 +5,7 @@ library;
 
 import '../../core/money/won.dart';
 import '../../core/time/kst.dart';
+import '../models/account.dart';
 import '../models/business.dart';
 import '../models/my_shift.dart';
 import '../models/shift.dart';
@@ -344,6 +345,7 @@ class DemoShiftRepository implements ShiftRepository {
 
   final Map<String, ShiftListing> _shifts;
   final Map<String, MyShift> _apps = {};
+  final Map<String, List<ChatMessage>> _chats = {};
   final DateTime Function() _clock;
 
   /// Pretend network delay (the demo app shows the loading state with it).
@@ -516,5 +518,68 @@ class DemoShiftRepository implements ShiftRepository {
     if (app == null || app.status != ApplicationStatus.completed) throw const ShiftActionException('NOT_FOUND');
     if (stars < 1 || stars > 5) throw const ShiftActionException('INVALID');
     _store(app.copyWith(myStars: stars, myTags: tags));
+  }
+
+  @override
+  Future<List<ChatMessage>> messages(String applicationId) async {
+    await _wait();
+    final app = _apps[applicationId];
+    if (app == null) throw const ShiftActionException('NOT_FOUND');
+    return List.unmodifiable(_chats.putIfAbsent(applicationId, () => _seedChat(app)));
+  }
+
+  @override
+  Future<ChatMessage> sendMessage(String applicationId, String text) async {
+    await _wait();
+    final app = _apps[applicationId];
+    final body = text.trim();
+    if (app == null) throw const ShiftActionException('NOT_FOUND');
+    if (body.isEmpty || body.length > 2000) throw const ShiftActionException('INVALID');
+    final chat = _chats.putIfAbsent(applicationId, () => _seedChat(app));
+    final message = ChatMessage(
+      id: 'demo-m-${chat.length + 1}-$applicationId',
+      applicationId: applicationId,
+      fromMe: true,
+      body: body,
+      createdAt: _clock(),
+      lang: RegExp('[\uAC00-\uD7A3]').hasMatch(body) ? 'ko' : null,
+    );
+    chat.add(message);
+    return message;
+  }
+
+  /// Dalbit Kafe's welcome chat of the prototype (A10); empty elsewhere.
+  List<ChatMessage> _seedChat(MyShift app) {
+    if (app.shift.id != 'demo-1') return [];
+    final d = Kst.wallClock(app.shift.startsAt);
+    DateTime at(int minute) => Kst.instantOf(d.year, d.month, d.day, 11, minute);
+    ChatMessage m(int n, bool mine, int minute, String ko, [Map<String, String> tr = const {}]) => ChatMessage(
+          id: 'demo-m-$n-${app.applicationId}',
+          applicationId: app.applicationId,
+          fromMe: mine,
+          body: ko,
+          createdAt: at(minute),
+          lang: 'ko',
+          translations: tr,
+        );
+    return [
+      m(1, false, 24, '안녕하세요! 오늘 14시 근무 신청 감사합니다. 13시 50분까지 와 주세요.', {
+        'uz': 'Assalomu alaykum! Bugungi 14:00 smenasiga yozilganingiz uchun rahmat. 13:50 gacha keling.',
+        'ru': 'Здравствуйте! Спасибо, что записались на сегодняшнюю смену в 14:00. Приходите к 13:50.',
+        'en': "Hello! Thank you for signing up for today's 14:00 shift. Please come by 13:50.",
+      }),
+      m(2, true, 26, '네, 알겠습니다! 13시 50분까지 갈게요.'),
+      m(3, false, 27, '검은색 바지 입고 오세요. 앞치마는 가게에서 드려요.', {
+        'uz': "Qora shim kiyib keling. Fartukni do'konda beramiz.",
+        'ru': 'Приходите в чёрных брюках. Фартук дадим в кафе.',
+        'en': "Please wear black trousers. We'll give you an apron at the shop.",
+      }),
+      m(4, false, 27, '입구 옆 QR 코드로 출근 체크해 주세요.', {
+        'uz': 'Kirish yonidagi QR kod orqali ishga kirishni belgilang.',
+        'ru': 'Отметьте приход по QR-коду у входа.',
+        'en': 'Please check in with the QR code by the entrance.',
+      }),
+      m(5, true, 28, '감사합니다! 이따 뵐게요.'),
+    ];
   }
 }

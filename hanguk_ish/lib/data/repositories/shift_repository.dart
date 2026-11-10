@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../demo/demo_shifts.dart';
+import '../models/account.dart';
 import '../models/business.dart';
 import '../models/my_shift.dart';
 import '../models/shift.dart';
@@ -78,6 +79,12 @@ abstract interface class ShiftRepository {
 
   /// A08 → `rate_business`.
   Future<void> rateBusiness(String applicationId, int stars, Set<RatingTag> tags);
+
+  /// A10: the chat of one application, oldest first.
+  Future<List<ChatMessage>> messages(String applicationId);
+
+  /// A10: sends [text] to the business of the application.
+  Future<ChatMessage> sendMessage(String applicationId, String text);
 }
 
 /// The repository the app uses. Demo data until a backend is configured.

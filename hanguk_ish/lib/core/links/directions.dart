@@ -14,6 +14,10 @@ Uri directionsUri(Business business, String label) {
   return Uri.parse('https://map.kakao.com/link/to/${Uri.encodeComponent(label)},$lat,$lng');
 }
 
+/// Kakao Map's route link to a point named [label].
+Uri directionsUriTo(String label, double lat, double lng) =>
+    Uri.parse('https://map.kakao.com/link/to/${Uri.encodeComponent(label)},$lat,$lng');
+
 /// Opens a link outside the app; false when nothing could open it.
 typedef LinkOpener = Future<bool> Function(Uri uri);
 

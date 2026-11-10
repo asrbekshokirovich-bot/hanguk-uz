@@ -25,6 +25,9 @@ enum HiButtonStyle {
   /// Red fill, ink outline and hard shadow — confirming something that
   /// cannot be undone («Ha, bekor qilish»).
   danger,
+
+  /// White fill, ink outline and hard shadow, on navy (A11 «Yordam»).
+  white,
 }
 
 /// A prototype button: label (and optional leading icon) centred in a
@@ -85,6 +88,7 @@ class HiButton extends StatelessWidget {
         ),
       HiButtonStyle.outline => (HiColors.white, HiColors.ink, HiBorders.ink, false),
       HiButtonStyle.danger => (HiColors.red, HiColors.white, HiBorders.ink, true),
+      HiButtonStyle.white => (HiColors.white, HiColors.ink, HiBorders.ink, true),
     };
     final leading = icon;
     return Opacity(

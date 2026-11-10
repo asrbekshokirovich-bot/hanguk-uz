@@ -7,8 +7,12 @@ import '../data/models/my_shift.dart';
 import '../data/models/shift.dart';
 import '../design/theme.dart';
 import '../features/worker/feed/feed_screen.dart';
+import '../features/worker/chat/chat_screen.dart';
+import '../features/worker/earnings/earnings_screen.dart';
 import '../features/worker/map/map_screen.dart';
+import '../features/worker/me/me_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
+import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
 import '../features/worker/profile/profile_screens.dart';
 import '../features/worker/settings/app_language.dart';
@@ -146,13 +150,15 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(routes: [
             GoRoute(
               path: WorkerRoutes.earnings,
-              builder: (context, state) => WorkerPendingScreen(title: WorkerL10n.of(context).navEarnings),
+              builder: (context, state) => EarningsScreen(
+                onOpen: (app) => context.push(WorkerRoutes.result(app.applicationId)),
+              ),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: WorkerRoutes.me,
-              builder: (context, state) => WorkerPendingScreen(title: WorkerL10n.of(context).navProfile),
+              builder: (context, state) => const MeScreen(),
             ),
           ]),
         ],
@@ -222,16 +228,30 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/chat/:app',
-        builder: (context, state) => WorkerPendingScreen(
-          title: WorkerL10n.of(context).chat,
+        builder: (context, state) => ChatScreen(
+          applicationId: state.pathParameters['app']!,
           onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
         ),
       ),
       GoRoute(
         path: WorkerRoutes.notifications,
-        builder: (context, state) => WorkerPendingScreen(
-          title: WorkerL10n.of(context).notifications,
-          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => NotificationsScreen(
+            onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+            actions: NotificationActions(
+              directions: (n) async {
+                final lat = n.lat;
+                final lng = n.lng;
+                if (lat == null || lng == null) return;
+                await ref.read(linkOpenerProvider)(directionsUriTo(n.businessName(ref.read(appLanguageProvider).code), lat, lng));
+              },
+              myShifts: () => context.go(WorkerRoutes.myShifts),
+              shift: (id) => context.push(WorkerRoutes.shift(id)),
+              feed: () => context.go(WorkerRoutes.feed),
+              chat: (app) => context.push(WorkerRoutes.chat(app)),
+              earnings: () => context.go(WorkerRoutes.earnings),
+            ),
+          ),
         ),
       ),
     ],

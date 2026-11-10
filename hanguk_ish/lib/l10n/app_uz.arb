@@ -10,7 +10,7 @@
   },
   "appLanguage": "Ilova tili",
   "@appLanguage": {
-    "description": "A01: til tanlash bo'limi sarlavhasi."
+    "description": "A11: ilova tili qatori."
   },
   "termsPrefix": "",
   "@termsPrefix": {
@@ -1088,5 +1088,398 @@
   "ratingSent": "Rahmat! Bahoingiz yuborildi.",
   "@ratingSent": {
     "description": "A08: yuborilgandan keyin."
+  },
+  "earningsTitle": "Daromad",
+  "@earningsTitle": {
+    "description": "A09: sarlavha (= navEarnings)."
+  },
+  "prevMonth": "Oldingi oy",
+  "@prevMonth": {
+    "description": "A09: oy tugmasi (ekran o'quvchi)."
+  },
+  "nextMonth": "Keyingi oy",
+  "@nextMonth": {
+    "description": "A09: oy tugmasi (ekran o'quvchi)."
+  },
+  "monthTotal": "{month} bo'yicha jami",
+  "@monthTotal": {
+    "description": "A09: oy jami sarlavhasi.",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "monthTotalSection": "Oy bo'yicha jami",
+  "@monthTotalSection": {
+    "description": "A09: jami kartasi (ekran o'quvchi)."
+  },
+  "shiftsHours": "{shifts} smena · {hours} soat",
+  "@shiftsHours": {
+    "description": "A09: smenalar va soatlar soni.",
+    "placeholders": {
+      "shifts": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftsList": "Smenalar",
+  "@shiftsList": {
+    "description": "A09: ro'yxat sarlavhasi."
+  },
+  "payLine": "{duration} × {wage}",
+  "@payLine": {
+    "description": "A09: soat × maosh.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "wage": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyMonth": "Bu oyda bajarilgan smena yo'q",
+  "@emptyMonth": {
+    "description": "A09: bo'sh oy."
+  },
+  "chatTranslateNote": "Koreyscha xabarlar avtomatik o'zbekchaga tarjima qilinadi",
+  "@chatTranslateNote": {
+    "description": "A10: tarjima izohi."
+  },
+  "translation": "Tarjima",
+  "@translation": {
+    "description": "A10: tarjima yorlig'i."
+  },
+  "messages": "Xabarlar",
+  "@messages": {
+    "description": "A10: xabarlar ro'yxati (ekran o'quvchi)."
+  },
+  "messageHint": "Xabar yozing…",
+  "@messageHint": {
+    "description": "A10: xabar maydoni."
+  },
+  "messageLabel": "Xabar",
+  "@messageLabel": {
+    "description": "A10: xabar maydoni (ekran o'quvchi)."
+  },
+  "send": "Yuborish",
+  "@send": {
+    "description": "A10: yuborish tugmasi."
+  },
+  "chatEmpty": "Hali xabar yo'q. Ish beruvchiga birinchi bo'lib yozing.",
+  "@chatEmpty": {
+    "description": "A10: bo'sh chat."
+  },
+  "personalInfo": "Shaxsiy ma'lumot",
+  "@personalInfo": {
+    "description": "A11: profil kartasi (ekran o'quvchi)."
+  },
+  "reliability": "Ishonchlilik bali",
+  "@reliability": {
+    "description": "A11: ishonchlilik bali."
+  },
+  "outOf100": "/ 100",
+  "@outOf100": {
+    "description": "A11: ball shkalasi."
+  },
+  "completedShiftsLabel": "Bajarilgan smenalar",
+  "@completedShiftsLabel": {
+    "description": "A11: statistika."
+  },
+  "ratingsCount": "Baholar · {n} ta",
+  "@ratingsCount": {
+    "description": "A11: baholar soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "languagesTitle": "Tillar",
+  "@languagesTitle": {
+    "description": "A11: tillar kartasi."
+  },
+  "nativeLanguage": "{language} · ona tili",
+  "@nativeLanguage": {
+    "description": "A11: ona tili.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "koreanTopik": "{language} · TOPIK {level}",
+  "@koreanTopik": {
+    "description": "A11: koreys tili darajasi.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "report": "Shikoyat qilish",
+  "@report": {
+    "description": "A11: shikoyat tugmasi."
+  },
+  "help": "Yordam",
+  "@help": {
+    "description": "A11: yordam tugmasi."
+  },
+  "reportTitle": "Shikoyat",
+  "@reportTitle": {
+    "description": "A11: shikoyat oynasi sarlavhasi."
+  },
+  "reportAbout": "Nima haqida?",
+  "@reportAbout": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportEmployer": "Ish beruvchi",
+  "@reportEmployer": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportPayment": "Maosh",
+  "@reportPayment": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportSafety": "Xavfsizlik",
+  "@reportSafety": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportOther": "Boshqa",
+  "@reportOther": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportHint": "Nima bo'lganini yozing",
+  "@reportHint": {
+    "description": "A11: shikoyat matni."
+  },
+  "reportSend": "Yuborish",
+  "@reportSend": {
+    "description": "A11: shikoyatni yuborish."
+  },
+  "reportSent": "Shikoyatingiz qabul qilindi. Tez orada ko'rib chiqamiz.",
+  "@reportSent": {
+    "description": "A11: shikoyat yuborildi."
+  },
+  "helpTitle": "Yordam",
+  "@helpTitle": {
+    "description": "A11: yordam oynasi sarlavhasi."
+  },
+  "helpShiftsQ": "Smenani qanday olaman?",
+  "@helpShiftsQ": {
+    "description": "A11: savol."
+  },
+  "helpShiftsA": "Lentadan smenani tanlang va «Olish»ni bosing. Ba'zi smenalarni ish beruvchi tasdiqlaydi — tasdiqlanganda xabar keladi.",
+  "@helpShiftsA": {
+    "description": "A11: javob."
+  },
+  "helpQrQ": "Ishga kirish va chiqish qanday?",
+  "@helpQrQ": {
+    "description": "A11: savol."
+  },
+  "helpQrA": "Ish joyidagi QR kodni ilova orqali skanerlang: kelganda — kirish, ketayotganda — chiqish. Kirish smena boshlanishidan 30 daqiqa oldin ochiladi.",
+  "@helpQrA": {
+    "description": "A11: javob."
+  },
+  "helpPayQ": "Maoshni kim to'laydi?",
+  "@helpPayQ": {
+    "description": "A11: savol."
+  },
+  "helpPayA": "Maoshni ish beruvchi to'g'ridan-to'g'ri to'laydi. Ilova ishlagan vaqtingizni va summani qayd etadi.",
+  "@helpPayA": {
+    "description": "A11: javob."
+  },
+  "helpCancelQ": "Smenani bekor qilsam nima bo'ladi?",
+  "@helpCancelQ": {
+    "description": "A11: savol."
+  },
+  "today": "Bugun",
+  "@today": {
+    "description": "A12: kun sarlavhasi."
+  },
+  "yesterday": "Kecha",
+  "@yesterday": {
+    "description": "A12: kun sarlavhasi."
+  },
+  "notifReminderTitle": "Smenangizga {time} qoldi",
+  "@notifReminderTitle": {
+    "description": "A12: eslatma sarlavhasi.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReminderText": "{business}, {range}. Kirishda QR kodni skanerlang.",
+  "@notifReminderText": {
+    "description": "A12: eslatma matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifConfirmedTitle": "Smena tasdiqlandi",
+  "@notifConfirmedTitle": {
+    "description": "A12: tasdiq sarlavhasi."
+  },
+  "notifConfirmedText": "{business}: {day}, {range} smenangiz tasdiqlandi.",
+  "@notifConfirmedText": {
+    "description": "A12: tasdiq matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifRejectedTitle": "Ariza qabul qilinmadi",
+  "@notifRejectedTitle": {
+    "description": "A12: rad etish sarlavhasi."
+  },
+  "notifRejectedText": "{business}: {day}, {range} smenasiga boshqa ishchi tanlandi.",
+  "@notifRejectedText": {
+    "description": "A12: rad etish matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifCancelledTitle": "Smena bekor qilindi",
+  "@notifCancelledTitle": {
+    "description": "A12: ish beruvchi bekor qildi."
+  },
+  "notifCancelledText": "{business}: {day}, {range} smenasini ish beruvchi bekor qildi.",
+  "@notifCancelledText": {
+    "description": "A12: bekor qilish matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPaidTitle": "Maosh to'landi",
+  "@notifPaidTitle": {
+    "description": "A12: to'lov sarlavhasi."
+  },
+  "notifPaidText": "{business}: {day} smenasi uchun {amount} to'langanini belgiladi.",
+  "@notifPaidText": {
+    "description": "A12: to'lov matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMessageTitle": "Yangi xabar",
+  "@notifMessageTitle": {
+    "description": "A12: chat xabari."
+  },
+  "notifNewShiftTitle": "Sizga mos yangi smena",
+  "@notifNewShiftTitle": {
+    "description": "A12: yangi smena."
+  },
+  "notifNewShiftText": "{business} · {day}, {range} · {wage}/soat · {km}",
+  "@notifNewShiftText": {
+    "description": "A12: yangi smena matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      },
+      "wage": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNearbyTitle": "{area} yaqinida {n} ta yangi smena",
+  "@notifNearbyTitle": {
+    "description": "A12: yaqin atrofdagi smenalar.",
+    "placeholders": {
+      "area": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notifNearbyText": "{categories} · {range}/soat",
+  "@notifNearbyText": {
+    "description": "A12: yaqin atrofdagi smenalar matni.",
+    "placeholders": {
+      "categories": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "andJoin": "{a} va {b}",
+  "@andJoin": {
+    "description": "A12: ikki narsani bog'lash.",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "viewShift": "Smenani ko'rish",
+  "@viewShift": {
+    "description": "A12: havola."
+  },
+  "view": "Ko'rish",
+  "@view": {
+    "description": "A12: havola."
+  },
+  "emptyNotifications": "Hozircha bildirishnoma yo'q",
+  "@emptyNotifications": {
+    "description": "A12: bo'sh holat."
   }
 }

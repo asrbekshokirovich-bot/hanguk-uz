@@ -200,6 +200,21 @@ abstract final class HiDates {
     return '${two(s ~/ 3600)}:${two(s % 3600 ~/ 60)}:${two(s % 60)}';
   }
 
+  /// The weekday inside a sentence: «payshanba» / «четверг» / «Thursday» /
+  /// «목요일» (A12).
+  static String weekdayInSentence(DateTime instant, String lang) {
+    final name = weekday(instant, lang);
+    return lang == 'en' || lang == 'ko' ? name : name.toLowerCase();
+  }
+
+  /// «shanba, 14-noyabr» / «суббота, 14 ноября» / «Saturday, Nov 14» /
+  /// «11월 14일 토요일» (A12).
+  static String weekdayAndDate(DateTime instant, String lang) {
+    final date = dayMonth(instant, lang);
+    final day = weekdayInSentence(instant, lang);
+    return lang == 'ko' ? '$date $day' : '$day, $date';
+  }
+
   static const _todayLower = {'uz': 'bugun', 'ru': 'сегодня', 'en': 'today', 'ko': '오늘'};
   static const _tomorrowLower = {'uz': 'ertaga', 'ru': 'завтра', 'en': 'tomorrow', 'ko': '내일'};
 
