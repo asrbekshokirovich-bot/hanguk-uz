@@ -32,11 +32,25 @@ enable_confirmations = true
 template = "Hanguk Ish kodi: {{ .Code }}"
 
 [auth.sms.test_otp]
+# workers (Aziz, Malika) and business owners (Seoyeon, Minjun) of the tests
 821000000001 = "123456"
+821000000002 = "123456"
 821000000011 = "123456"
+821000000012 = "123456"
 
 [auth.email]
 enable_signup = false
+
+# Profile photos (A02). The migration creates the bucket and its policies
+# too; here it is public and limited for the local stack (CI integration).
+[storage]
+enabled = true
+file_size_limit = "5MiB"
+
+[storage.buckets.avatars]
+public = true
+file_size_limit = "2MiB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
 
 [functions.telegram-login]
 verify_jwt = false

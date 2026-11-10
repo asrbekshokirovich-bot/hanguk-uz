@@ -1,0 +1,71 @@
+name: Hanguk Ish — integratsiya (ilova ↔ baza)
+
+# Ilovalarning repozitoriylari (lib/data/backend) haqiqiy lokal Supabase
+# stack'da: telefon orqali kirish (config.toml'dagi test raqamlar), har
+# ekranning o'qishi, bazadagi qoidalar, Storage (avatarlar).
+# Testlar: hanguk_ish/test_backend/ — kalitlar bo'lmasa o'tkazib yuboriladi.
+
+on:
+  push:
+    branches:
+      - 'ish/**'
+    paths:
+      - 'hanguk_ish/**'
+      - '.github/workflows/ish-integration.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ish-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Repositories against a local Supabase stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin supabase
+          supabase --version
+
+      # Database, auth (phone OTP), REST, Storage and the gateway; the rest is
+      # not needed by the apps' repositories.
+      - name: Start Supabase
+        run: supabase start -x studio,imgproxy,inbucket,vector,logflare,supavisor,edge-runtime,realtime,postgres-meta
+
+      - name: Keys
+        run: |
+          supabase status -o env > /tmp/supabase.env
+          set -a; . /tmp/supabase.env; set +a
+          echo "SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=${ANON_KEY:-$PUBLISHABLE_KEY}" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_KEY=${SERVICE_ROLE_KEY:-$SECRET_KEY}" >> "$GITHUB_ENV"
+          echo "API $API_URL"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get && flutter gen-l10n
+
+      - name: Integration tests
+        run: flutter test test_backend --reporter github
+
+      - name: Server logs
+        if: failure()
+        run: |
+          for c in auth rest storage kong db; do
+            echo "::group::$c"; docker logs --tail 80 "supabase_${c}_hanguk-ish" 2>&1 || true; echo "::endgroup::"
+          done
