@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/play_in_app_update.dart';
 import '../data/update_telemetry.dart';
 
-/// Pings version telemetry on first build and on every foreground transition.
+/// On first build and on every foreground transition: pings version telemetry
+/// and lets [PlayInAppUpdate] ask Google Play for an update.
 ///
 /// It used to also run the APK self-updater: check `app_versions`, download a
 /// build from Supabase Storage, and hand it to the OS installer. That is gone.
@@ -23,9 +25,10 @@ import '../data/update_telemetry.dart';
 ///     "Yangilanish amalga oshmadi" on a build that had nothing to update to.
 ///
 /// Updates come from Play now, through
-/// `features/updater/data/play_in_app_update.dart`. The repository, dialog and
-/// error codes are left in the tree for the non-store distribution path they
-/// were written for; nothing mounts them.
+/// `features/updater/data/play_in_app_update.dart`: Android store builds only
+/// (sideload/test APKs and iOS skip it), at most one check per launch and per
+/// foreground after 6 hours, immediate for urgent updates, otherwise a silent
+/// flexible download installed on the next foreground. It never blocks start.
 ///
 /// Wrap your app root: `MaterialApp(builder: (ctx, child) => UpdateGate(child: child!))`.
 class UpdateGate extends ConsumerStatefulWidget {
@@ -66,6 +69,8 @@ class _UpdateGateState extends ConsumerState<UpdateGate>
     // Fire-and-forget: nothing waits on it, and a failed ping must never be
     // visible to the student.
     unawaited(ref.read(updateTelemetryProvider).ping());
+    // Also fire-and-forget; it rate-limits itself and swallows Play errors.
+    unawaited(ref.read(playInAppUpdateProvider).onForeground());
   }
 
   @override
