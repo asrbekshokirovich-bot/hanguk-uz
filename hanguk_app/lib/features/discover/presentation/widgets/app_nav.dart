@@ -132,9 +132,9 @@ Future<void> goOverPushed(BuildContext context, String location, {required int t
 }
 
 /// Forgets the tab a nav tap asked for while the screen it was tapped on was
-/// closing: that screen stays after all (its "leave?" was answered "stay"), so
-/// when it goes later, by its own back button, it goes back to the home as it
-/// is.
+/// closing: that screen stays after all (its "leave?" was answered "stay", or
+/// its save failed), so when it goes later, by its own back button, it goes
+/// back to the home as it is.
 void dropPendingTab() => _wanted = null;
 
 /// Closes the screens over the home, top first, then opens the newest tab

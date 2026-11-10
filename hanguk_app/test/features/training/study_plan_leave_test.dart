@@ -9,7 +9,8 @@
 //    so — it used to close, and the text was gone; the phone's copy keeps
 //    the text too. A next way out with the same text leaves even if the
 //    save fails again (offline the student must not be shut in); text
-//    written since gets its own stay.
+//    written since gets its own stay. A nav tab whose save fails stays too,
+//    and opens no tab: the back arrow later goes to the home as it was.
 //
 // The first test is the QA audit's evidence (qa/code-audit,
 // test/qa/qa_study_plan_leave_test.dart), which failed on main 8d7a150.
@@ -206,6 +207,49 @@ void main() {
 
     expect(plans.saved, hasLength(1), reason: 'one way out, one save (saved ${plans.saved.length} times)');
     expect(find.text('home tab 0'), findsOneWidget, reason: 'the home, on the tab asked for, is still there');
+  });
+
+  testWidgets('a nav tab whose save fails keeps the builder; the back arrow then goes to the home as it was', (
+    t,
+  ) async {
+    final plans = _SlowSaves()..ok = false;
+    final l = await _openBuilder(t, plans);
+    await t.enterText(_field, _goal);
+    await t.pump();
+
+    // «Universitetlar» in the builder's own nav: the save fails, the builder stays.
+    final nav = find.descendant(of: find.byType(NavScaffold), matching: find.byType(FdBottomNav));
+    await t.tap(find.descendant(of: nav, matching: find.text(l.fdNavUniversities)).first);
+    await _settle(t);
+    expect(find.byType(StudyPlanBuilderScreen), findsOneWidget, reason: 'the builder stays');
+    expect(find.text(l.saveStatusError), findsOneWidget, reason: 'it says the plan was not saved');
+
+    // The back arrow: the same text fails again, and the builder leaves — to
+    // the home on its own tab, not to the tab the failed nav tap asked for.
+    await t.tap(_back(t));
+    await _settle(t, 40);
+    expect(plans.saved, hasLength(2));
+    expect(find.byType(StudyPlanBuilderScreen), findsNothing);
+    expect(find.text('home tab 1'), findsOneWidget, reason: 'the home as it was');
+    expect(find.text('home tab 0'), findsNothing, reason: 'the nav tap whose save failed opens no tab');
+  });
+
+  testWidgets('a nav tab whose save fails, then the tab again: the builder leaves to that tab', (t) async {
+    final plans = _SlowSaves()..ok = false;
+    final l = await _openBuilder(t, plans);
+    await t.enterText(_field, _goal);
+    await t.pump();
+    final nav = find.descendant(of: find.byType(NavScaffold), matching: find.byType(FdBottomNav));
+    final universities = find.descendant(of: nav, matching: find.text(l.fdNavUniversities)).first;
+    await t.tap(universities);
+    await _settle(t);
+    expect(find.byType(StudyPlanBuilderScreen), findsOneWidget, reason: 'the first failure stays');
+
+    await t.tap(universities);
+    await _settle(t, 40);
+    expect(plans.saved, hasLength(2));
+    expect(find.byType(StudyPlanBuilderScreen), findsNothing);
+    expect(find.text('home tab 0'), findsOneWidget, reason: 'the tab asked for');
   });
 
   testWidgets('the back arrow twice while the plan saves: one save, and only the builder closes', (t) async {
