@@ -100,7 +100,7 @@ void main() {
     expect(await ensureTestSession(), isTrue);
     expect(paths(), [_function], reason: 'no password sign-in');
     final ask = sent.single;
-    expect(ask.method, 'POST');
+    expect(ask.method.toUpperCase(), 'POST', reason: 'functions_client sends HttpMethod.post.name, "post"');
     expect(ask.url.queryParameters, {'forceFunctionRegion': 'ap-northeast-2'});
     expect(ask.headers['x-region'], isNull, reason: 'on the web that header needs a CORS preflight the function does not allow');
     expect(ask.headers['content-type'], startsWith('application/json'));
