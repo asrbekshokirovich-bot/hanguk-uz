@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../../core/format/dates.dart';
 import '../../../core/money/won.dart';
@@ -70,6 +71,7 @@ class QrScanScreen extends ConsumerStatefulWidget {
 class _QrScanScreenState extends ConsumerState<QrScanScreen> {
   bool _torch = false;
   bool _busy = false;
+  QrCameraProblem? _problem;
   String? _lastFailed;
   DateTime _lastFailedAt = DateTime.fromMillisecondsSinceEpoch(0);
 
@@ -110,7 +112,11 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
     final frame = Rect.fromLTWH((size.width - 260) / 2, 220 + shift, 260, 260);
 
     final camera = switch (kind) {
-      QrCameraKind.device => DeviceQrCamera(onCode: _onCode, torch: _torch),
+      QrCameraKind.device => ref.watch(qrCameraBuilderProvider)(
+          onCode: _onCode,
+          torch: _torch,
+          onProblem: (problem) => setState(() => _problem = problem),
+        ),
       QrCameraKind.demo => DemoQrScene(
           businessName: app?.shift.business.name ?? '',
           angleDegrees: checkIn ? -4 : 3,
@@ -122,6 +128,14 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
       body: Stack(
         children: [
           Positioned.fill(child: camera),
+          if (_problem case final problem?)
+            Positioned(
+              left: 24,
+              right: 24,
+              top: frame.top,
+              child: _CameraProblemMessage(problem: problem),
+            )
+          else ...[
           Positioned.fill(
             child: IgnorePointer(
               child: QrViewfinder(
@@ -205,6 +219,7 @@ class _QrScanScreenState extends ConsumerState<QrScanScreen> {
               ],
             ),
           ),
+          ],
           if (app != null)
             Positioned(
               left: 18,
@@ -1076,6 +1091,29 @@ class _NoShift extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A07 when the camera did not start: why, and for a missing permission the
+/// way to the phone's settings. Not in the prototype; the A03 «Internet
+/// yo'q» message's parts.
+class _CameraProblemMessage extends StatelessWidget {
+  const _CameraProblemMessage({required this.problem});
+
+  final QrCameraProblem problem;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = WorkerL10n.of(context);
+    final denied = problem == QrCameraProblem.denied;
+    return HiStatusMessage(
+      icon: HiIcons.camera,
+      title: denied ? l10n.cameraDeniedTitle : l10n.cameraFailedTitle,
+      text: denied ? l10n.cameraDeniedText : l10n.cameraFailedText,
+      textMaxWidth: 300,
+      action: denied ? l10n.openSettings : null,
+      onAction: denied ? Geolocator.openAppSettings : null,
     );
   }
 }

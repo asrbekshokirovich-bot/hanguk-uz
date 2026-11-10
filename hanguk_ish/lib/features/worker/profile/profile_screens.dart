@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/catalog/places.dart';
+import '../../../data/repositories/shift_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';
 import '../../../design/tokens.dart';
@@ -140,10 +141,16 @@ class _ProfileNameScreenState extends ConsumerState<ProfileNameScreen> {
       (HiIcons.image, l10n.photoFromGallery),
     ]);
     if (choice == null || !mounted) return;
-    final path = await ref.read(photoPickerProvider)(
-      choice == 0 ? ImageSource.camera : ImageSource.gallery,
-    );
-    if (path != null) ref.read(workerProfileDraftProvider.notifier).setPhoto(path);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final path = await ref.read(photoPickerProvider)(
+        choice == 0 ? ImageSource.camera : ImageSource.gallery,
+      );
+      if (path != null) ref.read(workerProfileDraftProvider.notifier).setPhoto(path);
+    } on Object {
+      // No permission, or the camera is busy: the photo stays as it was.
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(l10n.photoFailed)));
+    }
   }
 
   @override
@@ -410,10 +417,11 @@ class _ProfileScheduleScreenState extends ConsumerState<ProfileScheduleScreen> {
     try {
       await ref.read(workerProfileRepositoryProvider).save(ref.read(workerProfileDraftProvider));
       if (mounted) widget.onDone();
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
+      final l10n = WorkerL10n.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(WorkerL10n.of(context).errorGeneric)),
+        SnackBar(content: Text(error is OfflineException ? l10n.errOffline : l10n.errorGeneric)),
       );
     } finally {
       if (mounted) setState(() => _saving = false);

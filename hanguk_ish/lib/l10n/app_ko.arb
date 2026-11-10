@@ -321,5 +321,9 @@
   "errTooManyRequests": "시도가 너무 많아요. 잠시 후 다시 시도해 주세요.",
   "errPhoneInvalid": "번호가 올바르지 않아요. 010-0000-0000 형식으로 입력해 주세요.",
   "errSmsFailed": "문자를 보내지 못했어요. 번호를 확인하고 다시 시도해 주세요.",
-  "telegramSoon": "텔레그램 로그인은 곧 열려요. 지금은 휴대폰 번호로 시작해 주세요."
+  "telegramSoon": "텔레그램 로그인은 곧 열려요. 지금은 휴대폰 번호로 시작해 주세요.",
+  "cameraFailedTitle": "카메라를 켜지 못했어요",
+  "cameraFailedText": "화면을 닫았다가 다시 열어 주세요.",
+  "openSettings": "설정 열기",
+  "photoFailed": "사진을 가져오지 못했어요. 카메라와 사진 접근 권한을 확인해 주세요."
 }

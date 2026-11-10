@@ -20,12 +20,30 @@ final qrCameraKindProvider = Provider<QrCameraKind>(
 /// Whether the scan line moves (off in screen tests, which need a still frame).
 final qrScanAnimationProvider = Provider<bool>((ref) => true);
 
+/// Why the camera did not start: no permission, or anything else.
+enum QrCameraProblem { denied, failed }
+
+typedef QrCameraBuilder = Widget Function({
+  required ValueChanged<String> onCode,
+  required bool torch,
+  required ValueChanged<QrCameraProblem> onProblem,
+});
+
+/// The camera of A07 with a device: the phone's (tests put a stand-in).
+final qrCameraBuilderProvider = Provider<QrCameraBuilder>(
+  (ref) => ({required onCode, required torch, required onProblem}) =>
+      DeviceQrCamera(onCode: onCode, torch: torch, onProblem: onProblem),
+);
+
 /// The phone's camera reading QR codes.
 class DeviceQrCamera extends StatefulWidget {
-  const DeviceQrCamera({super.key, required this.onCode, required this.torch});
+  const DeviceQrCamera({super.key, required this.onCode, required this.torch, this.onProblem});
 
   final ValueChanged<String> onCode;
   final bool torch;
+
+  /// The camera could not start; the screen explains it.
+  final ValueChanged<QrCameraProblem>? onProblem;
 
   @override
   State<DeviceQrCamera> createState() => _DeviceQrCameraState();
@@ -34,6 +52,7 @@ class DeviceQrCamera extends StatefulWidget {
 class _DeviceQrCameraState extends State<DeviceQrCamera> {
   final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
   bool _torchOn = false;
+  QrCameraProblem? _reported;
 
   @override
   void didUpdateWidget(DeviceQrCamera oldWidget) {
@@ -54,6 +73,17 @@ class _DeviceQrCameraState extends State<DeviceQrCamera> {
   Widget build(BuildContext context) {
     return MobileScanner(
       controller: _controller,
+      errorBuilder: (context, error) {
+        final problem =
+            error.errorCode == MobileScannerErrorCode.permissionDenied ? QrCameraProblem.denied : QrCameraProblem.failed;
+        if (_reported != problem) {
+          _reported = problem;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) widget.onProblem?.call(problem);
+          });
+        }
+        return const SizedBox.expand();
+      },
       onDetect: (capture) {
         for (final code in capture.barcodes) {
           final value = code.rawValue;

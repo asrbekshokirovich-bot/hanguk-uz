@@ -1569,5 +1569,21 @@
   "telegramSoon": "Telegram orqali kirish tez orada. Hozircha telefon raqam bilan kiring.",
   "@telegramSoon": {
     "description": "A01: Telegram orqali kirish hali ulanmagan."
+  },
+  "cameraFailedTitle": "Kamera ishga tushmadi",
+  "@cameraFailedTitle": {
+    "description": "A07: kamera ruxsatdan boshqa sabab bilan ochilmadi."
+  },
+  "cameraFailedText": "Ekranni yopib, qaytadan oching.",
+  "@cameraFailedText": {
+    "description": "A07: kamera ochilmaganda nima qilish kerak."
+  },
+  "openSettings": "Sozlamalarni ochish",
+  "@openSettings": {
+    "description": "A07: telefon sozlamalarida ilova sahifasini ochadi (kameraga ruxsat berish uchun)."
+  },
+  "photoFailed": "Rasmni olib bo'lmadi. Kamera va galereyaga ruxsatni tekshiring.",
+  "@photoFailed": {
+    "description": "A02: rasm olib yoki tanlab bo'lmadi (ruxsat yo'q yoki kamera band)."
   }
 }

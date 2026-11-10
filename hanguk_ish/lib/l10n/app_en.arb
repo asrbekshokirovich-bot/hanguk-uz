@@ -321,5 +321,9 @@
   "errTooManyRequests": "Too many attempts. Please try again in a little while.",
   "errPhoneInvalid": "That number doesn't look right. Enter it as 010-0000-0000.",
   "errSmsFailed": "We couldn't send the SMS. Check the number and try again.",
-  "telegramSoon": "Telegram sign-in is coming soon. Please use your phone number for now."
+  "telegramSoon": "Telegram sign-in is coming soon. Please use your phone number for now.",
+  "cameraFailedTitle": "The camera didn't start",
+  "cameraFailedText": "Close this screen and open it again.",
+  "openSettings": "Open settings",
+  "photoFailed": "Couldn't get the photo. Check camera and gallery access."
 }
