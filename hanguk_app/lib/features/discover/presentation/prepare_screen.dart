@@ -59,7 +59,14 @@ class PrepareScreen extends StatelessWidget {
   /// A guest's interview runs on the guest test account (one per phone);
   /// interview-ai lets it start one a week (P18).
   Future<void> _guestInterview(BuildContext context) async {
+    // `data_ready` prepare.guest_interview: the tap to the screen opening —
+    // the wait a guest sees (Tayyorgarlik T0; before: 2.6 s median).
+    final clock = Stopwatch()..start();
     final ok = await ensureTestSession();
+    AppEvents.track(
+      'data_ready',
+      props: {'name': 'prepare.guest_interview', 'source': ok ? 'ok' : 'failed', 'ms': clock.elapsedMilliseconds},
+    );
     if (!context.mounted) return;
     if (ok) {
       _push(context, const InterviewScreen(), 'interview');

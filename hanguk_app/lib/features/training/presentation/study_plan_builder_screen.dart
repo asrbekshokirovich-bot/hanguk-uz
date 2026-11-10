@@ -63,22 +63,19 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   String? get _targetId => ref.read(slotsProvider).firstWhere((id) => id != null, orElse: () => null);
 
   /// Picks up the student's unfinished plan for the first chosen university,
-  /// or starts one.
+  /// or starts one — in one request ([StudyPlanSessionNotifier.openLatest]).
   Future<void> _open() async {
-    final target = _targetId;
-    await _notifier.fetchSessions(_type);
-    if (!mounted) return;
-    final sessions = ref.read(documentSessionProvider(_type)).sessions;
-    final mine = sessions.where((s) => s.status != 'completed' && (target == null || s.targetUniversityId == target));
-    final existing = mine.isEmpty ? null : mine.first;
-    if (existing != null) {
-      await _notifier.loadSession(_type, existing.id);
-    } else {
-      await _notifier.createSession(_type, targetUniversityId: target);
-    }
+    // `data_ready` prepare.study_plan: the open to the plan's text
+    // (Tayyorgarlik T3; it took up to five requests one after another).
+    final clock = Stopwatch()..start();
+    final session = await _notifier.openLatest(_type, targetUniversityId: _targetId);
+    AppEvents.track(
+      'data_ready',
+      props: {'name': 'prepare.study_plan', 'source': session == null ? 'failed' : 'network', 'ms': clock.elapsedMilliseconds},
+    );
     if (!mounted) return;
     final state = ref.read(documentSessionProvider(_type));
-    if (state.currentSession == null) {
+    if (session == null) {
       setState(() {
         _opening = false;
         _failed = true;
