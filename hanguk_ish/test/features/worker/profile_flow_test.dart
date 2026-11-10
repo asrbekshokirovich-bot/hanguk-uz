@@ -70,6 +70,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byType(HiSelectField).at(1));
     await tester.pumpAndSettle();
+    // The list is long; search narrows it.
+    await tester.enterText(find.byType(TextField).last, 'Mapo');
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Mapo-gu, Seul'));
     await tester.pumpAndSettle();
     expect(find.text('Mapo-gu, Seul'), findsOneWidget);

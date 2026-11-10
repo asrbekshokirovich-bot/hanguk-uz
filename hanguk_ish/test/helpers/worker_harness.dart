@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:hanguk_ish/app/text_scale.dart';
 import 'package:hanguk_ish/design/theme.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
