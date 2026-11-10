@@ -235,6 +235,17 @@ class StudyPlanSessionNotifier
   /// The app language; the trainer answers in it.
   String get _language => ref.read(entryProvider).languageCode ?? 'en';
 
+  /// The signed-in student's id: whose phone copy of a plan the builder
+  /// reads and keeps (study_plan_cache.dart). Null when no one is signed in,
+  /// and before Supabase is up.
+  String? get userId {
+    try {
+      return Supabase.instance.client.auth.currentUser?.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
   StudyPlanSessionState _getState(String type) =>
       state[type] ?? const StudyPlanSessionState();
 
