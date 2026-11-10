@@ -27,20 +27,20 @@ update public.applications set status = 'completed', check_out_at = now(), worke
   where id = '30000000-0000-0000-0000-000000000005';
 
 select tests.as_user('00000000-0000-0000-0000-0000000000a2');
-select tests.eq((select pay_amount from public.worker_earnings(current_date - 1, current_date + 1)), 36000,
+select tests.eq((select pay_amount from public.worker_earnings((now() at time zone 'Asia/Seoul')::date - 1, (now() at time zone 'Asia/Seoul')::date + 1)), 36000,
                 'A9 lists the pay');
-select tests.eq((select paid from public.worker_earnings(current_date - 1, current_date + 1)), false, 'not paid yet');
+select tests.eq((select paid from public.worker_earnings((now() at time zone 'Asia/Seoul')::date - 1, (now() at time zone 'Asia/Seoul')::date + 1)), false, 'not paid yet');
 
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
-select tests.eq((select total_pay from public.business_report('10000000-0000-0000-0000-000000000001', current_date - 1, current_date + 1)),
+select tests.eq((select total_pay from public.business_report('10000000-0000-0000-0000-000000000001', (now() at time zone 'Asia/Seoul')::date - 1, (now() at time zone 'Asia/Seoul')::date + 1)),
                 36000, 'BA5 totals the shift');
 select tests.eq(public.set_shift_paid('20000000-0000-0000-0000-000000000005', true), 1, 'BA5 marks the shift paid');
 select tests.as_user('00000000-0000-0000-0000-0000000000a2');
-select tests.eq((select paid from public.worker_earnings(current_date - 1, current_date + 1)), true, 'the worker sees it paid');
+select tests.eq((select paid from public.worker_earnings((now() at time zone 'Asia/Seoul')::date - 1, (now() at time zone 'Asia/Seoul')::date + 1)), true, 'the worker sees it paid');
 select tests.as_user('00000000-0000-0000-0000-0000000000b2');
 select tests.throws($$select public.set_shift_paid('20000000-0000-0000-0000-000000000005', true)$$,
                     'NOT_FOUND', 'another business cannot mark it');
-select tests.eq((select count(*)::int from public.business_report('10000000-0000-0000-0000-000000000001', current_date - 1, current_date + 1)),
+select tests.eq((select count(*)::int from public.business_report('10000000-0000-0000-0000-000000000001', (now() at time zone 'Asia/Seoul')::date - 1, (now() at time zone 'Asia/Seoul')::date + 1)),
                 0, 'nor read its report');
 
 -- Rating (A08) and the stats it feeds (A05).
