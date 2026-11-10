@@ -19,6 +19,8 @@ dependencies:
   go_router: ^17.2.0
   # SVG path data → Path for the prototype's Lucide icons (lib/design/icons.dart).
   path_parsing: ^1.0.1
+  # A02 «Rasm yuklash»: camera or gallery.
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

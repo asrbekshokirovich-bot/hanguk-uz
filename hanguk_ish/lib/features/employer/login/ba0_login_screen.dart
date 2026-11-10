@@ -7,7 +7,7 @@ import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/brand.dart';
 import '../../../design/widgets/buttons.dart';
-import '../../../design/widgets/controls.dart';
+import '../../../design/widgets/forms.dart';
 import '../../../design/widgets/layout.dart';
 import '../../../design/widgets/link_text.dart';
 import '../ko.dart';
@@ -109,8 +109,9 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                     children: [
                       HiText(Ko.phoneLabel, style: label),
                       const SizedBox(height: 8),
-                      HiMonoField(
+                      HiInputField(
                         controller: _phone,
+                        mono: true,
                         placeholder: Ko.phonePlaceholder,
                         keyboardType: TextInputType.phone,
                         autofillHints: const [AutofillHints.telephoneNumber],
@@ -119,8 +120,10 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                       const SizedBox(height: 18),
                       HiText(Ko.bizNoLabel, style: label),
                       const SizedBox(height: 8),
-                      HiMonoField(
+                      HiInputField(
                         controller: _bizNo,
+                        mono: true,
+                        keyboardType: TextInputType.number,
                         placeholder: Ko.bizNoPlaceholder,
                         inputFormatters: [_bizNoMask],
                         textInputAction: TextInputAction.done,

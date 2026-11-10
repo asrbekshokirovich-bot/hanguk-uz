@@ -31,5 +31,239 @@
   "loginWithTelegram": "Telegram bilan",
   "@loginWithTelegram": {
     "description": "A01: ikkinchi tugma — Telegram orqali kirish."
+  },
+  "profileStepOf": "Profil · {step} / {total}",
+  "@profileStepOf": {
+    "description": "A02: yuqoridagi sarlavha.",
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "stepNumber": "{step}-qadam",
+  "@stepNumber": {
+    "description": "A02: qadam raqami.",
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNameTitle": "Ism va rasm",
+  "@profileNameTitle": {
+    "description": "A02-1 sarlavha."
+  },
+  "profileNameSubtitle": "Ish beruvchi sizni shu ism va rasm bilan ko'radi.",
+  "@profileNameSubtitle": {
+    "description": "A02-1 izoh."
+  },
+  "photoUpload": "Rasm yuklash",
+  "@photoUpload": {
+    "description": "A02-1: rasm tugmasi."
+  },
+  "photoHint": "Yuzingiz aniq ko'rinsin",
+  "@photoHint": {
+    "description": "A02-1: rasm ostidagi maslahat."
+  },
+  "photoFromCamera": "Suratga olish",
+  "@photoFromCamera": {
+    "description": "Rasm manbasi: kamera."
+  },
+  "photoFromGallery": "Galereyadan tanlash",
+  "@photoFromGallery": {
+    "description": "Rasm manbasi: galereya."
+  },
+  "firstName": "Ism",
+  "@firstName": {
+    "description": "A02-1: ism maydoni."
+  },
+  "lastName": "Familiya",
+  "@lastName": {
+    "description": "A02-1: familiya maydoni."
+  },
+  "continueButton": "Davom etish",
+  "@continueButton": {
+    "description": "A02: keyingi qadam tugmasi."
+  },
+  "profileLanguagesTitle": "Tillar va koreys darajasi",
+  "@profileLanguagesTitle": {
+    "description": "A02-2 sarlavha."
+  },
+  "spokenLanguagesQuestion": "Qaysi tillarda gaplashasiz?",
+  "@spokenLanguagesQuestion": {
+    "description": "A02-2: tillar bo'limi."
+  },
+  "langUzbek": "O'zbekcha",
+  "@langUzbek": {
+    "description": "Til nomi."
+  },
+  "langRussian": "Ruscha",
+  "@langRussian": {
+    "description": "Til nomi."
+  },
+  "langEnglish": "Inglizcha",
+  "@langEnglish": {
+    "description": "Til nomi."
+  },
+  "langKorean": "Koreyscha",
+  "@langKorean": {
+    "description": "Til nomi."
+  },
+  "langKazakh": "Qozoqcha",
+  "@langKazakh": {
+    "description": "Til nomi."
+  },
+  "langKyrgyz": "Qirg'izcha",
+  "@langKyrgyz": {
+    "description": "Til nomi."
+  },
+  "langTajik": "Tojikcha",
+  "@langTajik": {
+    "description": "Til nomi."
+  },
+  "topikTitle": "Koreys tili darajasi (TOPIK)",
+  "@topikTitle": {
+    "description": "A02-2: TOPIK bo'limi."
+  },
+  "topikMin": "0 — sertifikat yo'q",
+  "@topikMin": {
+    "description": "A02-2: TOPIK shkalasining chap izohi."
+  },
+  "topikMax": "6 — eng yuqori",
+  "@topikMax": {
+    "description": "A02-2: TOPIK shkalasining o'ng izohi."
+  },
+  "university": "Universitet",
+  "@university": {
+    "description": "A02-2: universitet maydoni."
+  },
+  "district": "Tuman",
+  "@district": {
+    "description": "A02-2: tuman maydoni."
+  },
+  "choose": "Tanlang",
+  "@choose": {
+    "description": "Tanlash maydoni bo'sh bo'lganda."
+  },
+  "search": "Qidirish",
+  "@search": {
+    "description": "Ro'yxatda qidirish."
+  },
+  "notAStudent": "Talaba emasman",
+  "@notAStudent": {
+    "description": "Universitet ro'yxatidagi variant."
+  },
+  "useTyped": "«{text}» ni tanlash",
+  "@useTyped": {
+    "description": "Ro'yxatda yo'q bo'lsa, yozilganini tanlash.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "profileScheduleTitle": "Bo'sh vaqt jadvali",
+  "@profileScheduleTitle": {
+    "description": "A02-3 sarlavha."
+  },
+  "profileScheduleSubtitle": "Qachon ishlay olasiz? Mos smenalar shu vaqtga keladi.",
+  "@profileScheduleSubtitle": {
+    "description": "A02-3 izoh."
+  },
+  "slotMorning": "Ertalab",
+  "@slotMorning": {
+    "description": "06–12."
+  },
+  "slotDay": "Kunduzi",
+  "@slotDay": {
+    "description": "12–18."
+  },
+  "slotEvening": "Kechqurun",
+  "@slotEvening": {
+    "description": "18–24."
+  },
+  "slotNight": "Tunda",
+  "@slotNight": {
+    "description": "00–06."
+  },
+  "dayShortMon": "Du",
+  "@dayShortMon": {
+    "description": "Qisqa kun."
+  },
+  "dayShortTue": "Se",
+  "@dayShortTue": {
+    "description": "Qisqa kun."
+  },
+  "dayShortWed": "Ch",
+  "@dayShortWed": {
+    "description": "Qisqa kun."
+  },
+  "dayShortThu": "Pa",
+  "@dayShortThu": {
+    "description": "Qisqa kun."
+  },
+  "dayShortFri": "Ju",
+  "@dayShortFri": {
+    "description": "Qisqa kun."
+  },
+  "dayShortSat": "Sh",
+  "@dayShortSat": {
+    "description": "Qisqa kun."
+  },
+  "dayShortSun": "Ya",
+  "@dayShortSun": {
+    "description": "Qisqa kun."
+  },
+  "dayMon": "Dushanba",
+  "@dayMon": {
+    "description": "Kun nomi."
+  },
+  "dayTue": "Seshanba",
+  "@dayTue": {
+    "description": "Kun nomi."
+  },
+  "dayWed": "Chorshanba",
+  "@dayWed": {
+    "description": "Kun nomi."
+  },
+  "dayThu": "Payshanba",
+  "@dayThu": {
+    "description": "Kun nomi."
+  },
+  "dayFri": "Juma",
+  "@dayFri": {
+    "description": "Kun nomi."
+  },
+  "daySat": "Shanba",
+  "@daySat": {
+    "description": "Kun nomi."
+  },
+  "daySun": "Yakshanba",
+  "@daySun": {
+    "description": "Kun nomi."
+  },
+  "visaType": "Viza turi",
+  "@visaType": {
+    "description": "A02-3: viza bo'limi."
+  },
+  "optional": "Ixtiyoriy",
+  "@optional": {
+    "description": "A02-3: ixtiyoriy belgisi."
+  },
+  "visaOther": "Boshqa",
+  "@visaOther": {
+    "description": "A02-3: boshqa viza."
+  },
+  "saveAndStart": "Saqlash va boshlash",
+  "@saveAndStart": {
+    "description": "A02-3: oxirgi tugma."
+  },
+  "errorGeneric": "Xatolik yuz berdi. Qayta urinib ko'ring.",
+  "@errorGeneric": {
+    "description": "Umumiy xato xabari."
   }
 }

@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import '../icons.dart';
 import '../tokens.dart';
@@ -107,68 +106,6 @@ class HiOptionTile extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// White 56 px input with ink outline and hard shadow, monospace digits
-/// (BA0 phone and business number).
-class HiMonoField extends StatelessWidget {
-  const HiMonoField({
-    super.key,
-    required this.controller,
-    required this.placeholder,
-    this.keyboardType = TextInputType.number,
-    this.inputFormatters = const [],
-    this.autofillHints,
-    this.textInputAction = TextInputAction.next,
-    this.onSubmitted,
-    this.focusNode,
-  });
-
-  final TextEditingController controller;
-  final String placeholder;
-  final TextInputType keyboardType;
-  final List<TextInputFormatter> inputFormatters;
-  final Iterable<String>? autofillHints;
-  final TextInputAction textInputAction;
-  final ValueChanged<String>? onSubmitted;
-  final FocusNode? focusNode;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = hiStyle(
-      18,
-      FontWeight.w700,
-      color: HiColors.ink,
-      family: HiFamily.mono,
-    );
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: HiColors.white,
-        borderRadius: BorderRadius.circular(HiRadii.field),
-        border: Border.fromBorderSide(HiBorders.ink),
-        boxShadow: HiShadows.hard,
-      ),
-      alignment: Alignment.centerLeft,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        style: text,
-        cursorColor: HiColors.ink,
-        keyboardType: keyboardType,
-        inputFormatters: inputFormatters,
-        autofillHints: autofillHints,
-        textInputAction: textInputAction,
-        onSubmitted: onSubmitted,
-        maxLines: 1,
-        decoration: InputDecoration.collapsed(
-          hintText: placeholder,
-          hintStyle: text.copyWith(color: HiColors.inkMuted),
-        ),
-      ),
     );
   }
 }
