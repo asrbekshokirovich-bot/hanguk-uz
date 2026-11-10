@@ -378,6 +378,45 @@ void main() {
     });
   });
 
+  group('BA0 registration (business-register edge function)', skip: _skip, () {
+    late SupabaseEmployerRepository minjun;
+
+    setUpAll(() async {
+      if (_skip != null) return;
+      minjun = SupabaseEmployerRepository(await _signIn('+821000000012'), config);
+    });
+
+    test('a new owner registers a number; without a 국세청 key it waits', () async {
+      expect(await minjun.businesses(), isEmpty);
+      final business = await minjun.registerBusiness('124-81-00998');
+      expect(business.name, '사업장 124-81-00998');
+      expect(business.verified, isFalse, reason: 'pending until 국세청 or a person confirms it');
+      expect((await minjun.registerBusiness('1248100998')).id, business.id, reason: 'the same owner again');
+      final start = DateTime.now().toUtc().add(const Duration(days: 1));
+      await expectLater(
+        minjun.createShift(ShiftDraft(
+          businessId: business.id,
+          title: '주방 보조',
+          startsAt: start,
+          endsAt: start.add(const Duration(hours: 4)),
+          hourlyWage: 10500,
+          slots: 1,
+        )),
+        _refused('BUSINESS_NOT_VERIFIED'),
+      );
+    });
+
+    test('someone else\'s number is refused; a wrong check digit never leaves the phone', () async {
+      await expectLater(employer.registerBusiness('124-81-00998'), _refused('BIZ_NO_TAKEN'));
+      await expectLater(employer.registerBusiness('123-45-67890'), _refused('BIZ_NO_INVALID'));
+    });
+
+    test('the function refuses a caller who is not signed in', () async {
+      final anonymous = SupabaseEmployerRepository(_client(_anonKey), config);
+      await expectLater(anonymous.registerBusiness('1234567891'), throwsA(isA<ShiftActionException>()));
+    });
+  });
+
   group('signed out and offline', skip: _skip, () {
     test('nothing without signing in', () async {
       final anonymous = SupabaseShiftRepository(_client(_anonKey), config);
