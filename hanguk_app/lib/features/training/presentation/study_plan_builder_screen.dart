@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +17,7 @@ import '../../catalog/data/catalog_repository.dart';
 import '../../discover/data/slots.dart';
 import '../../discover/presentation/filter_board_screen.dart' show fieldLabel;
 import '../data/plan_sections.dart';
+import '../data/study_plan_cache.dart';
 import '../data/study_plan_repository.dart';
 import 'study_plan_screen.dart' show studyPlanErrorMessage;
 
@@ -35,10 +38,20 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
   final _controller = TextEditingController();
   final _parts = List<String>.filled(kPlanStepCount, '');
   int _step = 0;
+
+  /// Until [StudyPlanSessionNotifier.openLatest] answers the plan has no
+  /// session: the box is read-only, the mic and the feedback are off and
+  /// nothing is saved — nothing can be typed that would then be lost.
   bool _opening = true;
   bool _failed = false;
+
+  /// The phone's copy of the plan is on screen while it opens.
+  bool _fromCopy = false;
   bool _busy = false;
   String? _savedContent;
+
+  /// Where this plan's phone copy is kept; null when no one is signed in.
+  String? _copyKey;
 
   // The mic button: the device's own speech recognizer, writing into the box.
   final _speech = SpeechToText();
@@ -64,31 +77,86 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
 
   /// Picks up the student's unfinished plan for the first chosen university,
   /// or starts one — in one request ([StudyPlanSessionNotifier.openLatest]).
+  /// Meanwhile the phone's copy of its text (kept on every open and save) is
+  /// shown at once, read-only, instead of the skeleton; the server's newest
+  /// draft then takes its place.
   Future<void> _open() async {
-    // `data_ready` prepare.study_plan: the open to the plan's text
-    // (Tayyorgarlik T3; it took up to five requests one after another).
+    // `data_ready` prepare.study_plan: the open to the plan's text — the
+    // phone's copy ('saved', when it is shown) and the server's ('network',
+    // or 'failed'). Tayyorgarlik T3: it took up to five requests one after
+    // another.
     final clock = Stopwatch()..start();
-    final session = await _notifier.openLatest(_type, targetUniversityId: _targetId);
+    final target = _targetId;
+    final user = _notifier.userId;
+    final key = _copyKey = user == null
+        ? null
+        : studyPlanCopyKey(userId: user, type: _type, targetUniversityId: target);
+    var answered = false;
+    final opened = _notifier.openLatest(_type, targetUniversityId: target).whenComplete(() {
+      answered = true;
+    });
+    if (key != null) {
+      unawaited(
+        ref.read(studyPlanCacheProvider).read(key).then((copy) {
+          // Only while it spares a wait: before the server has answered.
+          if (copy == null || copy.content.trim().isEmpty || answered || !mounted) return;
+          _fill(copy.content);
+          setState(() => _fromCopy = true);
+          AppEvents.track(
+            'data_ready',
+            props: {
+              'name': 'prepare.study_plan',
+              'source': 'saved',
+              'ms': clock.elapsedMilliseconds,
+              'age_h': DateTime.now().difference(copy.savedAt).inHours,
+            },
+          );
+        }),
+      );
+    }
+    final session = await opened;
     AppEvents.track(
       'data_ready',
       props: {'name': 'prepare.study_plan', 'source': session == null ? 'failed' : 'network', 'ms': clock.elapsedMilliseconds},
     );
     if (!mounted) return;
-    final state = ref.read(documentSessionProvider(_type));
     if (session == null) {
       setState(() {
         _opening = false;
         _failed = true;
+        _fromCopy = false;
       });
       return;
     }
-    final loaded = parsePlan(state.drafts.isEmpty ? '' : state.drafts.first.content);
+    // The server is the source of truth: its newest draft replaces the copy.
+    final newest = ref.read(documentSessionProvider(_type)).drafts.firstOrNull;
+    final content = newest?.content ?? '';
+    _fill(content);
+    _savedContent = serializePlan(_parts);
+    setState(() {
+      _opening = false;
+      _fromCopy = false;
+    });
+    _keepCopy(session.id, newest?.version ?? 0, content);
+  }
+
+  /// [content] (a draft) into the four parts, each cut to what a part may
+  /// hold, and the part on screen into the box.
+  void _fill(String content) {
+    final loaded = parsePlan(content);
     for (var i = 0; i < kPlanStepCount; i++) {
       _parts[i] = loaded[i].length > kPlanMaxChars ? loaded[i].substring(0, kPlanMaxChars) : loaded[i];
     }
-    _savedContent = serializePlan(_parts);
     _controller.text = _parts[_step];
-    setState(() => _opening = false);
+  }
+
+  /// Keeps [content] — the server's newest draft, [version] of [sessionId] —
+  /// as the phone's copy for the next open.
+  void _keepCopy(String sessionId, int version, String content) {
+    final key = _copyKey;
+    if (key == null) return;
+    final copy = StudyPlanCopy(sessionId: sessionId, version: version, content: content, savedAt: DateTime.now());
+    unawaited(ref.read(studyPlanCacheProvider).write(key, copy));
   }
 
   void _go(int step) {
@@ -99,14 +167,26 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     setState(() => _step = step);
   }
 
-  /// Saves the plan as a new draft when it changed since the last save.
+  /// Saves the plan as a new draft when it changed since the last save, and
+  /// keeps it as the phone's copy. Nothing is saved before the plan's session
+  /// is open: the copy on screen meanwhile is read-only.
   Future<bool> _save() async {
+    if (_opening || _failed) return true;
     _parts[_step] = _controller.text;
     final content = serializePlan(_parts);
     if (content == _savedContent) return true;
     if (content.isEmpty) return true;
     final ok = await _notifier.saveDraft(_type, content);
-    if (ok) _savedContent = content;
+    if (ok) {
+      _savedContent = content;
+      if (mounted) {
+        // The version just saved: saveDraft puts the new draft in the state.
+        final plan = ref.read(documentSessionProvider(_type));
+        final session = plan.currentSession;
+        final version = plan.drafts.fold<int>(0, (v, d) => d.version > v ? d.version : v);
+        if (session != null) _keepCopy(session.id, version, content);
+      }
+    }
     return ok;
   }
 
@@ -261,9 +341,7 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                   ),
                 ),
                 Expanded(
-                  child: _opening
-                      ? const Center(child: CircularProgressIndicator(color: FdColors.navy))
-                      : _failed
+                  child: _failed
                       ? _Failed(
                           onRetry: tracked('study_plan_builder.failed_retry', () {
                             setState(() {
@@ -283,7 +361,13 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
     );
   }
 
+  /// Everything under the header — the step chips, the part's card, the
+  /// warning and the bottom bar — for the plan and its skeleton alike. While
+  /// the plan opens with no copy on the phone the box is a skeleton (canvas
+  /// board 6: grey bars where the text will be, not a spinner); until it is
+  /// open the box is read-only and the bar is dimmed and off.
   Widget _body(AppLocalizations l) {
+    final skeleton = _opening && !_fromCopy;
     final heads = [l.fdPlanQ1Head, l.fdPlanQ2Head, l.fdPlanQ3Head, l.fdPlanQ4Head];
     final marks = [l.fdPlanQ1Mark, l.fdPlanQ2Mark, l.fdPlanQ3Mark, l.fdPlanQ4Mark];
     final hints = [l.fdPlanQ1Hint, l.fdPlanQ2Hint, l.fdPlanQ3Hint, l.fdPlanQ4Hint];
@@ -308,10 +392,10 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                           label: labels[i],
                           state: i == _step
                               ? _ChipState.active
-                              : (i == _step ? _controller.text : _parts[i]).trim().length >= kPlanMinChars
+                              : !skeleton && (i == _step ? _controller.text : _parts[i]).trim().length >= kPlanMinChars
                               ? _ChipState.done
                               : _ChipState.ahead,
-                          onTap: tracked('study_plan_builder.step_chip', () => _go(i)),
+                          onTap: tracked('study_plan_builder.step_chip', skeleton ? null : () => _go(i)),
                         ),
                       ),
                     ],
@@ -344,7 +428,15 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
                         const SizedBox(height: 10),
                         Text(hints[_step], style: fdText(12, FontWeight.w400, FdColors.muted, height: 1.45)),
                         const SizedBox(height: 10),
-                        StudyPlanField(controller: _controller, hint: l.fdPlanHintField, onChanged: () => setState(() {})),
+                        if (skeleton)
+                          StudyPlanFieldSkeleton(label: l.loadingLabel)
+                        else
+                          StudyPlanField(
+                            controller: _controller,
+                            hint: l.fdPlanHintField,
+                            readOnly: _opening,
+                            onChanged: () => setState(() {}),
+                          ),
                         if (_listening) ...[
                           const SizedBox(height: 8),
                           Semantics(
@@ -388,24 +480,27 @@ class _StudyPlanBuilderScreenState extends ConsumerState<StudyPlanBuilderScreen>
             ],
           ),
         ),
-        FdBottomBar(
-          child: Row(
-            children: [
-              _MicButton(
-                listening: _listening,
-                label: _listening ? l.fdPlanDictateStop : l.fdPlanDictate,
-                onTap: tracked('study_plan_builder.mic_button', _busy ? null : _toggleDictation),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: HardButton(
-                  label: _busy ? l.fdPlanFeedbackBusy : l.fdPlanFeedback,
-                  loading: _busy,
-                  onPressed: tracked('study_plan_builder.plan_feedback_busy', _busy ? null : _feedback),
-                  leading: const Lucide(LucideIcons.sparkles, size: 16, color: FdColors.onLime),
+        Opacity(
+          opacity: _opening ? 0.5 : 1,
+          child: FdBottomBar(
+            child: Row(
+              children: [
+                _MicButton(
+                  listening: _listening,
+                  label: _listening ? l.fdPlanDictateStop : l.fdPlanDictate,
+                  onTap: tracked('study_plan_builder.mic_button', _busy || _opening ? null : _toggleDictation),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: HardButton(
+                    label: _busy ? l.fdPlanFeedbackBusy : l.fdPlanFeedback,
+                    loading: _busy,
+                    onPressed: tracked('study_plan_builder.plan_feedback_busy', _busy || _opening ? null : _feedback),
+                    leading: const Lucide(LucideIcons.sparkles, size: 16, color: FdColors.onLime),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -424,6 +519,7 @@ class _MicButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
+    enabled: onTap != null,
     toggled: listening,
     label: label,
     excludeSemantics: true,
@@ -453,7 +549,9 @@ class _StepChip extends StatelessWidget {
   final int number;
   final String label;
   final _ChipState state;
-  final VoidCallback onTap;
+
+  /// Null while the plan's skeleton is shown: there is no part to go to yet.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -464,6 +562,7 @@ class _StepChip extends StatelessWidget {
     };
     return Semantics(
       button: true,
+      enabled: onTap != null,
       selected: state == _ChipState.active,
       child: GestureDetector(
         onTap: tracked('study_plan_builder.step_chip', onTap),
@@ -504,11 +603,20 @@ class _StepChip extends StatelessWidget {
 /// as long as its text is ink (guarded by `text_contrast_test.dart`).
 /// Public only so that test can pump it on its own.
 class StudyPlanField extends StatelessWidget {
-  const StudyPlanField({super.key, required this.controller, required this.hint, required this.onChanged});
+  const StudyPlanField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    required this.onChanged,
+    this.readOnly = false,
+  });
 
   final TextEditingController controller;
   final String hint;
   final VoidCallback onChanged;
+
+  /// While the plan opens from the phone's copy: shown, not yet typed in.
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -525,6 +633,7 @@ class StudyPlanField extends StatelessWidget {
             data: kLightFieldSelection,
             child: TextField(
             controller: controller,
+            readOnly: readOnly,
             onChanged: (_) => onChanged(),
             minLines: 5,
             maxLines: null,
@@ -562,6 +671,52 @@ class StudyPlanField extends StatelessWidget {
   }
 }
 
+/// The text box while the plan opens with no copy on the phone (canvas board
+/// 6, "Study Plan ochilmoqda"): white with an ink border, and three grey bars
+/// where the text will be — the screen keeps its shape instead of a spinner.
+/// Public only so the tests can find it.
+class StudyPlanFieldSkeleton extends StatelessWidget {
+  const StudyPlanFieldSkeleton({super.key, required this.label});
+
+  /// What a screen reader says for it.
+  final String label;
+
+  /// The bars' widths, as fractions of the box's inside.
+  static const List<double> bars = [0.92, 0.78, 0.55];
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(minHeight: 150),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: FdColors.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: FdColors.ink, width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < bars.length; i++) ...[
+              if (i > 0) const SizedBox(height: 10),
+              FractionallySizedBox(
+                widthFactor: bars[i],
+                child: Container(
+                  height: 10,
+                  decoration: BoxDecoration(color: FdColors.tint, borderRadius: BorderRadius.circular(5)),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _Failed extends StatelessWidget {
   const _Failed({required this.onRetry});
 
@@ -576,18 +731,38 @@ class _Failed extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // On the page, not on a card: white (canvas board 7). It was ink,
+            // dark on the dark-blue page — the message could not be read.
             Text(
               l.fdPlanLoadFailed,
               textAlign: TextAlign.center,
-              style: fdText(13, FontWeight.w700, FdColors.ink, height: 1.4),
+              style: fdText(13, FontWeight.w700, FdColors.onPage, height: 1.4),
             ),
             const SizedBox(height: 14),
-            HardChoice(
+            // Board 7's button: as wide as its label, centred by the column,
+            // with a 3px hard shadow (no `alignment`: that would fill the row).
+            Semantics(
+              button: true,
               label: l.commonRetry,
-              selected: false,
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              onTap: tracked('study_plan_builder.failed_retry', onRetry),
+              excludeSemantics: true,
+              child: GestureDetector(
+                onTap: tracked('study_plan_builder.failed_retry', onRetry),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: FdColors.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: FdColors.ink, width: 1.5),
+                    boxShadow: const [BoxShadow(color: FdColors.ink, offset: Offset(3, 3))],
+                  ),
+                  child: Center(
+                    widthFactor: 1,
+                    child: Text(l.commonRetry, style: fdText(14, FontWeight.w800, FdColors.ink)),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
