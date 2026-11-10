@@ -260,6 +260,7 @@
   "outOf100": "/ 100",
   "completedShiftsLabel": "Shifts completed",
   "ratingsCount": "Ratings · {n}",
+  "ratingsLabel": "Ratings",
   "languagesTitle": "Languages",
   "nativeLanguage": "{language} · native",
   "koreanTopik": "{language} · TOPIK {level}",

@@ -60,7 +60,8 @@ class ShiftDetailScreen extends ConsumerWidget {
             onAction: onBack,
             onBack: onBack,
           ),
-        AsyncError(:final error) => _Message(
+        // While «Qayta urinish» runs, the spinner.
+        AsyncError(:final error) when !async.isLoading => _Message(
             icon: error is OfflineException ? HiIcons.wifiOff : HiIcons.triangleAlert,
             title: error is OfflineException ? l10n.offlineTitle : l10n.errorGeneric,
             action: l10n.retry,

@@ -52,6 +52,9 @@ class ShiftActionException implements Exception {
 /// No connection to the server.
 class OfflineException implements Exception {
   const OfflineException();
+
+  @override
+  String toString() => 'OfflineException';
 }
 
 /// Result of taking a shift.

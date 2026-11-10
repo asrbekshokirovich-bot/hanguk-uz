@@ -98,7 +98,8 @@ class _Ba4WorkersScreenState extends ConsumerState<Ba4WorkersScreen> {
                 const SizedBox(height: 12),
                 HiSegmentedTabs(
                   labels: const [Ko.favorites, Ko.recentWorkers],
-                  counts: ['${favorites.length}', '${all.length}'],
+                  // No counts until the list has loaded: 0 would not be true.
+                  counts: loaded.hasValue ? ['${favorites.length}', '${all.length}'] : null,
                   current: tab,
                   onSelect: ref.read(workersTabProvider.notifier).select,
                   semanticsLabel: Ko.workersTabs,
@@ -117,7 +118,17 @@ class _Ba4WorkersScreenState extends ConsumerState<Ba4WorkersScreen> {
               child: ClipRect(
                 child: loaded.isLoading && !loaded.hasValue
                     ? const Center(child: CircularProgressIndicator(color: HiColors.lime))
-                    : shown.isEmpty
+                    : loaded.hasError && !loaded.hasValue
+                        ? SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(18, 40, 22, 20),
+                            child: Center(
+                              child: EmployerLoadError(
+                                error: loaded.error!,
+                                onRetry: () => reloadAfterError(ref, businessWorkersProvider),
+                              ),
+                            ),
+                          )
+                        : shown.isEmpty
                         ? Padding(
                             padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
                             child: HiText(

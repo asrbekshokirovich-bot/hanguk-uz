@@ -89,7 +89,8 @@ class _FeedBody extends ConsumerWidget {
       body = RefreshIndicator(
         color: HiColors.ink,
         backgroundColor: HiColors.lime,
-        onRefresh: () => ref.refresh(feedProvider.future),
+        // A failure shows the error state instead of the list.
+        onRefresh: () => ref.refresh(feedProvider.future).then<void>((_) {}, onError: (Object _) {}),
         child: ListView.separated(
           padding: const EdgeInsets.fromLTRB(18, 0, 22, 24),
           itemCount: shifts.length,

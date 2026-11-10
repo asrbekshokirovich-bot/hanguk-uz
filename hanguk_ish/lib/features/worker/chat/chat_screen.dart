@@ -17,6 +17,7 @@ import '../../../l10n/gen/worker_l10n.dart';
 import '../my_shifts/my_shifts_providers.dart';
 import '../my_shifts/my_shifts_screen.dart';
 import '../settings/app_language.dart';
+import '../load_error.dart';
 import '../shift/shift_widgets.dart';
 
 /// One application's chat (A10).
@@ -76,7 +77,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final lang = ref.watch(appLanguageProvider).code;
     final now = ref.watch(clockProvider)();
     final app = ref.watch(myShiftProvider(widget.applicationId)).value;
-    final messages = ref.watch(chatProvider(widget.applicationId)).value ?? const <ChatMessage>[];
+    final loaded = ref.watch(chatProvider(widget.applicationId));
+    final messages = loaded.value ?? const <ChatMessage>[];
     final top = HiInsets.top(context, 56);
     final bottom = HiInsets.bottom(context, 30);
     final showNote = lang != 'ko';
@@ -157,7 +159,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Expanded(
             child: Semantics(
               label: l10n.messages,
-              child: messages.isEmpty
+              child: !loaded.hasValue && loaded.isLoading
+                  ? const Center(child: CircularProgressIndicator(color: HiColors.lime))
+                  : !loaded.hasValue && loaded.hasError
+                  ? SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                      child: WorkerLoadError(
+                        error: loaded.error!,
+                        onRetry: () => ref.invalidate(chatProvider(widget.applicationId)),
+                      ),
+                    )
+                  : messages.isEmpty
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 40),

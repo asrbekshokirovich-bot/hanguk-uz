@@ -19,6 +19,7 @@ import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../ko.dart';
 import '../providers.dart';
+import '../widgets.dart';
 
 /// BA2 «근무 올리기»: a new shift from a template — or, with [editShiftId],
 /// the same form to change one (BA3 «수정»). With [inviteWorkerId] (BA4
@@ -192,33 +193,40 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     final templates = ref.read(templatesProvider).value ?? const [];
     final template = templates.where((t) => t.id == templateId).firstOrNull;
     if (template == null) return;
-    final business = await ref.read(currentBusinessProvider.future);
-    await ref.read(employerRepositoryProvider).saveTemplate(
-          business.id,
-          ShiftTemplate(
-            id: template.id,
-            title: _title,
-            duties: _duties,
-            dress: _dress,
-            address: _address,
-            startMinute: template.startMinute,
-            endMinute: template.endMinute,
-            hourlyWage: template.hourlyWage,
-            slots: template.slots,
-          ),
-        );
-    ref.invalidate(templatesProvider);
-    if (mounted) (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(const SnackBar(content: Text(Ko.templateSaved)));
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final business = await ref.read(currentBusinessProvider.future);
+      await ref.read(employerRepositoryProvider).saveTemplate(
+            business.id,
+            ShiftTemplate(
+              id: template.id,
+              title: _title,
+              duties: _duties,
+              dress: _dress,
+              address: _address,
+              startMinute: template.startMinute,
+              endMinute: template.endMinute,
+              hourlyWage: template.hourlyWage,
+              slots: template.slots,
+            ),
+          );
+      ref.invalidate(templatesProvider);
+      (messenger..hideCurrentSnackBar()).showSnackBar(const SnackBar(content: Text(Ko.templateSaved)));
+    } on Object catch (error) {
+      // The form keeps the new texts; only the template stays as it was.
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+    }
   }
 
-  Future<void> _submit(int minimum) async {
+  /// [minimum] is null while it is not known; the database checks it anyway.
+  Future<void> _submit(int? minimum) async {
     if (_busy) return;
     final messenger = ScaffoldMessenger.of(context);
     if (_title.trim().isEmpty) {
       await _editContent();
       return;
     }
-    if (_wageValue < minimum) {
+    if (minimum != null && _wageValue < minimum) {
       (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.minimumWageLow(minimum))));
       return;
     }
@@ -266,9 +274,13 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
   @override
   Widget build(BuildContext context) {
     final now = ref.watch(clockProvider)();
-    final templates = ref.watch(templatesProvider).value;
+    final templatesLoad = ref.watch(templatesProvider);
+    // Templates only fill the form in: without them (offline) it starts empty.
+    final templates = templatesLoad.value ??
+        (templatesLoad.hasError && !templatesLoad.isLoading ? const <ShiftTemplate>[] : null);
     final editId = widget.editShiftId;
-    final editing = editId == null ? null : ref.watch(employerShiftProvider(editId)).value;
+    final editLoad = editId == null ? null : ref.watch(employerShiftProvider(editId));
+    final editing = editLoad?.value;
     if (!_ready) {
       if (editId != null && editing != null) {
         _useShift(editing);
@@ -277,29 +289,78 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
         _day = _todayDate(now);
         if (templates.isNotEmpty) {
           _useTemplate(templates.first, now);
+          _ready = true;
         } else {
-          _wage.text = ThousandsFormatter.format('${ref.read(minimumWageProvider(_day)).value ?? 0}');
+          // No template yet: the wage starts at the legal minimum once it is
+          // known, and empty when it cannot be.
+          final minimum = ref.watch(minimumWageProvider(_day));
+          if (!minimum.isLoading || minimum.hasValue) {
+            final value = minimum.value ?? 0;
+            if (value > 0) _wage.text = ThousandsFormatter.format('$value');
+            _ready = true;
+          }
         }
-        _ready = true;
       }
     }
     final top = HiInsets.top(context, 56);
     final bottomPad = HiInsets.bottom(context, 30);
+    // The shift to edit did not load, or is gone.
+    final cannotEdit = !_ready && editLoad != null && !editLoad.isLoading && (editLoad.hasError || editLoad.hasValue);
 
     return Scaffold(
       backgroundColor: HiColors.navy,
       resizeToAvoidBottomInset: false,
       body: HiBackdrop(
-        child: !_ready
-            ? const Center(child: CircularProgressIndicator(color: HiColors.lime))
-            : _form(context, now, templates ?? const [], top, bottomPad),
+        child: _ready
+            ? _form(context, now, templates ?? const [], top, bottomPad)
+            : cannotEdit
+                ? _cannotEdit(editLoad, top)
+                : const Center(child: CircularProgressIndicator(color: HiColors.lime)),
       ),
     );
   }
 
+  Widget _cannotEdit(AsyncValue<EmployerShift?> loaded, double top) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(18, top, 18, 0),
+          child: Row(
+            children: [
+              HiGlassIconButton(
+                icon: HiIcons.x,
+                size: 44,
+                radius: 14,
+                iconSize: 22,
+                semanticsLabel: Ko.close,
+                onTap: widget.onClose,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 44),
+              child: loaded.hasError
+                  ? EmployerLoadError(
+                      error: loaded.error!,
+                      onRetry: () => reloadAfterError(ref, employerShiftProvider(widget.editShiftId!)),
+                    )
+                  : const HiStatusMessage(icon: HiIcons.info, title: Ko.shiftNotFound, text: ''),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _form(BuildContext context, DateTime now, List<ShiftTemplate> templates, double top, double bottomPad) {
-    final minimum = ref.watch(minimumWageProvider(_day)).value ?? 0;
-    final wageOk = _wageValue >= minimum;
+    // Unknown (not loaded, or no row for the year) shows no hint.
+    final minimumValue = ref.watch(minimumWageProvider(_day)).value;
+    final minimum = minimumValue != null && minimumValue > 0 ? minimumValue : null;
+    final wageOk = minimum == null || _wageValue >= minimum;
     final today = _todayDate(now);
     final dayIndex = _day.difference(today).inDays;
     final labelStyle = hiStyle(15, FontWeight.w700, color: HiColors.textSoft);
@@ -459,21 +520,23 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                           HiText(Ko.wage, style: labelStyle),
                           const SizedBox(height: 8),
                           _WageField(controller: _wage, onChanged: () => setState(() {})),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              HiIcon(wageOk ? HiIcons.check : HiIcons.x,
-                                  size: 14, strokeWidth: 3, color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
-                              const SizedBox(width: 5),
-                              Flexible(
-                                child: HiText(
-                                  wageOk ? Ko.minimumWageOk(minimum) : Ko.minimumWageLow(minimum),
-                                  style: hiStyle(13, FontWeight.w700,
-                                      color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
+                          if (minimum != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                HiIcon(wageOk ? HiIcons.check : HiIcons.x,
+                                    size: 14, strokeWidth: 3, color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: HiText(
+                                    wageOk ? Ko.minimumWageOk(minimum) : Ko.minimumWageLow(minimum),
+                                    style: hiStyle(13, FontWeight.w700,
+                                        color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

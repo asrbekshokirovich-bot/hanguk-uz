@@ -7,6 +7,7 @@ import '../core/format/business_number.dart';
 import '../core/format/phone.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/live_updates.dart';
 import '../data/repositories/employer_repository.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
@@ -22,6 +23,7 @@ import '../features/employer/providers.dart';
 import '../features/employer/report/ba5_report_screen.dart';
 import '../features/employer/shell/employer_shell.dart';
 import '../features/employer/shift/ba3_shift_screen.dart';
+import '../features/employer/widgets.dart';
 import '../features/employer/workers/ba4_workers_screen.dart';
 import 'text_scale.dart';
 
@@ -58,32 +60,25 @@ void _say(BuildContext context, String text) => (ScaffoldMessenger.of(context)..
 
 /// After signing in: an owner with a business opens BA1; a new owner's
 /// [businessNumber] is checked with 국세청 and registered first. A refusal
-/// goes back to BA0 with the reason.
-Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref, {String? businessNumber}) async {
+/// or a lost connection goes back to BA0 with the reason; «시작하기» there
+/// continues from here, signed in already.
+Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref, {required String businessNumber}) async {
   final repo = ref.read(employerRepositoryProvider);
   try {
     final businesses = await repo.businesses();
-    if (businesses.isEmpty) {
-      if (businessNumber == null) {
-        if (context.mounted) context.go(EmployerRoutes.login);
-        return;
-      }
-      await repo.registerBusiness(businessNumber);
-    }
+    if (businesses.isEmpty) await repo.registerBusiness(businessNumber);
     ref.invalidate(businessesProvider);
     if (context.mounted) context.go(EmployerRoutes.home);
   } catch (error) {
     if (!context.mounted) return;
-    if (businessNumber == null) {
-      // A launch while offline: BA1 shows the error and retries.
-      context.go(EmployerRoutes.home);
-      return;
-    }
     context.go(EmployerRoutes.login);
     _say(context, Ko.error(error));
   }
 }
 
+/// The first frame of a launch with a backend: the brand on navy while the
+/// session and the businesses are checked. Offline, it says so and tries
+/// again on «다시 시도».
 class _OwnerStartGate extends ConsumerStatefulWidget {
   const _OwnerStartGate();
 
@@ -92,24 +87,50 @@ class _OwnerStartGate extends ConsumerStatefulWidget {
 }
 
 class _OwnerStartGateState extends ConsumerState<_OwnerStartGate> {
+  Object? _error;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _continue());
+  }
+
+  Future<void> _continue() async {
+    if (!mounted) return;
+    if (ref.read(authRepositoryProvider).userId == null) {
+      context.go(EmployerRoutes.login);
+      return;
+    }
+    setState(() => _error = null);
+    try {
+      final businesses = await ref.read(employerRepositoryProvider).businesses();
       if (!mounted) return;
-      if (ref.read(authRepositoryProvider).userId == null) {
-        context.go(EmployerRoutes.login);
-      } else {
-        continueOwnerAfterSignIn(context, ref);
-      }
-    });
+      ref.invalidate(businessesProvider);
+      // No business yet: the registration did not finish; BA0 asks again.
+      context.go(businesses.isEmpty ? EmployerRoutes.login : EmployerRoutes.home);
+    } catch (error) {
+      if (mounted) setState(() => _error = error);
+    }
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        backgroundColor: HiColors.navy,
-        body: HiBackdrop(glow: HiGlow.entry, child: Center(child: HiBrandTile())),
-      );
+  Widget build(BuildContext context) {
+    final error = _error;
+    return Scaffold(
+      backgroundColor: HiColors.navy,
+      body: HiBackdrop(
+        glow: HiGlow.entry,
+        child: Center(
+          child: error == null
+              ? const HiBrandTile()
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: EmployerLoadError(error: error, onRetry: _continue),
+                ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Routes of the employer app.
@@ -231,6 +252,10 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  // Signed out from elsewhere (the session ended): back to sign-in.
+  ref.listen(authUserProvider, (previous, next) {
+    if (next case AsyncData(value: null) when previous?.value != null) router.go(EmployerRoutes.login);
+  });
   ref.onDispose(router.dispose);
   return router;
 });

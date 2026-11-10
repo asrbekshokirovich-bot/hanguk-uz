@@ -76,15 +76,21 @@ class Ba5ReportScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _exportCsv(WidgetRef ref, BusinessReport report) async {
-    final business = await ref.read(currentBusinessProvider.future);
+  Future<void> _exportCsv(BuildContext context, WidgetRef ref, BusinessReport report) async {
+    final messenger = ScaffoldMessenger.of(context);
     final from = report.from;
-    await ref.read(fileSharerProvider).share(
-          bytes: Uint8List.fromList(utf8.encode(reportCsv(report))),
-          fileName: 'hanguk-ish-report-${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}.csv',
-          mimeType: 'text/csv',
-          text: Ko.csvTitle(business.name, report.from, report.to),
-        );
+    try {
+      final business = await ref.read(currentBusinessProvider.future);
+      await ref.read(fileSharerProvider).share(
+            bytes: Uint8List.fromList(utf8.encode(reportCsv(report))),
+            fileName:
+                'hanguk-ish-report-${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}.csv',
+            mimeType: 'text/csv',
+            text: Ko.csvTitle(business.name, report.from, report.to),
+          );
+    } on Object catch (error) {
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+    }
   }
 
   @override
@@ -114,7 +120,7 @@ class Ba5ReportScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    _CsvButton(onTap: report == null || report.rows.isEmpty ? null : () => _exportCsv(ref, report)),
+                    _CsvButton(onTap: report == null || report.rows.isEmpty ? null : () => _exportCsv(context, ref, report)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -128,7 +134,17 @@ class Ba5ReportScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 14),
-          if (report == null)
+          if (report == null && loaded.hasError && !loaded.isLoading)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
+              child: Center(
+                child: EmployerLoadError(
+                  error: loaded.error!,
+                  onRetry: () => reloadAfterError(ref, reportProvider(period)),
+                ),
+              ),
+            )
+          else if (report == null)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 60),
               child: Center(child: CircularProgressIndicator(color: HiColors.lime)),

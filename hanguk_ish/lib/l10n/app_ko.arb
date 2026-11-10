@@ -260,6 +260,7 @@
   "outOf100": "/ 100",
   "completedShiftsLabel": "완료한 근무",
   "ratingsCount": "평가 · {n}개",
+  "ratingsLabel": "평가",
   "languagesTitle": "언어",
   "nativeLanguage": "{language} · 모국어",
   "koreanTopik": "{language} · TOPIK {level}",

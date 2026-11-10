@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 
 import '../../core/time/clock.dart';
 import '../../core/time/kst.dart';
@@ -116,7 +117,20 @@ final employerUnreadProvider = Provider.autoDispose<int>(
 
 /// After a change to shifts: everything that shows them reloads.
 void refreshShifts(WidgetRef ref, [String? shiftId]) {
+  _retryBusinesses(ref);
   ref.invalidate(homeShiftsProvider);
   if (shiftId != null) ref.invalidate(employerShiftProvider(shiftId));
   ref.invalidate(reportProvider);
+}
+
+/// «다시 시도» on a screen that could not load [provider].
+void reloadAfterError(WidgetRef ref, ProviderOrFamily provider) {
+  _retryBusinesses(ref);
+  ref.invalidate(provider);
+}
+
+// Every screen waits on the owner's businesses, which are kept for the whole
+// session — a failure there (offline at start) would stay until a restart.
+void _retryBusinesses(WidgetRef ref) {
+  if (ref.read(businessesProvider).hasError) ref.invalidate(businessesProvider);
 }

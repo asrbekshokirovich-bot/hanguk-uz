@@ -1199,6 +1199,10 @@
       }
     }
   },
+  "ratingsLabel": "Baholar",
+  "@ratingsLabel": {
+    "description": "A11: baholar soni hali yuklanmaganda (son o'rniga)."
+  },
   "languagesTitle": "Tillar",
   "@languagesTitle": {
     "description": "A11: tillar kartasi."

@@ -19,6 +19,7 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../settings/app_language.dart';
+import '../load_error.dart';
 import '../shift/shift_widgets.dart';
 import 'unread.dart';
 
@@ -41,8 +42,9 @@ class NotificationActions {
   final VoidCallback earnings;
 }
 
-/// A12 «Bildirishnomalar». Shows them as they were when opened, then marks
-/// them read (the bell's dot goes away).
+/// A12 «Bildirishnomalar». Unread ones keep the unread look while the screen
+/// is open and are marked read (the bell's dot goes away); new ones appear
+/// as they arrive.
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key, required this.onBack, required this.actions});
 
@@ -54,28 +56,30 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  List<HiNotification>? _items;
-  Object? _error;
+  /// Unread when they reached this screen: they keep the unread look while
+  /// it is open, though the server has them read by then.
+  final Set<String> _fresh = {};
+  bool _marking = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final repo = ref.read(accountRepositoryProvider);
-    try {
-      final items = await repo.notifications();
-      if (!mounted) return;
-      setState(() => _items = items);
-      if (items.any((n) => !n.read)) {
-        await repo.markNotificationsRead();
+  // Unread ones (when the screen opens, and any arriving while it is open)
+  // are marked read on the server. A failure leaves them unread for next
+  // time: the bell keeps its dot.
+  void _markRead(List<HiNotification> items) {
+    final unread = [for (final n in items) if (!n.read) n.id];
+    _fresh.addAll(unread);
+    if (unread.isEmpty || _marking) return;
+    _marking = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        if (!mounted) return;
+        await ref.read(accountRepositoryProvider).markNotificationsRead();
         if (mounted) ref.invalidate(notificationsProvider);
+      } on Object {
+        // Retried when the list next changes.
+      } finally {
+        _marking = false;
       }
-    } on Object catch (error) {
-      if (mounted) setState(() => _error = error);
-    }
+    });
   }
 
   @override
@@ -83,7 +87,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final l10n = WorkerL10n.of(context);
     final lang = ref.watch(appLanguageProvider).code;
     final now = ref.watch(clockProvider)();
-    final items = _items;
+    final loaded = ref.watch(notificationsProvider);
+    final items = loaded.value;
+    if (items != null) _markRead(items);
 
     final children = <Widget>[];
     if (items != null && items.isNotEmpty) {
@@ -104,7 +110,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         } else {
           children.add(const SizedBox(height: 12));
         }
-        children.add(_NotificationCard(n: n, lang: lang, now: now, actions: widget.actions));
+        children.add(_NotificationCard(
+          n: n,
+          fresh: !n.read || _fresh.contains(n.id),
+          lang: lang,
+          now: now,
+          actions: widget.actions,
+        ));
       }
     }
 
@@ -135,9 +147,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 18, 22, 0),
               child: items == null
-                  ? (_error == null
-                      ? const SizedBox(height: 200)
-                      : HiStatusMessage(icon: HiIcons.triangleAlert, title: l10n.errorGeneric, text: ''))
+                  ? (loaded.hasError && !loaded.isLoading
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 80),
+                          child: WorkerLoadError(
+                            error: loaded.error!,
+                            onRetry: () => ref.invalidate(notificationsProvider),
+                          ),
+                        )
+                      : const SizedBox(height: 200))
                   : items.isEmpty
                       ? Padding(
                           padding: const EdgeInsets.only(top: 80),
@@ -153,9 +171,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({required this.n, required this.lang, required this.now, required this.actions});
+  const _NotificationCard({
+    required this.n,
+    required this.fresh,
+    required this.lang,
+    required this.now,
+    required this.actions,
+  });
 
   final HiNotification n;
+
+  /// Unread when it reached the screen.
+  final bool fresh;
   final String lang;
   final DateTime now;
   final NotificationActions actions;
@@ -163,7 +190,6 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = WorkerL10n.of(context);
-    final fresh = !n.read;
     final range = n.startsAt != null && n.endsAt != null ? HiDates.timeRange(n.startsAt!, n.endsAt!) : '';
     final business = n.businessName(lang);
     final (HiIconData icon, Color tile, Color iconColor, double stroke) = switch (n.kind) {

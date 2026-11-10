@@ -21,6 +21,7 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../feed/feed_controller.dart';
+import '../load_error.dart';
 import '../my_shifts/my_shifts_providers.dart';
 import '../my_shifts/my_shifts_screen.dart';
 import '../profile/worker_profile_draft.dart';
@@ -317,11 +318,17 @@ class AtWorkScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = WorkerL10n.of(context);
     final lang = ref.watch(appLanguageProvider).code;
-    final app = ref.watch(myShiftProvider(applicationId)).value;
+    final loaded = ref.watch(myShiftProvider(applicationId));
+    final app = loaded.value;
     final now = _now(ref);
     final bottom = HiInsets.bottom(context, 30);
     if (app == null) {
-      return const Scaffold(backgroundColor: HiColors.navy, body: HiBackdrop(child: SizedBox.expand()));
+      return _NoShift(
+        loaded: loaded,
+        closeIcon: HiIcons.chevronDown,
+        onClose: onClose,
+        onRetry: () => ref.invalidate(myShiftProvider(applicationId)),
+      );
     }
     final shift = app.shift;
     final since = app.checkInAt ?? shift.startsAt;
@@ -589,7 +596,8 @@ class ShiftResultScreen extends ConsumerWidget {
     final l10n = WorkerL10n.of(context);
     final lang = ref.watch(appLanguageProvider).code;
     final now = ref.watch(clockProvider)();
-    final app = ref.watch(myShiftProvider(applicationId)).value;
+    final loaded = ref.watch(myShiftProvider(applicationId));
+    final app = loaded.value;
     final name = ref.watch(workerProfileDraftProvider.select((d) => d.firstName.trim()));
     final bottom = HiInsets.bottom(context, 30);
     final rated = app?.myStars != null;
@@ -663,6 +671,14 @@ class ShiftResultScreen extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 22, 22, 0),
                       child: _ResultCard(app: app, lang: lang, now: now),
+                    )
+                  else if (loaded.hasError && !loaded.isLoading)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 32, 22, 0),
+                      child: WorkerLoadError(
+                        error: loaded.error!,
+                        onRetry: () => ref.invalidate(myShiftProvider(applicationId)),
+                      ),
                     ),
                 ],
               ),
@@ -852,7 +868,8 @@ class _RateBusinessScreenState extends ConsumerState<RateBusinessScreen> {
     final l10n = WorkerL10n.of(context);
     final lang = ref.watch(appLanguageProvider).code;
     final now = ref.watch(clockProvider)();
-    final app = ref.watch(myShiftProvider(widget.applicationId)).value;
+    final loaded = ref.watch(myShiftProvider(widget.applicationId));
+    final app = loaded.value;
     final bottom = HiInsets.bottom(context, 30);
     final words = [l10n.ratingHint, l10n.rating1, l10n.rating2, l10n.rating3, l10n.rating4, l10n.rating5];
     final tagLabels = {
@@ -903,6 +920,14 @@ class _RateBusinessScreenState extends ConsumerState<RateBusinessScreen> {
                       ],
                     ),
                   ),
+                  if (app == null && loaded.hasError && !loaded.isLoading)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 24, 22, 0),
+                      child: WorkerLoadError(
+                        error: loaded.error!,
+                        onRetry: () => ref.invalidate(myShiftProvider(widget.applicationId)),
+                      ),
+                    ),
                   if (app != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 18, 22, 0),
@@ -1001,3 +1026,56 @@ class _RateBusinessScreenState extends ConsumerState<RateBusinessScreen> {
   }
 }
 
+
+/// An A07 screen without its shift: still loading, not loaded (offline), or
+/// gone. The close button stays where it always is.
+class _NoShift extends StatelessWidget {
+  const _NoShift({required this.loaded, required this.closeIcon, required this.onClose, required this.onRetry});
+
+  final AsyncValue<MyShift?> loaded;
+  final HiIconData closeIcon;
+  final VoidCallback onClose;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = WorkerL10n.of(context);
+    final Widget message;
+    if (loaded.hasValue && !loaded.hasError) {
+      message = HiStatusMessage(icon: HiIcons.info, title: l10n.shiftNotFound, text: '');
+    } else if (loaded.isLoading) {
+      message = const CircularProgressIndicator(color: HiColors.lime);
+    } else {
+      message = WorkerLoadError(error: loaded.error!, onRetry: onRetry);
+    }
+    return Scaffold(
+      backgroundColor: HiColors.navy,
+      body: HiBackdrop(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(18, HiInsets.top(context, 56), 18, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: HiGlassIconButton(
+                  icon: closeIcon,
+                  size: 44,
+                  radius: 14,
+                  iconSize: 22,
+                  semanticsLabel: l10n.close,
+                  onTap: onClose,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(padding: const EdgeInsets.fromLTRB(24, 0, 24, 44), child: message),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

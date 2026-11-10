@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/links/directions.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/live_updates.dart';
 import '../data/models/my_shift.dart';
 import '../data/models/shift.dart';
 import '../design/theme.dart';
@@ -12,6 +13,7 @@ import '../design/tokens.dart';
 import '../design/widgets/backdrop.dart';
 import '../design/widgets/brand.dart';
 import '../features/worker/feed/feed_screen.dart';
+import '../features/worker/load_error.dart';
 import '../features/worker/chat/chat_screen.dart';
 import '../features/worker/earnings/earnings_screen.dart';
 import '../features/worker/map/map_screen.dart';
@@ -108,26 +110,31 @@ final workerInitialLocationProvider = Provider<String>(
   (ref) => ref.watch(backendConfigProvider).isConfigured ? WorkerRoutes.start : WorkerRoutes.login,
 );
 
-/// After signing in: the saved profile opens the feed, a new account fills
-/// A02 first.
-Future<void> continueAfterSignIn(BuildContext context, WidgetRef ref) async {
-  WorkerProfileDraft? saved;
-  try {
-    saved = await ref.read(workerProfileRepositoryProvider).load();
-  } on Exception {
-    saved = null;
-  }
-  if (!context.mounted) return;
-  if (saved == null) {
-    context.go(WorkerRoutes.profileName);
-    return;
-  }
+/// Where a signed-in worker goes: the feed with the saved profile, A02 for a
+/// new account. Throws when the profile could not be loaded (offline).
+Future<String> _signedInLocation(WidgetRef ref) async {
+  final saved = await ref.read(workerProfileRepositoryProvider).load();
+  if (saved == null) return WorkerRoutes.profileName;
   ref.read(workerProfileDraftProvider.notifier).replace(saved);
-  context.go(WorkerRoutes.home);
+  return WorkerRoutes.home;
+}
+
+/// After signing in: the saved profile opens the feed, a new account fills
+/// A02 first. When the profile does not load, the start screen says why and
+/// tries again — never A02, which would replace a saved profile.
+Future<void> continueAfterSignIn(BuildContext context, WidgetRef ref) async {
+  String location;
+  try {
+    location = await _signedInLocation(ref);
+  } on Object {
+    location = WorkerRoutes.start;
+  }
+  if (context.mounted) context.go(location);
 }
 
 /// The first frame of a launch with a backend: the brand on navy while the
-/// session and profile are checked.
+/// session and profile are checked. Offline, it says so and tries again on
+/// «Qayta urinish».
 class _StartGate extends ConsumerStatefulWidget {
   const _StartGate();
 
@@ -136,24 +143,47 @@ class _StartGate extends ConsumerStatefulWidget {
 }
 
 class _StartGateState extends ConsumerState<_StartGate> {
+  Object? _error;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (ref.read(authRepositoryProvider).userId == null) {
-        context.go(WorkerRoutes.login);
-      } else {
-        continueAfterSignIn(context, ref);
-      }
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _continue());
+  }
+
+  Future<void> _continue() async {
+    if (!mounted) return;
+    if (ref.read(authRepositoryProvider).userId == null) {
+      context.go(WorkerRoutes.login);
+      return;
+    }
+    setState(() => _error = null);
+    try {
+      final location = await _signedInLocation(ref);
+      if (mounted) context.go(location);
+    } on Object catch (error) {
+      if (mounted) setState(() => _error = error);
+    }
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        backgroundColor: HiColors.navy,
-        body: HiBackdrop(glow: HiGlow.entry, child: Center(child: HiBrandTile())),
-      );
+  Widget build(BuildContext context) {
+    final error = _error;
+    return Scaffold(
+      backgroundColor: HiColors.navy,
+      body: HiBackdrop(
+        glow: HiGlow.entry,
+        child: Center(
+          child: error == null
+              ? const HiBrandTile()
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: WorkerLoadError(error: error, onRetry: _continue),
+                ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Routes of the worker app.
@@ -353,6 +383,10 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  // Signed out from elsewhere (the session ended): back to sign-in.
+  ref.listen(authUserProvider, (previous, next) {
+    if (next case AsyncData(value: null) when previous?.value != null) router.go(WorkerRoutes.login);
+  });
   ref.onDispose(router.dispose);
   return router;
 });

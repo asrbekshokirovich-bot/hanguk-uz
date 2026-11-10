@@ -54,7 +54,7 @@ class Ba1HomeScreen extends ConsumerWidget {
         onRefresh: () async {
           refreshShifts(ref);
           ref.invalidate(employerNotificationsProvider);
-          await ref.read(homeShiftsProvider.future);
+          await refreshOrSay(context, ref.read(homeShiftsProvider.future));
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -93,51 +93,64 @@ class Ba1HomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            if (attention != null) ...[
-              const SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: _AttentionCard(shift: attention, now: now, onOpen: () => actions.openShift(attention.id)),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-              child: _SummaryBand(shifts: live, now: now),
-            ),
-            const SizedBox(height: 18),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-              child: Semantics(header: true, child: HiText(Ko.today, style: hiStyle(17, FontWeight.w800))),
-            ),
-            const SizedBox(height: 10),
             if (shifts.isLoading && !shifts.hasValue)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
                 child: Center(child: CircularProgressIndicator(color: HiColors.lime)),
               )
-            else if (today.isEmpty)
+            else if (shifts.hasError && !shifts.hasValue)
+              // Not an empty day: the counts and the list are unknown.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 48, 22, 0),
+                child: Center(
+                  child: EmployerLoadError(
+                    error: shifts.error!,
+                    onRetry: () => reloadAfterError(ref, homeShiftsProvider),
+                  ),
+                ),
+              )
+            else ...[
+              if (attention != null) ...[
+                const SizedBox(height: 14),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
+                  child: _AttentionCard(shift: attention, now: now, onOpen: () => actions.openShift(attention.id)),
+                ),
+              ],
+              const SizedBox(height: 14),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: _EmptyToday(onCreate: actions.create),
-              )
-            else
-              for (final (i, s) in today.indexed)
-                Padding(
-                  padding: EdgeInsets.fromLTRB(18, i == 0 ? 0 : 10, 22, 0),
-                  child: ShiftRow(shift: s, now: now, onTap: () => actions.openShift(s.id)),
-                ),
-            if (upcoming.isNotEmpty) ...[
+                child: _SummaryBand(shifts: live, now: now),
+              ),
               const SizedBox(height: 18),
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 22, 10),
-                child: Semantics(header: true, child: HiText(Ko.upcoming, style: hiStyle(17, FontWeight.w800))),
+                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
+                child: Semantics(header: true, child: HiText(Ko.today, style: hiStyle(17, FontWeight.w800))),
               ),
-              for (final (i, s) in upcoming.indexed)
+              const SizedBox(height: 10),
+              if (today.isEmpty)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(18, i == 0 ? 0 : 10, 22, 0),
-                  child: ShiftRow(shift: s, now: now, showDay: true, onTap: () => actions.openShift(s.id)),
+                  padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
+                  child: _EmptyToday(onCreate: actions.create),
+                )
+              else
+                for (final (i, s) in today.indexed)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(18, i == 0 ? 0 : 10, 22, 0),
+                    child: ShiftRow(shift: s, now: now, onTap: () => actions.openShift(s.id)),
+                  ),
+              if (upcoming.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 22, 10),
+                  child: Semantics(header: true, child: HiText(Ko.upcoming, style: hiStyle(17, FontWeight.w800))),
                 ),
+                for (final (i, s) in upcoming.indexed)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(18, i == 0 ? 0 : 10, 22, 0),
+                    child: ShiftRow(shift: s, now: now, showDay: true, onTap: () => actions.openShift(s.id)),
+                  ),
+              ],
             ],
           ],
         ),

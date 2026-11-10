@@ -260,6 +260,7 @@
   "outOf100": "/ 100",
   "completedShiftsLabel": "Выполнено смен",
   "ratingsCount": "Оценки · {n}",
+  "ratingsLabel": "Оценки",
   "languagesTitle": "Языки",
   "nativeLanguage": "{language} · родной",
   "koreanTopik": "{language} · TOPIK {level}",

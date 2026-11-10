@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/demo/demo_account.dart';
@@ -13,19 +11,7 @@ import 'package:hanguk_ish/data/repositories/live_updates.dart';
 import 'package:hanguk_ish/features/employer/providers.dart';
 import 'package:hanguk_ish/features/worker/notifications/unread.dart';
 
-/// Server changes the test fires by hand.
-class ManualLive implements LiveUpdates {
-  final _events = StreamController<void>.broadcast();
-  int listens = 0;
-
-  @override
-  Stream<void> changes() {
-    listens++;
-    return _events.stream;
-  }
-
-  void fire() => _events.add(null);
-}
+import '../helpers/live.dart';
 
 class CountingAccount extends DemoAccountRepository {
   int loads = 0;

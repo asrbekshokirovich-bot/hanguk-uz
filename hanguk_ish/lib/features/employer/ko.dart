@@ -1,5 +1,6 @@
 import '../../core/money/won.dart';
 import '../../core/time/kst.dart';
+import '../../data/repositories/shift_repository.dart';
 
 /// Texts of the employer app («Hanguk Ish 사장님»), which is Korean only.
 /// Copied from the prototype screen by screen; texts for states the
@@ -226,6 +227,17 @@ abstract final class Ko {
   static String notifNoShowText(String worker, String shift) => '$worker님이 $shift에 출근하지 않았어요';
   static String notifMessageText(String worker, String shift) => '$worker님이 메시지를 보냈어요 · $shift';
 
+  // A screen that could not load (not in the prototype; the worker app's
+  // Korean texts for the same state).
+  static const offlineTitle = '인터넷 연결이 없어요';
+  static const offlineText = '연결을 확인하고 다시 시도해 주세요.';
+  static const loadFailed = '불러오지 못했어요';
+  static const retry = '다시 시도';
+  static const shiftNotFound = '근무를 찾을 수 없어요';
+
+  /// Whether [error] is a lost connection.
+  static bool isOffline(Object error) => error is OfflineException;
+
   // Errors
   static String error(Object error) => switch (_code(error)) {
         'SHIFT_FULL' => '자리가 모두 찼어요',
@@ -261,7 +273,7 @@ abstract final class Ko {
     final text = error.toString();
     final match = RegExp(r'\(([A-Z_]+)\)').firstMatch(text);
     if (match != null) return match.group(1)!;
-    return text.contains('Offline') ? 'OFFLINE' : '';
+    return error is OfflineException ? 'OFFLINE' : '';
   }
 
   // Dates (Korean clock)

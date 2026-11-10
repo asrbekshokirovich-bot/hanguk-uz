@@ -1,10 +1,11 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../../data/models/employer.dart';
 import '../../design/icons.dart';
 import '../../design/insets.dart';
 import '../../design/tokens.dart';
 import '../../design/typography.dart';
+import '../../design/widgets/navigation.dart';
 import '../../design/widgets/pressable.dart';
 import 'ko.dart';
 
@@ -372,3 +373,38 @@ String _languageKo(String code) => switch (code) {
       'ja' => '일본어',
       _ => code,
     };
+
+/// A screen whose data could not load: no connection, or the server said
+/// no. «다시 시도» loads it again. The worker app's A03 «Internet yo'q»
+/// message, in Korean.
+class EmployerLoadError extends StatelessWidget {
+  const EmployerLoadError({super.key, required this.error, required this.onRetry});
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final offline = Ko.isOffline(error);
+    return HiStatusMessage(
+      icon: offline ? HiIcons.wifiOff : HiIcons.triangleAlert,
+      title: offline ? Ko.offlineTitle : Ko.loadFailed,
+      text: offline ? Ko.offlineText : Ko.error(error),
+      textMaxWidth: 300,
+      action: Ko.retry,
+      actionIcon: HiIcons.refreshCw,
+      onAction: onRetry,
+    );
+  }
+}
+
+/// Pull-to-refresh of [future]. A failure keeps the list as it was and says
+/// why in a snack bar; the indicator itself has no error state.
+Future<void> refreshOrSay(BuildContext context, Future<Object?> future) async {
+  try {
+    await future;
+  } on Object catch (error) {
+    if (!context.mounted) return;
+    (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+  }
+}

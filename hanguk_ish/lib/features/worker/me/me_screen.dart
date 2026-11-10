@@ -121,8 +121,9 @@ class MeScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
+                        // «—» until the numbers have loaded (or when they cannot).
                         HiText(
-                          '${stats?.reliability ?? 100}',
+                          stats == null ? '—' : '${stats.reliability}',
                           style: hiStyle(40, FontWeight.w800, height: 1.1, family: HiFamily.mono),
                         ),
                         const SizedBox(width: 4),
@@ -132,13 +133,13 @@ class MeScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Semantics(
                       label: l10n.reliability,
-                      value: '${stats?.reliability ?? 100}',
+                      value: stats == null ? '—' : '${stats.reliability}',
                       child: Container(
                         height: 10,
                         decoration: BoxDecoration(color: HiColors.white18, borderRadius: BorderRadius.circular(HiRadii.pill)),
                         alignment: Alignment.centerLeft,
                         child: FractionallySizedBox(
-                          widthFactor: ((stats?.reliability ?? 100) / 100).clamp(0.0, 1.0),
+                          widthFactor: ((stats?.reliability ?? 0) / 100).clamp(0.0, 1.0),
                           child: Container(
                             decoration: BoxDecoration(color: HiColors.lime, borderRadius: BorderRadius.circular(HiRadii.pill)),
                           ),
@@ -156,13 +157,14 @@ class MeScreen extends ConsumerWidget {
                 Expanded(
                   child: _StatCard(
                     label: l10n.completedShiftsLabel,
-                    value: HiText('${stats?.completedShifts ?? 0}', style: hiStyle(28, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono)),
+                    value: HiText(stats == null ? '—' : '${stats.completedShifts}',
+                        style: hiStyle(28, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    label: l10n.ratingsCount(stats?.ratingCount ?? 0),
+                    label: stats == null ? l10n.ratingsLabel : l10n.ratingsCount(stats.ratingCount),
                     value: Row(
                       children: [
                         HiText(

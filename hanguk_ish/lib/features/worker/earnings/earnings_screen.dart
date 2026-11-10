@@ -14,6 +14,7 @@ import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../load_error.dart';
 import '../my_shifts/my_shifts_providers.dart';
 import '../settings/app_language.dart';
 
@@ -44,7 +45,8 @@ class EarningsScreen extends ConsumerWidget {
     final month = DateTime.utc(now.year, now.month - back);
     final monthStart = Kst.instantOf(month.year, month.month, 1);
     final monthEnd = Kst.instantOf(month.year, month.month + 1, 1);
-    final all = ref.watch(myShiftsProvider).value ?? const <MyShift>[];
+    final loaded = ref.watch(myShiftsProvider);
+    final all = loaded.value ?? const <MyShift>[];
     final done = all
         .where((a) =>
             a.status == ApplicationStatus.completed &&
@@ -96,98 +98,111 @@ class EarningsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  Semantics(
-                    container: true,
-                    label: l10n.monthTotalSection,
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: HiColors.blue,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.fromBorderSide(HiBorders.ink),
-                        boxShadow: HiShadows.hard,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          HiText(
-                            l10n.monthTotal(HiDates.monthName(monthInstant, lang)),
-                            style: hiStyle(15, FontWeight.w700, color: HiColors.textSoft),
-                          ),
-                          const SizedBox(height: 6),
-                          HiText(
-                            Won.worker(total),
-                            style: hiStyle(38, FontWeight.w800, height: 1.15, letterSpacingEm: -0.02, family: HiFamily.mono),
-                          ),
-                          const SizedBox(height: 6),
-                          HiText(
-                            l10n.shiftsHours(done.length, minutes ~/ 60),
-                            style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft),
-                          ),
-                          const SizedBox(height: 6 + 10),
-                          Row(
-                            children: [
-                              Expanded(child: _SumTile(dot: const Color(0xFF4ADE80), label: l10n.paymentPaid, amount: paid)),
-                              const SizedBox(width: 10),
-                              Expanded(child: _SumTile(dot: HiColors.amber, label: l10n.paymentPending, amount: total - paid)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Semantics(
-                    container: true,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: HiColors.white06,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: HiColors.white14),
-                      ),
-                      child: Row(
-                        children: [
-                          const HiIcon(HiIcons.info, size: 20, strokeWidth: 2, color: HiColors.white),
-                          const SizedBox(width: 10),
-                          Expanded(child: HiText(l10n.employerPays, style: hiStyle(15, FontWeight.w600))),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Semantics(header: true, child: HiText(l10n.shiftsList, style: hiStyle(17, FontWeight.w800))),
-                  if (done.isEmpty)
+                  // Not an empty month: the earnings are unknown.
+                  if (!loaded.hasValue && loaded.hasError && !loaded.isLoading)
                     Padding(
-                      padding: const EdgeInsets.only(top: 24),
-                      child: HiText(
-                        l10n.emptyMonth,
-                        textAlign: TextAlign.center,
-                        style: hiStyle(15, FontWeight.w600, color: HiColors.textMuted),
-                      ),
+                      padding: const EdgeInsets.only(top: 40),
+                      child: WorkerLoadError(error: loaded.error!, onRetry: () => ref.invalidate(myShiftsProvider)),
                     )
-                  else
-                    // The prototype pins the list at 480 px, 2.7 px into the
-                    // heading's line box rather than 10 px below it.
-                    Transform.translate(
-                      offset: const Offset(0, -2.7),
+                  else if (!loaded.hasValue)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 60),
+                      child: Center(child: CircularProgressIndicator(color: HiColors.lime)),
+                    )
+                  else ...[
+                    const SizedBox(height: 14),
+                    Semantics(
+                      container: true,
+                      label: l10n.monthTotalSection,
                       child: Container(
-                      decoration: BoxDecoration(
-                        color: HiColors.white,
-                        borderRadius: BorderRadius.circular(HiRadii.card),
-                        border: Border.fromBorderSide(HiBorders.ink),
-                        boxShadow: HiShadows.hard,
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: [
-                          for (final app in done)
-                            _EarningRow(app: app, lang: lang, onTap: () => onOpen(app)),
-                        ],
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: HiColors.blue,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.fromBorderSide(HiBorders.ink),
+                          boxShadow: HiShadows.hard,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            HiText(
+                              l10n.monthTotal(HiDates.monthName(monthInstant, lang)),
+                              style: hiStyle(15, FontWeight.w700, color: HiColors.textSoft),
+                            ),
+                            const SizedBox(height: 6),
+                            HiText(
+                              Won.worker(total),
+                              style: hiStyle(38, FontWeight.w800, height: 1.15, letterSpacingEm: -0.02, family: HiFamily.mono),
+                            ),
+                            const SizedBox(height: 6),
+                            HiText(
+                              l10n.shiftsHours(done.length, minutes ~/ 60),
+                              style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft),
+                            ),
+                            const SizedBox(height: 6 + 10),
+                            Row(
+                              children: [
+                                Expanded(child: _SumTile(dot: const Color(0xFF4ADE80), label: l10n.paymentPaid, amount: paid)),
+                                const SizedBox(width: 10),
+                                Expanded(child: _SumTile(dot: HiColors.amber, label: l10n.paymentPending, amount: total - paid)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 14),
+                    Semantics(
+                      container: true,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: HiColors.white06,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: HiColors.white14),
+                        ),
+                        child: Row(
+                          children: [
+                            const HiIcon(HiIcons.info, size: 20, strokeWidth: 2, color: HiColors.white),
+                            const SizedBox(width: 10),
+                            Expanded(child: HiText(l10n.employerPays, style: hiStyle(15, FontWeight.w600))),
+                          ],
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 18),
+                    Semantics(header: true, child: HiText(l10n.shiftsList, style: hiStyle(17, FontWeight.w800))),
+                    if (done.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: HiText(
+                          l10n.emptyMonth,
+                          textAlign: TextAlign.center,
+                          style: hiStyle(15, FontWeight.w600, color: HiColors.textMuted),
+                        ),
+                      )
+                    else
+                      // The prototype pins the list at 480 px, 2.7 px into the
+                      // heading's line box rather than 10 px below it.
+                      Transform.translate(
+                        offset: const Offset(0, -2.7),
+                        child: Container(
+                        decoration: BoxDecoration(
+                          color: HiColors.white,
+                          borderRadius: BorderRadius.circular(HiRadii.card),
+                          border: Border.fromBorderSide(HiBorders.ink),
+                          boxShadow: HiShadows.hard,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          children: [
+                            for (final app in done)
+                              _EarningRow(app: app, lang: lang, onTap: () => onOpen(app)),
+                          ],
+                        ),
+                      ),
+                      ),
+                  ],
                 ],
               ),
             ),

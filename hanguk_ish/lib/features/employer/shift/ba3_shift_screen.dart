@@ -87,25 +87,72 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
   }
 
   Future<void> _shareQr(EmployerShift shift, String payload, String business) async {
+    final messenger = ScaffoldMessenger.of(context);
     final when = '${Ko.monthDay(shift.startsAt)} ${Kst.hm(shift.startsAt)}–${Kst.hm(shift.endsAt)}';
-    final bytes = await qrCardPng(
-      data: payload,
-      title: business,
-      subtitle: '${shift.title} · $when',
-      note: Ko.qrNote,
+    try {
+      final bytes = await qrCardPng(
+        data: payload,
+        title: business,
+        subtitle: '${shift.title} · $when',
+        note: Ko.qrNote,
+      );
+      await ref.read(fileSharerProvider).share(
+            bytes: bytes,
+            fileName: 'hanguk-ish-qr-${Ko.dotDate(shift.startsAt).replaceAll('.', '')}.png',
+            mimeType: 'image/png',
+            text: Ko.qrShareText(business, shift.title, when),
+          );
+    } on Object catch (error) {
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+    }
+  }
+
+  /// No shift to show: still loading, not loaded (offline), or not found.
+  /// The back button stays where it always is.
+  Widget _withoutShift(AsyncValue<EmployerShift?> loaded, double top) {
+    final Widget message;
+    if (loaded.hasValue && !loaded.hasError) {
+      message = const HiStatusMessage(icon: HiIcons.info, title: Ko.shiftNotFound, text: '');
+    } else if (loaded.isLoading) {
+      message = const CircularProgressIndicator(color: HiColors.lime);
+    } else {
+      message = EmployerLoadError(
+        error: loaded.error!,
+        onRetry: () => reloadAfterError(ref, employerShiftProvider(widget.shiftId)),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(18, top, 18, 0),
+          child: Row(
+            children: [
+              HiGlassIconButton(
+                icon: HiIcons.chevronLeft,
+                size: 44,
+                radius: 14,
+                iconSize: 22,
+                semanticsLabel: Ko.back,
+                onTap: widget.onBack,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Center(
+            child: Padding(padding: const EdgeInsets.fromLTRB(24, 0, 24, 44), child: message),
+          ),
+        ),
+      ],
     );
-    await ref.read(fileSharerProvider).share(
-          bytes: bytes,
-          fileName: 'hanguk-ish-qr-${Ko.dotDate(shift.startsAt).replaceAll('.', '')}.png',
-          mimeType: 'image/png',
-          text: Ko.qrShareText(business, shift.title, when),
-        );
   }
 
   @override
   Widget build(BuildContext context) {
     final now = ref.watch(clockProvider)();
-    final shift = ref.watch(employerShiftProvider(widget.shiftId)).value;
+    final loaded = ref.watch(employerShiftProvider(widget.shiftId));
+    final shift = loaded.value;
     final business = ref.watch(currentBusinessProvider).value;
     final top = HiInsets.top(context, 56);
 
@@ -114,7 +161,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
       body: HiBackdrop(
         glow: HiGlow.employerDetail,
         child: shift == null
-            ? const Center(child: CircularProgressIndicator(color: HiColors.lime))
+            ? _withoutShift(loaded, top)
             : ListView(
                 padding: EdgeInsets.only(bottom: HiInsets.bottom(context, 28)),
                 children: [
@@ -203,8 +250,9 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                       child: _QrCard(
                         shift: shift,
                         business: business?.name ?? '',
-                        payload: ref.watch(shiftQrProvider(shift.id)).value,
+                        qr: ref.watch(shiftQrProvider(shift.id)),
                         onShare: (payload) => _shareQr(shift, payload, business?.name ?? ''),
+                        onRetry: () => ref.invalidate(shiftQrProvider(shift.id)),
                       ),
                     ),
                   ],
@@ -459,16 +507,28 @@ class _AttendanceRow extends StatelessWidget {
 
 /// 출퇴근 QR: the code printed at the door, for this shift only.
 class _QrCard extends StatelessWidget {
-  const _QrCard({required this.shift, required this.business, required this.payload, required this.onShare});
+  const _QrCard({
+    required this.shift,
+    required this.business,
+    required this.qr,
+    required this.onShare,
+    required this.onRetry,
+  });
 
   final EmployerShift shift;
   final String business;
-  final String? payload;
+
+  /// The payload (`shift_qr`); without it the card says why and offers
+  /// «다시 시도» in place of sharing.
+  final AsyncValue<String> qr;
   final Future<void> Function(String payload) onShare;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    final data = payload;
+    final data = qr.value;
+    final failed = data == null && qr.hasError && !qr.isLoading;
+    final offline = failed && Ko.isOffline(qr.error!);
     final muted = hiStyle(14, FontWeight.w600, color: HiColors.inkMuted);
     return EmployerCard(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
@@ -481,22 +541,36 @@ class _QrCard extends StatelessWidget {
           const SizedBox(height: 8 + 6),
           SizedBox.square(
             dimension: 180,
-            child: data == null
-                ? const Center(child: CircularProgressIndicator(color: HiColors.ink))
-                : HiQrCode(data: data, semanticsLabel: Ko.qrTitle),
+            child: data != null
+                ? HiQrCode(data: data, semanticsLabel: Ko.qrTitle)
+                : failed
+                    ? Semantics(
+                        liveRegion: true,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            HiIcon(offline ? HiIcons.wifiOff : HiIcons.triangleAlert,
+                                size: 36, strokeWidth: 2, color: HiColors.inkMuted),
+                            const SizedBox(height: 10),
+                            HiText(offline ? Ko.offlineTitle : Ko.loadFailed,
+                                textAlign: TextAlign.center, style: hiStyle(15, FontWeight.w700, color: HiColors.ink)),
+                          ],
+                        ),
+                      )
+                    : const Center(child: CircularProgressIndicator(color: HiColors.ink)),
           ),
           const SizedBox(height: 6 + 8),
           HiText(Ko.qrNote, textAlign: TextAlign.center, style: muted),
           const SizedBox(height: 8 + 6),
           HiButton(
-            label: Ko.qrShare,
-            icon: HiIcons.printer,
+            label: failed ? Ko.retry : Ko.qrShare,
+            icon: failed ? HiIcons.refreshCw : HiIcons.printer,
             iconSize: 19,
             iconStroke: 2.2,
             iconGap: 8,
             height: 52,
             fontSize: 17,
-            onPressed: data == null ? null : () => onShare(data),
+            onPressed: failed ? onRetry : (data == null ? null : () => onShare(data)),
           ),
         ],
       ),

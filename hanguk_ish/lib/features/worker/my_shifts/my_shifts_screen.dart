@@ -18,6 +18,7 @@ import '../../../design/widgets/layout.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../load_error.dart';
 import '../feed/feed_controller.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_detail_screen.dart';
@@ -79,17 +80,8 @@ class MyShiftsScreen extends ConsumerWidget {
     if (async.isLoading && !async.hasValue) {
       body = const SizedBox.shrink();
     } else if (async.hasError && !async.hasValue) {
-      final offline = async.error is OfflineException;
       body = _Centered(
-        child: HiStatusMessage(
-          icon: offline ? HiIcons.wifiOff : HiIcons.triangleAlert,
-          title: offline ? l10n.offlineTitle : l10n.errorGeneric,
-          text: offline ? l10n.offlineText : '',
-          textMaxWidth: 300,
-          action: l10n.retry,
-          actionIcon: HiIcons.refreshCw,
-          onAction: () => ref.invalidate(myShiftsProvider),
-        ),
+        child: WorkerLoadError(error: async.error!, onRetry: () => ref.invalidate(myShiftsProvider)),
       );
     } else if (shown.isEmpty) {
       body = _Centered(
@@ -116,7 +108,7 @@ class MyShiftsScreen extends ConsumerWidget {
       body = RefreshIndicator(
         color: HiColors.ink,
         backgroundColor: HiColors.lime,
-        onRefresh: () => ref.refresh(myShiftsProvider.future),
+        onRefresh: () => refreshOrSay(context, ref.refresh(myShiftsProvider.future)),
         child: ListView.separated(
           padding: const EdgeInsets.fromLTRB(18, 0, 22, 24),
           itemCount: shown.length,

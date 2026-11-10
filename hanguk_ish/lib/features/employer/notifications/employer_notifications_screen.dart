@@ -14,9 +14,11 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../ko.dart';
 import '../providers.dart';
+import '../widgets.dart';
 
 /// The bell on BA1: new applicants, cancellations, missing workers and
-/// messages, newest first; opening the list marks them read.
+/// messages, newest first; opening the list marks them read, and new ones
+/// appear as they arrive.
 class EmployerNotificationsScreen extends ConsumerStatefulWidget {
   const EmployerNotificationsScreen({super.key, required this.onBack, required this.openShift});
 
@@ -28,28 +30,39 @@ class EmployerNotificationsScreen extends ConsumerStatefulWidget {
 }
 
 class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificationsScreen> {
-  /// The list as it was when the screen opened (unread marks included).
-  List<EmployerNotification>? _shown;
-  bool _marked = false;
+  /// Unread when they reached this screen: they keep the unread look while
+  /// it is open, though the server has them read by then.
+  final Set<String> _fresh = {};
+  bool _marking = false;
 
-  void _markRead() {
-    if (_marked) return;
-    _marked = true;
+  // Unread ones (when the screen opens, and any arriving while it is open)
+  // are marked read on the server. A failure leaves them unread for next
+  // time: the bell keeps its dot.
+  void _markRead(List<EmployerNotification> list) {
+    final unread = [for (final n in list) if (!n.read) n.id];
+    _fresh.addAll(unread);
+    if (unread.isEmpty || _marking) return;
+    _marking = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(employerRepositoryProvider).markNotificationsRead();
-      if (mounted) ref.invalidate(employerNotificationsProvider);
+      try {
+        if (!mounted) return;
+        await ref.read(employerRepositoryProvider).markNotificationsRead();
+        if (mounted) ref.invalidate(employerNotificationsProvider);
+      } on Object {
+        // Retried when the list next changes.
+      } finally {
+        _marking = false;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final now = ref.watch(clockProvider)();
-    final loaded = ref.watch(employerNotificationsProvider).value;
-    if (_shown == null && loaded != null) {
-      _shown = loaded;
-      _markRead();
-    }
-    final list = _shown;
+    final loaded = ref.watch(employerNotificationsProvider);
+    final latest = loaded.value;
+    if (latest != null) _markRead(latest);
+    final list = latest;
     final today = kstDayStart(now);
     final yesterday = kstDayStart(now, -1);
     String group(EmployerNotification n) => !n.createdAt.isBefore(today)
@@ -68,7 +81,12 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
       }
       children.add(Padding(
         padding: const EdgeInsets.fromLTRB(18, 0, 22, 10),
-        child: _NotificationCard(notification: n, now: now, onTap: () => widget.openShift(n.shiftId)),
+        child: _NotificationCard(
+          notification: n,
+          fresh: !n.read || _fresh.contains(n.id),
+          now: now,
+          onTap: () => widget.openShift(n.shiftId),
+        ),
       ));
     }
 
@@ -100,7 +118,17 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
               ),
             ),
             Expanded(
-              child: list == null
+              child: list == null && loaded.hasError && !loaded.isLoading
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 44),
+                        child: EmployerLoadError(
+                          error: loaded.error!,
+                          onRetry: () => ref.invalidate(employerNotificationsProvider),
+                        ),
+                      ),
+                    )
+                  : list == null
                   ? const Center(child: CircularProgressIndicator(color: HiColors.lime))
                   : list.isEmpty
                       ? Center(
@@ -119,9 +147,12 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({required this.notification, required this.now, required this.onTap});
+  const _NotificationCard({required this.notification, required this.fresh, required this.now, required this.onTap});
 
   final EmployerNotification notification;
+
+  /// Unread when it reached the screen.
+  final bool fresh;
   final DateTime now;
   final VoidCallback onTap;
 
@@ -158,7 +189,6 @@ class _NotificationCard extends StatelessWidget {
           HiColors.ink,
         ),
     };
-    final fresh = !n.read;
     return HiPressable(
       onTap: onTap,
       builder: (context, pressed) => Container(
