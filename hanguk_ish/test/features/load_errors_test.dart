@@ -231,7 +231,9 @@ void main() {
     testWidgets('BA3 QR that did not load offers 다시 시도 instead of sharing', (tester) async {
       final repo = OfflineEmployer()..offline.add('qr');
       await open(tester, repo, location: EmployerRoutes.shift('demo-es-close'));
-      await tester.ensureVisible(find.text(Ko.offlineTitle));
+      // The card is at the bottom of a lazy list: scroll it into being.
+      await tester.scrollUntilVisible(find.text(Ko.offlineTitle), 300, scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle();
       expect(find.text(Ko.qrShare), findsNothing);
       expect(find.byType(HiQrCode), findsNothing);
       repo.offline.clear();
