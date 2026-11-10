@@ -9,24 +9,42 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// saved the plan. The builder shows it at once, read-only, while the server
 /// answers; the server's text then takes its place — the server is the
 /// source of truth, the copy only spares the student the wait.
+///
+/// Or, marked [unsaved], the text the builder could not save on its way out
+/// (audit C-F5): nothing typed is lost, even when the student then closes
+/// the app.
 @immutable
 class StudyPlanCopy {
-  const StudyPlanCopy({required this.sessionId, required this.version, required this.content, required this.savedAt});
+  const StudyPlanCopy({
+    required this.sessionId,
+    required this.version,
+    required this.content,
+    required this.savedAt,
+    this.unsaved = false,
+  });
 
   final String sessionId;
 
-  /// The draft's version; 0 for a plan with no draft yet.
+  /// The draft's version; 0 for a plan with no draft yet. For an [unsaved]
+  /// copy, the version its text was written on.
   final int version;
   final String content;
 
   /// When the phone kept it.
   final DateTime savedAt;
 
+  /// Text the server did not take. The next open shows it in place of the
+  /// server's text while the server's newest draft is still [version] of
+  /// the same session (nothing newer was saved since, here or on another
+  /// phone), and the next save keeps it.
+  final bool unsaved;
+
   Map<String, Object?> toJson() => {
     'sessionId': sessionId,
     'version': version,
     'content': content,
     'savedAt': savedAt.toUtc().toIso8601String(),
+    if (unsaved) 'unsaved': true,
   };
 
   /// Null for anything that is not a copy this app wrote.
@@ -37,7 +55,13 @@ class StudyPlanCopy {
     final content = json['content'];
     final savedAt = DateTime.tryParse('${json['savedAt']}');
     if (sessionId is! String || version is! num || content is! String || savedAt == null) return null;
-    return StudyPlanCopy(sessionId: sessionId, version: version.toInt(), content: content, savedAt: savedAt);
+    return StudyPlanCopy(
+      sessionId: sessionId,
+      version: version.toInt(),
+      content: content,
+      savedAt: savedAt,
+      unsaved: json['unsaved'] == true,
+    );
   }
 }
 
