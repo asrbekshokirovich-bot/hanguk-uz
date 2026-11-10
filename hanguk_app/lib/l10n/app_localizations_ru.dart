@@ -3436,6 +3436,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get fdPrepareNew => 'Новое';
 
   @override
+  String fdPrepareInterviewDone(int n) {
+    return 'Тренировок: $n';
+  }
+
+  @override
   String get fdPrepareInterviewTitle => 'Подготовка к собеседованию';
 
   @override

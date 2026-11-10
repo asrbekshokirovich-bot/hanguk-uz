@@ -3423,6 +3423,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fdPrepareNew => 'New';
 
   @override
+  String fdPrepareInterviewDone(int n) {
+    return 'Practices: $n';
+  }
+
+  @override
   String get fdPrepareInterviewTitle => 'Interview practice';
 
   @override

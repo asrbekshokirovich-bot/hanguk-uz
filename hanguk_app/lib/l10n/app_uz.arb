@@ -1146,6 +1146,7 @@
   "fdPrepareStudyPlanTitle": "Study Plan tayyorlash",
   "fdPrepareStudyPlanBody": "O'quv rejangizni 4 bosqichda yozing, Hanguk AI fikr-mulohaza beradi.",
   "fdPrepareNew": "Yangi",
+  "fdPrepareInterviewDone": "{n} ta mashq",
   "fdPrepareInterviewTitle": "Suhbatga tayyorgarlik",
   "fdPrepareInterviewBody": "Hanguk AI intervyuer bilan 8 ta savolni ovozli mashq qiling.",
   "fdPrepareAskTitle": "Hanguk AI ga savol bering",

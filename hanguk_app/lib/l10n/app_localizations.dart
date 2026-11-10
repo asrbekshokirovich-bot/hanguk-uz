@@ -6180,6 +6180,12 @@ abstract class AppLocalizations {
   /// **'New'**
   String get fdPrepareNew;
 
+  /// Preparation interview card tag: interview practices the student has finished.
+  ///
+  /// In en, this message translates to:
+  /// **'Practices: {n}'**
+  String fdPrepareInterviewDone(int n);
+
   /// Preparation card title.
   ///
   /// In en, this message translates to:
