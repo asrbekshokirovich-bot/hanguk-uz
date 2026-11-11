@@ -24,10 +24,11 @@ import 'assessment_widgets.dart';
 /// "Qabul +12%": the report's gain, opening a line of its own here.
 String _capitalized(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-/// "+998 90 123 45 67".
+/// "+998 90 123 45 67"; a Kyrgyz number "+996 700 123 456" (plan KG3).
 String prettyUzPhone(String e164) {
   final d = e164.replaceAll(RegExp(r'\D'), '');
   if (d.length != 12) return e164;
+  if (d.startsWith('996')) return '+996 ${d.substring(3, 6)} ${d.substring(6, 9)} ${d.substring(9)}';
   return '+${d.substring(0, 3)} ${d.substring(3, 5)} ${d.substring(5, 8)} ${d.substring(8, 10)} ${d.substring(10)}';
 }
 

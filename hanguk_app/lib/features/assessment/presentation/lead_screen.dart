@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/form_progress.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/country/app_country.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -22,6 +23,10 @@ import '../data/assessment_controller.dart';
 /// Prototype screen 7, "Konsultant bog'lanadi": name, +998 phone and a dashed
 /// note about the client code the SMS brings. Sending creates the lead
 /// (`app_quiz_submit`, as the old quiz's S04 did) and opens "Yuborildi".
+///
+/// Set up for Kyrgyzstan (plan KG3, design «Lid formasi: +996 va rozilik»):
+/// +996 and nine digits (700 123 456), and a consent box that has to be ticked
+/// before «Yuborish». The Uzbek form is unchanged.
 class LeadScreen extends ConsumerStatefulWidget {
   const LeadScreen({super.key});
 
@@ -40,6 +45,12 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   String? _forWhom;
   String? _heard;
 
+  /// Kyrgyzstan only: personal data sent to Hanguk and kept in Korea.
+  bool _consent = false;
+
+  /// The app's country, kept in a field: `dispose` may not read providers.
+  AppCountry _country = AppCountry.uz;
+
   void _answer(String q, String? value) {
     setState(() {
       if (q == 'for_whom') {
@@ -55,8 +66,10 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   void initState() {
     super.initState();
     AppEvents.track('form_open', props: {'form': 'lead'});
+    _country = ref.read(entryProvider).country ?? AppCountry.uz;
     final saved = ref.read(entryProvider).phone;
-    if (saved != null) _phone.text = UzPhoneFormatter.format(UzPhoneFormatter.digitsOf(saved));
+    final phone = NationalPhone(_country);
+    if (saved != null && phone.owns(saved)) _phone.text = phone.format(phone.digitsOf(saved));
   }
 
   /// `form_leave`: which of the four fields were filled when the page went.
@@ -65,7 +78,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   @override
   void dispose() {
     if (_name.text.trim().isNotEmpty) _progress.answered('name');
-    if (UzPhoneFormatter.digitsOf(_phone.text).length == kUzNationalDigits) _progress.answered('phone');
+    if (NationalPhone(_country).digitsOf(_phone.text).length == kUzNationalDigits) _progress.answered('phone');
     if (_forWhom != null) _progress.answered('for_whom');
     if (_heard != null) _progress.answered('how_heard');
     _progress.leave(total: 4);
@@ -79,7 +92,10 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     final outcome = ref.read(assessmentOutcomeProvider);
     if (outcome == null) return;
     final name = _name.text.trim();
-    final digits = UzPhoneFormatter.digitsOf(_phone.text);
+    final country = _country;
+    final national = NationalPhone(country);
+    final digits = national.digitsOf(_phone.text);
+    if (country == AppCountry.kg && !_consent) return;
     if (name.isEmpty) {
       AppEvents.track('field_error', props: {'form': 'lead', 'field': 'name', 'code': 'empty'});
       return setState(() => _error = l.fdReportNameError);
@@ -95,7 +111,8 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     });
     final input = ref.read(assessmentProvider);
     final res = await ref.read(quizRepositoryProvider).submit(
-      phoneE164: uzE164(digits),
+      phoneE164: national.e164(digits),
+      country: country.code,
       name: name,
       answers: {
         ...input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
@@ -112,7 +129,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
     setState(() => _sending = false);
     switch (res.status) {
       case QuizSubmitStatus.ok:
-        final phone = res.phone ?? uzE164(digits);
+        final phone = res.phone ?? national.e164(digits);
         unawaited(ref.read(entryProvider.notifier).setRegistered(phone));
         ref.read(assessmentSentProvider.notifier).set((name: name, phone: phone, linkCode: res.linkCode));
         context.push(kAssessmentSentPath);
@@ -131,6 +148,10 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final jobs = ref.watch(assessmentOutcomeProvider)?.fixes.length ?? 0;
+    _country = ref.watch(entryProvider.select((s) => s.country)) ?? AppCountry.uz;
+    final kg = _country == AppCountry.kg;
+    final phone = NationalPhone(_country);
+    final ready = !kg || _consent;
     return Scaffold(
       backgroundColor: FdColors.page,
       body: FdPage(
@@ -182,10 +203,10 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                       field: 'phone',
                       child: _Field(
                         controller: _phone,
-                        hint: '90 ··· ·· ··',
-                        prefix: '+998',
+                        hint: phone.hint,
+                        prefix: phone.code,
                         keyboard: TextInputType.phone,
-                        formatters: [UzPhoneFormatter()],
+                        formatters: [phone.formatter],
                       ),
                     ),
                     if (_error != null) ...[
@@ -238,14 +259,73 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(l.leadConsent, style: fdText(12, FontWeight.w600, FdColors.pageMuted, height: 1.45)),
+                    if (kg) ...[
+                      const SizedBox(height: 14),
+                      _ConsentBox(
+                        value: _consent,
+                        label: l.leadKgConsent,
+                        onChanged: (v) {
+                          setState(() => _consent = v);
+                          AppEvents.track('question_answer', props: {'form': 'lead', 'q': 'consent', 'band': v ? 'yes' : 'no'});
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
               FdBottomBar(
-                child: HardButton(label: l.fdReportSend, loading: _sending, onPressed: tracked('lead.report_send', _submit)),
+                // Kyrgyzstan: off until the consent box is ticked (design).
+                child: IgnorePointer(
+                  ignoring: !ready,
+                  child: AnimatedOpacity(
+                    opacity: ready ? 1 : 0.45,
+                    duration: const Duration(milliseconds: 150),
+                    child: HardButton(label: l.fdReportSend, loading: _sending, onPressed: tracked('lead.report_send', _submit)),
+                  ),
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The consent box of the Kyrgyz form: a 24px lime check and its text;
+/// tapping the text ticks it too.
+class _ConsentBox extends StatelessWidget {
+  const _ConsentBox({required this.value, required this.label, required this.onChanged});
+
+  final bool value;
+  final String label;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    // One node for a screen reader: the box's state and the text.
+    return MergeSemantics(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: tracked('lead.consent_text', () => onChanged(!value)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox.square(
+              dimension: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: trackedValue<bool?>('lead.consent', (v) => onChanged(v ?? false)),
+                activeColor: FdColors.lime,
+                checkColor: FdColors.ink,
+                side: const BorderSide(color: Colors.white, width: 1.5),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: fdText(13, FontWeight.w600, Colors.white, height: 1.45))),
+          ],
         ),
       ),
     );
