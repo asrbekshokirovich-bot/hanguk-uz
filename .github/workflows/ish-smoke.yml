@@ -31,20 +31,24 @@ jobs:
     name: Release builds on an Android emulator (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 50
-    # The emulator went away at the first tap three runs in a row with no
-    # trace (no OOM, no crash line). Two emulators side by side tell why:
-    # API 34 with Vulkan switched off (Flutter draws with OpenGL ES, like on
-    # phones without Vulkan), and the lighter API 30 image with Vulkan on.
+    # The emulator goes away right after a tap that opens T1, with no trace
+    # in the logs (no OOM, no crash report; API 34 every time, API 30 once
+    # in three). API 30 cannot run the arm64 builds (SIGILL in the ARM
+    # translation). Three ways of drawing on API 34 side by side, each with
+    # the emulator's own output kept (build/smoke/emulator-output.txt).
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: api34-gles
+          - name: api34-swiftshader
             api: 34
             gpu: -gpu swiftshader_indirect -feature -Vulkan
-          - name: api30
-            api: 30
-            gpu: -gpu swiftshader_indirect
+          - name: api34-swangle
+            api: 34
+            gpu: -gpu swangle_indirect
+          - name: api34-guest
+            api: 34
+            gpu: -gpu guest
     defaults:
       run:
         working-directory: hanguk_ish
@@ -115,7 +119,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.name }}-x86_64-google_apis-pixel_6-v2
+          key: avd-${{ matrix.name }}-x86_64-google_apis-pixel_6-v3
 
       - name: Make the emulator snapshot (first run only)
         if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -130,6 +134,9 @@ jobs:
           disable-animations: false
           emulator-options: -no-window ${{ matrix.gpu }} -noaudio -no-boot-anim -camera-back none
           working-directory: hanguk_ish
+          # The emulator's own output to a file (the action reads it only
+          # while it boots): when it goes away, its last words are kept.
+          pre-emulator-launch-script: bash tool/emulator_wrap.sh
           # Let first-boot work finish before the state is saved.
           script: |
             timeout 300 adb shell am wait-for-broadcast-idle || true
@@ -144,7 +151,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.name }}-x86_64-google_apis-pixel_6-v2
+          key: avd-${{ matrix.name }}-x86_64-google_apis-pixel_6-v3
 
       - name: Start the apps on an emulator
         # The walks take about 15 minutes; a hung emulator stops here.
@@ -159,8 +166,11 @@ jobs:
           force-avd-creation: false
           disable-animations: true
           # -show-kernel: a guest kernel panic or low-memory kill shows here.
-          emulator-options: -no-snapshot-save -no-window ${{ matrix.gpu }} -noaudio -no-boot-anim -camera-back none -show-kernel
+          emulator-options: -no-snapshot-save -no-window ${{ matrix.gpu }} -noaudio -no-boot-anim -camera-back none -show-kernel -verbose
           working-directory: hanguk_ish
+          # The emulator's own output to a file (the action reads it only
+          # while it boots): when it goes away, its last words are kept.
+          pre-emulator-launch-script: bash tool/emulator_wrap.sh
           script: bash tool/smoke.sh build/smoke-apks
 
       # Why an emulator went away: the host kernel's last lines (an OOM
@@ -175,7 +185,9 @@ jobs:
             find /tmp/android-runner -type f -printf '%TT %s %p\n' | sort | tail -n 20
             mkdir -p build/smoke/emulator-crash
             cp -r /tmp/android-runner/emu-crash-* build/smoke/emulator-crash/ 2>/dev/null || true
+            cp -r /tmp/android-runner/netsimd build/smoke/emulator-netsimd 2>/dev/null || true
           fi
+          tail -n 60 build/smoke/emulator-output.txt 2>/dev/null || true
           cp ~/.android/avd/test.avd/config.ini build/smoke/emulator-config.ini 2>/dev/null || true
 
       - name: Publish the screens and logs
