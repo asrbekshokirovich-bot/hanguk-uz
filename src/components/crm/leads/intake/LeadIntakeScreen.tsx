@@ -7,6 +7,7 @@ import {
   CERTIFICATES,
   CHANNELS,
   CITIES,
+  KG_CITIES,
   LEVELS,
   SOURCES,
   needsSourceNote,
@@ -25,6 +26,7 @@ import {
   validateSavable,
   missingCount,
   formatPhoneInput,
+  isKgPhone,
 } from './intakeForm';
 import { useRelativeDate } from './useRelativeDate';
 
@@ -337,7 +339,7 @@ export const LeadIntakeScreen = ({
                   className={cn(fieldClass, 'px-3')}
                 >
                   <option value="">{t('leads.intake.placeholders.city')}</option>
-                  {CITIES.map((city) => (
+                  {(isKgPhone(form.phone) ? KG_CITIES : CITIES).map((city) => (
                     <option key={city} value={city}>
                       {city}
                     </option>
