@@ -80,11 +80,32 @@ def dump():
     return nodes
 
 
+def dismiss_frozen_app(nodes):
+    """Another app's «… isn't responding» over the screen — on a slow CI
+    emulator the launcher can freeze at first boot, and Android's dialog then
+    covers our app for good. It is not ours to test: «Wait» closes it. Our
+    own app frozen («Hanguk Ish …») is a failure and stays on screen."""
+    title = next((n for n in nodes if "isn't responding" in n['words']), None)
+    if title is None or 'Hanguk Ish' in title['words']:
+        return False
+    wait = next((n for n in nodes if n['words'] == 'Wait'), None)
+    if wait is None:
+        return False
+    tap_at(wait['x'], wait['y'])
+    print(f"(closed «{title['words']}» with Wait)")
+    return True
+
+
 def screen():
     """What is on the screen now. A dump with no words at all is taken again
     once: Flutter builds its semantics only when an accessibility client
     (here: the dump) asks, and can be a frame late."""
     nodes = dump()
+    for _ in range(3):
+        if not dismiss_frozen_app(nodes):
+            break
+        time.sleep(2)
+        nodes = dump()
     if not any(n['words'] for n in nodes):
         time.sleep(1)
         nodes = dump()
