@@ -23,7 +23,12 @@ export const API_PAGE_SIZE = 1000;
 
 export async function fetchAllRows<T>(
   page: (from: number, to: number) => PromiseLike<PageResult<T>>,
-  options: { pageSize?: number; maxPages?: number } = {},
+  options: {
+    pageSize?: number;
+    maxPages?: number;
+    /** Called with each page as it arrives — to show the first one without waiting for the rest. */
+    onPage?: (batch: T[], index: number) => void;
+  } = {},
 ): Promise<{ data: T[]; error: unknown }> {
   const pageSize = options.pageSize ?? API_PAGE_SIZE;
   const maxPages = options.maxPages ?? 100;
@@ -34,6 +39,7 @@ export async function fetchAllRows<T>(
     if (error) return { data: rows, error };
     const batch = data ?? [];
     rows.push(...batch);
+    options.onPage?.(batch, i);
     // A short page is the last one. (A full page may be too — then the next
     // request comes back empty, which costs one round trip and loses nothing.)
     if (batch.length < pageSize) return { data: rows, error: null };

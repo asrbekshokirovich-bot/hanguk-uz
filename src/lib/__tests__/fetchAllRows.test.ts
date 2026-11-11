@@ -55,6 +55,12 @@ describe('fetchAllRows', () => {
     expect(page.mock.calls).toEqual([[0, 9], [10, 19], [20, 29]]);
   });
 
+  it('hands each page over as it arrives', async () => {
+    const seen: [number, number][] = [];
+    await fetchAllRows(api(table(25), 10), { pageSize: 10, onPage: (batch, i) => seen.push([i, batch.length]) });
+    expect(seen).toEqual([[0, 10], [1, 10], [2, 5]]);
+  });
+
   it('gives up, loudly, on a list that never ends', async () => {
     const page = vi.fn(async () => ({ data: table(10), error: null }));
     const { data, error } = await fetchAllRows(page, { pageSize: 10, maxPages: 3 });
