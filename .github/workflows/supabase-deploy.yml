@@ -255,6 +255,7 @@ jobs:
             register-push-token
             create-student
             vapi-fetch-recording
+            fx-kgs
           "
 
           for fn in $FUNCTIONS; do

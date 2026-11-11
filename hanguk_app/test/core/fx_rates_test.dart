@@ -93,5 +93,12 @@ void main() {
       expect(money(4134000, 'KRW', locale: 'uz').endsWith("so'm"), isTrue);
       expect(money(4134000, 'KRW', locale: 'en'), '\$3,120');
     });
+
+    test('on the web the Kyrgyz bank is read through our edge function (no CORS there)', () {
+      expect(KgsRates.dailyUrl(web: false), 'https://www.nbkr.kg/XML/daily.xml');
+      expect(KgsRates.weeklyUrl(web: false), 'https://www.nbkr.kg/XML/weekly.xml');
+      expect(KgsRates.dailyUrl(web: true), endsWith('/functions/v1/fx-kgs?list=daily'));
+      expect(KgsRates.weeklyUrl(web: true), endsWith('/functions/v1/fx-kgs?list=weekly'));
+    });
   });
 }
