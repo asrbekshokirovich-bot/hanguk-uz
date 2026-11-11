@@ -17,7 +17,7 @@ export function normalizePhone(phone: string | null | undefined): string | null 
   if (!phone) return null;
   let n = phone.replace(/\D/g, "");
   if (!n) return null;
-  if (n.startsWith("998")) { n = "+" + n; } else if (n.startsWith("9") && n.length === 9) { n = "+998" + n; }
+  if (n.startsWith("998")) { n = "+" + n; } else if (n.startsWith("996") && n.length === 12) { n = "+" + n; } else if (n.startsWith("9") && n.length === 9) { n = "+998" + n; }
   return n;
 }
 
