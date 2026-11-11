@@ -28,6 +28,10 @@ launch() {
     cat "$out/$name-install.txt"
     return 2
   fi
+  # Android finishes an install with broadcasts; on a slow emulator they can
+  # land seconds later and restart the activity under the first tap. Start
+  # only once they are through.
+  timeout 90 adb shell am wait-for-broadcast-idle >/dev/null 2>&1 || true
   adb logcat -c
   adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 }
@@ -60,7 +64,7 @@ worker() {
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
   # A01, then T1.
-  if ui wait 'Telefon raqam bilan' 90 && ui tap 'Telefon raqam bilan' && ui wait 'Telefon raqamingiz' 30; then
+  if ui wait 'Telefon raqam bilan' 90 && ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz'; then
     echo "$name: A01 → T1"
   else
     echo "::error::$name: A01 → T1 did not happen"
@@ -76,7 +80,7 @@ employer() {
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
   # BA0 with nothing filled in: it says what is missing.
-  if ui wait '시작하기' 90 && ui tap '시작하기' && ui wait '모두 입력해 주세요' 30; then
+  if ui wait '시작하기' 90 && ui tapto '시작하기' '모두 입력해 주세요'; then
     echo "$name: BA0 answers"
   else
     echo "::error::$name: BA0 did not answer the tap"
