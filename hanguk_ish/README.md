@@ -55,6 +55,28 @@ orqali yangi yuklash kalitini so'rashga to'g'ri keladi):
 keytool -genkey -v -keystore upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 
+## Xodimlar: hanguk.uz → CRM → «Hanguk Ish»
+
+Ilovadan tashqaridagi (Telegram guruh va kanallaridan topilgan) ish
+beruvchilar, ularning faqat taklif bilan ochiladigan ishlari, mos ishchilar,
+takliflar, tasdiq, davomat va to'lov — hanguk.uz CRM'ida (`src/components/crm/ish/`,
+`src/lib/ish/`). Reja: `docs/operator-reja.md`.
+
+1. hanguk.uz'ning Vercel loyihasi → Settings → Environment Variables:
+   `VITE_ISH_SUPABASE_URL`, `VITE_ISH_SUPABASE_PUBLISHABLE_KEY` («hanguk-ish»
+   loyihasining Project Settings → API). Ularsiz bo'lim «baza hali ulanmagan»
+   deydi.
+2. Xodim bir marta CRM → «Hanguk Ish» da telefon raqami va SMS kod bilan
+   kiradi (ilovalardagi kabi; email kirish yo'q).
+3. Admin uni xodim qiladi (Supabase → SQL Editor; raqam `+` siz):
+
+   ```sql
+   insert into public.staff_members (user_id)
+   select id from auth.users where phone = '998901234567';
+   ```
+
+   Olib tashlash: `delete from public.staff_members where user_id = …;`
+
 ## Tuzilma
 
 ```

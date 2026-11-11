@@ -48,6 +48,9 @@ template = "Hanguk Ish kodi: {{ .Code }}"
 821000000061 = "123456"
 821000000062 = "123456"
 821000000063 = "123456"
+# the same from hanguk.uz's data layer with supabase-js (src/lib/ish/__e2e__)
+821000000071 = "123456"
+821000000072 = "123456"
 
 # GoTrue accepts phone sign-in only with a provider enabled; the test numbers
 # above never reach it. Local stack only — production uses the provider set
