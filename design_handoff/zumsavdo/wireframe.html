@@ -1,0 +1,416 @@
+<meta charset="utf-8">
+<title>ZumSavdo Wireframe</title>
+<style>
+:root{
+  --bg:#EEEEEE; --paper:#FFFFFF; --ln:#111111; --ln2:#8E8E8E; --ln3:#D2D2D2;
+  --ink:#111111; --ink2:#5E5E5E; --ink3:#8A8A8A; --fill:#DEDEDE; --fill2:#F0F0F0;
+  --badge:#111111; --badgeInk:#FFFFFF; --keybg:#F7F7F7;
+  --f:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --s:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0C0C; --paper:#171717; --ln:#E6E6E6; --ln2:#666666; --ln3:#333333;
+    --ink:#E6E6E6; --ink2:#A0A0A0; --ink3:#7C7C7C; --fill:#2C2C2C; --fill2:#202020;
+    --badge:#E6E6E6; --badgeInk:#0C0C0C; --keybg:#131313;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0C0C; --paper:#171717; --ln:#E6E6E6; --ln2:#666666; --ln3:#333333;
+  --ink:#E6E6E6; --ink2:#A0A0A0; --ink3:#7C7C7C; --fill:#2C2C2C; --fill2:#202020;
+  --badge:#E6E6E6; --badgeInk:#0C0C0C; --keybg:#131313;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);font-size:14px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 18px 80px}
+
+h1{font-size:24px;margin:0 0 6px;font-weight:750;letter-spacing:-.02em}
+.lead{color:var(--ink2);margin:0 0 26px;max-width:60ch}
+
+.tag{font-family:var(--f);font-size:11px;letter-spacing:.16em;color:var(--ink2);
+     margin:38px 0 10px;text-transform:uppercase;border-bottom:1px solid var(--ln3);padding-bottom:6px}
+
+/* ---- navigation map ---- */
+.map{background:var(--paper);border:2px solid var(--ln);padding:16px;margin-bottom:10px}
+.mapline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--f);font-size:12px}
+.node{border:1px solid var(--ln);padding:6px 12px;background:var(--fill2)}
+.node.start{background:var(--badge);color:var(--badgeInk);border-color:var(--badge);font-weight:700}
+.arw{color:var(--ink3)}
+.maplbl{font-size:11.5px;color:var(--ink2);margin-top:8px;font-family:var(--s)}
+
+/* ---- screen + key side by side ---- */
+.pair{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.95fr);gap:14px;align-items:start}
+@media(max-width:900px){.pair{grid-template-columns:1fr}}
+
+.screen{background:var(--paper);border:2px solid var(--ln)}
+.pad{padding:13px}
+.row{display:flex;gap:9px;flex-wrap:wrap}
+.row+.row{margin-top:11px}
+
+/* every labelled region */
+.z{position:relative;border:1px solid var(--ln);padding:10px 11px 11px}
+.z.dashed{border-style:dashed;border-color:var(--ln2)}
+.num{position:absolute;top:-10px;left:9px;background:var(--badge);color:var(--badgeInk);
+     width:19px;height:19px;border-radius:50%;font-family:var(--f);font-size:11px;font-weight:700;
+     display:flex;align-items:center;justify-content:center;line-height:1}
+.zl{font-family:var(--f);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);
+    margin-bottom:7px;padding-left:16px}
+
+.bar{border-bottom:1px solid var(--ln);padding:9px 13px;display:flex;gap:9px;align-items:center;flex-wrap:wrap;position:relative}
+.logo{width:22px;height:22px;border:1px solid var(--ln);display:grid;place-items:center;font-size:10px;font-family:var(--f)}
+.sp{flex:1}
+
+.chip{border:1px solid var(--ln2);padding:4px 10px;font-size:11.5px;font-family:var(--f)}
+.chip.on{border-color:var(--ln);background:var(--fill);font-weight:700}
+
+.big{flex:1;min-width:150px}
+.big .v{height:26px;margin:2px 0 6px;background:var(--fill);width:74%}
+.big .v.s{width:54%}
+.big .m{height:7px;background:var(--fill2);width:46%}
+
+.inp{border:1px solid var(--ln);padding:9px 11px;flex:1;min-width:170px;color:var(--ink3);font-family:var(--f);font-size:12px}
+
+.li{display:flex;gap:9px;align-items:center;padding:6px 0;border-bottom:1px solid var(--ln3)}
+.li:last-child{border-bottom:none}
+.li .n{width:14px;color:var(--ink3);font-size:10px;font-family:var(--f)}
+.li .t{flex:1;height:8px;background:var(--fill)}
+.li .q{width:48px;height:8px;background:var(--fill2)}
+
+.chart{height:96px;position:relative;overflow:hidden;border:1px solid var(--ln3);margin-top:2px}
+.chart.sm{height:60px}
+.chart svg{position:absolute;inset:0;width:100%;height:100%}
+
+.ev{display:flex;gap:9px;align-items:center;padding:6px 0;border-bottom:1px solid var(--ln3)}
+.ev:last-child{border-bottom:none}
+.ev .d{width:38px;height:7px;background:var(--fill2)}
+.ev .x{flex:1;height:7px;background:var(--fill)}
+.ev .y{width:38px;height:7px;background:var(--fill2)}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media(max-width:620px){.g2{grid-template-columns:1fr}}
+
+.crumb{padding:7px 13px;border-bottom:1px solid var(--ln3);color:var(--ink3);font-size:11px;font-family:var(--f);position:relative}
+.head{display:flex;gap:11px;align-items:center;padding:11px 13px;border-bottom:1px solid var(--ln);position:relative}
+.head .av{width:34px;height:34px;border:1px solid var(--ln)}
+.head .t{height:12px;background:var(--fill);width:180px}
+.head .s{height:7px;background:var(--fill2);width:115px;margin-top:5px}
+
+/* ---- key ---- */
+.key{background:var(--keybg);border:1px solid var(--ln2);position:sticky;top:10px}
+.key h3{margin:0;padding:10px 13px;border-bottom:1px solid var(--ln2);font-size:12px;
+  font-family:var(--f);letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.k{display:flex;gap:10px;padding:9px 13px;border-bottom:1px solid var(--ln3);align-items:flex-start}
+.k:last-child{border-bottom:none}
+.k .kn{background:var(--badge);color:var(--badgeInk);width:19px;height:19px;border-radius:50%;
+  font-family:var(--f);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.k .kt{min-width:0}
+.k b{display:block;font-size:13.5px;font-weight:650;margin-bottom:1px}
+.k span{font-size:12.5px;color:var(--ink2);display:block}
+.k code{font-family:var(--f);font-size:11.5px;background:var(--fill2);padding:1px 4px;border:1px solid var(--ln3)}
+.k .rule{display:block;margin-top:4px;font-size:12px;color:var(--ink);border-left:2px solid var(--ln2);padding-left:8px}
+</style>
+
+<div class="wrap">
+
+<h1>Wireframe — qayerga nima qoʻyiladi</h1>
+<p class="lead">Har bir quti raqamlangan. Oʻng tomondagi roʻyxat — oʻsha quti nima ekani va unga qaysi maʻlumot tushishi.</p>
+
+<div class="tag">Oʻtish yoʻllari</div>
+<div class="map">
+  <div class="mapline">
+    <span class="node start">BOSH SAHIFA</span>
+    <span class="arw">──▶</span>
+    <span class="node">SOTUVCHI</span>
+    <span class="arw">──▶</span>
+    <span class="node">MAHSULOT</span>
+  </div>
+  <div class="mapline" style="margin-top:9px">
+    <span class="node start">BOSH SAHIFA</span>
+    <span class="arw">──▶</span>
+    <span class="node">TURKUM</span>
+    <span class="arw">──▶</span>
+    <span class="node">SOTUVCHI</span>
+  </div>
+  <div class="maplbl">Qidiruvdan yoki roʻyxatdagi qatorni bosishdan oʻtiladi. Har bir sahifaning manzili <b>id</b> boʻyicha:
+    <code style="font-family:var(--f)">/sotuvchi/9103</code>, <code style="font-family:var(--f)">/mahsulot/560305</code> — nomga bogʻlanmaydi.</div>
+</div>
+
+<!-- ==================== 1 ==================== -->
+<div class="tag">1 — Bosh sahifa</div>
+<div class="pair">
+  <div class="screen">
+    <div class="bar">
+      <span class="num" style="top:-10px;left:9px">1</span>
+      <span class="logo">Z</span><b style="font-size:13px">ZumSavdo</b>
+      <span class="sp"></span>
+      <span class="chip">holat</span>
+    </div>
+    <div class="pad">
+      <div class="z"><span class="num">2</span><div class="zl">Davr</div>
+        <div class="row">
+          <span class="chip on">Bugun</span><span class="chip">7 kun</span>
+          <span class="chip">30 kun</span><span class="chip">Sana tanlash</span>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div class="z big"><span class="num">3</span><div class="zl">Buyurtmalar</div>
+          <div class="v"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">4</span><div class="zl">Aylanma</div>
+          <div class="v s"></div><div class="m"></div></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">5</span><div class="zl">Qidiruv</div>
+        <div class="row">
+          <span class="chip on">Sotuvchi</span><span class="chip">Mahsulot</span><span class="chip">Turkum</span>
+        </div>
+        <div class="row"><div class="inp">Qidirish...</div></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">6</span><div class="zl">Natijalar</div>
+        <div class="li"><span class="n">1</span><span class="t"></span><span class="q"></span></div>
+        <div class="li"><span class="n">2</span><span class="t"></span><span class="q"></span></div>
+        <div class="li"><span class="n">3</span><span class="t"></span><span class="q"></span></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">7</span><div class="zl">Kunlik grafik</div>
+        <div class="chart"><svg viewBox="0 0 600 96" preserveAspectRatio="none">
+          <polyline points="10,72 60,62 110,66 160,48 210,55 260,36 310,43 360,29 410,38 460,22 510,31 560,17"
+            fill="none" stroke="var(--ln2)" stroke-width="2"/></svg></div>
+      </div>
+      <div class="g2" style="margin-top:14px">
+        <div class="z"><span class="num">8</span><div class="zl">Top sotuvchilar</div>
+          <div class="li"><span class="n">1</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">2</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">3</span><span class="t"></span><span class="q"></span></div>
+        </div>
+        <div class="z"><span class="num">9</span><div class="zl">Top turkumlar</div>
+          <div class="li"><span class="n">1</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">2</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">3</span><span class="t"></span><span class="q"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="key">
+    <h3>Bosh sahifa</h3>
+    <div class="k"><span class="kn">1</span><span class="kt"><b>Sarlavha + holat</b>
+      <span>Logotip. Oʻngda: oxirgi sweep qachon boʻlgan, qamrov %, xatolar soni.</span>
+      <span class="rule">Bu yerda ishchi loglarga qaramay tizim ishlayaptimi yoʻqmi koʻradi.</span></span></div>
+    <div class="k"><span class="kn">2</span><span class="kt"><b>Davr tugmalari</b>
+      <span>Bugun · 7 kun · 30 kun · Sana tanlash. Standart — Bugun.</span>
+      <span class="rule">28.07.2026 dan oldingi sanalar <b>oʻchirilgan</b> boʻlsin — undan oldin maʻlumot yoʻq.</span></span></div>
+    <div class="k"><span class="kn">3</span><span class="kt"><b>Buyurtmalar</b>
+      <span>Uzum boʻyicha jami. Manba: <code>Shop.ordersQuantity</code> farqi.</span>
+      <span class="rule">ANIQ raqam. “Bugun” tanlansa — nechta oʻlchov tushgani yozilsin (masalan 7/12).</span></span></div>
+    <div class="k"><span class="kn">4</span><span class="kt"><b>Aylanma</b>
+      <span>Dona × narx. Hisoblangan raqam.</span>
+      <span class="rule">Oldiga <code>~</code> qoʻyiladi va “taxminiy” deb belgilanadi. Aniq deb koʻrsatilmasin.</span></span></div>
+    <div class="k"><span class="kn">5</span><span class="kt"><b>Qidiruv</b>
+      <span>Avval tur tanlanadi: Sotuvchi / Mahsulot / Turkum. Standart — Sotuvchi.</span>
+      <span class="rule">Lotin va kirill, <code>ʻ</code> va <code>'</code> — solishtirishdan oldin normalizatsiya.</span></span></div>
+    <div class="k"><span class="kn">6</span><span class="kt"><b>Natijalar</b>
+      <span>2 harfdan keyin chiqadi. Qator: nom · buyurtma · aylanma · oʻrin.</span>
+      <span class="rule">Qatorni bosish → oʻsha obyekt sahifasi.</span></span></div>
+    <div class="k"><span class="kn">7</span><span class="kt"><b>Kunlik grafik</b>
+      <span>Tanlangan davr uchun butun bozor.</span></span></div>
+    <div class="k"><span class="kn">8</span><span class="kt"><b>Top sotuvchilar</b>
+      <span>Buyurtma boʻyicha. Har qator → sotuvchi sahifasi.</span></span></div>
+    <div class="k"><span class="kn">9</span><span class="kt"><b>Top turkumlar</b>
+      <span>Har qator → turkum sahifasi.</span></span></div>
+  </div>
+</div>
+
+<!-- ==================== 2 ==================== -->
+<div class="tag">2 — Sotuvchi sahifasi</div>
+<div class="pair">
+  <div class="screen">
+    <div class="crumb"><span class="num" style="top:-10px;left:9px">1</span>
+      &nbsp;&nbsp;&nbsp;Bosh sahifa / Turkum / Sotuvchi</div>
+    <div class="head"><span class="num" style="top:-10px;left:9px">2</span>
+      <span class="av"></span><div><div class="t"></div><div class="s"></div></div></div>
+    <div class="pad">
+      <div class="z"><span class="num">3</span><div class="zl">Davr</div>
+        <div class="row"><span class="chip">Bugun</span><span class="chip on">7 kun</span>
+          <span class="chip">30 kun</span><span class="chip">Sana tanlash</span></div></div>
+      <div class="row" style="margin-top:14px">
+        <div class="z big"><span class="num">4</span><div class="zl">Buyurtmalar</div><div class="v"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">5</span><div class="zl">Aylanma</div><div class="v s"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">6</span><div class="zl">Oʻrin</div><div class="v" style="width:36%"></div><div class="m"></div></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">7</span><div class="zl">Grafik + turkum chizigʻi</div>
+        <div class="chart"><svg viewBox="0 0 600 96" preserveAspectRatio="none">
+          <polyline points="10,66 60,54 110,58 160,40 210,48 260,32 310,38 360,24 410,32 460,18 510,26 560,14"
+            fill="none" stroke="var(--ln)" stroke-width="2"/>
+          <polyline points="10,80 60,76 110,78 160,70 210,74 260,66 310,70 360,62 410,68 460,58 510,64 560,56"
+            fill="none" stroke="var(--ln2)" stroke-width="2" stroke-dasharray="6 5"/></svg></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">8</span><div class="zl">Nima oʻzgardi</div>
+        <div class="ev"><span class="d"></span><span class="x"></span><span class="y"></span></div>
+        <div class="ev"><span class="d"></span><span class="x"></span><span class="y"></span></div>
+        <div class="ev"><span class="d"></span><span class="x"></span><span class="y"></span></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">9</span><div class="zl">Mahsulotlar</div>
+        <div class="li"><span class="n">1</span><span class="t"></span><span class="q"></span><span class="q"></span></div>
+        <div class="li"><span class="n">2</span><span class="t"></span><span class="q"></span><span class="q"></span></div>
+        <div class="li"><span class="n">3</span><span class="t"></span><span class="q"></span><span class="q"></span></div>
+        <div class="li"><span class="n">4</span><span class="t"></span><span class="q"></span><span class="q"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="key">
+    <h3>Sotuvchi</h3>
+    <div class="k"><span class="kn">1</span><span class="kt"><b>Yoʻl (breadcrumb)</b>
+      <span>Bosh sahifa / Turkum / Sotuvchi — orqaga qaytish uchun.</span></span></div>
+    <div class="k"><span class="kn">2</span><span class="kt"><b>Sotuvchi nomi</b>
+      <span>Nom, <code>id</code>, turkumi, rasmiy doʻkonmi, nechta mahsulot kuzatilyapti.</span></span></div>
+    <div class="k"><span class="kn">3</span><span class="kt"><b>Davr</b>
+      <span>Bosh sahifadagi bilan bir xil.</span></span></div>
+    <div class="k"><span class="kn">4</span><span class="kt"><b>Buyurtmalar</b>
+      <span>Bu sotuvchining aniq buyurtmasi. <code>Shop.ordersQuantity</code> farqi.</span>
+      <span class="rule">Tizimdagi eng ishonchli raqam — ANIQ.</span></span></div>
+    <div class="k"><span class="kn">5</span><span class="kt"><b>Aylanma</b>
+      <span>Taxminiy. <code>~</code> bilan.</span></span></div>
+    <div class="k"><span class="kn">6</span><span class="kt"><b>Oʻrin</b>
+      <span>Masalan: <code>#3 / 412</code> — turkumda, buyurtma boʻyicha, 30 kun.</span>
+      <span class="rule">Uch narsa yozilishi shart: <b>nima boʻyicha</b>, <b>kimlar orasida</b>, <b>qaysi davrda</b>.
+      Oʻsish/tushish strelkasi <b>hozircha yoʻq</b> — ikkinchi oʻlchov yigʻilmagan.</span></span></div>
+    <div class="k"><span class="kn">7</span><span class="kt"><b>Kunlik grafik</b>
+      <span>Qattiq chiziq — sotuvchi. Punktir chiziq — butun turkum.</span>
+      <span class="rule">Bu ikki chiziq eng muhimi: sotuvchi bozordan yaxshiroqmi yoki bozor bilan birga harakatlanyaptimi.</span></span></div>
+    <div class="k"><span class="kn">8</span><span class="kt"><b>Nima oʻzgardi</b>
+      <span>Sana · nima oʻzgardi · qanchaga.</span>
+      <span class="rule">“Sabab” deb yozilmaydi. Faqat <b>bir vaqtda nima boʻlgani</b>.</span></span></div>
+    <div class="k"><span class="kn">9</span><span class="kt"><b>Mahsulotlar</b>
+      <span>Nom · narx · haftalik xaridor · dona · qoldiq. Saralanadi.</span>
+      <span class="rule">Qator → mahsulot sahifasi.</span></span></div>
+  </div>
+</div>
+
+<!-- ==================== 3 ==================== -->
+<div class="tag">3 — Mahsulot sahifasi (eng muhimi)</div>
+<div class="pair">
+  <div class="screen">
+    <div class="crumb"><span class="num" style="top:-10px;left:9px">1</span>
+      &nbsp;&nbsp;&nbsp;Bosh sahifa / Sotuvchi / Turkum</div>
+    <div class="head"><span class="num" style="top:-10px;left:9px">2</span>
+      <span class="av"></span><div><div class="t" style="width:250px"></div><div class="s"></div></div></div>
+    <div class="pad">
+      <div class="row">
+        <div class="z big"><span class="num">3</span><div class="zl">Xaridorlar / hafta</div><div class="v" style="width:48%"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">4</span><div class="zl">Sotuv (dona)</div><div class="v s"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">5</span><div class="zl">Oʻrin</div><div class="v" style="width:36%"></div><div class="m"></div></div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">6</span><div class="zl">4 ta grafik — bitta vaqt oʻqi</div>
+        <div class="g2">
+          <div><div style="font-family:var(--f);font-size:10px;color:var(--ink3)">SOTUV</div>
+            <div class="chart sm"><svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <rect x="88" y="0" width="46" height="60" fill="var(--fill)"/>
+              <polyline points="6,42 34,36 62,38 90,56 118,56 146,24 174,30 202,18 230,24 258,13 286,16"
+                fill="none" stroke="var(--ln)" stroke-width="2"/></svg></div></div>
+          <div><div style="font-family:var(--f);font-size:10px;color:var(--ink3)">NARX</div>
+            <div class="chart sm"><svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <polyline points="6,20 62,20 118,20 122,40 174,40 230,40 286,40"
+                fill="none" stroke="var(--ln)" stroke-width="2"/></svg></div></div>
+          <div><div style="font-family:var(--f);font-size:10px;color:var(--ink3)">QOLDIQ</div>
+            <div class="chart sm"><svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <rect x="88" y="0" width="46" height="60" fill="var(--fill)"/>
+              <polyline points="6,14 34,24 62,36 90,54 118,54 146,16 174,26 202,36 230,16 258,26 286,34"
+                fill="none" stroke="var(--ln)" stroke-width="2"/></svg></div></div>
+          <div><div style="font-family:var(--f);font-size:10px;color:var(--ink3)">SHARHLAR</div>
+            <div class="chart sm"><svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <polyline points="6,50 34,48 62,45 90,43 118,42 146,35 174,30 202,26 230,21 258,16 286,11"
+                fill="none" stroke="var(--ln)" stroke-width="2"/></svg></div></div>
+        </div>
+      </div>
+      <div class="z" style="margin-top:14px"><span class="num">7</span><div class="zl">Nima oʻzgardi</div>
+        <div class="ev"><span class="d"></span><span class="x"></span><span class="y"></span></div>
+        <div class="ev"><span class="d"></span><span class="x"></span><span class="y"></span></div>
+        <div class="ev"><span class="d"></span><span class="x"></span><span class="y"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="key">
+    <h3>Mahsulot</h3>
+    <div class="k"><span class="kn">1</span><span class="kt"><b>Yoʻl</b>
+      <span>Sotuvchi va turkumga havola.</span></span></div>
+    <div class="k"><span class="kn">2</span><span class="kt"><b>Mahsulot nomi</b>
+      <span>Nom, <code>id</code>, sotuvchi, turkum, chegirma foizi.</span></span></div>
+    <div class="k"><span class="kn">3</span><span class="kt"><b>Xaridorlar / hafta</b>
+      <span>Manba: <code>MotivationAction.text</code> — “Bu haftada 772 kishi sotib oldi”.</span>
+      <span class="rule">ANIQ. Bu <b>odam</b> soni — buyurtma ham, dona ham emas. Shunday yozilsin.
+      Har doim 7 kunlik — davr tugmasi buni oʻzgartirmaydi.</span></span></div>
+    <div class="k"><span class="kn">4</span><span class="kt"><b>Sotuv (dona)</b>
+      <span>Qoldiq kamayishidan hisoblanadi.</span>
+      <span class="rule">Taxminiy — <code>~</code> bilan. Oraliqda tovar keltirilsa, sotuv yashirinadi.</span></span></div>
+    <div class="k"><span class="kn">5</span><span class="kt"><b>Oʻrin</b>
+      <span>Turkum ichida.</span>
+      <span class="rule">Nechta mahsulot orasida ekani yozilsin. Strelkasi yoʻq.</span></span></div>
+    <div class="k"><span class="kn">6</span><span class="kt"><b>4 ta grafik, bitta vaqt oʻqi</b>
+      <span>Sotuv · Narx · Qoldiq · Sharhlar — biri ostida biri, sanalar mos.</span>
+      <span class="rule">Sahifadagi eng muhim joy. Sotuvchi shu yerda narx tushgani, tovar tugagani yoki
+      sharhlar koʻpaygani sotuvga qanday tushganini <b>oʻzi koʻradi</b>.
+      Kulrang soyalar — tovar boʻlmagan kunlar.</span></span></div>
+    <div class="k"><span class="kn">7</span><span class="kt"><b>Nima oʻzgardi</b>
+      <span>Sana · hodisa · raqam.</span>
+      <span class="rule">Masalan: “3-avgust — narx 18% tushdi. Keyingi 14 kunda dona 41% oshdi.”
+      <b>“Sababi shu” deb yozilmaydi.</b></span></span></div>
+  </div>
+</div>
+
+<!-- ==================== 4 ==================== -->
+<div class="tag">4 — Turkum sahifasi</div>
+<div class="pair">
+  <div class="screen">
+    <div class="crumb"><span class="num" style="top:-10px;left:9px">1</span>
+      &nbsp;&nbsp;&nbsp;Bosh sahifa / Turkum</div>
+    <div class="head"><span class="num" style="top:-10px;left:9px">2</span>
+      <span class="av"></span><div><div class="t" style="width:150px"></div><div class="s"></div></div></div>
+    <div class="pad">
+      <div class="row">
+        <div class="z big"><span class="num">3</span><div class="zl">Buyurtmalar</div><div class="v"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">4</span><div class="zl">Aylanma</div><div class="v s"></div><div class="m"></div></div>
+        <div class="z big"><span class="num">5</span><div class="zl">Raqobat</div><div class="v" style="width:42%"></div><div class="m"></div></div>
+      </div>
+      <div class="z dashed" style="margin-top:14px"><span class="num">6</span><div class="zl">Xulosa</div>
+        <div style="height:8px;background:var(--fill);width:82%"></div>
+        <div style="height:8px;background:var(--fill2);width:58%;margin-top:6px"></div>
+      </div>
+      <div class="g2" style="margin-top:14px">
+        <div class="z"><span class="num">7</span><div class="zl">Sotuvchilar</div>
+          <div class="li"><span class="n">1</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">2</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">3</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">4</span><span class="t"></span><span class="q"></span></div>
+        </div>
+        <div class="z"><span class="num">8</span><div class="zl">Mahsulotlar</div>
+          <div class="li"><span class="n">1</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">2</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">3</span><span class="t"></span><span class="q"></span></div>
+          <div class="li"><span class="n">4</span><span class="t"></span><span class="q"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="key">
+    <h3>Turkum</h3>
+    <div class="k"><span class="kn">1</span><span class="kt"><b>Yoʻl</b><span>Bosh sahifaga qaytish.</span></span></div>
+    <div class="k"><span class="kn">2</span><span class="kt"><b>Turkum nomi</b>
+      <span>Nom, <code>id</code>, nechta mahsulot, nechta sotuvchi.</span></span></div>
+    <div class="k"><span class="kn">3</span><span class="kt"><b>Buyurtmalar</b>
+      <span>Turkumdagi sotuvchilar yigʻindisi. Aniq.</span></span></div>
+    <div class="k"><span class="kn">4</span><span class="kt"><b>Aylanma</b><span>Taxminiy.</span></span></div>
+    <div class="k"><span class="kn">5</span><span class="kt"><b>Raqobat</b>
+      <span>Bitta mahsulotga necha buyurtma toʻgʻri keladi.</span>
+      <span class="rule">“Bu yerga kirsam boʻladimi?” degan savolga javob beradigan raqam.
+      Kam sotuvchi kuzatilgan boʻlsa — <b>xulosa chiqarilmasin</b>.</span></span></div>
+    <div class="k"><span class="kn">6</span><span class="kt"><b>Xulosa</b>
+      <span>“Kirish oson / oʻrtacha / qiyin” + top 5 sotuvchi ulushi.</span></span></div>
+    <div class="k"><span class="kn">7</span><span class="kt"><b>Sotuvchilar</b>
+      <span>Buyurtma va ulush boʻyicha. Qator → sotuvchi sahifasi.</span></span></div>
+    <div class="k"><span class="kn">8</span><span class="kt"><b>Mahsulotlar</b>
+      <span>Qator → mahsulot sahifasi.</span></span></div>
+  </div>
+</div>
+
+</div>
