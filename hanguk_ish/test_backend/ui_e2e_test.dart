@@ -801,9 +801,10 @@ void main() {
 
     await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
     await _until(tester, _text('Sizga mos yangi smena'));
+    // (Without the invisible word joiner that keeps «₩/soat» on one line.)
     final line = tester
         .widgetList<Text>(find.byType(Text))
-        .map((t) => t.data ?? '')
+        .map((t) => (t.data ?? '').replaceAll('\u2060', ''))
         .firstWhere((t) => t.startsWith('E2E Kafe · '));
     expect(line, matches(RegExp(r'/soat · [\d,.]+ km$')), reason: 'how far, from where the app last saw the worker');
     await _shot(tester, 'a12-invitation');

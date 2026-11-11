@@ -53,9 +53,10 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // Without the invisible word joiner that keeps «₩/soat» on one line.
   String line(WidgetTester tester) => tester
       .widgetList<Text>(find.byType(Text))
-      .map((t) => t.data ?? '')
+      .map((t) => (t.data ?? '').replaceAll('\u2060', ''))
       .singleWhere((t) => t.startsWith('E2E Kafe · '));
 
   testWidgets('A12: a new shift with no distance ends at the wage, not in « · »', (tester) async {
