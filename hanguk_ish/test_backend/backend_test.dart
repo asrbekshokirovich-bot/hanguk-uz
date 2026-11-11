@@ -218,7 +218,7 @@ void main() {
 
     test('three shifts; the database refuses what breaks a rule', () async {
       final t = DateTime.now().toUtc();
-      ShiftDraft draft(DateTime start, {int hours = 5, int wage = 10500, int slots = 2, bool auto = true}) => ShiftDraft(
+      ShiftDraft draft(DateTime start, {int hours = 5, int wage = 10800, int slots = 2, bool auto = true}) => ShiftDraft(
             businessId: businessId,
             title: '홀·카운터 보조',
             duties: '주문 접수',
@@ -353,7 +353,7 @@ void main() {
       final done = await azizShifts.checkOut(await employer.shiftQr(now.id));
       expect(done.status, ApplicationStatus.completed);
       expect(done.workedMinutes, inInclusiveRange(119, 120));
-      expect(done.payAmount, 10500 * done.workedMinutes! ~/ 60);
+      expect(done.payAmount, 10800 * done.workedMinutes! ~/ 60);
       expect(done.isPaid, isFalse);
     });
 
@@ -480,7 +480,7 @@ void main() {
           title: '주방 보조',
           startsAt: start,
           endsAt: start.add(const Duration(hours: 4)),
-          hourlyWage: 10500,
+          hourlyWage: 10800,
           slots: 1,
         )),
         _refused('BUSINESS_NOT_VERIFIED'),

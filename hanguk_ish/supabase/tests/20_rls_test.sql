@@ -42,7 +42,7 @@ select tests.throws($$insert into public.applications (shift_id, worker_id, stat
 select tests.throws($$update public.applications set status = 'completed' where id = '30000000-0000-0000-0000-000000000004'$$,
                     'permission denied', 'nor promoted directly');
 select tests.throws($$insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-                      values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day 2 hours', 10500, 1)$$,
+                      values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day 2 hours', 10800, 1)$$,
                     'row-level security', 'a worker cannot post a shift');
 select tests.eq((select count(*)::int from public.applications), 1, 'a worker sees only their own applications');
 select tests.throws($$insert into public.notifications (user_id, kind) values ('00000000-0000-0000-0000-0000000000a1', 'no_show')$$,
@@ -65,10 +65,10 @@ select tests.as_user('00000000-0000-0000-0000-0000000000b2');
 select tests.eq((select count(*)::int from public.applications), 0, 'another business sees no applications');
 select tests.eq((select count(*)::int from public.worker_profiles), 0, 'nor any worker');
 select tests.throws($$insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-                      values ('10000000-0000-0000-0000-000000000002', 'x', now() + interval '1 day', now() + interval '1 day 2 hours', 10500, 1)$$,
+                      values ('10000000-0000-0000-0000-000000000002', 'x', now() + interval '1 day', now() + interval '1 day 2 hours', 10800, 1)$$,
                     'BUSINESS_NOT_VERIFIED', 'an unverified business cannot post');
 select tests.throws($$insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-                      values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day 2 hours', 10500, 1)$$,
+                      values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day 2 hours', 10800, 1)$$,
                     'row-level security', 'nor post for someone else''s business');
 select tests.throws($$update public.businesses set status = 'verified' where id = '10000000-0000-0000-0000-000000000002'$$,
                     'permission denied', 'a business cannot verify itself');

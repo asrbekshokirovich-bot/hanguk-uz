@@ -11,9 +11,16 @@
 #
 # On the throwaway database it ends with tests/concurrency.sh: two sessions
 # at the same moment (it commits the fixtures, so not on the stack).
+#
+# NEXT_YEAR=1 tests/run.sh: the same tests with next year's minimum wage
+# already in force (the highest known one, for every year). Test shifts start
+# from now(), and at the turn of the year «in two days» is next year: a wage
+# that is legal today must not fail them then (P44). 10_schema_test checks
+# the real table, so it is left out there.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-DB=${TEST_DB:-ish_test}
+NEXT_YEAR=${NEXT_YEAR:-}
+DB=${TEST_DB:-ish_test${NEXT_YEAR:+_next_year}}
 psql_q() { psql -v ON_ERROR_STOP=1 -X -q "$@"; }
 
 if [ -n "${SUPABASE_DB_URL:-}" ]; then
@@ -39,12 +46,21 @@ for f in migrations/*.sql; do
   psql_q -d "$DB" -f "$f"
 done
 psql_q -d "$DB" -f tests/helpers.sql
+if [ -n "$NEXT_YEAR" ]; then
+  psql_q -d "$DB" -c "update public.minimum_wages set hourly_won = (select max(hourly_won) from public.minimum_wages)"
+  echo "minimum  $(psql -X -At -d "$DB" -c 'select max(hourly_won) from public.minimum_wages') 원 for every year"
+fi
 pass=0
 for f in tests/*_test.sql; do
+  if [ -n "$NEXT_YEAR" ] && [ "$(basename "$f")" = 10_schema_test.sql ]; then
+    echo "skip     $(basename "$f") (the real minimum wage table)"
+    continue
+  fi
   echo "test     $(basename "$f")"
   psql_q -d "$DB" -c 'begin' -f tests/fixtures.sql -f "$f" -c 'rollback' >/dev/null
   pass=$((pass + 1))
 done
-echo "OK: $pass test files passed"
+echo "OK: $pass test files passed${NEXT_YEAR:+ (with the next year minimum wage)}"
+[ -n "$NEXT_YEAR" ] && exit 0
 # Last: it commits the fixtures (two sessions must see them).
 bash tests/concurrency.sh "$DB"

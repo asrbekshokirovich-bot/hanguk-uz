@@ -168,7 +168,7 @@ select tests.as_user('00000000-0000-0000-0000-0000000000b2');
 select tests.eq(public.my_businesses() -> 0 ->> 'status', 'pending', 'biz2 waits for 국세청');
 select tests.throws($$insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
                       values ('10000000-0000-0000-0000-000000000002', '주방', now() + interval '1 day',
-                              now() + interval '1 day 4 hours', 10500, 1)$$,
+                              now() + interval '1 day 4 hours', 10800, 1)$$,
                     'BUSINESS_NOT_VERIFIED', 'a pending business cannot post');
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq(public.my_businesses(), '[]'::jsonb, 'a worker runs none');

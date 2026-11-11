@@ -25,7 +25,7 @@ select tests.ok((select public.distance_km(lat, lng, 37.5559, 126.9368) between 
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
 values ('10000000-0000-0000-0000-000000000001', '경계 테스트', now() + interval '1 day', now() + interval '1 day 4 hours',
-        10500, 2);
+        10800, 2);
 select tests.as_admin();
 select tests.eq((select array_agg(user_id::text order by user_id) from public.notifications
                  where kind = 'new_shift_match'),

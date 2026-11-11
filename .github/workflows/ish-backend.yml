@@ -28,7 +28,7 @@ jobs:
   postgres:
     name: Tests on PostgreSQL 16
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:16
@@ -49,6 +49,13 @@ jobs:
       - name: Run tests
         working-directory: hanguk_ish/supabase
         run: bash tests/run.sh
+      # The same tests with next year's minimum wage in force: test shifts
+      # start from now(), and at the turn of the year «in two days» is next
+      # year — a wage legal today must not fail them then (P44).
+      - name: Run tests with next year's minimum wage
+        if: success() || failure()
+        working-directory: hanguk_ish/supabase
+        run: NEXT_YEAR=1 bash tests/run.sh
       # 20 000 workers, 40 000 shifts: how long each call takes, and a
       # failure when one is far slower than measured (tests/perf/).
       - name: Scale (20 000 workers)

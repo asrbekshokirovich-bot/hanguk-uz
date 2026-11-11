@@ -104,9 +104,9 @@ select tests.throws($$update public.shifts set starts_at = now() - interval '1 h
 
 -- Posting into the past is refused; the admin (fixtures, upkeep) is not limited.
 select tests.throws($$insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-                      values ('10000000-0000-0000-0000-000000000001', '홀', now() - interval '1 hour', now() + interval '3 hours', 10500, 1)$$,
+                      values ('10000000-0000-0000-0000-000000000001', '홀', now() - interval '1 hour', now() + interval '3 hours', 10800, 1)$$,
                     'IN_THE_PAST', 'a shift that has already started');
 insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-  values ('10000000-0000-0000-0000-000000000001', '홀', now() + interval '1 day', now() + interval '1 day 4 hours', 10500, 1);
+  values ('10000000-0000-0000-0000-000000000001', '홀', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 1);
 select tests.as_admin();
 select tests.eq((select count(*)::int from public.shifts where title = '홀'), 1, 'a future shift is posted');

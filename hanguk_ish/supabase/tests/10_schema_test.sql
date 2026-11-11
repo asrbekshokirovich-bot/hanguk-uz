@@ -6,6 +6,13 @@ select tests.eq(public.minimum_wage('2026-12-31 23:59+09'), 10320, 'still 2026 o
 -- 2026-12-31 16:00 UTC is already 2027-01-01 01:00 in Seoul.
 select tests.eq(public.minimum_wage('2026-12-31 16:00+00'), 10700, 'year is taken on the Korean clock');
 
+-- The fixture shifts start from now(): their wages must stay legal a year
+-- ahead, or the tests start failing at the turn of the year (P44). When the
+-- next year's minimum is added, this says which wages to raise.
+select tests.eq((select count(*)::int from public.shifts
+                 where hourly_wage < public.minimum_wage(now() + interval '400 days')), 0,
+                'fixture wages are legal a year ahead');
+
 select tests.eq((select count(*)::int from public.profiles), 5, 'a profile per auth user');
 select tests.eq((select phone from public.profiles where id = '00000000-0000-0000-0000-0000000000a1'),
                 '+821000000001', 'profile copies the phone');
@@ -17,7 +24,7 @@ select tests.throws($$
   insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
   values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day',
           now() + interval '1 day 2 hours', 10319, 1)
-$$, 'WAGE_BELOW_MINIMUM', 'wage under the 2026 minimum is refused');
+$$, 'WAGE_BELOW_MINIMUM', 'wage under the minimum is refused');
 
 select tests.throws($$
   insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
@@ -26,12 +33,12 @@ $$, 'WAGE_BELOW_MINIMUM', 'a 2027 shift needs the 2027 minimum');
 
 select tests.throws($$
   insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-  values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day', 10500, 1)
+  values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day', 10800, 1)
 $$, 'shifts_time_order', 'end must be after start');
 
 select tests.throws($$
   insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-  values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day 17 hours', 10500, 1)
+  values ('10000000-0000-0000-0000-000000000001', 'x', now() + interval '1 day', now() + interval '1 day 17 hours', 10800, 1)
 $$, 'shifts_max_length', 'at most 16 hours');
 
 -- Translations are dropped when the Korean text changes, kept otherwise.

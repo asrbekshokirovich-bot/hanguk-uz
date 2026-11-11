@@ -52,7 +52,7 @@ select tests.throws($$select public.check_out((select s5 from qr))$$, 'ALREADY_C
 select tests.as_admin();
 insert into public.shifts (id, business_id, title, starts_at, ends_at, hourly_wage, slots, auto_confirm)
 values ('20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000001', '야간 보조',
-        now() - interval '5 hours 30 minutes', now() - interval '30 minutes', 10500, 1, true);
+        now() - interval '5 hours 30 minutes', now() - interval '30 minutes', 10800, 1, true);
 insert into public.applications (id, shift_id, worker_id, status, check_in_at, late_minutes)
 values ('30000000-0000-0000-0000-000000000009', '20000000-0000-0000-0000-000000000009',
         '00000000-0000-0000-0000-0000000000a1', 'checked_in', now() - interval '5 hours 45 minutes', 0);
@@ -64,7 +64,7 @@ select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq((public.check_out((select payload from qr9))).worked_minutes, 300,
                 'early arrival and late leave are capped at the planned 5 hours');
 select tests.eq((select pay_amount from public.applications where id = '30000000-0000-0000-0000-000000000009'),
-                52500, '5 h × 10 500 원 = 52 500 원 (the prototype example)');
+                54000, '5 h × 10 800 원 = 54 000 원');
 
 -- Check-out closes 2 hours after the end.
 select tests.as_admin();
@@ -79,7 +79,7 @@ select tests.throws($$select public.check_out((select s5 from qr))$$, 'TOO_LATE'
 select tests.as_admin();
 insert into public.shifts (id, business_id, title, starts_at, ends_at, hourly_wage, slots, auto_confirm)
 values ('20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000001', '홀 보조',
-        now() - interval '2 minutes 30 seconds', now() + interval '4 hours', 10500, 1, true);
+        now() - interval '2 minutes 30 seconds', now() + interval '4 hours', 10800, 1, true);
 insert into public.applications (id, shift_id, worker_id, status)
 values ('30000000-0000-0000-0000-000000000010', '20000000-0000-0000-0000-000000000010',
         '00000000-0000-0000-0000-0000000000a3', 'confirmed');

@@ -245,7 +245,7 @@ begin
         perform tests.as_user(v_owner);
         insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots, auto_confirm)
         values (v_biz, '랜덤 근무', v_start, v_start + make_interval(hours => 2 + floor(random() * 5)::int),
-                10500, 1 + floor(random() * 3)::int, random() < 0.5)
+                10800, 1 + floor(random() * 3)::int, random() < 0.5)
         returning id into v_shift;
         v_detail := v_shift::text;
       when 'check_in', 'check_out' then

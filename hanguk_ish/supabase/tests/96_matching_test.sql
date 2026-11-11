@@ -16,7 +16,7 @@ select tests.eq(public.availability_bit('2026-11-22 05:00+09'), 27, 'Sunday nigh
 -- The owner posts a shift for tomorrow.
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-values ('10000000-0000-0000-0000-000000000001', '홀 보조', now() + interval '1 day', now() + interval '1 day 4 hours', 10500, 2);
+values ('10000000-0000-0000-0000-000000000001', '홀 보조', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 2);
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq((select count(*)::int from public.notifications where kind = 'new_shift_match'), 1, 'a1 is near: told');
 select tests.ok((select (data ->> 'distance_km')::numeric < 1 from public.notifications where kind = 'new_shift_match'),
@@ -33,7 +33,7 @@ set availability = 1 << ((public.availability_bit(now() + interval '1 day') + 1)
 where user_id = '00000000-0000-0000-0000-0000000000a1';
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-values ('10000000-0000-0000-0000-000000000001', '마감', now() + interval '1 day', now() + interval '1 day 3 hours', 10500, 1);
+values ('10000000-0000-0000-0000-000000000001', '마감', now() + interval '1 day', now() + interval '1 day 3 hours', 10800, 1);
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq((select count(*)::int from public.notifications where kind = 'new_shift_match'), 1, 'busy then: no new one');
 
@@ -42,9 +42,9 @@ select tests.as_admin();
 update public.worker_profiles set availability = 268435455 where user_id = '00000000-0000-0000-0000-0000000000a1';
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots) values
-  ('10000000-0000-0000-0000-000000000001', 'A', now() + interval '1 day', now() + interval '1 day 2 hours', 10500, 1),
-  ('10000000-0000-0000-0000-000000000001', 'B', now() + interval '1 day', now() + interval '1 day 2 hours', 10500, 1),
-  ('10000000-0000-0000-0000-000000000001', 'C', now() + interval '1 day', now() + interval '1 day 2 hours', 10500, 1);
+  ('10000000-0000-0000-0000-000000000001', 'A', now() + interval '1 day', now() + interval '1 day 2 hours', 10800, 1),
+  ('10000000-0000-0000-0000-000000000001', 'B', now() + interval '1 day', now() + interval '1 day 2 hours', 10800, 1),
+  ('10000000-0000-0000-0000-000000000001', 'C', now() + interval '1 day', now() + interval '1 day 2 hours', 10800, 1);
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq((select count(*)::int from public.notifications where kind = 'new_shift_match'), 3, 'three a day at most');
 
@@ -53,7 +53,7 @@ select tests.as_admin();
 delete from public.notifications where kind = 'new_shift_match';
 update public.businesses set lat = 37.5559, lng = 126.9368 where id = '10000000-0000-0000-0000-000000000002';
 insert into public.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
-values ('10000000-0000-0000-0000-000000000002', '주방', now() + interval '1 day', now() + interval '1 day 4 hours', 10500, 1);
+values ('10000000-0000-0000-0000-000000000002', '주방', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 1);
 select tests.eq((select count(*)::int from public.notifications where kind = 'new_shift_match'), 0, 'unverified: nobody');
 
 -- The evening digest: a1 has open shifts within 3 km over the next two days.
@@ -66,7 +66,7 @@ select tests.eq((select data ->> 'area_code' from public.notifications where kin
                 'named after the A02 district');
 select tests.eq((select data -> 'categories' from public.notifications where kind = 'nearby_digest'), '["cafe"]'::jsonb,
                 'the kinds of work');
-select tests.eq((select (data ->> 'wage_min')::int from public.notifications where kind = 'nearby_digest'), 10500, 'from');
+select tests.eq((select (data ->> 'wage_min')::int from public.notifications where kind = 'nearby_digest'), 10800, 'from');
 
 -- Only the database runs them.
 select tests.throws($$select public.queue_nearby_digests()$$, 'permission denied', 'not the apps');
