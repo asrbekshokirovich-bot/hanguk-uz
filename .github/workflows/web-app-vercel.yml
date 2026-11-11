@@ -129,7 +129,26 @@ jobs:
             args+=(--project "$VERCEL_PROJECT" --create-if-missing)
             [ -n "$SCOPE" ] && args+=(--scope "$SCOPE")
           fi
-          url=$(npx --yes "$VERCEL_CLI" "${args[@]}")
+          # The free plan allows 100 deployments a day across the account. On
+          # 2026-11-11 preview builds of other branches used them up and this
+          # step failed five times in a row with nothing to say why short of
+          # opening the log. Say it where it is seen: the run's summary.
+          set +e
+          url=$(npx --yes "$VERCEL_CLI" "${args[@]}" 2> "$RUNNER_TEMP/vercel.err")
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/vercel.err" >&2
+          if [ "$code" -ne 0 ]; then
+            if grep -q "api-deployments-free-per-day" "$RUNNER_TEMP/vercel.err"; then
+              echo "::error title=Vercel kunlik deploy limiti tugagan::Bepul tarifda kuniga 100 ta deploy. Veb ilova yangilanmadi — limit ochilgach shu workflow'ni «Run workflow» bilan qayta ishga tushiring."
+              {
+                echo "### Veb ilova deploy QILINMADI"
+                echo "- Sabab: Vercel bepul tarifining kunlik 100 ta deploy limiti tugagan (\`api-deployments-free-per-day\`)."
+                echo "- hanguk.uz/ilova eski versiyada qoldi. Limit 24 soat ichida ochiladi; keyin **Actions → Student app on the web → Run workflow**."
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit "$code"
+          fi
           echo "Deployment: $url"
           echo "### Veb ilova deploy qilindi" >> "$GITHUB_STEP_SUMMARY"
           echo "- Deployment: $url" >> "$GITHUB_STEP_SUMMARY"
