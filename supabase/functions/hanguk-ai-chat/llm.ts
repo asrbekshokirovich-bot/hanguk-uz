@@ -252,5 +252,6 @@ export function limitMessage(language: string): string {
   if (language === "en") return "The AI limit is used up for now. Please try again in a few minutes.";
   if (language === "ko") return "현재 AI 한도를 모두 사용했습니다. 몇 분 후 다시 시도해 주세요.";
   if (language === "vi") return "Đã hết giới hạn AI trong lúc này. Vui lòng thử lại sau vài phút.";
+  if (language === "ky") return "AI чеги азырынча бүттү. Бир нече мүнөттөн кийин кайра аракет кылыңыз.";
   return "AI limiti hozircha tugadi. Bir necha daqiqadan so'ng qayta urinib ko'ring.";
 }

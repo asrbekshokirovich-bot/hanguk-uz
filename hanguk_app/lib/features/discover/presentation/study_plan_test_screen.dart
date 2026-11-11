@@ -1,15 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/country/app_country.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../catalog/domain/catalog_models.dart';
+import '../../entry/data/entry_store.dart';
 
 /// What the AI gave the Study Plan (`admission-study-plan-test`).
 @immutable
@@ -119,6 +122,8 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
   }
 
   Future<StudyPlanTestResult> _sendToServer(List<String> answers, int seconds) async {
+    // KG6: the officer reads it as an applicant from the app's country.
+    final country = ProviderScope.containerOf(context, listen: false).read(entryProvider).country ?? AppCountry.uz;
     final res = await Supabase.instance.client.functions.invoke(
       'admission-study-plan-test',
       body: {
@@ -126,6 +131,7 @@ class _StudyPlanTestScreenState extends State<StudyPlanTestScreen> {
         'answers': answers,
         'language': AppLocalizations.of(context)!.localeName,
         'seconds': seconds,
+        'country': country.code,
       },
     );
     final data = res.data;

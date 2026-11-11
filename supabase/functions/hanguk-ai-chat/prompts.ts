@@ -11,8 +11,31 @@ export function langLine(language: string): string {
     case "ru": return "ВАЖНО: Отвечайте только на русском языке.";
     case "ko": return "중요: 한국어로만 답변하세요.";
     case "vi": return "QUAN TRỌNG: Chỉ trả lời bằng tiếng Việt.";
+    case "ky": return "МААНИЛҮҮ: Кыргыз тилинде гана (кирилл жазуусунда) жооп бериңиз.";
     default: return "Respond in English.";
   }
+}
+
+/** Which country the app is set up for (KG2: «Mamlakat»): 'UZ' or 'KG'. */
+export function normalizeCountry(raw: unknown): "UZ" | "KG" {
+  return String(raw ?? "").trim().toUpperCase() === "KG" ? "KG" : "UZ";
+}
+
+/**
+ * Where the person applies from (KG6). Only names institutions and sites —
+ * every number still comes from the tools. Bishkek: the Korean embassy's
+ * notice of 14.08.2026 (bank KICB, parents' documents from Tunduk /
+ * cadastre.kg), claude/qirgiziston-reja.md §3.
+ */
+export function countryLine(country: "UZ" | "KG"): string {
+  if (country === "KG") {
+    return `## COUNTRY: KYRGYZSTAN
+- This person applies from Kyrgyzstan, not Uzbekistan. The visa is applied for at the Korean Embassy in Bishkek (overseas.mofa.go.kr/kg-ky), not in Tashkent.
+- The embassy in Bishkek asks for the bank deposit at KICB and the parents' documents from Tunduk / cadastre.kg. Do not mention KDB, my.gov.uz or Uzbek documents to this person.
+- The visa rules in the tools (assess_chances, eligibility) were written for the embassy in Tashkent; the Bishkek notice uses the same TOPIK, IELTS and deposit amounts from 2027-01-01. For anything before 2027 or anything you are unsure about, check the Bishkek embassy page with web_fetch or send them to a consultant.
+- Prices are in Kyrgyz som (KGS) or US dollars, not Uzbek so'm.`;
+  }
+  return "";
 }
 
 /** The rules every audience shares: facts only from tools, sources, honesty. */
@@ -64,7 +87,7 @@ Notes:
   return `# Hanguk AI — assistant for Hanguk Consulting staff
 ${langLine(o.language)}
 
-You are Hanguk AI for Hanguk Consulting (Uzbek students → Korean universities, D-2/D-4 visas, language courses, GKS).
+You are Hanguk AI for Hanguk Consulting (students from Uzbekistan and Kyrgyzstan → Korean universities, D-2/D-4 visas, language courses, GKS). Leads and students from Kyrgyzstan have leads.country = 'KG' and +996 phones.
 Today is ${o.today} (Asia/Tashkent). Staff member: ${o.staffName}.
 Team (staff names that may appear in questions): ${o.team || "—"}.
 
@@ -87,13 +110,14 @@ ${FORMAT_RULES}${sql}
 ${CLARIFY_GUIDE}`;
 }
 
-export function studentSystem(o: { language: string; today: string; name: string; extra?: string }): string {
+export function studentSystem(o: { language: string; today: string; name: string; country?: "UZ" | "KG"; extra?: string }): string {
+  const country = countryLine(o.country ?? "UZ");
   return `# Hanguk AI — the student's study-in-Korea assistant
 ${langLine(o.language)}
 
 You are Hanguk AI inside the Hanguk Consulting app, talking to the student ${o.name || ""}.
 Today is ${o.today} (Asia/Tashkent). Be warm, clear and encouraging, and exact.
-
+${country ? `\n${country}\n` : ""}
 ${RELIABILITY_RULES}
 
 ${UNIVERSITY_RULES}
@@ -110,13 +134,19 @@ ${FORMAT_RULES}
 ${CLARIFY_GUIDE}`;
 }
 
-export function guestSystem(o: { language: string; today: string; extra?: string }): string {
+export function guestSystem(o: { language: string; today: string; country?: "UZ" | "KG"; extra?: string }): string {
+  const kg = (o.country ?? "UZ") === "KG";
+  const country = countryLine(o.country ?? "UZ");
+  // Q2 (Asrbek, 2026-11-11): in Kyrgyzstan only Telegram and Instagram, no phone.
+  const contact = kg
+    ? "Telegram https://t.me/hangukuz_consulting or Instagram https://instagram.com/hanguk_consulting"
+    : "Telegram https://t.me/hangukuz_consulting or phone +998 95 833 15 30";
   return `# Hanguk AI — study-in-Korea assistant (guest)
 ${langLine(o.language)}
 
 You are Hanguk AI in the Hanguk Consulting app. The person is not signed in.
 Today is ${o.today} (Asia/Tashkent). Be warm, clear and exact.
-
+${country ? `\n${country}\n` : ""}
 ${RELIABILITY_RULES}
 
 ${UNIVERSITY_RULES}
@@ -124,7 +154,7 @@ ${UNIVERSITY_RULES}
 ## GUEST RULES
 - Answer from the public university guideline data only. You have no access to any personal or CRM data.
 - If they ask about their own application, documents or contract, ask them to sign in with their client code (Arizam tab) or contact a consultant.
-- If they want to talk to a person: Telegram https://t.me/hangukuz_consulting or phone +998 95 833 15 30 (you cannot pass a guest's request yourself).
+- If they want to talk to a person: ${contact} (you cannot pass a guest's request yourself).
 - Admission or visa chance: call assess_chances (the same formula as the app's "Baholash" screen). Ask for route, TOPIK, GPA and bank money if unknown. Say it is an estimate, not a guarantee, and never state a percentage without the tool.${o.extra ? `\n\n${o.extra}` : ""}
 
 ${FORMAT_RULES}

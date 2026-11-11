@@ -162,7 +162,7 @@ export function isClarify(text: string): boolean {
 }
 
 const SOURCES_TITLE: Record<string, string> = {
-  uz: "Manbalar", ru: "Источники", en: "Sources", ko: "출처", vi: "Nguồn",
+  uz: "Manbalar", ru: "Источники", en: "Sources", ko: "출처", vi: "Nguồn", ky: "Булактар",
 };
 
 /**

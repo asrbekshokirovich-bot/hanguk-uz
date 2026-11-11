@@ -11,7 +11,7 @@ const db = supabase as unknown as {
   rpc: (fn: string, args?: Record<string, unknown>) => any;
 };
 
-export const PUSH_LANGS = ['uz', 'ru', 'en', 'ko', 'vi'] as const;
+export const PUSH_LANGS = ['uz', 'ru', 'en', 'ko', 'vi', 'ky'] as const;
 export type PushLang = (typeof PUSH_LANGS)[number];
 export type PushTexts = Partial<Record<PushLang, string>>;
 
