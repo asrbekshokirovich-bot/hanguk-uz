@@ -802,6 +802,8 @@ void main() {
     await _until(tester, _text('오늘의 근무'));
     await _until(tester, _text(Ko.reviewPendingTitle));
     expect(_text('사업장 999-00-00054'), findsWidgets, reason: 'the name until the store details are set');
+    // A new business: no shifts yet (the day loaded, not still loading).
+    await _until(tester, _text(Ko.noShiftsToday));
     await _shot(tester, 'ba0-ba1-waiting');
     final mine = await tester.runAsync(() => SupabaseEmployerRepository(newcomer, _config).businesses());
     expect(mine!.single.review, BusinessReview.pending);
