@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
+import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_live_updates.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
@@ -143,6 +144,19 @@ void main() {
       expect(user.userMetadata?['app'], 'hanguk_ish', reason: 'hanguk.uz\'s sign-up skips accounts with it');
       final row = await admin.from('profiles').select('id, phone').eq('id', user.id).maybeSingle();
       expect(row?['id'], user.id, reason: 'ish.profiles, made by ish.handle_new_user');
+    });
+
+    test('P49: the apps\' account on this phone — anonymous, marked, with an ish profile', () async {
+      final newcomer = _client(_anonKey);
+      await SupabaseAuthRepository(newcomer).signIn();
+      final user = newcomer.auth.currentUser!;
+      expect(user.phone ?? '', isEmpty, reason: 'no phone number, no SMS');
+      expect(user.email ?? '', isEmpty);
+      expect(user.userMetadata?['app'], 'hanguk_ish');
+      final row = await admin.from('profiles').select('id, phone').eq('id', user.id).maybeSingle();
+      expect(row?['id'], user.id, reason: 'ish.profiles, made by ish.handle_new_user');
+      expect(await SupabaseWorkerProfileRepository(newcomer, config).load(), isNull, reason: 'A02 comes next');
+      await newcomer.auth.signOut();
     });
 
     test('the API serves the ish schema, and nothing of Hanguk Ish in public', () async {

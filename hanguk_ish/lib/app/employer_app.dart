@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/format/business_number.dart';
-import '../core/format/phone.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
@@ -16,7 +15,6 @@ import '../features/employer/create/ba2_create_screen.dart';
 import '../features/employer/home/ba1_home_screen.dart';
 import '../features/employer/biz.dart';
 import '../features/employer/language.dart';
-import '../features/employer/login/ba0_code_screen.dart';
 import '../features/employer/login/ba0_login_screen.dart';
 import '../features/employer/notifications/employer_notifications_screen.dart';
 import '../features/employer/providers.dart';
@@ -34,10 +32,6 @@ abstract final class EmployerRoutes {
   static const start = '/start';
 
   static const login = '/';
-
-  /// T2: the SMS code after BA0.
-  static String code(String phone, String businessNumber) =>
-      '/code?n=${Uri.encodeQueryComponent(phone)}&b=${Uri.encodeQueryComponent(businessNumber)}';
 
   static const home = '/home';
   static const workers = '/workers';
@@ -144,8 +138,8 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
         path: EmployerRoutes.login,
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => Ba0LoginScreen(
-            onStart: (phone, businessNumber) async {
-              if (KoreanPhone.toE164(phone) == null || businessNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
+            onStart: (businessNumber) async {
+              if (businessNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
                 _say(context, Biz.loginIncomplete);
                 return;
               }
@@ -154,30 +148,18 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
                 return;
               }
               final auth = ref.read(authRepositoryProvider);
-              if (auth.userId != null) {
-                // Back from a refused registration: signed in already.
-                await continueOwnerAfterSignIn(context, ref, businessNumber: businessNumber);
-                return;
+              // P49: no SMS — an account on this phone, unless one is signed
+              // in already (back from a refused registration).
+              if (auth.userId == null) {
+                try {
+                  await auth.signIn();
+                } catch (error) {
+                  if (context.mounted) _say(context, Biz.error(error));
+                  return;
+                }
               }
-              try {
-                await auth.sendCode(phone);
-              } catch (error) {
-                if (context.mounted) _say(context, Biz.error(error));
-                return;
-              }
-              if (context.mounted) context.push(EmployerRoutes.code(phone, businessNumber));
+              if (context.mounted) await continueOwnerAfterSignIn(context, ref, businessNumber: businessNumber);
             },
-          ),
-        ),
-      ),
-      GoRoute(
-        path: '/code',
-        builder: (context, state) => Consumer(
-          builder: (context, ref, _) => Ba0CodeScreen(
-            phone: state.uri.queryParameters['n'] ?? '',
-            onBack: () => context.canPop() ? context.pop() : context.go(EmployerRoutes.login),
-            onVerified: () =>
-                continueOwnerAfterSignIn(context, ref, businessNumber: state.uri.queryParameters['b'] ?? ''),
           ),
         ),
       ),

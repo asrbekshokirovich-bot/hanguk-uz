@@ -48,29 +48,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('BA0 → code → BA1: the numbers are needed, then the SMS code, then the home', (tester) async {
+  testWidgets('BA0 → BA1: the business number is needed, then the home (P49: no SMS)', (tester) async {
     usePhone(tester);
     await open(tester, location: EmployerRoutes.login);
     await tester.tap(find.text('시작하기'));
     await tester.pumpAndSettle();
-    expect(find.text('휴대폰 번호와 사업자등록번호를 모두 입력해 주세요'), findsOneWidget);
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), '01012345678');
-    await tester.enterText(fields.at(1), '1234567890');
+    expect(find.text('사업자등록번호를 입력해 주세요'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '1234567890');
     await tester.tap(find.text('시작하기'));
     await tester.pumpAndSettle();
     expect(find.text('사업자등록번호를 확인해 주세요'), findsOneWidget, reason: 'the check digit is wrong');
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(1), '1234567891');
+    await tester.enterText(find.byType(TextField), '1234567891');
     await tester.tap(find.text('시작하기'));
     await tester.pumpAndSettle();
-
-    expect(find.text('인증번호 입력'), findsOneWidget);
-    expect(find.text('010-1234-5678 번호로 보낸 6자리 숫자를 입력해 주세요.'), findsOneWidget);
-    expect(find.text('1:00 후 다시 받을 수 있어요'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), '123456');
-    await tester.pumpAndSettle();
+    expect(find.text('인증번호 입력'), findsNothing, reason: 'no SMS code any more');
     expect(find.text('오늘의 근무'), findsOneWidget);
   });
 

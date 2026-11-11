@@ -64,11 +64,14 @@ worker() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
-  # A01, then T1.
-  if ui wait 'Telefon raqam bilan' 90 && ui tap 'Telefon raqam bilan' && ui wait 'Telefon raqamingiz' 30; then
-    echo "$name: A01 → T1"
+  # A01 «Boshlash» (P49: no SMS): the demo opens A02; with the backend that
+  # answers nothing, it says the connection is missing.
+  local next='Profil · 1 / 3'
+  [ "$1" = backend ] && next='Internet aloqasi'
+  if ui wait 'Boshlash' 90 && ui tap 'Boshlash' && ui wait "$next" 30; then
+    echo "$name: A01 → «Boshlash» → $next"
   else
-    echo "::error::$name: A01 → T1 did not happen"
+    echo "::error::$name: A01 «Boshlash» did not answer"
     failed=1
   fi
   finish uz.hanguk.ish "$name"
@@ -80,8 +83,9 @@ employer() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
-  # BA0 with nothing filled in: it says what is missing.
-  if ui wait '시작하기' 90 && ui tap '시작하기' && ui wait '모두 입력해 주세요' 30; then
+  # BA0 with nothing filled in: it says what is missing. The app opens in the
+  # phone's language (P43): English on the emulator.
+  if ui wait 'Get started' 90 && ui tap 'Get started' && ui wait 'Enter the business number' 30; then
     echo "$name: BA0 answers"
   else
     echo "::error::$name: BA0 did not answer the tap"
@@ -131,12 +135,8 @@ walk_worker() {
   launch "$apk" "$pkg" "$name" || return
   # Sinchon, Seoul: the demo shifts are around it.
   adb emu geo fix 126.9368 37.5559 >/dev/null 2>&1 || true
-  step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
-    step 'T1: number' ui field 0 01012345678 &&
-    step 'T1 → T2' ui tap '=Kod olish' &&
-    step 'T2 opens' ui wait 'Kodni kiriting' &&
-    step 'T2: code' ui type 123456 &&
-    step 'T2 → A02' ui wait 'Profil · 1 / 3' &&
+  step 'A01 → A02' ui tap 'Boshlash' 90 &&
+    step 'A02 opens' ui wait 'Profil · 1 / 3' &&
     shot a02-1 &&
     step 'A02-1: first name' ui field 0 Dilnoza &&
     step 'A02-1: last name' ui field 1 Testova &&
@@ -192,7 +192,7 @@ walk_worker() {
     adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 &&
     step 'after a restart: still Russian' ui wait 'По номеру телефона' 60 &&
     shot a01-ru-restarted &&
-    echo "$name: A01 → T1 → T2 → A02 ×3 → A03 → A05 → A06 → A07 in/out → A08 → A11 → Русский → restart" ||
+    echo "$name: A01 → A02 ×3 → A03 → A05 → A06 → A07 in/out → A08 → A11 → Русский → restart" ||
     { shot failed-worker; failed=1; }
   finish "$pkg" "$name"
 }
@@ -212,13 +212,15 @@ shared() {
 walk_employer() {
   local apk=$apks/demo-employer-$1.apk pkg=uz.hanguk.ish.biz name=walk-employer
   launch "$apk" "$pkg" "$name" || return
-  step 'BA0 opens' ui wait '시작하기' 90 &&
-    step 'BA0: phone' ui field 0 01012345678 &&
-    step 'BA0: business number' ui field 1 1234567890 &&
+  # The app opens in the phone's language (P43, English here); the walk reads
+  # Korean, so it switches first. P49: the business number only, no SMS.
+  step 'BA0 opens' ui wait 'Get started' 90 &&
+    step 'BA0: language' ui tap 'Language' &&
+    step 'BA0: Korean' ui tap '=한국어' &&
+    step 'BA0 in Korean' ui wait '시작하기' &&
+    step 'BA0: business number' ui field 0 1234567891 &&
     ui hidekb &&
-    step 'BA0 → code' ui tap '=시작하기' &&
-    step 'code opens' ui wait '인증번호 입력' &&
-    step 'code' ui type 123456 &&
+    step 'BA0 → BA1' ui tap '=시작하기' &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&
     step 'BA1 → BA3' ui tap '마감 정리 보조' &&

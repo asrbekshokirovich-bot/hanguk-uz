@@ -511,10 +511,9 @@ void main() {
           },
         };
 
-    test('a code by SMS, then the session', () async {
+    test('an account on this phone (P49: anonymous, no SMS), then the session', () async {
       final backend = FakeBackend((r) => switch (r.url.path) {
-            '/auth/v1/otp' => <String, Object?>{},
-            '/auth/v1/verify' => session(),
+            '/auth/v1/signup' => session(),
             _ => null,
           });
       final auth = SupabaseAuthRepository(backend.client);
@@ -523,44 +522,38 @@ void main() {
       final subscription = auth.changes.listen(changes.add);
       addTearDown(subscription.cancel);
 
-      await auth.sendCode('010-1234-5678');
-      final otp = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
-      expect(otp['phone'], '+821012345678');
+      await auth.signIn();
+      final request = backend.requests.last;
+      expect(request.url.path, '/auth/v1/signup');
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      expect(body.containsKey('phone'), isFalse, reason: 'no phone number');
+      expect(body.containsKey('email'), isFalse);
+      expect(body.containsKey('password'), isFalse);
       // hanguk.uz shares the sign-in (P48): its sign-up skips accounts with
       // this mark, and Hanguk Ish makes their profile.
-      expect(otp['data'], {'app': 'hanguk_ish'});
-      await auth.verifyCode('010-1234-5678', ' 123456 ');
-      final verify = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
-      expect(verify['type'], 'sms');
-      expect(verify['token'], '123456');
-      expect(verify['phone'], '+821012345678');
+      expect(body['data'], {'app': 'hanguk_ish'});
       expect(auth.userId, me);
       await pumpEventQueue();
       expect(changes.last, me);
     });
 
-    test('refusals are named; bad input never leaves the phone', () async {
-      var answer = reply({'code': 403, 'error_code': 'otp_expired', 'msg': 'Token has expired or is invalid'}, 403);
+    test('refusals are named', () async {
+      var answer = reply({'code': 422, 'error_code': 'anonymous_provider_disabled', 'msg': 'Anonymous sign-ins are disabled'}, 422);
       final backend = FakeBackend((r) => answer);
       final auth = SupabaseAuthRepository(backend.client);
       Matcher code(String c) => throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', c));
-      await expectLater(auth.verifyCode('01012345678', '000000'), code('CODE_INVALID'));
-      answer = reply({'code': 429, 'error_code': 'over_sms_send_rate_limit', 'msg': 'For security purposes…'}, 429);
-      await expectLater(auth.sendCode('01012345678'), code('TOO_MANY_REQUESTS'));
-      answer = reply({'code': 500, 'error_code': 'sms_send_failed', 'msg': 'Error sending sms'}, 500);
-      await expectLater(auth.sendCode('01012345678'), code('SMS_FAILED'));
+      await expectLater(auth.signIn(), code('SIGN_IN_UNAVAILABLE'));
+      answer = reply({'code': 429, 'error_code': 'over_request_rate_limit', 'msg': 'Request rate limit reached'}, 429);
+      await expectLater(auth.signIn(), code('TOO_MANY_REQUESTS'));
       answer = reply({'code': 'unexpected_failure', 'msg': 'boom'}, 502);
-      await expectLater(auth.sendCode('01012345678'), code('SERVER_ERROR'));
-      final sent = backend.requests.length;
-      await expectLater(auth.sendCode('02-123-4567'), code('PHONE_INVALID'));
-      await expectLater(auth.verifyCode('01012345678', '12345'), code('CODE_INVALID'));
-      expect(backend.requests.length, sent);
+      await expectLater(auth.signIn(), code('SERVER_ERROR'));
+      expect(auth.userId, isNull);
       expect(authErrorCode(null, '429', 'slow down'), 'TOO_MANY_REQUESTS');
-      expect(authErrorCode(null, '400', 'Token has expired or is invalid'), 'CODE_INVALID');
-      expect(authErrorCode('phone_provider_disabled', '400', 'Unsupported phone provider'), 'SIGN_IN_UNAVAILABLE');
+      expect(authErrorCode(null, '422', 'Anonymous sign-ins are disabled'), 'SIGN_IN_UNAVAILABLE');
+      expect(authErrorCode('signup_disabled', '422', 'Signups not allowed for this instance'), 'SIGN_IN_UNAVAILABLE');
       expect(authErrorCode(null, '500', 'boom'), 'AUTH_FAILED');
       final offline = SupabaseAuthRepository(FakeBackend((r) => throw const SocketException('no route')).client);
-      await expectLater(offline.sendCode('01012345678'), throwsA(isA<OfflineException>()));
+      await expectLater(offline.signIn(), throwsA(isA<OfflineException>()));
     });
   });
 

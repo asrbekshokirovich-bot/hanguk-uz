@@ -19,6 +19,8 @@ create table auth.users (
   phone text unique,
   email text unique,
   raw_user_meta_data jsonb not null default '{}'::jsonb,
+  -- Supabase Auth's anonymous accounts (the apps' sign-in since P49).
+  is_anonymous boolean not null default false,
   created_at timestamptz not null default now()
 );
 

@@ -24,9 +24,13 @@ enabled = true
 site_url = "http://127.0.0.1:3000"
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
+# Both apps start an anonymous account on the phone — no SMS (P49). In
+# production: Authentication → Sign In / Providers → «Allow anonymous
+# sign-ins».
+enable_anonymous_sign_ins = true
 
-# Phone sign-in (both apps). Production uses an SMS provider configured in
-# the dashboard; locally and in CI these numbers get a fixed code.
+# Phone sign-in: the apps no longer use it (P49); the tests still sign their
+# people in by phone with these fixed codes.
 [auth.sms]
 enable_signup = true
 enable_confirmations = true

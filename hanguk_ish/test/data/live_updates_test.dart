@@ -114,7 +114,7 @@ void main() {
     addTearDown(subscription.close);
     await pumpEventQueue();
     final first = live.listens;
-    await auth.verifyCode('01012345678', '123456');
+    await auth.signIn();
     await pumpEventQueue();
     expect(live.listens, first + 1, reason: 'a new subscription for the signed-in person');
     expect(await const NoLiveUpdates().changes().isEmpty, isTrue);

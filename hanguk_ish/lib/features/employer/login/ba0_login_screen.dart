@@ -13,13 +13,15 @@ import '../../../design/widgets/link_text.dart';
 import '../biz.dart';
 import '../language.dart';
 
-/// BA0 «App Login»: owner's mobile number and business registration number.
+/// BA0 «App Login»: the business registration number. Since P49 there is no
+/// phone number and no SMS code: «시작하기» starts an account on this phone
+/// and registers the business (국세청 check).
 class Ba0LoginScreen extends StatefulWidget {
   const Ba0LoginScreen({super.key, this.onStart, this.onTerms});
 
-  /// "시작하기" with the formatted phone and business number. Wired to the
-  /// sign-in and 국세청 check in P6.
-  final void Function(String phone, String businessNumber)? onStart;
+  /// "시작하기" with the formatted business number; the button waits while
+  /// it runs.
+  final Future<void> Function(String businessNumber)? onStart;
 
   /// The "이용약관" link.
   final VoidCallback? onTerms;
@@ -29,20 +31,25 @@ class Ba0LoginScreen extends StatefulWidget {
 }
 
 class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
-  final _phone = TextEditingController();
   final _bizNo = TextEditingController();
-  final _phoneMask = DigitGroupsFormatter.koreanMobile();
   final _bizNoMask = DigitGroupsFormatter.businessNumber();
+  bool _starting = false;
 
   @override
   void dispose() {
-    _phone.dispose();
     _bizNo.dispose();
     super.dispose();
   }
 
-  void _start() {
-    widget.onStart?.call(_phone.text, _bizNo.text);
+  Future<void> _start() async {
+    final start = widget.onStart;
+    if (start == null || _starting) return;
+    setState(() => _starting = true);
+    try {
+      await start(_bizNo.text);
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
   }
 
   @override
@@ -125,43 +132,30 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
-                child: AutofillGroup(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      HiText(Biz.phoneLabel, style: label),
-                      const SizedBox(height: 8),
-                      HiInputField(
-                        controller: _phone,
-                        mono: true,
-                        placeholder: Biz.phonePlaceholder,
-                        keyboardType: TextInputType.phone,
-                        autofillHints: const [AutofillHints.telephoneNumber],
-                        inputFormatters: [_phoneMask],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HiText(Biz.bizNoLabel, style: label),
+                    const SizedBox(height: 8),
+                    HiInputField(
+                      controller: _bizNo,
+                      mono: true,
+                      keyboardType: TextInputType.number,
+                      placeholder: Biz.bizNoPlaceholder,
+                      inputFormatters: [_bizNoMask],
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _start(),
+                    ),
+                    const SizedBox(height: 8),
+                    HiText(
+                      Biz.bizNoHint,
+                      style: hiStyle(
+                        14,
+                        FontWeight.w600,
+                        color: HiColors.textMuted,
                       ),
-                      const SizedBox(height: 18),
-                      HiText(Biz.bizNoLabel, style: label),
-                      const SizedBox(height: 8),
-                      HiInputField(
-                        controller: _bizNo,
-                        mono: true,
-                        keyboardType: TextInputType.number,
-                        placeholder: Biz.bizNoPlaceholder,
-                        inputFormatters: [_bizNoMask],
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _start(),
-                      ),
-                      const SizedBox(height: 8),
-                      HiText(
-                        Biz.bizNoHint,
-                        style: hiStyle(
-                          14,
-                          FontWeight.w600,
-                          color: HiColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -181,7 +175,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                   label: Biz.start,
                   height: 56,
                   fontSize: 18,
-                  onPressed: _start,
+                  onPressed: _starting ? null : _start,
                 ),
                 const SizedBox(height: 14),
                 HiLinkSentence(

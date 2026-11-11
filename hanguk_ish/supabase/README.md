@@ -27,7 +27,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_service_role.sql` | `ish` sxemasida service_role (edge funksiyalar) ruxsatlari |
 | `functions/ish-business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
-| `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
+| `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): anonim kirish yoqiq; testlar odamlarini telefon + test kod bilan kiritadi |
 
 ## Qoidalar (bazada tekshiriladi)
 
@@ -51,22 +51,24 @@ hanguk.uz loyihasida (`lysjdtyanhdfphqyijsr`), bir marta. Prod bazadagi har bir
 o'zgarish Asrbekning ruxsati bilan. `supabase db push` ishlatilmaydi — prod
 tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 
-Holat (2026-11-11): 1, 2, 4, 5 va 7 (baza tekshiruvi) bajarilgan — 21 migratsiya
-prod'da, sxema test bazasi bilan bir xil; `ish` API'da; funksiya joylangan.
-Qolgani: 3 (Twilio) va 6 (xodimlar) — Asrbek.
+Holat (2026-11-11): hammasi bajarilgan — 21 migratsiya prod'da (P48), sxema test
+bazasi bilan bir xil; `ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan.
+P49 (SMS'siz kirish): 3-band anonim kirishga almashdi.
 
 1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
    «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):
    - `hanguk_ish/supabase/migrations/*.sql` (hammasi `ish` sxemasida);
-   - repo ildizidagi `supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql`.
+   - repo ildizidagi `supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql`
+     va `20261111180000_hanguk_ish_skip_anonymous.sql` (P49).
    - Shular bilan pg_cron ishlari (3 ta, `ish-…`), Realtime (`ish.notifications`,
      `ish.messages`, `ish.applications`) va «ish-avatars» bucket ham o'rnatiladi.
 2. Dashboard → Project Settings → Data API → **Exposed schemas**: `ish` ni qo'shish
    (bo'lmasa API `ish` ga javob bermaydi).
-3. Auth → Providers → Phone: yoqish, SMS provayderi (Twilio Verify: Account SID,
-   Auth Token, Verify Service SID); kod 6 raqam; Auth → Rate Limits: SMS chegarasi.
-   hanguk.uz'ning email kirishi o'zgarmaydi. `config.toml` dagi test raqamlar
-   prod'ga o'tmaydi.
+3. Authentication → Sign In / Providers → **Allow anonymous sign-ins**: yoqish
+   (P49: ilovalar SMS'siz, telefonda anonim akkaunt ochadi). SMS provayderi kerak
+   emas. hanguk.uz'ning o'z kirishi o'zgarmaydi; anonim akkauntga hanguk.uz profili
+   ochilmaydi (`20261111180000_hanguk_ish_skip_anonymous.sql`). Akkaunt telefonda
+   saqlanadi: ilova o'chirilsa, yangisi ochiladi.
 4. Edge funksiya `ish-business-register`: `supabase functions deploy ish-business-register
    --workdir hanguk_ish --project-ref lysjdtyanhdfphqyijsr` (yoki MCP
    `deploy_edge_function`: `index.ts`, `keys.ts`, `nts.ts`, verify_jwt yoqiq);

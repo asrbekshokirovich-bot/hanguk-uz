@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../design/icons.dart';
+import '../../../data/repositories/shift_repository.dart';
 import '../../../design/insets.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
@@ -14,15 +14,21 @@ import '../../../design/widgets/link_text.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../settings/app_language.dart';
 
-/// A01 «Kirish»: app language, terms consent, sign-in method.
+/// The sentence for a failed «Boshlash».
+String signInErrorText(WorkerL10n l10n, Object error) => switch (error) {
+      ShiftActionException(code: 'TOO_MANY_REQUESTS') => l10n.errTooManyRequests,
+      OfflineException() => l10n.errOffline,
+      _ => l10n.errorGeneric,
+    };
+
+/// A01 «Kirish»: app language, terms consent and «Boshlash». Since P49 there
+/// is no phone number and no SMS code: «Boshlash» starts an account on this
+/// phone (the prototype's «Telefon raqam bilan» / «Telegram bilan» are gone).
 class A01LoginScreen extends ConsumerStatefulWidget {
-  const A01LoginScreen({super.key, this.onPhone, this.onTelegram, this.onTerms});
+  const A01LoginScreen({super.key, this.onStart, this.onTerms});
 
-  /// "Telefon raqam bilan". Wired to the phone sign-in flow in P2.
-  final VoidCallback? onPhone;
-
-  /// "Telegram bilan". Wired to the Telegram sign-in flow in P2.
-  final VoidCallback? onTelegram;
+  /// «Boshlash»: signs in and goes on; the button waits while it runs.
+  final Future<void> Function()? onStart;
 
   /// The "Foydalanish shartlari" link.
   final VoidCallback? onTerms;
@@ -34,6 +40,18 @@ class A01LoginScreen extends ConsumerStatefulWidget {
 class _A01LoginScreenState extends ConsumerState<A01LoginScreen> {
   // The prototype shows the box ticked.
   bool _agreed = true;
+  bool _starting = false;
+
+  Future<void> _start() async {
+    final start = widget.onStart;
+    if (start == null || _starting) return;
+    setState(() => _starting = true);
+    try {
+      await start();
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,18 +102,8 @@ class _A01LoginScreenState extends ConsumerState<A01LoginScreen> {
                 ),
                 const SizedBox(height: 12),
                 HiButton(
-                  label: l10n.loginWithPhone,
-                  icon: HiIcons.smartphone,
-                  iconStroke: 2.2,
-                  onPressed: canContinue ? (widget.onPhone ?? () {}) : null,
-                ),
-                const SizedBox(height: 12),
-                HiButton(
-                  label: l10n.loginWithTelegram,
-                  style: HiButtonStyle.ghost,
-                  icon: HiIcons.send,
-                  iconStroke: 2,
-                  onPressed: canContinue ? (widget.onTelegram ?? () {}) : null,
+                  label: l10n.start,
+                  onPressed: canContinue && !_starting ? _start : null,
                 ),
               ],
             ),

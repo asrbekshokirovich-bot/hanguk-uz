@@ -40,19 +40,8 @@ void main() {
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const WorkerApp()));
     await tester.pumpAndSettle();
 
-    // A01 → T1 → T2 (demo: any six digits)
-    await tester.tap(find.text('Telefon raqam bilan'));
-    await tester.pumpAndSettle();
-    expect(find.text('Telefon raqamingiz'), findsOneWidget);
-    expect(action(tester, 'Kod olish').onPressed, isNull, reason: 'a whole number first');
-    await tester.enterText(find.byType(TextField), '01012345678');
-    await tester.pumpAndSettle();
-    expect(find.text('010-1234-5678'), findsOneWidget);
-    await tester.tap(find.text('Kod olish'));
-    await tester.pumpAndSettle();
-    expect(find.text('Kodni kiriting'), findsOneWidget);
-    expect(find.text('010-1234-5678 raqamiga SMS yuborildi.'), findsOneWidget);
-    await tester.enterText(find.byType(TextField), '123456');
+    // A01 «Boshlash» (P49: no SMS — an account on this phone)
+    await tester.tap(find.text('Boshlash'));
     await tester.pumpAndSettle();
 
     // A02 1/3

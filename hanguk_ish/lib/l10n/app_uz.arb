@@ -24,13 +24,9 @@
   "@termsSuffix": {
     "description": "A01: rozilik jumlasi, havoladan KEYINGI qism."
   },
-  "loginWithPhone": "Telefon raqam bilan",
-  "@loginWithPhone": {
-    "description": "A01: asosiy tugma — telefon orqali kirish."
-  },
-  "loginWithTelegram": "Telegram bilan",
-  "@loginWithTelegram": {
-    "description": "A01: ikkinchi tugma — Telegram orqali kirish."
+  "start": "Boshlash",
+  "@start": {
+    "description": "A01: yagona tugma (P49, SMS yo'q) — shu telefonda akkaunt ochib, A02 ga o'tadi."
   },
   "profileStepOf": "Profil · {step} / {total}",
   "@profileStepOf": {
@@ -1567,89 +1563,9 @@
   "@emptyNotifications": {
     "description": "A12: bo'sh holat."
   },
-  "phoneTopTitle": "Kirish",
-  "@phoneTopTitle": {
-    "description": "T1/T2: yuqori qatordagi sarlavha."
-  },
-  "phoneTitle": "Telefon raqamingiz",
-  "@phoneTitle": {
-    "description": "T1: sarlavha."
-  },
-  "phoneSubtitle": "Unga 6 xonali tasdiqlash kodini SMS qilib yuboramiz.",
-  "@phoneSubtitle": {
-    "description": "T1: sarlavha ostidagi matn."
-  },
-  "phoneLabel": "Telefon raqami",
-  "@phoneLabel": {
-    "description": "T1: maydon yorlig'i."
-  },
-  "phoneHint": "Koreya raqami, 010 bilan boshlanadi",
-  "@phoneHint": {
-    "description": "T1: maydon ostidagi izoh."
-  },
-  "getCode": "Kod olish",
-  "@getCode": {
-    "description": "T1: tugma."
-  },
-  "codeTitle": "Kodni kiriting",
-  "@codeTitle": {
-    "description": "T2: sarlavha."
-  },
-  "codeSentTo": "{phone} raqamiga SMS yuborildi.",
-  "@codeSentTo": {
-    "description": "T2: kod qaysi raqamga yuborilgani.",
-    "placeholders": {
-      "phone": {
-        "type": "String",
-        "example": "010-1234-5678"
-      }
-    }
-  },
-  "codeLabel": "SMS kod",
-  "@codeLabel": {
-    "description": "T2: maydon yorlig'i."
-  },
-  "confirmCode": "Tasdiqlash",
-  "@confirmCode": {
-    "description": "T2: tugma."
-  },
-  "resendCode": "Kodni qayta yuborish",
-  "@resendCode": {
-    "description": "T2: kodni qayta yuborish havolasi."
-  },
-  "resendIn": "Qayta yuborish: {time}",
-  "@resendIn": {
-    "description": "T2: qayta yuborishgacha qolgan vaqt.",
-    "placeholders": {
-      "time": {
-        "type": "String",
-        "example": "0:45"
-      }
-    }
-  },
-  "codeResent": "Yangi kod yuborildi.",
-  "@codeResent": {
-    "description": "T2: kod qayta yuborilgach."
-  },
-  "errCodeInvalid": "Kod noto'g'ri yoki eskirgan. Qaytadan kiriting.",
-  "@errCodeInvalid": {
-    "description": "T2: noto'g'ri kod."
-  },
   "errTooManyRequests": "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring.",
   "@errTooManyRequests": {
     "description": "T1/T2: so'rovlar chegarasi."
-  },
-  "errPhoneInvalid": "Raqam noto'g'ri. 010-0000-0000 ko'rinishida kiriting.",
-  "@errPhoneInvalid": {
-    "description": "T1: noto'g'ri raqam."
-  },
-  "errSmsFailed": "SMS yuborib bo'lmadi. Raqamni tekshirib, qayta urinib ko'ring.",
-  "@errSmsFailed": {
-    "description": "T1: SMS yuborilmadi."
-  },
-  "telegramSoon": "Telegram orqali kirish tez orada. Hozircha telefon raqam bilan kiring.",
-  "@telegramSoon": {
-    "description": "A01: Telegram orqali kirish hali ulanmagan."
   },
   "cameraFailedTitle": "Kamera ishga tushmadi",
   "@cameraFailedTitle": {
@@ -1675,10 +1591,6 @@
   "@bizLoginSubtitle": {
     "description": "사장님 ilovasi (P43): loginSubtitle"
   },
-  "bizPhoneLabel": "Telefon raqam",
-  "@bizPhoneLabel": {
-    "description": "사장님 ilovasi (P43): phoneLabel"
-  },
   "bizBizNoLabel": "Biznes raqami (사업자등록번호)",
   "@bizBizNoLabel": {
     "description": "사장님 ilovasi (P43): bizNoLabel"
@@ -1703,55 +1615,13 @@
   "@bizTermsSuffix": {
     "description": "사장님 ilovasi (P43): termsSuffix"
   },
-  "bizLoginIncomplete": "Telefon raqam va biznes raqamini kiriting",
+  "bizLoginIncomplete": "Biznes raqamini kiriting",
   "@bizLoginIncomplete": {
     "description": "사장님 ilovasi (P43): loginIncomplete"
   },
   "bizBizNoInvalid": "Biznes raqamini tekshiring",
   "@bizBizNoInvalid": {
     "description": "사장님 ilovasi (P43): bizNoInvalid"
-  },
-  "bizCodeTopTitle": "Kirish",
-  "@bizCodeTopTitle": {
-    "description": "사장님 ilovasi (P43): codeTopTitle"
-  },
-  "bizCodeTitle": "Kodni kiriting",
-  "@bizCodeTitle": {
-    "description": "사장님 ilovasi (P43): codeTitle"
-  },
-  "bizCodeSentTo": "{phone} raqamiga yuborilgan 6 xonali kodni kiriting.",
-  "@bizCodeSentTo": {
-    "description": "사장님 ilovasi (P43): codeSentTo",
-    "placeholders": {
-      "phone": {
-        "type": "String"
-      }
-    }
-  },
-  "bizCodeLabel": "SMS kod",
-  "@bizCodeLabel": {
-    "description": "사장님 ilovasi (P43): codeLabel"
-  },
-  "bizCodeConfirm": "Tasdiqlash",
-  "@bizCodeConfirm": {
-    "description": "사장님 ilovasi (P43): codeConfirm"
-  },
-  "bizCodeResend": "Kodni qayta olish",
-  "@bizCodeResend": {
-    "description": "사장님 ilovasi (P43): codeResend"
-  },
-  "bizCodeResendIn": "Qayta olish: {time}",
-  "@bizCodeResendIn": {
-    "description": "사장님 ilovasi (P43): codeResendIn",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "bizCodeResent": "Yangi kod yuborildi.",
-  "@bizCodeResent": {
-    "description": "사장님 ilovasi (P43): codeResent"
   },
   "bizNavHome": "Bosh sahifa",
   "@bizNavHome": {
@@ -2740,21 +2610,9 @@
   "@bizErrForbidden": {
     "description": "사장님 ilovasi (P43): errForbidden"
   },
-  "bizErrCodeInvalid": "Kod noto'g'ri yoki eskirgan. Qayta kiriting",
-  "@bizErrCodeInvalid": {
-    "description": "사장님 ilovasi (P43): errCodeInvalid"
-  },
   "bizErrTooManyRequests": "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring",
   "@bizErrTooManyRequests": {
     "description": "사장님 ilovasi (P43): errTooManyRequests"
-  },
-  "bizErrPhoneInvalid": "Telefon raqamni tekshiring",
-  "@bizErrPhoneInvalid": {
-    "description": "사장님 ilovasi (P43): errPhoneInvalid"
-  },
-  "bizErrSmsFailed": "SMS yuborib bo'lmadi. Raqamni tekshiring",
-  "@bizErrSmsFailed": {
-    "description": "사장님 ilovasi (P43): errSmsFailed"
   },
   "bizErrSignInUnavailable": "Hozir kirib bo'lmaydi. Birozdan keyin urinib ko'ring",
   "@bizErrSignInUnavailable": {

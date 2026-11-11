@@ -47,6 +47,17 @@ insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000e3
 select tests.ok(exists (select 1 from ish.profiles where id = '00000000-0000-0000-0000-0000000000e3'),
                 'a phone-only sign-up gets a Hanguk Ish profile');
 
+-- P49: the apps start an anonymous account on the phone (no SMS), marked as
+-- Hanguk Ish's: it gets a Hanguk Ish profile. An unmarked anonymous account
+-- (another client's) gets none.
+insert into auth.users (id, is_anonymous, raw_user_meta_data)
+values ('00000000-0000-0000-0000-0000000000e4', true, '{"app": "hanguk_ish"}');
+select tests.ok(exists (select 1 from ish.profiles where id = '00000000-0000-0000-0000-0000000000e4'),
+                'an anonymous app account gets a Hanguk Ish profile');
+insert into auth.users (id, is_anonymous) values ('00000000-0000-0000-0000-0000000000e5', true);
+select tests.ok(not exists (select 1 from ish.profiles where id = '00000000-0000-0000-0000-0000000000e5'),
+                'an unmarked anonymous account gets no Hanguk Ish profile');
+
 -- A hanguk.uz account (e-mail) becomes Hanguk Ish staff the way README
 -- («Xodimlar») says: a Hanguk Ish profile first — what the staff make points
 -- to it (the employers they keep, their notes) — then the staff row.
@@ -75,6 +86,9 @@ select tests.eq((select full_name from public.profiles where user_id = '00000000
                 'Ali', 'hanguk.uz sign-up: its profile row as before');
 select tests.ok(not exists (select 1 from public.profiles where user_id = '00000000-0000-0000-0000-0000000000e1'),
                 'a Hanguk Ish app sign-up: no hanguk.uz profile row');
+select tests.ok(not exists (select 1 from public.profiles
+                           where user_id in ('00000000-0000-0000-0000-0000000000e4', '00000000-0000-0000-0000-0000000000e5')),
+                'an anonymous account (P49): no hanguk.uz profile row, marked or not');
 
 -- hanguk.uz's rights and rows are as they were.
 select tests.ok(has_table_privilege('authenticated', 'public.main_canary', 'select'),

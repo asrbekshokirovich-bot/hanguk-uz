@@ -26,12 +26,17 @@ select 'MISSING  supabase_migrations.schema_migrations (not a Supabase database?
 
 -- hanguk.uz's own sign-up trigger leaves Hanguk Ish's people to ish.profiles
 -- (supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql at the
--- repository root). Only where hanguk.uz is: the local stack has no such trigger.
+-- repository root) and makes no profile for an anonymous account
+-- (20261111180000_hanguk_ish_skip_anonymous.sql, P49). Only where hanguk.uz
+-- is: the local stack has no such trigger.
 select to_regprocedure('public.handle_new_user()') is not null as has_main \gset
 \if :has_main
 select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%hanguk_ish%'
             then 'ok       hanguk.uz sign-up skips Hanguk Ish users (public.profiles stays hanguk.uz''s)'
             else 'MISSING  hanguk.uz public.handle_new_user does not skip Hanguk Ish users' end;
+select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%is_anonymous%'
+            then 'ok       hanguk.uz sign-up skips anonymous accounts (the apps'' sign-in, P49)'
+            else 'MISSING  hanguk.uz public.handle_new_user does not skip anonymous accounts' end;
 \else
 select 'ok       no hanguk.uz sign-up trigger here (local stack)';
 \endif

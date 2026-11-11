@@ -29,12 +29,10 @@ abstract final class Biz {
     _lang = language.code;
   }
 
-  static const phonePlaceholder = '010-0000-0000';
   static const bizNoPlaceholder = '000-00-00000';
 
   static String get ownerBadge => _l.bizOwnerBadge;
   static String get loginSubtitle => _l.bizLoginSubtitle;
-  static String get phoneLabel => _l.bizPhoneLabel;
   static String get bizNoLabel => _l.bizBizNoLabel;
   static String get bizNoHint => _l.bizBizNoHint;
   static String get start => _l.bizStart;
@@ -43,14 +41,6 @@ abstract final class Biz {
   static String get termsSuffix => _l.bizTermsSuffix;
   static String get loginIncomplete => _l.bizLoginIncomplete;
   static String get bizNoInvalid => _l.bizBizNoInvalid;
-  static String get codeTopTitle => _l.bizCodeTopTitle;
-  static String get codeTitle => _l.bizCodeTitle;
-  static String codeSentTo(String phone) => _l.bizCodeSentTo(phone);
-  static String get codeLabel => _l.bizCodeLabel;
-  static String get codeConfirm => _l.bizCodeConfirm;
-  static String get codeResend => _l.bizCodeResend;
-  static String codeResendIn(String time) => _l.bizCodeResendIn(time);
-  static String get codeResent => _l.bizCodeResent;
   static String get navHome => _l.bizNavHome;
   static String get navWorkers => _l.bizNavWorkers;
   static String get navCreate => _l.bizNavCreate;
@@ -326,10 +316,7 @@ abstract final class Biz {
         'INVALID' => _l.bizErrInvalid,
         'NOT_AUTHENTICATED' => _l.bizErrNotAuthenticated,
         'FORBIDDEN' => _l.bizErrForbidden,
-        'CODE_INVALID' => _l.bizErrCodeInvalid,
         'TOO_MANY_REQUESTS' => _l.bizErrTooManyRequests,
-        'PHONE_INVALID' => _l.bizErrPhoneInvalid,
-        'SMS_FAILED' => _l.bizErrSmsFailed,
         'SIGN_IN_UNAVAILABLE' => _l.bizErrSignInUnavailable,
         'BIZ_NO_INVALID' => bizNoInvalid,
         'BIZ_NO_UNKNOWN' => _l.bizErrBizNoUnknown,

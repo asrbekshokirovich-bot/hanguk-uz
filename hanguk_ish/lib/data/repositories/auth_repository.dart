@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/format/phone.dart';
-import 'shift_repository.dart';
-
-/// Phone sign-in (T1 number → T2 code) and who is signed in. Both apps use
-/// it. Failures are [ShiftActionException]s — `PHONE_INVALID`,
-/// `CODE_INVALID`, `TOO_MANY_REQUESTS`, `SMS_FAILED` — or an
-/// [OfflineException].
+/// Who is signed in, and signing in. Since P49 there is no SMS: «Boshlash»
+/// (A01) and «시작하기» (BA0) start an account on this phone — an anonymous
+/// one, without a phone number or a code. Both apps use it. Failures are
+/// ShiftActionException (`TOO_MANY_REQUESTS`, `SIGN_IN_UNAVAILABLE`) or
+/// OfflineException.
 abstract interface class AuthRepository {
   /// The signed-in account, or null.
   String? get userId;
@@ -16,17 +14,14 @@ abstract interface class AuthRepository {
   /// The account after every sign-in and sign-out.
   Stream<String?> get changes;
 
-  /// Texts a 6-digit code to [phone] (a Korean mobile number, as typed).
-  Future<void> sendCode(String phone);
-
-  /// Signs in with the code sent to [phone].
-  Future<void> verifyCode(String phone, String code);
+  /// Starts an account on this phone. It stays between launches; signing out
+  /// or removing the app loses it.
+  Future<void> signIn();
 
   Future<void> signOut();
 }
 
-/// Demo sign-in (no backend configured): no SMS is sent and any six digits
-/// are accepted.
+/// Demo sign-in (no backend configured): the demo account at once.
 class DemoAuthRepository implements AuthRepository {
   DemoAuthRepository({String? userId}) : _user = userId;
 
@@ -42,14 +37,7 @@ class DemoAuthRepository implements AuthRepository {
   Stream<String?> get changes => _changes.stream;
 
   @override
-  Future<void> sendCode(String phone) async {
-    if (KoreanPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
-  }
-
-  @override
-  Future<void> verifyCode(String phone, String code) async {
-    if (KoreanPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
-    if (!RegExp(r'^\d{6}$').hasMatch(code.trim())) throw const ShiftActionException('CODE_INVALID');
+  Future<void> signIn() async {
     _user = demoUser;
     _changes.add(_user);
   }

@@ -711,7 +711,7 @@ void main() {
     await _close(tester);
   });
 
-  testWidgets('worker: a new worker signs up — A01, T1, T2, the three A02 steps, then the feed', skip: _skip != null,
+  testWidgets('worker: a new worker starts — A01 «Boshlash», the three A02 steps, then the feed', skip: _skip != null,
       (tester) async {
     phone(tester);
     final newcomer = _client(_anonKey);
@@ -727,16 +727,10 @@ void main() {
       ],
       child: const WorkerApp(),
     )));
-    // Signed out: the start gate opens A01.
-    await _until(tester, _text('Telefon raqam bilan'));
-    await _tap(tester, _text('Telefon raqam bilan'));
-    await _until(tester, _text('Telefon raqamingiz'));
-    await _settle(tester);
-    await tester.enterText(find.byType(TextField).last, '01000000041');
-    await _tap(tester, find.widgetWithText(HiButton, 'Kod olish'));
-    await _until(tester, _text('Kodni kiriting'));
-    await _settle(tester);
-    await tester.enterText(find.byType(TextField).last, '123456');
+    // Signed out: the start gate opens A01. P49: no phone number, no SMS
+    // code — «Boshlash» starts an account on this phone.
+    await _until(tester, _text('Boshlash'));
+    await _tap(tester, _text('Boshlash'));
     // A new account: A02 first.
     await _until(tester, _text('Profil · 1 / 3'));
     await _settle(tester);
@@ -776,6 +770,9 @@ void main() {
     expect(saved.topik, 3);
     expect(saved.district, 'mapo');
     expect(saved.availability, WorkerProfileDraft.bit(5, 0), reason: 'Saturday morning only');
+    final account = newcomer.auth.currentUser!;
+    expect(account.phone ?? '', isEmpty, reason: 'an account without a phone number');
+    expect(account.userMetadata?['app'], 'hanguk_ish');
     await _close(tester);
   });
 
@@ -1134,18 +1131,14 @@ void main() {
       ],
       child: const EmployerApp(),
     )));
-    // Signed out: the start gate opens BA0.
+    // Signed out: the start gate opens BA0. P49: the business number only —
+    // «시작하기» starts an account on this phone.
     await _until(tester, find.widgetWithText(HiButton, '시작하기'));
     await _settle(tester);
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), '01000000051');
-    await tester.enterText(fields.at(1), '9990000054');
+    await tester.enterText(find.byType(TextField), '9990000054');
     await _tap(tester, find.widgetWithText(HiButton, '시작하기'));
-    await _until(tester, _text('인증번호 입력'));
-    await _settle(tester);
-    await tester.enterText(find.byType(TextField).last, '123456');
-    // The code signs in; business-register files the number (no key in the
-    // local stack: it waits for 국세청) and BA1 opens on it.
+    // business-register files the number (no key in the local stack: it
+    // waits for 국세청) and BA1 opens on it.
     await _until(tester, _text('오늘의 근무'));
     await _until(tester, _text(Biz.reviewPendingTitle));
     expect(_text('사업장 999-00-00054'), findsWidgets, reason: 'the name until the store details are set');
