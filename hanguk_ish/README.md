@@ -30,7 +30,7 @@ Test APK'lar `android/app/sideload-test.keystore` bilan imzolanadi (barqaror,
 paroli ochiq, faqat sideload uchun).
 
 Bazaga ulash: `--dart-define=SUPABASE_URL=… --dart-define=SUPABASE_PUBLISHABLE_KEY=…`
-(berilmasa — demo ma'lumotlar).
+(berilmasa — demo ma'lumotlar). CI APK'lari hanguk.uz bazasiga ulanadi (pastda).
 
 ## Reliz (CI)
 
@@ -38,7 +38,7 @@ GitHub → Settings → Secrets and variables → Actions:
 
 | Secret | Nima uchun |
 |---|---|
-| `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` | hanguk.uz loyihasi (`https://lysjdtyanhdfphqyijsr.supabase.co` va uning publishable kaliti); Hanguk Ish undagi `ish` sxemasida (P48). Bo'lsa, CI APK'lari shu bazaga ulanadi |
+| `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` | ixtiyoriy. Berilmasa, CI APK'lari hanguk.uz loyihasiga ulanadi (`https://lysjdtyanhdfphqyijsr.supabase.co` va uning ochiq publishable kaliti, `ish-check.yml` da); Hanguk Ish undagi `ish` sxemasida (P48). Berilsa — o'sha loyihaga |
 | `ISH_UPLOAD_KEYSTORE` | Play yuklash kaliti (`.jks`), base64: `base64 -w0 upload.jks` |
 | `ISH_UPLOAD_KEYSTORE_PASSWORD`, `ISH_UPLOAD_KEY_ALIAS`, `ISH_UPLOAD_KEY_PASSWORD` | o'sha kalitning paroli va nomi |
 

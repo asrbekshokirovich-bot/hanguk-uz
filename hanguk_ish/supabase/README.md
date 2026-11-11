@@ -25,7 +25,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_limits.sql` | suiiste'molga qarshi cheklovlar (pastda) |
 | `migrations/…_ish_storage_limits.sql` | «ish-avatars» bucket: faqat rasm, 2 MiB gacha — hosted loyihada ham (`config.toml` faqat lokal) |
 | `migrations/…_ish_service_role.sql` | `ish` sxemasida service_role (edge funksiyalar) ruxsatlari |
-| `functions/ish-business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `nts_test.ts` — Deno testlari |
+| `functions/ish-business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
 
@@ -65,11 +65,13 @@ tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
    prod'ga o'tmaydi.
 4. Edge funksiya `ish-business-register`: `supabase functions deploy ish-business-register
    --workdir hanguk_ish --project-ref lysjdtyanhdfphqyijsr` (yoki MCP
-   `deploy_edge_function`); sir: `NTS_SERVICE_KEY`. Kalitsiz yangi bizneslar
-   `pending` bo'lib qoladi.
-5. CI APK'lari shu bazaga: GitHub secrets `ISH_SUPABASE_URL`
-   (`https://lysjdtyanhdfphqyijsr.supabase.co`), `ISH_SUPABASE_PUBLISHABLE_KEY`
-   (hanguk.uz'ning publishable kaliti — u ochiq, saytda ham bor).
+   `deploy_edge_function`: `index.ts`, `keys.ts`, `nts.ts`, verify_jwt yoqiq);
+   sir: `NTS_SERVICE_KEY`. Kalitsiz yangi bizneslar `pending` bo'lib qoladi.
+   Kalitlar hanguk.uz'ning yangilari (`SUPABASE_SECRET_KEYS` /
+   `SUPABASE_PUBLISHABLE_KEYS`), bo'lmasa eski anon / service_role (`keys.ts`).
+5. CI APK'lari shu bazaga ulanadi: `ish-check.yml` da hanguk.uz'ning manzili va
+   publishable kaliti (ochiq, saytda ham bor). GitHub secrets `ISH_SUPABASE_URL`,
+   `ISH_SUPABASE_PUBLISHABLE_KEY` berilsa — boshqa loyihaga.
 6. Xodimlar: hanguk.uz CRM akkaunti bilan, `ish.staff_members` ga qo'shiladi
    (`hanguk_ish/README.md`, «Xodimlar»).
 7. Tekshiruv:

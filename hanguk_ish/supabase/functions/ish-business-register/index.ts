@@ -1,7 +1,8 @@
 // ish-business-register — BA0 «시작하기» for an owner without a business.
 //
 // Hanguk Ish lives in hanguk.uz's project, in the schema `ish` (P48): the
-// service-role client reads and writes there.
+// service-role client reads and writes there, with the project's new API keys
+// when it has them (keys.ts).
 //
 // POST {"biz_no": "1248100998"} with the owner's session (verify_jwt).
 // Checks the number with 국세청 (NTS_SERVICE_KEY; without it the business
@@ -17,6 +18,7 @@
 // At most ten tries an hour per person: each may ask 국세청, and a script
 // could try numbers to learn which businesses use the app.
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { publishableKey, serviceKey } from "./keys.ts";
 import { isValidBizNo, ntsStatus, placeholderName, recheckUpdate } from "./nts.ts";
 
 const MAX_TRIES_PER_HOUR = 10;
@@ -27,10 +29,8 @@ const json = (body: unknown, status = 200) =>
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "INVALID" }, 405);
   const url = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  const asCaller = createClient(url, anonKey, {
+  const asCaller = createClient(url, publishableKey(), {
     global: { headers: { Authorization: request.headers.get("Authorization") ?? "" } },
     auth: { persistSession: false },
   });
@@ -46,7 +46,7 @@ Deno.serve(async (request) => {
   const bizNo = String(body?.biz_no ?? "").replace(/\D/g, "");
   if (!isValidBizNo(bizNo)) return json({ error: "BIZ_NO_INVALID" }, 400);
 
-  const admin = createClient(url, serviceKey, { auth: { persistSession: false }, db: { schema: "ish" } });
+  const admin = createClient(url, serviceKey(), { auth: { persistSession: false }, db: { schema: "ish" } });
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { count: tries, error: triesError } = await admin
     .from("business_register_attempts")

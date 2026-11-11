@@ -8,8 +8,9 @@ name: Hanguk Ish — tekshiruv, ekranlar, APK
 # timezones: o'sha testlar telefon boshqa vaqt zonasida bo'lganda
 #        (Toshkent, Los-Anjeles) — kun va soat baribir Koreya bo'yicha.
 # apk:   ikkala flavor'ning release APK'si (arm64, sideload test kaliti);
-#        secrets'da Supabase manzili bo'lsa — o'sha bazaga ulanadi, bo'lmasa
-#        demo; yuklash kaliti bo'lsa — Play uchun imzolangan .aab ham.
+#        hanguk.uz bazasiga (`ish` sxema, P48) ulanadi — secrets'da boshqa
+#        Supabase manzili bo'lsa, o'shanga; yuklash kaliti bo'lsa — Play uchun
+#        imzolangan .aab ham.
 #
 # Natijalar bitta prerelease'da (hanguk-ish-ci), har branch uchun alohida nom:
 #   <branch>-screens.zip, <branch>-worker-arm64.apk, <branch>-employer-arm64.apk
@@ -170,6 +171,15 @@ jobs:
     defaults:
       run:
         working-directory: hanguk_ish
+    # The apps' database: hanguk.uz's project, where Hanguk Ish has its own
+    # schema `ish` (P48). Its URL and publishable key are public — every app
+    # build and hanguk.uz's web app carry them (src/integrations/supabase/
+    # keys.ts) — and row-level security decides what a key may do. The
+    # repository secrets ISH_SUPABASE_URL and ISH_SUPABASE_PUBLISHABLE_KEY,
+    # when set, point the builds at another project instead.
+    env:
+      SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL || 'https://lysjdtyanhdfphqyijsr.supabase.co' }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -195,23 +205,13 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
-      # With the repository secrets ISH_SUPABASE_URL and
-      # ISH_SUPABASE_PUBLISHABLE_KEY the apps use that database; without
-      # them, the demo data. (The publishable key ships in every app build;
-      # it is kept in secrets only so no project is named in the code.)
       - name: Worker APK
-        env:
-          SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY }}
         run: >-
           flutter build apk --release --flavor worker -t lib/main_worker.dart
           --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
           --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
 
       - name: Employer APK
-        env:
-          SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY }}
         run: >-
           flutter build apk --release --flavor employer -t lib/main_employer.dart
           --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
@@ -227,8 +227,6 @@ jobs:
           UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ISH_UPLOAD_KEYSTORE_PASSWORD }}
           UPLOAD_KEY_ALIAS: ${{ secrets.ISH_UPLOAD_KEY_ALIAS }}
           UPLOAD_KEY_PASSWORD: ${{ secrets.ISH_UPLOAD_KEY_PASSWORD }}
-          SUPABASE_URL: ${{ secrets.ISH_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.ISH_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           set -eu
           if [ -z "$UPLOAD_KEYSTORE" ]; then
