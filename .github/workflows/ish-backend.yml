@@ -2,7 +2,8 @@ name: Hanguk Ish — baza testlari
 
 # hanguk_ish/supabase: migratsiyalar, RLS va funksiyalar.
 #
-# postgres:   oddiy PostgreSQL 16 + tests/supabase_shim.sql — tez (≈1 daqiqa).
+# postgres:   oddiy PostgreSQL 16 + tests/supabase_shim.sql — tez (≈1 daqiqa);
+#             keyin masshtab: 20 000 ishchi, 40 000 smena (tests/perf.sh).
 # supabase:   haqiqiy lokal Supabase stack (supabase start + db reset) — xuddi
 #             shu testlar Supabase'ning o'z auth sxemasi va rollari bilan.
 # functions:  edge funksiyalar (Deno): tip tekshiruvi va unit testlar.
@@ -27,7 +28,7 @@ jobs:
   postgres:
     name: Tests on PostgreSQL 16
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -48,6 +49,12 @@ jobs:
       - name: Run tests
         working-directory: hanguk_ish/supabase
         run: bash tests/run.sh
+      # 20 000 workers, 40 000 shifts: how long each call takes, and a
+      # failure when one is far slower than measured (tests/perf/).
+      - name: Scale (20 000 workers)
+        if: success() || failure()
+        working-directory: hanguk_ish/supabase
+        run: bash tests/perf.sh
 
   supabase:
     name: Tests on the Supabase stack
