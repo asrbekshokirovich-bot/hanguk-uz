@@ -16,11 +16,11 @@ import '../../helpers/fonts.dart';
 import '../../helpers/phone.dart';
 import '../../helpers/worker_harness.dart';
 
-/// A feed that fails [failures] times with a server error (not offline).
+/// A feed whose first answer is a server error (not offline).
 class _BrokenFeed extends DemoShiftRepository {
-  _BrokenFeed({this.failures = 1}) : super(now: prototypeNow);
+  _BrokenFeed() : super(now: prototypeNow);
 
-  int failures;
+  int failures = 1;
 
   @override
   Future<List<ShiftListing>> feed(FeedQuery query) async {
@@ -103,8 +103,10 @@ void main() {
     await chip(tester, 'Soha');
     await inSheet(tester, 'Kafe');
     await inSheet(tester, "Qo'llash");
+    // Yeonnam Bakery's evening clean-up at 20:00 (cards name the business).
     expect(find.text('· 1 ta smena'), findsOneWidget);
-    expect(find.text('Kechki tozalash'), findsOneWidget);
+    expect(find.text('Yeonnam Bakery'), findsOneWidget);
+    expect(find.text('Dalbit Kafe'), findsNothing);
   });
 
   testWidgets('«Barcha filtrlar» offers the four filters; each opens its own sheet', (tester) async {

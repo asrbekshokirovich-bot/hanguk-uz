@@ -936,7 +936,7 @@ void main() {
     );
     await _tap(tester, find.descendant(of: card, matching: find.text('Bekor qilish')));
     await _until(tester, _text('Smenani bekor qilasizmi?'));
-    expect(_text("Smena boshlanishiga 24 soatdan kam qoldi. Bekor qilsangiz, ishonchlilik balingiz pasayadi."),
+    expect(_text('Smena boshlanishiga 24 soatdan kam qoldi. Bekor qilsangiz, ishonchlilik balingiz pasayadi.'),
         findsOneWidget);
     await _tap(tester, _text('Ha, bekor qilish'));
     await _until(tester, _text('Smena bekor qilindi.'));
