@@ -277,7 +277,8 @@ void main() {
     testWidgets('BA5 in English: a short weekday under the date, a space before the unit', (tester) async {
       await open(tester, EmployerRoutes.report, language: AppLanguage.en, phone: tall);
       expect(find.text('Tue'), findsWidgets);
-      expect(find.textContaining('105,000 KRW', findRichText: true), findsOneWidget);
+      expect(find.textContaining('105,000 KRW', findRichText: true), findsWidgets);
+      expect(find.textContaining('105,000KRW', findRichText: true), findsNothing);
     });
 
     testWidgets('BA1 in Uzbek: «1 kishi» with a space', (tester) async {
