@@ -324,8 +324,12 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
     return null;
   }
 
+  /// Read while painting too: the place's element may be inactive for a
+  /// frame (moved or being rebuilt), where findRenderObject asserts — its
+  /// render object is read directly and used only while attached.
   Rect? _rectOf(GlobalKey key) {
-    final box = key.currentContext?.findRenderObject();
+    final ctx = key.currentContext;
+    final box = ctx is Element ? ctx.renderObject : null;
     if (box is! RenderBox || !box.hasSize || !box.attached) return null;
     return box.localToGlobal(Offset.zero) & box.size;
   }
