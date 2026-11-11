@@ -11,11 +11,15 @@ select tests.eq(
      and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
   array[
     'apply_to_shift', 'business_board', 'business_report', 'business_stats', 'business_workers',
-    'cancel_application', 'cancel_shift', 'check_in', 'check_out', 'decide_application', 'employer_shift',
-    'is_application_party', 'is_business_member', 'is_my_applicant', 'is_shift_member',
-    'mark_notifications_read', 'my_businesses', 'my_notifications', 'my_profile', 'my_shift', 'my_shifts',
-    'rate_business', 'register_push_token', 'request_again', 'save_worker_profile', 'set_shift_paid',
-    'shift_details', 'shift_feed', 'shift_qr', 'toggle_favorite', 'worker_earnings', 'worker_stats'
+    'cancel_application', 'cancel_shift', 'check_in', 'check_out', 'decide_application', 'decline_job_offer',
+    'employer_shift', 'is_application_party', 'is_business_member', 'is_my_applicant', 'is_shift_member',
+    'is_staff', 'mark_notifications_read', 'my_businesses', 'my_notifications', 'my_profile', 'my_shift',
+    'my_shifts', 'rate_business', 'register_push_token', 'request_again', 'save_worker_profile',
+    'set_shift_paid', 'shift_details', 'shift_feed', 'shift_qr',
+    -- The staff's (hanguk.uz): each starts with require_staff().
+    'staff_board', 'staff_businesses', 'staff_candidates', 'staff_mark_attendance', 'staff_save_business',
+    'staff_save_shift', 'staff_send_offers', 'staff_shift',
+    'toggle_favorite', 'worker_earnings', 'worker_stats'
   ]::text[],
   'the owner-rights functions open to signed-in people are the reviewed ones');
 
