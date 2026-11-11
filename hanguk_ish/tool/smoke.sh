@@ -145,7 +145,7 @@ walk_worker() {
     step 'A02-2 opens' ui wait 'Profil · 2 / 3' &&
     step 'A02-2: Uzbek' ui tap "=O'zbekcha" &&
     step 'A02-2: Korean' ui tap '=Koreyscha' &&
-    step 'A02-2: TOPIK 3' ui tap '=3' &&
+    step 'A02-2: TOPIK 3' ui tapbelow 'TOPIK' '=3' &&
     step 'A02-2: district row' ui scrollto '=Tuman' &&
     step 'A02-2: district list' ui tapbelow '=Tuman' '=Tanlang' &&
     step 'A02-2: search' ui field 0 Mapo &&
@@ -214,13 +214,14 @@ walk_employer() {
   launch "$apk" "$pkg" "$name" || return
   step 'BA0 opens' ui wait '시작하기' 90 &&
     step 'BA0: phone' ui field 0 01012345678 &&
-    step 'BA0: business number' ui field 1 1234567890 &&
+    step 'BA0: business number' ui field 1 1234567891 &&
     ui hidekb &&
     step 'BA0 → code' ui tap '=시작하기' &&
     step 'code opens' ui wait '인증번호 입력' &&
     step 'code' ui type 123456 &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&
+    step 'BA1: a shift' ui scrollto '마감 정리 보조' &&
     step 'BA1 → BA3' ui tap '마감 정리 보조' &&
     step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
     shot ba3 &&
@@ -243,6 +244,38 @@ walk_employer() {
   finish "$pkg" "$name"
 }
 
+# The «backend» builds with a server that is not there: asking for a code
+# must say «no connection», not hang or crash (release error handling).
+offline_worker() {
+  local pkg=uz.hanguk.ish name=offline-worker
+  launch "$apks/backend-worker-x86_64.apk" "$pkg" "$name" || return
+  step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
+    step 'T1: number' ui field 0 01012345678 &&
+    step 'T1: ask for the code' ui tap '=Kod olish' &&
+    step 'T1 says there is no connection' ui wait "Internet aloqasi yo'q" 45 &&
+    shot t1-offline &&
+    echo "$name: T1 → «Internet aloqasi yo'q»" ||
+    { shot failed-offline-worker; failed=1; }
+  finish "$pkg" "$name"
+}
+
+offline_employer() {
+  local pkg=uz.hanguk.ish.biz name=offline-employer
+  launch "$apks/backend-employer-x86_64.apk" "$pkg" "$name" || return
+  step 'BA0 opens' ui wait '시작하기' 90 &&
+    step 'BA0: phone' ui field 0 01012345678 &&
+    step 'BA0: business number' ui field 1 1234567891 &&
+    ui hidekb &&
+    step 'BA0: ask for the code' ui tap '=시작하기' &&
+    step 'BA0 says there is no connection' ui wait '인터넷 연결을 확인해 주세요' 45 &&
+    shot ba0-offline &&
+    echo "$name: BA0 → «인터넷 연결을 확인해 주세요»" ||
+    { shot failed-offline-employer; failed=1; }
+  finish "$pkg" "$name"
+}
+
 walk_worker arm64
 walk_employer arm64
+offline_worker
+offline_employer
 exit $failed
