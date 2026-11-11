@@ -145,6 +145,16 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
+/// Until a SnackBar has gone by itself. Its 4 seconds start only once it has
+/// slid in, so the clock moves in small steps (one long pump would only end
+/// the slide). It sits over the button at the bottom while it is there.
+Future<void> _snackBarGone(WidgetTester tester) async {
+  for (var i = 0; i < 100 && find.byType(SnackBar).evaluate().isNotEmpty; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(find.byType(SnackBar), findsNothing);
+}
+
 /// Unmounts the app and lets its timers run out.
 Future<void> _close(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox());
@@ -1033,8 +1043,7 @@ void main() {
     await _tap(tester, find.textContaining(RegExp('^오늘'), findRichText: true));
     await _until(tester, _text(Ko.timeLocked));
     // (Let the message go: it covers the button at the bottom.)
-    await tester.pump(const Duration(seconds: 5));
-    await _settle(tester);
+    await _snackBarGone(tester);
     // The content is not locked.
     await _tap(tester, _text('수정'));
     await _until(tester, find.byType(BottomSheet));
