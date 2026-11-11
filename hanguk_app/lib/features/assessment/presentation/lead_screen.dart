@@ -48,7 +48,8 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   /// Kyrgyzstan only: personal data sent to Hanguk and kept in Korea.
   bool _consent = false;
 
-  AppCountry get _country => ref.read(entryProvider).country ?? AppCountry.uz;
+  /// The app's country, kept in a field: `dispose` may not read providers.
+  AppCountry _country = AppCountry.uz;
 
   void _answer(String q, String? value) {
     setState(() {
@@ -65,6 +66,7 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   void initState() {
     super.initState();
     AppEvents.track('form_open', props: {'form': 'lead'});
+    _country = ref.read(entryProvider).country ?? AppCountry.uz;
     final saved = ref.read(entryProvider).phone;
     final phone = NationalPhone(_country);
     if (saved != null && phone.owns(saved)) _phone.text = phone.format(phone.digitsOf(saved));
@@ -146,8 +148,9 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final jobs = ref.watch(assessmentOutcomeProvider)?.fixes.length ?? 0;
-    final kg = (ref.watch(entryProvider.select((s) => s.country)) ?? AppCountry.uz) == AppCountry.kg;
-    final phone = NationalPhone(kg ? AppCountry.kg : AppCountry.uz);
+    _country = ref.watch(entryProvider.select((s) => s.country)) ?? AppCountry.uz;
+    final kg = _country == AppCountry.kg;
+    final phone = NationalPhone(_country);
     final ready = !kg || _consent;
     return Scaffold(
       backgroundColor: FdColors.page,
