@@ -29,12 +29,13 @@ final _skip = _url.isEmpty || _anonKey.isEmpty || _serviceKey.isEmpty
 final config = BackendConfig(url: _url, publishableKey: _anonKey);
 
 SupabaseClient _client(String key) =>
-    SupabaseClient(_url, key, authOptions: const AuthClientOptions(autoRefreshToken: false));
+    SupabaseClient(_url, key,
+        authOptions: const AuthClientOptions(autoRefreshToken: false), postgrestOptions: ishPostgrestOptions);
 
 /// Signs in with a test number: its code is fixed in supabase/config.toml.
 Future<SupabaseClient> _signIn(String phone) async {
   final client = _client(_anonKey);
-  await client.auth.signInWithOtp(phone: phone);
+  await client.auth.signInWithOtp(phone: phone, data: ishSignUpData);
   await client.auth.verifyOTP(phone: phone, token: '123456', type: OtpType.sms);
   return client;
 }

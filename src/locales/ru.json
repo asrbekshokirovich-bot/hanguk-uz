@@ -2799,25 +2799,8 @@
   "ish": {
     "nav": "Hanguk Ish",
     "title": "Hanguk Ish — подбор работников",
-    "notConfigured": {
-      "title": "База Hanguk Ish ещё не подключена",
-      "text": "Когда будет создан проект Supabase для Hanguk Ish, на сайт добавят VITE_ISH_SUPABASE_URL и VITE_ISH_SUPABASE_PUBLISHABLE_KEY — после этого раздел заработает."
-    },
-    "login": {
-      "title": "Вход в Hanguk Ish",
-      "text": "Hanguk Ish — отдельная база. Войдите по номеру сотрудника и коду из SMS (один раз, браузер запомнит).",
-      "phone": "Номер телефона",
-      "phoneHint": "В международном формате: +998… или +82…",
-      "sendCode": "Отправить код",
-      "codeSent": "Код из SMS отправлен на {{phone}}.",
-      "code": "Код из SMS",
-      "verify": "Войти",
-      "change": "Изменить номер",
-      "failed": "Не удалось войти: {{error}}"
-    },
-    "notStaff": "{{phone}} нет в списке сотрудников Hanguk Ish. Администратор должен добавить вас.",
-    "signedInAs": "Вход выполнен: {{phone}}",
-    "signOut": "Выйти",
+    "notStaff": "{{account}} нет в списке сотрудников Hanguk Ish. Администратор должен добавить вас.",
+    "signedInAs": "Вход выполнен: {{account}}",
     "refresh": "Обновить",
     "save": "Сохранить",
     "saved": "Сохранено",

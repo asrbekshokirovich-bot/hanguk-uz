@@ -21,7 +21,8 @@ class SupabaseAuthRepository implements AuthRepository {
   String _e164(String phone) => KoreanPhone.toE164(phone) ?? (throw const ShiftActionException('PHONE_INVALID'));
 
   @override
-  Future<void> sendCode(String phone) => authCall(() => _client.auth.signInWithOtp(phone: _e164(phone)));
+  Future<void> sendCode(String phone) =>
+      authCall(() => _client.auth.signInWithOtp(phone: _e164(phone), data: ishSignUpData));
 
   @override
   Future<void> verifyCode(String phone, String code) => authCall(() async {

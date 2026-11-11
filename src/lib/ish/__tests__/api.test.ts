@@ -8,12 +8,13 @@ function fakeClient(result: { data?: unknown; error?: { message: string; code?: 
     data: result.data ?? null,
     error: result.error ?? null,
   }));
-  return { client: { rpc } as unknown as SupabaseClient, rpc };
+  const schema = vi.fn(() => ({ rpc }));
+  return { client: { schema } as unknown as SupabaseClient, rpc, schema };
 }
 
 describe('ishApi', () => {
   it('saves an employer with trimmed fields, the Uzbek name and the contact', async () => {
-    const { client, rpc } = fakeClient({ data: 'biz-1' });
+    const { client, rpc, schema } = fakeClient({ data: 'biz-1' });
     const id = await ishApi(client).saveBusiness({
       id: null,
       name: ' 홍대 이삿짐센터 ',
@@ -28,6 +29,8 @@ describe('ishApi', () => {
       contact: { contact_name: '김사장', phone: ' 010-5555-1234 ', telegram: '@hongdae_move', source: '', notes: '' },
     });
     expect(id).toBe('biz-1');
+    // Hanguk Ish is the schema `ish` of hanguk.uz's project (P48).
+    expect(schema).toHaveBeenCalledWith('ish');
     expect(rpc).toHaveBeenCalledWith('staff_save_business', {
       p_business: null,
       p_name: '홍대 이삿짐센터',
@@ -120,7 +123,7 @@ describe('ishApi', () => {
     }
     builder.then = (resolve: (v: unknown) => void) => resolve({ data: rows, error: null });
     const from = vi.fn(() => builder);
-    const api = ishApi({ from } as unknown as SupabaseClient);
+    const api = ishApi({ schema: () => ({ from }) } as unknown as SupabaseClient);
 
     const counts = await api.unread([
       { id: 'app-1', workerId: 'worker-1' },

@@ -50,14 +50,20 @@ export function plannedMinutes(job: { starts_at: string; ends_at: string }): num
   return Math.round((Date.parse(job.ends_at) - Date.parse(job.starts_at)) / 60000);
 }
 
+/** Hanguk Ish's schema in hanguk.uz's Supabase project (P48). */
+export const ISH_SCHEMA = 'ish';
+
 /**
- * What hanguk.uz asks of Hanguk Ish, on [client] signed in as a staff member.
- * Every call goes through the database's own checks (staff only, the
- * employers they keep); a refusal comes back as an [IshError].
+ * What hanguk.uz asks of Hanguk Ish, on [client] — hanguk.uz's own, signed in
+ * as a staff member. Every call goes to the schema `ish` and through the
+ * database's own checks (staff only, the employers they keep); a refusal
+ * comes back as an [IshError].
  */
 export function ishApi(client: SupabaseClient) {
+  const db = client.schema(ISH_SCHEMA);
+
   async function rpc<T>(fn: string, params?: Record<string, unknown>): Promise<T> {
-    const { data, error } = await client.rpc(fn, params);
+    const { data, error } = await db.rpc(fn, params);
     if (error) throw new IshError(ishErrorCode(error), error.message);
     return data as T;
   }
@@ -143,7 +149,7 @@ export function ishApi(client: SupabaseClient) {
     qr: (shiftId: string) => rpc<string>('shift_qr', { p_shift: shiftId }),
 
     messages: async (applicationId: string): Promise<IshMessage[]> => {
-      const { data, error } = await client
+      const { data, error } = await db
         .from('messages')
         .select('id, application_id, sender_id, body, lang, translations, created_at')
         .eq('application_id', applicationId)
@@ -160,7 +166,7 @@ export function ishApi(client: SupabaseClient) {
      */
     unread: async (apps: { id: string; workerId: string }[]): Promise<Record<string, number>> => {
       if (apps.length === 0) return {};
-      const { data, error } = await client
+      const { data, error } = await db
         .from('messages')
         .select('application_id, sender_id')
         .in('application_id', apps.map((a) => a.id))
@@ -178,7 +184,7 @@ export function ishApi(client: SupabaseClient) {
 
     /** The worker's messages in the chat are read now — only the worker's. */
     markRead: async (applicationId: string, workerId: string): Promise<void> => {
-      const { error } = await client
+      const { error } = await db
         .from('messages')
         .update({ read_at: new Date().toISOString() })
         .eq('application_id', applicationId)
@@ -188,7 +194,7 @@ export function ishApi(client: SupabaseClient) {
     },
 
     sendMessage: async (applicationId: string, body: string): Promise<IshMessage> => {
-      const { data, error } = await client
+      const { data, error } = await db
         .from('messages')
         .insert({ application_id: applicationId, body: body.trim() })
         .select('id, application_id, sender_id, body, lang, translations, created_at')

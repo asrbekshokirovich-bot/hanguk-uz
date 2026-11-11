@@ -37,12 +37,13 @@ final _skip = _url.isEmpty || _anonKey.isEmpty || _serviceKey.isEmpty
 final config = BackendConfig(url: _url, publishableKey: _anonKey);
 
 SupabaseClient _client(String key) =>
-    SupabaseClient(_url, key, authOptions: const AuthClientOptions(autoRefreshToken: false));
+    SupabaseClient(_url, key,
+        authOptions: const AuthClientOptions(autoRefreshToken: false), postgrestOptions: ishPostgrestOptions);
 
 /// Signs in with a test number: its code is fixed in supabase/config.toml.
 Future<SupabaseClient> _signIn(String phone) async {
   final client = _client(_anonKey);
-  await client.auth.signInWithOtp(phone: phone);
+  await client.auth.signInWithOtp(phone: phone, data: ishSignUpData);
   await client.auth.verifyOTP(phone: phone, token: '123456', type: OtpType.sms);
   return client;
 }
@@ -136,6 +137,23 @@ void main() {
     employer = SupabaseEmployerRepository(owner, config);
   });
 
+  group('hanguk.uz shares the project (P48)', skip: _skip, () {
+    test('the sign-up carries the Hanguk Ish mark and gets an ish profile', () async {
+      final user = aziz.auth.currentUser!;
+      expect(user.userMetadata?['app'], 'hanguk_ish', reason: 'hanguk.uz\'s sign-up skips accounts with it');
+      final row = await admin.from('profiles').select('id, phone').eq('id', user.id).maybeSingle();
+      expect(row?['id'], user.id, reason: 'ish.profiles, made by ish.handle_new_user');
+    });
+
+    test('the API serves the ish schema, and nothing of Hanguk Ish in public', () async {
+      final publicApi = SupabaseClient(_url, _serviceKey,
+          authOptions: const AuthClientOptions(autoRefreshToken: false));
+      await expectLater(publicApi.from('shifts').select('id').limit(1), throwsA(isA<PostgrestException>()),
+          reason: 'no shifts table in public');
+      expect(await admin.from('shifts').select('id').limit(1), isA<List<dynamic>>());
+    });
+  });
+
   group('A02 profile', skip: _skip, () {
     test('a new worker cannot take shifts before the profile', () async {
       final profile = SupabaseWorkerProfileRepository(aziz, config);
@@ -161,9 +179,9 @@ void main() {
       expect(saved.firstName, 'Aziz');
       expect(saved.languages.toList(), ['uz', 'ru', 'ko']);
       expect(saved.isAvailable(5, 0), isTrue);
-      expect(saved.photoPath, startsWith('$_url/storage/v1/object/public/avatars/${aziz.auth.currentUser!.id}/'));
+      expect(saved.photoPath, startsWith('$_url/storage/v1/object/public/ish-avatars/${aziz.auth.currentUser!.id}/'));
       final download = await http.get(Uri.parse(saved.photoPath!));
-      expect(download.statusCode, 200, reason: 'the avatars bucket is public');
+      expect(download.statusCode, 200, reason: 'the ish-avatars bucket is public');
       expect(download.bodyBytes, _png);
 
       // Saving again keeps the photo (its URL is not uploaded again).
@@ -175,7 +193,7 @@ void main() {
     test('a photo cannot go into someone else\'s folder', () async {
       await expectLater(
         aziz.storage
-            .from('avatars')
+            .from(ishAvatarsBucket)
             .uploadBinary('${owner.auth.currentUser!.id}/x.png', _png, fileOptions: const FileOptions(contentType: 'image/png')),
         throwsA(isA<StorageException>()),
       );
@@ -184,19 +202,19 @@ void main() {
     test('only a photo, and a small one (the bucket limits)', () async {
       final folder = aziz.auth.currentUser!.id;
       await expectLater(
-        aziz.storage.from('avatars').uploadBinary('$folder/page.html', utf8.encode('<h1>hi</h1>'),
+        aziz.storage.from(ishAvatarsBucket).uploadBinary('$folder/page.html', utf8.encode('<h1>hi</h1>'),
             fileOptions: const FileOptions(contentType: 'text/html')),
         throwsA(isA<StorageException>()),
         reason: 'not an image',
       );
       final big = Uint8List(2 * 1024 * 1024 + 1)..setRange(0, _png.length, _png);
       await expectLater(
-        aziz.storage.from('avatars').uploadBinary('$folder/big.png', big,
+        aziz.storage.from(ishAvatarsBucket).uploadBinary('$folder/big.png', big,
             fileOptions: const FileOptions(contentType: 'image/png')),
         throwsA(isA<StorageException>()),
         reason: 'over 2 MiB',
       );
-      final bucket = await admin.storage.getBucket('avatars');
+      final bucket = await admin.storage.getBucket(ishAvatarsBucket);
       expect(bucket.allowedMimeTypes, ['image/png', 'image/jpeg', 'image/webp']);
       expect(bucket.fileSizeLimit, 2 * 1024 * 1024);
     });

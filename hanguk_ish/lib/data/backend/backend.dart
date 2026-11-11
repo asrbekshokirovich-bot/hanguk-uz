@@ -6,6 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../repositories/shift_repository.dart';
+import 'ish_names.dart';
+
+export 'ish_names.dart';
 
 /// Where the backend is, given at build time:
 ///
@@ -44,6 +47,9 @@ class BackendConfig {
     return '$base/storage/v1/object/public/$bucket/$segments';
   }
 }
+
+/// Every API call goes to the schema `ish` of hanguk.uz's project (P48).
+const ishPostgrestOptions = PostgrestClientOptions(schema: ishSchema);
 
 /// The running app's backend settings (overridden in tests).
 final backendConfigProvider = Provider<BackendConfig>((ref) => BackendConfig.fromEnvironment);

@@ -74,12 +74,12 @@ Future<String> _uploadToStorage(SupabaseClient client, String userId, String loc
   final extension = localPath.contains('.') ? localPath.split('.').last.toLowerCase() : 'jpg';
   final type = switch (extension) { 'png' => 'image/png', 'webp' => 'image/webp', _ => 'image/jpeg' };
   final path = '$userId/avatar-${DateTime.now().millisecondsSinceEpoch}.${type.split('/').last}';
-  await client.storage.from('avatars').upload(path, File(localPath), fileOptions: FileOptions(contentType: type));
+  await client.storage.from(ishAvatarsBucket).upload(path, File(localPath), fileOptions: FileOptions(contentType: type));
   return path;
 }
 
 /// [WorkerProfileRepository] on the Hanguk Ish database: A02 is saved with
-/// `save_worker_profile` (one transaction), the photo goes to the «avatars»
+/// `save_worker_profile` (one transaction), the photo goes to the «ish-avatars»
 /// bucket first.
 class SupabaseWorkerProfileRepository implements WorkerProfileRepository {
   SupabaseWorkerProfileRepository(this._client, this._config, {AvatarUpload upload = _uploadToStorage})

@@ -50,7 +50,7 @@ void main() {
       expect(b.completedShifts, 1);
       expect(b.lat, closeTo(37.5559, 1e-6));
       expect(b.photoUrl,
-          'https://ish.supabase.co/storage/v1/object/public/businesses/10000000-0000-0000-0000-000000000001/photo.jpg');
+          'https://ish.supabase.co/storage/v1/object/public/ish-businesses/10000000-0000-0000-0000-000000000001/photo.jpg');
       expect(b.initial, '달');
     });
 
@@ -247,7 +247,7 @@ void main() {
             'avatar_path': '$a1/avatar-1.jpg',
             'worker': {'onboarded_at': '2026-11-10T00:00:00+00:00', 'languages': ['uz']},
           }, publicUrl: config.publicUrl)?.photoPath,
-          'https://ish.supabase.co/storage/v1/object/public/avatars/$a1/avatar-1.jpg');
+          'https://ish.supabase.co/storage/v1/object/public/ish-avatars/$a1/avatar-1.jpg');
 
       final stats = workerStatsFromJson(sampleList('worker_stats').single);
       expect(stats.reliability, 80, reason: 'a1 missed s7 (−20)');

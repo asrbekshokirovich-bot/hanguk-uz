@@ -1,6 +1,7 @@
 /**
- * Hanguk Ish — the job apps' own Supabase project (hanguk_ish/supabase): what
- * its staff functions (`staff_*`, migration 20261112170000) hand to hanguk.uz.
+ * Hanguk Ish — the job apps' schema `ish` in hanguk.uz's Supabase project
+ * (hanguk_ish/supabase, P48): what its staff functions (`staff_*`, migration
+ * 20261112170000) hand to hanguk.uz.
  * Real responses: hanguk_ish/test/fixtures/backend_samples.json.
  */
 

@@ -3771,25 +3771,8 @@
   "ish": {
     "nav": "Hanguk Ish",
     "title": "Hanguk Ish — ishchilarni moslash",
-    "notConfigured": {
-      "title": "Hanguk Ish bazasi hali ulanmagan",
-      "text": "Hanguk Ish'ning Supabase loyihasi yaratilgach, saytga VITE_ISH_SUPABASE_URL va VITE_ISH_SUPABASE_PUBLISHABLE_KEY qo'shiladi — shundan keyin bu bo'lim ishlaydi."
-    },
-    "login": {
-      "title": "Hanguk Ish'ga kirish",
-      "text": "Hanguk Ish — alohida baza. Xodim raqamingiz bilan SMS kod orqali kiring (bir marta, brauzer eslab qoladi).",
-      "phone": "Telefon raqam",
-      "phoneHint": "Xalqaro shaklda: +998… yoki +82…",
-      "sendCode": "Kod yuborish",
-      "codeSent": "{{phone}} raqamiga SMS kod yuborildi.",
-      "code": "SMS kod",
-      "verify": "Kirish",
-      "change": "Raqamni o'zgartirish",
-      "failed": "Kirib bo'lmadi: {{error}}"
-    },
-    "notStaff": "{{phone}} Hanguk Ish xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak.",
-    "signedInAs": "{{phone}} bilan kirilgan",
-    "signOut": "Chiqish",
+    "notStaff": "{{account}} Hanguk Ish xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak.",
+    "signedInAs": "{{account}} bilan kirilgan",
     "refresh": "Yangilash",
     "save": "Saqlash",
     "saved": "Saqlandi",

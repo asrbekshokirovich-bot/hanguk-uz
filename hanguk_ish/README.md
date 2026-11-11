@@ -38,7 +38,7 @@ GitHub → Settings → Secrets and variables → Actions:
 
 | Secret | Nima uchun |
 |---|---|
-| `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` | «hanguk-ish» loyihasi (Project Settings → API). Bo'lsa, CI APK'lari shu bazaga ulanadi |
+| `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` | hanguk.uz loyihasi (`https://lysjdtyanhdfphqyijsr.supabase.co` va uning publishable kaliti); Hanguk Ish undagi `ish` sxemasida (P48). Bo'lsa, CI APK'lari shu bazaga ulanadi |
 | `ISH_UPLOAD_KEYSTORE` | Play yuklash kaliti (`.jks`), base64: `base64 -w0 upload.jks` |
 | `ISH_UPLOAD_KEYSTORE_PASSWORD`, `ISH_UPLOAD_KEY_ALIAS`, `ISH_UPLOAD_KEY_PASSWORD` | o'sha kalitning paroli va nomi |
 
@@ -62,20 +62,20 @@ beruvchilar, ularning faqat taklif bilan ochiladigan ishlari, mos ishchilar,
 takliflar, tasdiq, davomat va to'lov — hanguk.uz CRM'ida (`src/components/crm/ish/`,
 `src/lib/ish/`). Reja: `docs/operator-reja.md`.
 
-1. hanguk.uz'ning Vercel loyihasi → Settings → Environment Variables:
-   `VITE_ISH_SUPABASE_URL`, `VITE_ISH_SUPABASE_PUBLISHABLE_KEY` («hanguk-ish»
-   loyihasining Project Settings → API). Ularsiz bo'lim «baza hali ulanmagan»
-   deydi.
-2. Xodim bir marta CRM → «Hanguk Ish» da telefon raqami va SMS kod bilan
-   kiradi (ilovalardagi kabi; email kirish yo'q).
-3. Admin uni xodim qiladi (Supabase → SQL Editor; raqam `+` siz):
+Hanguk Ish hanguk.uz'ning o'z Supabase loyihasida (`ish` sxemasi, P48): bo'lim
+hanguk.uz'ning klienti va xodimning hanguk.uz sessiyasi bilan ishlaydi —
+alohida kirish, SMS kod yoki Vercel o'zgaruvchisi kerak emas.
+
+1. Xodim CRM'ga odatdagidek kiradi va «Hanguk Ish» bo'limini ochadi.
+2. Admin uni Hanguk Ish xodimi qiladi (Supabase → SQL Editor; hanguk.uz akkaunti email'i):
 
    ```sql
-   insert into public.staff_members (user_id)
-   select id from auth.users where phone = '998901234567';
+   insert into ish.staff_members (user_id)
+   select id from auth.users where email = 'xodim@hanguk.uz';
    ```
 
-   Olib tashlash: `delete from public.staff_members where user_id = …;`
+   Olib tashlash: `delete from ish.staff_members where user_id = …;`
+   Ro'yxatda bo'lmasa, bo'lim «Hanguk Ish xodimlari ro'yxatida yo'q» deydi.
 
 ## Tuzilma
 

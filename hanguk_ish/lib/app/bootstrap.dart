@@ -40,7 +40,11 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
     ));
   }
   if (backend.isConfigured) {
-    await Supabase.initialize(url: backend.url, publishableKey: backend.publishableKey);
+    await Supabase.initialize(
+      url: backend.url,
+      publishableKey: backend.publishableKey,
+      postgrestOptions: ishPostgrestOptions,
+    );
     overrides.addAll(backendOverrides(backend, Supabase.instance.client));
   }
   runApp(ProviderScope(overrides: overrides, child: app));

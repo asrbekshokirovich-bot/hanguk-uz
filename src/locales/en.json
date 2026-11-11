@@ -3711,25 +3711,8 @@
   "ish": {
     "nav": "Hanguk Ish",
     "title": "Hanguk Ish — matching workers",
-    "notConfigured": {
-      "title": "The Hanguk Ish database is not connected yet",
-      "text": "Once Hanguk Ish's Supabase project is created, VITE_ISH_SUPABASE_URL and VITE_ISH_SUPABASE_PUBLISHABLE_KEY are added to the site — then this section works."
-    },
-    "login": {
-      "title": "Sign in to Hanguk Ish",
-      "text": "Hanguk Ish is a separate database. Sign in with your staff phone number and an SMS code (once; the browser remembers it).",
-      "phone": "Phone number",
-      "phoneHint": "International format: +998… or +82…",
-      "sendCode": "Send code",
-      "codeSent": "An SMS code was sent to {{phone}}.",
-      "code": "SMS code",
-      "verify": "Sign in",
-      "change": "Change number",
-      "failed": "Could not sign in: {{error}}"
-    },
-    "notStaff": "{{phone}} is not on the Hanguk Ish staff list. An admin has to add you as staff.",
-    "signedInAs": "Signed in as {{phone}}",
-    "signOut": "Sign out",
+    "notStaff": "{{account}} is not on the Hanguk Ish staff list. An admin has to add you as staff.",
+    "signedInAs": "Signed in as {{account}}",
     "refresh": "Refresh",
     "save": "Save",
     "saved": "Saved",

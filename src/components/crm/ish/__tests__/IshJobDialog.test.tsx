@@ -33,7 +33,7 @@ describe('IshJobDialog', () => {
       data: fn === 'staff_businesses' ? samples.staff_businesses : job.id,
       error: null,
     }));
-    const api = ishApi({ rpc } as unknown as SupabaseClient);
+    const api = ishApi({ schema: () => ({ rpc }) } as unknown as SupabaseClient);
     const onSaved = vi.fn();
     render(
       <QueryClientProvider client={new QueryClient()}>

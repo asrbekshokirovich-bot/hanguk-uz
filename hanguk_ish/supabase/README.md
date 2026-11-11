@@ -1,8 +1,14 @@
 # Hanguk Ish — backend (Supabase)
 
-Alohida Supabase loyihasi «hanguk-ish» (Seul). Hozircha yaratilmagan —
-«Alicargo» tashkilotidagi to'lanmagan hisob tufayli; kod va testlar shu
-papkada, CI'da lokal bazada sinaladi.
+Hanguk Ish'ning bazasi hanguk.uz'ning Supabase loyihasida
+(`lysjdtyanhdfphqyijsr`, Seul), alohida **`ish` sxemasida** (P48). hanguk.uz'ning
+`public` sxemasida hech narsa yaratilmaydi va ruxsatlari o'zgarmaydi. Yagona
+istisno — repo ildizidagi `supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql`:
+hanguk.uz'ning `public.handle_new_user` triggeri Hanguk Ish ilovalaridan
+ro'yxatdan o'tganlarni (`user_metadata.app = 'hanguk_ish'`) o'tkazib yuboradi,
+ularning profili `ish.profiles`. Kod va testlar shu papkada, CI'da lokal bazada
+sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
+`tests/05_coexistence_test.sql`).
 
 ## Tarkibi
 
@@ -12,13 +18,14 @@ papkada, CI'da lokal bazada sinaladi.
 | `migrations/…_ish_rls.sql` | RLS siyosatlari va ustun darajasidagi huquqlar |
 | `migrations/…_ish_rpc.sql` | ilovalar chaqiradigan funksiyalar: smena olish/bekor qilish, tasdiqlash, QR kirish/chiqish, baho, hisobotlar |
 | `migrations/…_ish_employer.sql` | ish beruvchi ilovasi o'qishlari (`business_board`, `employer_shift`, `business_workers`) va smenani tahrirlash qoidalari (`shifts_guard`) |
-| `migrations/…_ish_app_reads.sql` | ilovalar ekranlari uchun JSON: lenta kartalari (`shift_feed`, `shift_details`), `my_shifts`, `my_notifications`, `my_profile` / `save_worker_profile`, `my_businesses`; biznesning mahalla/qavat/tarjima/logo ustunlari; chat xabari bildirishnomasi; «avatars» bucket |
+| `migrations/…_ish_app_reads.sql` | ilovalar ekranlari uchun JSON: lenta kartalari (`shift_feed`, `shift_details`), `my_shifts`, `my_notifications`, `my_profile` / `save_worker_profile`, `my_businesses`; biznesning mahalla/qavat/tarjima/logo ustunlari; chat xabari bildirishnomasi; «ish-avatars» bucket |
 | `migrations/…_ish_upkeep.sql` | smena eslatmasi (2 soat oldin) va pg_cron: kelmaganlar / muddati o'tgan arizalar har 10 daqiqada |
 | `migrations/…_ish_matching.sql` | yangi smena yaqindagi (5 km), o'sha vaqtda bo'sh ishchilarga xabar beriladi (kuniga ≤3); har kuni 18:00 da 3 km ichidagi smenalar yig'masi |
 | `migrations/…_ish_realtime*.sql` | Realtime: bildirishnomalar, chat xabarlari va arizalar ochiq ekranlarga darhol yetadi (RLS bo'yicha) |
 | `migrations/…_ish_limits.sql` | suiiste'molga qarshi cheklovlar (pastda) |
-| `migrations/…_ish_storage_limits.sql` | «avatars» bucket: faqat rasm, 2 MiB gacha — hosted loyihada ham (`config.toml` faqat lokal) |
-| `functions/business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `nts_test.ts` — Deno testlari |
+| `migrations/…_ish_storage_limits.sql` | «ish-avatars» bucket: faqat rasm, 2 MiB gacha — hosted loyihada ham (`config.toml` faqat lokal) |
+| `migrations/…_ish_service_role.sql` | `ish` sxemasida service_role (edge funksiyalar) ruxsatlari |
+| `functions/ish-business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `nts_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`), test SMS kodlari |
 
@@ -40,22 +47,39 @@ papkada, CI'da lokal bazada sinaladi.
 
 ## Prod'ga chiqarish ro'yxati
 
-Loyiha yaratilgach (Seul, `ap-northeast-2`), bir marta. Prod bazadagi har bir o'zgarish Asrbekning ruxsati bilan.
+hanguk.uz loyihasida (`lysjdtyanhdfphqyijsr`), bir marta. Prod bazadagi har bir
+o'zgarish Asrbekning ruxsati bilan. `supabase db push` ishlatilmaydi — prod
+tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 
-1. `supabase link --project-ref <ref> --workdir hanguk_ish`, keyin `supabase db push --workdir hanguk_ish` — barcha migratsiyalar.
-   - Shular bilan birga pg_cron ishlari (3 ta: `select jobname from cron.job`), Realtime jadvallari (notifications, messages, applications) va «avatars» bucket limitlari ham o'rnatiladi.
-2. Auth → Providers → Phone:
-   - yoqish, SMS provayderi (Twilio Verify: Account SID, Auth Token, Verify Service SID);
-   - kod 6 raqam;
-   - Auth → Rate Limits: SMS chegarasi.
-   - `config.toml` dagi test raqamlar prod'ga o'tmaydi.
-3. Edge funksiya:
-   - `supabase functions deploy business-register --workdir hanguk_ish`;
-   - sir: `supabase secrets set NTS_SERVICE_KEY=…`. Kalitsiz yangi bizneslar `pending` bo'lib qoladi.
-4. GitHub secrets: `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API). Shundan keyin CI APK'lari shu bazaga ulanadi (`hanguk_ish/README.md`, «Reliz»).
-5. Tekshiruv:
-   - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar, RLS, huquqlar, 3 ta pg_cron ishi, Realtime jadvallari, «avatars» limitlari, eng kam ish haqi, indekslar. Hammasi «ok» bo'lishi kerak (CI'da lokal stack'da ham ishlaydi);
-   - ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan kirish va chiqish.
+1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
+   «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):
+   - `hanguk_ish/supabase/migrations/*.sql` (hammasi `ish` sxemasida);
+   - repo ildizidagi `supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql`.
+   - Shular bilan pg_cron ishlari (3 ta, `ish-…`), Realtime (`ish.notifications`,
+     `ish.messages`, `ish.applications`) va «ish-avatars» bucket ham o'rnatiladi.
+2. Dashboard → Project Settings → Data API → **Exposed schemas**: `ish` ni qo'shish
+   (bo'lmasa API `ish` ga javob bermaydi).
+3. Auth → Providers → Phone: yoqish, SMS provayderi (Twilio Verify: Account SID,
+   Auth Token, Verify Service SID); kod 6 raqam; Auth → Rate Limits: SMS chegarasi.
+   hanguk.uz'ning email kirishi o'zgarmaydi. `config.toml` dagi test raqamlar
+   prod'ga o'tmaydi.
+4. Edge funksiya `ish-business-register`: `supabase functions deploy ish-business-register
+   --workdir hanguk_ish --project-ref lysjdtyanhdfphqyijsr` (yoki MCP
+   `deploy_edge_function`); sir: `NTS_SERVICE_KEY`. Kalitsiz yangi bizneslar
+   `pending` bo'lib qoladi.
+5. CI APK'lari shu bazaga: GitHub secrets `ISH_SUPABASE_URL`
+   (`https://lysjdtyanhdfphqyijsr.supabase.co`), `ISH_SUPABASE_PUBLISHABLE_KEY`
+   (hanguk.uz'ning publishable kaliti — u ochiq, saytda ham bor).
+6. Xodimlar: hanguk.uz CRM akkaunti bilan, `ish.staff_members` ga qo'shiladi
+   (`hanguk_ish/README.md`, «Xodimlar»).
+7. Tekshiruv:
+   - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar
+     (nomi bo'yicha), hanguk.uz triggeri Hanguk Ish'ni o'tkazib yuborishi, RLS,
+     huquqlar, 3 ta pg_cron ishi, Realtime jadvallari, «ish-avatars» limitlari,
+     eng kam ish haqi, indekslar. Hammasi «ok» bo'lishi kerak (CI'da lokal
+     stack'da ham ishlaydi);
+   - ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan
+     kirish va chiqish; hanguk.uz'da odatdagi kirish va talaba ro'yxatdan o'tishi.
 
 ## Testlar
 
@@ -73,7 +97,7 @@ PGHOST=… PGPORT=… PGUSER=postgres bash tests/perf.sh
 
 | Funksiya | Kim chaqiradi | Nima qiladi |
 |---|---|---|
-| `business-register` | sajangnim ilovasi, BA0 dan keyin (kirgan foydalanuvchi) | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED, TOO_MANY_REQUESTS |
+| `ish-business-register` | sajangnim ilovasi, BA0 dan keyin (kirgan foydalanuvchi) | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED, TOO_MANY_REQUESTS |
 
 Sirlar (dashboard → Edge Functions → Secrets): `NTS_SERVICE_KEY` — data.go.kr «국세청_사업자등록정보 진위확인 및 상태조회 서비스», «Decoding» kalit.
 

@@ -1,12 +1,13 @@
 # Hanguk Ish — local Supabase stack (supabase start --workdir hanguk_ish).
-# The hosted project «hanguk-ish» (Seoul) is not created yet; when it is,
-# put its ref here and link with `supabase link`.
+# Hosted, Hanguk Ish lives in hanguk.uz's project (lysjdtyanhdfphqyijsr), in
+# its own schema `ish` (P48); this stack has only Hanguk Ish, served the same
+# way: `ish` among the API's schemas.
 project_id = "hanguk-ish"
 
 [api]
 enabled = true
 port = 54321
-schemas = ["public"]
+schemas = ["public", "ish"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
@@ -70,13 +71,13 @@ enable_signup = false
 enabled = true
 file_size_limit = "5MiB"
 
-[storage.buckets.avatars]
+[storage.buckets.ish-avatars]
 public = true
 file_size_limit = "2MiB"
 allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
 
-# BA0: 국세청 check and registration (supabase/functions/business-register).
+# BA0: 국세청 check and registration (supabase/functions/ish-business-register).
 # NTS_SERVICE_KEY (data.go.kr «Decoding» key) is a secret set in the
 # dashboard; without it new businesses wait for a person (pending).
-[functions.business-register]
+[functions.ish-business-register]
 verify_jwt = true

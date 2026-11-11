@@ -66,11 +66,12 @@ const _lat = 35.1587;
 const _lng = 129.1604;
 
 SupabaseClient _client(String key) =>
-    SupabaseClient(_url, key, authOptions: const AuthClientOptions(autoRefreshToken: false));
+    SupabaseClient(_url, key,
+        authOptions: const AuthClientOptions(autoRefreshToken: false), postgrestOptions: ishPostgrestOptions);
 
 Future<SupabaseClient> _signIn(String phone) async {
   final client = _client(_anonKey);
-  await client.auth.signInWithOtp(phone: phone);
+  await client.auth.signInWithOtp(phone: phone, data: ishSignUpData);
   await client.auth.verifyOTP(phone: phone, token: '123456', type: OtpType.sms);
   return client;
 }

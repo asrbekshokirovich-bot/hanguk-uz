@@ -36,7 +36,7 @@ class SupabaseEmployerRepository implements EmployerRepository {
         if (!isValidBusinessNumber(digits)) throw const ShiftActionException('BIZ_NO_INVALID');
         final Json answer;
         try {
-          final response = await _client.functions.invoke('business-register', body: {'biz_no': digits});
+          final response = await _client.functions.invoke(ishBusinessRegisterFunction, body: {'biz_no': digits});
           answer = response.data is Map ? (response.data as Map).cast<String, dynamic>() : const {};
         } on FunctionException catch (e) {
           final details = e.details;

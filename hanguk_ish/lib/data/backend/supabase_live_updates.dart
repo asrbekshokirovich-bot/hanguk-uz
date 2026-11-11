@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../repositories/live_updates.dart';
+import 'ish_names.dart';
 
 /// [LiveUpdates] over Supabase Realtime: new rows in `notifications` for the
 /// signed-in user and in `messages`, and new or changed `applications` —
@@ -30,14 +31,14 @@ class SupabaseLiveUpdates implements LiveUpdates {
             .channel('ish-live-$user')
             .onPostgresChanges(
               event: PostgresChangeEvent.insert,
-              schema: 'public',
+              schema: ishSchema,
               table: 'notifications',
               filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'user_id', value: user),
               callback: (_) => controller.add(null),
             )
             .onPostgresChanges(
               event: PostgresChangeEvent.insert,
-              schema: 'public',
+              schema: ishSchema,
               table: 'messages',
               callback: (_) => controller.add(null),
             )
@@ -45,13 +46,13 @@ class SupabaseLiveUpdates implements LiveUpdates {
             // row-level security, and applications are never deleted.
             .onPostgresChanges(
               event: PostgresChangeEvent.insert,
-              schema: 'public',
+              schema: ishSchema,
               table: 'applications',
               callback: (_) => controller.add(null),
             )
             .onPostgresChanges(
               event: PostgresChangeEvent.update,
-              schema: 'public',
+              schema: ishSchema,
               table: 'applications',
               callback: (_) => controller.add(null),
             )

@@ -10,6 +10,13 @@ import IshContent, { IshSection } from '../IshContent';
 import type { IshJobPage } from '@/lib/ish/types';
 
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QR') } }));
+// hanguk.uz's own client: the section uses it (P48, one project).
+const main = vi.hoisted(() => ({ client: null as unknown }));
+vi.mock('@/integrations/supabase/client', () => ({
+  get supabase() {
+    return main.client;
+  },
+}));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const i18n = createInstance();
@@ -22,9 +29,9 @@ void i18n.use(initReactI18next).init({
 
 type Handler = (params: Record<string, unknown> | undefined) => unknown;
 
-/** A Hanguk Ish client: a staff session (or none) and rpc answered by [handlers]. */
+/** hanguk.uz's client: a staff session (or none); `ish` rpc answered by [handlers]. */
 function fakeClient(handlers: Record<string, Handler>, signedIn = true) {
-  const session = signedIn ? { user: { id: 'staff-1', phone: '998901234567' } } : null;
+  const session = signedIn ? { user: { id: 'staff-1', email: 'aziza@hanguk.uz' } } : null;
   const rpc = vi.fn(async (fn: string, params?: Record<string, unknown>) => {
     const handler = handlers[fn];
     if (!handler) return { data: null, error: { message: `no handler for ${fn}` } };
@@ -56,7 +63,9 @@ function fakeClient(handlers: Record<string, Handler>, signedIn = true) {
     };
     return query;
   });
-  return { client: { rpc, auth, from } as unknown as SupabaseClient, rpc, auth, messages };
+  // Hanguk Ish is the schema `ish`: every call goes through schema('ish').
+  const schema = vi.fn((_name: string) => ({ rpc, from }));
+  return { client: { schema, auth } as unknown as SupabaseClient, rpc, auth, schema, messages };
 }
 
 function renderWith(node: React.ReactNode) {
@@ -88,31 +97,29 @@ describe('CRM → Hanguk Ish', () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it('says the database is not connected while its address is not set', () => {
+  it('uses hanguk.uz\'s own client and session: every call goes to the ish schema', async () => {
+    const fake = fakeClient(staffHandlers());
+    main.client = fake.client;
     renderWith(<IshContent />);
-    expect(screen.getByText('Hanguk Ish bazasi hali ulanmagan')).toBeInTheDocument();
+    expect(await screen.findByText('aziza@hanguk.uz bilan kirilgan')).toBeInTheDocument();
+    expect(await screen.findByTestId(`ish-job-${job.id}`)).toBeInTheDocument();
+    expect(fake.schema).toHaveBeenCalledWith('ish');
+    expect(fake.schema.mock.calls.every(([name]) => name === 'ish')).toBe(true);
   });
 
-  it('signs in with the phone and the SMS code', async () => {
-    const { client, auth } = fakeClient({}, false);
+  it('without a hanguk.uz session it asks to sign in again (no separate sign-in)', async () => {
+    const { client } = fakeClient({}, false);
     renderWith(<IshSection client={client} />);
-    const phone = await screen.findByLabelText('Telefon raqam');
-    fireEvent.change(phone, { target: { value: '+998 90 123 45 67' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Kod yuborish' }));
-    await waitFor(() => expect(auth.signInWithOtp).toHaveBeenCalledWith({ phone: '+998901234567' }));
-    fireEvent.change(await screen.findByLabelText('SMS kod'), { target: { value: '123456' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Kirish' }));
-    await waitFor(() =>
-      expect(auth.verifyOtp).toHaveBeenCalledWith({ phone: '+998901234567', token: '123456', type: 'sms' }),
-    );
+    expect(await screen.findByText('Qaytadan kiring.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Telefon raqam')).not.toBeInTheDocument();
   });
 
-  it('someone not on the staff list is told so and can sign out', async () => {
-    const { client, auth } = fakeClient({ is_staff: () => false });
+  it('someone not on the staff list is told so', async () => {
+    const { client } = fakeClient({ is_staff: () => false });
     renderWith(<IshSection client={client} />);
-    expect(await screen.findByText(/Hanguk Ish xodimlari ro'yxatida yo'q/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Chiqish' }));
-    expect(auth.signOut).toHaveBeenCalled();
+    expect(
+      await screen.findByText("aziza@hanguk.uz Hanguk Ish xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak."),
+    ).toBeInTheDocument();
   });
 
   it('the week\'s jobs with their offers; a job opens with the employer\'s contact and the answers', async () => {

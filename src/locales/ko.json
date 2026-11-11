@@ -2670,25 +2670,8 @@
   "ish": {
     "nav": "Hanguk Ish",
     "title": "Hanguk Ish — 근무자 매칭",
-    "notConfigured": {
-      "title": "Hanguk Ish 데이터베이스가 아직 연결되지 않았어요",
-      "text": "Hanguk Ish의 Supabase 프로젝트를 만든 뒤 사이트에 VITE_ISH_SUPABASE_URL과 VITE_ISH_SUPABASE_PUBLISHABLE_KEY를 추가하면 이 메뉴가 작동해요."
-    },
-    "login": {
-      "title": "Hanguk Ish 로그인",
-      "text": "Hanguk Ish는 별도 데이터베이스예요. 직원 휴대폰 번호와 인증번호로 로그인하세요(한 번만, 브라우저가 기억해요).",
-      "phone": "휴대폰 번호",
-      "phoneHint": "국제 형식: +998… 또는 +82…",
-      "sendCode": "인증번호 받기",
-      "codeSent": "{{phone}}(으)로 인증번호를 보냈어요.",
-      "code": "인증번호",
-      "verify": "로그인",
-      "change": "번호 변경",
-      "failed": "로그인할 수 없어요: {{error}}"
-    },
-    "notStaff": "{{phone}}은(는) Hanguk Ish 직원 목록에 없어요. 관리자가 직원으로 추가해야 해요.",
-    "signedInAs": "{{phone}}(으)로 로그인됨",
-    "signOut": "로그아웃",
+    "notStaff": "{{account}}은(는) Hanguk Ish 직원 목록에 없어요. 관리자가 직원으로 추가해야 해요.",
+    "signedInAs": "{{account}}(으)로 로그인됨",
     "refresh": "새로고침",
     "save": "저장",
     "saved": "저장했어요",

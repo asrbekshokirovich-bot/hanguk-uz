@@ -50,6 +50,7 @@ class FakeBackend {
           headers: response.headers, request: request);
     }),
     authOptions: const AuthClientOptions(autoRefreshToken: false),
+    postgrestOptions: ishPostgrestOptions,
   );
 
   late final accessToken = _jwt(me);
@@ -97,6 +98,22 @@ String rpcName(http.Request r) => r.url.path.startsWith('/rest/v1/rpc/') ? r.url
 
 void main() {
   group('worker: shifts', () {
+    test('every database call goes to the ish schema (hanguk.uz shares the project, P48)', () async {
+      final backend = FakeBackend((r) => rpcName(r) == 'shift_feed' ? samples['shift_feed'] : null);
+      await backend.signIn();
+      final from = DateTime.utc(2026, 11, 10, 15);
+      await SupabaseShiftRepository(backend.client, config)
+          .feed(FeedQuery(from: from, to: from.add(const Duration(days: 1)), lat: 37.558, lng: 126.95));
+      final rest = backend.requests.where((r) => r.url.path.startsWith('/rest/v1/')).toList();
+      expect(rest, isNotEmpty);
+      for (final r in rest) {
+        final profiles = r.headers.entries
+            .where((e) => const {'accept-profile', 'content-profile'}.contains(e.key.toLowerCase()))
+            .map((e) => e.value);
+        expect(profiles, contains(ishSchema), reason: '${r.method} ${r.url.path}');
+      }
+    });
+
     test('the feed sends the filters and keeps the asked parts of the day', () async {
       final backend = FakeBackend((r) => rpcName(r) == 'shift_feed' ? samples['shift_feed'] : null);
       await backend.signIn();
@@ -314,7 +331,7 @@ void main() {
         'p_visa': 'D-2',
         'p_avatar_path': '$me/avatar-1.jpg',
       });
-      await repo.save(draft.copyWith(photoPath: 'https://ish.test/storage/v1/object/public/avatars/$me/avatar-1.jpg'));
+      await repo.save(draft.copyWith(photoPath: 'https://ish.test/storage/v1/object/public/ish-avatars/$me/avatar-1.jpg'));
       expect(uploaded, hasLength(1));
       expect(backend.params('save_worker_profile')['p_avatar_path'], isNull);
       final loaded = await repo.load();
@@ -509,6 +526,9 @@ void main() {
       await auth.sendCode('010-1234-5678');
       final otp = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
       expect(otp['phone'], '+821012345678');
+      // hanguk.uz shares the sign-in (P48): its sign-up skips accounts with
+      // this mark, and Hanguk Ish makes their profile.
+      expect(otp['data'], {'app': 'hanguk_ish'});
       await auth.verifyCode('010-1234-5678', ' 123456 ');
       final verify = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
       expect(verify['type'], 'sms');
@@ -544,11 +564,11 @@ void main() {
     });
   });
 
-  group('owner registration (business-register)', () {
+  group('owner registration (ish-business-register)', () {
     test('the 국세청 check runs on the server; the new business comes back', () async {
       var refusal = '';
       final backend = FakeBackend((r) {
-        if (r.url.path == '/functions/v1/business-register') {
+        if (r.url.path == '/functions/v1/ish-business-register') {
           return refusal.isEmpty
               ? {'business_id': '10000000-0000-0000-0000-000000000001', 'status': 'verified'}
               : reply({'error': refusal}, 409);
@@ -560,7 +580,7 @@ void main() {
       final repo = SupabaseEmployerRepository(backend.client, config);
       final business = await repo.registerBusiness('124-81-00998');
       expect(business.id, '10000000-0000-0000-0000-000000000001');
-      final call = backend.requests.firstWhere((r) => r.url.path == '/functions/v1/business-register');
+      final call = backend.requests.firstWhere((r) => r.url.path == '/functions/v1/ish-business-register');
       expect(jsonDecode(call.body), {'biz_no': '1248100998'});
       expect(call.headers['Authorization'] ?? call.headers['authorization'], 'Bearer ${backend.accessToken}');
 

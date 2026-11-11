@@ -12,6 +12,7 @@ import '../models/my_shift.dart';
 import '../models/shift.dart';
 import '../../features/worker/feed/feed_area.dart' show areaPlace;
 import '../../features/worker/profile/worker_profile_draft.dart';
+import 'ish_names.dart';
 
 typedef Json = Map<String, dynamic>;
 
@@ -96,7 +97,7 @@ Business businessFromJson(Json json, {PublicUrl publicUrl = _noUrl}) {
     addressDetails: {if (detail.isNotEmpty) 'ko': detail, ..._field(translations, 'address_detail')},
     lat: _double(json['lat']),
     lng: _double(json['lng']),
-    photoUrl: publicUrl('businesses', _strOrNull(json['photo_path'])),
+    photoUrl: publicUrl(ishBusinessesBucket, _strOrNull(json['photo_path'])),
     rating: _double(json['rating']),
     ratingCount: _int(json['rating_count']),
     completedShifts: _int(json['completed_shifts']),
@@ -274,7 +275,7 @@ WorkerProfileDraft? workerProfileFromJson(Json? json, {PublicUrl publicUrl = _no
   return WorkerProfileDraft(
     firstName: _str(json['first_name']),
     lastName: _str(json['last_name']),
-    photoPath: publicUrl('avatars', _strOrNull(json['avatar_path'])),
+    photoPath: publicUrl(ishAvatarsBucket, _strOrNull(json['avatar_path'])),
     languages: {for (final l in _list(worker['languages'])) if (l is String) l},
     topik: _int(worker['topik']),
     university: _strOrNull(worker['university']),

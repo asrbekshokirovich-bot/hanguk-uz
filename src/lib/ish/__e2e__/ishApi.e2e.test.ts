@@ -1,6 +1,9 @@
 /**
  * hanguk.uz's «Hanguk Ish» data layer (src/lib/ish/api.ts) with the real
- * supabase-js on a local Supabase stack of hanguk_ish (CI:
+ * supabase-js on a local Supabase stack of hanguk_ish, where it is the schema
+ * `ish` as in hanguk.uz's project (P48). The staff member's client is a
+ * hanguk.uz one (its default schema is `public`): ishApi() itself sends every
+ * call to `ish`. The worker's is the app's (schema `ish`) (CI:
  * .github/workflows/ish-integration.yml, after the app's own tests). The
  * staff member signs in with a test phone number (supabase/config.toml),
  * keeps an employer from Telegram, posts an invite-only job, offers it; the
@@ -21,12 +24,17 @@ const anonKey = process.env.SUPABASE_ANON_KEY ?? '';
 const serviceKey = process.env.SUPABASE_SERVICE_KEY ?? '';
 const ready = Boolean(url && anonKey && serviceKey);
 
-const client = (key: string) =>
-  createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+/** [schema] null: a hanguk.uz client (default `public`); 'ish': the apps'. */
+const client = (key: string, schema: 'ish' | null = 'ish'): SupabaseClient =>
+  createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    ...(schema ? { db: { schema } } : {}),
+  }) as unknown as SupabaseClient;
 
-async function signIn(phone: string): Promise<SupabaseClient> {
-  const c = client(anonKey);
-  const sent = await c.auth.signInWithOtp({ phone });
+async function signIn(phone: string, schema: 'ish' | null = 'ish'): Promise<SupabaseClient> {
+  const c = client(anonKey, schema);
+  // The apps mark their sign-ups (hanguk.uz's sign-up skips them).
+  const sent = await c.auth.signInWithOtp({ phone, options: schema ? { data: { app: 'hanguk_ish' } } : {} });
   if (sent.error) throw sent.error;
   const verified = await c.auth.verifyOtp({ phone, token: '123456', type: 'sms' });
   if (verified.error) throw verified.error;
@@ -51,7 +59,7 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
 
   beforeAll(async () => {
     admin = client(serviceKey);
-    staff = await signIn('+821000000071');
+    staff = await signIn('+821000000071', null);
     worker = await signIn('+821000000072');
     workerId = (await worker.auth.getUser()).data.user!.id;
     const staffId = (await staff.auth.getUser()).data.user!.id;
@@ -72,6 +80,12 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
     const moved = await worker.from('worker_profiles').update({ lat: 37.557, lng: 126.924 }).eq('user_id', workerId);
     expect(moved.error).toBeNull();
     api = ishApi(staff);
+  });
+
+  it('hanguk.uz\'s client reaches Hanguk Ish only through ishApi (the schema `ish`)', async () => {
+    const { error } = await staff.from('shifts').select('id').limit(1);
+    expect(error).not.toBeNull(); // no Hanguk Ish table in public
+    expect(await api.isStaff()).toBe(true);
   });
 
   it('only the staff: a worker is refused', async () => {
