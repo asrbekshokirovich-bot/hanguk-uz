@@ -144,7 +144,7 @@ class KgsRates {
 
   static const _daily = 'https://www.nbkr.kg/XML/daily.xml';
   static const _weekly = 'https://www.nbkr.kg/XML/weekly.xml';
-  static const _key = 'fx_rates_nbkr_v1';
+  static const _key = 'fx_kgs_v1';
   static const _storage = FlutterSecureStorage();
 
   /// Som for one unit of [iso] in a bank list: `<Currency ISOCode="USD">`
