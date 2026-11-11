@@ -85,10 +85,15 @@ void main() {
 
     testWidgets('kg_3 · +996 lid formasi ($lang)', (t) async {
       final l = await _pump(t, const LeadScreen(), lang: lang, country: AppCountry.kg);
-      final shot = await capture(t, 'kg_3_lid_formasi_$lang');
+      await capture(t, 'kg_3_lid_formasi_$lang');
+      // The form scrolls on a 780px phone (the list builds lazily): bring the
+      // phone field, then the consent box, into view before reading them.
+      final scrollable = find.byType(Scrollable).first;
+      await t.scrollUntilVisible(find.text('+996'), 120, scrollable: scrollable);
+      await t.pump();
+      final shot = await capture(t, 'kg_3_lid_formasi_${lang}_telefon');
       expectLabelVisible(t, shot, find.text('+996'));
-      // The consent box may sit below the fold on a 780px phone: scroll to it.
-      await t.ensureVisible(find.text(l.leadKgConsent));
+      await t.scrollUntilVisible(find.text(l.leadKgConsent), 120, scrollable: scrollable);
       await t.pump();
       final shot2 = await capture(t, 'kg_3_lid_formasi_${lang}_rozilik');
       expectLabelVisible(t, shot2, find.text(l.leadKgConsent));
