@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/country/app_country.dart';
+import '../../../core/money/fx_rates.dart';
 
 /// The four languages offered on the first screen, in the order the owner
 /// gave them: Uzbek, English, Korean, Russian.
@@ -161,6 +162,8 @@ class EntryNotifier extends Notifier<EntryState> {
   /// analytics batch (`app_installs.country`).
   Future<void> setCountry(AppCountry country) async {
     AppEvents.setCountry(country.code);
+    // Fees in som for Kyrgyzstan (plan KG4); the fee screens redraw.
+    FxRates.setCountry(country.code);
     state = state.copyWith(country: country);
     await EntryStore.saveCountry(country);
   }
