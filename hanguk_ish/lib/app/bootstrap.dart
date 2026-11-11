@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/backend/backend.dart';
 import '../data/backend/overrides.dart';
 import '../design/theme.dart';
+import '../features/employer/language.dart';
 import '../features/worker/settings/app_language.dart';
 import 'flavor.dart';
 import 'language_store.dart';
@@ -24,15 +25,19 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
   ]);
   const backend = BackendConfig.fromEnvironment;
   final overrides = <Override>[flavorProvider.overrideWithValue(flavor)];
-  if (flavor == Flavor.worker) {
-    // The language chosen before; without the device store, this launch
-    // only.
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      overrides.add(languageStoreProvider.overrideWithValue(PrefsLanguageStore(prefs)));
-    } on Object {
-      // Kept for the session.
-    }
+  // The language chosen before; without the device store, this launch
+  // only. The employer app starts in the phone's language when it speaks it,
+  // else Korean (P43).
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    overrides.add(languageStoreProvider.overrideWithValue(PrefsLanguageStore(prefs)));
+  } on Object {
+    // Kept for the session.
+  }
+  if (flavor == Flavor.employer) {
+    overrides.add(employerDefaultLanguageProvider.overrideWithValue(
+      employerLanguageFor(WidgetsBinding.instance.platformDispatcher.locales),
+    ));
   }
   if (backend.isConfigured) {
     await Supabase.initialize(url: backend.url, publishableKey: backend.publishableKey);

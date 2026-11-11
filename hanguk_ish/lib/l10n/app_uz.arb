@@ -1666,5 +1666,1131 @@
   "photoFailed": "Rasmni olib bo'lmadi. Kamera va galereyaga ruxsatni tekshiring.",
   "@photoFailed": {
     "description": "A02: rasm olib yoki tanlab bo'lmadi (ruxsat yo'q yoki kamera band)."
+  },
+  "bizOwnerBadge": "Ish beruvchi",
+  "@bizOwnerBadge": {
+    "description": "사장님 ilovasi (P43): ownerBadge"
+  },
+  "bizLoginSubtitle": "Bugun kerakli ishchini darhol toping",
+  "@bizLoginSubtitle": {
+    "description": "사장님 ilovasi (P43): loginSubtitle"
+  },
+  "bizPhoneLabel": "Telefon raqam",
+  "@bizPhoneLabel": {
+    "description": "사장님 ilovasi (P43): phoneLabel"
+  },
+  "bizBizNoLabel": "Biznes raqami (사업자등록번호)",
+  "@bizBizNoLabel": {
+    "description": "사장님 ilovasi (P43): bizNoLabel"
+  },
+  "bizBizNoHint": "Faqat birinchi marta kiritiladi",
+  "@bizBizNoHint": {
+    "description": "사장님 ilovasi (P43): bizNoHint"
+  },
+  "bizStart": "Boshlash",
+  "@bizStart": {
+    "description": "사장님 ilovasi (P43): start"
+  },
+  "bizTermsPrefix": "Boshlash orqali ",
+  "@bizTermsPrefix": {
+    "description": "사장님 ilovasi (P43): termsPrefix"
+  },
+  "bizTermsLink": "foydalanish shartlari",
+  "@bizTermsLink": {
+    "description": "사장님 ilovasi (P43): termsLink"
+  },
+  "bizTermsSuffix": "ga rozilik bildirasiz",
+  "@bizTermsSuffix": {
+    "description": "사장님 ilovasi (P43): termsSuffix"
+  },
+  "bizLoginIncomplete": "Telefon raqam va biznes raqamini kiriting",
+  "@bizLoginIncomplete": {
+    "description": "사장님 ilovasi (P43): loginIncomplete"
+  },
+  "bizBizNoInvalid": "Biznes raqamini tekshiring",
+  "@bizBizNoInvalid": {
+    "description": "사장님 ilovasi (P43): bizNoInvalid"
+  },
+  "bizCodeTopTitle": "Kirish",
+  "@bizCodeTopTitle": {
+    "description": "사장님 ilovasi (P43): codeTopTitle"
+  },
+  "bizCodeTitle": "Kodni kiriting",
+  "@bizCodeTitle": {
+    "description": "사장님 ilovasi (P43): codeTitle"
+  },
+  "bizCodeSentTo": "{phone} raqamiga yuborilgan 6 xonali kodni kiriting.",
+  "@bizCodeSentTo": {
+    "description": "사장님 ilovasi (P43): codeSentTo",
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "bizCodeLabel": "SMS kod",
+  "@bizCodeLabel": {
+    "description": "사장님 ilovasi (P43): codeLabel"
+  },
+  "bizCodeConfirm": "Tasdiqlash",
+  "@bizCodeConfirm": {
+    "description": "사장님 ilovasi (P43): codeConfirm"
+  },
+  "bizCodeResend": "Kodni qayta olish",
+  "@bizCodeResend": {
+    "description": "사장님 ilovasi (P43): codeResend"
+  },
+  "bizCodeResendIn": "Qayta olish: {time}",
+  "@bizCodeResendIn": {
+    "description": "사장님 ilovasi (P43): codeResendIn",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bizCodeResent": "Yangi kod yuborildi.",
+  "@bizCodeResent": {
+    "description": "사장님 ilovasi (P43): codeResent"
+  },
+  "bizNavHome": "Bosh sahifa",
+  "@bizNavHome": {
+    "description": "사장님 ilovasi (P43): navHome"
+  },
+  "bizNavWorkers": "Ishchilar",
+  "@bizNavWorkers": {
+    "description": "사장님 ilovasi (P43): navWorkers"
+  },
+  "bizNavCreate": "Smena qo'yish",
+  "@bizNavCreate": {
+    "description": "사장님 ilovasi (P43): navCreate"
+  },
+  "bizNavReport": "Hisobot",
+  "@bizNavReport": {
+    "description": "사장님 ilovasi (P43): navReport"
+  },
+  "bizMenuLabel": "Ish beruvchi menyusi",
+  "@bizMenuLabel": {
+    "description": "사장님 ilovasi (P43): menuLabel"
+  },
+  "bizTodayTitle": "Bugungi smenalar",
+  "@bizTodayTitle": {
+    "description": "사장님 ilovasi (P43): todayTitle"
+  },
+  "bizAsOf": "{date} · {time} holatiga",
+  "@bizAsOf": {
+    "description": "사장님 ilovasi (P43): asOf",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bizBell": "{n, plural, =0{Bildirishnomalar} other{Bildirishnomalar: {n}}}",
+  "@bizBell": {
+    "description": "사장님 ilovasi (P43): bell",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizStoreSwitch": "Biznesni tanlash",
+  "@bizStoreSwitch": {
+    "description": "사장님 ilovasi (P43): storeSwitch"
+  },
+  "bizAttentionTitle": "E'tibor bering",
+  "@bizAttentionTitle": {
+    "description": "사장님 ilovasi (P43): attentionTitle"
+  },
+  "bizCheckApplicants": "Arizalarni ko'rish",
+  "@bizCheckApplicants": {
+    "description": "사장님 ilovasi (P43): checkApplicants"
+  },
+  "bizCheckShift": "Smenani ko'rish",
+  "@bizCheckShift": {
+    "description": "사장님 ilovasi (P43): checkShift"
+  },
+  "bizTodaySummary": "Bugun qisqacha",
+  "@bizTodaySummary": {
+    "description": "사장님 ilovasi (P43): todaySummary"
+  },
+  "bizAttentionLabel": "E'tibor",
+  "@bizAttentionLabel": {
+    "description": "사장님 ilovasi (P43): attentionLabel"
+  },
+  "bizStatShifts": "Smenalar",
+  "@bizStatShifts": {
+    "description": "사장님 ilovasi (P43): statShifts"
+  },
+  "bizStatConfirmed": "Tasdiqlangan",
+  "@bizStatConfirmed": {
+    "description": "사장님 ilovasi (P43): statConfirmed"
+  },
+  "bizStatOpen": "Bo'sh joy",
+  "@bizStatOpen": {
+    "description": "사장님 ilovasi (P43): statOpen"
+  },
+  "bizStatNoShow": "Kelmadi",
+  "@bizStatNoShow": {
+    "description": "사장님 ilovasi (P43): statNoShow"
+  },
+  "bizUnitCount": "ta",
+  "@bizUnitCount": {
+    "description": "사장님 ilovasi (P43): unitCount"
+  },
+  "bizUnitPeople": "kishi",
+  "@bizUnitPeople": {
+    "description": "사장님 ilovasi (P43): unitPeople"
+  },
+  "bizToday": "Bugun",
+  "@bizToday": {
+    "description": "사장님 ilovasi (P43): today"
+  },
+  "bizUpcoming": "Keyingi smenalar",
+  "@bizUpcoming": {
+    "description": "사장님 ilovasi (P43): upcoming"
+  },
+  "bizNoShiftsToday": "Bugunga smena qo'yilmagan",
+  "@bizNoShiftsToday": {
+    "description": "사장님 ilovasi (P43): noShiftsToday"
+  },
+  "bizNoShiftsTodayHint": "Kerakli vaqt va kishi sonini belgilab, smena qo'ying",
+  "@bizNoShiftsTodayHint": {
+    "description": "사장님 ilovasi (P43): noShiftsTodayHint"
+  },
+  "bizAttnNoShows": "{n} kishi kelmadi",
+  "@bizAttnNoShows": {
+    "description": "사장님 ilovasi (P43): attnNoShows",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizAttnOpen": "{n} ta bo'sh joy",
+  "@bizAttnOpen": {
+    "description": "사장님 ilovasi (P43): attnOpen",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizAttnOpenWaiting": "{n} ta bo'sh joy ({w} ta ariza)",
+  "@bizAttnOpenWaiting": {
+    "description": "사장님 ilovasi (P43): attnOpenWaiting",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "w": {
+        "type": "int"
+      }
+    }
+  },
+  "bizAttnWaiting": "{w} ta ariza",
+  "@bizAttnWaiting": {
+    "description": "사장님 ilovasi (P43): attnWaiting",
+    "placeholders": {
+      "w": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCrew": "Tasdiqlangan {c}/{s}",
+  "@bizCrew": {
+    "description": "사장님 ilovasi (P43): crew",
+    "placeholders": {
+      "c": {
+        "type": "int"
+      },
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCrewWaiting": " · {w} ta ariza",
+  "@bizCrewWaiting": {
+    "description": "사장님 ilovasi (P43): crewWaiting",
+    "placeholders": {
+      "w": {
+        "type": "int"
+      }
+    }
+  },
+  "bizStateDone": "Tugadi",
+  "@bizStateDone": {
+    "description": "사장님 ilovasi (P43): stateDone"
+  },
+  "bizStateInProgress": "Davom etmoqda",
+  "@bizStateInProgress": {
+    "description": "사장님 ilovasi (P43): stateInProgress"
+  },
+  "bizStateUrgent": "Shoshilinch",
+  "@bizStateUrgent": {
+    "description": "사장님 ilovasi (P43): stateUrgent"
+  },
+  "bizStateScheduled": "Rejada",
+  "@bizStateScheduled": {
+    "description": "사장님 ilovasi (P43): stateScheduled"
+  },
+  "bizStateRecruiting": "Qidirilmoqda",
+  "@bizStateRecruiting": {
+    "description": "사장님 ilovasi (P43): stateRecruiting"
+  },
+  "bizStateCancelled": "Bekor qilingan",
+  "@bizStateCancelled": {
+    "description": "사장님 ilovasi (P43): stateCancelled"
+  },
+  "bizUrgentSlots": "Shoshilinch: {n} joy",
+  "@bizUrgentSlots": {
+    "description": "사장님 ilovasi (P43): urgentSlots",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizRecruitingSlots": "Qidirilmoqda: {n} joy",
+  "@bizRecruitingSlots": {
+    "description": "사장님 ilovasi (P43): recruitingSlots",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCreateTitle": "Smena qo'yish",
+  "@bizCreateTitle": {
+    "description": "사장님 ilovasi (P43): createTitle"
+  },
+  "bizEditTitle": "Smenani tahrirlash",
+  "@bizEditTitle": {
+    "description": "사장님 ilovasi (P43): editTitle"
+  },
+  "bizClose": "Yopish",
+  "@bizClose": {
+    "description": "사장님 ilovasi (P43): close"
+  },
+  "bizTemplate": "Shablon",
+  "@bizTemplate": {
+    "description": "사장님 ilovasi (P43): template"
+  },
+  "bizTemplateContent": "Shablon mazmuni",
+  "@bizTemplateContent": {
+    "description": "사장님 ilovasi (P43): templateContent"
+  },
+  "bizShiftContent": "Smena mazmuni",
+  "@bizShiftContent": {
+    "description": "사장님 ilovasi (P43): shiftContent"
+  },
+  "bizShiftName": "Smena nomi",
+  "@bizShiftName": {
+    "description": "사장님 ilovasi (P43): shiftName"
+  },
+  "bizEdit": "Tahrirlash",
+  "@bizEdit": {
+    "description": "사장님 ilovasi (P43): edit"
+  },
+  "bizDuties": "Vazifalar",
+  "@bizDuties": {
+    "description": "사장님 ilovasi (P43): duties"
+  },
+  "bizDress": "Kiyim",
+  "@bizDress": {
+    "description": "사장님 ilovasi (P43): dress"
+  },
+  "bizAddress": "Manzil",
+  "@bizAddress": {
+    "description": "사장님 ilovasi (P43): address"
+  },
+  "bizDate": "Sana",
+  "@bizDate": {
+    "description": "사장님 ilovasi (P43): date"
+  },
+  "bizTomorrow": "Ertaga",
+  "@bizTomorrow": {
+    "description": "사장님 ilovasi (P43): tomorrow"
+  },
+  "bizOtherDay": "Boshqa kun",
+  "@bizOtherDay": {
+    "description": "사장님 ilovasi (P43): otherDay"
+  },
+  "bizPickDate": "Sanani tanlang",
+  "@bizPickDate": {
+    "description": "사장님 ilovasi (P43): pickDate"
+  },
+  "bizTime": "Vaqt",
+  "@bizTime": {
+    "description": "사장님 ilovasi (P43): time"
+  },
+  "bizStartTime": "Boshlanishi",
+  "@bizStartTime": {
+    "description": "사장님 ilovasi (P43): startTime"
+  },
+  "bizEndTime": "Tugashi",
+  "@bizEndTime": {
+    "description": "사장님 ilovasi (P43): endTime"
+  },
+  "bizWage": "Soatlik maosh",
+  "@bizWage": {
+    "description": "사장님 ilovasi (P43): wage"
+  },
+  "bizWon": "won",
+  "@bizWon": {
+    "description": "사장님 ilovasi (P43): won"
+  },
+  "bizMinimumWageOk": "Eng kam ish haqi ({amount}) dan kam emas",
+  "@bizMinimumWageOk": {
+    "description": "사장님 ilovasi (P43): minimumWageOk",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "bizMinimumWageLow": "Eng kam ish haqi ({amount}) dan past",
+  "@bizMinimumWageLow": {
+    "description": "사장님 ilovasi (P43): minimumWageLow",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "bizHeadcount": "Kishi soni",
+  "@bizHeadcount": {
+    "description": "사장님 ilovasi (P43): headcount"
+  },
+  "bizFewer": "Kamaytirish",
+  "@bizFewer": {
+    "description": "사장님 ilovasi (P43): fewer"
+  },
+  "bizMore": "Ko'paytirish",
+  "@bizMore": {
+    "description": "사장님 ilovasi (P43): more"
+  },
+  "bizAutoConfirm": "Avtomatik tasdiqlash",
+  "@bizAutoConfirm": {
+    "description": "사장님 ilovasi (P43): autoConfirm"
+  },
+  "bizAutoConfirmHint": "Ariza bergan darhol tasdiqlanadi",
+  "@bizAutoConfirmHint": {
+    "description": "사장님 ilovasi (P43): autoConfirmHint"
+  },
+  "bizPost": "Smena qo'yish",
+  "@bizPost": {
+    "description": "사장님 ilovasi (P43): post"
+  },
+  "bizSave": "Saqlash",
+  "@bizSave": {
+    "description": "사장님 ilovasi (P43): save"
+  },
+  "bizPosted": "Smena qo'yildi",
+  "@bizPosted": {
+    "description": "사장님 ilovasi (P43): posted"
+  },
+  "bizSaved": "Smena saqlandi",
+  "@bizSaved": {
+    "description": "사장님 ilovasi (P43): saved"
+  },
+  "bizTemplateSaved": "Shablon saqlandi",
+  "@bizTemplateSaved": {
+    "description": "사장님 ilovasi (P43): templateSaved"
+  },
+  "bizEditTemplate": "Shablonni tahrirlash",
+  "@bizEditTemplate": {
+    "description": "사장님 ilovasi (P43): editTemplate"
+  },
+  "bizCancel": "Bekor qilish",
+  "@bizCancel": {
+    "description": "사장님 ilovasi (P43): cancel"
+  },
+  "bizTimeLocked": "Tasdiqlangan ishchi bor — sana va vaqtni o'zgartirib bo'lmaydi",
+  "@bizTimeLocked": {
+    "description": "사장님 ilovasi (P43): timeLocked"
+  },
+  "bizSlotsLocked": "{n} kishi tasdiqlangan — bundan kamaytirib bo'lmaydi",
+  "@bizSlotsLocked": {
+    "description": "사장님 ilovasi (P43): slotsLocked",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCostLead": "{people} · {duration} · taxminiy xarajat ",
+  "@bizCostLead": {
+    "description": "사장님 ilovasi (P43): costLead",
+    "placeholders": {
+      "people": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "bizPeople": "{n} kishi",
+  "@bizPeople": {
+    "description": "사장님 ilovasi (P43): people",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizBack": "Orqaga",
+  "@bizBack": {
+    "description": "사장님 ilovasi (P43): back"
+  },
+  "bizApplicants": "Arizalar: {n}",
+  "@bizApplicants": {
+    "description": "사장님 ilovasi (P43): applicants",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizDecideYourself": "O'zingiz tasdiqlang",
+  "@bizDecideYourself": {
+    "description": "사장님 ilovasi (P43): decideYourself"
+  },
+  "bizReject": "Rad etish",
+  "@bizReject": {
+    "description": "사장님 ilovasi (P43): reject"
+  },
+  "bizConfirm": "Tasdiqlash",
+  "@bizConfirm": {
+    "description": "사장님 ilovasi (P43): confirm"
+  },
+  "bizShiftTerms": "Soatiga {wage} · tasdiqlangan {c}/{s} · avtomatik tasdiq {auto}",
+  "@bizShiftTerms": {
+    "description": "사장님 ilovasi (P43): shiftTerms",
+    "placeholders": {
+      "wage": {
+        "type": "String"
+      },
+      "c": {
+        "type": "int"
+      },
+      "s": {
+        "type": "int"
+      },
+      "auto": {
+        "type": "String"
+      }
+    }
+  },
+  "bizOn": "yoqilgan",
+  "@bizOn": {
+    "description": "사장님 ilovasi (P43): on"
+  },
+  "bizOff": "o'chirilgan",
+  "@bizOff": {
+    "description": "사장님 ilovasi (P43): off"
+  },
+  "bizCompletedCount": "{n} ta smena",
+  "@bizCompletedCount": {
+    "description": "사장님 ilovasi (P43): completedCount",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizTopik": "TOPIK {level}",
+  "@bizTopik": {
+    "description": "사장님 ilovasi (P43): topik",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "bizTopikNone": "TOPIK yo'q",
+  "@bizTopikNone": {
+    "description": "사장님 ilovasi (P43): topikNone"
+  },
+  "bizAttendance": "Kelish-ketish",
+  "@bizAttendance": {
+    "description": "사장님 ilovasi (P43): attendance"
+  },
+  "bizNoCrew": "Hali tasdiqlangan ishchi yo'q",
+  "@bizNoCrew": {
+    "description": "사장님 ilovasi (P43): noCrew"
+  },
+  "bizCheckedInAt": "Keldi {time}",
+  "@bizCheckedInAt": {
+    "description": "사장님 ilovasi (P43): checkedInAt",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bizCheckedInOut": "Keldi {inAt} · ketdi {outAt}",
+  "@bizCheckedInOut": {
+    "description": "사장님 ilovasi (P43): checkedInOut",
+    "placeholders": {
+      "inAt": {
+        "type": "String"
+      },
+      "outAt": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotInYet": "Hali kelmagan",
+  "@bizNotInYet": {
+    "description": "사장님 ilovasi (P43): notInYet"
+  },
+  "bizAtWork": "Ishda",
+  "@bizAtWork": {
+    "description": "사장님 ilovasi (P43): atWork"
+  },
+  "bizLate": "{m} daq kechikdi",
+  "@bizLate": {
+    "description": "사장님 ilovasi (P43): late",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "bizMissing": "Kelmadi · {m} daq",
+  "@bizMissing": {
+    "description": "사장님 ilovasi (P43): missing",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "bizNoShow": "Kelmadi",
+  "@bizNoShow": {
+    "description": "사장님 ilovasi (P43): noShow"
+  },
+  "bizBeforeStart": "Boshlanmagan",
+  "@bizBeforeStart": {
+    "description": "사장님 ilovasi (P43): beforeStart"
+  },
+  "bizLeftWork": "Ketdi",
+  "@bizLeftWork": {
+    "description": "사장님 ilovasi (P43): leftWork"
+  },
+  "bizQrTitle": "Kelish-ketish QR",
+  "@bizQrTitle": {
+    "description": "사장님 ilovasi (P43): qrTitle"
+  },
+  "bizQrNote": "Kelish va ketish uchun · faqat shu smenada",
+  "@bizQrNote": {
+    "description": "사장님 ilovasi (P43): qrNote"
+  },
+  "bizQrShare": "QR chop etish / ulashish",
+  "@bizQrShare": {
+    "description": "사장님 ilovasi (P43): qrShare"
+  },
+  "bizQrShareText": "{business} · {title} · {when} — kelish-ketish QR",
+  "@bizQrShareText": {
+    "description": "사장님 ilovasi (P43): qrShareText",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "bizConfirmed": "{name} tasdiqlandi",
+  "@bizConfirmed": {
+    "description": "사장님 ilovasi (P43): confirmed",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizRejected": "{name} arizasi rad etildi",
+  "@bizRejected": {
+    "description": "사장님 ilovasi (P43): rejected",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizEditShift": "Smenani tahrirlash",
+  "@bizEditShift": {
+    "description": "사장님 ilovasi (P43): editShift"
+  },
+  "bizCancelShift": "Smenani bekor qilish",
+  "@bizCancelShift": {
+    "description": "사장님 ilovasi (P43): cancelShift"
+  },
+  "bizCancelShiftTitle": "Smena bekor qilinsinmi?",
+  "@bizCancelShiftTitle": {
+    "description": "사장님 ilovasi (P43): cancelShiftTitle"
+  },
+  "bizCancelShiftText": "Tasdiqlangan ishchilar va arizachilarga xabar boradi.",
+  "@bizCancelShiftText": {
+    "description": "사장님 ilovasi (P43): cancelShiftText"
+  },
+  "bizShiftCancelled": "Smena bekor qilindi",
+  "@bizShiftCancelled": {
+    "description": "사장님 ilovasi (P43): shiftCancelled"
+  },
+  "bizWorkersTitle": "Ishchilar",
+  "@bizWorkersTitle": {
+    "description": "사장님 ilovasi (P43): workersTitle"
+  },
+  "bizFavorites": "Sevimlilar",
+  "@bizFavorites": {
+    "description": "사장님 ilovasi (P43): favorites"
+  },
+  "bizRecentWorkers": "Yaqinda ishlaganlar",
+  "@bizRecentWorkers": {
+    "description": "사장님 ilovasi (P43): recentWorkers"
+  },
+  "bizWorkersTabs": "Ishchilar ro'yxati",
+  "@bizWorkersTabs": {
+    "description": "사장님 ilovasi (P43): workersTabs"
+  },
+  "bizSearchPlaceholder": "Ism bo'yicha qidirish",
+  "@bizSearchPlaceholder": {
+    "description": "사장님 ilovasi (P43): searchPlaceholder"
+  },
+  "bizSearchLabel": "Ishchini qidirish",
+  "@bizSearchLabel": {
+    "description": "사장님 ilovasi (P43): searchLabel"
+  },
+  "bizTimesHere": "Bizda {n} marta · {topik}",
+  "@bizTimesHere": {
+    "description": "사장님 ilovasi (P43): timesHere",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "topik": {
+        "type": "String"
+      }
+    }
+  },
+  "bizUnfavorite": "{name} — sevimlilardan olib tashlash",
+  "@bizUnfavorite": {
+    "description": "사장님 ilovasi (P43): unfavorite",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizFavorite": "{name} — sevimlilarga qo'shish",
+  "@bizFavorite": {
+    "description": "사장님 ilovasi (P43): favorite",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizRequestAgain": "Yana chaqirish",
+  "@bizRequestAgain": {
+    "description": "사장님 ilovasi (P43): requestAgain"
+  },
+  "bizRequested": "{name}ga taklif yuborildi",
+  "@bizRequested": {
+    "description": "사장님 ilovasi (P43): requested",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNoFavorites": "Sevimli ishchilar yo'q",
+  "@bizNoFavorites": {
+    "description": "사장님 ilovasi (P43): noFavorites"
+  },
+  "bizNoFavoritesHint": "«Yaqinda ishlaganlar»da ★ ni bosib qo'shing",
+  "@bizNoFavoritesHint": {
+    "description": "사장님 ilovasi (P43): noFavoritesHint"
+  },
+  "bizNoWorkers": "Hali siz bilan ishlagan ishchi yo'q",
+  "@bizNoWorkers": {
+    "description": "사장님 ilovasi (P43): noWorkers"
+  },
+  "bizNoResults": "Hech narsa topilmadi",
+  "@bizNoResults": {
+    "description": "사장님 ilovasi (P43): noResults"
+  },
+  "bizReportTitle": "Hisobot",
+  "@bizReportTitle": {
+    "description": "사장님 ilovasi (P43): reportTitle"
+  },
+  "bizCsv": "CSV yuklab olish",
+  "@bizCsv": {
+    "description": "사장님 ilovasi (P43): csv"
+  },
+  "bizPeriod": "Davr",
+  "@bizPeriod": {
+    "description": "사장님 ilovasi (P43): period"
+  },
+  "bizThisWeek": "Bu hafta",
+  "@bizThisWeek": {
+    "description": "사장님 ilovasi (P43): thisWeek"
+  },
+  "bizThisMonth": "Bu oy",
+  "@bizThisMonth": {
+    "description": "사장님 ilovasi (P43): thisMonth"
+  },
+  "bizLastMonth": "O'tgan oy",
+  "@bizLastMonth": {
+    "description": "사장님 ilovasi (P43): lastMonth"
+  },
+  "bizPeriodSummary": "{period}: qisqacha",
+  "@bizPeriodSummary": {
+    "description": "사장님 ilovasi (P43): periodSummary",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "bizTotalPaid": "{range}: jami to'lov",
+  "@bizTotalPaid": {
+    "description": "사장님 ilovasi (P43): totalPaid",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "bizReportCounts": "{shifts} smena · {hours} · {persons} kishi-smena",
+  "@bizReportCounts": {
+    "description": "사장님 ilovasi (P43): reportCounts",
+    "placeholders": {
+      "shifts": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "String"
+      },
+      "persons": {
+        "type": "int"
+      }
+    }
+  },
+  "bizPaidCount": "To'langan · {n}",
+  "@bizPaidCount": {
+    "description": "사장님 ilovasi (P43): paidCount",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizPendingCount": "To'lanmagan · {n}",
+  "@bizPendingCount": {
+    "description": "사장님 ilovasi (P43): pendingCount",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizByShift": "Smenalar bo'yicha",
+  "@bizByShift": {
+    "description": "사장님 ilovasi (P43): byShift"
+  },
+  "bizCount": "{n} ta",
+  "@bizCount": {
+    "description": "사장님 ilovasi (P43): count",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizPaid": "To'langan",
+  "@bizPaid": {
+    "description": "사장님 ilovasi (P43): paid"
+  },
+  "bizPending": "To'lanmagan",
+  "@bizPending": {
+    "description": "사장님 ilovasi (P43): pending"
+  },
+  "bizMarkPaid": "To'langan deb belgilash",
+  "@bizMarkPaid": {
+    "description": "사장님 ilovasi (P43): markPaid"
+  },
+  "bizMarkPending": "To'lanmagan deb qaytarish",
+  "@bizMarkPending": {
+    "description": "사장님 ilovasi (P43): markPending"
+  },
+  "bizNoReport": "Bu davrda tugagan smena yo'q",
+  "@bizNoReport": {
+    "description": "사장님 ilovasi (P43): noReport"
+  },
+  "bizCsvHeader": "Sana,Hafta kuni,Smena,Kishi,Soat,Summa (won),To'lov",
+  "@bizCsvHeader": {
+    "description": "사장님 ilovasi (P43): csvHeader"
+  },
+  "bizCsvTitle": "{business} hisoboti, {range}",
+  "@bizCsvTitle": {
+    "description": "사장님 ilovasi (P43): csvTitle",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "bizReviewPendingTitle": "Biznes tekshirilmoqda",
+  "@bizReviewPendingTitle": {
+    "description": "사장님 ilovasi (P43): reviewPendingTitle"
+  },
+  "bizReviewPendingText": "국세청 tekshiruvi tugagach, smenalaringiz ishchilarga ko'rinadi.",
+  "@bizReviewPendingText": {
+    "description": "사장님 ilovasi (P43): reviewPendingText"
+  },
+  "bizReviewRejectedTitle": "Tasdiqlanmagan biznes",
+  "@bizReviewRejectedTitle": {
+    "description": "사장님 ilovasi (P43): reviewRejectedTitle"
+  },
+  "bizReviewRejectedText": "국세청 bu biznesni yopilgan deb ko'rsatgan — smenalar ishchilarga ko'rinmaydi.",
+  "@bizReviewRejectedText": {
+    "description": "사장님 ilovasi (P43): reviewRejectedText"
+  },
+  "bizNotificationsTitle": "Bildirishnomalar",
+  "@bizNotificationsTitle": {
+    "description": "사장님 ilovasi (P43): notificationsTitle"
+  },
+  "bizYesterday": "Kecha",
+  "@bizYesterday": {
+    "description": "사장님 ilovasi (P43): yesterday"
+  },
+  "bizNoNotifications": "Yangi bildirishnoma yo'q",
+  "@bizNoNotifications": {
+    "description": "사장님 ilovasi (P43): noNotifications"
+  },
+  "bizNotifNewApplicant": "Yangi ariza",
+  "@bizNotifNewApplicant": {
+    "description": "사장님 ilovasi (P43): notifNewApplicant"
+  },
+  "bizNotifCancelled": "Bekor qildi",
+  "@bizNotifCancelled": {
+    "description": "사장님 ilovasi (P43): notifCancelled"
+  },
+  "bizNotifNoShow": "Kelmadi",
+  "@bizNotifNoShow": {
+    "description": "사장님 ilovasi (P43): notifNoShow"
+  },
+  "bizNotifMessage": "Yangi xabar",
+  "@bizNotifMessage": {
+    "description": "사장님 ilovasi (P43): notifMessage"
+  },
+  "bizNotifNewApplicantText": "{worker} «{shift}» smenasiga ariza berdi",
+  "@bizNotifNewApplicantText": {
+    "description": "사장님 ilovasi (P43): notifNewApplicantText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifAutoConfirmed": "Avtomatik tasdiqlandi",
+  "@bizNotifAutoConfirmed": {
+    "description": "사장님 ilovasi (P43): notifAutoConfirmed"
+  },
+  "bizNotifAutoConfirmedText": "{worker} «{shift}» smenasiga ariza berdi va darhol tasdiqlandi",
+  "@bizNotifAutoConfirmedText": {
+    "description": "사장님 ilovasi (P43): notifAutoConfirmedText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifCancelledText": "{worker} «{shift}» smenasini bekor qildi",
+  "@bizNotifCancelledText": {
+    "description": "사장님 ilovasi (P43): notifCancelledText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifNoShowText": "{worker} «{shift}» smenasiga kelmadi",
+  "@bizNotifNoShowText": {
+    "description": "사장님 ilovasi (P43): notifNoShowText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifMessageText": "{worker} xabar yubordi · {shift}",
+  "@bizNotifMessageText": {
+    "description": "사장님 ilovasi (P43): notifMessageText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizOfflineTitle": "Internet aloqasi yo'q",
+  "@bizOfflineTitle": {
+    "description": "사장님 ilovasi (P43): offlineTitle"
+  },
+  "bizOfflineText": "Ulanishni tekshirib, qayta urinib ko'ring.",
+  "@bizOfflineText": {
+    "description": "사장님 ilovasi (P43): offlineText"
+  },
+  "bizLoadFailed": "Yuklab bo'lmadi",
+  "@bizLoadFailed": {
+    "description": "사장님 ilovasi (P43): loadFailed"
+  },
+  "bizRetry": "Qayta urinish",
+  "@bizRetry": {
+    "description": "사장님 ilovasi (P43): retry"
+  },
+  "bizShiftNotFound": "Smena topilmadi",
+  "@bizShiftNotFound": {
+    "description": "사장님 ilovasi (P43): shiftNotFound"
+  },
+  "bizErrShiftFull": "Bo'sh joy qolmadi",
+  "@bizErrShiftFull": {
+    "description": "사장님 ilovasi (P43): errShiftFull"
+  },
+  "bizErrNotPending": "Bu arizaga allaqachon javob berilgan",
+  "@bizErrNotPending": {
+    "description": "사장님 ilovasi (P43): errNotPending"
+  },
+  "bizErrShiftEnded": "Smena tugagan",
+  "@bizErrShiftEnded": {
+    "description": "사장님 ilovasi (P43): errShiftEnded"
+  },
+  "bizErrShiftStarted": "Boshlangan smenani bekor qilib bo'lmaydi",
+  "@bizErrShiftStarted": {
+    "description": "사장님 ilovasi (P43): errShiftStarted"
+  },
+  "bizErrShiftClosed": "Bu smenaga hozir taklif qilib bo'lmaydi",
+  "@bizErrShiftClosed": {
+    "description": "사장님 ilovasi (P43): errShiftClosed"
+  },
+  "bizErrInThePast": "Bu vaqt o'tib ketgan",
+  "@bizErrInThePast": {
+    "description": "사장님 ilovasi (P43): errInThePast"
+  },
+  "bizErrInvalidTime": "Tugash vaqti boshlanishidan keyin bo'lsin",
+  "@bizErrInvalidTime": {
+    "description": "사장님 ilovasi (P43): errInvalidTime"
+  },
+  "bizErrTooLong": "Smena 16 soatdan oshmasin",
+  "@bizErrTooLong": {
+    "description": "사장님 ilovasi (P43): errTooLong"
+  },
+  "bizErrWageBelowMinimum": "Eng kam ish haqidan past",
+  "@bizErrWageBelowMinimum": {
+    "description": "사장님 ilovasi (P43): errWageBelowMinimum"
+  },
+  "bizErrSlotsBelowCrew": "Tasdiqlanganlardan kam qilib bo'lmaydi",
+  "@bizErrSlotsBelowCrew": {
+    "description": "사장님 ilovasi (P43): errSlotsBelowCrew"
+  },
+  "bizErrBusinessNotVerified": "Biznes tasdiqlangach smena qo'yish mumkin",
+  "@bizErrBusinessNotVerified": {
+    "description": "사장님 ilovasi (P43): errBusinessNotVerified"
+  },
+  "bizErrInvalid": "Kiritilganlarni tekshiring",
+  "@bizErrInvalid": {
+    "description": "사장님 ilovasi (P43): errInvalid"
+  },
+  "bizErrNotAuthenticated": "Qaytadan kiring",
+  "@bizErrNotAuthenticated": {
+    "description": "사장님 ilovasi (P43): errNotAuthenticated"
+  },
+  "bizErrForbidden": "Bu sizning biznesingiz smenasi emas",
+  "@bizErrForbidden": {
+    "description": "사장님 ilovasi (P43): errForbidden"
+  },
+  "bizErrCodeInvalid": "Kod noto'g'ri yoki eskirgan. Qayta kiriting",
+  "@bizErrCodeInvalid": {
+    "description": "사장님 ilovasi (P43): errCodeInvalid"
+  },
+  "bizErrTooManyRequests": "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring",
+  "@bizErrTooManyRequests": {
+    "description": "사장님 ilovasi (P43): errTooManyRequests"
+  },
+  "bizErrPhoneInvalid": "Telefon raqamni tekshiring",
+  "@bizErrPhoneInvalid": {
+    "description": "사장님 ilovasi (P43): errPhoneInvalid"
+  },
+  "bizErrSmsFailed": "SMS yuborib bo'lmadi. Raqamni tekshiring",
+  "@bizErrSmsFailed": {
+    "description": "사장님 ilovasi (P43): errSmsFailed"
+  },
+  "bizErrSignInUnavailable": "Hozir kirib bo'lmaydi. Birozdan keyin urinib ko'ring",
+  "@bizErrSignInUnavailable": {
+    "description": "사장님 ilovasi (P43): errSignInUnavailable"
+  },
+  "bizErrBizNoUnknown": "Bu raqam 국세청da ro'yxatda yo'q",
+  "@bizErrBizNoUnknown": {
+    "description": "사장님 ilovasi (P43): errBizNoUnknown"
+  },
+  "bizErrBizNoTaken": "Bu raqam boshqa akkauntga bog'langan",
+  "@bizErrBizNoTaken": {
+    "description": "사장님 ilovasi (P43): errBizNoTaken"
+  },
+  "bizErrBusinessClosed": "Yopilgan biznesni ro'yxatdan o'tkazib bo'lmaydi",
+  "@bizErrBusinessClosed": {
+    "description": "사장님 ilovasi (P43): errBusinessClosed"
+  },
+  "bizErrOffline": "Internet aloqasini tekshiring",
+  "@bizErrOffline": {
+    "description": "사장님 ilovasi (P43): errOffline"
+  },
+  "bizErrOther": "Qayta urinib ko'ring",
+  "@bizErrOther": {
+    "description": "사장님 ilovasi (P43): errOther"
+  },
+  "bizLanguage": "Til",
+  "@bizLanguage": {
+    "description": "사장님 ilovasi (P43): language"
+  },
+  "bizAsOfTime": "{time} holatiga",
+  "@bizAsOfTime": {
+    "description": "사장님 ilovasi (P43): asOfTime",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -17,7 +17,7 @@ import '../../../design/widgets/controls.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
-import '../ko.dart';
+import '../biz.dart';
 import '../providers.dart';
 import '../widgets.dart';
 
@@ -137,7 +137,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
   bool get _timeLocked => (_editing?.confirmed ?? 0) > 0;
 
   void _locked() =>
-      (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(const SnackBar(content: Text(Ko.timeLocked)));
+      (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.timeLocked)));
 
   Future<void> _pickTime({required bool start}) async {
     if (_timeLocked) return _locked();
@@ -145,7 +145,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     final current = start ? _start : _end;
     final picked = await showHiPicker(
       context,
-      title: start ? Ko.startTime : Ko.endTime,
+      title: start ? Biz.startTime : Biz.endTime,
       options: [for (var m = 0; m < 24 * 60; m += 30) HiPickerOption('$m', label(m))],
       searchHint: '',
       searchable: false,
@@ -170,10 +170,10 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     final today = _todayDate(now);
     final picked = await showHiPicker(
       context,
-      title: Ko.pickDate,
+      title: Biz.pickDate,
       options: [
         for (var i = 0; i < 30; i++)
-          HiPickerOption('$i', Ko.dayWord(Kst.instantOf(today.year, today.month, today.day + i, 12), now)),
+          HiPickerOption('$i', Biz.dayWord(Kst.instantOf(today.year, today.month, today.day + i, 12), now)),
       ],
       searchHint: '',
       searchable: false,
@@ -195,7 +195,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
         duties: _duties,
         dress: _dress,
         address: _address,
-        heading: _editing == null && _templateId != null ? Ko.editTemplate : Ko.shiftContent,
+        heading: _editing == null && _templateId != null ? Biz.editTemplate : Biz.shiftContent,
       ),
     );
     if (result == null || !mounted) return;
@@ -229,10 +229,10 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
             ),
           );
       ref.invalidate(templatesProvider);
-      (messenger..hideCurrentSnackBar()).showSnackBar(const SnackBar(content: Text(Ko.templateSaved)));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.templateSaved)));
     } on Object catch (error) {
       // The form keeps the new texts; only the template stays as it was.
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
   }
 
@@ -245,7 +245,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
       return;
     }
     if (minimum != null && _wageValue < minimum) {
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.minimumWageLow(minimum))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.minimumWageLow(minimum))));
       return;
     }
     setState(() => _busy = true);
@@ -268,23 +268,23 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
       );
       final editing = _editing;
       final shift = editing == null ? await repo.createShift(draft) : await repo.updateShift(editing.id, draft);
-      var message = editing == null ? Ko.posted : Ko.saved;
+      var message = editing == null ? Biz.posted : Biz.saved;
       final invite = widget.inviteWorkerId;
       if (invite != null) {
         try {
           await repo.requestAgain(shift.id, invite);
           final workers = ref.read(businessWorkersProvider).value ?? const [];
           final name = workers.where((w) => w.id == invite).firstOrNull?.fullName;
-          if (name != null) message = Ko.requested(name);
+          if (name != null) message = Biz.requested(name);
         } on Object catch (error) {
-          message = Ko.error(error);
+          message = Biz.error(error);
         }
       }
       refreshShifts(ref, shift.id);
       (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(message)));
       widget.onSaved(shift);
     } on Object catch (error) {
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -357,7 +357,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                 size: 44,
                 radius: 14,
                 iconSize: 22,
-                semanticsLabel: Ko.close,
+                semanticsLabel: Biz.close,
                 onTap: widget.onClose,
               ),
             ],
@@ -372,7 +372,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       error: loaded.error!,
                       onRetry: () => reloadAfterError(ref, employerShiftProvider(widget.editShiftId!)),
                     )
-                  : const HiStatusMessage(icon: HiIcons.info, title: Ko.shiftNotFound, text: ''),
+                  : HiStatusMessage(icon: HiIcons.info, title: Biz.shiftNotFound, text: ''),
             ),
           ),
         ),
@@ -410,7 +410,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       size: 44,
                       radius: 14,
                       iconSize: 22,
-                      semanticsLabel: Ko.close,
+                      semanticsLabel: Biz.close,
                       onTap: widget.onClose,
                     ),
                     const SizedBox(width: 12),
@@ -418,7 +418,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       child: Semantics(
                         header: true,
                         child: HiText(
-                          isEdit ? Ko.editTitle : Ko.createTitle,
+                          isEdit ? Biz.editTitle : Biz.createTitle,
                           textAlign: TextAlign.center,
                           style: hiStyle(18, FontWeight.w800),
                         ),
@@ -433,7 +433,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
               if (!isEdit && templates.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: HiText(Ko.template, style: labelStyle),
+                  child: HiText(Biz.template, style: labelStyle),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
@@ -455,7 +455,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
                 child: _ContentCard(
-                  heading: isEdit || _templateId == null ? Ko.shiftContent : Ko.templateContent,
+                  heading: isEdit || _templateId == null ? Biz.shiftContent : Biz.templateContent,
                   title: isEdit || _templateId == null ? _title : null,
                   duties: _duties,
                   dress: _dress,
@@ -466,7 +466,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: HiText(Ko.date, style: labelStyle),
+                child: HiText(Biz.date, style: labelStyle),
               ),
               const SizedBox(height: 8),
               Opacity(
@@ -482,11 +482,11 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       for (var i = 0; i < 3; i++) ...[
                         _DayChip(
                           word: switch (i) {
-                            0 => Ko.today,
-                            1 => Ko.tomorrow,
-                            _ => Ko.weekdayShort(Kst.instantOf(today.year, today.month, today.day + i, 12)),
+                            0 => Biz.today,
+                            1 => Biz.tomorrow,
+                            _ => Biz.weekdayShort(Kst.instantOf(today.year, today.month, today.day + i, 12)),
                           },
-                          date: Ko.dotDate(Kst.instantOf(today.year, today.month, today.day + i, 12)),
+                          date: Biz.dotDate(Kst.instantOf(today.year, today.month, today.day + i, 12)),
                           selected: dayIndex == i,
                           onTap: () {
                             if (_timeLocked) return _locked();
@@ -497,8 +497,8 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       ],
                       _DayChip(
                         icon: HiIcons.calendar,
-                        word: dayIndex > 2 ? Ko.weekdayShort(_startsAt) : Ko.otherDay,
-                        date: dayIndex > 2 ? Ko.dotDate(_startsAt) : null,
+                        word: dayIndex > 2 ? Biz.weekdayShort(_startsAt) : Biz.otherDay,
+                        date: dayIndex > 2 ? Biz.dotDate(_startsAt) : null,
                         selected: dayIndex > 2,
                         onTap: () => _pickOtherDay(now),
                       ),
@@ -512,19 +512,19 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    HiText(Ko.time, style: labelStyle),
+                    HiText(Biz.time, style: labelStyle),
                     const SizedBox(height: 8),
                     Opacity(
                       opacity: _timeLocked ? 0.55 : 1,
                       child: Row(
                         children: [
-                          _TimeBox(minute: _start, label: Ko.startTime, onTap: () => _pickTime(start: true)),
+                          _TimeBox(minute: _start, label: Biz.startTime, onTap: () => _pickTime(start: true)),
                           const SizedBox(width: 10),
                           HiText('~', style: hiStyle(17, FontWeight.w700, color: HiColors.textMuted)),
                           const SizedBox(width: 10),
-                          _TimeBox(minute: _end, label: Ko.endTime, onTap: () => _pickTime(start: false)),
+                          _TimeBox(minute: _end, label: Biz.endTime, onTap: () => _pickTime(start: false)),
                           const Spacer(),
-                          HiText(Ko.duration(_minutes), style: hiStyle(15, FontWeight.w700, color: HiColors.textSoft)),
+                          HiText(Biz.duration(_minutes), style: hiStyle(15, FontWeight.w700, color: HiColors.textSoft)),
                         ],
                       ),
                     ),
@@ -541,7 +541,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          HiText(Ko.wage, style: labelStyle),
+                          HiText(Biz.wage, style: labelStyle),
                           const SizedBox(height: 8),
                           _WageField(controller: _wage, onChanged: () => setState(() {})),
                           if (minimum != null) ...[
@@ -553,7 +553,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                                 const SizedBox(width: 5),
                                 Flexible(
                                   child: HiText(
-                                    wageOk ? Ko.minimumWageOk(minimum) : Ko.minimumWageLow(minimum),
+                                    wageOk ? Biz.minimumWageOk(minimum) : Biz.minimumWageLow(minimum),
                                     style: hiStyle(13, FontWeight.w700,
                                         color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
                                   ),
@@ -569,7 +569,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          HiText(Ko.headcount, style: labelStyle),
+                          HiText(Biz.headcount, style: labelStyle),
                           const SizedBox(height: 8),
                           _Stepper(
                             value: _slots,
@@ -579,7 +579,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                               final next = _slots + delta;
                               if (next < min) {
                                 (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(
-                                    SnackBar(content: Text(Ko.slotsLocked(_editing?.confirmed ?? 0))));
+                                    SnackBar(content: Text(Biz.slotsLocked(_editing?.confirmed ?? 0))));
                                 return;
                               }
                               if (next > _Stepper.max) return;
@@ -615,7 +615,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
               children: [
                 HiRichText(
                   TextSpan(
-                    text: Ko.costLead(_slots, _minutes),
+                    text: Biz.costLead(_slots, _minutes),
                     children: [
                       TextSpan(
                         text: Won.employer(cost),
@@ -629,7 +629,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                 ),
                 const SizedBox(height: 10),
                 HiButton(
-                  label: isEdit ? Ko.save : Ko.post,
+                  label: isEdit ? Biz.save : Biz.post,
                   height: 56,
                   fontSize: 18,
                   onPressed: _busy ? null : () => _submit(minimum),
@@ -703,16 +703,16 @@ class _ContentCard extends StatelessWidget {
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     alignment: Alignment.center,
-                    child: HiText(Ko.edit,
+                    child: HiText(Biz.edit,
                         style: hiStyle(15, FontWeight.w800, color: pressed ? HiColors.blueDeep : HiColors.blue)),
                   ),
                 ),
               ],
             ),
-            if (name != null) row(Ko.shiftName, name),
-            row(Ko.duties, duties),
-            row(Ko.dress, dress),
-            row(Ko.address, address),
+            if (name != null) row(Biz.shiftName, name),
+            row(Biz.duties, duties),
+            row(Biz.dress, dress),
+            row(Biz.address, address),
           ],
         ),
       ),
@@ -826,7 +826,7 @@ class _WageField extends StatelessWidget {
         children: [
           Expanded(
             child: Semantics(
-              label: Ko.wage,
+              label: Biz.wage,
               textField: true,
               child: TextField(
                 controller: controller,
@@ -842,7 +842,7 @@ class _WageField extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          HiText(Ko.won, style: hiStyle(15, FontWeight.w700, color: HiColors.inkMuted)),
+          HiText(Biz.won, style: hiStyle(15, FontWeight.w700, color: HiColors.inkMuted)),
         ],
       ),
     );
@@ -879,7 +879,7 @@ class _Stepper extends StatelessWidget {
         );
     return Row(
       children: [
-        button(HiIcons.minus, Ko.fewer, () => onStep(-1)),
+        button(HiIcons.minus, Biz.fewer, () => onStep(-1)),
         const SizedBox(width: 6),
         Expanded(
           child: Semantics(
@@ -892,12 +892,12 @@ class _Stepper extends StatelessWidget {
                 border: const Border.fromBorderSide(HiBorders.ink),
               ),
               alignment: Alignment.center,
-              child: HiText(Ko.people(value), style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
+              child: HiText(Biz.people(value), style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
             ),
           ),
         ),
         const SizedBox(width: 6),
-        button(HiIcons.plus, Ko.more, value < max ? () => onStep(1) : null),
+        button(HiIcons.plus, Biz.more, value < max ? () => onStep(1) : null),
       ],
     );
   }
@@ -914,7 +914,7 @@ class _AutoConfirm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       toggled: value,
-      label: '${Ko.autoConfirm}, ${Ko.autoConfirmHint}',
+      label: '${Biz.autoConfirm}, ${Biz.autoConfirmHint}',
       excludeSemantics: true,
       child: HiPressable(
         onTap: () => onChanged(!value),
@@ -932,9 +932,9 @@ class _AutoConfirm extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HiText(Ko.autoConfirm, style: hiStyle(16, FontWeight.w800)),
+                    HiText(Biz.autoConfirm, style: hiStyle(16, FontWeight.w800)),
                     const SizedBox(height: 2),
-                    HiText(Ko.autoConfirmHint, style: hiStyle(14, FontWeight.w500, color: HiColors.textMuted)),
+                    HiText(Biz.autoConfirmHint, style: hiStyle(14, FontWeight.w500, color: HiColors.textMuted)),
                   ],
                 ),
               ),
@@ -1059,16 +1059,16 @@ class _ContentSheetState extends State<_ContentSheet> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Semantics(header: true, child: HiText(widget.heading, style: hiStyle(20, FontWeight.w800, color: HiColors.ink))),
-              field(Ko.shiftName, _title),
-              field(Ko.duties, _duties, lines: 2, max: 600),
-              field(Ko.dress, _dress, max: 300),
-              field(Ko.address, _address, max: 200),
+              field(Biz.shiftName, _title),
+              field(Biz.duties, _duties, lines: 2, max: 600),
+              field(Biz.dress, _dress, max: 300),
+              field(Biz.address, _address, max: 200),
               const SizedBox(height: 18),
               Row(
                 children: [
                   Expanded(
                     child: HiButton(
-                      label: Ko.cancel,
+                      label: Biz.cancel,
                       style: HiButtonStyle.outline,
                       height: 52,
                       fontSize: 16,
@@ -1078,7 +1078,7 @@ class _ContentSheetState extends State<_ContentSheet> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: HiButton(
-                      label: Ko.save,
+                      label: Biz.save,
                       height: 52,
                       fontSize: 16,
                       onPressed: () {

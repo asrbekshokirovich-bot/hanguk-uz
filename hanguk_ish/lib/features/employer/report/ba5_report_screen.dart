@@ -17,7 +17,7 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
-import '../ko.dart';
+import '../biz.dart';
 import '../providers.dart';
 import '../widgets.dart';
 
@@ -31,7 +31,7 @@ InlineSpan amountSpan(int amount, TextStyle number, TextStyle unit, double gap) 
       text: digits.substring(digits.length - 1),
       style: number.copyWith(letterSpacing: (number.letterSpacing ?? 0) + gap),
     ),
-    TextSpan(text: Ko.won, style: unit),
+    TextSpan(text: Biz.won, style: unit),
   ]);
 }
 
@@ -40,19 +40,19 @@ InlineSpan amountSpan(int amount, TextStyle number, TextStyle unit, double gap) 
 String reportCsv(BusinessReport report) {
   String cell(String v) => v.contains(',') || v.contains('"') ? '"${v.replaceAll('"', '""')}"' : v;
   final lines = [
-    Ko.csvHeader,
+    Biz.csvHeader,
     for (final r in report.rows)
       [
         () {
           final w = Kst.wallClock(r.startsAt);
           return '${w.year}-${w.month.toString().padLeft(2, '0')}-${w.day.toString().padLeft(2, '0')}';
         }(),
-        Ko.weekdayLong(r.startsAt),
+        Biz.weekdayLong(r.startsAt),
         cell(r.title),
         '${r.workers}',
         (r.minutes / 60).toStringAsFixed(r.minutes % 60 == 0 ? 0 : 1),
         '${r.amount}',
-        r.paid ? Ko.paid : Ko.pending,
+        r.paid ? Biz.paid : Biz.pending,
       ].join(','),
   ];
   return '﻿${lines.join('\r\n')}\r\n';
@@ -65,14 +65,14 @@ class Ba5ReportScreen extends ConsumerWidget {
   Future<void> _togglePaid(BuildContext context, WidgetRef ref, ReportRow row) async {
     final messenger = ScaffoldMessenger.of(context);
     final choice = await showHiActions(context, actions: [
-      row.paid ? (HiIcons.refreshCw, Ko.markPending) : (HiIcons.check, Ko.markPaid),
+      row.paid ? (HiIcons.refreshCw, Biz.markPending) : (HiIcons.check, Biz.markPaid),
     ]);
     if (choice != 0) return;
     try {
       await ref.read(employerRepositoryProvider).setShiftPaid(row.shiftId, paid: !row.paid);
       refreshShifts(ref, row.shiftId);
     } on Object catch (error) {
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
   }
 
@@ -86,10 +86,10 @@ class Ba5ReportScreen extends ConsumerWidget {
             fileName:
                 'hanguk-ish-report-${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}.csv',
             mimeType: 'text/csv',
-            text: Ko.csvTitle(business.name, report.from, report.to),
+            text: Biz.csvTitle(business.name, report.from, report.to),
           );
     } on Object catch (error) {
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
   }
 
@@ -115,7 +115,7 @@ class Ba5ReportScreen extends ConsumerWidget {
                     Expanded(
                       child: Semantics(
                         header: true,
-                        child: HiText(Ko.reportTitle,
+                        child: HiText(Biz.reportTitle,
                             style: hiStyle(28, FontWeight.w800, height: 1.2, letterSpacingEm: -0.02)),
                       ),
                     ),
@@ -125,10 +125,10 @@ class Ba5ReportScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 HiSegmentedTabs(
-                  labels: const [Ko.thisWeek, Ko.thisMonth, Ko.lastMonth],
+                  labels: [Biz.thisWeek, Biz.thisMonth, Biz.lastMonth],
                   current: period.index,
                   onSelect: (i) => ref.read(reportPeriodProvider.notifier).select(ReportPeriod.values[i]),
-                  semanticsLabel: Ko.period,
+                  semanticsLabel: Biz.period,
                 ),
               ],
             ),
@@ -161,16 +161,16 @@ class Ba5ReportScreen extends ConsumerWidget {
                 textBaseline: TextBaseline.alphabetic,
                 children: [
                   Expanded(
-                    child: Semantics(header: true, child: HiText(Ko.byShift, style: hiStyle(17, FontWeight.w800))),
+                    child: Semantics(header: true, child: HiText(Biz.byShift, style: hiStyle(17, FontWeight.w800))),
                   ),
-                  HiText(Ko.count(report.rows.length), style: hiStyle(14, FontWeight.w700, color: HiColors.textMuted)),
+                  HiText(Biz.count(report.rows.length), style: hiStyle(14, FontWeight.w700, color: HiColors.textMuted)),
                 ],
               ),
             ),
             if (report.rows.isEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 20, 22, 0),
-                child: HiText(Ko.noReport,
+                child: HiText(Biz.noReport,
                     textAlign: TextAlign.center, style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft)),
               )
             else
@@ -214,7 +214,7 @@ class _CsvButton extends StatelessWidget {
               children: [
                 const HiIcon(HiIcons.download, size: 18, strokeWidth: 2.2, color: HiColors.ink),
                 const SizedBox(width: 6),
-                HiText(Ko.csv, style: hiStyle(15, FontWeight.w800, color: HiColors.ink)),
+                HiText(Biz.csv, style: hiStyle(15, FontWeight.w800, color: HiColors.ink)),
               ],
             ),
           ),
@@ -255,13 +255,13 @@ class _Summary extends ConsumerWidget {
           ),
         );
     final label = switch (period) {
-      ReportPeriod.thisWeek => Ko.thisWeek,
-      ReportPeriod.thisMonth => Ko.thisMonth,
-      ReportPeriod.lastMonth => Ko.lastMonth,
+      ReportPeriod.thisWeek => Biz.thisWeek,
+      ReportPeriod.thisMonth => Biz.thisMonth,
+      ReportPeriod.lastMonth => Biz.lastMonth,
     };
     return Semantics(
       container: true,
-      label: Ko.periodSummary(label),
+      label: Biz.periodSummary(label),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -273,20 +273,20 @@ class _Summary extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            HiText(Ko.totalPaid(report.from, report.to), style: soft15),
+            HiText(Biz.totalPaid(report.from, report.to), style: soft15),
             const SizedBox(height: 4),
             HiRichText(amountSpan(report.total, big, bigUnit, 3), style: big, also: [bigUnit]),
             const SizedBox(height: 4),
             HiText(
-              Ko.reportCounts(report.rows.length, report.minutes, report.persons),
+              Biz.reportCounts(report.rows.length, report.minutes, report.persons),
               style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft),
             ),
             const SizedBox(height: 4 + 10),
             Row(
               children: [
-                tile(Ko.paidCount(report.paidRows.length), report.paidAmount),
+                tile(Biz.paidCount(report.paidRows.length), report.paidAmount),
                 const SizedBox(width: 8),
-                tile(Ko.pendingCount(report.pendingRows.length), report.pendingAmount),
+                tile(Biz.pendingCount(report.pendingRows.length), report.pendingAmount),
               ],
             ),
           ],
@@ -324,9 +324,9 @@ class _ReportRowView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  HiText(Ko.dotDate(row.startsAt),
+                  HiText(Biz.dotDate(row.startsAt),
                       style: hiStyle(15, FontWeight.w800, height: 1.3, color: HiColors.ink, family: HiFamily.mono)),
-                  HiText(Ko.weekdayLong(row.startsAt),
+                  HiText(Biz.weekdayLong(row.startsAt),
                       style: hiStyle(13, FontWeight.w600, height: 1.3, color: HiColors.inkMuted)),
                 ],
               ),
@@ -338,7 +338,7 @@ class _ReportRowView extends StatelessWidget {
                 children: [
                   HiText(row.title, style: hiStyle(16, FontWeight.w800, color: HiColors.ink)),
                   const SizedBox(height: 2),
-                  HiText(Ko.rowCrew(row.workers, row.minutes),
+                  HiText(Biz.rowCrew(row.workers, row.minutes),
                       style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted)),
                 ],
               ),
@@ -350,8 +350,8 @@ class _ReportRowView extends StatelessWidget {
                 HiRichText(amountSpan(row.amount, number, unit, 1), style: number, also: [unit]),
                 const SizedBox(height: 4),
                 row.paid
-                    ? const EmployerChip(label: Ko.paid, background: HiColors.surface, height: 24, padding: 8)
-                    : const EmployerChip(label: Ko.pending, background: HiColors.amberSoft, height: 24, padding: 8),
+                    ? EmployerChip(label: Biz.paid, background: HiColors.surface, height: 24, padding: 8)
+                    : EmployerChip(label: Biz.pending, background: HiColors.amberSoft, height: 24, padding: 8),
               ],
             ),
           ],

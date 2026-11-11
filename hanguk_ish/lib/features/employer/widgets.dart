@@ -7,7 +7,7 @@ import '../../design/tokens.dart';
 import '../../design/typography.dart';
 import '../../design/widgets/navigation.dart';
 import '../../design/widgets/pressable.dart';
-import 'ko.dart';
+import 'biz.dart';
 
 /// The employer app's bottom menu: 홈, 근무자, a raised lime «근무 올리기»
 /// button, 리포트.
@@ -35,7 +35,7 @@ class EmployerNav extends StatelessWidget {
     final bottom = HiInsets.bottom(context, 22);
     return Semantics(
       container: true,
-      label: Ko.menuLabel,
+      label: Biz.menuLabel,
       explicitChildNodes: true,
       child: SizedBox(
         height: rise + 1 + 6 + 59 + bottom,
@@ -56,10 +56,10 @@ class EmployerNav extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: _Tab(icon: HiIcons.house, label: Ko.navHome, selected: current == 0, onTap: () => onSelect(0))),
-                    Expanded(child: _Tab(icon: HiIcons.users, label: Ko.navWorkers, selected: current == 1, onTap: () => onSelect(1))),
+                    Expanded(child: _Tab(icon: HiIcons.house, label: Biz.navHome, selected: current == 0, onTap: () => onSelect(0))),
+                    Expanded(child: _Tab(icon: HiIcons.users, label: Biz.navWorkers, selected: current == 1, onTap: () => onSelect(1))),
                     Expanded(child: _CreateLabel(onTap: onCreate)),
-                    Expanded(child: _Tab(icon: HiIcons.chartColumn, label: Ko.navReport, selected: current == 2, onTap: () => onSelect(2))),
+                    Expanded(child: _Tab(icon: HiIcons.chartColumn, label: Biz.navReport, selected: current == 2, onTap: () => onSelect(2))),
                   ],
                 ),
               ),
@@ -78,7 +78,7 @@ class EmployerNav extends StatelessWidget {
                     child: Center(
                       child: HiPressable(
                         onTap: onCreate,
-                        semanticsLabel: Ko.navCreate,
+                        semanticsLabel: Biz.navCreate,
                         builder: (context, pressed) => Transform.translate(
                           offset: pressed ? const Offset(2, 2) : Offset.zero,
                           child: Container(
@@ -161,14 +161,14 @@ class _CreateLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return HiPressable(
       onTap: onTap,
-      semanticsLabel: Ko.navCreate,
+      semanticsLabel: Biz.navCreate,
       builder: (context, pressed) => Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           // 52 px circle with margin-top:-26px takes 26 px of the column.
           const SizedBox(height: 26 + 4),
           HiText(
-            Ko.navCreate,
+            Biz.navCreate,
             maxLines: 1,
             softWrap: false,
             overflow: TextOverflow.visible,
@@ -257,9 +257,9 @@ class EmployerChip extends StatelessWidget {
     final g = large ? 6.0 : 5.0;
     return switch (state) {
       EmployerShiftState.done =>
-        EmployerChip(label: Ko.stateDone, background: HiColors.surface, height: h, fontSize: f, padding: p),
+        EmployerChip(label: Biz.stateDone, background: HiColors.surface, height: h, fontSize: f, padding: p),
       EmployerShiftState.inProgress => EmployerChip(
-          label: Ko.stateInProgress,
+          label: Biz.stateInProgress,
           background: HiColors.greenSoft,
           dot: HiColors.green,
           height: h,
@@ -268,7 +268,7 @@ class EmployerChip extends StatelessWidget {
           gap: g,
         ),
       EmployerShiftState.urgent => EmployerChip(
-          label: large ? Ko.urgentSlots(open) : Ko.stateUrgent,
+          label: large ? Biz.urgentSlots(open) : Biz.stateUrgent,
           background: HiColors.redSoft,
           foreground: HiColors.redInk,
           height: h,
@@ -276,16 +276,16 @@ class EmployerChip extends StatelessWidget {
           padding: p,
         ),
       EmployerShiftState.scheduled =>
-        EmployerChip(label: Ko.stateScheduled, background: HiColors.surface, height: h, fontSize: f, padding: p),
+        EmployerChip(label: Biz.stateScheduled, background: HiColors.surface, height: h, fontSize: f, padding: p),
       EmployerShiftState.recruiting => EmployerChip(
-          label: large ? Ko.recruitingSlots(open) : Ko.stateRecruiting,
+          label: large ? Biz.recruitingSlots(open) : Biz.stateRecruiting,
           background: HiColors.amberSoft,
           height: h,
           fontSize: f,
           padding: p,
         ),
       EmployerShiftState.cancelled => EmployerChip(
-          label: Ko.stateCancelled,
+          label: Biz.stateCancelled,
           background: HiColors.redSoft,
           foreground: HiColors.redInk,
           height: h,
@@ -354,25 +354,9 @@ class RatingMark extends StatelessWidget {
   }
 }
 
-/// Korean names of the workers' languages, in their order:
-/// «우즈베크어 · 러시아어 · 영어 · 한국어».
-String languageNamesKo(List<String> codes) => codes.map(_languageKo).join(' · ');
-
-String _languageKo(String code) => switch (code) {
-      'uz' => '우즈베크어',
-      'ru' => '러시아어',
-      'en' => '영어',
-      'ko' => '한국어',
-      'kk' => '카자흐어',
-      'ky' => '키르기스어',
-      'tg' => '타지크어',
-      'tr' => '튀르키예어',
-      'vi' => '베트남어',
-      'mn' => '몽골어',
-      'zh' => '중국어',
-      'ja' => '일본어',
-      _ => code,
-    };
+/// The workers' languages, in their order, in the app's language:
+/// «우즈베크어 · 러시아어 · 영어 · 한국어» / «O'zbekcha · Ruscha · …».
+String languageNames(List<String> codes) => codes.map(Biz.spokenLanguage).join(' · ');
 
 /// A screen whose data could not load: no connection, or the server said
 /// no. «다시 시도» loads it again. The worker app's A03 «Internet yo'q»
@@ -385,13 +369,13 @@ class EmployerLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final offline = Ko.isOffline(error);
+    final offline = Biz.isOffline(error);
     return HiStatusMessage(
       icon: offline ? HiIcons.wifiOff : HiIcons.triangleAlert,
-      title: offline ? Ko.offlineTitle : Ko.loadFailed,
-      text: offline ? Ko.offlineText : Ko.error(error),
+      title: offline ? Biz.offlineTitle : Biz.loadFailed,
+      text: offline ? Biz.offlineText : Biz.error(error),
       textMaxWidth: 300,
-      action: Ko.retry,
+      action: Biz.retry,
       actionIcon: HiIcons.refreshCw,
       onAction: onRetry,
     );
@@ -405,6 +389,6 @@ Future<void> refreshOrSay(BuildContext context, Future<Object?> future) async {
     await future;
   } on Object catch (error) {
     if (!context.mounted) return;
-    (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+    (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
   }
 }

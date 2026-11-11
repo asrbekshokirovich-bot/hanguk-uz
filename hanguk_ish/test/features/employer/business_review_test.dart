@@ -3,7 +3,7 @@ import 'package:hanguk_ish/data/demo/demo_employer.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/business.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
-import 'package:hanguk_ish/features/employer/ko.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
 
 import '../../helpers/employer_harness.dart';
 import '../../helpers/fonts.dart';
@@ -61,8 +61,8 @@ void main() {
   testWidgets('BA1: a business still waiting says why its shifts reach nobody; asked again once', (tester) async {
     final repo = WaitingEmployer();
     await open(tester, repo);
-    expect(find.text(Ko.reviewPendingTitle), findsOneWidget);
-    expect(find.text(Ko.reviewPendingText), findsOneWidget);
+    expect(find.text(Biz.reviewPendingTitle), findsOneWidget);
+    expect(find.text(Biz.reviewPendingText), findsOneWidget);
     expect(find.text('오늘의 근무'), findsOneWidget, reason: 'the home is all there');
     expect(repo.asked, ['1234567891'], reason: '국세청 is asked again once a session');
   });
@@ -71,22 +71,22 @@ void main() {
     final repo = WaitingEmployer(answer: BusinessReview.verified);
     await open(tester, repo);
     expect(repo.asked, hasLength(1));
-    expect(find.text(Ko.reviewPendingTitle), findsNothing);
-    expect(find.text(Ko.reviewRejectedTitle), findsNothing);
+    expect(find.text(Biz.reviewPendingTitle), findsNothing);
+    expect(find.text(Biz.reviewRejectedTitle), findsNothing);
   });
 
   testWidgets('BA1: found closed (폐업) when asked again, it says the shifts will not be seen', (tester) async {
     final repo = WaitingEmployer(answer: BusinessReview.rejected);
     await open(tester, repo);
-    expect(find.text(Ko.reviewRejectedTitle), findsOneWidget);
-    expect(find.text(Ko.reviewRejectedText), findsOneWidget);
-    expect(find.text(Ko.reviewPendingTitle), findsNothing);
+    expect(find.text(Biz.reviewRejectedTitle), findsOneWidget);
+    expect(find.text(Biz.reviewRejectedText), findsOneWidget);
+    expect(find.text(Biz.reviewPendingTitle), findsNothing);
   });
 
   testWidgets('BA1: a verified business shows no notice and is not asked again', (tester) async {
     final repo = WaitingEmployer()..review = BusinessReview.verified;
     await open(tester, repo);
-    expect(find.text(Ko.reviewPendingTitle), findsNothing);
+    expect(find.text(Biz.reviewPendingTitle), findsNothing);
     expect(repo.asked, isEmpty);
   });
 }

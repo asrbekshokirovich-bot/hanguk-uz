@@ -36,7 +36,7 @@ import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
-import 'package:hanguk_ish/features/employer/ko.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
@@ -578,15 +578,15 @@ void main() {
       (tester) async {
     phone(tester);
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.workers));
-    await _until(tester, _text(Ko.noFavorites));
+    await _until(tester, _text(Biz.noFavorites));
     // The tabs read «최근 근무자 1» (the hint below says «최근 근무자에서…»).
-    await _tap(tester, find.textContaining(RegExp('^${Ko.recentWorkers} '), findRichText: true));
+    await _tap(tester, find.textContaining(RegExp('^${Biz.recentWorkers} '), findRichText: true));
     await _until(tester, _text('Sardor Testov'));
-    expect(_text(Ko.timesHere(1, 3)), findsOneWidget, reason: 'one finished shift here, TOPIK 3');
-    await _tap(tester, find.bySemanticsLabel(Ko.favorite('Sardor Testov')));
+    expect(_text(Biz.timesHere(1, 3)), findsOneWidget, reason: 'one finished shift here, TOPIK 3');
+    await _tap(tester, find.bySemanticsLabel(Biz.favorite('Sardor Testov')));
     // The star turns at once; the server's answer follows (the app runs on
     // the test's clock, so let its request go out while asking the server).
-    await _until(tester, find.bySemanticsLabel(Ko.unfavorite('Sardor Testov')));
+    await _until(tester, find.bySemanticsLabel(Biz.unfavorite('Sardor Testov')));
     final repo = SupabaseEmployerRepository(owner, _config);
     var favorite = false;
     for (var i = 0; i < 20 && !favorite; i++) {
@@ -598,7 +598,7 @@ void main() {
       favorite = workers!.single.favorite;
     }
     expect(favorite, isTrue, reason: 'the server keeps the favourite');
-    await _tap(tester, find.textContaining(RegExp('^${Ko.favorites} '), findRichText: true));
+    await _tap(tester, find.textContaining(RegExp('^${Biz.favorites} '), findRichText: true));
     await _until(tester, _text('Sardor Testov'));
     await _shot(tester, 'ba4-workers');
     await _close(tester);
@@ -795,10 +795,10 @@ void main() {
         ))))!;
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(live.id), live: true));
     await _until(tester, _text('E2E 실시간'));
-    expect(_text(Ko.applicants(1)), findsNothing);
+    expect(_text(Biz.applicants(1)), findsNothing);
     // The worker applies elsewhere; nothing is tapped here.
     final applied = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).apply(live.id));
-    await _until(tester, _text(Ko.applicants(1)));
+    await _until(tester, _text(Biz.applicants(1)));
     await _until(tester, _text('Sardor Testov'));
     await _shot(tester, 'ba3-live-applicant');
     await _close(tester);
@@ -822,7 +822,7 @@ void main() {
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.workers));
     // The favourite of the BA4 test, who finished a shift here.
     await _until(tester, _text('Sardor Testov'));
-    await _tap(tester, find.widgetWithText(HiButton, Ko.requestAgain));
+    await _tap(tester, find.widgetWithText(HiButton, Biz.requestAgain));
     // BA2 for the invitation; no template yet: the content first.
     await _until(tester, find.widgetWithText(HiButton, '근무 올리기'));
     await _settle(tester);
@@ -893,7 +893,7 @@ void main() {
       await admin.rpc('close_finished_shifts');
     });
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
-    await _until(tester, _text(Ko.notifNoShowText('Sardor Testov', 'E2E 노쇼')));
+    await _until(tester, _text(Biz.notifNoShowText('Sardor Testov', 'E2E 노쇼')));
     await _shot(tester, 'ba-no-show');
     await _close(tester);
 
@@ -954,7 +954,7 @@ void main() {
     await _close(tester);
 
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
-    await _until(tester, _text(Ko.notifCancelledText('Sardor Testov', 'E2E 늦은 취소')));
+    await _until(tester, _text(Biz.notifCancelledText('Sardor Testov', 'E2E 늦은 취소')));
     await _close(tester);
   });
 
@@ -962,9 +962,9 @@ void main() {
     phone(tester);
     final (turnedDown, _) = await appliedShift(tester, 'E2E 거절', inHours: 72, auto: false);
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(turnedDown.id)));
-    await _until(tester, _text(Ko.applicants(1)));
-    await _tap(tester, find.widgetWithText(HiButton, Ko.reject));
-    await _until(tester, _text(Ko.rejected('Sardor Testov')));
+    await _until(tester, _text(Biz.applicants(1)));
+    await _tap(tester, find.widgetWithText(HiButton, Biz.reject));
+    await _until(tester, _text(Biz.rejected('Sardor Testov')));
     await _close(tester);
 
     await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
@@ -1005,15 +1005,15 @@ void main() {
     final later = (endMinute - endMinute % 30 + 30) % (24 * 60);
 
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.edit(moved.id)));
-    await _until(tester, _text(Ko.editTitle));
+    await _until(tester, _text(Biz.editTitle));
     await _settle(tester);
-    await _tap(tester, find.bySemanticsLabel('${Ko.endTime} ${hm(endMinute)}'));
+    await _tap(tester, find.bySemanticsLabel('${Biz.endTime} ${hm(endMinute)}'));
     await _until(tester, find.byType(BottomSheet));
     await _settle(tester);
     await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: _text(hm(later))));
     await _settle(tester);
-    await _tap(tester, find.widgetWithText(HiButton, Ko.save));
-    await _until(tester, _text(Ko.saved));
+    await _tap(tester, find.widgetWithText(HiButton, Biz.save));
+    await _until(tester, _text(Biz.saved));
     await _close(tester);
     final after = (await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(moved.id)))!;
     expect(Kst.hm(after.endsAt), hm(later));
@@ -1068,7 +1068,7 @@ void main() {
     final sharer = RecordingSharer();
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.report, sharer: sharer));
     await _until(tester, _text('E2E 아침 보조'));
-    await _tap(tester, _text(Ko.csv));
+    await _tap(tester, _text(Biz.csv));
     for (var i = 0; i < 30 && sharer.shared.isEmpty; i++) {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
       await tester.pump(const Duration(milliseconds: 100));
@@ -1077,8 +1077,8 @@ void main() {
     final file = sharer.shared.single;
     expect(file.mimeType, 'text/csv');
     final csv = utf8.decode(file.bytes);
-    expect(csv, contains(Ko.csvHeader));
-    expect(csv, contains(',E2E 아침 보조,1,1.5,16500,${Ko.paid}'), reason: '90 minutes, 16,500원, paid');
+    expect(csv, contains(Biz.csvHeader));
+    expect(csv, contains(',E2E 아침 보조,1,1.5,16500,${Biz.paid}'), reason: '90 minutes, 16,500원, paid');
     expect(file.text, contains('해운대 E2E 카페'));
     await _close(tester);
   });
@@ -1088,11 +1088,11 @@ void main() {
     phone(tester);
     final crewed = (await nextShifts(tester)).firstWhere((s) => s.title == 'E2E 실시간');
     await tester.pumpWidget(ownerApp(location: EmployerRoutes.edit(crewed.id)));
-    await _until(tester, _text(Ko.editTitle));
+    await _until(tester, _text(Biz.editTitle));
     await _settle(tester);
     // The day chips are locked: a tap says why.
     await _tap(tester, find.textContaining(RegExp('^오늘'), findRichText: true));
-    await _until(tester, _text(Ko.timeLocked));
+    await _until(tester, _text(Biz.timeLocked));
     // (Let the message go: it covers the button at the bottom.)
     await _snackBarGone(tester);
     // The content is not locked.
@@ -1100,10 +1100,10 @@ void main() {
     await _until(tester, find.byType(BottomSheet));
     await tester.enterText(
         find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), 'E2E 실시간 2');
-    await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, Ko.save)));
+    await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, Biz.save)));
     await _settle(tester);
-    await _tap(tester, find.widgetWithText(HiButton, Ko.save));
-    await _until(tester, _text(Ko.saved));
+    await _tap(tester, find.widgetWithText(HiButton, Biz.save));
+    await _until(tester, _text(Biz.saved));
     final after = await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(crewed.id));
     expect(after!.title, 'E2E 실시간 2');
     expect(after.startsAt, crewed.startsAt, reason: 'the time stays');
@@ -1140,10 +1140,10 @@ void main() {
     // The code signs in; business-register files the number (no key in the
     // local stack: it waits for 국세청) and BA1 opens on it.
     await _until(tester, _text('오늘의 근무'));
-    await _until(tester, _text(Ko.reviewPendingTitle));
+    await _until(tester, _text(Biz.reviewPendingTitle));
     expect(_text('사업장 999-00-00054'), findsWidgets, reason: 'the name until the store details are set');
     // A new business: no shifts yet (the day loaded, not still loading).
-    await _until(tester, _text(Ko.noShiftsToday));
+    await _until(tester, _text(Biz.noShiftsToday));
     await _shot(tester, 'ba0-ba1-waiting');
     final mine = await tester.runAsync(() => SupabaseEmployerRepository(newcomer, _config).businesses());
     expect(mine!.single.review, BusinessReview.pending);

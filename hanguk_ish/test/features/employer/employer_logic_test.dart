@@ -8,7 +8,7 @@ import 'package:hanguk_ish/data/models/employer.dart';
 import 'package:hanguk_ish/data/models/my_shift.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
-import 'package:hanguk_ish/features/employer/ko.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
 import 'package:hanguk_ish/features/employer/providers.dart';
 import 'package:hanguk_ish/features/employer/report/ba5_report_screen.dart';
 import 'package:hanguk_ish/features/employer/widgets.dart';
@@ -34,10 +34,10 @@ void main() {
     final close = shifts.last;
     expect(close.needsAttention(now), isTrue);
     expect(close.waiting.map((a) => a.worker.fullName), ['Aruzhan Bekova', 'Sevara Nazarova']);
-    expect(Ko.attention(close.title, noShows: close.noShows(now), open: close.openSlots, waiting: close.waiting.length),
+    expect(Biz.attention(close.title, noShows: close.noShows(now), open: close.openSlots, waiting: close.waiting.length),
         '마감 정리 보조 · 미출근 1명, 빈자리 1 (지원자 2명)');
-    expect(Ko.crewLine(close.confirmed, close.slots, close.waiting.length), '확정 3/4명 · 지원자 2');
-    expect(Ko.asOf(now), '11월 10일 (화) · 18:20 기준');
+    expect(Biz.crewLine(close.confirmed, close.slots, close.waiting.length), '확정 3/4명 · 지원자 2');
+    expect(Biz.asOf(now), '11월 10일 (화) · 18:20 기준');
   });
 
   test('BA3 attendance at 18:20: in at 17:56, late 2 min, missing 20 min', () async {
@@ -50,8 +50,8 @@ void main() {
     expect(crew[1].lateMinutes, 2);
     expect(crew[2].checkInAt, isNull);
     expect(Kst.minutesBetween(close.startsAt, now), 20);
-    expect(Ko.shiftWhen(close.startsAt, close.endsAt, now), '오늘 18:00–22:00 · 4시간');
-    expect(Ko.shiftTerms(close.hourlyWage, close.confirmed, close.slots, close.autoConfirm),
+    expect(Biz.shiftWhen(close.startsAt, close.endsAt, now), '오늘 18:00–22:00 · 4시간');
+    expect(Biz.shiftTerms(close.hourlyWage, close.confirmed, close.slots, close.autoConfirm),
         '시급 11,000원 · 확정 3/4명 · 자동 확정 꺼짐');
   });
 
@@ -101,7 +101,7 @@ void main() {
 
   test('BA5 this month: the prototype\'s 1–10 November', () async {
     final (from, to) = reportRange(ReportPeriod.thisMonth, now);
-    expect(Ko.totalPaid(from, to), '11월 1일–10일 총 지급액');
+    expect(Biz.totalPaid(from, to), '11월 1일–10일 총 지급액');
     final report = await repo().report(demoDalbit.id, from, to);
     expect(report.total, 1262500);
     expect(report.rows.length, 9);
@@ -111,13 +111,13 @@ void main() {
     expect(report.paidAmount, 1000000);
     expect(report.pendingRows.length, 2);
     expect(report.pendingAmount, 262500);
-    expect(Ko.reportCounts(report.rows.length, report.minutes, report.persons), '근무 9건 · 117시간 · 연인원 23명');
+    expect(Biz.reportCounts(report.rows.length, report.minutes, report.persons), '근무 9건 · 117시간 · 연인원 23명');
     final first = report.rows.first;
-    expect([Ko.dotDate(first.startsAt), Ko.weekdayLong(first.startsAt), first.title, Ko.rowCrew(first.workers, first.minutes)],
+    expect([Biz.dotDate(first.startsAt), Biz.weekdayLong(first.startsAt), first.title, Biz.rowCrew(first.workers, first.minutes)],
         ['11.10', '화요일', '오픈 바리스타 보조', '2명 · 10시간']);
     expect(report.rows.take(4).map((r) => r.amount), [105000, 157500, 264000, 264000]);
     expect(report.rows.take(4).map((r) => r.paid), [false, false, true, true]);
-    expect(report.rows.take(4).map((r) => Ko.weekdayLong(r.startsAt)), ['화요일', '월요일', '일요일', '토요일']);
+    expect(report.rows.take(4).map((r) => Biz.weekdayLong(r.startsAt)), ['화요일', '월요일', '일요일', '토요일']);
   });
 
   test('BA5 periods: this week from Monday, last month whole', () async {
@@ -125,8 +125,8 @@ void main() {
     expect([wFrom, wTo], [DateTime.utc(2026, 11, 9), DateTime.utc(2026, 11, 10)]);
     final (mFrom, mTo) = reportRange(ReportPeriod.lastMonth, now);
     expect([mFrom, mTo], [DateTime.utc(2026, 10, 1), DateTime.utc(2026, 10, 31)]);
-    expect(Ko.range(mFrom, mTo), '10월 1일–31일');
-    expect(Ko.range(DateTime.utc(2026, 10, 27), DateTime.utc(2026, 11, 2)), '10월 27일–11월 2일');
+    expect(Biz.range(mFrom, mTo), '10월 1일–31일');
+    expect(Biz.range(DateTime.utc(2026, 10, 27), DateTime.utc(2026, 11, 2)), '10월 27일–11월 2일');
     final r = repo();
     final week = await r.report(demoDalbit.id, wFrom, wTo);
     expect(week.rows.length, 2);
@@ -151,7 +151,7 @@ void main() {
     final (from, to) = reportRange(ReportPeriod.thisMonth, now);
     final csv = reportCsv(await repo().report(demoDalbit.id, from, to));
     final lines = csv.trimRight().split('\r\n');
-    expect(lines.first, '﻿${Ko.csvHeader}');
+    expect(lines.first, '﻿${Biz.csvHeader}');
     expect(lines.length, 10);
     expect(lines[1], '2026-11-10,화요일,오픈 바리스타 보조,2,10,105000,지급 대기');
   });
@@ -183,7 +183,7 @@ void main() {
   test('minimum wage by year (고용노동부 고시)', () {
     expect(minimumWageAt(Kst.instantOf(2026, 11, 12, 14)), 10320);
     expect(minimumWageAt(Kst.instantOf(2027, 1, 1, 0)), 10700);
-    expect(Ko.minimumWageOk(10320), '최저시급 10,320원 이상');
+    expect(Biz.minimumWageOk(10320), '최저시급 10,320원 이상');
   });
 
   test('editing a shift: times stay while workers hold places', () async {
@@ -232,8 +232,8 @@ void main() {
     expect(await r.toggleFavorite(demoDalbit.id, 'demo-w-kamila'), isTrue);
     expect((await r.workers(demoDalbit.id)).where((w) => w.favorite).length, 7);
     final aziz = workers.firstWhere((w) => w.fullName == 'Aziz Karimov');
-    expect(Ko.timesHere(aziz.timesHere, aziz.topik), '우리 매장 7회 · TOPIK 4급');
-    expect(languageNamesKo(aziz.languages), '우즈베크어 · 러시아어 · 영어 · 한국어');
+    expect(Biz.timesHere(aziz.timesHere, aziz.topik), '우리 매장 7회 · TOPIK 4급');
+    expect(languageNames(aziz.languages), '우즈베크어 · 러시아어 · 영어 · 한국어');
   });
 
   test('다시 요청 invites someone who has worked here to an open shift', () async {
@@ -273,14 +273,14 @@ void main() {
   });
 
   test('Korean dates and durations', () {
-    expect(Ko.duration(300), '5시간');
-    expect(Ko.duration(270), '4시간 30분');
-    expect(Ko.duration(30), '30분');
-    expect(Ko.dayWord(Kst.instantOf(2026, 11, 11, 9), now), '내일');
-    expect(Ko.dayWord(Kst.instantOf(2026, 11, 12, 9), now), '11월 12일 (목)');
-    expect(Ko.dotDate(Kst.instantOf(2026, 11, 12, 9)), '11.12');
-    expect(Ko.error(const ShiftActionException('SHIFT_FULL')), '자리가 모두 찼어요');
-    expect(Ko.error(const OfflineException()), '인터넷 연결을 확인해 주세요');
+    expect(Biz.duration(300), '5시간');
+    expect(Biz.duration(270), '4시간 30분');
+    expect(Biz.duration(30), '30분');
+    expect(Biz.dayWord(Kst.instantOf(2026, 11, 11, 9), now), '내일');
+    expect(Biz.dayWord(Kst.instantOf(2026, 11, 12, 9), now), '11월 12일 (목)');
+    expect(Biz.dotDate(Kst.instantOf(2026, 11, 12, 9)), '11.12');
+    expect(Biz.error(const ShiftActionException('SHIFT_FULL')), '자리가 모두 찼어요');
+    expect(Biz.error(const OfflineException()), '인터넷 연결을 확인해 주세요');
   });
 
   test('wages are typed with thousands separators', () {

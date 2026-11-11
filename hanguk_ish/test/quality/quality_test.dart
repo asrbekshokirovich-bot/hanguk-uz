@@ -17,6 +17,8 @@ import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/data/demo/demo_employer.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
+import 'package:hanguk_ish/features/employer/language.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 
 import '../helpers/employer_harness.dart';
@@ -103,13 +105,19 @@ void main() {
     }
   });
 
+  // In each of its four languages (P43; Korean is the prototype's).
   group('employer app', () {
-    Future<void> open(WidgetTester tester, String location) async {
+    Future<void> open(WidgetTester tester, String location, AppLanguage language) async {
       usePhone(tester, TestPhone.small);
       setLargeText(tester);
       final repo = DemoEmployerRepository(now: employerPrototypeNow, clock: () => employerPrototypeNow);
-      final container = employerContainer(location: location, repository: repo);
+      final container = employerContainer(
+        location: location,
+        repository: repo,
+        overrides: [employerDefaultLanguageProvider.overrideWithValue(language)],
+      );
       addTearDown(container.dispose);
+      addTearDown(() => Biz.use(AppLanguage.ko));
       await tester.pumpWidget(employerHarness(container));
       await tester.pumpAndSettle();
     }
@@ -125,14 +133,16 @@ void main() {
       'bell': EmployerRoutes.notifications,
     };
     for (final MapEntry(key: name, value: location) in screens.entries) {
-      testWidgets(name, (tester) async {
-        final semantics = tester.ensureSemantics();
-        try {
-          await expectAccessible(tester, name, () => open(tester, location));
-        } finally {
-          semantics.dispose();
-        }
-      });
+      for (final language in AppLanguage.values) {
+        testWidgets('$name ${language.code}', (tester) async {
+          final semantics = tester.ensureSemantics();
+          try {
+            await expectAccessible(tester, '$name ${language.code}', () => open(tester, location, language));
+          } finally {
+            semantics.dispose();
+          }
+        });
+      }
     }
   });
 }

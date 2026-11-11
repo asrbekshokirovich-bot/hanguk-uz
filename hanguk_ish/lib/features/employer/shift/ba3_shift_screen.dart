@@ -17,7 +17,7 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../design/widgets/qr.dart';
-import '../ko.dart';
+import '../biz.dart';
 import '../providers.dart';
 import '../widgets.dart';
 
@@ -51,20 +51,20 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
       await ref.read(employerRepositoryProvider).decide(applicant.applicationId, accept: accept);
       refreshShifts(ref, widget.shiftId);
       (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(
-        content: Text(accept ? Ko.confirmed(applicant.worker.fullName) : Ko.rejected(applicant.worker.fullName)),
+        content: Text(accept ? Biz.confirmed(applicant.worker.fullName) : Biz.rejected(applicant.worker.fullName)),
       ));
     } on Object catch (error) {
       refreshShifts(ref, widget.shiftId);
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     } finally {
       if (mounted) setState(() => _busy.remove(applicant.applicationId));
     }
   }
 
   Future<void> _more(EmployerShift shift) async {
-    final choice = await showHiActions(context, actions: const [
-      (HiIcons.pencil, Ko.editShift),
-      (HiIcons.x, Ko.cancelShift),
+    final choice = await showHiActions(context, actions: [
+      (HiIcons.pencil, Biz.editShift),
+      (HiIcons.x, Biz.cancelShift),
     ]);
     if (!mounted || choice == null) return;
     if (choice == 0) return widget.onEdit();
@@ -80,30 +80,32 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
     try {
       await ref.read(employerRepositoryProvider).cancelShift(shift.id);
       refreshShifts(ref, shift.id);
-      (messenger..hideCurrentSnackBar()).showSnackBar(const SnackBar(content: Text(Ko.shiftCancelled)));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.shiftCancelled)));
     } on Object catch (error) {
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
   }
 
   Future<void> _shareQr(EmployerShift shift, String payload, String business) async {
     final messenger = ScaffoldMessenger.of(context);
-    final when = '${Ko.monthDay(shift.startsAt)} ${Kst.hm(shift.startsAt)}–${Kst.hm(shift.endsAt)}';
+    final when = '${Biz.monthDay(shift.startsAt)} ${Kst.hm(shift.startsAt)}–${Kst.hm(shift.endsAt)}';
     try {
       final bytes = await qrCardPng(
         data: payload,
         title: business,
         subtitle: '${shift.title} · $when',
-        note: Ko.qrNote,
+        note: Biz.qrNote,
       );
       await ref.read(fileSharerProvider).share(
             bytes: bytes,
-            fileName: 'hanguk-ish-qr-${Ko.dotDate(shift.startsAt).replaceAll('.', '')}.png',
+            // «1112»: month and day, in any language.
+            fileName: 'hanguk-ish-qr-${Kst.wallClock(shift.startsAt).month.toString().padLeft(2, '0')}'
+                '${Kst.wallClock(shift.startsAt).day.toString().padLeft(2, '0')}.png',
             mimeType: 'image/png',
-            text: Ko.qrShareText(business, shift.title, when),
+            text: Biz.qrShareText(business, shift.title, when),
           );
     } on Object catch (error) {
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
   }
 
@@ -112,7 +114,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
   Widget _withoutShift(AsyncValue<EmployerShift?> loaded, double top) {
     final Widget message;
     if (loaded.hasValue && !loaded.hasError) {
-      message = const HiStatusMessage(icon: HiIcons.info, title: Ko.shiftNotFound, text: '');
+      message = HiStatusMessage(icon: HiIcons.info, title: Biz.shiftNotFound, text: '');
     } else if (loaded.isLoading) {
       message = const CircularProgressIndicator(color: HiColors.lime);
     } else {
@@ -133,7 +135,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                 size: 44,
                 radius: 14,
                 iconSize: 22,
-                semanticsLabel: Ko.back,
+                semanticsLabel: Biz.back,
                 onTap: widget.onBack,
               ),
             ],
@@ -174,7 +176,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                           size: 44,
                           radius: 14,
                           iconSize: 22,
-                          semanticsLabel: Ko.back,
+                          semanticsLabel: Biz.back,
                           onTap: widget.onBack,
                         ),
                         const Spacer(),
@@ -209,8 +211,8 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                         ),
                         const SizedBox(height: 8),
                         HiText(
-                          '${Ko.shiftWhen(shift.startsAt, shift.endsAt, now)}\n'
-                          '${Ko.shiftTerms(shift.hourlyWage, shift.confirmed, shift.slots, shift.autoConfirm)}',
+                          '${Biz.shiftWhen(shift.startsAt, shift.endsAt, now)}\n'
+                          '${Biz.shiftTerms(shift.hourlyWage, shift.confirmed, shift.slots, shift.autoConfirm)}',
                           style: hiStyle(15, FontWeight.w600, height: 1.55, color: HiColors.textSoft),
                         ),
                       ],
@@ -219,8 +221,8 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                   if (shift.waiting.isNotEmpty) ...[
                     const SizedBox(height: 22),
                     _SectionHeader(
-                      title: Ko.applicants(shift.waiting.length),
-                      note: shift.autoConfirm ? null : Ko.decideYourself,
+                      title: Biz.applicants(shift.waiting.length),
+                      note: shift.autoConfirm ? null : Biz.decideYourself,
                     ),
                     for (final a in shift.waiting)
                       Padding(
@@ -235,7 +237,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                       ),
                   ],
                   const SizedBox(height: 24),
-                  _SectionHeader(title: Ko.attendance, note: '${Kst.hm(now)} 기준'),
+                  _SectionHeader(title: Biz.attendance, note: Biz.asOfTime(now)),
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
@@ -243,7 +245,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                   ),
                   if (!shift.cancelled) ...[
                     const SizedBox(height: 24),
-                    _SectionHeader(title: Ko.qrTitle),
+                    _SectionHeader(title: Biz.qrTitle),
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
@@ -286,7 +288,7 @@ class _EditButton extends StatelessWidget {
           children: [
             const HiIcon(HiIcons.pencil, size: 16, strokeWidth: 2, color: HiColors.white),
             const SizedBox(width: 6),
-            HiText(Ko.edit, style: hiStyle(15, FontWeight.w700)),
+            HiText(Biz.edit, style: hiStyle(15, FontWeight.w700)),
           ],
         ),
       ),
@@ -362,9 +364,9 @@ class _ApplicantCard extends StatelessWidget {
                         runSpacing: 4,
                         children: [
                           RatingMark(rating: w.rating),
-                          HiText(Ko.completedCount(w.completedShifts),
+                          HiText(Biz.completedCount(w.completedShifts),
                               style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted)),
-                          EmployerChip(label: Ko.topik(w.topik), background: HiColors.surface, height: 24, padding: 8),
+                          EmployerChip(label: Biz.topik(w.topik), background: HiColors.surface, height: 24, padding: 8),
                         ],
                       ),
                     ],
@@ -373,13 +375,13 @@ class _ApplicantCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            HiText(languageNamesKo(w.languages), style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted)),
+            HiText(languageNames(w.languages), style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted)),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: HiButton(
-                    label: Ko.reject,
+                    label: Biz.reject,
                     style: HiButtonStyle.outline,
                     height: 48,
                     fontSize: 16,
@@ -389,7 +391,7 @@ class _ApplicantCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HiButton(
-                    label: Ko.confirm,
+                    label: Biz.confirm,
                     style: HiButtonStyle.ink,
                     height: 48,
                     fontSize: 16,
@@ -426,7 +428,7 @@ class _AttendanceList extends StatelessWidget {
       child: crew.isEmpty
           ? Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
-              child: HiText(Ko.noCrew, style: hiStyle(15, FontWeight.w600, color: HiColors.inkMuted)),
+              child: HiText(Biz.noCrew, style: hiStyle(15, FontWeight.w600, color: HiColors.inkMuted)),
             )
           : Column(
               children: [
@@ -460,26 +462,26 @@ class _AttendanceRow extends StatelessWidget {
     final inAt = a.checkInAt;
     final outAt = a.checkOutAt;
     final sub = inAt == null
-        ? Ko.notInYet
-        : (outAt == null ? Ko.checkedInAt(inAt) : Ko.checkedInOut(inAt, outAt));
+        ? Biz.notInYet
+        : (outAt == null ? Biz.checkedInAt(inAt) : Biz.checkedInOut(inAt, outAt));
     final subStyle = inAt == null
         ? hiStyle(13, FontWeight.w600, color: HiColors.inkMuted)
         : hiStyle(13, FontWeight.w600, color: HiColors.inkMuted, family: HiFamily.mono);
     final late = a.lateMinutes ?? 0;
     final EmployerChip chip;
     if (a.status == ApplicationStatus.noShow) {
-      chip = const EmployerChip(label: Ko.noShow, background: HiColors.redSoft, foreground: HiColors.redInk);
+      chip = EmployerChip(label: Biz.noShow, background: HiColors.redSoft, foreground: HiColors.redInk);
     } else if (a.status == ApplicationStatus.completed) {
-      chip = const EmployerChip(label: Ko.leftWork, background: HiColors.surface);
+      chip = EmployerChip(label: Biz.leftWork, background: HiColors.surface);
     } else if (a.status == ApplicationStatus.checkedIn) {
       chip = late > 0
-          ? EmployerChip(label: Ko.late(late), background: HiColors.amberSoft)
-          : const EmployerChip(label: Ko.atWork, background: HiColors.greenSoft);
+          ? EmployerChip(label: Biz.late(late), background: HiColors.amberSoft)
+          : EmployerChip(label: Biz.atWork, background: HiColors.greenSoft);
     } else if (now.isBefore(a.dueAt(shift.startsAt))) {
-      chip = const EmployerChip(label: Ko.beforeStart, background: HiColors.surface);
+      chip = EmployerChip(label: Biz.beforeStart, background: HiColors.surface);
     } else {
       chip = EmployerChip(
-        label: Ko.missing(Kst.minutesBetween(a.dueAt(shift.startsAt), now)),
+        label: Biz.missing(Kst.minutesBetween(a.dueAt(shift.startsAt), now)),
         background: HiColors.redSoft,
         foreground: HiColors.redInk,
       );
@@ -528,7 +530,7 @@ class _QrCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = qr.value;
     final failed = data == null && qr.hasError && !qr.isLoading;
-    final offline = failed && Ko.isOffline(qr.error!);
+    final offline = failed && Biz.isOffline(qr.error!);
     final muted = hiStyle(14, FontWeight.w600, color: HiColors.inkMuted);
     return EmployerCard(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
@@ -542,7 +544,7 @@ class _QrCard extends StatelessWidget {
           SizedBox.square(
             dimension: 180,
             child: data != null
-                ? HiQrCode(data: data, semanticsLabel: Ko.qrTitle)
+                ? HiQrCode(data: data, semanticsLabel: Biz.qrTitle)
                 : failed
                     ? Semantics(
                         liveRegion: true,
@@ -552,7 +554,7 @@ class _QrCard extends StatelessWidget {
                             HiIcon(offline ? HiIcons.wifiOff : HiIcons.triangleAlert,
                                 size: 36, strokeWidth: 2, color: HiColors.inkMuted),
                             const SizedBox(height: 10),
-                            HiText(offline ? Ko.offlineTitle : Ko.loadFailed,
+                            HiText(offline ? Biz.offlineTitle : Biz.loadFailed,
                                 textAlign: TextAlign.center, style: hiStyle(15, FontWeight.w700, color: HiColors.ink)),
                           ],
                         ),
@@ -560,10 +562,10 @@ class _QrCard extends StatelessWidget {
                     : const Center(child: CircularProgressIndicator(color: HiColors.ink)),
           ),
           const SizedBox(height: 6 + 8),
-          HiText(Ko.qrNote, textAlign: TextAlign.center, style: muted),
+          HiText(Biz.qrNote, textAlign: TextAlign.center, style: muted),
           const SizedBox(height: 8 + 6),
           HiButton(
-            label: failed ? Ko.retry : Ko.qrShare,
+            label: failed ? Biz.retry : Biz.qrShare,
             icon: failed ? HiIcons.refreshCw : HiIcons.printer,
             iconSize: 19,
             iconStroke: 2.2,
@@ -594,12 +596,12 @@ class _CancelShiftSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Semantics(header: true, child: HiText(Ko.cancelShiftTitle, style: hiStyle(22, FontWeight.w800, color: HiColors.ink))),
+          Semantics(header: true, child: HiText(Biz.cancelShiftTitle, style: hiStyle(22, FontWeight.w800, color: HiColors.ink))),
           const SizedBox(height: 8),
-          HiText(Ko.cancelShiftText, style: hiStyle(15, FontWeight.w500, color: HiColors.inkMuted)),
+          HiText(Biz.cancelShiftText, style: hiStyle(15, FontWeight.w500, color: HiColors.inkMuted)),
           const SizedBox(height: 20),
           HiButton(
-            label: Ko.cancelShift,
+            label: Biz.cancelShift,
             style: HiButtonStyle.danger,
             height: 52,
             fontSize: 17,
@@ -607,7 +609,7 @@ class _CancelShiftSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           HiButton(
-            label: Ko.close,
+            label: Biz.close,
             style: HiButtonStyle.text,
             textColor: HiColors.ink,
             height: 48,

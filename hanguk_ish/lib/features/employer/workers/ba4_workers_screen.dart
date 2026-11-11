@@ -12,7 +12,7 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
-import '../ko.dart';
+import '../biz.dart';
 import '../providers.dart';
 import '../widgets.dart';
 
@@ -58,7 +58,7 @@ class _Ba4WorkersScreenState extends ConsumerState<Ba4WorkersScreen> {
       if (mounted) setState(() => _favoriteOverride[worker.id] = saved);
     } on Object catch (error) {
       if (mounted) setState(() => _favoriteOverride.remove(worker.id));
-      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Ko.error(error))));
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
   }
 
@@ -93,16 +93,16 @@ class _Ba4WorkersScreenState extends ConsumerState<Ba4WorkersScreen> {
               children: [
                 Semantics(
                   header: true,
-                  child: HiText(Ko.workersTitle, style: hiStyle(28, FontWeight.w800, height: 1.2, letterSpacingEm: -0.02)),
+                  child: HiText(Biz.workersTitle, style: hiStyle(28, FontWeight.w800, height: 1.2, letterSpacingEm: -0.02)),
                 ),
                 const SizedBox(height: 12),
                 HiSegmentedTabs(
-                  labels: const [Ko.favorites, Ko.recentWorkers],
+                  labels: [Biz.favorites, Biz.recentWorkers],
                   // No counts until the list has loaded: 0 would not be true.
                   counts: loaded.hasValue ? ['${favorites.length}', '${all.length}'] : null,
                   current: tab,
                   onSelect: ref.read(workersTabProvider.notifier).select,
-                  semanticsLabel: Ko.workersTabs,
+                  semanticsLabel: Biz.workersTabs,
                 ),
                 const SizedBox(height: 12),
                 _SearchField(controller: _search, onChanged: () => setState(() {})),
@@ -132,7 +132,7 @@ class _Ba4WorkersScreenState extends ConsumerState<Ba4WorkersScreen> {
                         ? Padding(
                             padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
                             child: HiText(
-                              query.isNotEmpty ? Ko.noResults : (tab == 0 ? Ko.noFavorites : Ko.noWorkers),
+                              query.isNotEmpty ? Biz.noResults : (tab == 0 ? Biz.noFavorites : Biz.noWorkers),
                               textAlign: TextAlign.center,
                               style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft),
                             ),
@@ -181,7 +181,7 @@ class _SearchField extends StatelessWidget {
           const SizedBox(width: 42 - 14 - 18),
           Expanded(
             child: Semantics(
-              label: Ko.searchLabel,
+              label: Biz.searchLabel,
               textField: true,
               // Fills the bar's height: the whole bar is the tap target.
               child: SizedBox(
@@ -199,7 +199,7 @@ class _SearchField extends StatelessWidget {
                   textAlignVertical: TextAlignVertical.center,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration.collapsed(
-                    hintText: Ko.searchPlaceholder,
+                    hintText: Biz.searchPlaceholder,
                     hintStyle: text.copyWith(color: HiColors.inkMuted),
                   ),
                 ),
@@ -247,7 +247,7 @@ class _WorkerCardView extends StatelessWidget {
                           const SizedBox(width: 6),
                           Flexible(
                             child: HiText(
-                              Ko.timesHere(w.timesHere, w.topik),
+                              Biz.timesHere(w.timesHere, w.topik),
                               style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted),
                             ),
                           ),
@@ -260,7 +260,7 @@ class _WorkerCardView extends StatelessWidget {
                 HiPressable(
                   onTap: onStar,
                   selected: w.favorite,
-                  semanticsLabel: w.favorite ? Ko.unfavorite(w.fullName) : Ko.favorite(w.fullName),
+                  semanticsLabel: w.favorite ? Biz.unfavorite(w.fullName) : Biz.favorite(w.fullName),
                   builder: (context, pressed) => Container(
                     width: 44,
                     height: 44,
@@ -285,13 +285,13 @@ class _WorkerCardView extends StatelessWidget {
               children: [
                 Expanded(
                   child: HiText(
-                    languageNamesKo(w.languages),
+                    languageNames(w.languages),
                     style: hiStyle(14, FontWeight.w600, height: 1.4, color: HiColors.inkMuted),
                   ),
                 ),
                 const SizedBox(width: 10),
                 HiButton(
-                  label: Ko.requestAgain,
+                  label: Biz.requestAgain,
                   style: HiButtonStyle.ink,
                   height: 44,
                   fontSize: 15,

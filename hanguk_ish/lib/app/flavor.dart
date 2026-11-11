@@ -6,7 +6,7 @@ enum Flavor {
   worker(appName: 'Hanguk Ish'),
 
   /// «Hanguk Ish 사장님» — uz.hanguk.ish.biz — businesses posting shifts
-  /// (Korean).
+  /// (ko/uz/ru/en; Korean first).
   employer(appName: 'Hanguk Ish 사장님');
 
   const Flavor({required this.appName});

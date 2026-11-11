@@ -15,7 +15,8 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../worker/shift/shift_widgets.dart';
-import '../ko.dart';
+import '../biz.dart';
+import '../language.dart';
 import '../providers.dart';
 import '../widgets.dart';
 
@@ -71,13 +72,16 @@ class Ba1HomeScreen extends ConsumerWidget {
                     children: [
                       Expanded(child: _StoreButton(business: business)),
                       const SizedBox(width: 8),
+                      // P43: the app's language.
+                      const EmployerLanguageButton(),
+                      const SizedBox(width: 8),
                       HiGlassIconButton(
                         icon: HiIcons.bell,
                         size: 48,
                         radius: 16,
                         iconSize: 21,
                         badge: unread > 0,
-                        semanticsLabel: Ko.bell(unread),
+                        semanticsLabel: Biz.bell(unread),
                         onTap: actions.notifications,
                       ),
                     ],
@@ -86,12 +90,12 @@ class Ba1HomeScreen extends ConsumerWidget {
                   Semantics(
                     header: true,
                     child: HiText(
-                      Ko.todayTitle,
+                      Biz.todayTitle,
                       style: hiStyle(26, FontWeight.w800, height: 1.2, letterSpacingEm: -0.02),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  HiText(Ko.asOf(now), style: hiStyle(15, FontWeight.w600, color: HiColors.textMuted)),
+                  HiText(Biz.asOf(now), style: hiStyle(15, FontWeight.w600, color: HiColors.textMuted)),
                 ],
               ),
             ),
@@ -134,7 +138,7 @@ class Ba1HomeScreen extends ConsumerWidget {
               const SizedBox(height: 18),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: Semantics(header: true, child: HiText(Ko.today, style: hiStyle(17, FontWeight.w800))),
+                child: Semantics(header: true, child: HiText(Biz.today, style: hiStyle(17, FontWeight.w800))),
               ),
               const SizedBox(height: 10),
               if (today.isEmpty)
@@ -152,7 +156,7 @@ class Ba1HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 18),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 0, 22, 10),
-                  child: Semantics(header: true, child: HiText(Ko.upcoming, style: hiStyle(17, FontWeight.w800))),
+                  child: Semantics(header: true, child: HiText(Biz.upcoming, style: hiStyle(17, FontWeight.w800))),
                 ),
                 for (final (i, s) in upcoming.indexed)
                   Padding(
@@ -205,12 +209,12 @@ class _ReviewNotice extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   HiText(
-                    rejected ? Ko.reviewRejectedTitle : Ko.reviewPendingTitle,
+                    rejected ? Biz.reviewRejectedTitle : Biz.reviewPendingTitle,
                     style: hiStyle(16, FontWeight.w800, color: HiColors.ink),
                   ),
                   const SizedBox(height: 3),
                   HiText(
-                    rejected ? Ko.reviewRejectedText : Ko.reviewPendingText,
+                    rejected ? Biz.reviewRejectedText : Biz.reviewPendingText,
                     style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted),
                   ),
                 ],
@@ -240,7 +244,7 @@ class _StoreButton extends ConsumerWidget {
               if (!context.mounted) return;
               final picked = await showHiPicker(
                 context,
-                title: Ko.storeSwitch,
+                title: Biz.storeSwitch,
                 options: [for (final x in all) HiPickerOption(x.id, x.name)],
                 searchHint: '',
                 searchable: false,
@@ -250,7 +254,7 @@ class _StoreButton extends ConsumerWidget {
                 ref.read(selectedBusinessIdProvider.notifier).select(picked);
               }
             },
-      semanticsLabel: b == null ? null : '${b.name}, ${Ko.storeSwitch}',
+      semanticsLabel: b == null ? null : '${b.name}, ${Biz.storeSwitch}',
       builder: (context, pressed) => SizedBox(
         height: 44,
         child: Row(
@@ -287,7 +291,7 @@ class _AttentionCard extends StatelessWidget {
     final waiting = shift.waiting.length;
     return Semantics(
       container: true,
-      label: Ko.attentionLabel,
+      label: Biz.attentionLabel,
       child: EmployerCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -307,10 +311,10 @@ class _AttentionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      HiText(Ko.attentionTitle, style: hiStyle(16, FontWeight.w800, color: HiColors.ink)),
+                      HiText(Biz.attentionTitle, style: hiStyle(16, FontWeight.w800, color: HiColors.ink)),
                       const SizedBox(height: 3),
                       HiText(
-                        Ko.attention(shift.title, noShows: shift.noShows(now), open: shift.openSlots, waiting: waiting),
+                        Biz.attention(shift.title, noShows: shift.noShows(now), open: shift.openSlots, waiting: waiting),
                         style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted),
                       ),
                     ],
@@ -320,7 +324,7 @@ class _AttentionCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             HiButton(
-              label: waiting > 0 ? Ko.checkApplicants : Ko.checkShift,
+              label: waiting > 0 ? Biz.checkApplicants : Biz.checkShift,
               style: HiButtonStyle.ink,
               height: 44,
               fontSize: 15,
@@ -366,7 +370,7 @@ class _SummaryBand extends StatelessWidget {
         );
     return Semantics(
       container: true,
-      label: Ko.todaySummary,
+      label: Biz.todaySummary,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
@@ -378,13 +382,13 @@ class _SummaryBand extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            stat(Ko.statShifts, '${shifts.length}', Ko.unitCount),
+            stat(Biz.statShifts, '${shifts.length}', Biz.unitCount),
             const SizedBox(width: 8),
-            stat(Ko.statConfirmed, '$confirmed/$slots'),
+            stat(Biz.statConfirmed, '$confirmed/$slots'),
             const SizedBox(width: 8),
-            stat(Ko.statOpen, '$open'),
+            stat(Biz.statOpen, '$open'),
             const SizedBox(width: 8),
-            stat(Ko.statNoShow, '$missing', Ko.unitPeople),
+            stat(Biz.statNoShow, '$missing', Biz.unitPeople),
           ],
         ),
       ),
@@ -405,7 +409,7 @@ class ShiftRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final crew = Ko.crewLine(shift.confirmed, shift.slots, shift.waiting.length);
+    final crew = Biz.crewLine(shift.confirmed, shift.slots, shift.waiting.length);
     return HiPressable(
       onTap: onTap,
       builder: (context, pressed) => Container(
@@ -439,7 +443,7 @@ class ShiftRow extends StatelessWidget {
                   HiText(shift.title, style: hiStyle(16, FontWeight.w800, color: HiColors.ink)),
                   const SizedBox(height: 2),
                   HiText(
-                    showDay ? '${Ko.dayWord(shift.startsAt, now)} · $crew' : crew,
+                    showDay ? '${Biz.dayWord(shift.startsAt, now)} · $crew' : crew,
                     style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted),
                   ),
                 ],
@@ -465,11 +469,11 @@ class _EmptyToday extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          HiText(Ko.noShiftsToday, style: hiStyle(16, FontWeight.w800, color: HiColors.ink)),
+          HiText(Biz.noShiftsToday, style: hiStyle(16, FontWeight.w800, color: HiColors.ink)),
           const SizedBox(height: 3),
-          HiText(Ko.noShiftsTodayHint, style: hiStyle(15, FontWeight.w500, color: HiColors.inkMuted)),
+          HiText(Biz.noShiftsTodayHint, style: hiStyle(15, FontWeight.w500, color: HiColors.inkMuted)),
           const SizedBox(height: 12),
-          HiButton(label: Ko.post, height: 44, fontSize: 15, icon: HiIcons.plus, iconSize: 18, iconGap: 6, onPressed: onCreate),
+          HiButton(label: Biz.post, height: 44, fontSize: 15, icon: HiIcons.plus, iconSize: 18, iconGap: 6, onPressed: onCreate),
         ],
       ),
     );

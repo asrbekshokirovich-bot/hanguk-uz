@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/data/demo/demo_employer.dart';
 import 'package:hanguk_ish/data/models/employer.dart';
-import 'package:hanguk_ish/features/employer/ko.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
 
 import '../../helpers/employer_harness.dart';
 import '../../helpers/fonts.dart';
@@ -62,10 +62,10 @@ void main() {
     addTearDown(container.dispose);
     await tester.pumpWidget(employerHarness(container));
     await tester.pumpAndSettle();
-    expect(find.text(Ko.notifAutoConfirmed), findsOneWidget);
-    expect(find.text(Ko.notifAutoConfirmedText('Aziz Karimov', '오픈 바리스타 보조')), findsOneWidget);
-    expect(find.text(Ko.notifNewApplicant), findsOneWidget);
-    expect(find.text(Ko.notifNewApplicantText('Malika Yusupova', '마감 정리 보조')), findsOneWidget);
+    expect(find.text(Biz.notifAutoConfirmed), findsOneWidget);
+    expect(find.text(Biz.notifAutoConfirmedText('Aziz Karimov', '오픈 바리스타 보조')), findsOneWidget);
+    expect(find.text(Biz.notifNewApplicant), findsOneWidget);
+    expect(find.text(Biz.notifNewApplicantText('Malika Yusupova', '마감 정리 보조')), findsOneWidget);
   });
 
   testWidgets('알림: a server that marks nothing is asked once, not in an endless loop', (tester) async {
@@ -85,6 +85,6 @@ void main() {
     await tester.pumpWidget(employerHarness(container));
     await tester.pumpAndSettle();
     expect(repo.markCalls, 1);
-    expect(find.text(Ko.notifNewApplicantText('Aziz Karimov', '오픈 바리스타 보조')), findsOneWidget);
+    expect(find.text(Biz.notifNewApplicantText('Aziz Karimov', '오픈 바리스타 보조')), findsOneWidget);
   });
 }

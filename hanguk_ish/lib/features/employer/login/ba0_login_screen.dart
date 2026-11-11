@@ -10,7 +10,8 @@ import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/forms.dart';
 import '../../../design/widgets/layout.dart';
 import '../../../design/widgets/link_text.dart';
-import '../ko.dart';
+import '../biz.dart';
+import '../language.dart';
 
 /// BA0 «App Login»: owner's mobile number and business registration number.
 class Ba0LoginScreen extends StatefulWidget {
@@ -53,7 +54,23 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
         glow: HiGlow.entry,
         watermark: '사장님',
         watermarkSize: 150,
-        child: HiPinnedBottomLayout(
+        child: Stack(
+          children: [
+            Positioned.fill(child: _layout(context, label)),
+            // P43: the app's language, before anything else.
+            Positioned(
+              top: HiInsets.top(context, 52),
+              right: 22,
+              child: const EmployerLanguageButton(size: 44),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _layout(BuildContext context, TextStyle label) {
+    return HiPinnedBottomLayout(
           top: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -85,12 +102,12 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const HiNavyPill(Ko.ownerBadge),
+                        HiNavyPill(Biz.ownerBadge),
                       ],
                     ),
                     const SizedBox(height: 14),
                     HiText(
-                      Ko.loginSubtitle,
+                      Biz.loginSubtitle,
                       style: hiStyle(
                         17,
                         FontWeight.w600,
@@ -107,31 +124,31 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      HiText(Ko.phoneLabel, style: label),
+                      HiText(Biz.phoneLabel, style: label),
                       const SizedBox(height: 8),
                       HiInputField(
                         controller: _phone,
                         mono: true,
-                        placeholder: Ko.phonePlaceholder,
+                        placeholder: Biz.phonePlaceholder,
                         keyboardType: TextInputType.phone,
                         autofillHints: const [AutofillHints.telephoneNumber],
                         inputFormatters: [_phoneMask],
                       ),
                       const SizedBox(height: 18),
-                      HiText(Ko.bizNoLabel, style: label),
+                      HiText(Biz.bizNoLabel, style: label),
                       const SizedBox(height: 8),
                       HiInputField(
                         controller: _bizNo,
                         mono: true,
                         keyboardType: TextInputType.number,
-                        placeholder: Ko.bizNoPlaceholder,
+                        placeholder: Biz.bizNoPlaceholder,
                         inputFormatters: [_bizNoMask],
                         textInputAction: TextInputAction.done,
                         onSubmitted: (_) => _start(),
                       ),
                       const SizedBox(height: 8),
                       HiText(
-                        Ko.bizNoHint,
+                        Biz.bizNoHint,
                         style: hiStyle(
                           14,
                           FontWeight.w600,
@@ -156,16 +173,16 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 HiButton(
-                  label: Ko.start,
+                  label: Biz.start,
                   height: 56,
                   fontSize: 18,
                   onPressed: _start,
                 ),
                 const SizedBox(height: 14),
                 HiLinkSentence(
-                  prefix: Ko.termsPrefix,
-                  link: Ko.termsLink,
-                  suffix: Ko.termsSuffix,
+                  prefix: Biz.termsPrefix,
+                  link: Biz.termsLink,
+                  suffix: Biz.termsSuffix,
                   style: hiStyle(
                     14,
                     FontWeight.w400,
@@ -184,8 +201,6 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
+        );
   }
 }

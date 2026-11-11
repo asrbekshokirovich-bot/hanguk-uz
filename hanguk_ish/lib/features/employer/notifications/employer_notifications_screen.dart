@@ -12,7 +12,7 @@ import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
-import '../ko.dart';
+import '../biz.dart';
 import '../providers.dart';
 import '../widgets.dart';
 
@@ -72,8 +72,8 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
     final today = kstDayStart(now);
     final yesterday = kstDayStart(now, -1);
     String group(EmployerNotification n) => !n.createdAt.isBefore(today)
-        ? Ko.today
-        : (!n.createdAt.isBefore(yesterday) ? Ko.yesterday : Ko.monthDay(n.createdAt));
+        ? Biz.today
+        : (!n.createdAt.isBefore(yesterday) ? Biz.yesterday : Biz.monthDay(n.createdAt));
     final children = <Widget>[];
     String? last;
     for (final n in list ?? const <EmployerNotification>[]) {
@@ -111,13 +111,13 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
                     size: 44,
                     radius: 14,
                     iconSize: 22,
-                    semanticsLabel: Ko.back,
+                    semanticsLabel: Biz.back,
                     onTap: widget.onBack,
                   ),
                   const SizedBox(width: 12),
                   Semantics(
                     header: true,
-                    child: HiText(Ko.notificationsTitle,
+                    child: HiText(Biz.notificationsTitle,
                         style: hiStyle(26, FontWeight.w800, height: 1.2, letterSpacingEm: -0.02)),
                   ),
                 ],
@@ -138,7 +138,7 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
                   ? const Center(child: CircularProgressIndicator(color: HiColors.lime))
                   : list.isEmpty
                       ? Center(
-                          child: HiText(Ko.noNotifications, style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft)),
+                          child: HiText(Biz.noNotifications, style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft)),
                         )
                       : ListView(
                           padding: EdgeInsets.only(bottom: HiInsets.bottom(context, 24)),
@@ -169,36 +169,36 @@ class _NotificationCard extends StatelessWidget {
       // 자동 확정 on: the worker is already confirmed — nothing to decide.
       EmployerNotificationKind.newApplicant when n.autoConfirmed => (
           HiIcons.check,
-          Ko.notifAutoConfirmed,
-          Ko.notifAutoConfirmedText(n.workerName, n.shiftTitle),
+          Biz.notifAutoConfirmed,
+          Biz.notifAutoConfirmedText(n.workerName, n.shiftTitle),
           HiColors.greenSoft,
           HiColors.greenInk,
         ),
       EmployerNotificationKind.newApplicant => (
           HiIcons.users,
-          Ko.notifNewApplicant,
-          Ko.notifNewApplicantText(n.workerName, n.shiftTitle),
+          Biz.notifNewApplicant,
+          Biz.notifNewApplicantText(n.workerName, n.shiftTitle),
           HiColors.surface,
           HiColors.ink,
         ),
       EmployerNotificationKind.workerCancelled => (
           HiIcons.userX,
-          Ko.notifCancelled,
-          Ko.notifCancelledText(n.workerName, n.shiftTitle),
+          Biz.notifCancelled,
+          Biz.notifCancelledText(n.workerName, n.shiftTitle),
           HiColors.redSoft,
           HiColors.redInk,
         ),
       EmployerNotificationKind.noShow => (
           HiIcons.triangleAlert,
-          Ko.notifNoShow,
-          Ko.notifNoShowText(n.workerName, n.shiftTitle),
+          Biz.notifNoShow,
+          Biz.notifNoShowText(n.workerName, n.shiftTitle),
           HiColors.amberSoft,
           HiColors.ink,
         ),
       EmployerNotificationKind.chatMessage => (
           HiIcons.messageCircle,
-          Ko.notifMessage,
-          Ko.notifMessageText(n.workerName, n.shiftTitle),
+          Biz.notifMessage,
+          Biz.notifMessageText(n.workerName, n.shiftTitle),
           HiColors.surface,
           HiColors.ink,
         ),

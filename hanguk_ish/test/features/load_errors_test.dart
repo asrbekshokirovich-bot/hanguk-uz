@@ -15,7 +15,7 @@ import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/live_updates.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
-import 'package:hanguk_ish/features/employer/ko.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
 import 'package:hanguk_ish/features/employer/providers.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
@@ -168,7 +168,7 @@ void main() {
     }
 
     Future<void> retry(WidgetTester tester) async {
-      final button = find.text(Ko.retry);
+      final button = find.text(Biz.retry);
       await tester.ensureVisible(button);
       await tester.pumpAndSettle();
       await tester.tap(button);
@@ -178,15 +178,15 @@ void main() {
     testWidgets('BA1 offline says so instead of an empty day; 다시 시도 loads it', (tester) async {
       final repo = OfflineEmployer()..offline.add('shifts');
       await open(tester, repo);
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
-      expect(find.text(Ko.offlineText), findsOneWidget);
-      expect(find.text(Ko.noShiftsToday), findsNothing, reason: 'not an empty day');
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
+      expect(find.text(Biz.offlineText), findsOneWidget);
+      expect(find.text(Biz.noShiftsToday), findsNothing, reason: 'not an empty day');
       expect(find.text('남은 자리'), findsNothing, reason: 'no counts that are not known');
       expect(find.text('오늘의 근무'), findsOneWidget, reason: 'the header stays');
 
       repo.offline.clear();
       await retry(tester);
-      expect(find.text(Ko.offlineTitle), findsNothing);
+      expect(find.text(Biz.offlineTitle), findsNothing);
       expect(find.text('오픈 바리스타 보조'), findsOneWidget);
       expect(find.text('남은 자리'), findsOneWidget);
     });
@@ -194,7 +194,7 @@ void main() {
     testWidgets('a business list that failed at the start loads again on 다시 시도', (tester) async {
       final repo = OfflineEmployer()..offline.add('businesses');
       await open(tester, repo);
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
       repo.offline.clear();
       await retry(tester);
       expect(find.text('달빛카페 신촌점'), findsOneWidget);
@@ -214,8 +214,8 @@ void main() {
     testWidgets('BA3 not loaded: the back button stays; then the shift; a missing one says so', (tester) async {
       final repo = OfflineEmployer()..offline.add('shift');
       await open(tester, repo, location: EmployerRoutes.shift('demo-es-close'));
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
-      expect(find.bySemanticsLabel(Ko.back), findsOneWidget);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
+      expect(find.bySemanticsLabel(Biz.back), findsOneWidget);
       repo.offline.clear();
       await retry(tester);
       expect(find.text('마감 정리 보조'), findsWidgets);
@@ -223,8 +223,8 @@ void main() {
 
     testWidgets('BA3 of a shift that is gone', (tester) async {
       await open(tester, OfflineEmployer(), location: EmployerRoutes.shift('no-such-shift'));
-      expect(find.text(Ko.shiftNotFound), findsOneWidget);
-      expect(find.bySemanticsLabel(Ko.back), findsOneWidget);
+      expect(find.text(Biz.shiftNotFound), findsOneWidget);
+      expect(find.bySemanticsLabel(Biz.back), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
@@ -232,36 +232,36 @@ void main() {
       final repo = OfflineEmployer()..offline.add('qr');
       await open(tester, repo, location: EmployerRoutes.shift('demo-es-close'));
       // The card is at the bottom of a lazy list: scroll it into being.
-      await tester.scrollUntilVisible(find.text(Ko.offlineTitle), 300, scrollable: find.byType(Scrollable).first);
+      await tester.scrollUntilVisible(find.text(Biz.offlineTitle), 300, scrollable: find.byType(Scrollable).first);
       await tester.pumpAndSettle();
-      expect(find.text(Ko.qrShare), findsNothing);
+      expect(find.text(Biz.qrShare), findsNothing);
       expect(find.byType(HiQrCode), findsNothing);
       repo.offline.clear();
       await retry(tester);
       expect(find.byType(HiQrCode), findsOneWidget);
-      expect(find.text(Ko.qrShare), findsOneWidget);
+      expect(find.text(Biz.qrShare), findsOneWidget);
     });
 
     testWidgets('BA4 offline: no «no workers yet», no counts', (tester) async {
       final repo = OfflineEmployer()..offline.add('workers');
       await open(tester, repo, location: EmployerRoutes.workers);
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
-      expect(find.text(Ko.noFavorites), findsNothing);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
+      expect(find.text(Biz.noFavorites), findsNothing);
       expect(find.text('0'), findsNothing);
       repo.offline.clear();
       await retry(tester);
-      expect(find.text(Ko.offlineTitle), findsNothing);
-      expect(find.text(Ko.requestAgain), findsWidgets);
+      expect(find.text(Biz.offlineTitle), findsNothing);
+      expect(find.text(Biz.requestAgain), findsWidgets);
     });
 
     testWidgets('BA5 offline: an error, not an endless spinner', (tester) async {
       final repo = OfflineEmployer()..offline.add('report');
       await open(tester, repo, location: EmployerRoutes.report);
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       repo.offline.clear();
       await retry(tester);
-      expect(find.text(Ko.offlineTitle), findsNothing);
+      expect(find.text(Biz.offlineTitle), findsNothing);
     });
 
     testWidgets('알림: offline, then the list; one arriving while open shows up and is marked read', (tester) async {
@@ -273,10 +273,10 @@ void main() {
         location: EmployerRoutes.notifications,
         overrides: [liveUpdatesProvider.overrideWithValue(live)],
       );
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
       repo.offline.clear();
       await retry(tester);
-      expect(find.text(Ko.notifNewApplicantText('Sevara Nazarova', '마감 정리 보조')), findsOneWidget);
+      expect(find.text(Biz.notifNewApplicantText('Sevara Nazarova', '마감 정리 보조')), findsOneWidget);
       final marksBefore = repo.marks;
       expect(marksBefore, greaterThan(0), reason: 'opening the list marks them read');
 
@@ -290,7 +290,7 @@ void main() {
       ));
       live.fire();
       await tester.pumpAndSettle();
-      expect(find.text(Ko.notifNoShowText('Malika Yusupova', '마감 정리 보조')), findsOneWidget);
+      expect(find.text(Biz.notifNoShowText('Malika Yusupova', '마감 정리 보조')), findsOneWidget);
       expect(repo.marks, greaterThan(marksBefore), reason: 'the new one is marked read too');
       expect(await container.read(employerNotificationsProvider.future).then((all) => all.where((n) => !n.read)), isEmpty);
     });
@@ -299,7 +299,7 @@ void main() {
       final repo = OfflineEmployer()..offline.addAll(['templates', 'minimumWage']);
       await open(tester, repo, location: EmployerRoutes.create);
       expect(find.byType(CircularProgressIndicator), findsNothing, reason: 'not stuck');
-      expect(find.text(Ko.post), findsWidgets);
+      expect(find.text(Biz.post), findsWidgets);
       expect(find.textContaining('최저시급'), findsNothing);
     });
 
@@ -313,8 +313,8 @@ void main() {
     testWidgets('BA2 for a shift that did not load: the close button and 다시 시도', (tester) async {
       final repo = OfflineEmployer()..offline.add('shift');
       await open(tester, repo, location: EmployerRoutes.edit('demo-es-close'));
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
-      expect(find.bySemanticsLabel(Ko.close), findsOneWidget);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
+      expect(find.bySemanticsLabel(Biz.close), findsOneWidget);
       repo.offline.clear();
       await retry(tester);
       expect(find.text('근무 수정'), findsOneWidget);
@@ -328,7 +328,7 @@ void main() {
         location: EmployerRoutes.start,
         overrides: [authRepositoryProvider.overrideWithValue(DemoAuthRepository(userId: 'owner-1'))],
       );
-      expect(find.text(Ko.offlineTitle), findsOneWidget);
+      expect(find.text(Biz.offlineTitle), findsOneWidget);
       expect(find.text('오늘의 근무'), findsNothing);
       repo.offline.clear();
       await retry(tester);

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/format/phone.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../design/widgets/auth.dart';
-import '../ko.dart';
+import '../biz.dart';
 
 /// T2 for owners: the SMS code after BA0 «시작하기».
 class Ba0CodeScreen extends ConsumerWidget {
@@ -20,20 +20,20 @@ class Ba0CodeScreen extends ConsumerWidget {
     final auth = ref.read(authRepositoryProvider);
     return HiPhoneCodeScreen(
       texts: HiPhoneCodeTexts(
-        topTitle: Ko.codeTopTitle,
-        title: Ko.codeTitle,
-        subtitle: Ko.codeSentTo(KoreanPhone.display(phone)),
-        label: Ko.codeLabel,
-        action: Ko.codeConfirm,
-        resend: Ko.codeResend,
-        resendIn: Ko.codeResendIn,
-        resent: Ko.codeResent,
+        topTitle: Biz.codeTopTitle,
+        title: Biz.codeTitle,
+        subtitle: Biz.codeSentTo(KoreanPhone.display(phone)),
+        label: Biz.codeLabel,
+        action: Biz.codeConfirm,
+        resend: Biz.codeResend,
+        resendIn: Biz.codeResendIn,
+        resent: Biz.codeResent,
       ),
       watermark: '사장님',
       onBack: onBack,
       verify: (code) => auth.verifyCode(phone, code),
       resend: () => auth.sendCode(phone),
-      errorText: Ko.error,
+      errorText: Biz.error,
       onVerified: onVerified,
     );
   }

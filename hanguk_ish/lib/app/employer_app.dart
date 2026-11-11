@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,7 +14,8 @@ import '../design/widgets/backdrop.dart';
 import '../design/widgets/brand.dart';
 import '../features/employer/create/ba2_create_screen.dart';
 import '../features/employer/home/ba1_home_screen.dart';
-import '../features/employer/ko.dart';
+import '../features/employer/biz.dart';
+import '../features/employer/language.dart';
 import '../features/employer/login/ba0_code_screen.dart';
 import '../features/employer/login/ba0_login_screen.dart';
 import '../features/employer/notifications/employer_notifications_screen.dart';
@@ -25,6 +25,7 @@ import '../features/employer/shell/employer_shell.dart';
 import '../features/employer/shift/ba3_shift_screen.dart';
 import '../features/employer/widgets.dart';
 import '../features/employer/workers/ba4_workers_screen.dart';
+import '../l10n/gen/worker_l10n.dart';
 import 'text_scale.dart';
 
 /// Paths of the employer app.
@@ -72,7 +73,7 @@ Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref, {requ
   } catch (error) {
     if (!context.mounted) return;
     context.go(EmployerRoutes.login);
-    _say(context, Ko.error(error));
+    _say(context, Biz.error(error));
   }
 }
 
@@ -145,11 +146,11 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
           builder: (context, ref, _) => Ba0LoginScreen(
             onStart: (phone, businessNumber) async {
               if (KoreanPhone.toE164(phone) == null || businessNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
-                _say(context, Ko.loginIncomplete);
+                _say(context, Biz.loginIncomplete);
                 return;
               }
               if (!isValidBusinessNumber(businessNumber)) {
-                _say(context, Ko.bizNoInvalid);
+                _say(context, Biz.bizNoInvalid);
                 return;
               }
               final auth = ref.read(authRepositoryProvider);
@@ -161,7 +162,7 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
               try {
                 await auth.sendCode(phone);
               } catch (error) {
-                if (context.mounted) _say(context, Ko.error(error));
+                if (context.mounted) _say(context, Biz.error(error));
                 return;
               }
               if (context.mounted) context.push(EmployerRoutes.code(phone, businessNumber));
@@ -260,19 +261,47 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-/// «Hanguk Ish 사장님» — the employer app, Korean only.
-class EmployerApp extends ConsumerWidget {
+/// «Hanguk Ish 사장님» — the employer app, in Korean (the prototype's),
+/// Uzbek, Russian or English (P43).
+class EmployerApp extends ConsumerStatefulWidget {
   const EmployerApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EmployerApp> createState() => _EmployerAppState();
+}
+
+class _EmployerAppState extends ConsumerState<EmployerApp> {
+  @override
+  void initState() {
+    super.initState();
+    Biz.use(ref.read(employerLanguageProvider));
+    ref.listenManual(employerLanguageProvider, (previous, next) {
+      Biz.use(next);
+      _redrawAll();
+    });
+  }
+
+  /// [Biz]'s texts hang on no inherited widget: after a language change
+  /// every screen is drawn again, const parts too.
+  void _redrawAll() {
+    void mark(Element element) {
+      element.markNeedsBuild();
+      element.visitChildren(mark);
+    }
+
+    if (mounted) (context as Element).visitChildren(mark);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final language = ref.watch(employerLanguageProvider);
     return MaterialApp.router(
       title: 'Hanguk Ish 사장님',
       debugShowCheckedModeBanner: false,
       theme: hiTheme(),
-      locale: const Locale('ko'),
-      supportedLocales: const [Locale('ko')],
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      locale: language.locale,
+      supportedLocales: WorkerL10n.supportedLocales,
+      localizationsDelegates: WorkerL10n.localizationsDelegates,
       routerConfig: ref.watch(employerRouterProvider),
       builder: (context, child) =>
           HiTextScaleCap(child: child ?? const SizedBox.shrink()),
