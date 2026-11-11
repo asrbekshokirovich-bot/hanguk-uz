@@ -11,8 +11,7 @@
 -- 2. shifts_read promised «a worker keeps seeing shifts they applied to», but
 --    inside its subquery the bare «id» was the application's own id
 --    (a.shift_id = a.id, never true): once a shift was called off, its worker
---    could no longer read it, nor the names of its business (profiles_read
---    reads shifts through it).
+--    could no longer read it.
 
 create function public.release_waiting_if_full(p_shift uuid)
 returns void

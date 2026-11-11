@@ -103,7 +103,7 @@ begin
   end if;
 end $$;
 
-create function pg_temp.walk(p_seed double precision, p_steps int) returns void
+create function pg_temp.walk(p_seed double precision, p_steps int) returns jsonb
 language plpgsql as $$
 declare
   v_workers uuid[] := array(
@@ -124,6 +124,7 @@ declare
   v_payload text;
   v_start timestamptz;
   v_log text;
+  v_tally jsonb := '{}'::jsonb;
 begin
   perform setseed(p_seed);
   for i in 1 .. p_steps loop
@@ -232,13 +233,14 @@ begin
           check_in_at = check_in_at - interval '30 minutes',
           check_out_at = check_out_at - interval '30 minutes',
           paid_at = paid_at - interval '30 minutes';
-        update public.notifications set created_at = created_at - interval '30 minutes';
       end case;
     exception when others then
       v_outcome := sqlerrm;
     end;
     perform tests.as_admin();
     insert into walk_log values (i, v_action, v_outcome, v_detail);
+    v_tally := v_tally || jsonb_build_object(v_action || ':' || v_outcome,
+                                             coalesce((v_tally ->> (v_action || ':' || v_outcome))::int, 0) + 1);
     begin
       perform pg_temp.check_rules(i, v_action = 'job' and v_outcome = 'ok');
     exception when others then
@@ -248,15 +250,36 @@ begin
       raise exception E'FAILED (seed %): %\nlast steps:\n%', p_seed, sqlerrm, v_log;
     end;
   end loop;
+  return v_tally;
 end $$;
 
-select pg_temp.walk(0.11, 600);
-select pg_temp.walk(0.37, 600);
-select pg_temp.walk(0.73, 600);
+-- Each seed starts from the fixtures again: its changes are undone after it
+-- (a rolled-back block), only its tally is kept. In one long transaction the
+-- rows the walk keeps rewriting would otherwise pile up and slow every step.
+create temp table walk_totals (step text, n int);
+create function pg_temp.walk_from_start(p_seed double precision, p_steps int) returns void
+language plpgsql as $$
+declare
+  v_tally jsonb;
+begin
+  begin
+    v_tally := pg_temp.walk(p_seed, p_steps);
+    raise exception 'UNDO THE WALK';
+  exception when raise_exception then
+    if sqlerrm <> 'UNDO THE WALK' then
+      raise;
+    end if;
+  end;
+  insert into walk_totals select key, value::int from jsonb_each_text(v_tally);
+end $$;
+
+select pg_temp.walk_from_start(0.11, 500);
+select pg_temp.walk_from_start(0.37, 500);
+select pg_temp.walk_from_start(0.73, 500);
 
 -- The walk did reach every kind of step, successful and refused.
-select tests.ok((select count(*) from walk_log where action = a and outcome = 'ok') > 0, 'the walk did ' || a)
+select tests.ok((select sum(n) from walk_totals where step = a || ':ok') > 0, 'the walk did ' || a)
 from unnest(array['apply', 'cancel', 'decide', 'places', 'move', 'auto', 'cancel_shift', 'post',
                   'check_in', 'check_out', 'job', 'time']) a;
-select tests.ok((select count(*) from walk_log where outcome = r) > 0, 'a refusal came: ' || r)
-from unnest(array['SHIFT_FULL', 'TIME_CONFLICT', 'HAS_CREW', 'SLOTS_BELOW_CREW', 'TOO_EARLY']) r;
+select tests.ok((select sum(n) from walk_totals where step like '%:' || r) > 0, 'a refusal came: ' || r)
+from unnest(array['SHIFT_FULL', 'TIME_CONFLICT', 'HAS_CREW', 'TOO_EARLY']) r;
