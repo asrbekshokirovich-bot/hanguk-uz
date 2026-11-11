@@ -194,8 +194,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   }
 
   Future<void> _openLegal(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
+    final parsed = Uri.tryParse(url);
+    if (parsed == null) return;
+    // The page opens in the app's language (KG8: the site has no Kyrgyz,
+    // its privacy page reads ?lang=).
+    final lang = ref.read(entryProvider).languageCode;
+    final uri = lang == null ? parsed : parsed.replace(queryParameters: {...parsed.queryParameters, 'lang': lang});
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
