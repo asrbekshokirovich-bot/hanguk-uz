@@ -4491,7 +4491,7 @@ class AppLocalizationsKy extends AppLocalizations {
   }
 
   @override
-  String get fdLeadHintA => 'Жөнөткөндөн кийин SMS менен 8 белгилүү ';
+  String get fdLeadHintA => 'Жөнөткөндөн кийин SMS менен 8 белгиден турган ';
 
   @override
   String get fdLeadHintB => 'кардар коду';
@@ -4855,7 +4855,7 @@ class AppLocalizationsKy extends AppLocalizations {
   }
 
   @override
-  String get fdCodeEight => '8 белгилүү';
+  String get fdCodeEight => '8 белгиден турган';
 
   @override
   String get fdCodeUnlocks => 'The code opens';
