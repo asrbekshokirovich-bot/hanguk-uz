@@ -28,17 +28,31 @@ String groupThousands(num value, {String? locale}) {
 /// An amount for the student. Won is shown in the currency of the app's
 /// language at the Central Bank of Uzbekistan's rate ([FxRates]; owner,
 /// 2026-10-22): Uzbek "37 330 000 so'm", English and Russian "\$3,120",
-/// Korean and Vietnamese "₩4,134,000" as quoted — and as quoted too until the
-/// app has rates. Other currencies are never converted and keep their ISO
+/// Korean "₩4,134,000" as quoted — and as quoted too until the app has rates.
+/// Set up for Kyrgyzstan (Asrbek, 2026-11-11): Uzbek and Kyrgyz "266 600 som"
+/// and dollars at the National Bank of the Kyrgyz Republic's rates
+/// ([KgsRates]). Other currencies are never converted and keep their ISO
 /// code. [locale] picks the language and the digit grouping.
 String money(num value, String? currency, {String? locale}) {
   var code = (currency ?? 'KRW').toUpperCase();
   var amount = value;
   final rates = FxRates.current;
+  final kgs = FxRates.country == 'KG' ? KgsRates.current : null;
   final target = displayCurrencyFor(locale);
-  if (code == 'KRW' && rates != null && target != null) {
-    amount = convertKrw(value, target, rates);
-    code = target;
+  if (code == 'KRW' && target != null) {
+    if (target == 'KGS') {
+      final k = KgsRates.current;
+      if (k != null) {
+        amount = convertKrwToKgs(value, k);
+        code = target;
+      }
+    } else if (target == 'USD' && kgs != null) {
+      amount = convertKrwToUsdKg(value, kgs);
+      code = target;
+    } else if (rates != null) {
+      amount = convertKrw(value, target, rates);
+      code = target;
+    }
   }
   final n = groupThousands(amount, locale: locale);
   switch (code) {
@@ -48,6 +62,8 @@ String money(num value, String? currency, {String? locale}) {
       return '\$$n';
     case 'UZS':
       return "$n so'm";
+    case 'KGS':
+      return (locale ?? '').startsWith('ky') ? '$n сом' : '$n som';
     default:
       return '$n ${currency!.toUpperCase()}';
   }

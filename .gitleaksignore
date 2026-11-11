@@ -1,2 +1,4 @@
 # Yolg'on signal (secure storage kalit nomi, sir emas) — #629 tarixidagi commit; keyin nomi o'zgartirildi.
 89e38b1d16641dd0a2dc05ebbdac0ce81efa85bf:hanguk_app/lib/core/push/guest_push.dart:generic-api-key:116
+# Yolg'on signal (NBKR kursi saqlanadigan secure storage kalit nomi, sir emas) — #736 tarixidagi commit; keyin nomi o'zgartirildi.
+84a9f36d420bdca2baefa4bbeb859e37209ee9c0:hanguk_app/lib/core/money/fx_rates.dart:generic-api-key:147
