@@ -6,7 +6,7 @@
 # Hanguk — Privacy Policy
 
 **Effective date:** 2026-05-12
-**Last updated:** 2026-05-12
+**Last updated:** 2026-11-11
 **Controller:** Hanguk (operator of the Hanguk Student App and `hanguk.uz`)
 **Contact:** privacy@hanguk.uz
 
@@ -113,7 +113,8 @@ whom processes data on our behalf under a data-processing agreement:
 - **Supabase** stores everything that makes the app work: your account
   (phone/email), your application drafts, your documents, your interview
   transcripts, your study plans. It also runs the server-side `export-my-data`
-  and `delete-my-account` endpoints. We use Supabase's US infrastructure.
+  and `delete-my-account` endpoints. Our Supabase project is hosted in
+  Seoul, Republic of Korea (region `ap-northeast-2`).
 - **Vapi** is the real-time voice infrastructure for mock interviews. When
   you start an AI interview, your microphone audio is streamed to Vapi for
   transcription and LLM-based response generation. Vapi's own retention
@@ -213,10 +214,16 @@ codes to younger applicants.
 ## 9. International transfers
 
 Hanguk operates from Uzbekistan. Data is stored on Supabase
-infrastructure in the United States (region: `us-east-1`). Vapi and
-ElevenLabs also process data in the United States. By using the
+infrastructure in Seoul, Republic of Korea (region: `ap-northeast-2`).
+Vapi and ElevenLabs process data in the United States. By using the
 Service, you consent to your data being transferred to and processed in
-the United States. For EU/EEA / UK users we rely on Standard Contractual
+the Republic of Korea and the United States.
+
+**Users in Kyrgyzstan.** If you use the App from Kyrgyzstan, your data
+is transferred to and stored in the Republic of Korea. Before a request
+is sent, the request form asks for your explicit consent to send your
+name, phone number and answers to Hanguk Consulting and to store them on
+a server in the Republic of Korea; without that consent nothing is sent. For EU/EEA / UK users we rely on Standard Contractual
 Clauses for these transfers. For Korean users, we comply with PIPA's
 cross-border-transfer requirements (Article 28-8 of PIPA, as amended in
 2026).
