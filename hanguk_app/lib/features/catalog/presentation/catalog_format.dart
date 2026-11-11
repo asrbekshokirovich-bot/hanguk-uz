@@ -61,7 +61,7 @@ String money(num value, String? currency, {String? locale}) {
     case 'USD':
       return '\$$n';
     case 'UZS':
-      return "$n so'm";
+      return (locale ?? '').startsWith('ky') ? '$n сум' : "$n so'm";
     case 'KGS':
       return (locale ?? '').startsWith('ky') ? '$n сом' : '$n som';
     default:

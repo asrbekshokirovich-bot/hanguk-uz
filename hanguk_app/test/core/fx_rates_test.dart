@@ -72,6 +72,7 @@ void main() {
       expect(displayCurrencyFor('ru', country: 'KG'), 'USD');
       expect(displayCurrencyFor('ko', country: 'KG'), isNull);
       expect(displayCurrencyFor('uz', country: 'UZ'), 'UZS');
+      expect(displayCurrencyFor('ky', country: 'UZ'), 'UZS');
     });
 
     test('fees in som and in dollars at the Kyrgyz rates', () {
@@ -86,6 +87,7 @@ void main() {
       // … ÷ 87.4498 = 3 049.1 → $3 049.
       expect(money(4134000, 'KRW', locale: 'en'), '\$3,049');
       expect(money(4134000, 'KRW', locale: 'ko'), '₩4,134,000');
+      expect(money(4134000, 'KRW', locale: 'ky').endsWith(' сом'), isTrue);
       // Back in Uzbekistan: so'm at the Uzbek bank's rate.
       FxRates.country = 'UZ';
       expect(money(4134000, 'KRW', locale: 'uz').endsWith("so'm"), isTrue);

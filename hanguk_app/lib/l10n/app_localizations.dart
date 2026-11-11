@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_ky.dart';
 import 'app_localizations_ru.dart';
 import 'app_localizations_uz.dart';
 
@@ -100,6 +101,7 @@ abstract class AppLocalizations {
     Locale('uz'),
     Locale('ko'),
     Locale('ru'),
+    Locale('ky'),
   ];
 
   /// Title of the Training bottom-nav tab.
@@ -10386,7 +10388,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'ko', 'ru', 'uz'].contains(locale.languageCode);
+      <String>['en', 'ko', 'ky', 'ru', 'uz'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -10399,6 +10401,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'ko':
       return AppLocalizationsKo();
+    case 'ky':
+      return AppLocalizationsKy();
     case 'ru':
       return AppLocalizationsRu();
     case 'uz':

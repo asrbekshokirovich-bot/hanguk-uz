@@ -230,8 +230,8 @@ String? displayCurrencyFor(String? locale, {String? country}) {
   final lang = (locale ?? '').split(RegExp('[_-]')).first.toLowerCase();
   final kg = (country ?? FxRates.country) == 'KG';
   return switch (lang) {
-    'uz' => kg ? 'KGS' : 'UZS',
-    'ky' => 'KGS',
+    // Kyrgyz like Uzbek: the country's own money (plan KG7).
+    'uz' || 'ky' => kg ? 'KGS' : 'UZS',
     'en' || 'ru' => 'USD',
     _ => null,
   };

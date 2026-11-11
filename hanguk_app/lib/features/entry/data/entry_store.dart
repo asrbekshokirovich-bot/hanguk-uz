@@ -5,9 +5,10 @@ import '../../../core/analytics/app_events.dart';
 import '../../../core/country/app_country.dart';
 import '../../../core/money/fx_rates.dart';
 
-/// The four languages offered on the first screen, in the order the owner
-/// gave them: Uzbek, English, Korean, Russian.
-const List<String> kEntryLanguages = ['uz', 'en', 'ko', 'ru'];
+/// The languages offered on the first screen, in the order the owner gave
+/// them: Uzbek, English, Korean, Russian — and Kyrgyz (plan KG7, Asrbek
+/// 2026-11-11).
+const List<String> kEntryLanguages = ['uz', 'en', 'ko', 'ru', 'ky'];
 
 /// Each language's name in itself — what someone who reads only that
 /// language recognises on the picker.
@@ -16,6 +17,7 @@ const Map<String, String> kEntryLanguageNames = {
   'en': 'English',
   'ko': '한국어',
   'ru': 'Русский',
+  'ky': 'Кыргызча',
 };
 
 /// What the app remembers before anyone signs in: the language chosen on the
