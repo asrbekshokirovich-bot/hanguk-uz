@@ -313,6 +313,16 @@ class AssessmentInput {
     interviewPrep: interviewPrep ?? this.interviewPrep,
   );
 
+  /// What a lead sends when nothing on the board was answered: only the
+  /// universities picked. The board's starting values (19, certificate 4,
+  /// bachelor's, no Korean…) are not the person's answers, and the CRM showed
+  /// them as if they were (Asrbek, 2026-11-11).
+  Map<String, dynamic> untouchedAnswers() => {
+    'source': 'assessment_v1',
+    'answered': false,
+    'universities': universityIds,
+  };
+
   /// The answers as the CRM's lead card reads them (`leads.quiz_answers`):
   /// the old quiz's codes where they mean the same, and the board's own.
   Map<String, dynamic> toAnswers({required int requiredBankKrw}) => {
@@ -428,6 +438,17 @@ class AssessmentOutcome {
   int get openCount => chances.where((c) => c.open).length;
 
   /// `leads.eligibility_result`: the band the CRM sorts by, and the figures.
+  /// [toResult] without the figures that rest on the board's starting values
+  /// (no band, visa or admission percentages, tariff): the universities by
+  /// name only. See [AssessmentInput.untouchedAnswers].
+  Map<String, dynamic> untouchedResult() => {
+    'source': 'assessment_v1',
+    'answered': false,
+    'universities': [
+      for (final c in chances) {'id': c.university.institutionId, 'name': c.university.displayName},
+    ],
+  };
+
   Map<String, dynamic> toResult() => {
     'source': 'assessment_v1',
     'band': band.code,

@@ -47,6 +47,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   void _sendResult(AssessmentOutcome o) {
     if (_resultSent) return;
     _resultSent = true;
+    // Nothing answered: the figures rest on the board's starting values, and
+    // the lead's card would show them as the person's visa test.
+    if (!ref.read(assessmentTouchedProvider)) return;
     final h = o.hints;
     AppEvents.track('assessment_result', props: {
       'kind': 'visa',

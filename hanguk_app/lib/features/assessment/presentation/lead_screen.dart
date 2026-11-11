@@ -110,16 +110,18 @@ class _LeadScreenState extends ConsumerState<LeadScreen> {
       _error = null;
     });
     final input = ref.read(assessmentProvider);
+    // Nothing answered on the board → only what the person chose here.
+    final answered = ref.read(assessmentTouchedProvider);
     final res = await ref.read(quizRepositoryProvider).submit(
       phoneE164: national.e164(digits),
       country: country.code,
       name: name,
       answers: {
-        ...input.toAnswers(requiredBankKrw: outcome.requiredBankKrw),
+        ...(answered ? input.toAnswers(requiredBankKrw: outcome.requiredBankKrw) : input.untouchedAnswers()),
         'how_heard': ?_heard,
         'for_whom': ?_forWhom,
       },
-      result: outcome.toResult(),
+      result: answered ? outcome.toResult() : outcome.untouchedResult(),
     );
     AppEvents.track('lead_submit', props: {'status': res.status.name});
     AppEvents.track('form_submit', props: {'form': 'lead', 'result': res.status.name});
