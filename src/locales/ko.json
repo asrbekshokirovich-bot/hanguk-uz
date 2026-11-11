@@ -2846,7 +2846,8 @@
       "title": "채팅",
       "with": "{{name}}님과 채팅",
       "none": "아직 메시지가 없어요.",
-      "placeholder": "메시지를 입력하세요…"
+      "placeholder": "메시지를 입력하세요…",
+      "unread": "읽지 않음 {{count}}"
     },
     "qr": {
       "title": "QR 포스터",

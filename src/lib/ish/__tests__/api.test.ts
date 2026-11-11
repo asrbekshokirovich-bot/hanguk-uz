@@ -102,6 +102,50 @@ describe('ishApi', () => {
     expect(rpc).toHaveBeenLastCalledWith('staff_mark_attendance', { p_application: 'app-2', p_came: false, p_worked_minutes: null });
   });
 
+  it('unread: only what the worker wrote and nobody read; reading marks only the worker\'s', async () => {
+    // A query builder that records each step and answers [rows] at the end.
+    const steps: [string, ...unknown[]][] = [];
+    const rows = [
+      { application_id: 'app-1', sender_id: 'worker-1' },
+      { application_id: 'app-1', sender_id: 'worker-1' },
+      { application_id: 'app-1', sender_id: 'staff-9' },
+      { application_id: 'app-2', sender_id: 'staff-9' },
+    ];
+    const builder: Record<string, unknown> = {};
+    for (const name of ['select', 'in', 'is', 'update', 'eq']) {
+      builder[name] = (...args: unknown[]) => {
+        steps.push([name, ...args]);
+        return builder;
+      };
+    }
+    builder.then = (resolve: (v: unknown) => void) => resolve({ data: rows, error: null });
+    const from = vi.fn(() => builder);
+    const api = ishApi({ from } as unknown as SupabaseClient);
+
+    const counts = await api.unread([
+      { id: 'app-1', workerId: 'worker-1' },
+      { id: 'app-2', workerId: 'worker-2' },
+    ]);
+    expect(counts).toEqual({ 'app-1': 2 });
+    expect(from).toHaveBeenCalledWith('messages');
+    expect(steps).toEqual([
+      ['select', 'application_id, sender_id'],
+      ['in', 'application_id', ['app-1', 'app-2']],
+      ['is', 'read_at', null],
+    ]);
+    expect(await api.unread([])).toEqual({});
+
+    steps.length = 0;
+    await api.markRead('app-1', 'worker-1');
+    expect(steps[0][0]).toBe('update');
+    expect(Object.keys(steps[0][1] as object)).toEqual(['read_at']);
+    expect(steps.slice(1)).toEqual([
+      ['eq', 'application_id', 'app-1'],
+      ['eq', 'sender_id', 'worker-1'],
+      ['is', 'read_at', null],
+    ]);
+  });
+
   it('a refusal comes back with its code', async () => {
     const { client } = fakeClient({ error: { message: 'FORBIDDEN', code: 'P0001' } });
     await expect(ishApi(client).businesses()).rejects.toMatchObject({ code: 'FORBIDDEN' });

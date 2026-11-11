@@ -3947,7 +3947,8 @@
       "title": "Chat",
       "with": "{{name}} bilan chat",
       "none": "Hali xabar yo'q.",
-      "placeholder": "Xabar yozing…"
+      "placeholder": "Xabar yozing…",
+      "unread": "{{count}} ta o'qilmagan"
     },
     "qr": {
       "title": "QR plakat",

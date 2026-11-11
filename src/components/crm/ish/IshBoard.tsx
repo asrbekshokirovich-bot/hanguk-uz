@@ -26,6 +26,9 @@ export function IshBoard({ onOpen }: { onOpen: (jobId: string) => void }) {
   const board = useQuery({
     queryKey: ishKeys.board(week),
     queryFn: () => api.board(seoulMidnight(week), seoulMidnight(addDays(week, 7))),
+    // New applications and answers show without a reload (only while the
+    // tab is in front).
+    refetchInterval: 30_000,
   });
 
   return (

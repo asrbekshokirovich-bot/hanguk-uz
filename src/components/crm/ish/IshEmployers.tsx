@@ -157,7 +157,7 @@ export function IshBusinessDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{business ? t('ish.employers.edit') : t('ish.employers.new')}</DialogTitle>
         </DialogHeader>

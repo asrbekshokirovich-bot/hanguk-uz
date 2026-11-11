@@ -153,6 +153,40 @@ export function ishApi(client: SupabaseClient) {
       return (data ?? []) as IshMessage[];
     },
 
+    /**
+     * Unread messages from the workers, by application: only what the worker
+     * wrote and nobody has read yet (the staff's own messages wait for the
+     * worker, A10).
+     */
+    unread: async (apps: { id: string; workerId: string }[]): Promise<Record<string, number>> => {
+      if (apps.length === 0) return {};
+      const { data, error } = await client
+        .from('messages')
+        .select('application_id, sender_id')
+        .in('application_id', apps.map((a) => a.id))
+        .is('read_at', null);
+      if (error) throw new IshError(ishErrorCode(error), error.message);
+      const workerOf = new Map(apps.map((a) => [a.id, a.workerId]));
+      const counts: Record<string, number> = {};
+      for (const row of (data ?? []) as { application_id: string; sender_id: string }[]) {
+        if (workerOf.get(row.application_id) === row.sender_id) {
+          counts[row.application_id] = (counts[row.application_id] ?? 0) + 1;
+        }
+      }
+      return counts;
+    },
+
+    /** The worker's messages in the chat are read now — only the worker's. */
+    markRead: async (applicationId: string, workerId: string): Promise<void> => {
+      const { error } = await client
+        .from('messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('application_id', applicationId)
+        .eq('sender_id', workerId)
+        .is('read_at', null);
+      if (error) throw new IshError(ishErrorCode(error), error.message);
+    },
+
     sendMessage: async (applicationId: string, body: string): Promise<IshMessage> => {
       const { data, error } = await client
         .from('messages')

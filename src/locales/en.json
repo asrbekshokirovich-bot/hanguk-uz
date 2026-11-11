@@ -3890,7 +3890,8 @@
       "title": "Chat",
       "with": "Chat with {{name}}",
       "none": "No messages yet.",
-      "placeholder": "Write a message…"
+      "placeholder": "Write a message…",
+      "unread": "{{count}} unread"
     },
     "qr": {
       "title": "QR poster",

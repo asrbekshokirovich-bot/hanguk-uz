@@ -171,6 +171,18 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
     const seen = await worker.from('messages').select('body').eq('application_id', applicationId);
     expect((seen.data ?? []).map((m) => m.body)).toContain('네, 9시 50분에 정문에서 만나요');
 
+    // The number on the CRM's chat button: what the worker wrote, until the
+    // staff open the chat. The staff's own message stays unread for the
+    // worker (A10).
+    const apps = [{ id: applicationId, workerId }];
+    expect(await api.unread(apps)).toEqual({ [applicationId]: 1 });
+    await api.markRead(applicationId, workerId);
+    expect(await api.unread(apps)).toEqual({});
+    const states = await admin.from('messages').select('sender_id, read_at').eq('application_id', applicationId);
+    for (const m of states.data ?? []) {
+      expect(m.read_at === null, `read_at of ${m.sender_id === workerId ? 'the worker' : 'the staff'}`).toBe(m.sender_id !== workerId);
+    }
+
     expect(await api.qr(jobId)).toMatch(/^hanguk-ish:v1:/);
   });
 

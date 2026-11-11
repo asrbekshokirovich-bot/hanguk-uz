@@ -56,7 +56,9 @@ export function IshJobDetail({ jobId, onBack }: { jobId: string; onBack: () => v
   const { t, i18n } = useTranslation();
   const api = useIshApi();
   const queryClient = useQueryClient();
-  const job = useQuery({ queryKey: ishKeys.job(jobId), queryFn: () => api.job(jobId) });
+  // Applications, answers to offers and attendance show without a reload
+  // (only while the tab is in front).
+  const job = useQuery({ queryKey: ishKeys.job(jobId), queryFn: () => api.job(jobId), refetchInterval: 15_000 });
   const [editing, setEditing] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -435,6 +437,14 @@ function IshApplications({ job }: { job: IshJobPage }) {
   const completed = job.applications.filter((a) => a.status === 'completed');
   const allPaid = completed.length > 0 && completed.every((a) => a.paid_at);
   const shown = job.applications;
+  // What the workers wrote and nobody has read yet: a number on the chat
+  // button.
+  const unread = useQuery({
+    queryKey: [...ishKeys.unread(job.id), job.applications.map((a) => a.id).join(',')],
+    queryFn: () => api.unread(job.applications.map((a) => ({ id: a.id, workerId: a.worker.id }))),
+    enabled: job.managed && job.applications.length > 0,
+    refetchInterval: 15_000,
+  });
 
   return (
     <Card>
@@ -498,8 +508,26 @@ function IshApplications({ job }: { job: IshJobPage }) {
                         </>
                       )}
                       {job.managed && a.status !== 'rejected' && (
-                        <Button size="sm" variant="ghost" onClick={() => setChat(a)} aria-label={t('ish.chat.title')}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="relative"
+                          onClick={() => setChat(a)}
+                          aria-label={
+                            unread.data?.[a.id]
+                              ? `${t('ish.chat.title')}: ${t('ish.chat.unread', { count: unread.data[a.id] })}`
+                              : t('ish.chat.title')
+                          }
+                        >
                           <MessageSquare className="h-4 w-4" />
+                          {!!unread.data?.[a.id] && (
+                            <span
+                              data-testid={`ish-unread-${a.id}`}
+                              className="absolute -right-1 -top-1 min-w-4 rounded-full bg-destructive px-1 text-[10px] font-semibold leading-4 text-destructive-foreground"
+                            >
+                              {unread.data[a.id]}
+                            </span>
+                          )}
                         </Button>
                       )}
                     </div>
@@ -544,7 +572,7 @@ function CameDialog({
   });
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-sm" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{t('ish.applications.cameTitle', { name: fullName(application.worker) })}</DialogTitle>
         </DialogHeader>
@@ -581,6 +609,16 @@ function IshChatDialog({ application, onClose }: { application: IshApplication; 
     queryFn: () => api.messages(application.id),
     refetchInterval: 10_000,
   });
+  // What the worker wrote is read once it is on the screen (and again when
+  // a new message comes in while the chat is open).
+  const workerMessages = (messages.data ?? []).filter((m) => m.sender_id === application.worker.id).length;
+  useEffect(() => {
+    if (!messages.isSuccess || workerMessages === 0) return;
+    void api
+      .markRead(application.id, application.worker.id)
+      .then(() => queryClient.invalidateQueries({ queryKey: ['ish', 'unread'] }))
+      .catch(() => {});
+  }, [api, application.id, application.worker.id, messages.isSuccess, workerMessages, queryClient]);
   const [text, setText] = useState('');
   const send = useMutation({
     mutationFn: () => api.sendMessage(application.id, text),
@@ -593,7 +631,7 @@ function IshChatDialog({ application, onClose }: { application: IshApplication; 
   const workerId = application.worker.id;
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{t('ish.chat.with', { name: fullName(application.worker) })}</DialogTitle>
         </DialogHeader>
@@ -656,7 +694,7 @@ function IshQrDialog({ job, onClose }: { job: IshJobPage; onClose: () => void })
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{t('ish.qr.title')}</DialogTitle>
         </DialogHeader>

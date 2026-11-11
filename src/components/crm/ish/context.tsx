@@ -36,4 +36,5 @@ export const ishKeys = {
   job: (id: string) => ['ish', 'job', id] as const,
   candidates: (id: string, km: number | null) => ['ish', 'candidates', id, km] as const,
   messages: (applicationId: string) => ['ish', 'messages', applicationId] as const,
+  unread: (jobId: string) => ['ish', 'unread', jobId] as const,
 };
