@@ -6,6 +6,7 @@
 // Run with the integration tests (.github/workflows/ish-integration.yml):
 //   SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_KEY=… flutter test test_backend
 // Without those variables every test is skipped.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/core/format/dates.dart';
+import 'package:hanguk_ish/core/links/share.dart';
 import 'package:hanguk_ish/core/money/won.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
@@ -42,6 +44,7 @@ import 'package:hanguk_ish/features/worker/work/qr_scanner.dart';
 import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../test/helpers/employer_harness.dart' show RecordingSharer;
 import '../test/helpers/fonts.dart';
 import '../test/helpers/phone.dart';
 
@@ -479,13 +482,14 @@ void main() {
 
   /// The owner's app, signed in, opened at [location] (or the start);
   /// [live]: with Realtime, as the real app runs.
-  Widget ownerApp({String? location, bool live = false}) => capture(ProviderScope(
+  Widget ownerApp({String? location, bool live = false, FileSharer? sharer}) => capture(ProviderScope(
         overrides: [
           backendConfigProvider.overrideWithValue(_config),
           supabaseClientProvider.overrideWithValue(owner),
           authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(owner)),
           employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(owner, _config)),
           if (live) liveUpdatesProvider.overrideWith((ref) => SupabaseLiveUpdates(owner)),
+          if (sharer != null) fileSharerProvider.overrideWithValue(sharer),
           if (location != null) employerInitialLocationProvider.overrideWithValue(location),
         ],
         child: const EmployerApp(),
@@ -954,6 +958,74 @@ void main() {
     await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
     await _until(tester, find.textContaining('smenasi boshlandi, arizangizga javob berilmadi.'));
     await _shot(tester, 'a12-unanswered');
+    await _close(tester);
+  });
+
+  /// The E2E business's shifts of the next three days.
+  Future<List<EmployerShift>> nextShifts(WidgetTester tester) async => (await tester.runAsync(() async {
+        final employer = SupabaseEmployerRepository(owner, _config);
+        final business = (await employer.businesses()).single;
+        final now = DateTime.now().toUtc();
+        return employer.shifts(business.id, now, now.add(const Duration(days: 3)));
+      }))!;
+
+  testWidgets('worker: A05 of the business shows the five stars given and the finished shift', skip: _skip != null,
+      (tester) async {
+    phone(tester);
+    final posted = (await nextShifts(tester)).firstWhere((s) => s.title == 'E2E 새 근무');
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.shift(posted.id)));
+    await _until(tester, _text('E2E 새 근무'));
+    await _until(tester, _text('5,0'));
+    expect(_text('· 1 ta smena bajarilgan'), findsOneWidget);
+    await _close(tester);
+  });
+
+  testWidgets('owner: BA5 CSV holds the paid hour and a half as it is', skip: _skip != null, (tester) async {
+    phone(tester);
+    final sharer = RecordingSharer();
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.report, sharer: sharer));
+    await _until(tester, _text('E2E 아침 보조'));
+    await _tap(tester, _text(Ko.csv));
+    for (var i = 0; i < 30 && sharer.shared.isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(sharer.shared, hasLength(1));
+    final file = sharer.shared.single;
+    expect(file.mimeType, 'text/csv');
+    final csv = utf8.decode(file.bytes);
+    expect(csv, contains(Ko.csvHeader));
+    expect(csv, contains(',E2E 아침 보조,1,1.5,16500,${Ko.paid}'), reason: '90 minutes, 16,500원, paid');
+    expect(file.text, contains('해운대 E2E 카페'));
+    await _close(tester);
+  });
+
+  testWidgets('owner: a shift with a confirmed worker keeps its time; its new title reaches the worker',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    final crewed = (await nextShifts(tester)).firstWhere((s) => s.title == 'E2E 실시간');
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.edit(crewed.id)));
+    await _until(tester, _text(Ko.editTitle));
+    await _settle(tester);
+    // The day chips are locked: a tap says why.
+    await _tap(tester, find.textContaining(RegExp('^오늘'), findRichText: true));
+    await _until(tester, _text(Ko.timeLocked));
+    // The content is not.
+    await _tap(tester, _text('수정'));
+    await _until(tester, find.byType(BottomSheet));
+    await tester.enterText(
+        find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), 'E2E 실시간 2');
+    await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, Ko.save)));
+    await _settle(tester);
+    await _tap(tester, find.widgetWithText(HiButton, Ko.save));
+    await _until(tester, _text(Ko.saved));
+    final after = await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(crewed.id));
+    expect(after!.title, 'E2E 실시간 2');
+    expect(after.startsAt, crewed.startsAt, reason: 'the time stays');
+    await _close(tester);
+
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.myShifts));
+    await _until(tester, _text('E2E 실시간 2'));
     await _close(tester);
   });
 
