@@ -6,6 +6,7 @@ import {
   describeDate,
   formatPhoneForList,
   initialsOf,
+  isKgLead,
   isLeadComplete,
   splitName,
 } from './intakeForm';
@@ -203,6 +204,14 @@ export const LeadsTable = ({
                 title={lead.phone ?? undefined}
               >
                 {formatPhoneForList(lead.phone) || '—'}
+                {isKgLead(lead) && (
+                  <span
+                    title={t('leads.intake.kgBadgeTitle')}
+                    className="ml-1.5 inline-block whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 align-middle text-[10px] font-bold text-muted-foreground"
+                  >
+                    KG
+                  </span>
+                )}
               </div>
 
               <div className="pointer-events-none">

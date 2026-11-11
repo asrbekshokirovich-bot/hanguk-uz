@@ -1185,7 +1185,9 @@
         "confirm": "Yes, delete"
       },
       "editRow": "Edit",
-      "openProfile": "Profile"
+      "openProfile": "Profile",
+      "kgFilter": "Kyrgyzstan",
+      "kgBadgeTitle": "Lead from Kyrgyzstan (+996)"
     },
     "profile": {
       "back": "Back to list",

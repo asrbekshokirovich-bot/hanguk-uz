@@ -149,6 +149,14 @@ export const isKgPhone = (phone: string | null | undefined): boolean => {
   return digits.length === 12 && digits.startsWith('996');
 };
 
+/**
+ * A lead from Kyrgyzstan (QA audit 2026-11-11): the server tags it
+ * `country = 'KG'` (the app form and the +996 trigger); a +996 number that has
+ * not been saved since still counts.
+ */
+export const isKgLead = (lead: { country?: string | null; phone?: string | null }): boolean =>
+  lead.country === 'KG' || isKgPhone(lead.phone);
+
 /** The 9 digits after +996, at most 9. */
 export const kgLocalDigits = (phone: string | null | undefined): string => {
   const digits = phoneDigits((phone ?? '').trim());

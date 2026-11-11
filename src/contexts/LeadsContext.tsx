@@ -11,6 +11,8 @@ export interface Lead {
   id: string;
   full_name: string;
   phone: string | null;
+  /** ISO country of the lead ('UZ' / 'KG'); null — Uzbekistan. */
+  country?: string | null;
   email: string | null;
   source: 'manual' | 'telegram' | 'instagram' | 'call' | 'ai_detected' | 'learning_center';
   source_id: string | null;
