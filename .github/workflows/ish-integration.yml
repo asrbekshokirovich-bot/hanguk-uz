@@ -100,6 +100,24 @@ jobs:
           npm ci --no-audit --no-fund --loglevel=error
           npx vitest run src/lib/ish/__e2e__ --reporter verbose
 
+      # The CRM section's own tests (Telegram post parser, Seoul times, the
+      # API layer, the forms), with the staff's browser in Tashkent and far
+      # away too: the times typed are Korean wherever the browser is. (The
+      # supabase-js file above skips itself here: no stack address.)
+      - name: hanguk.uz CRM «Hanguk Ish» tests in three time zones
+        if: success() || failure()
+        working-directory: .
+        env:
+          SUPABASE_URL: ''
+          SUPABASE_ANON_KEY: ''
+          SUPABASE_SERVICE_KEY: ''
+        run: |
+          unset SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_KEY
+          for tz in UTC Asia/Tashkent America/Los_Angeles; do
+            echo "== $tz"
+            TZ=$tz npx vitest run src/lib/ish src/components/crm/ish
+          done
+
       # Lines of lib/ the real-backend tests run (the job summary).
       - name: Coverage
         if: success() || failure()
