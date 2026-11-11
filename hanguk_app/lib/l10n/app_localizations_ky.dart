@@ -4483,7 +4483,7 @@ class AppLocalizationsKy extends AppLocalizations {
   String get fdReportCta => 'Акысыз чалуу алуу →';
 
   @override
-  String get fdLeadTitle => 'Консультант байланышат';
+  String get fdLeadTitle => 'Консультант чалат';
 
   @override
   String fdLeadSub(int n) {
