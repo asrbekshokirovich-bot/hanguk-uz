@@ -79,6 +79,24 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
 
   DateTime get _startsAt => Kst.instantOf(_day.year, _day.month, _day.day).add(Duration(minutes: _start));
   DateTime get _endsAt => _startsAt.add(Duration(minutes: _minutes));
+
+  /// The times to save. While the form still shows the edited shift's own
+  /// day and times, those are sent as they are: they may hold seconds the
+  /// form does not, and rounded ones would read as a move (refused once a
+  /// worker is confirmed).
+  (DateTime, DateTime) get _times {
+    final s = _editing;
+    if (s != null) {
+      final w = Kst.wallClock(s.startsAt);
+      final e = Kst.wallClock(s.endsAt);
+      if (_day == DateTime.utc(w.year, w.month, w.day) &&
+          _start == w.hour * 60 + w.minute &&
+          _end == e.hour * 60 + e.minute) {
+        return (s.startsAt, s.endsAt);
+      }
+    }
+    return (_startsAt, _endsAt);
+  }
   int get _wageValue => int.tryParse(_wage.text.replaceAll(',', '')) ?? 0;
 
   void _useTemplate(ShiftTemplate t, DateTime now) {
@@ -234,6 +252,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     final repo = ref.read(employerRepositoryProvider);
     try {
       final business = await ref.read(currentBusinessProvider.future);
+      final (startsAt, endsAt) = _times;
       final draft = ShiftDraft(
         businessId: business.id,
         templateId: _templateId,
@@ -241,8 +260,8 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
         duties: _duties.trim(),
         dress: _dress.trim(),
         address: _address.trim(),
-        startsAt: _startsAt,
-        endsAt: _endsAt,
+        startsAt: startsAt,
+        endsAt: endsAt,
         hourlyWage: _wageValue,
         slots: _slots,
         autoConfirm: _auto,
