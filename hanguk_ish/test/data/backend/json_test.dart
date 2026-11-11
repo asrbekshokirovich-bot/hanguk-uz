@@ -171,6 +171,13 @@ void main() {
         'created_at': '2026-11-10T03:00:00+00:00',
       });
       expect(full?.kind, NotificationKind.rejected);
+      final expired = hiNotificationFromJson({
+        'id': 12,
+        'kind': 'application_rejected',
+        'data': {'reason': 'expired'},
+        'created_at': '2026-11-10T03:00:00+00:00',
+      });
+      expect(expired?.kind, NotificationKind.expired, reason: 'nobody answered: not «another worker was chosen»');
       expect(
           hiNotificationFromJson({
             'id': 11,

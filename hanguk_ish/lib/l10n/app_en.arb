@@ -291,6 +291,7 @@
   "notifConfirmedText": "{business}: your shift on {day}, {range} is confirmed.",
   "notifRejectedTitle": "Request declined",
   "notifRejectedText": "{business}: another worker was chosen for {day}, {range}.",
+  "notifExpiredText": "{business}: the {day}, {range} shift began with no reply to your request.",
   "notifCancelledTitle": "Shift cancelled",
   "notifCancelledText": "{business}: the employer cancelled the shift on {day}, {range}.",
   "notifPaidTitle": "Pay received",

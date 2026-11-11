@@ -13,10 +13,11 @@ import '../../helpers/worker_harness.dart';
 /// 요청») of a business with no point yet, so no distance; [marks]: whether
 /// the server keeps the read mark.
 class OneNotice extends DemoAccountRepository {
-  OneNotice({this.km, this.marks = true}) : super(now: prototypeNow);
+  OneNotice({this.km, this.marks = true, this.kind = NotificationKind.newShift}) : super(now: prototypeNow);
 
   final double? km;
   final bool marks;
+  final NotificationKind kind;
   int markCalls = 0;
   bool _read = false;
 
@@ -24,7 +25,7 @@ class OneNotice extends DemoAccountRepository {
   Future<List<HiNotification>> notifications() async => [
         HiNotification(
           id: 'invite',
-          kind: NotificationKind.newShift,
+          kind: kind,
           createdAt: prototypeNow,
           read: _read,
           businessNames: const {'uz': 'E2E Kafe'},
@@ -75,5 +76,13 @@ void main() {
     final account = OneNotice(marks: false);
     await open(tester, account);
     expect(account.markCalls, 1);
+  });
+
+  testWidgets('A12: a request nobody answered before the start says so, not «another worker was chosen»',
+      (tester) async {
+    await open(tester, OneNotice(kind: NotificationKind.expired));
+    expect(find.text('Ariza qabul qilinmadi'), findsOneWidget);
+    expect(find.textContaining('smenasi boshlandi, arizangizga javob berilmadi.'), findsOneWidget);
+    expect(find.textContaining('boshqa ishchi tanlandi'), findsNothing);
   });
 }

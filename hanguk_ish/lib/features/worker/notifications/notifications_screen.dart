@@ -201,7 +201,8 @@ class _NotificationCard extends StatelessWidget {
     final (HiIconData icon, Color tile, Color iconColor, double stroke) = switch (n.kind) {
       NotificationKind.shiftReminder => (HiIcons.timer, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.confirmed => (HiIcons.check, HiColors.greenSoft, const Color(0xFF15803D), 2.6),
-      NotificationKind.rejected || NotificationKind.cancelled => (HiIcons.x, HiColors.redSoft, HiColors.redInk, 2.4),
+      NotificationKind.rejected || NotificationKind.expired || NotificationKind.cancelled =>
+        (HiIcons.x, HiColors.redSoft, HiColors.redInk, 2.4),
       NotificationKind.paid => (HiIcons.wallet, HiColors.greenSoft, const Color(0xFF15803D), 2.0),
       NotificationKind.message => (HiIcons.messageCircle, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.newShift => (HiIcons.briefcase, HiColors.surface, HiColors.ink, 2.0),
@@ -210,7 +211,7 @@ class _NotificationCard extends StatelessWidget {
     final title = switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderTitle(HiDates.countdown(n.minutesBefore ?? 0, lang)),
       NotificationKind.confirmed => l10n.notifConfirmedTitle,
-      NotificationKind.rejected => l10n.notifRejectedTitle,
+      NotificationKind.rejected || NotificationKind.expired => l10n.notifRejectedTitle,
       NotificationKind.cancelled => l10n.notifCancelledTitle,
       NotificationKind.paid => l10n.notifPaidTitle,
       NotificationKind.message => l10n.notifMessageTitle,
@@ -223,6 +224,7 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.shiftReminder => l10n.notifReminderText(business, range),
       NotificationKind.confirmed => l10n.notifConfirmedText(business, day, range),
       NotificationKind.rejected => l10n.notifRejectedText(business, day, range),
+      NotificationKind.expired => l10n.notifExpiredText(business, day, range),
       NotificationKind.cancelled => l10n.notifCancelledText(business, day, range),
       NotificationKind.paid => l10n.notifPaidText(business, day, Won.worker(n.amount ?? 0)),
       NotificationKind.message => business,
@@ -241,7 +243,7 @@ class _NotificationCard extends StatelessWidget {
 
     final Widget? action = switch (n.kind) {
       NotificationKind.shiftReminder => _LimeAction(label: l10n.directions, onTap: () => actions.directions(n)),
-      NotificationKind.confirmed || NotificationKind.rejected || NotificationKind.cancelled =>
+      NotificationKind.confirmed || NotificationKind.rejected || NotificationKind.expired || NotificationKind.cancelled =>
         _LinkAction(label: l10n.viewShift, fresh: fresh, onTap: actions.myShifts),
       NotificationKind.paid => _LinkAction(label: l10n.view, fresh: fresh, onTap: actions.earnings),
       NotificationKind.message => n.applicationId == null

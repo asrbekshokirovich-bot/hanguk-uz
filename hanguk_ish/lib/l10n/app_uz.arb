@@ -1371,6 +1371,21 @@
       }
     }
   },
+  "notifExpiredText": "{business}: {day}, {range} smenasi boshlandi, arizangizga javob berilmadi.",
+  "@notifExpiredText": {
+    "description": "A12: ish beruvchi smena boshlanguncha arizaga javob bermagan (ariza muddati o'tdi).",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "notifCancelledTitle": "Smena bekor qilindi",
   "@notifCancelledTitle": {
     "description": "A12: ish beruvchi bekor qildi."

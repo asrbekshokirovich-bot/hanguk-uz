@@ -19,7 +19,9 @@ class WorkerStats {
 }
 
 /// Kinds of notifications (database `notifications.kind`).
-enum NotificationKind { shiftReminder, confirmed, rejected, cancelled, paid, message, newShift, nearbyShifts }
+/// [expired]: a request the business never answered before the shift began
+/// (the upkeep job turns it down) — not «another worker was chosen».
+enum NotificationKind { shiftReminder, confirmed, rejected, expired, cancelled, paid, message, newShift, nearbyShifts }
 
 /// One entry of A12, with the values its sentence is built from (so it reads
 /// in whatever language the app is set to).

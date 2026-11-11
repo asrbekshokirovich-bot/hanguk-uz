@@ -851,6 +851,94 @@ void main() {
     await _close(tester);
   });
 
+  /// A shift of the E2E business, [inHours] from now, the worker applied.
+  Future<(EmployerShift, ApplyResult)> appliedShift(WidgetTester tester, String title,
+      {required int inHours, required bool auto}) async {
+    final employer = SupabaseEmployerRepository(owner, _config);
+    final business = (await tester.runAsync(employer.businesses))!.single;
+    final start = DateTime.now().toUtc().add(Duration(hours: inHours));
+    final created = (await tester.runAsync(() => employer.createShift(ShiftDraft(
+          businessId: business.id,
+          title: title,
+          startsAt: start,
+          endsAt: start.add(const Duration(hours: 3)),
+          hourlyWage: 11000,
+          slots: 1,
+          autoConfirm: auto,
+        ))))!;
+    final applied = (await tester.runAsync(() => SupabaseShiftRepository(worker, _config).apply(created.id)))!;
+    return (created, applied);
+  }
+
+  testWidgets('worker: cancelling within 24 hours warns first and costs 5 points; the owner is told',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    final (late, _) = await appliedShift(tester, 'E2E 늦은 취소', inHours: 5, auto: true);
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.myShifts));
+    await _until(tester, _text('E2E 늦은 취소'));
+    final card = find.ancestor(
+      of: _text('E2E 늦은 취소'),
+      matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_MyShiftCard'),
+    );
+    await _tap(tester, find.descendant(of: card, matching: find.text('Bekor qilish')));
+    await _until(tester, _text('Smenani bekor qilasizmi?'));
+    expect(_text("Smena boshlanishiga 24 soatdan kam qoldi. Bekor qilsangiz, ishonchlilik balingiz pasayadi."),
+        findsOneWidget);
+    await _tap(tester, _text('Ha, bekor qilish'));
+    await _until(tester, _text('Smena bekor qilindi.'));
+    final mine = await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts());
+    final cancelled = mine!.singleWhere((a) => a.shift.id == late.id);
+    expect(cancelled.status, ApplicationStatus.cancelled);
+    expect(cancelled.lateCancel, isTrue);
+    await _close(tester);
+
+    // 80 after the no-show, now 75.
+    await tester.pumpWidget(workerApp());
+    await _until(tester, _text('Smenalar'));
+    await _tap(tester, _text('Profil'));
+    await _until(tester, _text('75'), seconds: 30);
+    await _close(tester);
+
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
+    await _until(tester, _text(Ko.notifCancelledText('Sardor Testov', 'E2E 늦은 취소')));
+    await _close(tester);
+  });
+
+  testWidgets('owner: 거절 on BA3; the worker reads «Ariza qabul qilinmadi»', skip: _skip != null, (tester) async {
+    phone(tester);
+    final (turnedDown, _) = await appliedShift(tester, 'E2E 거절', inHours: 72, auto: false);
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(turnedDown.id)));
+    await _until(tester, _text(Ko.applicants(1)));
+    await _tap(tester, find.widgetWithText(HiButton, Ko.reject));
+    await _until(tester, _text(Ko.rejected('Sardor Testov')));
+    await _close(tester);
+
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await _until(tester, find.textContaining('smenasiga boshqa ishchi tanlandi.'));
+    await _close(tester);
+  });
+
+  testWidgets('a request nobody answered before the start: A12 says so, not «another worker was chosen»',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    final (unanswered, _) = await appliedShift(tester, 'E2E 만료', inHours: 72, auto: false);
+    // The shift begins with the request still waiting; the upkeep job turns
+    // it down (pg_cron in production).
+    await tester.runAsync(() async {
+      final admin = _client(_serviceKey);
+      final now = DateTime.now().toUtc();
+      await admin.from('shifts').update({
+        'starts_at': now.subtract(const Duration(minutes: 10)).toIso8601String(),
+        'ends_at': now.add(const Duration(hours: 2)).toIso8601String(),
+      }).eq('id', unanswered.id);
+      await admin.rpc('close_finished_shifts');
+    });
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await _until(tester, find.textContaining('smenasi boshlandi, arizangizga javob berilmadi.'));
+    await _shot(tester, 'a12-unanswered');
+    await _close(tester);
+  });
+
   testWidgets('owner: a new owner signs up on BA0; with no 국세청 key the business waits and BA1 says so',
       skip: _skip != null, (tester) async {
     phone(tester);

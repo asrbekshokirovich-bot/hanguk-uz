@@ -207,6 +207,7 @@ HiNotification? hiNotificationFromJson(Json json) {
     'shift_reminder' => NotificationKind.shiftReminder,
     'application_confirmed' => NotificationKind.confirmed,
     'application_rejected' when data['reason'] == 'shift_cancelled' => NotificationKind.cancelled,
+    'application_rejected' when data['reason'] == 'expired' => NotificationKind.expired,
     'application_rejected' => NotificationKind.rejected,
     'payment_marked' when data['paid'] == true => NotificationKind.paid,
     'chat_message' => NotificationKind.message,
