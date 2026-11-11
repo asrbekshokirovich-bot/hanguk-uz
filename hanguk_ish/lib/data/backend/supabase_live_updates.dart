@@ -10,8 +10,9 @@ import '../repositories/live_updates.dart';
 /// applications, and an owner those of their shifts (a check-in reaches BA1
 /// at once). Requires the tables in the `supabase_realtime` publication.
 ///
-/// A reconnect after the connection dropped counts as a change too: what
-/// happened meanwhile was not streamed.
+/// Joining counts as a change too, the first time and after a dropped
+/// connection: what happened before the channel was live (since the screens
+/// loaded, or while it was down) was not streamed.
 class SupabaseLiveUpdates implements LiveUpdates {
   SupabaseLiveUpdates(this._client);
 
@@ -22,7 +23,6 @@ class SupabaseLiveUpdates implements LiveUpdates {
     final user = _client.auth.currentUser?.id;
     if (user == null) return const Stream<void>.empty();
     RealtimeChannel? channel;
-    var joined = false;
     late final StreamController<void> controller;
     controller = StreamController<void>(
       onListen: () {
@@ -56,9 +56,7 @@ class SupabaseLiveUpdates implements LiveUpdates {
               callback: (_) => controller.add(null),
             )
             .subscribe((status, error) {
-              if (status != RealtimeSubscribeStatus.subscribed) return;
-              if (joined) controller.add(null);
-              joined = true;
+              if (status == RealtimeSubscribeStatus.subscribed) controller.add(null);
             });
       },
       onCancel: () async {

@@ -49,6 +49,18 @@ Future<SupabaseClient> _signIn(String phone) async {
 
 Matcher _refused(String code) => throwsA(isA<ShiftActionException>().having((e) => e.code, 'code', code));
 
+/// Waits for the channel to join — joining refreshes the screens once, so
+/// nothing that happened before it was live is missed — and forgets that
+/// first event.
+Future<void> _joined(List<void> events) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (events.isEmpty && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+  expect(events, isNotEmpty, reason: 'joining the channel counts as a change');
+  events.clear();
+}
+
 // A 1×1 PNG.
 final _png = base64Decode(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
@@ -399,7 +411,7 @@ void main() {
       final events = <void>[];
       final subscription = SupabaseLiveUpdates(aziz).changes().listen(events.add);
       addTearDown(subscription.cancel);
-      await Future<void>.delayed(const Duration(seconds: 3));
+      await _joined(events);
       await employer.requestAgain(tomorrow.id, aziz.auth.currentUser!.id);
       final deadline = DateTime.now().add(const Duration(seconds: 20));
       while (events.isEmpty && DateTime.now().isBefore(deadline)) {
@@ -415,7 +427,8 @@ void main() {
       final strangerSubscription = SupabaseLiveUpdates(malika).changes().listen(strangerEvents.add);
       addTearDown(ownerSubscription.cancel);
       addTearDown(strangerSubscription.cancel);
-      await Future<void>.delayed(const Duration(seconds: 3));
+      await _joined(ownerEvents);
+      await _joined(strangerEvents);
       // A change no notification is made for (as a check-in is to the owner).
       await admin.from('applications').update({'updated_at': DateTime.now().toUtc().toIso8601String()}).eq('id', azizNow);
       final deadline = DateTime.now().add(const Duration(seconds: 20));
