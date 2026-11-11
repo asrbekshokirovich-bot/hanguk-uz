@@ -546,5 +546,6 @@
   "bizErrOffline": "Check the internet connection",
   "bizErrOther": "Please try again",
   "bizLanguage": "Language",
-  "bizAsOfTime": "as of {time}"
+  "bizAsOfTime": "as of {time}",
+  "bizHeadcountValue": "{n}"
 }

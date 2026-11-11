@@ -6,6 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/demo/demo_employer.dart';
+import 'package:hanguk_ish/features/employer/biz.dart';
+import 'package:hanguk_ish/features/employer/language.dart';
+import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 
 import '../helpers/employer_harness.dart';
 import '../helpers/fonts.dart';
@@ -72,6 +75,34 @@ void main() {
         await open(tester, location);
         expect(tester.takeException(), isNull);
         await expectScreen(tester, '$name.${phone.name}');
+      });
+    }
+  }
+
+  // P43: the same screens in the app's other three languages, for review
+  // (Korean above is the prototype's).
+  for (final language in [AppLanguage.uz, AppLanguage.ru, AppLanguage.en]) {
+    for (final (name, location, phone) in [
+      ('BA0-App-Login', EmployerRoutes.login, TestPhone.prototype),
+      ('BA1-App-Home', EmployerRoutes.home, TestPhone.prototype),
+      ('BA2-App-Create', EmployerRoutes.create, TestPhone.prototype),
+      ('BA3-App-Shift', EmployerRoutes.shift('demo-es-close'), _tall),
+      ('BA4-App-Workers', EmployerRoutes.workers, TestPhone.prototype),
+      ('BA5-App-Report', EmployerRoutes.report, TestPhone.prototype),
+      ('BA-Notifications', EmployerRoutes.notifications, TestPhone.prototype),
+    ]) {
+      testWidgets('$name — ${language.code}', (tester) async {
+        usePhone(tester, phone);
+        final container = employerContainer(
+          location: location,
+          overrides: [employerDefaultLanguageProvider.overrideWithValue(language)],
+        );
+        addTearDown(container.dispose);
+        addTearDown(() => Biz.use(AppLanguage.ko));
+        await tester.pumpWidget(employerHarness(container));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        await expectScreen(tester, '$name.${language.code}');
       });
     }
   }
