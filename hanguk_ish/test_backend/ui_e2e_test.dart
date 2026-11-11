@@ -1010,7 +1010,10 @@ void main() {
     // The day chips are locked: a tap says why.
     await _tap(tester, find.textContaining(RegExp('^오늘'), findRichText: true));
     await _until(tester, _text(Ko.timeLocked));
-    // The content is not.
+    // (Let the message go: it covers the button at the bottom.)
+    await tester.pump(const Duration(seconds: 5));
+    await _settle(tester);
+    // The content is not locked.
     await _tap(tester, _text('수정'));
     await _until(tester, find.byType(BottomSheet));
     await tester.enterText(
