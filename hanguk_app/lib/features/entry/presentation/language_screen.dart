@@ -7,7 +7,7 @@ import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../data/entry_store.dart';
 import 'widgets/language_cards.dart';
 
-/// The app's first screen: pick Uzbek, English, Korean or Russian. Shown once;
+/// The app's first screen: pick Uzbek, English, Korean, Russian or Kyrgyz. Shown once;
 /// the choice is remembered ([EntryStore]) and can be changed later from the
 /// Welcome screen or the account screen.
 ///
@@ -29,6 +29,7 @@ class _LanguageScreenState extends ConsumerState<LanguageScreen> {
     'en': 'Continue',
     'ko': '계속',
     'ru': 'Продолжить',
+    'ky': 'Улантуу',
   };
 
   @override

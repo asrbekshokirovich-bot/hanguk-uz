@@ -435,6 +435,7 @@ class SplashContent extends StatelessWidget {
     'en': 'Your path to South Korean universities',
     'ko': '한국 대학으로 가는 길',
     'ru': 'Путь в университеты Южной Кореи',
+    'ky': 'Түштүк Корея университеттерине жол',
   };
 
   @override
