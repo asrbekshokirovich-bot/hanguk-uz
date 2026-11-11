@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => ({
         // and are offered to the next account on a shared computer whenever a
         // request fails, and yesterday's data is shown as today's with nothing
         // to say so. The CRM is not an offline app: a request that fails
-        // should fail. (main.tsx removes the old cache where one was made.)
+        // should fail. (AppInitializer removes the old cache where one was made.)
       },
     }),
   ].filter(Boolean),

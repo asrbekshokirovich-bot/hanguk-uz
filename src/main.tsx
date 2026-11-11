@@ -23,14 +23,6 @@ window.addEventListener("vite:preloadError", (event) => {
   window.location.reload();
 });
 
-// The service worker used to keep a day of Supabase API answers in this cache
-// (see vite.config.ts). It no longer does; remove what it left behind.
-if ("caches" in window) {
-  caches.delete("supabase-cache").catch(() => {
-    // Storage is unavailable (private mode): there is nothing to remove.
-  });
-}
-
 createRoot(document.getElementById("root")!).render(
   <AppInitializer>
     <App />
