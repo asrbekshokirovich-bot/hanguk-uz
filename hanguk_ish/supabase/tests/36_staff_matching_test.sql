@@ -89,6 +89,10 @@ select tests.eq(
   (select (c ->> 'distance_km')::numeric from jsonb_array_elements(public.staff_candidates(pg_temp.id('job'), 50)) c
    where c ->> 'first_name' = 'Aziz') < 0.2, true, 'with the distance');
 select tests.eq(jsonb_array_length(public.staff_candidates(pg_temp.id('job'), 5)), 2, 'within 5 km: two');
+select tests.eq(
+  (select string_agg(c ->> 'first_name', ',' order by o)
+   from jsonb_array_elements(public.staff_candidates(pg_temp.id('job'), 50, 2)) with ordinality t(c, o)),
+  'Aziz,Bekzod', 'the first two are the free ones, though Malika lives nearer than Bekzod');
 
 -- Offers: once per worker, each with a notification.
 select tests.eq(public.staff_send_offers(pg_temp.id('job'),
@@ -189,6 +193,12 @@ select tests.throws($$select public.staff_save_shift(null, '10000000-0000-0000-0
 select tests.eq(public.staff_send_offers('20000000-0000-0000-0000-000000000003',
                   array['00000000-0000-0000-0000-0000000000a1']::uuid[]), 1,
                 'but they may point a worker to a shift in the app');
+select tests.eq(public.staff_send_offers('20000000-0000-0000-0000-000000000006',
+                  array['00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000c4']::uuid[]), 1,
+                'not to one who already works it');
+select tests.throws($$select public.staff_send_offers('20000000-0000-0000-0000-000000000006',
+                      array['00000000-0000-0000-0000-0000000000a1']::uuid[], repeat('x', 301))$$, 'INVALID',
+                    'a note fits 300 characters');
 select tests.throws($$select public.decide_application((select id from public.applications
                       where shift_id = '20000000-0000-0000-0000-000000000006' limit 1), true)$$, 'NOT_FOUND',
                     'and do not decide for an owner in the app');

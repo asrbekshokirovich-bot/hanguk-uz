@@ -1,9 +1,11 @@
 -- A random walk through what the two apps can do, with the seed fixed so it
 -- repeats: workers apply and cancel; the owner decides, changes places, moves,
 -- switches 자동 확정, cancels and posts shifts; workers check in and out with
--- the shift's QR; the hourly job runs; time passes. After every step the rules
--- that must always hold are checked. A broken one fails the file with the step
--- and the last actions.
+-- the shift's QR; the hourly job runs; time passes. Hanguk's staff (hanguk.uz,
+-- P39) keep an employer outside the app: they post invite-only jobs, change
+-- them, send offers, decide and mark who came; workers take or turn down the
+-- offers. After every step the rules that must always hold are checked. A
+-- broken one fails the file with the step and the last actions.
 --
 -- «Time passes» moves every recorded time 30 minutes back (now() is fixed for
 -- the whole transaction), which is the same as the clock moving on.
@@ -18,6 +20,16 @@ insert into public.worker_profiles (user_id, languages, topik, district, lat, ln
 select ('00000000-0000-0000-0000-0000000001' || lpad(i::text, 2, '0'))::uuid, '{uz,ko}', 3, 'Mapo-gu',
        37.5559 + i * 0.001, 126.9368, 268435455, now()
 from generate_series(1, 6) i;
+
+-- The staff (c1) and the employer they keep, next to biz1.
+insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000c1', '+821000000031');
+insert into public.staff_members (user_id) values ('00000000-0000-0000-0000-0000000000c1');
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
+select public.staff_save_business(null, '현장 인력', 'logistics', 'Hongdae', '마포구 와우산로 21', '', 'Mapo-gu',
+                                  37.5565, 126.9370);
+select tests.as_admin();
+-- Who the staff marked as not come (only they may, on the jobs they keep).
+create temp table staff_no_shows (app uuid);
 
 -- The fixtures' applications are made up for other tests (a2 is on two
 -- overlapping shifts, which the apps cannot do); the walk starts from none.
@@ -92,13 +104,43 @@ begin
     and not (a.check_in_at >= s.starts_at - interval '30 minutes' and a.check_in_at < s.ends_at);
   if v is not null then raise exception 'step %: check-in outside the window: %', p_step, v; end if;
 
+  -- An invite-only job: everyone on it was invited.
+  select string_agg(a.id::text, ', ') into v
+  from public.applications a join public.shifts s on s.id = a.shift_id
+  where s.invite_only
+    and not exists (select 1 from public.job_offers o where o.shift_id = a.shift_id and o.worker_id = a.worker_id);
+  if v is not null then raise exception 'step %: uninvited on an invite-only job: %', p_step, v; end if;
+
+  -- A taken offer has its application.
+  select string_agg(o.id::text, ', ') into v
+  from public.job_offers o
+  where o.status = 'applied'
+    and not exists (select 1 from public.applications a where a.shift_id = o.shift_id and a.worker_id = o.worker_id);
+  if v is not null then raise exception 'step %: taken offer without an application: %', p_step, v; end if;
+
+  -- Nobody is told «new shift nearby» about an invite-only job.
+  select string_agg(n.id::text, ', ') into v
+  from public.notifications n join public.shifts s on s.id = (n.data ->> 'shift_id')::uuid
+  where n.kind = 'new_shift_match' and s.invite_only;
+  if v is not null then raise exception 'step %: invite-only job announced: %', p_step, v; end if;
+
+  -- On a job the staff keep, only they mark someone as not come.
+  select string_agg(a.id::text, ', ') into v
+  from public.applications a
+  join public.shifts s on s.id = a.shift_id
+  join public.businesses b on b.id = s.business_id
+  where b.managed_by_staff and a.status = 'no_show' and a.id not in (select app from staff_no_shows);
+  if v is not null then raise exception 'step %: no-show the staff did not mark: %', p_step, v; end if;
+
   if p_after_job then
     -- Right after the job: no one waits on a started shift, no one is still
-    -- «confirmed» on a finished one.
+    -- «confirmed» on a finished one (but on the staff's: they mark who came).
     select string_agg(a.id::text || ' ' || a.status, ', ') into v
-    from public.applications a join public.shifts s on s.id = a.shift_id
+    from public.applications a
+    join public.shifts s on s.id = a.shift_id
+    join public.businesses b on b.id = s.business_id
     where (a.status = 'pending' and s.starts_at <= now())
-       or (a.status = 'confirmed' and s.ends_at <= now());
+       or (a.status = 'confirmed' and s.ends_at <= now() and not b.managed_by_staff);
     if v is not null then raise exception 'step %: left behind by the job: %', p_step, v; end if;
   end if;
 end $$;
@@ -112,9 +154,13 @@ declare
     union all select '00000000-0000-0000-0000-0000000000a2'::uuid);
   v_owner constant uuid := '00000000-0000-0000-0000-0000000000b1';
   v_biz constant uuid := '10000000-0000-0000-0000-000000000001';
+  v_staff constant uuid := '00000000-0000-0000-0000-0000000000c1';
+  v_mbiz constant uuid := (select id from public.businesses where managed_by_staff limit 1);
   v_actions constant text[] := array[
     'apply', 'apply', 'apply', 'apply', 'cancel', 'decide', 'decide', 'decide', 'places', 'move',
-    'auto', 'cancel_shift', 'post', 'post', 'check_in', 'check_in', 'check_out', 'check_out', 'job', 'time'];
+    'auto', 'cancel_shift', 'post', 'post', 'check_in', 'check_in', 'check_out', 'check_out', 'job', 'time',
+    'staff_post', 'staff_post', 'staff_offer', 'staff_offer', 'staff_edit', 'apply_offer', 'apply_offer',
+    'decline', 'attend', 'attend', 'attend', 'time', 'time'];
   v_action text;
   v_outcome text;
   v_detail text;
@@ -123,6 +169,8 @@ declare
   v_worker uuid;
   v_payload text;
   v_start timestamptz;
+  v_s public.shifts;
+  v_came boolean;
   v_log text;
   v_tally jsonb := '{}'::jsonb;
 begin
@@ -139,7 +187,7 @@ begin
         v_worker := v_workers[1 + floor(random() * array_length(v_workers, 1))::int];
         -- Mostly a shift still open to applications; sometimes any (refusals).
         select id into v_shift from public.shifts
-        where business_id = v_biz and (random() < 0.15 or (status = 'open' and starts_at > now()))
+        where business_id in (v_biz, v_mbiz) and (random() < 0.15 or (status = 'open' and starts_at > now()))
         order by random() limit 1;
         v_detail := v_worker || ' → ' || v_shift;
         perform tests.as_user(v_worker);
@@ -155,13 +203,13 @@ begin
           perform public.cancel_application(v_app);
         end if;
       when 'decide' then
-        select a.id into v_app from public.applications a join public.shifts s on s.id = a.shift_id
-        where a.status = 'pending' and s.business_id = v_biz order by random() limit 1;
+        select a.id, s.business_id into v_app, v_shift from public.applications a join public.shifts s on s.id = a.shift_id
+        where a.status = 'pending' and s.business_id in (v_biz, v_mbiz) order by random() limit 1;
         if v_app is null then
           v_outcome := 'nothing';
         else
           v_detail := v_app::text;
-          perform tests.as_user(v_owner);
+          perform tests.as_user(case when v_shift = v_mbiz then v_staff else v_owner end);
           perform public.decide_application(v_app, random() < 0.75);
         end if;
       when 'places' then
@@ -186,11 +234,11 @@ begin
         perform tests.as_user(v_owner);
         update public.shifts set auto_confirm = not auto_confirm where id = v_shift;
       when 'cancel_shift' then
-        select id into v_shift from public.shifts where business_id = v_biz and status = 'open'
+        select * into v_s from public.shifts where business_id in (v_biz, v_mbiz) and status = 'open'
         order by random() limit 1;
-        v_detail := v_shift::text;
-        perform tests.as_user(v_owner);
-        perform public.cancel_shift(v_shift);
+        v_detail := v_s.id::text;
+        perform tests.as_user(case when v_s.business_id = v_mbiz then v_staff else v_owner end);
+        perform public.cancel_shift(v_s.id);
       when 'post' then
         -- Half start within three hours (QR soon), half within two days.
         v_start := now() + make_interval(mins => 30 + floor(random() * case when random() < 0.5 then 150 else 2880 end)::int);
@@ -211,13 +259,95 @@ begin
           v_outcome := 'nothing';
         else
           v_detail := v_app::text;
-          perform tests.as_user(v_owner);
+          perform tests.as_user(case when (select business_id from public.shifts where id = v_shift) = v_mbiz
+                                     then v_staff else v_owner end);
           v_payload := public.shift_qr(v_shift);
           perform tests.as_user(v_worker);
           if v_action = 'check_in' then
             perform public.check_in(v_payload);
           else
             perform public.check_out(v_payload);
+          end if;
+        end if;
+      when 'staff_post' then
+        -- Most of the staff's jobs are for the invited only.
+        v_start := now() + make_interval(mins => 30 + floor(random() * case when random() < 0.5 then 150 else 2880 end)::int);
+        perform tests.as_user(v_staff);
+        v_shift := public.staff_save_shift(
+          null, v_mbiz, '현장 보조', v_start, v_start + make_interval(hours => 2 + floor(random() * 5)::int),
+          11000, 1 + floor(random() * 3)::int, '', '', '', null, null, random() < 0.3, random() < 0.7, '', '');
+        v_detail := v_shift::text;
+      when 'staff_offer' then
+        select id into v_shift from public.shifts
+        where business_id = v_mbiz and (random() < 0.15 or (status = 'open' and starts_at > now()))
+        order by random() limit 1;
+        v_detail := v_shift::text;
+        perform tests.as_user(v_staff);
+        perform public.staff_send_offers(v_shift, array(
+          select w from unnest(v_workers) w order by random() limit 1 + floor(random() * 3)::int));
+      when 'staff_edit' then
+        -- Later by 90 minutes, a place more or less, or 자동 확정 switched.
+        select * into v_s from public.shifts where business_id = v_mbiz and status = 'open'
+        order by random() limit 1;
+        if v_s.id is null then
+          v_outcome := 'nothing';
+        else
+          v_detail := v_s.id::text;
+          perform tests.as_user(v_staff);
+          case floor(random() * 3)::int
+          when 0 then
+            v_s.starts_at := v_s.starts_at + interval '90 minutes';
+            v_s.ends_at := v_s.ends_at + interval '90 minutes';
+          when 1 then
+            v_s.slots := greatest(1, least(4, v_s.slots + case when random() < 0.5 then -1 else 1 end));
+          else
+            v_s.auto_confirm := not v_s.auto_confirm;
+          end case;
+          perform public.staff_save_shift(
+            v_s.id, v_mbiz, v_s.title, v_s.starts_at, v_s.ends_at, v_s.hourly_wage, v_s.slots, v_s.duties,
+            v_s.dress, v_s.address, v_s.lat, v_s.lng, v_s.auto_confirm, v_s.invite_only, '', '');
+        end if;
+      when 'apply_offer' then
+        -- A worker takes a job they were offered (sent, or turned down before).
+        select o.worker_id, o.shift_id into v_worker, v_shift
+        from public.job_offers o join public.shifts s on s.id = o.shift_id
+        where o.status in ('sent', 'declined') and (random() < 0.15 or (s.status = 'open' and s.starts_at > now()))
+        order by random() limit 1;
+        if v_shift is null then
+          v_outcome := 'nothing';
+        else
+          v_detail := v_worker || ' → ' || v_shift;
+          perform tests.as_user(v_worker);
+          perform public.apply_to_shift(v_shift);
+        end if;
+      when 'decline' then
+        select o.worker_id, o.shift_id into v_worker, v_shift from public.job_offers o
+        where o.status = 'sent' order by random() limit 1;
+        if v_shift is null then
+          v_outcome := 'nothing';
+        else
+          v_detail := v_worker || ' → ' || v_shift;
+          perform tests.as_user(v_worker);
+          perform public.decline_job_offer(v_shift);
+        end if;
+      when 'attend' then
+        -- The staff mark who came: mostly on a started job; sometimes too early.
+        select a.id into v_app
+        from public.applications a join public.shifts s on s.id = a.shift_id
+        where s.business_id = v_mbiz and a.status in ('confirmed', 'checked_in')
+          and (random() < 0.15 or s.starts_at <= now())
+        order by random() limit 1;
+        if v_app is null then
+          v_outcome := 'nothing';
+        else
+          v_came := random() < 0.8;
+          v_detail := v_app::text || case when v_came then ' came' else ' did not come' end;
+          perform tests.as_user(v_staff);
+          perform public.staff_mark_attendance(v_app, v_came,
+            case when random() < 0.5 then null else floor(random() * 600)::int end);
+          if not v_came then
+            perform tests.as_admin();
+            insert into staff_no_shows values (v_app);
           end if;
         end if;
       when 'job' then
@@ -273,13 +403,14 @@ begin
   insert into walk_totals select key, value::int from jsonb_each_text(v_tally);
 end $$;
 
-select pg_temp.walk_from_start(0.11, 500);
-select pg_temp.walk_from_start(0.37, 500);
-select pg_temp.walk_from_start(0.73, 500);
+select pg_temp.walk_from_start(0.11, 600);
+select pg_temp.walk_from_start(0.37, 600);
+select pg_temp.walk_from_start(0.73, 600);
 
 -- The walk did reach every kind of step, successful and refused.
 select tests.ok((select sum(n) from walk_totals where step = a || ':ok') > 0, 'the walk did ' || a)
 from unnest(array['apply', 'cancel', 'decide', 'places', 'move', 'auto', 'cancel_shift', 'post',
-                  'check_in', 'check_out', 'job', 'time']) a;
+                  'check_in', 'check_out', 'job', 'time',
+                  'staff_post', 'staff_offer', 'staff_edit', 'apply_offer', 'decline', 'attend']) a;
 select tests.ok((select sum(n) from walk_totals where step like '%:' || r) > 0, 'a refusal came: ' || r)
-from unnest(array['SHIFT_FULL', 'TIME_CONFLICT', 'HAS_CREW', 'TOO_EARLY']) r;
+from unnest(array['SHIFT_FULL', 'TIME_CONFLICT', 'HAS_CREW', 'TOO_EARLY', 'SHIFT_CLOSED']) r;

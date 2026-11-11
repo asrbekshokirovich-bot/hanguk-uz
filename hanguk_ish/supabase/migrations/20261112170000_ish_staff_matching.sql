@@ -853,8 +853,9 @@ begin
 end
 $$;
 
--- Who fits a job, best first: free at that time (the A02 schedule), near it,
--- reliable, experienced. A worker already busy at that time comes last, marked.
+-- Who fits a job, best first: free at that time (no other shift then, the
+-- hour in their A02 schedule), near it, reliable. A worker already busy at
+-- that time comes last, marked.
 create function public.staff_candidates(
   p_shift uuid, p_max_km double precision default 10, p_limit int default 100)
 returns jsonb
@@ -877,45 +878,49 @@ begin
   select coalesce(v_shift.lat, b.lat), coalesce(v_shift.lng, b.lng) into v_lat, v_lng
   from public.businesses b where b.id = v_shift.business_id;
   v_bit := public.availability_bit(v_shift.starts_at);
+  -- Free and willing first (not on another job at that time, the hour in
+  -- their «Qachon ishlay olaman»), then the nearest, then the most reliable.
   return coalesce((
+    with busy as (
+      -- On another shift at the same time (shifts are 16 hours at most).
+      select distinct a.worker_id
+      from public.shifts s
+      join public.applications a on a.shift_id = s.id
+      where s.status = 'open' and s.id <> v_shift.id
+        and s.starts_at > v_shift.starts_at - interval '16 hours'
+        and s.starts_at < v_shift.ends_at and s.ends_at > v_shift.starts_at
+        and a.status in ('pending', 'confirmed', 'checked_in')
+    ), c as (
+      select w.user_id, w.reliability, k.km,
+             (w.availability = 0 or (w.availability >> v_bit) & 1 = 1) as available,
+             w.user_id in (select worker_id from busy) as busy
+      from public.worker_profiles w
+      cross join lateral (select public.distance_km(w.lat, w.lng, v_lat, v_lng) as km) k
+      where w.onboarded_at is not null
+        and not exists (select 1 from public.business_members m
+                        where m.business_id = v_shift.business_id and m.user_id = w.user_id)
+        and (p_max_km is null or k.km is null or k.km <= p_max_km)
+      order by 5, 4 desc, 3 nulls last, 2 desc, 1
+      limit greatest(1, least(coalesce(p_limit, 100), 500))
+    )
     select jsonb_agg(public.staff_worker_card(c.user_id) || jsonb_build_object(
              'distance_km', round(c.km::numeric, 1),
              'available', c.available,
              'busy', c.busy,
-             'offer_status', c.offer_status,
-             'application_status', c.application_status)
-           order by c.busy, c.available desc, c.km nulls last, c.reliability desc, c.completed desc, c.user_id)
-    from (
-      select w.user_id, w.reliability,
-             public.distance_km(w.lat, w.lng, v_lat, v_lng) as km,
-             (w.availability = 0 or (w.availability >> v_bit) & 1 = 1) as available,
-             exists (select 1 from public.applications a join public.shifts s on s.id = a.shift_id
-                     where a.worker_id = w.user_id and a.shift_id <> v_shift.id
-                       and a.status in ('pending', 'confirmed', 'checked_in')
-                       and tstzrange(s.starts_at, s.ends_at) && tstzrange(v_shift.starts_at, v_shift.ends_at))
-               as busy,
-             (select o.status from public.job_offers o
-              where o.shift_id = v_shift.id and o.worker_id = w.user_id) as offer_status,
-             (select a.status::text from public.applications a
-              where a.shift_id = v_shift.id and a.worker_id = w.user_id
-              order by a.created_at desc limit 1) as application_status,
-             (select count(*) from public.applications a
-              where a.worker_id = w.user_id and a.status = 'completed') as completed
-      from public.worker_profiles w
-      where w.onboarded_at is not null
-        and not exists (select 1 from public.business_members m
-                        where m.business_id = v_shift.business_id and m.user_id = w.user_id)
-        and (p_max_km is null or w.lat is null or v_lat is null
-             or public.distance_km(w.lat, w.lng, v_lat, v_lng) <= p_max_km)
-      order by 3 nulls last
-      limit greatest(1, least(coalesce(p_limit, 100), 500))
-    ) c
+             'offer_status', (select o.status from public.job_offers o
+                              where o.shift_id = v_shift.id and o.worker_id = c.user_id),
+             'application_status', (select a.status::text from public.applications a
+                                    where a.shift_id = v_shift.id and a.worker_id = c.user_id
+                                    order by a.created_at desc limit 1))
+           order by c.busy, c.available desc, c.km nulls last, c.reliability desc, c.user_id)
+    from c
   ), '[]'::jsonb);
 end
 $$;
 
 -- «Taklif yuborish»: an offer to each worker, once per job, and a
--- notification. The job must still be open to applications.
+-- notification. The job must still be open to applications; a worker who has
+-- already applied to it gets none.
 create function public.staff_send_offers(p_shift uuid, p_workers uuid[], p_note text default '')
 returns int
 language plpgsql
@@ -934,6 +939,9 @@ begin
   if v_shift.status <> 'open' or v_shift.starts_at <= now() then
     raise exception 'SHIFT_CLOSED';
   end if;
+  if char_length(coalesce(btrim(p_note), '')) > 300 then
+    raise exception 'INVALID';
+  end if;
   with sent as (
     insert into public.job_offers (shift_id, worker_id, sent_by, note)
     select p_shift, w.user_id, v_uid, coalesce(btrim(p_note), '')
@@ -941,6 +949,9 @@ begin
     where w.user_id = any (p_workers) and w.onboarded_at is not null
       and not exists (select 1 from public.business_members m
                       where m.business_id = v_shift.business_id and m.user_id = w.user_id)
+      and not exists (select 1 from public.applications a
+                      where a.shift_id = p_shift and a.worker_id = w.user_id
+                        and a.status not in ('cancelled', 'rejected'))
     on conflict (shift_id, worker_id) do nothing
     returning id, worker_id
   )
