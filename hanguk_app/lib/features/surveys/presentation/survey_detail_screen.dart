@@ -94,6 +94,8 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
     }
 
     setState(() => _submitting = true);
+    // The answers may finish saving after the student has left the screen.
+    final container = ProviderScope.containerOf(context, listen: false);
 
     try {
       for (final entry in _answers.entries) {
@@ -107,8 +109,8 @@ class _SurveyDetailScreenState extends ConsumerState<SurveyDetailScreen> {
         );
       }
       AppEvents.track('form_submit', props: {'form': 'survey', 'result': 'ok'});
-      ref.invalidate(activeSurveysProvider);
-      ref.invalidate(surveyQuestionsProvider(widget.surveyId));
+      container.invalidate(activeSurveysProvider);
+      container.invalidate(surveyQuestionsProvider(widget.surveyId));
       if (mounted) {
         setState(() {
           _submitted = true;

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -56,14 +57,31 @@ class _ClientDocumentsScreenState extends ConsumerState<ClientDocumentsScreen> {
 
   Future<void> _upload(DocumentType type) async {
     final l = AppLocalizations.of(context)!;
+    // The picker and the upload outlive a quick exit from the screen; `ref`
+    // does not. The container does.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final repository = container.read(documentsRepositoryProvider);
     try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf']);
-      if (result != null && result.files.single.path != null) {
-        setState(() => _busy[type.id] = true);
-        await ref.read(documentsRepositoryProvider).uploadDocument(File(result.files.single.path!), type);
-        AppEvents.track('document_upload', props: {'type': type.id, 'result': 'ok'});
-        ref.invalidate(documentsProvider);
+      // In the browser a picked file has no path (reading it throws) — only
+      // its bytes, and only when asked for.
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+        withData: kIsWeb,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final picked = result.files.single;
+      final path = kIsWeb ? null : picked.path;
+      final bytes = picked.bytes;
+      if (path == null && bytes == null) throw StateError('picked file has neither a path nor bytes');
+      if (mounted) setState(() => _busy[type.id] = true);
+      if (path != null) {
+        await repository.uploadDocument(File(path), type);
+      } else {
+        await repository.uploadDocumentBytes(bytes!, picked.name, type);
       }
+      AppEvents.track('document_upload', props: {'type': type.id, 'result': 'ok'});
+      container.invalidate(documentsProvider);
     } catch (e, st) {
       AppEvents.track('document_upload', props: {
         'type': type.id,

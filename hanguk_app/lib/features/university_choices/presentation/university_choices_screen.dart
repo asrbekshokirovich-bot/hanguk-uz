@@ -198,10 +198,13 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
   Future<void> _answer({required bool accept, ChangeReason? reason, String? note}) async {
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
+    // `ref` dies with the card; the answer may land after the card is gone
+    // (the list re-reads, the student leaves). The container outlives it.
+    final container = ProviderScope.containerOf(context, listen: false);
     setState(() => _sending = true);
     try {
       await respondToUniversityChoice(choiceId: widget.choice.id, accept: accept, reason: reason, note: note);
-      ref.invalidate(myUniversityChoicesProvider);
+      container.invalidate(myUniversityChoicesProvider);
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l.ucSendError)));
     } finally {
@@ -212,10 +215,11 @@ class _UniversityChoiceCardState extends ConsumerState<UniversityChoiceCard> {
   Future<void> _confirmFinal() async {
     final l = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
+    final container = ProviderScope.containerOf(context, listen: false);
     setState(() => _sending = true);
     try {
       await confirmFinalUniversity(widget.choice.institutionId);
-      ref.invalidate(myUniversityChoicesProvider);
+      container.invalidate(myUniversityChoicesProvider);
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l.ucSendError)));
     } finally {

@@ -193,11 +193,14 @@ class UniversityTile extends StatelessWidget {
 /// "Imzolash": the Study Plan builder. The journey is read again on the way
 /// back, so a finished plan clears "Sizdan kerak" at once.
 Future<void> openStudyPlan(BuildContext context, WidgetRef ref) async {
+  // The screen that opened the builder can be gone by the time it closes (a
+  // tab pressed from inside it); its `ref` then throws. The container does not.
+  final container = ProviderScope.containerOf(context, listen: false);
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
       settings: const RouteSettings(name: 'study_plan'),
       builder: (_) => const NavScaffold(current: AppTab.application, child: StudyPlanBuilderScreen()),
     ),
   );
-  ref.invalidate(applicationJourneyProvider);
+  container.invalidate(applicationJourneyProvider);
 }

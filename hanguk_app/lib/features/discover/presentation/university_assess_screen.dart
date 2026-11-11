@@ -408,6 +408,9 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
     // No client code asked here (owner, 2026-10-21): a guest takes the
     // tests under an anonymous session.
     final messenger = ScaffoldMessenger.of(context);
+    // Read again when the test screen closes — by then this page may be gone
+    // (a tab pressed from inside the test), and `ref` with it.
+    final container = ProviderScope.containerOf(context, listen: false);
     // The interview runs in Korean or English, the student's choice.
     String? language;
     if (interview) {
@@ -437,7 +440,7 @@ class _UniversityAssessScreenState extends ConsumerState<UniversityAssessScreen>
         builder: (_) => NavScaffold(current: AppTab.universities, child: page),
       ),
     );
-    ref.invalidate(admissionTestsProvider);
+    container.invalidate(admissionTestsProvider);
   }
 }
 
