@@ -1037,10 +1037,11 @@ void main() {
     await _until(tester, _text('Tasdiqlash'));
     await _tap(tester, _text('Tasdiqlash'));
     await _until(tester, _text('Ariza yuborildi!'));
-    await _close(tester);
+    // (Before closing: the app's own requests of this screen end meanwhile.)
     mine = (await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts()))!;
     expect(mine.where((a) => a.shift.id == moved.id).map((a) => a.status),
         containsAll([ApplicationStatus.rejected, ApplicationStatus.pending]));
+    await _close(tester);
   });
 
   /// The E2E business's shifts of the next three days.
