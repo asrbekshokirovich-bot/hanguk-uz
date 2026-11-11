@@ -24,7 +24,8 @@ describe('parseJobPost', () => {
       slots: 2,
       phone: '010-5555-1234',
       telegram: '@hongdae_move',
-      address: 'Manzil: Mapo-gu, Wausan-ro 21',
+      // The label after the pin is not part of the address (P46).
+      address: 'Mapo-gu, Wausan-ro 21',
       link: 'https://t.me/koreajobs_uz/1234',
     });
   });
