@@ -154,6 +154,24 @@ void main() {
       expect(Biz.money(10500), '10,500 KRW');
     });
 
+    test('the small parts: units, the weekday under a date, the headcount box', () {
+      Biz.use(AppLanguage.ko);
+      expect(Biz.unitAfter('명'), '명');
+      expect(Biz.headcountValue(3), '3명');
+      expect(Biz.weekdayUnderDate(tuesday), '화요일');
+      Biz.use(AppLanguage.uz);
+      expect(Biz.unitAfter('kishi'), ' kishi');
+      expect(Biz.unitAfter(''), '');
+      expect(Biz.headcountValue(3), '3 kishi');
+      expect(Biz.weekdayUnderDate(tuesday), 'Se');
+      Biz.use(AppLanguage.ru);
+      expect(Biz.headcountValue(3), '3 чел.');
+      expect(Biz.weekdayUnderDate(tuesday), 'Вт');
+      Biz.use(AppLanguage.en);
+      expect(Biz.headcountValue(3), '3');
+      expect(Biz.weekdayUnderDate(tuesday), 'Tue');
+    });
+
     test('the phone\'s language comes first when the app speaks it, else Korean', () {
       expect(employerLanguageFor(const [Locale('ru', 'RU'), Locale('ko')]), AppLanguage.ru);
       expect(employerLanguageFor(const [Locale('de'), Locale('uz')]), AppLanguage.uz);
@@ -192,6 +210,14 @@ void main() {
       await open(tester, EmployerRoutes.login);
       expect(find.text('시작하기'), findsOneWidget);
       expect(find.text('휴대폰 번호'), findsOneWidget);
+    });
+
+    testWidgets('BA0: the badge stands beside the name, as in the prototype', (tester) async {
+      await open(tester, EmployerRoutes.login);
+      final title = tester.getRect(find.text('Hanguk Ish'));
+      final badge = tester.getRect(find.text('사장님용'));
+      expect(badge.left, greaterThan(title.right), reason: 'on the same line, after the name');
+      expect((badge.center.dy - title.center.dy).abs(), lessThan(6));
     });
 
     testWidgets('BA0: the globe changes the language at once and keeps it', (tester) async {
@@ -247,6 +273,18 @@ void main() {
         expect(left, isEmpty);
       });
     }
+
+    testWidgets('BA5 in English: a short weekday under the date, a space before the unit', (tester) async {
+      await open(tester, EmployerRoutes.report, language: AppLanguage.en, phone: tall);
+      expect(find.text('Tue'), findsWidgets);
+      expect(find.textContaining('105,000 KRW', findRichText: true), findsWidgets);
+      expect(find.textContaining('105,000KRW', findRichText: true), findsNothing);
+    });
+
+    testWidgets('BA1 in Uzbek: «1 kishi» with a space', (tester) async {
+      await open(tester, EmployerRoutes.home, language: AppLanguage.uz);
+      expect(find.textContaining('1 kishi', findRichText: true), findsWidgets);
+    });
 
     testWidgets('BA3 in English', (tester) async {
       await open(tester, EmployerRoutes.shift('demo-es-close'), language: AppLanguage.en, phone: tall);

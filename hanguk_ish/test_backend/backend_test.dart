@@ -61,6 +61,29 @@ Future<void> _joined(List<void> events) async {
   events.clear();
 }
 
+/// Realtime says «subscribed» a moment before the database's changes reach
+/// the channel; a change in between is lost (the apps reload on every join
+/// for that reason, P23). The tests wait until a probe notification arrives,
+/// then start from nothing — so «nothing came» also means something.
+Future<void> _live(SupabaseClient admin, String userId, List<void> events) async {
+  await _joined(events);
+  final deadline = DateTime.now().add(const Duration(seconds: 20));
+  while (events.isEmpty && DateTime.now().isBefore(deadline)) {
+    await admin.from('notifications').insert({
+      'user_id': userId,
+      'kind': 'chat_message',
+      'data': {'probe': true},
+    });
+    final next = DateTime.now().add(const Duration(seconds: 1));
+    while (events.isEmpty && DateTime.now().isBefore(next)) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+  }
+  await admin.from('notifications').delete().eq('user_id', userId).contains('data', {'probe': true});
+  expect(events, isNotEmpty, reason: 'the database\'s changes reach the channel');
+  events.clear();
+}
+
 // A 1×1 PNG.
 final _png = base64Decode(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
@@ -411,7 +434,7 @@ void main() {
       final events = <void>[];
       final subscription = SupabaseLiveUpdates(aziz).changes().listen(events.add);
       addTearDown(subscription.cancel);
-      await _joined(events);
+      await _live(admin, aziz.auth.currentUser!.id, events);
       await employer.requestAgain(tomorrow.id, aziz.auth.currentUser!.id);
       final deadline = DateTime.now().add(const Duration(seconds: 20));
       while (events.isEmpty && DateTime.now().isBefore(deadline)) {
@@ -427,8 +450,8 @@ void main() {
       final strangerSubscription = SupabaseLiveUpdates(malika).changes().listen(strangerEvents.add);
       addTearDown(ownerSubscription.cancel);
       addTearDown(strangerSubscription.cancel);
-      await _joined(ownerEvents);
-      await _joined(strangerEvents);
+      await _live(admin, owner.auth.currentUser!.id, ownerEvents);
+      await _live(admin, malika.auth.currentUser!.id, strangerEvents);
       // A change no notification is made for (as a check-in is to the owner).
       await admin.from('applications').update({'updated_at': DateTime.now().toUtc().toIso8601String()}).eq('id', azizNow);
       final deadline = DateTime.now().add(const Duration(seconds: 20));

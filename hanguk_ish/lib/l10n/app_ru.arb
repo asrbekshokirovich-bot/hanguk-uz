@@ -546,5 +546,6 @@
   "bizErrOffline": "Проверьте подключение к интернету",
   "bizErrOther": "Попробуйте ещё раз",
   "bizLanguage": "Язык",
-  "bizAsOfTime": "на {time}"
+  "bizAsOfTime": "на {time}",
+  "bizHeadcountValue": "{n} чел."
 }

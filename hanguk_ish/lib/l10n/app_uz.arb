@@ -2792,5 +2792,14 @@
         "type": "String"
       }
     }
+  },
+  "bizHeadcountValue": "{n} kishi",
+  "@bizHeadcountValue": {
+    "description": "BA2: the number of workers in the box between − and + (Korean «3명»; English the number alone)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }
