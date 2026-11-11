@@ -15,6 +15,7 @@ import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../catalog/presentation/catalog_format.dart';
 import '../../discover/presentation/discover_routes.dart';
+import '../../discover/presentation/widgets/app_nav.dart' show AppTab;
 import '../../discover/presentation/widgets/chance_badge.dart';
 import '../../onboarding/domain/eligibility_engine.dart';
 import '../data/assessment_controller.dart';
@@ -127,6 +128,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       );
     }
     _sendResult(outcome);
+    // Nothing answered on the board yet: every figure would rest on its
+    // starting values (19, certificate 4, no Korean…), so the report asks for
+    // the test first (Asrbek, 2026-11-11).
+    if (!ref.watch(assessmentTouchedProvider)) return _fillFirst(context, l);
     final best = outcome.chances.isEmpty
         ? null
         : outcome.chances.reduce((a, b) => b.percent > a.percent ? b : a);
@@ -193,6 +198,68 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   label: l.fdReportCta,
                   shadow: _kBlueShadow,
                   onPressed: tracked('report.cta', () => context.push(kAssessmentLeadPath)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The report before any answer: the same page, a line asking for the test,
+  /// the button to the board, and the consultant's form as before.
+  Widget _fillFirst(BuildContext context, AppLocalizations l) {
+    return Scaffold(
+      backgroundColor: FdColors.blue,
+      body: FdPage(
+        solid: FdColors.blue,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 2, 18, 0),
+                child: Row(
+                  children: [
+                    HardIconButton(
+                      glyph: LucideIcons.chevronLeft,
+                      semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+                      onTap: tracked('report.back', () => context.pop()),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
+                  children: [
+                    Text(l.fdReportEyebrow, style: fdText(14, FontWeight.w800, FdColors.lime, letterSpacing: 1.1)),
+                    const SizedBox(height: 10),
+                    Text(
+                      l.fdReportFillFirst,
+                      style: fdText(44, FontWeight.w800, Colors.white, height: 1.05, letterSpacing: -1.5),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(l.fdReportFillFirstBody, style: fdText(15, FontWeight.w400, FdColors.pageMuted, height: 1.45)),
+                  ],
+                ),
+              ),
+              FdBottomBar(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HardButton(
+                      label: l.fdReportFillFirstCta,
+                      shadow: _kBlueShadow,
+                      onPressed: tracked('report.fill_first', () => context.go('$kDiscoverPath?tab=${AppTab.home}')),
+                    ),
+                    TextButton(
+                      onPressed: tracked('report.cta', () => context.push(kAssessmentLeadPath)),
+                      child: Text(l.fdReportCta, style: fdText(15, FontWeight.w700, Colors.white)),
+                    ),
+                  ],
                 ),
               ),
             ],

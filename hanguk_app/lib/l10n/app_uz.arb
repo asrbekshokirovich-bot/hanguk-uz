@@ -1844,5 +1844,8 @@
   "countryLabel": "Mamlakat",
   "countrySheetTitle": "Mamlakatni tanlang",
   "ajBishkek": "Bishkek",
-  "leadKgConsent": "Shaxsiy ma'lumotlarim (ism, telefon, javoblar) maslahat uchun Hanguk Consulting'ga yuborilishi va Koreya Respublikasidagi serverda saqlanishiga roziman."
+  "leadKgConsent": "Shaxsiy ma'lumotlarim (ism, telefon, javoblar) maslahat uchun Hanguk Consulting'ga yuborilishi va Koreya Respublikasidagi serverda saqlanishiga roziman.",
+  "fdReportFillFirst": "Avval testni to'ldiring.",
+  "fdReportFillFirstBody": "Kirish va viza foizlari javoblaringizdan hisoblanadi: yosh, attestat, til darajasi, bank.",
+  "fdReportFillFirstCta": "Testni to'ldirish"
 }

@@ -5825,4 +5825,14 @@ class AppLocalizationsKy extends AppLocalizations {
   @override
   String get leadKgConsent =>
       'Жеке маалыматтарымдын (аты-жөнү, телефон, жооптор) кеңеш үчүн Hanguk Consulting\'ке жөнөтүлүшүнө жана Корея Республикасындагы серверде сакталышына макулмун.';
+
+  @override
+  String get fdReportFillFirst => 'Адегенде тестти толтуруңуз.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      'Кабыл алуу жана виза мүмкүнчүлүгү жоопторуңуз боюнча эсептелет: жаш, аттестат, тил деңгээли, банк.';
+
+  @override
+  String get fdReportFillFirstCta => 'Тестти толтуруу';
 }
