@@ -35,7 +35,9 @@ export function countryLine(country: "UZ" | "KG"): string {
 - The visa rules in the tools (assess_chances, eligibility) were written for the embassy in Tashkent; the Bishkek notice uses the same TOPIK, IELTS and deposit amounts from 2027-01-01. For anything before 2027 or anything you are unsure about, check the Bishkek embassy page with web_fetch or send them to a consultant.
 - Prices are in Kyrgyz som (KGS) or US dollars, not Uzbek so'm.`;
   }
-  return "";
+  // QA audit 2026-11-11: name the embassy for Uzbekistan too.
+  return `## COUNTRY: UZBEKISTAN
+- This person applies from Uzbekistan. The student visa is applied for at the Korean Embassy in Tashkent. Name it when asked where to apply; take every requirement and number from the tools.`;
 }
 
 /** The rules every audience shares: facts only from tools, sources, honesty. */

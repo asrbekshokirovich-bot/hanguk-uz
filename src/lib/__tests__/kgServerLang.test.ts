@@ -84,11 +84,13 @@ describe('Hanguk AI and the country', () => {
     const uz = guestSystem({ language: 'uz', today: '2026-11-11' });
     expect(uz).toContain('+998 95 833 15 30');
     expect(uz).not.toContain('Bishkek');
+    expect(uz).toContain('Korean Embassy in Tashkent');
   });
 
   it('a Kyrgyz student is told the same; staff know about KG leads', () => {
     expect(studentSystem({ language: 'ru', today: 'x', name: 'A', country: 'KG' })).toContain('Korean Embassy in Bishkek');
     expect(studentSystem({ language: 'uz', today: 'x', name: 'A' })).not.toContain('Bishkek');
+    expect(studentSystem({ language: 'uz', today: 'x', name: 'A' })).toContain('Korean Embassy in Tashkent');
     expect(staffSystem({ language: 'uz', today: 'x', staffName: 'A', team: '', sqlSchema: null })).toContain("leads.country = 'KG'");
   });
 });
