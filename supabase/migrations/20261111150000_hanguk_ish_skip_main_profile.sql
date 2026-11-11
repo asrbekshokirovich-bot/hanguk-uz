@@ -25,7 +25,7 @@ AS $function$
         END IF;
 
         IF NEW.email LIKE 'student-%@hanguk.local' THEN
-          UPDATE public.profiles
+          UPDATE public.profiles 
           SET user_id = NEW.id
           WHERE user_id = (NEW.raw_user_meta_data->>'original_user_id')::uuid;
           RETURN NEW;
