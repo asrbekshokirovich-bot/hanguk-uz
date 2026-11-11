@@ -10,15 +10,28 @@ import '../../helpers/phone.dart';
 
 /// The demo business with [bell] as its notifications.
 class BellEmployer extends DemoEmployerRepository {
-  BellEmployer(this.bell) : super(now: employerPrototypeNow, clock: () => employerPrototypeNow);
+  BellEmployer(List<EmployerNotification> bell, {this.marks = true})
+      : bell = [...bell],
+        super(now: employerPrototypeNow, clock: () => employerPrototypeNow);
 
   final List<EmployerNotification> bell;
 
-  @override
-  Future<List<EmployerNotification>> notifications() async => bell;
+  /// False: the server answers but marks nothing (a reload still shows them
+  /// unread).
+  final bool marks;
+  int markCalls = 0;
 
   @override
-  Future<void> markNotificationsRead() async {}
+  Future<List<EmployerNotification>> notifications() async => List.of(bell);
+
+  @override
+  Future<void> markNotificationsRead() async {
+    markCalls++;
+    if (!marks) return;
+    for (var i = 0; i < bell.length; i++) {
+      bell[i] = bell[i].markRead();
+    }
+  }
 }
 
 void main() {
@@ -53,5 +66,25 @@ void main() {
     expect(find.text(Ko.notifAutoConfirmedText('Aziz Karimov', '오픈 바리스타 보조')), findsOneWidget);
     expect(find.text(Ko.notifNewApplicant), findsOneWidget);
     expect(find.text(Ko.notifNewApplicantText('Malika Yusupova', '마감 정리 보조')), findsOneWidget);
+  });
+
+  testWidgets('알림: a server that marks nothing is asked once, not in an endless loop', (tester) async {
+    usePhone(tester);
+    final repo = BellEmployer([
+      EmployerNotification(
+        id: '1',
+        kind: EmployerNotificationKind.newApplicant,
+        createdAt: employerPrototypeNow,
+        shiftId: 'demo-es-open',
+        shiftTitle: '오픈 바리스타 보조',
+        workerName: 'Aziz Karimov',
+      ),
+    ], marks: false);
+    final container = employerContainer(location: EmployerRoutes.notifications, repository: repo);
+    addTearDown(container.dispose);
+    await tester.pumpWidget(employerHarness(container));
+    await tester.pumpAndSettle();
+    expect(repo.markCalls, 1);
+    expect(find.text(Ko.notifNewApplicantText('Aziz Karimov', '오픈 바리스타 보조')), findsOneWidget);
   });
 }

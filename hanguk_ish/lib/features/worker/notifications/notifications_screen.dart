@@ -61,18 +61,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final Set<String> _fresh = {};
   bool _marking = false;
 
+  /// Marked read on the server already: not asked again, even if a reload
+  /// still shows them unread (no endless mark-and-reload).
+  final Set<String> _marked = {};
+
   // Unread ones (when the screen opens, and any arriving while it is open)
   // are marked read on the server. A failure leaves them unread for next
   // time: the bell keeps its dot.
   void _markRead(List<HiNotification> items) {
     final unread = [for (final n in items) if (!n.read) n.id];
     _fresh.addAll(unread);
-    if (unread.isEmpty || _marking) return;
+    final news = unread.where((id) => !_marked.contains(id)).toList();
+    if (news.isEmpty || _marking) return;
     _marking = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         if (!mounted) return;
         await ref.read(accountRepositoryProvider).markNotificationsRead();
+        _marked.addAll(news);
         if (mounted) ref.invalidate(notificationsProvider);
       } on Object {
         // Retried when the list next changes.
