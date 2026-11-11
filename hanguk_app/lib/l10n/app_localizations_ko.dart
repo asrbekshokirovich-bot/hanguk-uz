@@ -5582,4 +5582,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get leadKgConsent =>
       '상담을 위해 제 개인정보(이름, 전화번호, 답변)가 Hanguk Consulting에 전달되고 대한민국에 있는 서버에 저장되는 것에 동의합니다.';
+
+  @override
+  String get fdReportFillFirst => '먼저 테스트를 작성하세요.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      '입학·비자 가능성은 나이, 성적, 언어 수준, 잔고 등 답변으로 계산됩니다.';
+
+  @override
+  String get fdReportFillFirstCta => '테스트 작성하기';
 }

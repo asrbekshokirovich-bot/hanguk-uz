@@ -5800,4 +5800,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get leadKgConsent =>
       'I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.';
+
+  @override
+  String get fdReportFillFirst => 'Fill in the test first.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      'Admission and visa chances are worked out from your answers: age, certificate, language level, bank.';
+
+  @override
+  String get fdReportFillFirstCta => 'Fill in the test';
 }

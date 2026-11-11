@@ -7178,5 +7178,11 @@
   "leadKgConsent": "I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.",
   "@leadKgConsent": {
     "description": "Lead form (plan KG3), Kyrgyzstan only: the consent box's text; «Yuborish» stays off until it is ticked. Wording to be checked by a lawyer (Q8)."
+  },
+  "fdReportFillFirst": "Fill in the test first.",
+  "fdReportFillFirstBody": "Admission and visa chances are worked out from your answers: age, certificate, language level, bank.",
+  "fdReportFillFirstCta": "Fill in the test",
+  "@fdReportFillFirst": {
+    "description": "Report screen headline when no test answer was given yet."
   }
 }

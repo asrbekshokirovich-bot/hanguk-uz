@@ -142,6 +142,24 @@ void main() {
     });
   });
 
+  test('nothing answered: the lead carries the picked universities, not the board\'s starting values', () {
+    final catalog = [uni('a', topik: 3)];
+    const input = AssessmentInput(universityIds: ['a']);
+    final answers = input.untouchedAnswers();
+    expect(answers, {'source': 'assessment_v1', 'answered': false, 'universities': ['a']});
+    for (final k in ['age', 'gpa', 'route', 'korean', 'kdb', 'bank_krw', 'visa_refused']) {
+      expect(answers.containsKey(k), isFalse, reason: k);
+    }
+    final result = assess(input, catalog: catalog).untouchedResult();
+    expect(result['answered'], isFalse);
+    for (final k in ['band', 'visa_pct', 'tariff', 'low', 'fixes', 'required_bank_krw']) {
+      expect(result.containsKey(k), isFalse, reason: k);
+    }
+    final unis = result['universities'] as List;
+    expect(unis.single, {'id': 'a', 'name': isA<String>()});
+    expect((unis.single as Map).containsKey('pct'), isFalse);
+  });
+
   group('visaHints: the old quiz\'s tariff and weak point', () {
     final catalog = [uni('a', topik: 3)];
     final need = requiredBank(StudyRoute.bachelor, catalog);

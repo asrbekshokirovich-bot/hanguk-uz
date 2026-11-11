@@ -10375,6 +10375,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.'**
   String get leadKgConsent;
+
+  /// Report screen headline when no test answer was given yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the test first.'**
+  String get fdReportFillFirst;
+
+  /// No description provided for @fdReportFillFirstBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission and visa chances are worked out from your answers: age, certificate, language level, bank.'**
+  String get fdReportFillFirstBody;
+
+  /// No description provided for @fdReportFillFirstCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the test'**
+  String get fdReportFillFirstCta;
 }
 
 class _AppLocalizationsDelegate

@@ -5812,4 +5812,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get leadKgConsent =>
       'Согласен(на), чтобы мои данные (имя, телефон, ответы) были переданы Hanguk Consulting для консультации и хранились на сервере в Республике Корея.';
+
+  @override
+  String get fdReportFillFirst => 'Сначала пройдите тест.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      'Шансы на поступление и визу считаются по вашим ответам: возраст, аттестат, уровень языка, банк.';
+
+  @override
+  String get fdReportFillFirstCta => 'Пройти тест';
 }

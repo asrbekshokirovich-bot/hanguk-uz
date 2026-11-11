@@ -5788,4 +5788,14 @@ class AppLocalizationsUz extends AppLocalizations {
   @override
   String get leadKgConsent =>
       'Shaxsiy ma\'lumotlarim (ism, telefon, javoblar) maslahat uchun Hanguk Consulting\'ga yuborilishi va Koreya Respublikasidagi serverda saqlanishiga roziman.';
+
+  @override
+  String get fdReportFillFirst => 'Avval testni to\'ldiring.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      'Kirish va viza foizlari javoblaringizdan hisoblanadi: yosh, attestat, til darajasi, bank.';
+
+  @override
+  String get fdReportFillFirstCta => 'Testni to\'ldirish';
 }
