@@ -157,18 +157,18 @@ void main() {
     test('the small parts: units, the weekday under a date, the headcount box', () {
       Biz.use(AppLanguage.ko);
       expect(Biz.unitAfter('명'), '명');
-      expect(Biz.headcount(3), '3명');
+      expect(Biz.headcountValue(3), '3명');
       expect(Biz.weekdayUnderDate(tuesday), '화요일');
       Biz.use(AppLanguage.uz);
       expect(Biz.unitAfter('kishi'), ' kishi');
       expect(Biz.unitAfter(''), '');
-      expect(Biz.headcount(3), '3 kishi');
+      expect(Biz.headcountValue(3), '3 kishi');
       expect(Biz.weekdayUnderDate(tuesday), 'Se');
       Biz.use(AppLanguage.ru);
-      expect(Biz.headcount(3), '3 чел.');
+      expect(Biz.headcountValue(3), '3 чел.');
       expect(Biz.weekdayUnderDate(tuesday), 'Вт');
       Biz.use(AppLanguage.en);
-      expect(Biz.headcount(3), '3');
+      expect(Biz.headcountValue(3), '3');
       expect(Biz.weekdayUnderDate(tuesday), 'Tue');
     });
 

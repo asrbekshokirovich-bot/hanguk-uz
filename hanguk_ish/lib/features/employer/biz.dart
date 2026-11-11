@@ -226,7 +226,7 @@ abstract final class Biz {
   static String unitAfter(String unit) => unit.isEmpty || _ko ? unit : ' $unit';
 
   /// BA2's headcount box: «3명», «3 kishi», «3 чел.», «3».
-  static String headcount(int n) => _l.bizHeadcountValue(n);
+  static String headcountValue(int n) => _l.bizHeadcountValue(n);
 
   /// «10,500원» (Korean), «10,500 won» / «10,500 вон» / «10,500 KRW».
   static String money(int amount) => _ko ? Won.employer(amount) : '${Won.employerDigits(amount)} $won';

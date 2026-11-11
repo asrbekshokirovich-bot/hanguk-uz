@@ -905,7 +905,7 @@ class _Stepper extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: HiText(Biz.headcount(value), maxLines: 1, softWrap: false,
+                child: HiText(Biz.headcountValue(value), maxLines: 1, softWrap: false,
                     style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
               ),
             ),
