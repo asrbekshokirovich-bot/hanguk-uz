@@ -4,6 +4,7 @@ import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/demo/demo_employer.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
+import 'package:hanguk_ish/data/models/employer.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 
 import '../../helpers/employer_harness.dart';
@@ -290,6 +291,38 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('근무를 수정했어요'), findsOneWidget);
     expect(find.text('오늘 18:00–22:00 · 4시간\n시급 11,000원 · 확정 3/5명 · 자동 확정 꺼짐'), findsOneWidget);
+  });
+
+  testWidgets('BA2 수정: a title change keeps the shift\'s own times, to the second', (tester) async {
+    usePhone(tester);
+    final repo = DemoEmployerRepository(now: employerPrototypeNow, clock: () => employerPrototypeNow);
+    final business = (await repo.businesses()).first;
+    // Made elsewhere than this form: its times hold seconds.
+    final start = employerPrototypeNow.add(const Duration(hours: 5, seconds: 17, milliseconds: 250));
+    final shift = await repo.createShift(ShiftDraft(
+      businessId: business.id,
+      title: '초 단위 근무',
+      startsAt: start,
+      endsAt: start.add(const Duration(hours: 3)),
+      hourlyWage: 11000,
+      slots: 1,
+      autoConfirm: false,
+    ));
+    final container = employerContainer(location: EmployerRoutes.edit(shift.id), repository: repo);
+    addTearDown(container.dispose);
+    await tester.pumpWidget(employerHarness(container));
+    await tester.pumpAndSettle();
+    await tapText(tester, '수정');
+    await tester.enterText(
+        find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), '초 단위 근무 2');
+    await tester.tap(find.descendant(of: find.byType(BottomSheet), matching: find.text('저장하기')));
+    await tester.pumpAndSettle();
+    await tapText(tester, '저장하기');
+    expect(find.text('근무를 수정했어요'), findsOneWidget);
+    final after = await repo.shift(shift.id);
+    expect(after!.title, '초 단위 근무 2');
+    expect(after.startsAt, start, reason: 'not rounded to the minute');
+    expect(after.endsAt, start.add(const Duration(hours: 3)));
   });
 
   testWidgets('BA4: favourites, the recent list, search, ★ and 다시 요청', (tester) async {
