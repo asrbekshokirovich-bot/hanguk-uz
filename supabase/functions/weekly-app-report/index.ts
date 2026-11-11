@@ -44,7 +44,7 @@ const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const CRM_URL = (Deno.env.get("CRM_URL") || "https://hanguk.uz").replace(/\/+$/, "");
 
 const SYSTEM = `Sen HANGUK Consulting marketing jamoasiga haftalik ilova hisobotiga izoh yozasan.
-Kompaniya O'zbekistondan Koreyaga o'qishga yuboradi; ilova — talabalar universitet tanlaydigan va murojaat qoldiradigan ilova.
+Kompaniya O'zbekiston va Qirg'izistondan Koreyaga o'qishga yuboradi; ilova — talabalar universitet tanlaydigan va murojaat qoldiradigan ilova.
 Senga faqat shu haftaning va oldingi haftaning raqamlari beriladi. Qoidalar:
 - Aniq 3 ta qisqa qator yoz (har biri bitta gap, 160 belgigacha), o'zbek tilida, lotin yozuvida.
 - 1-qator: shu hafta oldingi haftaga nisbatan nima o'zgardi. 2-qator: odamlar qayerda to'xtayapti. 3-qator: marketing uchun bitta amaliy taklif.

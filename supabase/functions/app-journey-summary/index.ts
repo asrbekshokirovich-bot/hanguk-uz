@@ -56,7 +56,7 @@ interface Step {
   props: Record<string, unknown> | null;
 }
 
-const SYSTEM = `Sen HANGUK Consulting call-operatoriga yordamchisan. Kompaniya O'zbekistondan Koreyaga o'qishga yuboradi.
+const SYSTEM = `Sen HANGUK Consulting call-operatoriga yordamchisan. Kompaniya O'zbekiston va Qirg'izistondan Koreyaga o'qishga yuboradi.
 Senga bir odamning talabalar ilovasidagi harakatlari beriladi. Faqat shu ma'lumotdan foydalan, hech narsa o'ylab topma.
 Qoidalar:
 - O'zbek tilida (lotin), oddiy va qisqa yoz.

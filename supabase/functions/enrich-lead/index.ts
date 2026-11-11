@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       messages.length ? "Chat messages (Telegram/Instagram):\n" + messages.map((m: any) => `${m.direction === "outgoing" ? "Staff" : "Lead"}: ${String(m.content).slice(0, 200)}`).join("\n") : "",
     ].filter(Boolean).join("\n\n");
 
-    const prompt = "You are analysing a sales lead for a Korean university admissions agency in Uzbekistan. Based ONLY on the information below (profile, notes, chats, call summaries — mostly Uzbek), extract what you can. Leave a field empty if it is not mentioned. Use YYYY-MM-DD for dates. Also write a 2-3 sentence summary.\n\n" + ctx;
+    const prompt = "You are analysing a sales lead for a Korean university admissions agency in Uzbekistan that also serves Kyrgyzstan (+996 phones). Based ONLY on the information below (profile, notes, chats, call summaries — mostly Uzbek), extract what you can. Leave a field empty if it is not mentioned. Use YYYY-MM-DD for dates. Also write a 2-3 sentence summary.\n\n" + ctx;
 
     const res = await geminiFetch(`${GEMINI_BASE}/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },

@@ -194,7 +194,7 @@ async function processCall(supabase: any, callId: string) {
   const who = await describeParticipant(supabase, call);
   const analysis = await generateJSON<any>({
     systemInstruction:
-      "You are Hanguk AI, analysing phone calls for a Korean-university study-abroad agency in Uzbekistan. " +
+      "You are Hanguk AI, analysing phone calls for a Korean-university study-abroad agency in Uzbekistan that also serves Kyrgyzstan. " +
       "Calls are mostly in Uzbek (sometimes Russian or Korean). Understand the Uzbek accurately. " +
       "Extract what matters operationally: documents, payments, university/admission topics, visa, TOPIK/IELTS, deadlines, complaints. " +
       "summary_uz MUST be in Uzbek; summary_en MUST be in English.",

@@ -194,7 +194,7 @@ Qualified-to-converted ratio: ${byStatus["qualified"] ? Math.round(((byStatus["c
 Active pipeline (not converted/lost): ${total - (byStatus["converted"] || 0) - (byStatus["lost"] || 0)}
 `;
 
-    const systemPrompt = `You are a senior CRM analyst reviewing real lead data for a Korean university admissions consultancy in Uzbekistan. 
+    const systemPrompt = `You are a senior CRM analyst reviewing real lead data for a Korean university admissions consultancy in Uzbekistan that also serves Kyrgyzstan (leads.country = 'KG', +996 phones). 
 Your job is to identify SPECIFIC, DATA-BACKED problems and give actionable recommendations.
 
 RULES:
