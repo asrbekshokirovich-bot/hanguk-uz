@@ -76,7 +76,15 @@ jobs:
 
       # One file at a time: they share the database.
       - name: Integration tests
-        run: flutter test test_backend --concurrency=1 --reporter github
+        run: flutter test test_backend --concurrency=1 --coverage --reporter github
+
+      # Lines of lib/ the real-backend tests run (the job summary).
+      - name: Coverage
+        if: success() || failure()
+        run: |
+          [ -f coverage/lcov.info ] || exit 0
+          python3 tool/coverage_summary.py coverage/lcov.info "Integration tests (local Supabase): coverage of lib/" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
 
       # Real data as the apps draw it (test_backend/ui_e2e_test.dart), next to
       # ish-check.yml's screens in the hanguk-ish-ci prerelease:

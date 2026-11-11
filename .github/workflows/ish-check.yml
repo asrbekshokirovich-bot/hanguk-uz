@@ -75,7 +75,17 @@ jobs:
         if: success() || failure()
         run: |
           mkdir -p build
-          flutter test --exclude-tags screens --reporter github --file-reporter expanded:build/test_report.txt
+          flutter test --exclude-tags screens --coverage --reporter github --file-reporter expanded:build/test_report.txt
+
+      # Which lines of lib/ the tests above run, and the least covered files
+      # (the job summary; coverage/lcov.info goes with the screens).
+      - name: Coverage
+        if: success() || failure()
+        run: |
+          [ -f coverage/lcov.info ] || exit 0
+          python3 tool/coverage_summary.py coverage/lcov.info "Unit and widget tests: coverage of lib/" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+          mkdir -p build/screens && cp coverage/lcov.info build/screens/lcov-unit.info
 
       # Full screens with the real fonts, written as PNGs for review against
       # the prototype. Runs even when the tests above failed.
