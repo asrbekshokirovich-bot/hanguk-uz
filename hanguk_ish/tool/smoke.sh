@@ -15,7 +15,9 @@
 # Then a longer walk through each demo app as a person would (P33): sign-in,
 # A02, taking a shift, A06, the working day (demo QR in and out), A08, the
 # language kept after a restart; BA0, BA1, BA3's QR and BA5's CSV handed to
-# Android's share sheet. Screens: build/smoke/walk-*.png.
+# Android's share sheet. Screens: build/smoke/walk-*.png. Last, the backend
+# builds with no server behind them: asking for a code must say there is no
+# connection.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 apks=$1
@@ -33,6 +35,10 @@ launch() {
     cat "$out/$name-install.txt"
     return 2
   fi
+  # Android finishes an install with broadcasts; on a slow emulator they can
+  # land seconds later and restart the activity under the first tap. Start
+  # only once they are through.
+  timeout 90 adb shell am wait-for-broadcast-idle >/dev/null 2>&1 || true
   adb logcat -c
   adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 }
@@ -65,7 +71,7 @@ worker() {
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
   # A01, then T1.
-  if ui wait 'Telefon raqam bilan' 90 && ui tap 'Telefon raqam bilan' && ui wait 'Telefon raqamingiz' 30; then
+  if ui wait 'Telefon raqam bilan' 90 && ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz'; then
     echo "$name: A01 → T1"
   else
     echo "::error::$name: A01 → T1 did not happen"
@@ -81,7 +87,7 @@ employer() {
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
   # BA0 with nothing filled in: it says what is missing.
-  if ui wait '시작하기' 90 && ui tap '시작하기' && ui wait '모두 입력해 주세요' 30; then
+  if ui wait '시작하기' 90 && ui tapto '시작하기' '모두 입력해 주세요'; then
     echo "$name: BA0 answers"
   else
     echo "::error::$name: BA0 did not answer the tap"
@@ -131,7 +137,8 @@ walk_worker() {
   launch "$apk" "$pkg" "$name" || return
   # Sinchon, Seoul: the demo shifts are around it.
   adb emu geo fix 126.9368 37.5559 >/dev/null 2>&1 || true
-  step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
+  step 'A01' ui wait 'Telefon raqam bilan' 90 &&
+    step 'A01 → T1' ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz' &&
     step 'T1: number' ui field 0 01012345678 &&
     step 'T1 → T2' ui tap '=Kod olish' &&
     step 'T2 opens' ui wait 'Kodni kiriting' &&
@@ -249,7 +256,8 @@ walk_employer() {
 offline_worker() {
   local pkg=uz.hanguk.ish name=offline-worker
   launch "$apks/backend-worker-x86_64.apk" "$pkg" "$name" || return
-  step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
+  step 'A01' ui wait 'Telefon raqam bilan' 90 &&
+    step 'A01 → T1' ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz' &&
     step 'T1: number' ui field 0 01012345678 &&
     step 'T1: ask for the code' ui tap '=Kod olish' &&
     step 'T1 says there is no connection' ui wait "Internet aloqasi yo'q" 45 &&
