@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/integrations/supabase/types';
@@ -9,8 +9,16 @@ type AppRole = Database['public']['Enums']['app_role'];
 // in the generated Database type yet, so it is matched as a plain string.
 const INVESTOR_ROLE = 'investor';
 
+/** What a «is this user named in table X» read answers. */
+type AccessRow = { data: unknown; error?: unknown };
+
 export function useUserRole() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
+  // Whose roles the state below holds: undefined until the first answer.
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
+  // The same, readable from inside the effect.
+  const loadedForRef = useRef<string | null | undefined>(undefined);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [isLearningCenter, setIsLearningCenter] = useState(false);
   const [hasFinanceAccess, setHasFinanceAccess] = useState(false);
@@ -18,11 +26,11 @@ export function useUserRole() {
   const [hasApplicationFeeAccess, setHasApplicationFeeAccess] = useState(false);
   const [hasCameraAccess, setHasCameraAccess] = useState(false);
   const [hasPaymentDeleteAccess, setHasPaymentDeleteAccess] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchRoles = async () => {
-      if (!user) {
+      if (!userId) {
         setRoles([]);
         setIsLearningCenter(false);
         setHasFinanceAccess(false);
@@ -30,7 +38,8 @@ export function useUserRole() {
         setHasApplicationFeeAccess(false);
         setHasCameraAccess(false);
         setHasPaymentDeleteAccess(false);
-        setLoading(false);
+        loadedForRef.current = null;
+        setLoadedFor(null);
         return;
       }
 
@@ -48,69 +57,90 @@ export function useUserRole() {
       // office cameras.
       const [
         { data, error },
-        { data: center },
-        { data: finance },
-        { data: approver },
-        { data: feeAccess },
-        { data: cameraAccess },
-        { data: paymentDeleteAccess },
+        center,
+        finance,
+        approver,
+        feeAccess,
+        cameraAccess,
+        paymentDeleteAccess,
       ] = await Promise.all([
-        supabase.from('user_roles').select('role').eq('user_id', user.id),
+        supabase.from('user_roles').select('role').eq('user_id', userId),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
           .from('learning_centers')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('is_active', true)
-          .maybeSingle() as Promise<{ data: { id: string } | null }>,
+          .maybeSingle() as Promise<AccessRow>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
           .from('finance_access')
           .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+          .eq('user_id', userId)
+          .maybeSingle() as Promise<AccessRow>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
           .from('document_approvers')
           .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+          .eq('user_id', userId)
+          .maybeSingle() as Promise<AccessRow>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
           .from('application_fee_access')
           .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+          .eq('user_id', userId)
+          .maybeSingle() as Promise<AccessRow>,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
           .from('camera_access')
           .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+          .eq('user_id', userId)
+          .maybeSingle() as Promise<AccessRow>,
         // payment_delete_access (migration 20261109090000): who besides
         // owner/admin may delete a payment installment and its receipt.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as unknown as { from: (n: string) => any })
           .from('payment_delete_access')
           .select('user_id')
-          .eq('user_id', user.id)
-          .maybeSingle() as Promise<{ data: { user_id: string } | null }>,
+          .eq('user_id', userId)
+          .maybeSingle() as Promise<AccessRow>,
       ]);
 
-      if (!error && data) {
-        setRoles(data.map((r) => r.role));
-      }
-      setIsLearningCenter(Boolean(center));
-      setHasFinanceAccess(Boolean(finance));
-      setIsDocumentApprover(Boolean(approver));
-      setHasApplicationFeeAccess(Boolean(feeAccess));
-      setHasCameraAccess(Boolean(cameraAccess));
-      setHasPaymentDeleteAccess(Boolean(paymentDeleteAccess));
-      setLoading(false);
+      // An answer for an account that is no longer the one signed in.
+      if (cancelled) return;
+      // A read that failed says nothing. For the person whose answers are
+      // already here (a re-read after a new token) what is known stays; for
+      // anyone else it is «none» — never the previous account's.
+      const known = loadedForRef.current === userId;
+      const flag = (row: AccessRow) => (prev: boolean) => (row.error ? known && prev : Boolean(row.data));
+      setRoles((prev) => (!error && data ? data.map((r) => r.role) : known ? prev : []));
+      setIsLearningCenter(flag(center));
+      setHasFinanceAccess(flag(finance));
+      setIsDocumentApprover(flag(approver));
+      setHasApplicationFeeAccess(flag(feeAccess));
+      setHasCameraAccess(flag(cameraAccess));
+      setHasPaymentDeleteAccess(flag(paymentDeleteAccess));
+      loadedForRef.current = userId;
+      setLoadedFor(userId);
     };
 
     fetchRoles();
+    return () => {
+      cancelled = true;
+    };
+    // On every auth event, as before: a refreshed token hands out a new `user`
+    // object, and that is when a role granted or taken away meanwhile shows up.
+    // `loading` below goes by the id, so the same person is not «loading» again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Loading until the roles in hand are THIS account's. On a reload the
+  // session is restored a moment after the first render; this hook used to
+  // answer «loaded, no roles» for that first, signed-out moment and keep saying
+  // it when the user appeared — so CRMPortal took a member of staff for «not
+  // staff» and sent every reload and every link to a CRM page to the landing
+  // page, which sent them on to the dashboard.
+  const loading = Boolean(authLoading) || loadedFor !== userId;
 
   const hasRole = (role: AppRole) => roles.includes(role);
 
