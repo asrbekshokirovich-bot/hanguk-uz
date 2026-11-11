@@ -1,0 +1,203 @@
+<title>Xotira — President AI Award 2026 (Русский)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#06110E;--bg-2:#081813;--ink:#EAF4EF;--soft:#9DB4AB;--faint:#5F7871;
+    --line:rgba(150,200,185,.14);--teal:#17B9A3;--teal-deep:#0C6E62;--amber:#F0A93E;--amber-2:#F7C778;
+    --card:rgba(255,255,255,.04);--card-2:rgba(255,255,255,.065);
+    --mono:ui-monospace,"SFMono-Regular","Menlo","Consolas",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(55% 40% at 82% 4%,rgba(240,169,62,.15),transparent 60%),
+      radial-gradient(50% 45% at 6% 16%,rgba(23,185,163,.13),transparent 62%),
+      radial-gradient(80% 60% at 50% 112%,rgba(12,110,98,.2),transparent 60%);}
+  header.hero,main,footer{position:relative;z-index:2;}
+  .wrap{max-width:800px;margin:0 auto;padding:0 24px;}
+  a{color:var(--teal);}
+  ::selection{background:var(--amber);color:#231400;}
+  header.hero{padding:64px 0 48px;border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 100% at 80% 0%,rgba(23,185,163,.12),transparent 60%);}
+  .eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-2);
+    margin:0 0 18px;display:inline-flex;align-items:center;gap:9px;background:rgba(240,169,62,.1);
+    border:1px solid rgba(240,169,62,.24);border-radius:100px;padding:7px 14px;}
+  .dot{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 34% 30%,var(--amber-2),var(--teal) 70%,var(--teal-deep));box-shadow:0 0 12px rgba(240,169,62,.5);}
+  h1{font-size:clamp(1.9rem,5vw,3rem);line-height:1.03;letter-spacing:-.03em;font-weight:840;margin:0 0 14px;text-wrap:balance;}
+  h1 .g{background:linear-gradient(100deg,var(--teal),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  header .sub{font-size:1.08rem;color:var(--soft);margin:0;max-width:54ch;}
+  .badges{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px;}
+  .badge{font-size:.8rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:100px;padding:8px 15px;}
+  main{padding:8px 0 40px;}
+  section{padding:30px 0;border-bottom:1px solid var(--line);}
+  h2{font-size:1.5rem;letter-spacing:-.02em;margin:0 0 6px;display:flex;align-items:baseline;gap:11px;font-weight:800;}
+  h2 .k{font-family:var(--mono);font-size:.8rem;color:var(--amber-2);font-weight:700;}
+  h3{font-size:1.02rem;margin:22px 0 4px;color:var(--teal);}
+  p{margin:8px 0;color:var(--ink);}
+  .field{margin:14px 0;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:14px;}
+  .field .label{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber-2);margin:0 0 6px;}
+  .field p{margin:4px 0;}
+  ul{margin:8px 0;padding-left:20px;}
+  li{margin:6px 0;color:var(--soft);}
+  li strong{color:var(--ink);}
+  em.ph{color:var(--amber-2);font-style:normal;font-weight:600;}
+  strong{color:var(--ink);}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.94rem;}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);}
+  td{color:var(--soft);}
+  td .num{font-variant-numeric:tabular-nums;font-weight:800;font-size:1.05rem;
+    background:linear-gradient(100deg,var(--teal),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .note{font-size:.85rem;color:var(--soft);background:linear-gradient(150deg,rgba(240,169,62,.08),rgba(23,185,163,.06));
+    border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin:14px 0;}
+  .slide{display:flex;gap:13px;padding:11px 0;border-bottom:1px dashed var(--line);}
+  .slide .n{font-family:var(--mono);font-size:.78rem;color:var(--amber-2);font-weight:700;flex:none;width:26px;}
+  .slide strong{color:var(--teal);}
+  footer{padding:30px 0 54px;color:var(--faint);font-size:.83rem;border-top:1px solid var(--line);}
+</style>
+
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow"><span class="dot" aria-hidden="true"></span> President AI Award 2026 · Направление «Здравоохранение»</p>
+    <h1>Xotira — ИИ-устройство памяти для тех, кто её теряет</h1>
+    <p class="sub">Наручное устройство, которое с согласия слушает день, понимает его и помогает
+      пожилым людям и пациентам с деменцией (и их близким) вспомнить любой момент, имя или
+      указание врача — просто спросив.</p>
+    <div class="badges">
+      <span class="badge">🇺🇿 Узбекская · русская · английская речь</span>
+      <span class="badge">Цель приза: $100 000</span>
+      <span class="badge">Срок: 1 августа 2026</span>
+    </div>
+    <p style="margin-top:18px;font-size:.92rem;"><a href="index.html">↳ Интерактивное демо (EN)</a> &nbsp;·&nbsp; <a href="uz.html">Oʻzbekcha</a></p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2><span class="k">A</span> Краткая концепция</h2>
+    <p><strong>Проблема.</strong> Население Узбекистана стареет. Множество семей ухаживают за
+      пожилыми родственниками с возрастным ослаблением памяти и деменцией (болезнью Альцгеймера).
+      Такие пациенты забывают, приняли ли лекарство, что сказал врач, забывают лица и разговоры —
+      это риск для здоровья, тревога и тяжёлая нагрузка на близких.</p>
+    <p><strong>Решение.</strong> Xotira — лёгкое наручное устройство и мобильное приложение.
+      С согласия оно фиксирует день, понимает его с помощью ИИ и превращает в память, которую
+      пациент и опекун могут запросить простым языком:
+      <em class="ph">«Принял ли я утренние таблетки?»</em>,
+      <em class="ph">«Что врач сказал про моё давление?»</em>,
+      <em class="ph">«Кто приходил ко мне сегодня?»</em></p>
+    <p><strong>Почему это ИИ-продукт.</strong> Распознавание речи (узб./рус./англ.), определение
+      говорящего (пациент — врач — родственник), семантическая память (векторная база) и
+      поиск-воспоминание на базе LLM (RAG) — отвечает на вопрос, ссылаясь на исходный момент.</p>
+  </section>
+
+  <section>
+    <h2><span class="k">B</span> Текст заявки (для формы awards.gov.uz)</h2>
+    <p class="note">Скопируйте ответы ниже в соответствующие поля портала.
+      Замените части <em class="ph">[в скобках]</em> своими данными.</p>
+
+    <div class="field"><p class="label">Название проекта</p><p>Xotira — ИИ-устройство памяти для пожилых людей и пациентов с деменцией.</p></div>
+    <div class="field"><p class="label">Направление</p><p>Здравоохранение.</p></div>
+    <div class="field"><p class="label">Описание одной строкой</p><p>Наручное устройство, которое помнит день за тех, кто не может, — чтобы пожилые и пациенты с деменцией сохраняли самостоятельность и достоинство, а семьи — спокойствие.</p></div>
+
+    <h3>Проблема (что и насколько велика)</h3>
+    <p>Со старением населения быстро растёт число семей, ухаживающих за родственниками с
+      ослаблением памяти и деменцией. Пациенты забывают лекарства, медицинские указания, имена и
+      разговоры — отсюда риски для здоровья, обращения в больницу, тревога и нагрузка на опекунов.
+      Существующие средства (бумажные заметки, будильники, уставший родственник) не «понимают»
+      день пациента. <em class="ph">[Добавьте местную статистику — например, число пожилых или распространённость деменции.]</em></p>
+
+    <h3>Как работает ИИ (ядро)</h3>
+    <ul>
+      <li><strong>Захват и согласие на устройстве</strong> — локальное распознавание голоса, видимый индикатор записи и пауза одним касанием.</li>
+      <li><strong>Распознавание речи</strong> — узбекский, русский и английский, включая переключение языков.</li>
+      <li><strong>Определение говорящего</strong> — различает пациента, врача и членов семьи.</li>
+      <li><strong>Семантическая память</strong> — каждый момент попадает в векторную базу (события, люди, лекарства, указания).</li>
+      <li><strong>Поиск на базе LLM (RAG)</strong> — отвечает на вопросы на естественном языке со ссылкой на исходный момент.</li>
+      <li><strong>Сводки и оповещения</strong> — ежедневная сводка для опекуна и сигнал о приёме лекарств.</li>
+    </ul>
+
+    <h3>Пользователи и благополучатели</h3>
+    <p>Основные: пожилые с ослаблением памяти / ранней деменцией и их семейные опекуны.
+      Вторичные: врачи и клиники (запись и резюме приёма). В будущем: слабовидящие пользователи.</p>
+
+    <h3>Социальный эффект</h3>
+    <ul>
+      <li>Пожилые дольше живут дома самостоятельно и безопасно.</li>
+      <li>Меньше опасных ошибок с лекарствами и пропущенных приёмов.</li>
+      <li>Снижается нагрузка на опекунов, семьи получают надёжный контроль.</li>
+      <li>Формируется суверенный узбекоязычный медицинский ИИ и локальная инфраструктура данных.</li>
+    </ul>
+
+    <h3>Инновация (почему это ново)</h3>
+    <p>Это первое узбекоязычное устройство-память, объединяющее постоянный захват, понимание
+      говорящего и разговорное воспоминание, специально созданное для пожилых/пациентов с деменцией;
+      приватность и хранение данных в Узбекистане — его основа.</p>
+
+    <div class="field"><p class="label">Текущая стадия</p><p><em class="ph">[Выберите верное: идея / прототип / первые пользователи.]</em> Есть работающее демо процесса захват → распознавание → воспоминание (см. ссылку на демо). Ведётся разработка референс-устройства. <em class="ph">[Добавьте: приложение <code>hanguk-uz</code>, лист ожидания, переговоры с клиниками и т. п.]</em></p></div>
+
+    <h3>Бизнес-модель</h3>
+    <p>Потребители: устройство + ежемесячная семейная подписка. B2B: платные пилоты и лицензии с
+      клиниками и домами престарелых. Грант/приз снижает риск пилота и первой партии устройств.</p>
+
+    <div class="field"><p class="label">Команда</p><p><em class="ph">[3–8 человек, все 18+, граждане/резиденты Узбекистана. По каждому: имя, роль, одна строка опыта.]</em></p></div>
+
+    <h3>Приватность, этика и соответствие</h3>
+    <p>Захват с согласия, видимый индикатор и пауза одним касанием; предварительная фильтрация на
+      устройстве; шифрование при передаче и хранении; данные хранятся <strong>в Узбекистане</strong>;
+      пользователь/опекун может просматривать, экспортировать и удалять любую память; чёткий сигнал
+      согласия для третьих лиц.</p>
+
+    <div class="field"><p class="label">Контакт</p><p><em class="ph">[Ф. И. О.] · [телефон] · [email] · [Telegram] · [организация, если есть]</em></p></div>
+  </section>
+
+  <section>
+    <h2><span class="k">C</span> Презентация (12 слайдов)</h2>
+    <div class="slide"><span class="n">01</span><div><strong>Титул.</strong> Xotira — ИИ-устройство для тех, кто теряет память.</div></div>
+    <div class="slide"><span class="n">02</span><div><strong>Человеческая проблема.</strong> Старение, деменция — теряются самостоятельность и достоинство. Начните с реальной истории.</div></div>
+    <div class="slide"><span class="n">03</span><div><strong>Почему нынешние средства не работают.</strong> Бумажные заметки не понимают день; вся нагрузка на опекуне.</div></div>
+    <div class="slide"><span class="n">04</span><div><strong>Знакомьтесь, Xotira.</strong> Запомни → пойми → напомни → успокой.</div></div>
+    <div class="slide"><span class="n">05</span><div><strong>Как работает (ИИ).</strong> Захват → распознавание → говорящий → семантическая память → воспоминание LLM.</div></div>
+    <div class="slide"><span class="n">06</span><div><strong>День с Xotira.</strong> Три вопроса, три ответа (лекарство, врач, визит).</div></div>
+    <div class="slide"><span class="n">07</span><div><strong>Приватность — сам продукт.</strong> Согласие, шифрование, данные в Узбекистане.</div></div>
+    <div class="slide"><span class="n">08</span><div><strong>Кому и рынок.</strong> Семьи в Ташкенте и крупных городах; клиники; затем Центральная Азия.</div></div>
+    <div class="slide"><span class="n">09</span><div><strong>Бизнес-модель.</strong> Устройство + подписка; пилоты с клиниками.</div></div>
+    <div class="slide"><span class="n">10</span><div><strong>Трекшн и план.</strong> Текущая стадия, работающее демо, опыт команды.</div></div>
+    <div class="slide"><span class="n">11</span><div><strong>Использование средств.</strong> Двухтраншевый план по KPI (таблица ниже).</div></div>
+    <div class="slide"><span class="n">12</span><div><strong>Запрос и видение.</strong> Приз + акселератор + менторы; Xotira в каждой семье.</div></div>
+  </section>
+
+  <section>
+    <h2><span class="k">D</span> KPI и двухтраншевое финансирование</h2>
+    <p>Средства President AI Award выдаются двумя частями, привязанными к результатам. Ниже —
+      цели пилота (<em class="ph">ориентировочно — замените на реальные, доказуемые цифры</em>).</p>
+    <h3>Транш 1 — сборка и запуск (0–3 мес.)</h3>
+    <ul>
+      <li>Референс-устройство (v1): <em class="ph">[N]</em> единиц.</li>
+      <li>Приложение пациента + опекуна: захват, воспоминание, ежедневная сводка.</li>
+      <li>Настроена узб./рус. модель речи: ошибка ≤ <em class="ph">[X]</em>%.</li>
+      <li>Стек приватности: согласие, шифрование, хранение в Узбекистане.</li>
+      <li>Пилот: с клиникой набрано <em class="ph">[N]</em> пациентов.</li>
+    </ul>
+    <h3>Транш 2 — доказать эффект (3–6 мес., по KPI)</h3>
+    <table>
+      <tr><th>KPI</th><th>Цель</th></tr>
+      <tr><td>Активные пилотные пациенты</td><td><span class="num">≥ 30</span></td></tr>
+      <tr><td>Точность воспоминания</td><td><span class="num">≥ 85%</span></td></tr>
+      <tr><td>Рост приверженности лечению</td><td><span class="num">+20%</span></td></tr>
+      <tr><td>Снижение нагрузки на опекуна</td><td><span class="num">≥ 30%</span></td></tr>
+      <tr><td>Удержание (8-я неделя)</td><td><span class="num">≥ 60%</span></td></tr>
+      <tr><td>Партнёры (клиники/дома престарелых)</td><td><span class="num">≥ 3</span></td></tr>
+    </table>
+    <div class="note">Приз: 1-е место $100 000 · 2-е $60 000 · 3-е $40 000. Берите только те цели,
+      которые сможете доказать в срок программы — при невыполнении KPI транша 2 вторая выплата может быть удержана.</div>
+  </section>
+
+  <footer class="wrap">
+    Xotira · ИИ-устройство памяти для пожилых и пациентов с деменцией · Ташкент, Узбекистан ·
+    Рабочее название и ориентировочные цифры — концепция President AI Award 2026.
+  </footer>
+</main>

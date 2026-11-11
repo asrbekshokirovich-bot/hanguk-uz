@@ -1,0 +1,459 @@
+<title>Xotira — AI memory wearable for elderly & dementia care</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#06110E;
+    --bg-2:#081813;
+    --ink:#EAF4EF;
+    --soft:#9DB4AB;
+    --faint:#5F7871;
+    --line:rgba(150,200,185,.14);
+    --teal:#17B9A3;
+    --teal-deep:#0C6E62;
+    --amber:#F0A93E;
+    --amber-2:#F7C778;
+    --card:rgba(255,255,255,.035);
+    --card-2:rgba(255,255,255,.06);
+    --mono:ui-monospace,"SFMono-Regular","Menlo","Consolas",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px;}
+  a{color:var(--teal);text-decoration:none;}
+  ::selection{background:var(--amber);color:#231400;}
+
+  /* ambient canvas */
+  #motes{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.85;}
+  .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(60% 45% at 78% 8%, rgba(240,169,62,.16), transparent 60%),
+      radial-gradient(55% 50% at 12% 22%, rgba(23,185,163,.14), transparent 62%),
+      radial-gradient(80% 60% at 50% 108%, rgba(12,110,98,.22), transparent 60%);
+  }
+  main,header.nav{position:relative;z-index:2;}
+
+  /* nav */
+  header.nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px) saturate(1.3);
+    background:linear-gradient(180deg,rgba(6,17,14,.82),rgba(6,17,14,.35));border-bottom:1px solid var(--line);}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.02em;font-size:1.16rem;}
+  .brand .orb{width:26px;height:26px;border-radius:50%;
+    background:radial-gradient(circle at 34% 30%,var(--amber-2),var(--teal) 70%,var(--teal-deep));
+    box-shadow:0 0 16px rgba(240,169,62,.55),0 0 0 4px rgba(23,185,163,.14);}
+  .nav .right{display:flex;align-items:center;gap:20px;}
+  .nav .lang{font-size:.82rem;color:var(--soft);display:flex;gap:12px;}
+  .nav .lang a:hover{color:var(--ink);}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem;
+    padding:10px 18px;border-radius:100px;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .2s,background .2s;}
+  .btn.primary{background:linear-gradient(180deg,var(--amber-2),var(--amber));color:#241400;box-shadow:0 8px 26px rgba(240,169,62,.32);}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(240,169,62,.45);}
+  .btn.ghost{border-color:var(--line);color:var(--ink);background:var(--card);}
+  .btn.ghost:hover{background:var(--card-2);}
+
+  /* hero */
+  .hero{min-height:92vh;display:flex;align-items:center;padding:70px 0 40px;position:relative;}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;width:100%;}
+  @media (max-width:900px){.hero-grid{grid-template-columns:1fr;gap:20px;}}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:.76rem;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--amber-2);
+    background:rgba(240,169,62,.1);border:1px solid rgba(240,169,62,.24);border-radius:100px;padding:7px 14px;margin-bottom:22px;}
+  .eyebrow .live{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 0 rgba(240,169,62,.7);animation:live 2.4s infinite;}
+  @keyframes live{0%{box-shadow:0 0 0 0 rgba(240,169,62,.6);}70%{box-shadow:0 0 0 11px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
+  h1{font-size:clamp(2.4rem,6.6vw,4.6rem);line-height:.98;letter-spacing:-.035em;font-weight:850;margin:0 0 20px;text-wrap:balance;}
+  h1 .grad{background:linear-gradient(100deg,var(--teal),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .lede{font-size:clamp(1.05rem,2.1vw,1.32rem);color:var(--soft);max-width:52ch;margin:0 0 30px;}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:13px;margin-bottom:26px;}
+  .hero-facts{display:flex;flex-wrap:wrap;gap:10px;}
+  .fact{font-size:.82rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:100px;padding:8px 15px;}
+  .fact b{color:var(--amber-2);}
+
+  /* hero device */
+  .device-stage{position:relative;display:grid;place-items:center;min-height:360px;}
+  .halo{position:absolute;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle,rgba(23,185,163,.28),transparent 62%);filter:blur(8px);animation:breathe 6s ease-in-out infinite;}
+  @keyframes breathe{0%,100%{transform:scale(1);opacity:.8;}50%{transform:scale(1.08);opacity:1;}}
+  .watch{position:relative;width:206px;border-radius:34px;padding:16px;
+    background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.16);box-shadow:0 30px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(4px);}
+  .watch .face{border-radius:22px;background:linear-gradient(165deg,var(--teal-deep),#06251f);padding:18px 16px;min-height:230px;display:flex;flex-direction:column;gap:10px;overflow:hidden;position:relative;}
+  .watch .ring{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:2px solid rgba(240,169,62,.5);display:grid;place-items:center;}
+  .watch .ring i{width:12px;height:12px;border-radius:50%;background:var(--amber);animation:live 2s infinite;}
+  .watch .t{font-family:var(--mono);font-size:.66rem;color:rgba(234,244,239,.62);letter-spacing:.04em;}
+  .watch .cap{font-size:.9rem;font-weight:600;color:#EAF4EF;}
+  .watch .wave{display:flex;align-items:flex-end;gap:3px;height:30px;margin-top:2px;}
+  .watch .wave span{flex:1;background:linear-gradient(180deg,var(--amber-2),var(--teal));border-radius:2px;animation:eq 1.1s ease-in-out infinite;}
+  @keyframes eq{0%,100%{height:22%;}50%{height:95%;}}
+  @media (prefers-reduced-motion:reduce){.halo,.watch .ring i,.watch .wave span,.eyebrow .live{animation:none;}}
+
+  /* generic section */
+  section.blk{padding:78px 0;border-top:1px solid var(--line);}
+  .kick{font-size:.76rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--amber-2);margin:0 0 14px;}
+  h2{font-size:clamp(1.7rem,4vw,2.7rem);letter-spacing:-.025em;line-height:1.05;margin:0 0 14px;text-wrap:balance;font-weight:820;}
+  .intro{color:var(--soft);max-width:60ch;font-size:1.05rem;margin:0 0 34px;}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);}
+  .reveal.in{opacity:1;transform:none;}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;}}
+
+  /* problem statement */
+  .stmt{font-size:clamp(1.5rem,3.6vw,2.5rem);font-weight:800;letter-spacing:-.02em;line-height:1.2;max-width:22ch;}
+  .stmt .dim{color:var(--faint);}
+  .stmt .hl{color:var(--teal);}
+
+  /* demo */
+  .demo-grid{display:grid;grid-template-columns:1.02fr 1fr;gap:26px;align-items:stretch;}
+  @media (max-width:880px){.demo-grid{grid-template-columns:1fr;}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px;backdrop-filter:blur(6px);}
+  .panel h3{margin:0 0 4px;font-size:1.06rem;}
+  .panel .sub{margin:0 0 18px;color:var(--soft);font-size:.92rem;}
+  .qs{display:flex;flex-direction:column;gap:11px;}
+  .qbtn{text-align:left;cursor:pointer;font:inherit;font-size:.96rem;font-weight:600;color:var(--ink);
+    background:var(--card-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+    display:flex;align-items:center;gap:12px;transition:border-color .16s,transform .14s,background .16s;}
+  .qbtn:hover{border-color:var(--teal);transform:translateX(3px);background:rgba(23,185,163,.09);}
+  .qbtn:focus-visible{outline:3px solid rgba(23,185,163,.5);outline-offset:2px;}
+  .qbtn[aria-pressed="true"]{border-color:var(--amber);background:rgba(240,169,62,.1);}
+  .qbtn .qi{filter:saturate(1.2);flex:none;}
+
+  .screen{background:linear-gradient(168deg,var(--teal-deep),#052019);border:1px solid rgba(255,255,255,.09);
+    border-radius:22px;padding:20px;color:#EAF7F4;display:flex;flex-direction:column;min-height:340px;position:relative;overflow:hidden;}
+  .screen::after{content:"";position:absolute;right:-50px;top:-50px;width:200px;height:200px;
+    background:radial-gradient(circle,rgba(240,169,62,.4),transparent 70%);opacity:.5;pointer-events:none;}
+  .screen-top{display:flex;align-items:center;gap:9px;font-size:.78rem;opacity:.85;margin-bottom:14px;z-index:1;font-family:var(--mono);}
+  .pulse{width:9px;height:9px;border-radius:50%;background:var(--amber);animation:live 2s infinite;}
+  .bubble{border-radius:15px;padding:12px 15px;margin-bottom:10px;z-index:1;max-width:92%;animation:pop .35s ease both;}
+  @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){.bubble{animation:none;}}
+  .bubble.you{align-self:flex-end;background:rgba(255,255,255,.15);font-weight:600;}
+  .bubble.ai{align-self:flex-start;background:rgba(255,255,255,.96);color:#0c1c17;box-shadow:0 8px 22px rgba(0,0,0,.28);}
+  .bubble.ai .src{margin-top:9px;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:.72rem;
+    color:var(--teal-deep);background:rgba(23,185,163,.13);border-radius:8px;padding:4px 9px;font-weight:600;}
+  .placeholder{margin:auto;text-align:center;opacity:.85;z-index:1;font-size:.94rem;padding:0 20px;}
+  .placeholder .big{font-size:1.06rem;font-weight:700;margin-bottom:6px;}
+  .typing{display:inline-flex;gap:5px;align-items:center;}
+  .typing i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.5;animation:blink 1.2s infinite;}
+  .typing i:nth-child(2){animation-delay:.2s;}.typing i:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,100%{opacity:.3;transform:translateY(0);}50%{opacity:1;transform:translateY(-3px);}}
+  @media (prefers-reduced-motion:reduce){.typing i,.pulse{animation:none;}}
+
+  /* pipeline */
+  .pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;counter-reset:step;}
+  @media (max-width:820px){.pipe{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:460px){.pipe{grid-template-columns:1fr;}}
+  .node{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;position:relative;transition:border-color .3s,transform .3s;}
+  .node:hover{border-color:var(--teal);transform:translateY(-4px);}
+  .node .n{font-family:var(--mono);font-size:.76rem;color:var(--amber-2);font-weight:700;}
+  .node .ic{font-size:1.5rem;margin:8px 0 8px;}
+  .node h4{margin:0 0 6px;font-size:1rem;}
+  .node p{margin:0;font-size:.86rem;color:var(--soft);}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:820px){.cards{grid-template-columns:1fr;}}
+  .fcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px;transition:transform .3s,border-color .3s;}
+  .fcard:hover{transform:translateY(-5px);border-color:var(--amber);}
+  .fcard .ic{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;font-size:1.5rem;
+    background:linear-gradient(150deg,rgba(240,169,62,.2),rgba(23,185,163,.14));margin-bottom:16px;}
+  .fcard h4{margin:0 0 8px;font-size:1.1rem;}
+  .fcard p{margin:0;font-size:.92rem;color:var(--soft);}
+
+  /* privacy */
+  .plist{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 30px;margin:0;padding:0;list-style:none;}
+  @media (max-width:640px){.plist{grid-template-columns:1fr;}}
+  .plist li{display:flex;gap:12px;align-items:flex-start;font-size:.98rem;}
+  .plist .ck{flex:none;margin-top:2px;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+    background:rgba(23,185,163,.16);color:var(--teal);}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:700px){.stats{grid-template-columns:1fr;}}
+  .stat{background:linear-gradient(160deg,var(--card-2),var(--card));border:1px solid var(--line);border-radius:20px;padding:28px;}
+  .stat .num{font-size:2.6rem;font-weight:850;letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+    background:linear-gradient(100deg,var(--teal),var(--amber-2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .stat .lbl{font-size:.94rem;color:var(--soft);margin-top:2px;}
+
+  /* award fit */
+  .award{background:linear-gradient(150deg,rgba(23,185,163,.1),rgba(240,169,62,.07));border:1px solid var(--line);border-radius:26px;padding:40px;}
+  .cats{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;}
+  .cat{font-size:.9rem;font-weight:600;color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:100px;padding:9px 16px;}
+  .cat.on{color:#241400;background:linear-gradient(180deg,var(--amber-2),var(--amber));border-color:transparent;box-shadow:0 8px 22px rgba(240,169,62,.3);}
+  .steps5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:22px;}
+  @media (max-width:760px){.steps5{grid-template-columns:1fr 1fr;}}
+  .s5{font-size:.82rem;color:var(--soft);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;}
+  .s5 b{display:block;color:var(--ink);font-size:.86rem;margin-bottom:2px;}
+  .s5 .sn{font-family:var(--mono);color:var(--teal);font-size:.72rem;}
+
+  /* final cta */
+  .cta-final{text-align:center;padding:96px 0;}
+  .cta-final h2{margin-bottom:16px;}
+  .cta-final .lede{margin:0 auto 28px;}
+
+  footer{border-top:1px solid var(--line);padding:34px 0 60px;color:var(--faint);font-size:.84rem;}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between;align-items:center;}
+  .disc{font-size:.76rem;opacity:.8;}
+</style>
+
+<canvas id="motes" aria-hidden="true"></canvas>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="brand"><span class="orb" aria-hidden="true"></span> Xotira</div>
+    <div class="right">
+      <span class="lang" aria-label="Languages"><a href="index.html">EN</a><a href="uz.html">UZ</a><a href="ru.html">RU</a></span>
+      <a class="btn primary" href="#try">Try the demo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow"><span class="live" aria-hidden="true"></span> President AI Award 2026 · Healthcare &amp; Medicine AI</span>
+        <h1>Memory for the people who are <span class="grad">losing theirs.</span></h1>
+        <p class="lede">Xotira is an AI wearable that listens to the day with consent,
+          understands it, and lets elderly and dementia patients — and their families —
+          recall any moment, name, or doctor's instruction just by asking.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#try">Try “Ask Xotira” →</a>
+          <a class="btn ghost" href="#how">See how it works</a>
+        </div>
+        <div class="hero-facts">
+          <span class="fact">🇺🇿 Uzbek · Russian · English</span>
+          <span class="fact">Prize target <b>$100,000</b></span>
+          <span class="fact">Deadline <b>1 Aug 2026</b></span>
+        </div>
+      </div>
+      <div class="device-stage" aria-hidden="true">
+        <div class="halo"></div>
+        <div class="watch">
+          <div class="face">
+            <div class="ring"><i></i></div>
+            <div class="t">XOTIRA · 08:12</div>
+            <div class="cap">Listening — with consent</div>
+            <div class="wave">
+              <span style="animation-delay:0s"></span><span style="animation-delay:.1s"></span>
+              <span style="animation-delay:.2s"></span><span style="animation-delay:.3s"></span>
+              <span style="animation-delay:.15s"></span><span style="animation-delay:.25s"></span>
+              <span style="animation-delay:.05s"></span><span style="animation-delay:.35s"></span>
+              <span style="animation-delay:.2s"></span><span style="animation-delay:.1s"></span>
+            </div>
+            <div class="t" style="margin-top:auto">“Took morning medication ✓”</div>
+            <div class="t">remembered · kitchen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="wrap reveal">
+      <p class="stmt"><span class="dim">Every day, a grandmother forgets whether she took her pills, what the doctor said, who came to visit.</span> Xotira <span class="hl">remembers it for her.</span></p>
+    </div>
+  </section>
+
+  <section class="blk" id="try">
+    <div class="wrap reveal">
+      <p class="kick">Try it — live</p>
+      <h2>Ask Xotira about grandmother's day.</h2>
+      <p class="intro">Xotira already captured and understood the day. Tap a question the way a
+        patient or caregiver would, and watch it recall the answer — with the exact source moment.</p>
+      <div class="demo-grid">
+        <div class="panel">
+          <h3>Questions a family actually asks</h3>
+          <p class="sub">No searching, no scrolling. Just ask.</p>
+          <div class="qs" id="qs">
+            <button class="qbtn" data-i="0"><span class="qi" aria-hidden="true">💊</span> Did I take my morning pills?</button>
+            <button class="qbtn" data-i="1"><span class="qi" aria-hidden="true">🩺</span> What did Dr. Karimova say about my blood pressure?</button>
+            <button class="qbtn" data-i="2"><span class="qi" aria-hidden="true">🚪</span> Who visited me today?</button>
+            <button class="qbtn" data-i="3"><span class="qi" aria-hidden="true">🍲</span> Have I eaten lunch yet?</button>
+          </div>
+          <p class="disc" style="margin-top:16px;color:var(--faint)">Simulated demo with sample data. The real product runs
+            on-device capture → speech-to-text → speaker ID → semantic memory → LLM recall.</p>
+        </div>
+        <div class="screen" id="screen" aria-live="polite">
+          <div class="screen-top"><span class="pulse" aria-hidden="true"></span> XOTIRA · recalling today</div>
+          <div class="placeholder" id="placeholder">
+            <div class="big">Ask a question →</div>
+            <div>Xotira answers from what it heard and understood today, and shows you the source moment.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk" id="how">
+    <div class="wrap reveal">
+      <p class="kick">How it works</p>
+      <h2>Not a recorder. An understanding memory.</h2>
+      <p class="intro">Five stages turn a lived day into an answerable memory — the same arc
+        the President AI Award's own 5-stage program takes a startup on: prototype to investment-ready.</p>
+      <div class="pipe">
+        <div class="node"><div class="n">01</div><div class="ic">🎙️</div><h4>Capture</h4><p>On-device, consented listening with a visible indicator and one-tap pause.</p></div>
+        <div class="node"><div class="n">02</div><div class="ic">📝</div><h4>Transcribe</h4><p>Uzbek/Russian/English speech-to-text, including natural code-switching.</p></div>
+        <div class="node"><div class="n">03</div><div class="ic">👥</div><h4>Identify</h4><p>Speaker diarization — patient vs. doctor vs. family member.</p></div>
+        <div class="node"><div class="n">04</div><div class="ic">🧠</div><h4>Remember</h4><p>Each moment embedded into a private semantic memory of events, people & meds.</p></div>
+        <div class="node"><div class="n">05</div><div class="ic">💬</div><h4>Recall</h4><p>Ask anything; an LLM answers from memory and cites the exact moment.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="wrap reveal">
+      <p class="kick">Who it helps</p>
+      <h2>Independence for patients. Peace of mind for families.</h2>
+      <div class="cards">
+        <div class="fcard"><div class="ic">👵</div><h4>Elderly &amp; dementia patients</h4><p>Recall medication, conversations, names and faces — stay independent and safe at home longer.</p></div>
+        <div class="fcard"><div class="ic">👨‍👩‍👧</div><h4>Family caregivers</h4><p>A gentle daily summary and alerts for missed medication or unusual patterns — without hovering.</p></div>
+        <div class="fcard"><div class="ic">🩺</div><h4>Doctors &amp; clinics</h4><p>A consultation companion that captures and summarizes visits, so instructions are never lost.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="wrap reveal">
+      <p class="kick">Privacy is the product</p>
+      <h2>A device that hears everything must be trusted with everything.</h2>
+      <p class="intro">Trust isn't bolted on at the end — it's the foundation that makes an always-available
+        memory acceptable for a vulnerable user.</p>
+      <ul class="plist">
+        <li><span class="ck" aria-hidden="true">✓</span> Consent + visible recording indicator, one-tap pause</li>
+        <li><span class="ck" aria-hidden="true">✓</span> On-device pre-filtering before anything is uploaded</li>
+        <li><span class="ck" aria-hidden="true">✓</span> Encryption in transit and at rest</li>
+        <li><span class="ck" aria-hidden="true">✓</span> Data stored <b>in Uzbekistan</b> — sovereign by design</li>
+        <li><span class="ck" aria-hidden="true">✓</span> User &amp; caregiver control: view, export, delete any memory</li>
+        <li><span class="ck" aria-hidden="true">✓</span> Clear third-party consent signaling</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="wrap reveal">
+      <p class="kick">The impact we'll prove</p>
+      <h2>Funding tied to outcomes, not promises.</h2>
+      <p class="intro">President AI Award investment is released in KPI-based tranches. These are Xotira's
+        pilot targets. <em style="color:var(--faint)">(Illustrative — set to real, provable numbers.)</em></p>
+      <div class="stats">
+        <div class="stat"><div class="num" data-to="85" data-suf="%">0%</div><div class="lbl">Memory-recall accuracy on a graded question set</div></div>
+        <div class="stat"><div class="num" data-to="20" data-pre="+" data-suf="%">0%</div><div class="lbl">Medication-adherence improvement vs. baseline</div></div>
+        <div class="stat"><div class="num" data-to="30" data-suf="+">0</div><div class="lbl">Active pilot patients with a clinic partner</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk" id="award">
+    <div class="wrap reveal">
+      <div class="award">
+        <p class="kick">Why we fit the award</p>
+        <h2 style="margin-bottom:10px">One of five directions. We chose the one we can move.</h2>
+        <p class="intro" style="margin-bottom:6px">A team applies to a single President AI Award direction. Xotira is built for:</p>
+        <div class="cats">
+          <span class="cat on">Healthcare &amp; Medicine AI ✦</span>
+          <span class="cat">Government AI</span>
+          <span class="cat">Industry &amp; Business AI</span>
+          <span class="cat">Education AI</span>
+          <span class="cat">Green Economy &amp; Agrotech AI</span>
+        </div>
+        <div class="steps5">
+          <div class="s5"><span class="sn">STAGE 1</span><b>Apply</b>Working prototype + team of 3–8</div>
+          <div class="s5"><span class="sn">STAGE 2</span><b>Screening</b>Selection by expert jury</div>
+          <div class="s5"><span class="sn">STAGE 3</span><b>Acceleration</b>Mentorship &amp; product</div>
+          <div class="s5"><span class="sn">STAGE 4</span><b>Pilot</b>Prove KPIs in the field</div>
+          <div class="s5"><span class="sn">STAGE 5</span><b>Invest</b>KPI-based tranches</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-final">
+    <div class="wrap reveal">
+      <p class="kick" style="justify-self:center">Deadline 1 August 2026</p>
+      <h2>Give an aging nation its memory back.</h2>
+      <p class="lede">Xotira — an Uzbek AI product built for the people who need it most,
+        and ready to scale from Tashkent to the region.</p>
+      <a class="btn primary" href="https://awards.gov.uz/en/paia" target="_blank" rel="noopener">Apply on awards.gov.uz →</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>Xotira · AI memory wearable for elderly &amp; dementia care · Tashkent, Uzbekistan</div>
+    <div class="disc">Working name &amp; sample data — a President AI Award 2026 concept demo.</div>
+  </div>
+</footer>
+
+<script>
+  /* ---- reveal on scroll ---- */
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: .16 });
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* ---- count-up stats ---- */
+  function countUp(el){
+    var to = +el.getAttribute('data-to'), pre = el.getAttribute('data-pre')||'', suf = el.getAttribute('data-suf')||'';
+    if (reduce){ el.textContent = pre+to+suf; return; }
+    var start = null, dur = 1100;
+    function step(ts){ if(!start) start=ts; var p=Math.min((ts-start)/dur,1);
+      var v = Math.round(to*(1-Math.pow(1-p,3))); el.textContent = pre+v+suf; if(p<1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  if ('IntersectionObserver' in window){
+    var so = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ countUp(e.target); so.unobserve(e.target);} }); }, {threshold:.6});
+    document.querySelectorAll('.stat .num').forEach(function(el){ so.observe(el); });
+  } else { document.querySelectorAll('.stat .num').forEach(countUp); }
+
+  /* ---- Ask Xotira demo ---- */
+  var ANSWERS = [
+    { you:"Did I take my morning pills?", ai:"Yes — you took your morning medication at <b>8:12</b>, right after breakfast. Your next dose is at <b>20:00</b>.", src:"heard 08:12 · kitchen" },
+    { you:"What did Dr. Karimova say about my blood pressure?", ai:"Dr. Karimova said your blood pressure is a little high. She asked you to <b>reduce salt</b> and to come back for a check in <b>two weeks</b>.", src:"heard 11:40 · clinic" },
+    { you:"Who visited me today?", ai:"Your neighbour <b>Alisher</b> visited around <b>noon</b> and brought bread. Your daughter <b>Nilufar</b> also called in the evening.", src:"heard 12:05 · living room" },
+    { you:"Have I eaten lunch yet?", ai:"Yes — you had <b>plov and tea</b> for lunch at about <b>13:20</b>. You mentioned it was tasty.", src:"heard 13:20 · kitchen" }
+  ];
+  var screen = document.getElementById('screen'), placeholder = document.getElementById('placeholder');
+  function clearScreen(){ Array.prototype.slice.call(screen.querySelectorAll('.bubble')).forEach(function(b){b.remove();}); if(placeholder) placeholder.style.display='none'; }
+  function addBubble(cls, html){ var d=document.createElement('div'); d.className='bubble '+cls; d.innerHTML=html; screen.appendChild(d); return d; }
+  function press(i){ document.querySelectorAll('.qbtn').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-i')===String(i)?'true':'false'); }); }
+  document.getElementById('qs').addEventListener('click', function(e){
+    var btn = e.target.closest('.qbtn'); if(!btn) return;
+    var i=+btn.getAttribute('data-i'), a=ANSWERS[i];
+    press(i); clearScreen(); addBubble('you', a.you);
+    var typing = addBubble('ai', '<span class="typing"><i></i><i></i><i></i></span>');
+    setTimeout(function(){ typing.innerHTML = a.ai + '<div class="src">◆ '+a.src+'</div>'; }, reduce?120:760);
+  });
+
+  /* ---- ambient memory motes ---- */
+  (function(){
+    if (reduce) return;
+    var c = document.getElementById('motes'), x = c.getContext('2d'), W, H, dots=[], DPR=Math.min(devicePixelRatio||1,2);
+    function size(){ W=c.width=innerWidth*DPR; H=c.height=innerHeight*DPR; c.style.width=innerWidth+'px'; c.style.height=innerHeight+'px'; }
+    size(); addEventListener('resize', size);
+    var N = innerWidth<700?34:64;
+    for (var i=0;i<N;i++) dots.push({ x:Math.random()*W, y:Math.random()*H, r:(Math.random()*1.6+.5)*DPR, s:(Math.random()*.28+.06)*DPR, a:Math.random()*.5+.2, amber:Math.random()<.4 });
+    function frame(){
+      x.clearRect(0,0,W,H);
+      for (var i=0;i<dots.length;i++){ var d=dots[i]; d.y-=d.s; if(d.y< -8) { d.y=H+8; d.x=Math.random()*W; }
+        x.beginPath(); x.arc(d.x,d.y,d.r,0,6.283);
+        x.fillStyle = d.amber ? 'rgba(240,169,62,'+d.a+')' : 'rgba(23,185,163,'+d.a+')';
+        x.shadowBlur = 8*DPR; x.shadowColor = d.amber ? 'rgba(240,169,62,.6)' : 'rgba(23,185,163,.5)';
+        x.fill();
+      }
+      requestAnimationFrame(frame);
+    }
+    frame();
+  })();
+</script>
