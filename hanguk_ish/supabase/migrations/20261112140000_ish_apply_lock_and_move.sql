@@ -93,7 +93,9 @@ $$;
 
 -- The workers read it in A12 as «the time changed» with the new day and
 -- hours (application_rejected, reason time_changed); the shift stays open to
--- them in the feed.
+-- them in the feed. Like shifts_guard, for the apps' own requests (role
+-- authenticated): the service role (an admin, the tests' time travel)
+-- decides for itself.
 create function public.shifts_release_on_move()
 returns trigger
 language plpgsql
@@ -118,5 +120,6 @@ revoke execute on function public.shifts_release_on_move() from public, anon, au
 
 create trigger shifts_release_on_move after update of starts_at, ends_at on public.shifts
   for each row
-  when ((new.starts_at, new.ends_at) is distinct from (old.starts_at, old.ends_at))
+  when ((new.starts_at, new.ends_at) is distinct from (old.starts_at, old.ends_at)
+        and current_user = 'authenticated')
   execute function public.shifts_release_on_move();

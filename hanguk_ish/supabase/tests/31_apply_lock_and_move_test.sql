@@ -73,6 +73,16 @@ select tests.eq((select count(*)::int from public.notifications
                    and user_id = '00000000-0000-0000-0000-0000000000a2'),
                 1, 'a2 had nothing waiting any more');
 
+-- Moved by the service role (an admin): its waiting applicants stay.
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+select public.apply_to_shift('20000000-0000-0000-0000-000000000002');
+select tests.as_admin();
+update public.shifts set starts_at = starts_at - interval '2 hours', ends_at = ends_at - interval '2 hours'
+where id = '20000000-0000-0000-0000-000000000002';
+select tests.eq((select count(*)::int from public.applications
+                 where shift_id = '20000000-0000-0000-0000-000000000002' and status = 'pending'),
+                1, 'an admin''s move lets nobody go');
+
 -- Confirmed workers are untouched (their shift cannot move: shifts_guard).
 select tests.eq((select status::text from public.applications
                  where id = '30000000-0000-0000-0000-000000000004'),
