@@ -51,6 +51,10 @@ hanguk.uz loyihasida (`lysjdtyanhdfphqyijsr`), bir marta. Prod bazadagi har bir
 o'zgarish Asrbekning ruxsati bilan. `supabase db push` ishlatilmaydi — prod
 tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 
+Holat (2026-11-11): 1, 2, 4, 5 va 7 (baza tekshiruvi) bajarilgan — 21 migratsiya
+prod'da, sxema test bazasi bilan bir xil; `ish` API'da; funksiya joylangan.
+Qolgani: 3 (Twilio) va 6 (xodimlar) — Asrbek.
+
 1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
    «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):
    - `hanguk_ish/supabase/migrations/*.sql` (hammasi `ish` sxemasida);
@@ -72,8 +76,9 @@ tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 5. CI APK'lari shu bazaga ulanadi: `ish-check.yml` da hanguk.uz'ning manzili va
    publishable kaliti (ochiq, saytda ham bor). GitHub secrets `ISH_SUPABASE_URL`,
    `ISH_SUPABASE_PUBLISHABLE_KEY` berilsa — boshqa loyihaga.
-6. Xodimlar: hanguk.uz CRM akkaunti bilan, `ish.staff_members` ga qo'shiladi
-   (`hanguk_ish/README.md`, «Xodimlar»).
+6. Xodimlar: hanguk.uz CRM akkaunti bilan — avval `ish.profiles`, keyin
+   `ish.staff_members` ga qo'shiladi (`hanguk_ish/README.md`, «Xodimlar»;
+   `tests/05_coexistence_test.sql`).
 7. Tekshiruv:
    - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar
      (nomi bo'yicha), hanguk.uz triggeri Hanguk Ish'ni o'tkazib yuborishi, RLS,

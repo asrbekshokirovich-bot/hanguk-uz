@@ -47,6 +47,20 @@ insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000e3
 select tests.ok(exists (select 1 from ish.profiles where id = '00000000-0000-0000-0000-0000000000e3'),
                 'a phone-only sign-up gets a Hanguk Ish profile');
 
+-- A hanguk.uz account (e-mail) becomes Hanguk Ish staff the way README
+-- («Xodimlar») says: a Hanguk Ish profile first — what the staff make points
+-- to it (the employers they keep, their notes) — then the staff row.
+select tests.throws(
+  $$insert into ish.staff_members (user_id) values ('00000000-0000-0000-0000-0000000000e2')$$,
+  'violates foreign key constraint', 'staff without a Hanguk Ish profile: refused (profile first)');
+insert into ish.profiles (id) select id from auth.users where email = 'ali@example.com' on conflict (id) do nothing;
+insert into ish.staff_members (user_id) select id from auth.users where email = 'ali@example.com';
+select tests.as_user('00000000-0000-0000-0000-0000000000e2');
+select tests.ok(ish.is_staff(), 'a hanguk.uz e-mail account made staff: is_staff()');
+select tests.ok(ish.staff_save_business(null, '달빛카페', p_contact => '{"phone": "010-1234-5678"}') is not null,
+                'and keeps an employer outside the app');
+select tests.as_admin();
+
 -- Live updates: the three Hanguk Ish tables are in the publication.
 select tests.eq(
   (select coalesce(array_agg(tablename::text order by tablename::text), '{}')

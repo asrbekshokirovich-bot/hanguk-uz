@@ -67,11 +67,16 @@ hanguk.uz'ning klienti va xodimning hanguk.uz sessiyasi bilan ishlaydi —
 alohida kirish, SMS kod yoki Vercel o'zgaruvchisi kerak emas.
 
 1. Xodim CRM'ga odatdagidek kiradi va «Hanguk Ish» bo'limini ochadi.
-2. Admin uni Hanguk Ish xodimi qiladi (Supabase → SQL Editor; hanguk.uz akkaunti email'i):
+2. Admin uni Hanguk Ish xodimi qiladi (Supabase → SQL Editor; hanguk.uz akkaunti email'i).
+   Avval Hanguk Ish profili (xodim yaratgan ish beruvchilar va eslatmalar unga
+   bog'lanadi; email bilan kirganlarda u o'zi paydo bo'lmaydi), keyin xodim qatori:
 
    ```sql
+   insert into ish.profiles (id)
+   select id from auth.users where email = 'xodim@hanguk.local'
+   on conflict (id) do nothing;
    insert into ish.staff_members (user_id)
-   select id from auth.users where email = 'xodim@hanguk.uz';
+   select id from auth.users where email = 'xodim@hanguk.local';
    ```
 
    Olib tashlash: `delete from ish.staff_members where user_id = …;`
