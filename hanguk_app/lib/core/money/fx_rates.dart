@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import '../config/app_config.dart';
+
 /// The Central Bank of Uzbekistan's official rates (cbu.uz), which fees in
 /// won are shown in (owner, 2026-10-22): Uzbek → so'm, English and Russian →
 /// US dollars, Korean and Vietnamese → won as the guideline quotes it.
@@ -144,6 +146,14 @@ class KgsRates {
 
   static const _daily = 'https://www.nbkr.kg/XML/daily.xml';
   static const _weekly = 'https://www.nbkr.kg/XML/weekly.xml';
+
+  /// The bank sends no CORS header, so a browser (hanguk.uz/ilova) cannot
+  /// read it and fees stayed in won: on the web the same two lists come
+  /// unchanged through our edge function `fx-kgs`.
+  static String dailyUrl({bool web = kIsWeb}) =>
+      web ? '${AppConfig.supabaseUrl}/functions/v1/fx-kgs?list=daily' : _daily;
+  static String weeklyUrl({bool web = kIsWeb}) =>
+      web ? '${AppConfig.supabaseUrl}/functions/v1/fx-kgs?list=weekly' : _weekly;
   static const _key = 'fx_kgs_v1';
   static const _storage = FlutterSecureStorage();
 
@@ -195,8 +205,8 @@ class KgsRates {
     try {
       final c = client ?? http.Client();
       final res = await Future.wait([
-        c.get(Uri.parse(_daily)).timeout(const Duration(seconds: 10)),
-        c.get(Uri.parse(_weekly)).timeout(const Duration(seconds: 10)),
+        c.get(Uri.parse(dailyUrl())).timeout(const Duration(seconds: 10)),
+        c.get(Uri.parse(weeklyUrl())).timeout(const Duration(seconds: 10)),
       ]);
       if (client == null) c.close();
       if (res.any((r) => r.statusCode != 200)) return false;
