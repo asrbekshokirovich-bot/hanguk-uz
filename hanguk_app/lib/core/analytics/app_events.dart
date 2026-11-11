@@ -55,6 +55,7 @@ abstract final class AppEvents {
   static _Sink? _sink;
   static final _Surfaces _surfaces = _Surfaces();
   static String? _language;
+  static String? _country;
   static final Stopwatch _launch = Stopwatch();
 
   /// Starts recording. Called once from `main`, after Supabase is ready.
@@ -150,6 +151,10 @@ abstract final class AppEvents {
 
   /// The app's interface language, sent with every batch.
   static void setLanguage(String? code) => _language = code;
+
+  /// The country the app is set up for (`UZ` / `KG`, plan KG2), sent with
+  /// every batch — the server keeps it in `app_installs.country`.
+  static void setCountry(String? code) => _country = code;
 
   // ── Screens ──────────────────────────────────────────────────────────────
 
@@ -730,6 +735,7 @@ class _Sink with WidgetsBindingObserver {
     ..._context,
     ..._placeNow(),
     'ui_lang': ?AppEvents._language,
+    'country': ?AppEvents._country,
     'sent_at': DateTime.now().toUtc().toIso8601String(),
   };
 

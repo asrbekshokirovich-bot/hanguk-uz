@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/analytics/app_events.dart';
 import '../../../../core/analytics/tracked.dart';
 import '../../../../core/config/contact_links.dart';
+import '../../../../core/country/app_country.dart';
 import '../../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../entry/data/entry_store.dart';
 
 /// The title of a client screen (prototype 9, 10): the name in white, a line
 /// under it, a lime count chip ("3 / 6") and the account button. The account
@@ -93,14 +96,16 @@ class _DashPainter extends CustomPainter {
 /// The agency's card at the foot of the application screen (prototype 9): a
 /// blue card with a lime kicker, the line about answering, and "Yozish" (the
 /// Telegram chat) beside a round call button.
-class ConsultantRow extends StatelessWidget {
+class ConsultantRow extends ConsumerWidget {
   const ConsultantRow({super.key});
 
   Future<void> _open(Uri uri) => launchUrl(uri, mode: LaunchMode.externalApplication);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
+    // Kyrgyzstan: Telegram and Instagram only (plan KG2, Q2).
+    final withCall = ref.watch(entryProvider.select((s) => s.country)) != AppCountry.kg;
     return Container(
       margin: const EdgeInsets.fromLTRB(18, 0, 18, 12),
       padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
@@ -139,18 +144,20 @@ class ConsultantRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          HardIconButton(
-            glyph: LucideIcons.phone,
-            semanticLabel: l.fdSentCall,
-            size: 40,
-            radius: 20,
-            iconSize: 16,
-            onTap: tracked('client_parts.sent_call', () {
-              AppEvents.track('contact_tap', screen: 'application', props: {'channel': 'phone'});
-              _open(ContactLinks.phoneUri);
-            }),
-          ),
+          if (withCall) ...[
+            const SizedBox(width: 8),
+            HardIconButton(
+              glyph: LucideIcons.phone,
+              semanticLabel: l.fdSentCall,
+              size: 40,
+              radius: 20,
+              iconSize: 16,
+              onTap: tracked('client_parts.sent_call', () {
+                AppEvents.track('contact_tap', screen: 'application', props: {'channel': 'phone'});
+                _open(ContactLinks.phoneUri);
+              }),
+            ),
+          ],
         ],
       ),
     );

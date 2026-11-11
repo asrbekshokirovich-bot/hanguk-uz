@@ -1832,5 +1832,16 @@
   "nextStepInterviewTitle": "면접을 준비하세요",
   "nextStepInterviewBody": "{university}: 면접. 날짜와 시간은 지원 페이지에서 확인하세요.",
   "nextStepOpenButton": "지원서 열기",
-  "vzAnswersCleared": "답변을 초기화했어요"
+  "vzAnswersCleared": "답변을 초기화했어요",
+  "countryScreenTitle": "국가를 선택하세요",
+  "countryScreenTitleAccent": "선택하세요",
+  "countryScreenSubtitle": "전화 국가번호, 가격, 비자 규정이 이 국가에 맞게 표시됩니다",
+  "countryScreenGuessHint": "휴대폰 설정에 따라 선택되었습니다",
+  "countryUzbekistan": "우즈베키스탄",
+  "countryKyrgyzstan": "키르기스스탄",
+  "countryUzCaption": "+998 · 숨",
+  "countryKgCaption": "+996 · 솜",
+  "countryLabel": "국가",
+  "countrySheetTitle": "국가 선택",
+  "ajBishkek": "비슈케크"
 }

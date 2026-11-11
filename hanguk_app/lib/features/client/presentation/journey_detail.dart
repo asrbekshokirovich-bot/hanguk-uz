@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/country/app_country.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../applications/domain/application_journey.dart';
+import '../../entry/data/entry_store.dart';
 import 'widgets/client_parts.dart';
 import 'widgets/journey_parts.dart';
 
@@ -86,7 +88,11 @@ class JourneyDetail extends ConsumerWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                child: _BoardingPass(progress: progress, now: now),
+                child: _BoardingPass(
+                  progress: progress,
+                  now: now,
+                  fromKyrgyzstan: ref.watch(entryProvider.select((s) => s.country)) == AppCountry.kg,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
@@ -116,10 +122,13 @@ class JourneyDetail extends ConsumerWidget {
 }
 
 class _BoardingPass extends StatelessWidget {
-  const _BoardingPass({required this.progress, required this.now});
+  const _BoardingPass({required this.progress, required this.now, this.fromKyrgyzstan = false});
 
   final UniversityProgress progress;
   final DateTime now;
+
+  /// The flight leaves from Bishkek (FRU), not Tashkent (plan KG2).
+  final bool fromKyrgyzstan;
 
   static const double _notchY = 128;
 
@@ -164,7 +173,9 @@ class _BoardingPass extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _Airport(code: 'TAS', city: l.ajTashkent),
+                        fromKyrgyzstan
+                            ? _Airport(code: 'FRU', city: l.ajBishkek)
+                            : _Airport(code: 'TAS', city: l.ajTashkent),
                         const Expanded(child: Padding(padding: EdgeInsets.only(top: 12), child: _FlightLine())),
                         _Airport(code: airport, city: kAirportCity[airport] ?? '', end: true),
                       ],

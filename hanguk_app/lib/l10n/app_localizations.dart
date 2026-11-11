@@ -10301,6 +10301,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Answers cleared'**
   String get vzAnswersCleared;
+
+  /// Country screen after the language on first launch (plan KG2, design B): the title. countryScreenTitleAccent is the part of it drawn in lime.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your country'**
+  String get countryScreenTitle;
+
+  /// The word of countryScreenTitle drawn in lime; must appear in countryScreenTitle exactly as written.
+  ///
+  /// In en, this message translates to:
+  /// **'country'**
+  String get countryScreenTitleAccent;
+
+  /// Country screen (design B): the line under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone code, prices and visa rules are shown for this country'**
+  String get countryScreenSubtitle;
+
+  /// Country screen (design B): under the cards while the country picked is the one the phone's settings pointed to.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked from your phone\'s settings'**
+  String get countryScreenGuessHint;
+
+  /// Country name: Uzbekistan (country screen, country sheet, account screen).
+  ///
+  /// In en, this message translates to:
+  /// **'Uzbekistan'**
+  String get countryUzbekistan;
+
+  /// Country name: Kyrgyzstan (country screen, country sheet, account screen).
+  ///
+  /// In en, this message translates to:
+  /// **'Kyrgyzstan'**
+  String get countryKyrgyzstan;
+
+  /// Country screen card, under Uzbekistan: phone code · currency.
+  ///
+  /// In en, this message translates to:
+  /// **'+998 · sum'**
+  String get countryUzCaption;
+
+  /// Country screen card, under Kyrgyzstan: phone code · currency.
+  ///
+  /// In en, this message translates to:
+  /// **'+996 · som'**
+  String get countryKgCaption;
+
+  /// Label of the country setting: the account screen card's title and the guest's map-pin button.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryLabel;
+
+  /// Title of the country picker sheet (account screen, guest Universitetlar header).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a country'**
+  String get countrySheetTitle;
+
+  /// Boarding pass: the departure city when the app is set up for Kyrgyzstan (airport FRU).
+  ///
+  /// In en, this message translates to:
+  /// **'Bishkek'**
+  String get ajBishkek;
 }
 
 class _AppLocalizationsDelegate

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/tracked.dart';
+import '../../../core/country/app_country.dart';
 import '../../../core/money/fx_rates.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../design_system/seoul_night/widgets/svg_path_icon.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart' show cssLinearGradient;
+import '../../entry/data/entry_store.dart';
 import '../data/ai_search.dart';
 import '../data/campus_photos.dart';
 import '../data/catalog_compare_provider.dart';
@@ -79,8 +81,12 @@ class CatalogBrowser extends ConsumerWidget {
         final searching = filter.query.trim().length >= kAiSearchMinLength;
         final rows = searching ? catalogSearchRows(all, filter, ai) : const <CatalogSearchRow>[];
         final list = searching ? [for (final r in rows) r.university] : applyCatalogFilter(all, filter);
-        // From the whole catalogue: the filters never hide the guest.
-        final guest = all.where((u) => u.institutionId == kGuestUniversityId).firstOrNull;
+        // From the whole catalogue: the filters never hide the guest. It is
+        // visiting Uzbekistan, so a phone set up for Kyrgyzstan (plan KG2)
+        // does not get it.
+        final guest = ref.watch(entryProvider.select((s) => s.country)) == AppCountry.kg
+            ? null
+            : all.where((u) => u.institutionId == kGuestUniversityId).firstOrNull;
         final compare = ref.watch(catalogCompareProvider);
         final compareNotifier = ref.read(catalogCompareProvider.notifier);
         final title = filter.cities.length == 1

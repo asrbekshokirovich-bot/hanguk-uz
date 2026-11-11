@@ -5750,4 +5750,38 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get vzAnswersCleared => 'Javoblar tozalandi';
+
+  @override
+  String get countryScreenTitle => 'Mamlakatni tanlang';
+
+  @override
+  String get countryScreenTitleAccent => 'tanlang';
+
+  @override
+  String get countryScreenSubtitle =>
+      'Telefon kodi, narxlar va viza qoidalari shunga qarab ko\'rsatiladi';
+
+  @override
+  String get countryScreenGuessHint => 'Telefon sozlamasiga qarab belgilandi';
+
+  @override
+  String get countryUzbekistan => 'O‘zbekiston';
+
+  @override
+  String get countryKyrgyzstan => 'Qirg‘iziston';
+
+  @override
+  String get countryUzCaption => '+998 · so\'m';
+
+  @override
+  String get countryKgCaption => '+996 · som';
+
+  @override
+  String get countryLabel => 'Mamlakat';
+
+  @override
+  String get countrySheetTitle => 'Mamlakatni tanlang';
+
+  @override
+  String get ajBishkek => 'Bishkek';
 }

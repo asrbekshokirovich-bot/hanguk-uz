@@ -15,6 +15,7 @@ import '../../features/account/presentation/account_screen.dart';
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/presentation/client_code_screen.dart';
 import '../../features/entry/data/entry_store.dart';
+import '../../features/entry/presentation/country_screen.dart';
 import '../../features/entry/presentation/language_screen.dart';
 import '../../features/client/presentation/client_shell.dart';
 import '../../features/home/presentation/notifications_screen.dart';
@@ -133,12 +134,16 @@ List<RouteBase> _guestRoutes() => [
   ),
 ];
 
-/// The way in before Welcome: the language picker on first launch — see the
-/// redirect below.
+/// The way in before Welcome: the language picker on first launch, then the
+/// country (plan KG2, design B) — see the redirect below.
 List<RouteBase> _entryRoutes() => [
   GoRoute(
     path: '/language',
     builder: (context, state) => const LanguageScreen(),
+  ),
+  GoRoute(
+    path: kCountryPath,
+    builder: (context, state) => const CountryScreen(),
   ),
 ];
 
@@ -361,9 +366,10 @@ class _AuthGate extends ChangeNotifier {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  // Only the language gate rebuilds the router; switching language later
-  // must not throw the visitor back to the first screen.
+  // Only the language and country gates rebuild the router; switching
+  // language later must not throw the visitor back to the first screen.
   final hasLanguage = ref.watch(entryProvider.select((s) => s.hasLanguage));
+  final hasCountry = ref.watch(entryProvider.select((s) => s.hasCountry));
 
   final gate = _AuthGate();
   void sync(AsyncValue<AuthState> s) => gate.update(
@@ -418,6 +424,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               isLoading: gate.isLoading,
               isAuthenticated: gate.isAuthenticated,
               hasLanguage: hasLanguage,
+              hasCountry: hasCountry,
             ) ??
             '/';
       }
@@ -426,6 +433,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         isLoading: gate.isLoading,
         isAuthenticated: gate.isAuthenticated,
         hasLanguage: hasLanguage,
+        hasCountry: hasCountry,
       );
     },
   );
@@ -452,6 +460,7 @@ String? resolveAppRedirect({
   required bool isLoading,
   required bool isAuthenticated,
   required bool hasLanguage,
+  bool hasCountry = true,
 }) {
   final path = Uri.parse(loc).path;
   final isGoingToLogin = path == '/login';
@@ -469,17 +478,19 @@ String? resolveAppRedirect({
       path.startsWith('$kAssessmentPath/');
 
   final isGoingToLanguage = path == '/language';
+  final isGoingToCountry = path == kCountryPath;
   // The old "Viza imkoniyatim" screens (S01–S06) stay reachable by link until
   // they are removed; nothing in the flow leads there any more.
   final isGoingToOnboarding = isOnboardingPath(path);
 
   if (isLoading) return null;
 
-  // The way in: the language on first launch, then the home (design 03).
-  // A signed-in student skips all of it.
+  // The way in: the language on first launch, then the country (plan KG2),
+  // then the home (design 03). A signed-in student skips all of it.
   if (!isAuthenticated) {
     if (!hasLanguage) return isGoingToLanguage ? null : '/language';
-    if (isGoingToLanguage) return kDiscoverPath;
+    if (!hasCountry) return isGoingToCountry ? null : kCountryPath;
+    if (isGoingToLanguage || isGoingToCountry) return kDiscoverPath;
   }
 
   if (!isAuthenticated &&
@@ -497,6 +508,7 @@ String? resolveAppRedirect({
       (isGoingToLogin ||
           isGoingToWelcome ||
           isGoingToLanguage ||
+          isGoingToCountry ||
           isGoingToOnboarding ||
           path == kDiscoverPath)) {
     return '/';
