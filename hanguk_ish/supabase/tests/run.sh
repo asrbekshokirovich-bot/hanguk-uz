@@ -8,6 +8,9 @@
 # With SUPABASE_DB_URL set (a local `supabase start` stack whose migrations
 # were applied by `supabase db reset`), it skips the database setup and runs
 # the same tests against the real Supabase schema.
+#
+# On the throwaway database it ends with tests/concurrency.sh: two sessions
+# at the same moment (it commits the fixtures, so not on the stack).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DB=${TEST_DB:-ish_test}
@@ -43,3 +46,5 @@ for f in tests/*_test.sql; do
   pass=$((pass + 1))
 done
 echo "OK: $pass test files passed"
+# Last: it commits the fixtures (two sessions must see them).
+bash tests/concurrency.sh "$DB"

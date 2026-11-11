@@ -13,11 +13,13 @@ import '../../helpers/worker_harness.dart';
 /// 요청») of a business with no point yet, so no distance; [marks]: whether
 /// the server keeps the read mark.
 class OneNotice extends DemoAccountRepository {
-  OneNotice({this.km, this.marks = true, this.kind = NotificationKind.newShift}) : super(now: prototypeNow);
+  OneNotice({this.km, this.marks = true, this.kind = NotificationKind.newShift, this.shiftId})
+      : super(now: prototypeNow);
 
   final double? km;
   final bool marks;
   final NotificationKind kind;
+  final String? shiftId;
   int markCalls = 0;
   bool _read = false;
 
@@ -29,6 +31,7 @@ class OneNotice extends DemoAccountRepository {
           createdAt: prototypeNow,
           read: _read,
           businessNames: const {'uz': 'E2E Kafe'},
+          shiftId: shiftId,
           startsAt: prototypeNow.add(const Duration(days: 1)),
           endsAt: prototypeNow.add(const Duration(days: 1, hours: 3)),
           wage: 11000,
@@ -84,5 +87,17 @@ void main() {
     expect(find.text('Ariza qabul qilinmadi'), findsOneWidget);
     expect(find.textContaining('smenasi boshlandi, arizangizga javob berilmadi.'), findsOneWidget);
     expect(find.textContaining('boshqa ishchi tanlandi'), findsNothing);
+  });
+
+  testWidgets('A12: a shift the business moved gives the new time and leads to it, to take it again',
+      (tester) async {
+    await open(tester, OneNotice(kind: NotificationKind.timeChanged, shiftId: 'demo-1'));
+    expect(find.text("Smena vaqti o'zgardi"), findsOneWidget);
+    expect(find.textContaining('E2E Kafe: smena endi '), findsOneWidget);
+    expect(find.textContaining('Arizangiz bekor qilindi — mos kelsa, qayta oling.'), findsOneWidget);
+    expect(find.text('Ariza qabul qilinmadi'), findsNothing);
+    await tester.tap(find.text("Ko'rish"));
+    await tester.pumpAndSettle();
+    expect(find.text('Smenani olish'), findsOneWidget, reason: 'A05 of the shift');
   });
 }

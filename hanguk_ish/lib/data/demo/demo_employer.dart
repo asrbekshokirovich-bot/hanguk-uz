@@ -490,7 +490,14 @@ class DemoEmployerRepository implements EmployerRepository {
       hourlyWage: draft.hourlyWage,
       slots: draft.slots,
       autoConfirm: draft.autoConfirm,
-      applicants: s.applicants,
+      // As the database does: a moved shift lets its waiting applicants go
+      // (they asked for the old time).
+      applicants: [
+        for (final a in s.applicants)
+          moved && a.status == ApplicationStatus.pending
+              ? a.copyWith(status: ApplicationStatus.rejected, decidedAt: _clock())
+              : a,
+      ],
     );
     return _shifts[shiftId] = updated;
   }

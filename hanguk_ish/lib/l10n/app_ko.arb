@@ -292,6 +292,8 @@
   "notifRejectedTitle": "신청이 거절됐어요",
   "notifRejectedText": "{business}: {day} {range} 근무에 다른 근무자가 선정됐어요.",
   "notifExpiredText": "{business}: {day} {range} 근무가 시작될 때까지 지원에 답이 없었어요.",
+  "notifTimeChangedTitle": "근무 시간이 바뀌었어요",
+  "notifTimeChangedText": "{business}: 근무가 {day} {range}로 바뀌어 지원이 취소됐어요. 괜찮으면 다시 지원해 주세요.",
   "notifCancelledTitle": "근무가 취소됐어요",
   "notifCancelledText": "{business}: 사장님이 {day} {range} 근무를 취소했어요.",
   "notifPaidTitle": "급여가 지급됐어요",

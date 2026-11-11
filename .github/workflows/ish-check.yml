@@ -5,6 +5,8 @@ name: Hanguk Ish — tekshiruv, ekranlar, APK
 #
 # check: flutter analyze + unit/widget testlar + ekran rasmlari (haqiqiy
 #        shriftlar bilan, prototip bilan solishtirish uchun).
+# timezones: o'sha testlar telefon boshqa vaqt zonasida bo'lganda
+#        (Toshkent, Los-Anjeles) — kun va soat baribir Koreya bo'yicha.
 # apk:   ikkala flavor'ning release APK'si (arm64, sideload test kaliti);
 #        secrets'da Supabase manzili bo'lsa — o'sha bazaga ulanadi, bo'lmasa
 #        demo; yuklash kaliti bo'lsa — Play uchun imzolangan .aab ham.
@@ -107,6 +109,41 @@ jobs:
           path: hanguk_ish/build/screens/
           if-no-files-found: ignore
           retention-days: 14
+
+  # The shifts are in Korea, the phones not always: one still on Tashkent
+  # time (UTC+5), or one far to the west, must show the same Korean days and
+  # hours. The unit and widget tests again, in those zones.
+  timezones:
+    name: Tests in other time zones
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        tz: [Asia/Tashkent, America/Los_Angeles]
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Localizations
+        run: flutter gen-l10n
+
+      - name: Unit and widget tests in ${{ matrix.tz }}
+        env:
+          TZ: ${{ matrix.tz }}
+        run: |
+          date
+          flutter test --exclude-tags screens --reporter github
 
   apk:
     name: Build APKs (worker + employer, arm64)

@@ -993,6 +993,56 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('owner: a shift moved on BA2 lets its waiting applicant go; A12 gives the new time, A05 takes it again',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    // Six days ahead: clear of the worker's other shifts.
+    final (moved, _) = await appliedShift(tester, 'E2E 시간 변경', inHours: 150, auto: false);
+    String hm(int m) => '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
+    final end = Kst.wallClock(moved.endsAt);
+    final endMinute = end.hour * 60 + end.minute;
+    // The list steps by half an hour: the next step after the end it had.
+    final later = (endMinute - endMinute % 30 + 30) % (24 * 60);
+
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.edit(moved.id)));
+    await _until(tester, _text(Ko.editTitle));
+    await _settle(tester);
+    await _tap(tester, find.bySemanticsLabel('${Ko.endTime} ${hm(endMinute)}'));
+    await _until(tester, find.byType(BottomSheet));
+    await _settle(tester);
+    await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: _text(hm(later))));
+    await _settle(tester);
+    await _tap(tester, find.widgetWithText(HiButton, Ko.save));
+    await _until(tester, _text(Ko.saved));
+    await _close(tester);
+    final after = (await tester.runAsync(() => SupabaseEmployerRepository(owner, _config).shift(moved.id)))!;
+    expect(Kst.hm(after.endsAt), hm(later));
+    var mine = (await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts()))!;
+    expect(mine.singleWhere((a) => a.shift.id == moved.id).status, ApplicationStatus.rejected,
+        reason: 'the request was for the old time');
+
+    // A12: the new time, and that the request ended.
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await _until(tester, _text("Smena vaqti o'zgardi"));
+    final range = HiDates.timeRange(after.startsAt, after.endsAt);
+    expect(find.textContaining(RegExp('smena endi .*${RegExp.escape(range)}\\. Arizangiz bekor qilindi')),
+        findsOneWidget);
+    await _shot(tester, 'a12-time-changed');
+    await _close(tester);
+
+    // A05 takes it again, at the new time.
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.shift(moved.id)));
+    await _until(tester, _text('Smenani olish'));
+    await _tap(tester, _text('Smenani olish'));
+    await _until(tester, _text('Tasdiqlash'));
+    await _tap(tester, _text('Tasdiqlash'));
+    await _until(tester, _text('Ariza yuborildi!'));
+    await _close(tester);
+    mine = (await tester.runAsync(() => SupabaseShiftRepository(worker, _config).myShifts()))!;
+    expect(mine.where((a) => a.shift.id == moved.id).map((a) => a.status),
+        containsAll([ApplicationStatus.rejected, ApplicationStatus.pending]));
+  });
+
   /// The E2E business's shifts of the next three days.
   Future<List<EmployerShift>> nextShifts(WidgetTester tester) async => (await tester.runAsync(() async {
         final employer = SupabaseEmployerRepository(owner, _config);

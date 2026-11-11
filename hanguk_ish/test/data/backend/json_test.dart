@@ -178,6 +178,14 @@ void main() {
         'created_at': '2026-11-10T03:00:00+00:00',
       });
       expect(expired?.kind, NotificationKind.expired, reason: 'nobody answered: not «another worker was chosen»');
+      final moved = hiNotificationFromJson({
+        'id': 13,
+        'kind': 'application_rejected',
+        'data': {'reason': 'time_changed', 'shift_id': 's'},
+        'created_at': '2026-11-10T03:00:00+00:00',
+      });
+      expect(moved?.kind, NotificationKind.timeChanged, reason: 'the business moved the shift');
+      expect(moved?.shiftId, 's', reason: 'A12 leads to it, to take it again');
       expect(
           hiNotificationFromJson({
             'id': 11,

@@ -292,6 +292,8 @@
   "notifRejectedTitle": "Заявка отклонена",
   "notifRejectedText": "{business}: на смену {day}, {range} выбран другой работник.",
   "notifExpiredText": "{business}: смена {day}, {range} началась, а ответа на вашу заявку не было.",
+  "notifTimeChangedTitle": "Время смены изменилось",
+  "notifTimeChangedText": "{business}: смена теперь {day}, {range}. Ваша заявка снята — если подходит, подайте снова.",
   "notifCancelledTitle": "Смена отменена",
   "notifCancelledText": "{business}: работодатель отменил смену {day}, {range}.",
   "notifPaidTitle": "Оплата получена",

@@ -1386,6 +1386,25 @@
       }
     }
   },
+  "notifTimeChangedTitle": "Smena vaqti o'zgardi",
+  "@notifTimeChangedTitle": {
+    "description": "A12: ish beruvchi kutilayotgan arizali smenaning vaqtini o'zgartirdi."
+  },
+  "notifTimeChangedText": "{business}: smena endi {day}, {range}. Arizangiz bekor qilindi — mos kelsa, qayta oling.",
+  "@notifTimeChangedText": {
+    "description": "A12: vaqti o'zgargan smena; day va range — yangi vaqt. Ariza bekor qilingan, ishchi qayta olishi mumkin.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "notifCancelledTitle": "Smena bekor qilindi",
   "@notifCancelledTitle": {
     "description": "A12: ish beruvchi bekor qildi."
