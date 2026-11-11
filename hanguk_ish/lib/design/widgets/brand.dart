@@ -51,10 +51,14 @@ class HiNavyPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(HiRadii.pill),
         border: Border.all(color: HiColors.white20),
       ),
-      alignment: Alignment.center,
-      child: HiText(
-        label,
-        style: hiStyle(13, FontWeight.w700, color: HiColors.white),
+      // As wide as its text, also where the parent offers a whole line (BA0's
+      // Wrap): Container(alignment:) alone would fill it.
+      child: Align(
+        widthFactor: 1,
+        child: HiText(
+          label,
+          style: hiStyle(13, FontWeight.w700, color: HiColors.white),
+        ),
       ),
     );
   }

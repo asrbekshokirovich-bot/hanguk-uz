@@ -307,16 +307,24 @@ class HiSegmentedTabs extends StatelessWidget {
       color: i == current ? HiColors.ink : HiColors.textSoft,
     );
     final count = counts?[i];
+    // A label longer than its tab (a longer language: «Прошлый месяц») is
+    // drawn a little smaller instead of cut; the ones that fit are as they
+    // were.
     if (count == null) {
-      return HiText(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: style);
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: HiText(labels[i], maxLines: 1, softWrap: false, style: style),
+      );
     }
     final mono = style.copyWith(fontFamily: HiFamily.mono.family, fontFamilyFallback: HiFamily.mono.fallback);
-    return HiRichText(
-      TextSpan(text: '${labels[i]} ', children: [TextSpan(text: count, style: mono)]),
-      style: style,
-      also: [mono],
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: HiRichText(
+        TextSpan(text: '${labels[i]} ', children: [TextSpan(text: count, style: mono)]),
+        style: style,
+        also: [mono],
+        maxLines: 1,
+      ),
     );
   }
 }
