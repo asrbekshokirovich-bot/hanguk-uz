@@ -73,6 +73,9 @@ tool/
   gen_icons.py          prototip SVG'laridan lib/design/hi_icons.g.dart
   build_fonts.py        Noto Sans KR / JetBrains Mono fayllarini qayta yig'ish
   gen_launcher_icons.py ilova ikonkalari
+  smoke.sh, smoke_ui.py emulyatorda release APK'lar bilan yurish (ish-smoke.yml)
+test_backend/           lokal Supabase'ga qarshi testlar (ish-integration.yml)
+supabase/               migratsiyalar, edge funksiyalar, SQL testlar
 ```
 
 ## Testlar
@@ -80,12 +83,27 @@ tool/
 ```sh
 flutter test --exclude-tags screens            # mantiq va vidjetlar
 flutter test --tags screens --update-goldens   # ekran rasmlari → test/screens/goldens
+TZ=Asia/Tashkent flutter test --exclude-tags screens   # telefon boshqa vaqt zonasida
+bash supabase/tests/run.sh                     # baza: SQL testlar + poyga (PG 15+)
+bash supabase/tests/perf.sh                    # baza masshtabda (20 000 ishchi)
 ```
 
 Ekran testlari prototip kadrida (390×844, status bar 47, pastki chiziq 34)
-chiziladi — shu kadrda joylashuv prototip bilan bir xil bo'lishi kerak. CI
-(`.github/workflows/ish-check.yml`) rasmlarni va ikkala APK'ni `hanguk-ish-ci`
-prerelease'iga qo'yadi.
+chiziladi — shu kadrda joylashuv prototip bilan bir xil bo'lishi kerak.
+
+CI (har `ish/*` push'da; natijalar `hanguk-ish-ci` prerelease'ida):
+
+| Workflow | Nima |
+|---|---|
+| `ish-check.yml` | analyze, unit/widget testlar, ekran rasmlari, Toshkent va Los-Anjeles vaqt zonalarida testlar, ikkala APK |
+| `ish-backend.yml` | SQL testlar PG16 va Supabase stack'da, ikki sessiyali poyga testi, masshtab (`tests/perf.sh`), edge funksiyalar (Deno) |
+| `ish-integration.yml` | repozitoriylar va ikkala ilovaning ekranlari haqiqiy lokal Supabase'da (`test_backend/`) |
+| `ish-smoke.yml` | release APK'lar Android emulyatorida: ochilish, bosish, yiqilish yo'qligi; demo ilovalarda uzun yurish (`tool/smoke.sh`) |
+
+Versiyalar qotirilgan: Flutter 3.47.9, Supabase CLI 3.1.0 (workflow'larda).
+Yangisiga o'tishda hammasini birga ko'taring; Flutter 3.47 Android Gradle
+Plugin 8.11 / Gradle 8.14 / Kotlin 2.2 qo'llovi tez orada tugashini aytadi —
+keyingi Flutter bilan ularni ham ko'tarish kerak bo'ladi.
 
 ## Qoidalar
 

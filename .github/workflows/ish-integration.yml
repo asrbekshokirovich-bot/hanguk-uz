@@ -32,11 +32,13 @@ jobs:
       run:
         working-directory: hanguk_ish
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
+      # Pinned like Flutter: a new CLI has changed its output before
+      # (ANON_KEY → PUBLISHABLE_KEY). Raise it in both ish-* workflows.
       - name: Install Supabase CLI
         run: |
-          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/download/v3.1.0/supabase_linux_amd64.tar.gz \
             | sudo tar -xz -C /usr/local/bin supabase
           supabase --version
 
@@ -56,6 +58,10 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
+          # Pinned: a newer Flutter may drop the Android Gradle Plugin,
+          # Gradle and Kotlin versions this project uses (3.47 already warns).
+          # Raise it here and in the other ish-* workflows together.
+          flutter-version: 3.47.9
           channel: stable
           cache: true
 

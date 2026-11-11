@@ -58,11 +58,13 @@ Loyiha yaratilgach (Seul, `ap-northeast-2`), bir marta. Prod bazadagi har bir o'
 ## Testlar
 
 ```sh
-# lokal PostgreSQL 15+:
+# lokal PostgreSQL 15+ (oxirida tests/concurrency.sh: ikki sessiya bir vaqtda):
 PGHOST=… PGPORT=… PGUSER=postgres bash tests/run.sh
 # yoki Supabase stack'da:
 supabase start --workdir hanguk_ish && supabase db reset --local --workdir hanguk_ish
 SUPABASE_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres bash tests/run.sh
+# masshtab: 20 000 ishchi, 40 000 smena — har chaqiruv vaqti va chegarasi:
+PGHOST=… PGPORT=… PGUSER=postgres bash tests/perf.sh
 ```
 
 ## Edge funksiyalar

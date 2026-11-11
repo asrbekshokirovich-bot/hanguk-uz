@@ -45,7 +45,7 @@ jobs:
       PGUSER: postgres
       PGPASSWORD: postgres
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run tests
         working-directory: hanguk_ish/supabase
         run: bash tests/run.sh
@@ -61,12 +61,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # The release download link needs no GitHub API call (setup-cli's
       # «latest» lookup hit the anonymous API rate limit).
+      # Pinned like Flutter: a new CLI has changed its output before
+      # (ANON_KEY → PUBLISHABLE_KEY). Raise it in both ish-* workflows.
       - name: Install Supabase CLI
         run: |
-          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/download/v3.1.0/supabase_linux_amd64.tar.gz \
             | sudo tar -xz -C /usr/local/bin supabase
           supabase --version
       - name: Start Supabase (database, auth, REST)
@@ -95,7 +97,7 @@ jobs:
       run:
         working-directory: hanguk_ish/supabase/functions
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
