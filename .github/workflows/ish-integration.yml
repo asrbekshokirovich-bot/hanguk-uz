@@ -56,6 +56,12 @@ jobs:
           echo "SUPABASE_SERVICE_KEY=${SERVICE_ROLE_KEY:-$SECRET_KEY}" >> "$GITHUB_ENV"
           echo "API $API_URL"
 
+      # The checks for production after `supabase db push` (README), here on
+      # the fresh stack: migrations, RLS, rights, pg_cron jobs, Realtime,
+      # the avatars bucket, the minimum wage, indexes.
+      - name: Database as the migrations leave it
+        run: bash supabase/tests/verify.sh postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
       - uses: subosito/flutter-action@v2
         with:
           # Pinned: a newer Flutter may drop the Android Gradle Plugin,

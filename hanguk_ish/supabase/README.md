@@ -53,7 +53,9 @@ Loyiha yaratilgach (Seul, `ap-northeast-2`), bir marta. Prod bazadagi har bir o'
    - `supabase functions deploy business-register --workdir hanguk_ish`;
    - sir: `supabase secrets set NTS_SERVICE_KEY=…`. Kalitsiz yangi bizneslar `pending` bo'lib qoladi.
 4. GitHub secrets: `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API). Shundan keyin CI APK'lari shu bazaga ulanadi (`hanguk_ish/README.md`, «Reliz»).
-5. Tekshiruv: ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan kirish va chiqish.
+5. Tekshiruv:
+   - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar, RLS, huquqlar, 3 ta pg_cron ishi, Realtime jadvallari, «avatars» limitlari, eng kam ish haqi, indekslar. Hammasi «ok» bo'lishi kerak (CI'da lokal stack'da ham ishlaydi);
+   - ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan kirish va chiqish.
 
 ## Testlar
 
