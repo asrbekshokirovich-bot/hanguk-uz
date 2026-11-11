@@ -18,6 +18,7 @@ import {
   describeDate,
   formFromLead,
   isLeadComplete,
+  isKgLead,
   matchesLeadQuery,
   leadDataFromForm,
 } from '@/components/crm/leads/intake/intakeForm';
@@ -85,6 +86,9 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
   const [query, setQuery] = useState('');
+  // Only leads from Kyrgyzstan (Madina's list; QA audit 2026-11-11).
+  const [kgOnly, setKgOnly] = useState(false);
+  const kgCount = useMemo(() => leads.filter(isKgLead).length, [leads]);
 
   // The search narrows the groups BEFORE they are counted, so the tab badges
   // answer "which list is this person in" rather than staying at their
@@ -95,6 +99,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
     for (const lead of leads) {
       if (view === 'today' ? !isTodayLead(lead, now) : arrivedToday(lead, now)) continue;
       if (!matchesLeadQuery(lead, query)) continue;
+      if (kgOnly && !isKgLead(lead)) continue;
       groups[leadOutcome(lead)].push(lead);
     }
     const byCompleteness = (a: Lead, b: Lead) => {
@@ -125,20 +130,20 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
     groups.converted.sort(byCompleteness);
     groups.rejected.sort(byCompleteness);
     return groups;
-  }, [leads, query, now, view]);
+  }, [leads, query, now, view, kgOnly]);
 
   // "Yangi lid": oldest arrival first — the one closest to the 10-minute line
   // is the one most worth seeing first.
   const newLeads = useMemo(
     () =>
       leads
-        .filter((lead) => isNewLead(lead) && matchesLeadQuery(lead, query))
+        .filter((lead) => isNewLead(lead) && matchesLeadQuery(lead, query) && (!kgOnly || isKgLead(lead)))
         .sort(
           (a, b) =>
             new Date(a.new_lead_at as string).getTime() -
             new Date(b.new_lead_at as string).getTime(),
         ),
-    [leads, query],
+    [leads, query, kgOnly],
   );
 
   const shown = view === 'new' ? newLeads : byOutcome[tab];
@@ -327,6 +332,23 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
               className="h-10 w-full rounded-full border border-input bg-background pl-9 pr-3 text-[13px] outline-none transition focus:border-accent focus:ring-[3px] focus:ring-accent/35"
             />
           </div>
+          {kgCount > 0 && (
+            <button
+              type="button"
+              aria-pressed={kgOnly}
+              onClick={() => setKgOnly((v) => !v)}
+              className={cn(
+                'min-h-10 rounded-full border px-4 text-[13px] font-semibold transition',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                kgOnly
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-input bg-background text-muted-foreground hover:bg-muted',
+              )}
+            >
+              {t('leads.intake.kgFilter')}
+              <span className="ml-1.5 tabular-nums opacity-80">{kgCount}</span>
+            </button>
+          )}
           {view !== 'new' && (
           <div
             role="group"

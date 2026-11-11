@@ -1232,7 +1232,9 @@
         "confirm": "Ha, o‘chirilsin"
       },
       "editRow": "Tahrirlash",
-      "openProfile": "Profil"
+      "openProfile": "Profil",
+      "kgFilter": "Qirg'iziston",
+      "kgBadgeTitle": "Qirg'iziston lidi (+996)"
     },
     "profile": {
       "back": "Ro'yxatga qaytish",
