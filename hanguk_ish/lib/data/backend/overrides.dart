@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/worker/feed/feed_area.dart';
 import '../../features/worker/profile/worker_profile_draft.dart';
 import '../../features/worker/profile/worker_profile_repository.dart';
+import '../../features/worker/settings/app_language.dart';
 import '../repositories/account_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/employer_repository.dart';
@@ -41,4 +42,12 @@ List<Override> backendOverrides(BackendConfig config, SupabaseClient client) => 
       locationServiceProvider.overrideWith(
         (ref) => DeviceLocationService(district: () => ref.read(workerProfileDraftProvider).district),
       ),
+      languageSaverProvider.overrideWithValue((language) => saveProfileLanguage(client, language)),
     ];
+
+/// The signed-in person's app language on their profile (`profiles.language`).
+Future<void> saveProfileLanguage(SupabaseClient client, AppLanguage language) async {
+  final me = client.auth.currentUser?.id;
+  if (me == null) return;
+  await client.from('profiles').update({'language': language.code}).eq('id', me);
+}

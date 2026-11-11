@@ -19,6 +19,7 @@ import 'package:hanguk_ish/core/links/share.dart';
 import 'package:hanguk_ish/core/money/won.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
+import 'package:hanguk_ish/data/backend/overrides.dart' show saveProfileLanguage;
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
@@ -39,6 +40,7 @@ import 'package:hanguk_ish/features/employer/ko.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
+import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
 import 'package:hanguk_ish/features/worker/work/qr_scanner.dart';
 import 'package:hanguk_ish/features/worker/work/work_screens.dart';
@@ -475,6 +477,7 @@ void main() {
           locationServiceProvider.overrideWithValue(const _AtTheBeach()),
           liveTimersProvider.overrideWithValue(false),
           if (live) liveUpdatesProvider.overrideWith((ref) => SupabaseLiveUpdates(worker)),
+          languageSaverProvider.overrideWithValue((language) => saveProfileLanguage(worker, language)),
           if (location != null) workerInitialLocationProvider.overrideWithValue(location),
         ],
         child: const WorkerApp(),
@@ -524,6 +527,25 @@ void main() {
     // Finished +1, never above 100; no business can rate a worker yet.
     expect(_text('100'), findsWidgets);
     await _shot(tester, 'a11-profile');
+
+    // The language: on screen at once, and on the profile for the server.
+    await _tap(tester, _text('Ilova tili'));
+    await _until(tester, _text('Русский'));
+    await _tap(tester, _text('Русский'));
+    await _until(tester, _text('Профиль'));
+    String? saved;
+    for (var i = 0; i < 20 && saved != 'ru'; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pump(const Duration(milliseconds: 100));
+      final row = await tester.runAsync(
+          () => worker.from('profiles').select('language').eq('id', worker.auth.currentUser!.id).single());
+      saved = row!['language'] as String?;
+    }
+    expect(saved, 'ru');
+    await _tap(tester, _text('Язык приложения'));
+    await _until(tester, _text("O'zbekcha"));
+    await _tap(tester, _text("O'zbekcha"));
+    await _until(tester, _text('Profil'));
     await _close(tester);
   });
 

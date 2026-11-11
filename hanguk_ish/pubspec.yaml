@@ -32,6 +32,9 @@ dependencies:
   # The Hanguk Ish database (supabase/): sign-in, functions, tables, Storage.
   # Used only when the build names a backend (lib/data/backend/backend.dart).
   supabase_flutter: ^2.9.0
+  # The app language between launches (already in the build through
+  # supabase_flutter's session storage).
+  shared_preferences: ^2.3.0
   # Connection failures of the Supabase client (→ OfflineException).
   http: ^1.2.0
   # A03 / A04 with a backend: the phone's approximate position (shifts by

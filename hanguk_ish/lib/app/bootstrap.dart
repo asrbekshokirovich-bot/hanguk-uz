@@ -2,12 +2,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/backend/backend.dart';
 import '../data/backend/overrides.dart';
 import '../design/theme.dart';
+import '../features/worker/settings/app_language.dart';
 import 'flavor.dart';
+import 'language_store.dart';
 
 /// Shared start-up of both apps: edge-to-edge navy screens in portrait, and
 /// the Hanguk Ish database when the build names one (`BackendConfig`);
@@ -21,6 +24,16 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
   ]);
   const backend = BackendConfig.fromEnvironment;
   final overrides = <Override>[flavorProvider.overrideWithValue(flavor)];
+  if (flavor == Flavor.worker) {
+    // The language chosen before; without the device store, this launch
+    // only.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      overrides.add(languageStoreProvider.overrideWithValue(PrefsLanguageStore(prefs)));
+    } on Object {
+      // Kept for the session.
+    }
+  }
   if (backend.isConfigured) {
     await Supabase.initialize(url: backend.url, publishableKey: backend.publishableKey);
     overrides.addAll(backendOverrides(backend, Supabase.instance.client));
