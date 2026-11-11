@@ -28,6 +28,11 @@ describe('formatPhone', () => {
     expect(formatPhone('998 90 616 28 05')).toBe('+998 90 616 28 05');
   });
 
+  it('groups a Kyrgyz number 3-3-3 (plan KG3)', () => {
+    expect(formatPhone('+996700123456')).toBe('+996 700 123 456');
+    expect(formatPhone('996 555 111 222')).toBe('+996 555 111 222');
+  });
+
   it('returns anything it does not recognise untouched', () => {
     // Guessing at an unknown format would make a wrong number look valid.
     expect(formatPhone('+82 10 1234 5678')).toBe('+82 10 1234 5678');
