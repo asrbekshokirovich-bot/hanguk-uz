@@ -217,13 +217,13 @@ export function IshJobDialog({
             <Input id="ish-j-slots" inputMode="numeric" value={draft.slots} onChange={(e) => set('slots', e.target.value.replace(/\D/g, ''))} />
           </Field>
           <Field id="ish-j-duties" label={t('ish.job.duties')} hint={t('ish.job.dutiesHint')} wide>
-            <Textarea id="ish-j-duties" value={draft.duties} onChange={(e) => set('duties', e.target.value)} rows={3} />
+            <Textarea id="ish-j-duties" value={draft.duties} onChange={(e) => set('duties', e.target.value)} rows={3} maxLength={600} />
           </Field>
           <Field id="ish-j-dress" label={t('ish.job.dress')}>
-            <Input id="ish-j-dress" value={draft.dress} onChange={(e) => set('dress', e.target.value)} />
+            <Input id="ish-j-dress" value={draft.dress} onChange={(e) => set('dress', e.target.value)} maxLength={300} />
           </Field>
           <Field id="ish-j-address" label={t('ish.job.address')} hint={t('ish.job.addressHint')}>
-            <Input id="ish-j-address" value={draft.address} onChange={(e) => set('address', e.target.value)} />
+            <Input id="ish-j-address" value={draft.address} onChange={(e) => set('address', e.target.value)} maxLength={200} />
           </Field>
           <label className="flex items-center justify-between gap-3 rounded-md border p-3 text-sm sm:col-span-2">
             <span>

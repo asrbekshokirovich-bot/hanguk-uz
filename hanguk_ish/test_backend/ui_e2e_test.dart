@@ -907,10 +907,10 @@ void main() {
 
   /// A shift of the E2E business, [inHours] from now, the worker applied.
   Future<(EmployerShift, ApplyResult)> appliedShift(WidgetTester tester, String title,
-      {required int inHours, required bool auto}) async {
+      {int inHours = 0, DateTime? at, required bool auto}) async {
     final employer = SupabaseEmployerRepository(owner, _config);
     final business = (await tester.runAsync(employer.businesses))!.single;
-    final start = DateTime.now().toUtc().add(Duration(hours: inHours));
+    final start = at ?? DateTime.now().toUtc().add(Duration(hours: inHours));
     final created = (await tester.runAsync(() => employer.createShift(ShiftDraft(
           businessId: business.id,
           title: title,
@@ -996,8 +996,14 @@ void main() {
   testWidgets('owner: a shift moved on BA2 lets its waiting applicant go; A12 gives the new time, A05 takes it again',
       skip: _skip != null, (tester) async {
     phone(tester);
-    // Six days ahead: clear of the worker's other shifts.
-    final (moved, _) = await appliedShift(tester, 'E2E 시간 변경', inHours: 150, auto: false);
+    // Six days ahead, 10:00–13:00 in Seoul: clear of the worker's other
+    // shifts, and the next end time on the list (13:30) is right below the
+    // current one. (Started from «now + 150 h» it ended at 23:30–23:59 for
+    // half an hour a day, the next step was 00:00 at the top of the list,
+    // not built, and the test failed.)
+    final today = Kst.wallClock(DateTime.now());
+    final (moved, _) = await appliedShift(tester, 'E2E 시간 변경',
+        at: Kst.instantOf(today.year, today.month, today.day + 6, 10), auto: false);
     String hm(int m) => '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
     final end = Kst.wallClock(moved.endsAt);
     final endMinute = end.hour * 60 + end.minute;

@@ -183,13 +183,13 @@ export function IshBusinessDialog({
             </Select>
           </Field>
           <Field id="ish-b-area" label={t('ish.employers.area')}>
-            <Input id="ish-b-area" value={form.area} onChange={(e) => set('area', e.target.value)} placeholder="홍대" />
+            <Input id="ish-b-area" value={form.area} onChange={(e) => set('area', e.target.value)} placeholder="홍대" maxLength={40} />
           </Field>
           <Field id="ish-b-address" label={t('ish.employers.addressKo')} wide>
-            <Input id="ish-b-address" value={form.address} onChange={(e) => set('address', e.target.value)} />
+            <Input id="ish-b-address" value={form.address} onChange={(e) => set('address', e.target.value)} maxLength={200} />
           </Field>
           <Field id="ish-b-detail" label={t('ish.employers.addressDetail')}>
-            <Input id="ish-b-detail" value={form.addressDetail} onChange={(e) => set('addressDetail', e.target.value)} />
+            <Input id="ish-b-detail" value={form.addressDetail} onChange={(e) => set('addressDetail', e.target.value)} maxLength={80} />
           </Field>
           <Field id="ish-b-point" label={t('ish.employers.point')} hint={t('ish.employers.pointHint')}>
             <Input

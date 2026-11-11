@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format/dates.dart';
@@ -232,6 +233,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         textInputAction: TextInputAction.send,
                         onSubmitted: (_) => _send(),
                         maxLines: 1,
+                        // The database keeps a message up to 2 000 characters.
+                        inputFormatters: [LengthLimitingTextInputFormatter(2000)],
                         decoration: InputDecoration.collapsed(
                           hintText: l10n.messageHint,
                           hintStyle: hiStyle(16, FontWeight.w500, color: HiColors.inkMuted),

@@ -254,6 +254,9 @@ class _PickerSheetState extends State<_PickerSheet> {
               controller: _query,
               placeholder: widget.searchHint,
               textInputAction: TextInputAction.search,
+              // A typed value is kept as it is (A02 university, district):
+              // within what the profile holds.
+              maxLength: 80,
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 10),
