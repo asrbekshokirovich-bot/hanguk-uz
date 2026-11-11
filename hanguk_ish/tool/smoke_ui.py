@@ -34,7 +34,13 @@ import xml.etree.ElementTree as ET
 
 
 def adb(*args, timeout=60):
-    return subprocess.run(['adb', *args], capture_output=True, text=True, timeout=timeout).stdout
+    """Its output; nothing when the emulator does not answer in time (the
+    caller then sees an empty screen and gives up with what it last saw)."""
+    try:
+        return subprocess.run(['adb', *args], capture_output=True, text=True, timeout=timeout).stdout
+    except subprocess.TimeoutExpired:
+        print(f"(adb {' '.join(args)[:60]} gave no answer in {timeout} s)", file=sys.stderr)
+        return ''
 
 
 _size = None

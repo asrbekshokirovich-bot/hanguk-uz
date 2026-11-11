@@ -24,8 +24,26 @@ apks=$1
 out=build/smoke
 mkdir -p "$out"
 ui() { python3 tool/smoke_ui.py "$@"; }
+# Every adb call has a deadline: an emulator that stops answering fails the
+# run in minutes instead of holding it to the job's limit.
+adb() {
+  local limit=60
+  case "${1:-}" in install) limit=300 ;; esac
+  timeout "$limit" adb "$@"
+}
 failed=0
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
+
+# The launcher is not under test, and on a slow emulator its first start can
+# freeze («Pixel Launcher isn't responding» over every screen). The apps are
+# started by package name, so it is switched off; then the system settles.
+home=$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN \
+  -c android.intent.category.HOME 2>/dev/null | tail -n 1 | cut -d/ -f1 | tr -d '\r')
+case "$home" in
+  ''|android|com.android.settings) ;;
+  *) adb shell pm disable-user --user 0 "$home" >/dev/null 2>&1 && echo "launcher $home switched off" ;;
+esac
+timeout 120 adb shell am wait-for-broadcast-idle >/dev/null 2>&1 || true
 
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
