@@ -13,10 +13,15 @@ if grep -qs emulator.real "$dir/emulator"; then
   exit 0
 fi
 mv "$dir/emulator" "$dir/emulator.real"
+# Line-buffered (stdbuf), so the last lines before an abrupt end are kept;
+# the exit status says how it ended (134 abort, 137 killed, 139 crash).
 cat >"$dir/emulator" <<WRAPPER
 #!/bin/sh
 echo "=== \$(date -u +%H:%M:%S) emulator \$*" >>"$log"
-exec "$dir/emulator.real" "\$@" >>"$log" 2>&1
+stdbuf -oL -eL "$dir/emulator.real" "\$@" >>"$log" 2>&1
+status=\$?
+echo "=== \$(date -u +%H:%M:%S) emulator exited with status \$status" >>"$log"
+exit \$status
 WRAPPER
 chmod +x "$dir/emulator"
 echo "emulator output → $log"

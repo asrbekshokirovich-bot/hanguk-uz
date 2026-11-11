@@ -31,24 +31,26 @@ jobs:
     name: Release builds on an Android emulator (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 50
-    # The emulator goes away right after a tap that opens T1, with no trace
-    # in the logs (no OOM, no crash report; API 34 every time, API 30 once
-    # in three). API 30 cannot run the arm64 builds (SIGILL in the ARM
-    # translation). Three ways of drawing on API 34 side by side, each with
-    # the emulator's own output kept (build/smoke/emulator-output.txt).
+    # On API 34 the guest freezes the moment A01 opens T1 and the emulator
+    # ends about 30 s later, silently, whatever the GPU mode (swiftshader,
+    # swangle, guest — the app draws with OpenGL ES either way); API 30
+    # froze once in three and cannot run the arm64 builds (SIGILL in its ARM
+    # translation). Side by side: API 33 and API 32, and API 34 without
+    # GLDirectMem; the emulator's output and exit status are kept
+    # (build/smoke/emulator-output.txt).
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: api34-swiftshader
+          - name: api33
+            api: 33
+            gpu: -gpu swiftshader_indirect
+          - name: api32
+            api: 32
+            gpu: -gpu swiftshader_indirect
+          - name: api34-nodirectmem
             api: 34
-            gpu: -gpu swiftshader_indirect -feature -Vulkan
-          - name: api34-swangle
-            api: 34
-            gpu: -gpu swangle_indirect
-          - name: api34-guest
-            api: 34
-            gpu: -gpu guest
+            gpu: -gpu swiftshader_indirect -feature -GLDirectMem
     defaults:
       run:
         working-directory: hanguk_ish
@@ -187,7 +189,9 @@ jobs:
             cp -r /tmp/android-runner/emu-crash-* build/smoke/emulator-crash/ 2>/dev/null || true
             cp -r /tmp/android-runner/netsimd build/smoke/emulator-netsimd 2>/dev/null || true
           fi
-          tail -n 60 build/smoke/emulator-output.txt 2>/dev/null || true
+          grep -a '^=== ' build/smoke/emulator-output.txt 2>/dev/null || true
+          tail -n 30 build/smoke/emulator-output.txt 2>/dev/null || true
+          journalctl --no-pager --since '-30 min' 2>/dev/null | grep -i -E 'oom|killed|qemu|emulator' | tail -n 20 || true
           cp ~/.android/avd/test.avd/config.ini build/smoke/emulator-config.ini 2>/dev/null || true
 
       - name: Publish the screens and logs
