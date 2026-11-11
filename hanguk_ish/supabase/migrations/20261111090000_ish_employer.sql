@@ -15,12 +15,12 @@
 -- What a business sees about one worker (internal)
 -- ---------------------------------------------------------------------------
 
-create function public.worker_card(p_worker uuid, p_business uuid)
+create function ish.worker_card(p_worker uuid, p_business uuid)
 returns jsonb
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ish
 as $$
   select jsonb_build_object(
     'id', p.id,
@@ -32,32 +32,32 @@ as $$
     'reliability', w.reliability,
     'rating', (
       select round(avg(r.stars)::numeric, 1)
-      from public.ratings r join public.applications a on a.id = r.application_id
+      from ish.ratings r join ish.applications a on a.id = r.application_id
       where a.worker_id = p.id and r.direction = 'business_to_worker'),
     'completed_shifts', (
-      select count(*)::int from public.applications
+      select count(*)::int from ish.applications
       where worker_id = p.id and status = 'completed'),
     'shifts_here', (
-      select count(*)::int from public.applications a join public.shifts s on s.id = a.shift_id
+      select count(*)::int from ish.applications a join ish.shifts s on s.id = a.shift_id
       where a.worker_id = p.id and s.business_id = p_business and a.status = 'completed'),
     'last_worked_at', (
-      select max(s.ends_at) from public.applications a join public.shifts s on s.id = a.shift_id
+      select max(s.ends_at) from ish.applications a join ish.shifts s on s.id = a.shift_id
       where a.worker_id = p.id and s.business_id = p_business and a.status = 'completed'),
     'favorite', exists (
-      select 1 from public.favorites f where f.business_id = p_business and f.worker_id = p.id)
+      select 1 from ish.favorites f where f.business_id = p_business and f.worker_id = p.id)
   )
-  from public.profiles p
-  left join public.worker_profiles w on w.user_id = p.id
+  from ish.profiles p
+  left join ish.worker_profiles w on w.user_id = p.id
   where p.id = p_worker
 $$;
 
 -- One shift with its applications, oldest application first (internal).
-create function public.shift_board(p_shift uuid)
+create function ish.shift_board(p_shift uuid)
 returns jsonb
 language sql
 stable
 security definer
-set search_path = public
+set search_path = ish
 as $$
   select jsonb_build_object(
     'id', s.id,
@@ -85,75 +85,75 @@ as $$
           'worked_minutes', a.worked_minutes,
           'pay_amount', a.pay_amount,
           'paid_at', a.paid_at,
-          'worker', public.worker_card(a.worker_id, s.business_id)
+          'worker', ish.worker_card(a.worker_id, s.business_id)
         ) order by a.created_at, a.id)
-      from public.applications a
+      from ish.applications a
       where a.shift_id = s.id), '[]'::jsonb)
   )
-  from public.shifts s
+  from ish.shifts s
   where s.id = p_shift
 $$;
 
-revoke execute on function public.worker_card(uuid, uuid) from public, anon, authenticated;
-revoke execute on function public.shift_board(uuid) from public, anon, authenticated;
+revoke execute on function ish.worker_card(uuid, uuid) from public, anon, authenticated;
+revoke execute on function ish.shift_board(uuid) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Reads for members of a business
 -- ---------------------------------------------------------------------------
 
 -- BA1 / BA3: the business's shifts starting in [p_from, p_to), earliest first.
-create function public.business_board(p_business uuid, p_from timestamptz, p_to timestamptz)
+create function ish.business_board(p_business uuid, p_from timestamptz, p_to timestamptz)
 returns jsonb
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = ish
 as $$
 begin
-  perform public.require_uid();
-  if not public.is_business_member(p_business) then
+  perform ish.require_uid();
+  if not ish.is_business_member(p_business) then
     raise exception 'NOT_FOUND';
   end if;
   return coalesce((
-    select jsonb_agg(public.shift_board(s.id) order by s.starts_at, s.id)
-    from public.shifts s
+    select jsonb_agg(ish.shift_board(s.id) order by s.starts_at, s.id)
+    from ish.shifts s
     where s.business_id = p_business and s.starts_at >= p_from and s.starts_at < p_to
   ), '[]'::jsonb);
 end
 $$;
 
 -- BA3: one shift of a business the caller belongs to.
-create function public.employer_shift(p_shift uuid)
+create function ish.employer_shift(p_shift uuid)
 returns jsonb
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = ish
 as $$
 declare
   v_business uuid;
 begin
-  perform public.require_uid();
-  select business_id into v_business from public.shifts where id = p_shift;
-  if v_business is null or not public.is_business_member(v_business) then
+  perform ish.require_uid();
+  select business_id into v_business from ish.shifts where id = p_shift;
+  if v_business is null or not ish.is_business_member(v_business) then
     raise exception 'NOT_FOUND';
   end if;
-  return public.shift_board(p_shift);
+  return ish.shift_board(p_shift);
 end
 $$;
 
 -- BA4: the business's workers — anyone who completed a shift there, and its
 -- favourites — the most recent first.
-create function public.business_workers(p_business uuid)
+create function ish.business_workers(p_business uuid)
 returns jsonb
 language plpgsql
 stable
 security definer
-set search_path = public
+set search_path = ish
 as $$
 begin
-  perform public.require_uid();
-  if not public.is_business_member(p_business) then
+  perform ish.require_uid();
+  if not ish.is_business_member(p_business) then
     raise exception 'NOT_FOUND';
   end if;
   return coalesce((
@@ -161,25 +161,25 @@ begin
                                    (card->>'shifts_here')::int desc,
                                    card->>'first_name')
     from (
-      select public.worker_card(w.worker_id, p_business) as card
+      select ish.worker_card(w.worker_id, p_business) as card
       from (
         select a.worker_id
-        from public.applications a join public.shifts s on s.id = a.shift_id
+        from ish.applications a join ish.shifts s on s.id = a.shift_id
         where s.business_id = p_business and a.status = 'completed'
         union
-        select f.worker_id from public.favorites f where f.business_id = p_business
+        select f.worker_id from ish.favorites f where f.business_id = p_business
       ) w
     ) cards
   ), '[]'::jsonb);
 end
 $$;
 
-revoke execute on function public.business_board(uuid, timestamptz, timestamptz) from public, anon;
-revoke execute on function public.employer_shift(uuid) from public, anon;
-revoke execute on function public.business_workers(uuid) from public, anon;
-grant execute on function public.business_board(uuid, timestamptz, timestamptz) to authenticated;
-grant execute on function public.employer_shift(uuid) to authenticated;
-grant execute on function public.business_workers(uuid) to authenticated;
+revoke execute on function ish.business_board(uuid, timestamptz, timestamptz) from public, anon;
+revoke execute on function ish.employer_shift(uuid) from public, anon;
+revoke execute on function ish.business_workers(uuid) from public, anon;
+grant execute on function ish.business_board(uuid, timestamptz, timestamptz) to authenticated;
+grant execute on function ish.employer_shift(uuid) to authenticated;
+grant execute on function ish.business_workers(uuid) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Editing a shift (members, through PostgREST)
@@ -187,10 +187,10 @@ grant execute on function public.business_workers(uuid) to authenticated;
 
 -- Applies to the app's own requests (role authenticated); functions that run
 -- as the owner (decide, cancel, upkeep) and the service role are not limited.
-create function public.shifts_guard()
+create function ish.shifts_guard()
 returns trigger
 language plpgsql
-set search_path = public
+set search_path = ish
 as $$
 declare
   v_taken int;
@@ -211,7 +211,7 @@ begin
     raise exception 'SHIFT_ENDED';
   end if;
   -- Members see their shift's applications (RLS), so the count is complete.
-  select count(*)::int into v_taken from public.applications
+  select count(*)::int into v_taken from ish.applications
   where shift_id = old.id and status in ('confirmed', 'checked_in', 'completed');
   if (new.starts_at, new.ends_at) is distinct from (old.starts_at, old.ends_at) then
     if v_taken > 0 then
@@ -228,5 +228,5 @@ begin
 end
 $$;
 
-create trigger shifts_guard before insert or update on public.shifts
-  for each row execute function public.shifts_guard();
+create trigger shifts_guard before insert or update on ish.shifts
+  for each row execute function ish.shifts_guard();

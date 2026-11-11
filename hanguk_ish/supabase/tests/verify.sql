@@ -2,11 +2,12 @@
 --
 --   tests/verify.sh <database url>
 --
--- For the production project after `supabase db push` (README, «Prod'ga
--- chiqarish ro'yxati»), and in CI on the local Supabase stack after
--- `supabase db reset`. Each line says «ok» or «MISSING»; tests/verify.sh
--- fails on any MISSING. :expected (from verify.sh) lists the migration
--- versions of supabase/migrations.
+-- For hanguk.uz's production project after the Hanguk Ish migrations are
+-- applied there (README, «Prod'ga chiqarish ro'yxati»), and in CI on the local
+-- Supabase stack after `supabase db reset`. Each line says «ok» or
+-- «MISSING»; tests/verify.sh fails on any MISSING. :expected (from verify.sh)
+-- lists the migration names of supabase/migrations (production records them
+-- by name: apply_migration stamps its own version).
 \set ON_ERROR_STOP 1
 \pset format unaligned
 \pset tuples_only on
@@ -18,25 +19,37 @@ select to_regclass('supabase_migrations.schema_migrations') is not null as has_m
 select case when count(*) = 0 then 'ok       every migration is applied'
             else 'MISSING  migrations not applied: ' || string_agg(v, ', ' order by v) end
 from unnest(string_to_array(:'expected', ',')) v
-where v not in (select version from supabase_migrations.schema_migrations);
+where v not in (select name from supabase_migrations.schema_migrations where name is not null);
 \else
 select 'MISSING  supabase_migrations.schema_migrations (not a Supabase database?)';
 \endif
 
+-- hanguk.uz's own sign-up trigger leaves Hanguk Ish's people to ish.profiles
+-- (supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql at the
+-- repository root). Only where hanguk.uz is: the local stack has no such trigger.
+select to_regprocedure('public.handle_new_user()') is not null as has_main \gset
+\if :has_main
+select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%hanguk_ish%'
+            then 'ok       hanguk.uz sign-up skips Hanguk Ish users (public.profiles stays hanguk.uz''s)'
+            else 'MISSING  hanguk.uz public.handle_new_user does not skip Hanguk Ish users' end;
+\else
+select 'ok       no hanguk.uz sign-up trigger here (local stack)';
+\endif
+
 -- Every table of the apps keeps its rows to their people (RLS); signed-out
 -- callers get no table at all; owner-run functions pin their search path.
-select case when count(*) = 0 then 'ok       row level security on every public table'
+select case when count(*) = 0 then 'ok       row level security on every ish table'
             else 'MISSING  row level security on: ' || string_agg(c.relname, ', ') end
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
-where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity;
+where n.nspname = 'ish' and c.relkind = 'r' and not c.relrowsecurity;
 select case when count(*) = 0 then 'ok       no table rights for signed-out callers (anon)'
             else 'MISSING  anon may use: ' || string_agg(distinct table_name, ', ') end
 from information_schema.role_table_grants
-where table_schema = 'public' and grantee = 'anon';
+where table_schema = 'ish' and grantee = 'anon';
 select case when count(*) = 0 then 'ok       every security definer function sets search_path'
             else 'MISSING  search_path in: ' || string_agg(p.proname, ', ') end
 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-where n.nspname = 'public' and p.prosecdef
+where n.nspname = 'ish' and p.prosecdef
   and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%');
 
 -- The jobs (pg_cron): finished shifts closed, reminders, the evening digest.
@@ -54,19 +67,19 @@ select 'MISSING  pg_cron is not installed: no reminders, no closing of finished 
 select case when count(*) = 3 then 'ok       realtime: notifications, messages, applications'
             else 'MISSING  realtime tables: ' || coalesce(string_agg(tablename, ', '), 'none') || ' (want 3)' end
 from pg_publication_tables
-where pubname = 'supabase_realtime' and schemaname = 'public'
+where pubname = 'supabase_realtime' and schemaname = 'ish'
   and tablename in ('notifications', 'messages', 'applications');
 
 -- Profile photos (A02).
 select to_regclass('storage.buckets') is not null as has_storage \gset
 \if :has_storage
-select case when count(*) = 1 then 'ok       avatars bucket: public, 2 MB, png/jpeg/webp'
-            else 'MISSING  avatars bucket with its limits' end
+select case when count(*) = 1 then 'ok       ish-avatars bucket: public, 2 MB, png/jpeg/webp'
+            else 'MISSING  ish-avatars bucket with its limits' end
 from storage.buckets
-where id = 'avatars' and public and file_size_limit = 2 * 1024 * 1024
+where id = 'ish-avatars' and public and file_size_limit = 2 * 1024 * 1024
   and allowed_mime_types @> array['image/png', 'image/jpeg', 'image/webp'];
 \else
-select 'MISSING  storage (no avatars bucket)';
+select 'MISSING  storage (no ish-avatars bucket)';
 \endif
 
 -- The statutory minimum wage BA2 checks against: this year's, and from
@@ -81,13 +94,13 @@ wanted as (
 select case when count(*) filter (where m.year is null) = 0 then 'ok       minimum wage of ' || string_agg(w.year::text, ' and ' order by w.year)
             else 'MISSING  minimum wage of ' || string_agg(w.year::text, ', ' order by w.year) filter (where m.year is null)
                  || ' — add it from the 고용노동부 고시' end
-from wanted w left join public.minimum_wages m on m.year = w.year;
+from wanted w left join ish.minimum_wages m on m.year = w.year;
 
 -- Indexes the feed, the board and the jobs rely on (tests/perf.sh).
 select case when count(*) = 7 then 'ok       indexes of the feed, the board, applications, notifications, places'
             else 'MISSING  indexes (' || count(*) || ' of 7)' end
 from pg_indexes
-where schemaname = 'public' and indexname in (
+where schemaname = 'ish' and indexname in (
   'shifts_open_starts_idx', 'shifts_business_starts_idx', 'applications_worker_idx',
   'applications_shift_idx', 'notifications_user_idx', 'worker_profiles_place_idx',
   'applications_one_live_per_shift');

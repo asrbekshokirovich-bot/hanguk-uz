@@ -7,7 +7,7 @@
 select tests.eq(
   (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-   where n.nspname = 'public' and p.prosecdef and p.prorettype <> 'trigger'::regtype
+   where n.nspname = 'ish' and p.prosecdef and p.prorettype <> 'trigger'::regtype
      and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
   array[
     'apply_to_shift', 'business_board', 'business_report', 'business_stats', 'business_workers',
@@ -26,7 +26,7 @@ select tests.eq(
 select tests.eq(
   (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-   where n.nspname = 'public' and p.prosecdef and p.prorettype <> 'trigger'::regtype
+   where n.nspname = 'ish' and p.prosecdef and p.prorettype <> 'trigger'::regtype
      and has_function_privilege('anon', p.oid, 'EXECUTE')),
   '{}'::text[],
   'none is open to the signed-out');
@@ -36,7 +36,7 @@ select tests.eq(
 select tests.eq(
   (select coalesce(array_agg(distinct table_name::text), '{}')
    from information_schema.role_table_grants
-   where table_schema = 'public' and grantee = 'anon'),
+   where table_schema = 'ish' and grantee = 'anon'),
   '{}'::text[],
   'the signed-out have no rights on any table');
 
@@ -44,17 +44,17 @@ select tests.eq(
 -- the business-register function (service role) may call it.
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 select tests.throws(
-  $$select public.register_business('00000000-0000-0000-0000-0000000000b1', '9990000108', 'x', '01')$$,
+  $$select ish.register_business('00000000-0000-0000-0000-0000000000b1', '9990000108', 'x', '01')$$,
   'permission denied', 'an owner cannot file a verified business by hand');
-select tests.throws($$select public.notify('00000000-0000-0000-0000-0000000000a1', 'paid', '{}')$$,
+select tests.throws($$select ish.notify('00000000-0000-0000-0000-0000000000a1', 'paid', '{}')$$,
                     'permission denied', 'nor send anyone a notification');
-select tests.throws($$select public.qr_token_for('20000000-0000-0000-0000-000000000001')$$,
+select tests.throws($$select ish.qr_token_for('20000000-0000-0000-0000-000000000001')$$,
                     'permission denied', 'nor read a door code token');
 
 select tests.as_admin();
 select tests.eq(
   (select coalesce(array_agg(c.relname::text order by c.relname), '{}')
    from pg_class c join pg_namespace n on n.oid = c.relnamespace
-   where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity),
+   where n.nspname = 'ish' and c.relkind = 'r' and not c.relrowsecurity),
   '{}'::text[],
   'every table has row level security on');

@@ -16,7 +16,7 @@ as_a1="select tests.as_user('00000000-0000-0000-0000-0000000000a1')"
 
 # The first request (s1) keeps its transaction open for two seconds.
 psql_q -t -A -c "begin" -c "$as_a1" \
-  -c "select status from public.apply_to_shift('20000000-0000-0000-0000-000000000001')" \
+  -c "select status from ish.apply_to_shift('20000000-0000-0000-0000-000000000001')" \
   -c "select pg_sleep(2)" -c "commit" >"$out/first" 2>&1 &
 first=$!
 # Until it sleeps: its application is in, not yet committed.
@@ -31,7 +31,7 @@ done
 # The second (s3), meanwhile.
 start=$(date +%s%N)
 if psql_q -t -A -c "begin" -c "$as_a1" \
-     -c "select status from public.apply_to_shift('20000000-0000-0000-0000-000000000003')" \
+     -c "select status from ish.apply_to_shift('20000000-0000-0000-0000-000000000003')" \
      -c "commit" >"$out/second" 2>&1; then
   second=ok
 else
@@ -45,7 +45,7 @@ grep -q '^confirmed$' "$out/first" || fail "the first request should be confirme
 [ "$second" = refused ] || fail "the second request went through: two overlapping shifts"
 grep -q 'TIME_CONFLICT' "$out/second" || fail "the second should be refused with TIME_CONFLICT"
 [ "$waited_ms" -ge 1000 ] || fail "the second did not wait for the first (${waited_ms} ms)"
-live=$(psql -X -t -A -d "$DB" -c "select count(*) from public.applications
+live=$(psql -X -t -A -d "$DB" -c "select count(*) from ish.applications
   where worker_id = '00000000-0000-0000-0000-0000000000a1'
     and shift_id in ('20000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000003')
     and status in ('pending', 'confirmed', 'checked_in')")

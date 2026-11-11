@@ -13,23 +13,23 @@
 --   * business registration (BA0, 국세청 lookups): 10 tries an hour, counted
 --     by the business-register edge function.
 
-create index messages_sender_idx on public.messages (sender_id, created_at desc);
-create index applications_worker_created_idx on public.applications (worker_id, created_at desc);
-create index reports_reporter_idx on public.reports (reporter_id, created_at desc);
+create index messages_sender_idx on ish.messages (sender_id, created_at desc);
+create index applications_worker_created_idx on ish.applications (worker_id, created_at desc);
+create index reports_reporter_idx on ish.reports (reporter_id, created_at desc);
 
-create function public.messages_limit()
+create function ish.messages_limit()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ish
 as $$
 begin
   if auth.uid() is null then
     return new;
   end if;
-  if (select count(*) from public.messages
+  if (select count(*) from ish.messages
       where sender_id = new.sender_id and created_at > now() - interval '1 minute') >= 20
-     or (select count(*) from public.messages
+     or (select count(*) from ish.messages
          where sender_id = new.sender_id and created_at > now() - interval '1 day') >= 300 then
     raise exception 'TOO_MANY_REQUESTS' using errcode = 'P0001';
   end if;
@@ -37,22 +37,22 @@ begin
 end
 $$;
 
-create trigger messages_limit before insert on public.messages
-  for each row execute function public.messages_limit();
+create trigger messages_limit before insert on ish.messages
+  for each row execute function ish.messages_limit();
 
-create function public.applications_limit()
+create function ish.applications_limit()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ish
 as $$
 begin
   if auth.uid() is null then
     return new;
   end if;
-  if (select count(*) from public.applications
+  if (select count(*) from ish.applications
       where worker_id = new.worker_id and created_at > now() - interval '1 day') >= 30
-     or (select count(*) from public.applications
+     or (select count(*) from ish.applications
          where worker_id = new.worker_id and shift_id = new.shift_id) >= 3 then
     raise exception 'TOO_MANY_REQUESTS' using errcode = 'P0001';
   end if;
@@ -60,20 +60,20 @@ begin
 end
 $$;
 
-create trigger applications_limit before insert on public.applications
-  for each row execute function public.applications_limit();
+create trigger applications_limit before insert on ish.applications
+  for each row execute function ish.applications_limit();
 
-create function public.reports_limit()
+create function ish.reports_limit()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ish
 as $$
 begin
   if auth.uid() is null then
     return new;
   end if;
-  if (select count(*) from public.reports
+  if (select count(*) from ish.reports
       where reporter_id = new.reporter_id and created_at > now() - interval '1 day') >= 10 then
     raise exception 'TOO_MANY_REQUESTS' using errcode = 'P0001';
   end if;
@@ -81,58 +81,58 @@ begin
 end
 $$;
 
-create trigger reports_limit before insert on public.reports
-  for each row execute function public.reports_limit();
+create trigger reports_limit before insert on ish.reports
+  for each row execute function ish.reports_limit();
 
-revoke execute on function public.messages_limit() from public, anon, authenticated;
-revoke execute on function public.applications_limit() from public, anon, authenticated;
-revoke execute on function public.reports_limit() from public, anon, authenticated;
+revoke execute on function ish.messages_limit() from public, anon, authenticated;
+revoke execute on function ish.applications_limit() from public, anon, authenticated;
+revoke execute on function ish.reports_limit() from public, anon, authenticated;
 
 -- «다시 요청» once per worker and shift: a second press tells nobody again.
-create or replace function public.request_again(p_shift uuid, p_worker uuid)
+create or replace function ish.request_again(p_shift uuid, p_worker uuid)
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = ish
 as $$
 declare
-  v_shift public.shifts;
+  v_shift ish.shifts;
 begin
-  perform public.require_uid();
-  select * into v_shift from public.shifts where id = p_shift;
-  if not found or not public.is_business_member(v_shift.business_id) then
+  perform ish.require_uid();
+  select * into v_shift from ish.shifts where id = p_shift;
+  if not found or not ish.is_business_member(v_shift.business_id) then
     raise exception 'NOT_FOUND';
   end if;
   if v_shift.status <> 'open' or v_shift.starts_at <= now() then
     raise exception 'SHIFT_CLOSED';
   end if;
   if not exists (
-    select 1 from public.applications a join public.shifts s on s.id = a.shift_id
+    select 1 from ish.applications a join ish.shifts s on s.id = a.shift_id
     where s.business_id = v_shift.business_id and a.worker_id = p_worker and a.status = 'completed'
   ) then
     raise exception 'NOT_FOUND';
   end if;
   if exists (
-    select 1 from public.notifications n
+    select 1 from ish.notifications n
     where n.user_id = p_worker and n.kind = 'request_again' and n.data ->> 'shift_id' = p_shift::text
   ) then
     return;
   end if;
-  perform public.notify(p_worker, 'request_again',
+  perform ish.notify(p_worker, 'request_again',
     jsonb_build_object('shift_id', p_shift, 'business_id', v_shift.business_id));
 end
 $$;
 
 -- BA0 tries, written and read only by the business-register edge function
 -- (service role): no policy, no grant.
-create table public.business_register_attempts (
+create table ish.business_register_attempts (
   id bigint generated always as identity primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
   biz_no text not null check (biz_no ~ '^[0-9]{10}$'),
   created_at timestamptz not null default now()
 );
 
-create index business_register_attempts_user_idx on public.business_register_attempts (user_id, created_at desc);
+create index business_register_attempts_user_idx on ish.business_register_attempts (user_id, created_at desc);
 
-alter table public.business_register_attempts enable row level security;
-revoke all on public.business_register_attempts from anon, authenticated;
+alter table ish.business_register_attempts enable row level security;
+revoke all on ish.business_register_attempts from anon, authenticated;

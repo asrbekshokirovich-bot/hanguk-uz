@@ -41,14 +41,20 @@ psql_q -d "$DB" -c "do \$\$ begin
   if not exists (select from pg_roles where rolname = 'service_role') then create role service_role nologin bypassrls; end if;
 end \$\$"
 sed -e '/^create role /d' -e '/^grant anon, authenticated, service_role to authenticator;/d' tests/supabase_shim.sql | psql_q -d "$DB"
+# hanguk.uz's look-alikes first (P48: one project): the migrations must apply
+# next to them. Its sign-up function is the repository root's migration.
+psql_q -d "$DB" -f tests/main_app_stub.sql
+psql_q -d "$DB" -f ../../supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql
+psql_q -d "$DB" -c "create trigger on_auth_user_created after insert on auth.users
+                    for each row execute function public.handle_new_user()"
 for f in migrations/*.sql; do
   echo "migrate  $(basename "$f")"
   psql_q -d "$DB" -f "$f"
 done
 psql_q -d "$DB" -f tests/helpers.sql
 if [ -n "$NEXT_YEAR" ]; then
-  psql_q -d "$DB" -c "update public.minimum_wages set hourly_won = (select max(hourly_won) from public.minimum_wages)"
-  echo "minimum  $(psql -X -At -d "$DB" -c 'select max(hourly_won) from public.minimum_wages') 원 for every year"
+  psql_q -d "$DB" -c "update ish.minimum_wages set hourly_won = (select max(hourly_won) from ish.minimum_wages)"
+  echo "minimum  $(psql -X -At -d "$DB" -c 'select max(hourly_won) from ish.minimum_wages') 원 for every year"
 fi
 pass=0
 for f in tests/*_test.sql; do

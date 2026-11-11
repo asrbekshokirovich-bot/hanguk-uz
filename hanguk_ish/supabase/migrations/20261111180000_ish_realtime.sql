@@ -5,7 +5,7 @@
 do $$
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
-    alter publication supabase_realtime add table public.notifications, public.messages;
+    alter publication supabase_realtime add table ish.notifications, ish.messages;
   end if;
 end
 $$;
