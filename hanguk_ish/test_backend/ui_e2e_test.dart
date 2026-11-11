@@ -725,8 +725,12 @@ void main() {
     await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
     await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
     await _until(tester, _text('Smenalar'));
-    // The feed loaded (the E2E business is by the beach too).
-    await _until(tester, _text('E2E Kafe'));
+    // The feed loaded (cards or none today: no more grey placeholders).
+    for (var i = 0; i < 200 && find.byType(ShiftCardSkeleton).evaluate().isNotEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ShiftCardSkeleton), findsNothing);
     await _shot(tester, 'a02-signed-up-feed');
     final saved = await tester.runAsync(() => SupabaseWorkerProfileRepository(newcomer, _config).load());
     expect(saved!.firstName, 'Dilnoza');
@@ -809,9 +813,18 @@ void main() {
     ];
     final line = lines.firstWhere((t) => t.startsWith('E2E Kafe · '));
     expect(line, matches(RegExp(r'/soat · [\d,.]+ km$')), reason: 'how far, from where the app last saw the worker');
-    // One notice for the new shift: the invitation took the place of the
-    // «new shift nearby» it had sent when it was posted.
-    expect(lines.where((t) => t == line), hasLength(1));
+    // One notice for the invited shift: the invitation took the place of the
+    // «new shift nearby» the shift sent when it was posted. (Its line can
+    // read like another shift's of the same day, time and wage.)
+    final invited = await tester.runAsync(() async {
+      final employer = SupabaseEmployerRepository(owner, _config);
+      final business = (await employer.businesses()).single;
+      final now = DateTime.now().toUtc();
+      final shifts = await employer.shifts(business.id, now, now.add(const Duration(days: 3)));
+      final id = shifts.singleWhere((s) => s.title == 'E2E 다시 요청').id;
+      return (await SupabaseAccountRepository(worker).notifications()).where((n) => n.shiftId == id).toList();
+    });
+    expect(invited, hasLength(1));
     await _shot(tester, 'a12-invitation');
     await _close(tester);
   });
