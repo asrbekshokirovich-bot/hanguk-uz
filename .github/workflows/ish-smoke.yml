@@ -74,6 +74,14 @@ jobs:
           done
           ls -la build/smoke-apks
 
+      # The Gradle and Kotlin daemons of the builds above hold gigabytes; with
+      # them around the emulator was killed mid-run («device not found»).
+      - name: Free memory for the emulator
+        run: |
+          (cd android && ./gradlew --stop) || true
+          pkill -f 'KotlinCompileDaemon|GradleDaemon' || true
+          free -m
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
@@ -99,6 +107,13 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: hanguk_ish
           script: bash tool/smoke.sh build/smoke-apks
+
+      # Why an emulator went away: the kernel's OOM killer leaves a line.
+      - name: Host memory and killed processes
+        if: failure()
+        run: |
+          free -m
+          sudo dmesg | grep -i -E 'killed process|out of memory|oom' | tail -n 10 || true
 
       - name: Publish the screens and logs
         if: always()
