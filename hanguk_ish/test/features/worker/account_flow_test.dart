@@ -85,6 +85,11 @@ void main() {
     final messages = await repo.messages(app.applicationId);
     expect(messages.last.fromMe, isTrue);
     expect(messages, hasLength(6));
+
+    // The database keeps a message up to 2 000 characters: the field stops there.
+    await tester.enterText(find.byType(TextField), 'm' * 2001);
+    await tester.pump();
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, hasLength(2000));
   });
 
   testWidgets('profile: data, app language, report, help', (tester) async {

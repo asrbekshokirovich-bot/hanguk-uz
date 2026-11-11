@@ -90,6 +90,10 @@ void main() {
     // University: typed text not in the list can be chosen too.
     await tester.tap(find.byType(HiSelectField).at(0));
     await tester.pumpAndSettle();
+    // What can be typed stays within what the profile keeps (80 characters).
+    await tester.enterText(find.byType(TextField).last, 'Seoul National University ' * 4);
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField).last).controller!.text, hasLength(80));
     await tester.enterText(find.byType(TextField).last, 'Busan University');
     await tester.pumpAndSettle();
     await tester.tap(find.text('«Busan University» ni tanlash'));
