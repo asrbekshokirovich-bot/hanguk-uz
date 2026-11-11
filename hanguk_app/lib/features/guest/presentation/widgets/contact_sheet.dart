@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/analytics/contact_codes.dart';
 import '../../../../core/analytics/tracked.dart';
 import '../../../../core/config/contact_links.dart';
+import '../../../../core/country/app_country.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../entry/data/entry_store.dart';
 
 /// "Talk to Hanguk Consulting" — the sheet behind the lime header pill.
 ///
 /// Every row hands off to an external app (Telegram, Instagram, the dialer),
 /// so the sheet closes itself first: leaving it stacked behind the app switcher
 /// means the visitor comes back to a modal they never asked to keep.
-class ContactSheet extends StatelessWidget {
+class ContactSheet extends ConsumerWidget {
   const ContactSheet({super.key, this.onJoin});
 
   /// Optional last row: the magic-code login the pill used to open directly.
@@ -53,8 +56,10 @@ class ContactSheet extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
+    // Kyrgyzstan: Telegram and Instagram only (plan KG2, Q2).
+    final withCall = ref.watch(entryProvider.select((s) => s.country)) != AppCountry.kg;
     const corners = BorderRadius.vertical(
       top: Radius.circular(SeoulRadii.hero),
     );
@@ -120,12 +125,13 @@ class ContactSheet extends StatelessWidget {
                 value: l.guestContactInstagramHint,
                 onTap: tracked('contact_sheet.guest_contact_instagram', () => _open(context, ContactLinks.instagramUri)),
               ),
-              _ContactRow(
-                glyph: '전',
-                label: l.guestContactCall,
-                value: ContactLinks.phoneDisplay,
-                onTap: tracked('contact_sheet.guest_contact_call', () => _open(context, ContactLinks.phoneUri)),
-              ),
+              if (withCall)
+                _ContactRow(
+                  glyph: '전',
+                  label: l.guestContactCall,
+                  value: ContactLinks.phoneDisplay,
+                  onTap: tracked('contact_sheet.guest_contact_call', () => _open(context, ContactLinks.phoneUri)),
+                ),
               if (onJoin != null) ...[
                 const SizedBox(height: 8),
                 _ContactRow(

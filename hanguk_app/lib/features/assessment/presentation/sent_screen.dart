@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/analytics/contact_codes.dart';
 import '../../../core/analytics/tracked.dart';
 import '../../../core/config/contact_links.dart';
+import '../../../core/country/app_country.dart';
 import '../../../design_system/seoul_night/widgets/fd_kit.dart';
 import '../../../design_system/seoul_night/widgets/hard_shadow.dart';
 import '../../../design_system/seoul_night/widgets/lucide.dart';
@@ -13,6 +14,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/widgets/sign_in_chrome.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../discover/presentation/discover_routes.dart';
+import '../../entry/data/entry_store.dart';
 import '../../guest/presentation/widgets/contact_sheet.dart';
 import '../../onboarding/data/quiz_repository.dart';
 import '../data/assessment_controller.dart';
@@ -115,7 +117,10 @@ class SentScreen extends ConsumerWidget {
                             padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
                             child: _AgencyCard(
                               onTelegram: tracked('sent.agency_card_telegram', () => _telegram(context, ref, sent?.linkCode)),
-                              onCall: tracked('sent.agency_card_call', () => launchUrl(ContactLinks.phoneUri)),
+                              // Kyrgyzstan: Telegram and Instagram only (plan KG2, Q2).
+                              onCall: ref.watch(entryProvider.select((s) => s.country)) == AppCountry.kg
+                                  ? null
+                                  : tracked('sent.agency_card_call', () => launchUrl(ContactLinks.phoneUri)),
                             ),
                           ),
                           if (first != null || topik != null)
@@ -178,7 +183,9 @@ class _AgencyCard extends StatelessWidget {
   const _AgencyCard({required this.onTelegram, required this.onCall});
 
   final VoidCallback onTelegram;
-  final VoidCallback onCall;
+
+  /// Null: no call button (a phone set up for Kyrgyzstan).
+  final VoidCallback? onCall;
 
   @override
   Widget build(BuildContext context) {
@@ -214,8 +221,10 @@ class _AgencyCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: _ContactButton(glyph: LucideIcons.send, label: 'Telegram', onTap: tracked('sent.agency_card_telegram', onTelegram))),
-              const SizedBox(width: 8),
-              Expanded(child: _ContactButton(glyph: LucideIcons.phone, label: l.fdSentCall, onTap: tracked('sent.agency_card_call', onCall))),
+              if (onCall != null) ...[
+                const SizedBox(width: 8),
+                Expanded(child: _ContactButton(glyph: LucideIcons.phone, label: l.fdSentCall, onTap: tracked('sent.agency_card_call', onCall!))),
+              ],
             ],
           ),
         ],

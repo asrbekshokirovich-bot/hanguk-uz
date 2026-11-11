@@ -7130,5 +7130,49 @@
   "vzAnswersCleared": "Answers cleared",
   "@vzAnswersCleared": {
     "description": "Snackbar after the Baholash page's «Tozalash» resets the answers."
+  },
+  "countryScreenTitle": "Choose your country",
+  "@countryScreenTitle": {
+    "description": "Country screen after the language on first launch (plan KG2, design B): the title. countryScreenTitleAccent is the part of it drawn in lime."
+  },
+  "countryScreenTitleAccent": "country",
+  "@countryScreenTitleAccent": {
+    "description": "The word of countryScreenTitle drawn in lime; must appear in countryScreenTitle exactly as written."
+  },
+  "countryScreenSubtitle": "Phone code, prices and visa rules are shown for this country",
+  "@countryScreenSubtitle": {
+    "description": "Country screen (design B): the line under the title."
+  },
+  "countryScreenGuessHint": "Picked from your phone's settings",
+  "@countryScreenGuessHint": {
+    "description": "Country screen (design B): under the cards while the country picked is the one the phone's settings pointed to."
+  },
+  "countryUzbekistan": "Uzbekistan",
+  "@countryUzbekistan": {
+    "description": "Country name: Uzbekistan (country screen, country sheet, account screen)."
+  },
+  "countryKyrgyzstan": "Kyrgyzstan",
+  "@countryKyrgyzstan": {
+    "description": "Country name: Kyrgyzstan (country screen, country sheet, account screen)."
+  },
+  "countryUzCaption": "+998 · sum",
+  "@countryUzCaption": {
+    "description": "Country screen card, under Uzbekistan: phone code · currency."
+  },
+  "countryKgCaption": "+996 · som",
+  "@countryKgCaption": {
+    "description": "Country screen card, under Kyrgyzstan: phone code · currency."
+  },
+  "countryLabel": "Country",
+  "@countryLabel": {
+    "description": "Label of the country setting: the account screen card's title and the guest's map-pin button."
+  },
+  "countrySheetTitle": "Choose a country",
+  "@countrySheetTitle": {
+    "description": "Title of the country picker sheet (account screen, guest Universitetlar header)."
+  },
+  "ajBishkek": "Bishkek",
+  "@ajBishkek": {
+    "description": "Boarding pass: the departure city when the app is set up for Kyrgyzstan (airport FRU)."
   }
 }

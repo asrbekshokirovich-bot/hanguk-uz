@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_app/core/country/app_country.dart';
 import 'package:hanguk_app/core/router/app_router.dart';
 import 'package:hanguk_app/features/entry/data/entry_store.dart';
+import 'package:hanguk_app/features/entry/presentation/country_screen.dart';
 import 'package:hanguk_app/features/entry/presentation/language_screen.dart';
 import 'package:hanguk_app/features/entry/presentation/widgets/entry_fields.dart';
+import 'package:hanguk_app/l10n/app_localizations.dart';
 
 void main() {
   group('UzPhoneFormatter', () {
@@ -29,12 +32,14 @@ void main() {
       String loc, {
       bool auth = false,
       bool language = true,
+      bool country = true,
       bool loading = false,
     }) => resolveAppRedirect(
       loc: loc,
       isLoading: loading,
       isAuthenticated: auth,
       hasLanguage: language,
+      hasCountry: country,
     );
 
     test('first launch: the language screen, and nothing else', () {
@@ -43,6 +48,20 @@ void main() {
       expect(go('/quiz', language: false), '/language');
       expect(go('/guest', language: false), '/language');
       expect(go('/language', language: false), isNull);
+    });
+
+    test('language chosen, country not yet: the country screen (plan KG2)', () {
+      expect(go('/', country: false), '/country');
+      expect(go('/guest', country: false), '/country');
+      expect(go('/language', country: false), '/country');
+      expect(go('/country', country: false), isNull);
+      // The language still comes first.
+      expect(go('/country', language: false, country: false), '/language');
+    });
+
+    test('both chosen: the country screen is behind', () {
+      expect(go('/country'), '/guest');
+      expect(go('/country', auth: true, country: false), '/');
     });
 
     test('language chosen: the home (design 03), no sign-up', () {
@@ -116,5 +135,68 @@ void main() {
     // router here, so pump instead of settling.
     await tester.pump(const Duration(milliseconds: 100));
     expect(container.read(entryProvider).languageCode, 'ru');
+  });
+
+  group('CountryScreen', () {
+    Future<ProviderContainer> pump(WidgetTester tester) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+        (call) async => null,
+      );
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            locale: Locale('uz'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: CountryScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+      return container;
+    }
+
+    testWidgets('a phone set up in Kyrgyzstan starts on Kyrgyzstan', (tester) async {
+      tester.platformDispatcher.localeTestValue = const Locale('ru', 'KG');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      final container = await pump(tester);
+      expect(find.text('Mamlakatni tanlang', findRichText: true), findsOneWidget);
+      expect(find.text('Telefon sozlamasiga qarab belgilandi'), findsOneWidget);
+      expect(find.text('+996 · som'), findsOneWidget);
+      await tester.tap(find.text('Davom etish'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(container.read(entryProvider).country, AppCountry.kg);
+    });
+
+    testWidgets('picking the other country hides the phone hint', (tester) async {
+      tester.platformDispatcher.localeTestValue = const Locale('ru', 'KG');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      final container = await pump(tester);
+      await tester.tap(find.text('O‘zbekiston'));
+      await tester.pump();
+      expect(find.text('Telefon sozlamasiga qarab belgilandi'), findsNothing);
+      await tester.tap(find.text('Davom etish'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(container.read(entryProvider).country, AppCountry.uz);
+    });
+
+    testWidgets('a phone that says nothing: nothing picked, nothing stored', (tester) async {
+      tester.platformDispatcher.localeTestValue = const Locale('ko', 'KR');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      final container = await pump(tester);
+      // The time zone could still point somewhere; only check the region.
+      if (EntryStore.phoneCountry() != null) return;
+      expect(find.text('Telefon sozlamasiga qarab belgilandi'), findsNothing);
+      await tester.tap(find.text('Davom etish'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(container.read(entryProvider).country, isNull);
+    });
   });
 }

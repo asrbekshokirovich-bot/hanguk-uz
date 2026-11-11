@@ -83,6 +83,7 @@ Future<void> main() async {
 
   // Usage events (what is opened and pressed; see AppEvents).
   AppEvents.setLanguage(EntryStore.initial.languageCode);
+  AppEvents.setCountry(EntryStore.initial.country?.code);
   await AppEvents.start();
   AppEvents.installErrorHooks();
   AppEvents.track('app_open', props: {'signed_in': _signedIn(), 'cold': true});

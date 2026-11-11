@@ -20,6 +20,7 @@ import '../../catalog/data/catalog_filters.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/catalog_models.dart';
 import '../../catalog/presentation/catalog_format.dart';
+import '../../entry/presentation/country_sheet.dart';
 import '../../entry/presentation/language_sheet.dart';
 import '../data/chances.dart';
 import '../data/slots.dart';
@@ -175,14 +176,21 @@ class _UniversitiesScreenState extends ConsumerState<UniversitiesScreen> {
                   decoration: BoxDecoration(color: FdColors.lime, borderRadius: BorderRadius.circular(999)),
                   child: Text(l.ulCount(list.length), style: fdText(12, FontWeight.w800, FdColors.onLime)),
                 ),
-                // A guest has no account screen: the language and the
-                // notifications (the deadline-reminder switch) open from here.
+                // A guest has no account screen: the language, the country and
+                // the notifications (the deadline-reminder switch) open from here.
                 if (_isGuest()) ...[
                   const SizedBox(width: 8),
                   HardIconButton(
                     glyph: LucideIcons.languages,
                     semanticLabel: l.entryLanguageLabel,
                     onTap: tracked('universities.language', () => showLanguageSheet(context, ref)),
+                  ),
+                  const SizedBox(width: 8),
+                  // The country (plan KG2): the guest's only way to change it.
+                  HardIconButton(
+                    glyph: LucideIcons.mapPin,
+                    semanticLabel: l.countryLabel,
+                    onTap: tracked('universities.country', () => showCountrySheet(context, ref)),
                   ),
                   const SizedBox(width: 8),
                   HardIconButton(

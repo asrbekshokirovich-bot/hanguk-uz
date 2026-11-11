@@ -5762,4 +5762,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vzAnswersCleared => 'Answers cleared';
+
+  @override
+  String get countryScreenTitle => 'Choose your country';
+
+  @override
+  String get countryScreenTitleAccent => 'country';
+
+  @override
+  String get countryScreenSubtitle =>
+      'Phone code, prices and visa rules are shown for this country';
+
+  @override
+  String get countryScreenGuessHint => 'Picked from your phone\'s settings';
+
+  @override
+  String get countryUzbekistan => 'Uzbekistan';
+
+  @override
+  String get countryKyrgyzstan => 'Kyrgyzstan';
+
+  @override
+  String get countryUzCaption => '+998 · sum';
+
+  @override
+  String get countryKgCaption => '+996 · som';
+
+  @override
+  String get countryLabel => 'Country';
+
+  @override
+  String get countrySheetTitle => 'Choose a country';
+
+  @override
+  String get ajBishkek => 'Bishkek';
 }

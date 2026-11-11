@@ -1832,5 +1832,16 @@
   "nextStepInterviewTitle": "Готовьтесь к собеседованию",
   "nextStepInterviewBody": "{university}: собеседование. Дата и время — на странице заявки.",
   "nextStepOpenButton": "Открыть заявку",
-  "vzAnswersCleared": "Ответы сброшены"
+  "vzAnswersCleared": "Ответы сброшены",
+  "countryScreenTitle": "Выберите страну",
+  "countryScreenTitleAccent": "страну",
+  "countryScreenSubtitle": "Код телефона, цены и визовые правила будут показаны для этой страны",
+  "countryScreenGuessHint": "Выбрано по настройкам телефона",
+  "countryUzbekistan": "Узбекистан",
+  "countryKyrgyzstan": "Кыргызстан",
+  "countryUzCaption": "+998 · сум",
+  "countryKgCaption": "+996 · сом",
+  "countryLabel": "Страна",
+  "countrySheetTitle": "Выберите страну",
+  "ajBishkek": "Бишкек"
 }

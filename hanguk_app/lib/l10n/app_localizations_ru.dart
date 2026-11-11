@@ -5774,4 +5774,38 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get vzAnswersCleared => 'Ответы сброшены';
+
+  @override
+  String get countryScreenTitle => 'Выберите страну';
+
+  @override
+  String get countryScreenTitleAccent => 'страну';
+
+  @override
+  String get countryScreenSubtitle =>
+      'Код телефона, цены и визовые правила будут показаны для этой страны';
+
+  @override
+  String get countryScreenGuessHint => 'Выбрано по настройкам телефона';
+
+  @override
+  String get countryUzbekistan => 'Узбекистан';
+
+  @override
+  String get countryKyrgyzstan => 'Кыргызстан';
+
+  @override
+  String get countryUzCaption => '+998 · сум';
+
+  @override
+  String get countryKgCaption => '+996 · сом';
+
+  @override
+  String get countryLabel => 'Страна';
+
+  @override
+  String get countrySheetTitle => 'Выберите страну';
+
+  @override
+  String get ajBishkek => 'Бишкек';
 }

@@ -1832,5 +1832,16 @@
   "nextStepInterviewTitle": "Suhbatga tayyorlaning",
   "nextStepInterviewBody": "{university}: suhbat. Sana va vaqtni ariza sahifasida ko'ring.",
   "nextStepOpenButton": "Arizani ochish",
-  "vzAnswersCleared": "Javoblar tozalandi"
+  "vzAnswersCleared": "Javoblar tozalandi",
+  "countryScreenTitle": "Mamlakatni tanlang",
+  "countryScreenTitleAccent": "tanlang",
+  "countryScreenSubtitle": "Telefon kodi, narxlar va viza qoidalari shunga qarab ko'rsatiladi",
+  "countryScreenGuessHint": "Telefon sozlamasiga qarab belgilandi",
+  "countryUzbekistan": "O‘zbekiston",
+  "countryKyrgyzstan": "Qirg‘iziston",
+  "countryUzCaption": "+998 · so'm",
+  "countryKgCaption": "+996 · som",
+  "countryLabel": "Mamlakat",
+  "countrySheetTitle": "Mamlakatni tanlang",
+  "ajBishkek": "Bishkek"
 }
