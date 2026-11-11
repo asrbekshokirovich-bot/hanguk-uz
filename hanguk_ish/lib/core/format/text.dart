@@ -13,3 +13,7 @@ final _slashBeforeWord = RegExp(r'/(?=[\p{L}\p{N}])', unicode: true);
 /// A business registered with only its number has no area or address yet;
 /// the line then reads «0,3 km», not «· 0,3 km».
 String dotJoin(Iterable<String> parts) => parts.where((p) => p.trim().isNotEmpty).join(' · ');
+
+/// «… · 10 500 ₩/soat · » → «… · 10 500 ₩/soat»: a sentence whose last part
+/// is unknown loses the separator before it.
+String withoutTrailingDot(String text) => text.replaceFirst(RegExp(r'\s*·\s*$'), '');

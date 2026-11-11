@@ -226,13 +226,15 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.cancelled => l10n.notifCancelledText(business, day, range),
       NotificationKind.paid => l10n.notifPaidText(business, day, Won.worker(n.amount ?? 0)),
       NotificationKind.message => business,
-      NotificationKind.newShift => l10n.notifNewShiftText(
+      // With no distance (a business with no point yet, or no saved
+      // position) the line ends at the wage, not in « · ».
+      NotificationKind.newShift => withoutTrailingDot(l10n.notifNewShiftText(
           business,
           n.startsAt == null ? '' : HiDates.weekdayInSentence(n.startsAt!, lang),
           range,
           Won.worker(n.wage ?? 0),
           n.distanceKm == null ? '' : formatKm(n.distanceKm!, lang),
-        ),
+        )),
       NotificationKind.nearbyShifts => l10n.notifNearbyText(_categories(l10n), _wageRange()),
     });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);

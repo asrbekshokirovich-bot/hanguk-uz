@@ -774,6 +774,82 @@ void main() {
     await _close(tester);
   });
 
+  testWidgets('owner: BA4 «다시 요청» posts a shift and invites the worker; A12 tells them how far it is',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.workers));
+    // The favourite of the BA4 test, who finished a shift here.
+    await _until(tester, _text('Sardor Testov'));
+    await _tap(tester, find.widgetWithText(HiButton, Ko.requestAgain));
+    // BA2 for the invitation; no template yet: the content first.
+    await _until(tester, find.widgetWithText(HiButton, '근무 올리기'));
+    await _settle(tester);
+    await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
+    await _until(tester, find.byType(BottomSheet));
+    await tester.enterText(
+        find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), 'E2E 다시 요청');
+    await _tap(tester, find.descendant(of: find.byType(BottomSheet), matching: find.widgetWithText(HiButton, '저장하기')));
+    final tomorrowChip = find.textContaining(RegExp('^내일'), findRichText: true);
+    await _until(tester, tomorrowChip);
+    await _tap(tester, tomorrowChip);
+    await _until(tester, find.textContaining('최저시급', findRichText: true));
+    await _tap(tester, find.widgetWithText(HiButton, '근무 올리기'));
+    // Posted and invited (the name when BA4's list is still at hand); a
+    // refusal would say why instead.
+    await _until(tester, find.textContaining(RegExp('요청을 보냈어요|근무를 올렸어요')));
+    await _close(tester);
+
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await _until(tester, _text('Sizga mos yangi smena'));
+    final line = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((t) => t.data ?? '')
+        .firstWhere((t) => t.startsWith('E2E Kafe · '));
+    expect(line, matches(RegExp(r'/soat · [\d,.]+ km$')), reason: 'how far, from where the app last saw the worker');
+    await _shot(tester, 'a12-invitation');
+    await _close(tester);
+  });
+
+  testWidgets('a confirmed worker who never came: the upkeep job marks it; 알림 says so, A11 drops by 20',
+      skip: _skip != null, (tester) async {
+    phone(tester);
+    final employer = SupabaseEmployerRepository(owner, _config);
+    final business = (await tester.runAsync(employer.businesses))!.single;
+    final start = DateTime.now().toUtc().add(const Duration(days: 4));
+    final missed = (await tester.runAsync(() => employer.createShift(ShiftDraft(
+          businessId: business.id,
+          title: 'E2E 노쇼',
+          startsAt: start,
+          endsAt: start.add(const Duration(hours: 3)),
+          hourlyWage: 11000,
+          slots: 1,
+          autoConfirm: true,
+        ))))!;
+    await tester.runAsync(() => SupabaseShiftRepository(worker, _config).apply(missed.id));
+    // The shift went by without the worker: it is moved into the past and the
+    // upkeep job runs (pg_cron every ten minutes in production).
+    await tester.runAsync(() async {
+      final admin = _client(_serviceKey);
+      final now = DateTime.now().toUtc();
+      await admin.from('shifts').update({
+        'starts_at': now.subtract(const Duration(hours: 4)).toIso8601String(),
+        'ends_at': now.subtract(const Duration(hours: 1)).toIso8601String(),
+      }).eq('id', missed.id);
+      await admin.rpc('close_finished_shifts');
+    });
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.notifications));
+    await _until(tester, _text(Ko.notifNoShowText('Sardor Testov', 'E2E 노쇼')));
+    await _shot(tester, 'ba-no-show');
+    await _close(tester);
+
+    await tester.pumpWidget(workerApp());
+    await _until(tester, _text('Smenalar'));
+    await _tap(tester, _text('Profil'));
+    await _until(tester, _text('Sardor Testov'));
+    await _until(tester, _text('80'), seconds: 30);
+    await _close(tester);
+  });
+
   testWidgets('owner: a new owner signs up on BA0; with no 국세청 key the business waits and BA1 says so',
       skip: _skip != null, (tester) async {
     phone(tester);

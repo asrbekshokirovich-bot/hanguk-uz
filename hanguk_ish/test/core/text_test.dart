@@ -24,4 +24,10 @@ void main() {
     expect(dotJoin(['', '']), '');
     expect(dotJoin(const []), '');
   });
+
+  test('withoutTrailingDot drops a separator left with nothing after it', () {
+    expect(withoutTrailingDot('Kafe · payshanba, 14:00–19:00 · 10 500 ₩/soat · '), 'Kafe · payshanba, 14:00–19:00 · 10 500 ₩/soat');
+    expect(withoutTrailingDot('Kafe · 1,2 km'), 'Kafe · 1,2 km');
+    expect(withoutTrailingDot('시급 10,500원 ·'), '시급 10,500원');
+  });
 }
