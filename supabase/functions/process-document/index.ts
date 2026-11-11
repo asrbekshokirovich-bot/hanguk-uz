@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     if (bytes.byteLength > 18 * 1024 * 1024) throw new Error("File too large for inline extraction");
 
     const mimeType = doc.file_type || "application/pdf";
-    const prompt = "You are extracting data from a document for a Korean university admissions agency in Uzbekistan. The file may be a scan or photo, in Uzbek, Russian, Korean or English. Read ALL text carefully. Identify doc_type, the language, the full_text (everything readable), and fields (important values such as full name, passport/ID number, date of birth, issue/expiry dates, institution, degree, GPA, amounts). For passports/ID cards also return birth_date as a strict ISO date (YYYY-MM-DD) and issuing_authority (the 'given by' / 'berilgan' / 'выдан' authority that issued the document). If it is only a photo with no text, set full_text to a short description.";
+    const prompt = "You are extracting data from a document for a Korean university admissions agency in Uzbekistan that also serves Kyrgyzstan. The file may be a scan or photo, in Uzbek, Kyrgyz, Russian, Korean or English. Read ALL text carefully. Identify doc_type, the language, the full_text (everything readable), and fields (important values such as full name, passport/ID number, date of birth, issue/expiry dates, institution, degree, GPA, amounts). For passports/ID cards also return birth_date as a strict ISO date (YYYY-MM-DD) and issuing_authority (the 'given by' / 'berilgan' / 'выдан' authority that issued the document). If it is only a photo with no text, set full_text to a short description.";
 
     const res = await geminiFetch(`${GEMINI_BASE}/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
