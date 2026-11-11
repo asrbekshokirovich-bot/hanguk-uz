@@ -221,6 +221,13 @@ abstract final class Biz {
   static String crewLine(int confirmed, int slots, int waiting) =>
       '${_l.bizCrew(confirmed, slots)}${waiting > 0 ? _l.bizCrewWaiting(waiting) : ''}';
 
+  /// A unit after a number: «3명» in Korean, «3 kishi» / «1 чел.» in the
+  /// others (a space before it); an empty unit stays empty.
+  static String unitAfter(String unit) => unit.isEmpty || _ko ? unit : ' $unit';
+
+  /// BA2's headcount box: «3명», «3 kishi», «3 чел.», «3».
+  static String headcount(int n) => _l.bizHeadcountValue(n);
+
   /// «10,500원» (Korean), «10,500 won» / «10,500 вон» / «10,500 KRW».
   static String money(int amount) => _ko ? Won.employer(amount) : '${Won.employerDigits(amount)} $won';
 
@@ -360,6 +367,14 @@ abstract final class Biz {
 
   /// «화요일» / «Seshanba» / «Вторник» / «Tuesday».
   static String weekdayLong(DateTime at) => _ko ? '${weekdayShort(at)}요일' : HiDates.weekday(at, _lang);
+
+  /// The weekday under a date in a narrow column (BA5): «화요일» in Korean,
+  /// as in the prototype; «Se» / «Вт» / «Tue» in the others.
+  static String weekdayUnderDate(DateTime at) {
+    if (_ko) return weekdayLong(at);
+    final short = weekdayShort(at);
+    return short[0].toUpperCase() + short.substring(1);
+  }
 
   /// «11월 10일» / «10-noyabr» / «10 ноября» / «Nov 10».
   static String monthDay(DateTime at) {

@@ -356,12 +356,18 @@ class _SummaryBand extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HiText(label, maxLines: 1, softWrap: false, style: hiStyle(12, FontWeight.w700, color: HiColors.textSoft)),
+              // A longer language's word is drawn a little smaller instead
+              // of running into the next column («Подтверждено»).
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: HiText(label, maxLines: 1, softWrap: false, style: hiStyle(12, FontWeight.w700, color: HiColors.textSoft)),
+              ),
               const SizedBox(height: 4),
-              suffix == null
+              suffix == null || suffix.isEmpty
                   ? HiText(number, style: value)
                   : HiRichText(
-                      TextSpan(text: number, children: [TextSpan(text: suffix, style: unit)]),
+                      TextSpan(text: number, children: [TextSpan(text: Biz.unitAfter(suffix), style: unit)]),
                       style: value,
                       also: [unit],
                     ),

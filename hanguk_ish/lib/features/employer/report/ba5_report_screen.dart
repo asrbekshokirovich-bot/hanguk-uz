@@ -31,7 +31,7 @@ InlineSpan amountSpan(int amount, TextStyle number, TextStyle unit, double gap) 
       text: digits.substring(digits.length - 1),
       style: number.copyWith(letterSpacing: (number.letterSpacing ?? 0) + gap),
     ),
-    TextSpan(text: Biz.won, style: unit),
+    TextSpan(text: Biz.unitAfter(Biz.won), style: unit),
   ]);
 }
 
@@ -326,7 +326,7 @@ class _ReportRowView extends StatelessWidget {
                 children: [
                   HiText(Biz.dotDate(row.startsAt),
                       style: hiStyle(15, FontWeight.w800, height: 1.3, color: HiColors.ink, family: HiFamily.mono)),
-                  HiText(Biz.weekdayLong(row.startsAt),
+                  HiText(Biz.weekdayUnderDate(row.startsAt),
                       style: hiStyle(13, FontWeight.w600, height: 1.3, color: HiColors.inkMuted)),
                 ],
               ),

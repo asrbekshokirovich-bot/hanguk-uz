@@ -546,5 +546,6 @@
   "bizErrOffline": "인터넷 연결을 확인해 주세요",
   "bizErrOther": "다시 시도해 주세요",
   "bizLanguage": "언어",
-  "bizAsOfTime": "{time} 기준"
+  "bizAsOfTime": "{time} 기준",
+  "bizHeadcountValue": "{n}명"
 }

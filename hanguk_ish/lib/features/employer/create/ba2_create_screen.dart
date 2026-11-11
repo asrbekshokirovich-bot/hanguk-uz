@@ -667,18 +667,28 @@ class _ContentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = hiStyle(15, FontWeight.w800, height: 1.45, color: HiColors.inkMuted);
     final value = hiStyle(15, FontWeight.w600, height: 1.45, color: HiColors.ink);
+    final name = title;
+    // The prototype's 34 px for «업무 복장 주소»; a longer language's labels
+    // («Vazifalar», «Одежда») get the room they need.
+    final scaler = MediaQuery.textScalerOf(context);
+    var labelWidth = 34.0;
+    for (final text in [if (name != null) Biz.shiftName, Biz.duties, Biz.dress, Biz.address]) {
+      final painter = TextPainter(text: TextSpan(text: text, style: label), textDirection: TextDirection.ltr, textScaler: scaler)
+        ..layout();
+      if (painter.width > labelWidth) labelWidth = painter.width.ceilToDouble();
+      painter.dispose();
+    }
     Widget row(String name, String text) => Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(width: 34, child: HiText(name, softWrap: false, overflow: TextOverflow.visible, style: label)),
+              SizedBox(width: labelWidth, child: HiText(name, softWrap: false, overflow: TextOverflow.visible, style: label)),
               const SizedBox(width: 10),
               Expanded(child: HiText(text.isEmpty ? '–' : text, style: value)),
             ],
           ),
         );
-    final name = title;
     return Semantics(
       container: true,
       label: heading,
@@ -892,7 +902,12 @@ class _Stepper extends StatelessWidget {
                 border: const Border.fromBorderSide(HiBorders.ink),
               ),
               alignment: Alignment.center,
-              child: HiText(Biz.people(value), style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: HiText(Biz.headcount(value), maxLines: 1, softWrap: false,
+                    style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
+              ),
             ),
           ),
         ),
