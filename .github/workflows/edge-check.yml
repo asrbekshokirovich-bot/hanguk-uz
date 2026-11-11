@@ -1,0 +1,41 @@
+name: Edge functions (unit tests)
+
+# supabase/functions has 25 test files (250 tests: staff-bot, invites, quotas,
+# guideline index, …) and nothing ran them — only camera-session had a
+# workflow. Offline: the tests stub fetch and the database. Under a minute.
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/**"
+      - ".github/workflows/edge-check.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: edge-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned, as in camera-gate.yml.
+      - name: Deno 2.9.8
+        run: |
+          curl -fsSL -o /tmp/deno.zip https://github.com/denoland/deno/releases/download/v2.9.8/deno-x86_64-unknown-linux-gnu.zip
+          sudo unzip -o -q /tmp/deno.zip -d /usr/local/bin
+          deno --version
+
+      # --no-check: the functions import supabase-js from esm.sh at several
+      # pinned versions whose typings disagree; behaviour is what is tested here.
+      # DENO_NO_PACKAGE_JSON: the repository root's package.json is the web app's.
+      - name: Unit tests
+        env:
+          DENO_NO_PACKAGE_JSON: "1"
+        run: deno test --no-check --allow-env --allow-read supabase/functions/
