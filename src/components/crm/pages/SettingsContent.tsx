@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { setLanguage, type LanguageCode } from '@/lib/i18n';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -172,7 +173,7 @@ export default function SettingsContent() {
 
   // Change language
   const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
+    void setLanguage(lang as LanguageCode);
     localStorage.setItem('i18nextLng', lang);
   };
 

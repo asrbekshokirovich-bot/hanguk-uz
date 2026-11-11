@@ -55,7 +55,12 @@
         var APP_VERSION = '1.0.1_stability_refactor';
         var currentVersion = localStorage.getItem('hanguk_app_version');
         
-        if (currentVersion !== APP_VERSION) {
+        // A first visit has no version to mismatch and nothing cached to
+        // clear: remember the version and carry on. (It used to fall into the
+        // branch below, so every new visitor loaded the page twice.)
+        if (currentVersion === null) {
+          try { localStorage.setItem('hanguk_app_version', APP_VERSION); } catch (e) {}
+        } else if (currentVersion !== APP_VERSION) {
           console.log('Version mismatch detected! Bypassing cache lock and updating from ' + currentVersion + ' to ' + APP_VERSION);
           
           if ('serviceWorker' in navigator) {
