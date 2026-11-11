@@ -89,6 +89,48 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # A booted, settled emulator from the cache: a cold first boot (Google
+      # services setting up, the launcher's first start) froze the apps
+      # («isn't responding») and once lost the emulator. The snapshot is made
+      # once, after the system has settled, and only read afterwards.
+      - name: Emulator snapshot from the cache
+        uses: actions/cache/restore@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-x86_64-google_apis-pixel_6-v1
+
+      - name: Make the emulator snapshot (first run only)
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 20
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          force-avd-creation: false
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          working-directory: hanguk_ish
+          # Let first-boot work finish before the state is saved.
+          script: |
+            timeout 300 adb shell am wait-for-broadcast-idle || true
+            sleep 180
+            timeout 300 adb shell am wait-for-broadcast-idle || true
+
+      # Saved now, whatever the walks below do.
+      - name: Keep the emulator snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-x86_64-google_apis-pixel_6-v1
+
       - name: Start the apps on an emulator
         # The walks take about 15 minutes; a hung emulator stops here.
         timeout-minutes: 30
@@ -99,12 +141,9 @@ jobs:
           target: google_apis
           # A common phone screen (1080×2400): the walks need fewer swipes.
           profile: pixel_6
-          # All four of the runner's cores: with two, the launcher and the
-          # apps froze in turn («isn't responding»).
-          cores: 4
-          ram-size: 4096M
+          force-avd-creation: false
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: hanguk_ish
           script: bash tool/smoke.sh build/smoke-apks
 
