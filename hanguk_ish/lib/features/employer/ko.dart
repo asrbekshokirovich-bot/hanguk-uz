@@ -229,6 +229,8 @@ abstract final class Ko {
   static const notifNoShow = '미출근';
   static const notifMessage = '새 메시지';
   static String notifNewApplicantText(String worker, String shift) => '$worker님이 $shift에 지원했어요';
+  static const notifAutoConfirmed = '자동 확정';
+  static String notifAutoConfirmedText(String worker, String shift) => '$worker님이 $shift에 지원해 바로 확정됐어요';
   static String notifCancelledText(String worker, String shift) => '$worker님이 $shift 근무를 취소했어요';
   static String notifNoShowText(String worker, String shift) => '$worker님이 $shift에 출근하지 않았어요';
   static String notifMessageText(String worker, String shift) => '$worker님이 메시지를 보냈어요 · $shift';

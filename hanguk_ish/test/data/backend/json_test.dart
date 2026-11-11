@@ -326,6 +326,9 @@ void main() {
       expect(bell[2].workerName, 'Timur Kim');
       expect(bell.every((n) => !n.read), isTrue);
       expect(bell.every((n) => n.shiftId.isNotEmpty), isTrue);
+      expect([for (final n in bell) n.autoConfirmed], [false, false, false, true, false],
+          reason: 'a new applicant of a shift with 자동 확정 is already confirmed');
+      expect(bell[3].markRead().autoConfirmed, isTrue);
     });
 
     test('a new shift as BA2 sends it', () {

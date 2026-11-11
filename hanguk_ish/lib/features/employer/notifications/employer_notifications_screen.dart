@@ -160,6 +160,14 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = notification;
     final (icon, title, text, tint, ink) = switch (n.kind) {
+      // 자동 확정 on: the worker is already confirmed — nothing to decide.
+      EmployerNotificationKind.newApplicant when n.autoConfirmed => (
+          HiIcons.check,
+          Ko.notifAutoConfirmed,
+          Ko.notifAutoConfirmedText(n.workerName, n.shiftTitle),
+          HiColors.greenSoft,
+          HiColors.greenInk,
+        ),
       EmployerNotificationKind.newApplicant => (
           HiIcons.users,
           Ko.notifNewApplicant,

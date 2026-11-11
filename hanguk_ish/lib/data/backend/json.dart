@@ -402,5 +402,6 @@ EmployerNotification? employerNotificationFromJson(Json json) {
     shiftTitle: _str(shift['title']),
     workerName: '${_str(worker['first_name'])} ${_str(worker['last_name'])}'.trim(),
     read: json['read_at'] != null,
+    autoConfirmed: _bool(data['auto_confirmed']),
   );
 }

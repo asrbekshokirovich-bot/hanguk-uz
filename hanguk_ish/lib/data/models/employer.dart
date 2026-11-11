@@ -422,6 +422,7 @@ class EmployerNotification {
     required this.shiftTitle,
     this.workerName = '',
     this.read = false,
+    this.autoConfirmed = false,
   });
 
   final String id;
@@ -432,6 +433,9 @@ class EmployerNotification {
   final String workerName;
   final bool read;
 
+  /// A new applicant of a shift with 자동 확정 on: already confirmed.
+  final bool autoConfirmed;
+
   EmployerNotification markRead() => EmployerNotification(
         id: id,
         kind: kind,
@@ -440,5 +444,6 @@ class EmployerNotification {
         shiftTitle: shiftTitle,
         workerName: workerName,
         read: true,
+        autoConfirmed: autoConfirmed,
       );
 }
