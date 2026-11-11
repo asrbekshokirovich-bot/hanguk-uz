@@ -10,6 +10,7 @@ import 'package:hanguk_app/design_system/theme/app_theme.dart';
 import 'package:hanguk_app/features/assessment/data/assessment_controller.dart';
 import 'package:hanguk_app/features/assessment/presentation/report_screen.dart';
 import 'package:hanguk_app/features/catalog/data/catalog_repository.dart';
+import 'package:hanguk_app/features/onboarding/data/quiz_repository.dart';
 import 'package:hanguk_app/features/onboarding/domain/eligibility_engine.dart';
 import 'package:hanguk_app/l10n/app_localizations.dart';
 
