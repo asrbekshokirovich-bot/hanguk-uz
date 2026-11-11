@@ -5808,4 +5808,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get ajBishkek => 'Бишкек';
+
+  @override
+  String get leadKgConsent =>
+      'Согласен(на), чтобы мои данные (имя, телефон, ответы) были переданы Hanguk Consulting для консультации и хранились на сервере в Республике Корея.';
 }

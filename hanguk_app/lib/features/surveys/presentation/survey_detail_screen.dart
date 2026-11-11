@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/analytics/form_progress.dart';
 import '../../../core/analytics/tracked.dart';
+import '../../../core/country/app_country.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../entry/data/entry_store.dart';
 import '../data/survey_repository.dart';
 import '../domain/survey_text.dart';
 
@@ -350,7 +352,7 @@ class _QuestionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildInput(l, lang),
+          _buildInput(l, lang, kg: ProviderScope.containerOf(context, listen: false).read(entryProvider).country == AppCountry.kg),
         ],
       ),
     );
@@ -360,7 +362,8 @@ class _QuestionCard extends StatelessWidget {
   String _optionLabel(String option, String lang) =>
       surveyText(question.optionTranslations[option], option, lang);
 
-  Widget _buildInput(AppLocalizations l, String lang) {
+  /// [kg]: the app is set up for Kyrgyzstan (the phone example, plan KG3).
+  Widget _buildInput(AppLocalizations l, String lang, {bool kg = false}) {
     switch (question.questionType) {
       case 'single_choice':
         return _buildSingleChoice(lang);
@@ -382,7 +385,8 @@ class _QuestionCard extends StatelessWidget {
         );
       case 'phone':
         return _buildTextInput(
-          hint: '+998 90 123 45 67',
+          // The example in the app's country (plan KG3).
+          hint: kg ? '+996 700 123 456' : '+998 90 123 45 67',
           keyboardType: TextInputType.phone,
           maxLines: 1,
         );

@@ -5784,4 +5784,8 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get ajBishkek => 'Bishkek';
+
+  @override
+  String get leadKgConsent =>
+      'Shaxsiy ma\'lumotlarim (ism, telefon, javoblar) maslahat uchun Hanguk Consulting\'ga yuborilishi va Koreya Respublikasidagi serverda saqlanishiga roziman.';
 }

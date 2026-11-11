@@ -7174,5 +7174,9 @@
   "ajBishkek": "Bishkek",
   "@ajBishkek": {
     "description": "Boarding pass: the departure city when the app is set up for Kyrgyzstan (airport FRU)."
+  },
+  "leadKgConsent": "I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.",
+  "@leadKgConsent": {
+    "description": "Lead form (plan KG3), Kyrgyzstan only: the consent box's text; «Yuborish» stays off until it is ticked. Wording to be checked by a lawyer (Q8)."
   }
 }

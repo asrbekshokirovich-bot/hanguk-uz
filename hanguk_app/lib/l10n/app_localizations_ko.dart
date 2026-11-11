@@ -5578,4 +5578,8 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ajBishkek => '비슈케크';
+
+  @override
+  String get leadKgConsent =>
+      '상담을 위해 제 개인정보(이름, 전화번호, 답변)가 Hanguk Consulting에 전달되고 대한민국에 있는 서버에 저장되는 것에 동의합니다.';
 }

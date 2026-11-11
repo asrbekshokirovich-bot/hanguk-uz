@@ -10367,6 +10367,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bishkek'**
   String get ajBishkek;
+
+  /// Lead form (plan KG3), Kyrgyzstan only: the consent box's text; «Yuborish» stays off until it is ticked. Wording to be checked by a lawyer (Q8).
+  ///
+  /// In en, this message translates to:
+  /// **'I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.'**
+  String get leadKgConsent;
 }
 
 class _AppLocalizationsDelegate

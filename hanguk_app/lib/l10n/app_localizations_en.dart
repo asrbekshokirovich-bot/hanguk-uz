@@ -5796,4 +5796,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ajBishkek => 'Bishkek';
+
+  @override
+  String get leadKgConsent =>
+      'I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.';
 }

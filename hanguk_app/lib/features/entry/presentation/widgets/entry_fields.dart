@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/analytics/tracked.dart';
+import '../../../../core/country/app_country.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../auth/presentation/widgets/sign_in_chrome.dart';
 
@@ -42,6 +43,66 @@ class UzPhoneFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: text.length),
     );
   }
+}
+
+/// Kyrgyz numbers (plan KG3): nine digits after the fixed +996, spaced
+/// `700 123 456`. Pasting a full `+996 700 123 456` keeps the last nine.
+class KgPhoneFormatter extends TextInputFormatter {
+  const KgPhoneFormatter();
+
+  static String digitsOf(String text) {
+    var d = text.replaceAll(RegExp(r'\D'), '');
+    if (d.length > kUzNationalDigits && d.startsWith('996')) d = d.substring(3);
+    return d.length > kUzNationalDigits ? d.substring(0, kUzNationalDigits) : d;
+  }
+
+  static String format(String digits) {
+    final b = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i == 3 || i == 6) b.write(' ');
+      b.write(digits[i]);
+    }
+    return b.toString();
+  }
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = format(digitsOf(newValue.text));
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+/// The phone field for [country]: its code, how the nine digits are read and
+/// spaced, and the number in E.164 (plan KG3).
+class NationalPhone {
+  const NationalPhone(this.country);
+
+  final AppCountry country;
+
+  bool get _kg => country == AppCountry.kg;
+
+  /// `+998` / `+996`.
+  String get code => _kg ? '+996' : '+998';
+
+  /// The empty field's hint, as the design spaces it.
+  String get hint => _kg ? '700 ··· ···' : '90 ··· ·· ··';
+
+  TextInputFormatter get formatter => _kg ? const KgPhoneFormatter() : const UzPhoneFormatter();
+
+  String digitsOf(String text) => _kg ? KgPhoneFormatter.digitsOf(text) : UzPhoneFormatter.digitsOf(text);
+
+  String format(String digits) => _kg ? KgPhoneFormatter.format(digits) : UzPhoneFormatter.format(digits);
+
+  String e164(String national) => '$code$national';
+
+  /// A saved `+998…` / `+996…` number, when it is this country's.
+  bool owns(String e164) => e164.replaceAll(RegExp(r'\D'), '').startsWith(code.substring(1));
 }
 
 /// A labelled glass input in the Magic Code field's style: glass fill, a
