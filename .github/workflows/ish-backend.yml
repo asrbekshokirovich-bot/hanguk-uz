@@ -14,6 +14,8 @@ on:
       - 'ish/**'
     paths:
       - 'hanguk_ish/supabase/**'
+      # hanguk.uz's sign-up function: the tests run next to it (P48).
+      - 'supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql'
       - '.github/workflows/ish-backend.yml'
   workflow_dispatch:
 
