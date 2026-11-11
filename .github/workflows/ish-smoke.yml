@@ -31,26 +31,23 @@ jobs:
     name: Release builds on an Android emulator (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 50
-    # On API 34 the guest freezes the moment A01 opens T1 and the emulator
-    # ends about 30 s later, silently, whatever the GPU mode (swiftshader,
-    # swangle, guest — the app draws with OpenGL ES either way); API 30
-    # froze once in three and cannot run the arm64 builds (SIGILL in its ARM
-    # translation). Side by side: API 33 and API 32, and API 34 without
-    # GLDirectMem; the emulator's output and exit status are kept
-    # (build/smoke/emulator-output.txt).
+    # OPEN (for a person to take on): the emulator itself crashes — exit
+    # status 139, SIGSEGV, no crash report — about 30 s after A01 opens T1
+    # in the worker app. Seen on API 32, 33 and 34 with every GPU mode
+    # (swiftshader, swangle, guest, without GLDirectMem; the app draws with
+    # OpenGL ES each time); API 30 survived it twice in three but cannot run
+    # the arm64 builds (SIGILL in its ARM translation). Not an app crash: the
+    # app's own log stops cleanly. Next steps: an older emulator build
+    # (emulator-build), a core dump with a native backtrace, or narrowing
+    # down which part of T1 sets it off. The emulator's output and exit
+    # status are kept in build/smoke/emulator-output.txt (smoke.zip).
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: api33
-            api: 33
-            gpu: -gpu swiftshader_indirect
-          - name: api32
-            api: 32
-            gpu: -gpu swiftshader_indirect
-          - name: api34-nodirectmem
+          - name: api34
             api: 34
-            gpu: -gpu swiftshader_indirect -feature -GLDirectMem
+            gpu: -gpu swiftshader_indirect
     defaults:
       run:
         working-directory: hanguk_ish
