@@ -30,6 +30,7 @@ const LANGS: Record<string, string> = {
   ru: "Russian",
   ko: "Korean",
   vi: "Vietnamese",
+  ky: "Kyrgyz (Cyrillic script)",
   en: "English",
 };
 
@@ -44,7 +45,9 @@ serve(async (req) => {
     const auth = req.headers.get("authorization");
     if (!auth) return json({ error: "Authorization required" }, 401);
 
-    const { institutionId, answers, language = "uz", seconds } = await req.json();
+    const { institutionId, answers, language = "uz", seconds, country } = await req.json();
+    // KG6: the app sends the country it is set up for; older builds send none.
+    const from = String(country ?? "").trim().toUpperCase() === "KG" ? "Kyrgyzstan" : "Uzbekistan";
     if (typeof institutionId !== "string" || !Array.isArray(answers) || answers.length !== 3) {
       return json({ error: "institutionId and three answers are required" }, 400);
     }
@@ -93,7 +96,7 @@ serve(async (req) => {
     } else {
       const key = Deno.env.get("GEMINI_API_KEY");
       if (!key) return json({ error: "AI service not configured" }, 500);
-      const system = `You are an admissions officer of ${uniName} (${uni.name_ko ?? ""}, ${uni.city_ko ?? "Korea"}) reviewing the study plan (학업계획서) of a foreign applicant from Uzbekistan.
+      const system = `You are an admissions officer of ${uniName} (${uni.name_ko ?? ""}, ${uni.city_ko ?? "Korea"}) reviewing the study plan (학업계획서) of a foreign applicant from ${from}.
 Mark it strictly, as the real document evaluation would, on this rubric:
 - motivation (0-30): why this university and this major; does it show real knowledge of them (not generic)?
 - plan (0-30): what and how they will study, year by year, concrete courses/skills/Korean study.

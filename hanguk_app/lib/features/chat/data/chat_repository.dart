@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/analytics/app_events.dart';
 import '../../../core/config/app_config.dart';
+import '../../../core/country/app_country.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../discover/data/guest_ai_usage.dart';
 import '../../entry/data/entry_store.dart';
@@ -105,6 +106,8 @@ class ChatNotifier extends Notifier<ChatState> {
         'user_id': user?.id ?? 'anonymous',
         'user_type': 'student',
         'language': language,
+        // KG6: the assistant names the right embassy and contacts.
+        'country': (ref.read(entryProvider).country ?? AppCountry.uz).code,
         // A guest's 10 questions a day are counted by the phone (D4).
         'install_id': ?AppEvents.installId,
       });

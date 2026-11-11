@@ -5,7 +5,7 @@ import { getAiSchema } from "./analytics.ts";
 import { runAgent, sourcesFooter, uniqueSources, type AgentEvent, type AgentResult } from "./agent.ts";
 import { answeredHistory, type StoredTurn } from "./history.ts";
 import { CallerError, quotaFor, resolveCaller } from "./identity.ts";
-import { guestSystem, staffSystem, studentSystem } from "./prompts.ts";
+import { guestSystem, normalizeCountry, staffSystem, studentSystem } from "./prompts.ts";
 import { allTools } from "./tools/index.ts";
 import { memorySection } from "./tools/memory.ts";
 import { WEB_RULES } from "./tools/web.ts";
@@ -27,7 +27,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LANGS = new Set(["uz", "en", "ru", "ko", "vi"]);
+const LANGS = new Set(["uz", "en", "ru", "ko", "vi", "ky"]);
 
 function isUzbek(message: string): boolean {
   const s = message.toLowerCase();
@@ -105,6 +105,7 @@ function quotaMessage(language: string, caller: Caller): string {
     case "en": return guest ? "The daily question limit for guests is used up. Sign in with your client code or contact a consultant." : "The question limit is used up for now. Please try again later.";
     case "ko": return guest ? "게스트의 하루 질문 한도를 모두 사용했습니다. 고객 코드로 로그인하거나 상담원에게 문의하세요." : "현재 질문 한도를 모두 사용했습니다. 나중에 다시 시도해 주세요.";
     case "vi": return guest ? "Đã hết giới hạn câu hỏi trong ngày cho khách. Hãy đăng nhập bằng mã khách hàng hoặc liên hệ tư vấn viên." : "Đã hết giới hạn câu hỏi trong lúc này. Vui lòng thử lại sau.";
+    case "ky": return guest ? "Коноктор үчүн күндүк суроо чеги бүттү. Кардар кодуңуз менен кириңиз же консультантка жазыңыз." : "Суроолордун чеги азырынча бүттү. Кийинчерээк кайра аракет кылыңыз.";
     default: return guest ? "Mehmonlar uchun kunlik savol limiti tugadi. Mijoz kodingiz bilan kiring yoki maslahatchiga yozing." : "Savollar limiti hozircha tugadi. Keyinroq qayta urinib ko'ring.";
   }
 }
@@ -112,6 +113,7 @@ function quotaMessage(language: string, caller: Caller): string {
 function fallbackText(language: string): string {
   if (language === "ru") return "Не удалось получить проверенный ответ из данных. Переформулируйте вопрос или проверьте раздел напрямую.";
   if (language === "en") return "I couldn't produce a verified answer from the data. Please rephrase, or check the relevant section directly.";
+  if (language === "ky") return "Маалыматтардан текшерилген жооп чыгара алган жокмун. Суроону башкача жазыңыз же бөлүмдү өзүңүз текшериңиз.";
   return "Ma'lumotlardan tasdiqlangan javob chiqara olmadim. Savolni boshqacha yozing yoki bo'limni o'zingiz tekshiring.";
 }
 
@@ -131,6 +133,8 @@ serve(async (req) => {
 
   const requested = typeof body?.language === "string" && LANGS.has(body.language) ? body.language : "en";
   const language = isUzbek(message) ? "uz" : requested;
+  // KG6: the app sends the country it is set up for; older builds send none (UZ).
+  const country = normalizeCountry(body?.country);
 
   const url = Deno.env.get("SUPABASE_URL")!;
   const anonKey = publishableKey();
@@ -201,8 +205,8 @@ serve(async (req) => {
               sqlSchema: canQuery ? await getAiSchema() : null, extra,
             })
             : caller.audience === "student"
-            ? studentSystem({ language, today, name: caller.name, extra })
-            : guestSystem({ language, today, extra });
+            ? studentSystem({ language, today, name: caller.name, country, extra })
+            : guestSystem({ language, today, country, extra });
 
           result = await runAgent({
             system, history, message, tools,

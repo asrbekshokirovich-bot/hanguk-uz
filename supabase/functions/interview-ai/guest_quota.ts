@@ -33,6 +33,7 @@ export function weeklyLimitMessage(lang: string | null | undefined): string {
     case "en": return "Guests can take one interview a week. Sign in with your client code to practise without limits.";
     case "ko": return "게스트는 일주일에 한 번 면접 연습을 할 수 있습니다. 고객 코드로 로그인하면 제한 없이 연습할 수 있습니다.";
     case "vi": return "Khách được luyện phỏng vấn một lần mỗi tuần. Đăng nhập bằng mã khách hàng để luyện không giới hạn.";
+    case "ky": return "Конок жумасына бир маек машыгуусун өткөрө алат. Чектөөсүз машыгуу үчүн кардар кодуңуз менен кириңиз.";
     default: return "Mehmon haftasiga bitta suhbat mashqini o'tkaza oladi. Cheklovsiz mashq uchun mijoz kodingiz bilan kiring.";
   }
 }

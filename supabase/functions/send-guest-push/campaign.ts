@@ -1,7 +1,7 @@
 // A guest campaign's input and its text per phone. Pure, so campaign_test.ts
 // runs it as is.
 
-export const LANGS = ["uz", "ru", "en", "ko", "vi"] as const;
+export const LANGS = ["uz", "ru", "en", "ko", "vi", "ky"] as const;
 export type Lang = (typeof LANGS)[number];
 export type Texts = Partial<Record<Lang, string>>;
 
@@ -36,9 +36,12 @@ export function checkCampaign(raw: unknown): { ok: true; value: CampaignInput } 
   return { ok: true, value: { campaign, title, body } };
 }
 
-/** The text for a phone in [lang]: its own language where written, else Uzbek. */
+/** The text for a phone in [lang]: its own language where written, else Uzbek.
+ *  A Kyrgyz phone with no Kyrgyz text gets the Russian one first (KG6):
+ *  in Kyrgyzstan Russian is read more widely than Uzbek. */
 export function textFor(c: CampaignInput, lang: string | null | undefined): { title: string; body: string } {
   const l = (LANGS as readonly string[]).includes((lang ?? "").slice(0, 2)) ? ((lang ?? "").slice(0, 2) as Lang) : "uz";
+  if (l === "ky" && !c.title.ky && c.title.ru && c.body.ru) return { title: c.title.ru, body: c.body.ru };
   return { title: c.title[l] ?? c.title.uz!, body: c.body[l] ?? c.body.uz! };
 }
 

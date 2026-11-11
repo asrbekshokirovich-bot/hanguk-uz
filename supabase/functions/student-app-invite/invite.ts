@@ -1,7 +1,7 @@
 // The invite's text and the choice of channel, without the network
 // (invite_test.ts). Ushlab qolish rejasi P13.
 
-export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
+export type Lang = "uz" | "ru" | "en" | "ko" | "vi" | "ky";
 
 export interface Target {
   student_id: string;
@@ -22,7 +22,7 @@ export const AUTO_CONTRACT_DAYS = 14;
 
 export function normalizeLang(raw: string | null | undefined): Lang {
   const l = (raw ?? "").toLowerCase().slice(0, 2);
-  return (["uz", "ru", "en", "ko", "vi"] as const).includes(l as Lang) ? (l as Lang) : "uz";
+  return (["uz", "ru", "en", "ko", "vi", "ky"] as const).includes(l as Lang) ? (l as Lang) : "uz";
 }
 
 /** The link: hanguk.uz/l/<code> ties the phone to the lead (src/lib/appLink.ts); else Google Play. */
@@ -81,6 +81,12 @@ export function telegramText(t: Target, iosUrl: string | null): string {
         `Xin chào${n ? ` ${n}` : ""}! Ứng dụng Hanguk cho bạn xem hồ sơ, giấy tờ và hạn của các trường.`,
         `Cài đặt: ${link}${ios ? `\niPhone: ${ios}` : ""}`,
         `Mã đăng nhập: ${code}`,
+      ].join("\n\n");
+    case "ky":
+      return [
+        `Саламатсызбы${n ? `, ${n}` : ""}! Hanguk тиркемесинде арызыңызды, документтериңизди жана университеттердин мөөнөттөрүн көрөсүз.`,
+        `Орнотуңуз: ${link}${ios ? `\niPhone: ${ios}` : ""}`,
+        `Кирүү коду: ${code}`,
       ].join("\n\n");
     default:
       return [
