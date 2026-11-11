@@ -25,6 +25,21 @@ export const CITIES = [
   'Guliston',
 ] as const;
 
+/**
+ * Kyrgyzstan's cities and regions (plan KG3, 2026-11-11), offered instead of
+ * [CITIES] when the lead's number is Kyrgyz (+996). Stored values like those.
+ */
+export const KG_CITIES = [
+  'Bishkek',
+  "O'sh",
+  'Chuy',
+  'Jalolobod',
+  "Issiqko'l",
+  'Norin',
+  'Talas',
+  'Botken',
+] as const;
+
 /** Language certificates. "Yo'q" is an answer, not a blank — see `isComplete`. */
 export const CERTIFICATES = [
   "Yo'q",

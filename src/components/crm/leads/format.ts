@@ -33,6 +33,10 @@ export function formatCity(city: string | null): string | null {
 export function formatPhone(phone: string | null): string | null {
   if (!phone) return null;
   const digits = phone.replace(/\D/g, '');
+  // A Kyrgyz number (plan KG3): `+996 700 123 456`.
+  if (digits.length === 12 && digits.startsWith('996')) {
+    return `+996 ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9)}`;
+  }
   const local = digits.length === 12 && digits.startsWith('998') ? digits.slice(3) : digits;
   if (local.length !== 9) return phone;
   return `+998 ${local.slice(0, 2)} ${local.slice(2, 5)} ${local.slice(5, 7)} ${local.slice(7)}`;

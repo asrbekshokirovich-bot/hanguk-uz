@@ -428,3 +428,37 @@ describe('intake phone field', () => {
     expect(validateIntake({ ...form, phone: '+998 20 278 97' }).phone).toBe(true);
   });
 });
+
+describe('intake phone field — Kyrgyz numbers (plan KG3)', () => {
+  it('lets the operator type +996 and spaces the number 700 123 456', async () => {
+    const { formatPhoneInput } = await import('../intakeForm');
+    expect(formatPhoneInput('+')).toBe('+');
+    expect(formatPhoneInput('+99')).toBe('+99');
+    expect(formatPhoneInput('+996')).toBe('+996');
+    expect(formatPhoneInput('+9967')).toBe('+996 7');
+    expect(formatPhoneInput('+996 700123456')).toBe('+996 700 123 456');
+    expect(formatPhoneInput('+996 700 123 4567')).toBe('+996 700 123 456');
+    expect(formatPhoneInput('996700123456')).toBe('+996 700 123 456');
+  });
+
+  it('keeps +996 when saving — it was cut to an Uzbek +998 99 6… number', async () => {
+    const { phoneForSave, phoneForInput } = await import('../intakeForm');
+    expect(phoneForSave('+996 700 123 456')).toBe('+996700123456');
+    expect(phoneForSave('+996')).toBeUndefined();
+    expect(phoneForInput('+996700123456')).toBe('+996 700 123 456');
+    expect(phoneForSave(phoneForInput('+996700123456'))).toBe('+996700123456');
+  });
+
+  it('a 9-digit 996… number is still Uzbek (99 6…)', async () => {
+    const { formatPhoneInput, phoneForSave, isKgPhone } = await import('../intakeForm');
+    expect(isKgPhone('996123456')).toBe(false);
+    expect(formatPhoneInput('996123456')).toBe('+998 99 612 34 56');
+    expect(phoneForSave('996123456')).toBe('+998996123456');
+  });
+
+  it('requires nine digits after +996', () => {
+    const form = formFromLead(completeLead());
+    expect(validateIntake({ ...form, phone: '+996 700 123 456' }).phone).toBeUndefined();
+    expect(validateIntake({ ...form, phone: '+996 700 123' }).phone).toBe(true);
+  });
+});
