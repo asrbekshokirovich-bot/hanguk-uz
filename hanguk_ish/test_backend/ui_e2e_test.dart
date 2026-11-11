@@ -725,6 +725,8 @@ void main() {
     await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
     await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
     await _until(tester, _text('Smenalar'));
+    // The feed loaded (the E2E business is by the beach too).
+    await _until(tester, _text('E2E Kafe'));
     await _shot(tester, 'a02-signed-up-feed');
     final saved = await tester.runAsync(() => SupabaseWorkerProfileRepository(newcomer, _config).load());
     expect(saved!.firstName, 'Dilnoza');
@@ -802,11 +804,14 @@ void main() {
     await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
     await _until(tester, _text('Sizga mos yangi smena'));
     // (Without the invisible word joiner that keeps «₩/soat» on one line.)
-    final line = tester
-        .widgetList<Text>(find.byType(Text))
-        .map((t) => (t.data ?? '').replaceAll('\u2060', ''))
-        .firstWhere((t) => t.startsWith('E2E Kafe · '));
+    final lines = [
+      for (final t in tester.widgetList<Text>(find.byType(Text))) (t.data ?? '').replaceAll('\u2060', ''),
+    ];
+    final line = lines.firstWhere((t) => t.startsWith('E2E Kafe · '));
     expect(line, matches(RegExp(r'/soat · [\d,.]+ km$')), reason: 'how far, from where the app last saw the worker');
+    // One notice for the new shift: the invitation took the place of the
+    // «new shift nearby» it had sent when it was posted.
+    expect(lines.where((t) => t == line), hasLength(1));
     await _shot(tester, 'a12-invitation');
     await _close(tester);
   });

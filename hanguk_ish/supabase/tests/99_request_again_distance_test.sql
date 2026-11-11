@@ -20,3 +20,16 @@ select tests.as_user('00000000-0000-0000-0000-0000000000a2');
 select tests.ok((select not (data ? 'distance_km') from public.notifications
                  where kind = 'request_again' and data ->> 'shift_id' = '20000000-0000-0000-0000-000000000001'),
                 'no saved position: no distance key');
+
+-- A «new shift nearby» for the same shift gives way to the invitation.
+select tests.as_admin();
+insert into public.notifications (user_id, kind, data)
+values ('00000000-0000-0000-0000-0000000000a2', 'new_shift_match',
+        '{"shift_id": "20000000-0000-0000-0000-000000000002", "distance_km": 0.4}');
+select tests.as_user('00000000-0000-0000-0000-0000000000b1');
+select public.request_again('20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-0000000000a2');
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+select tests.eq((select array_agg(kind::text) from public.notifications
+                 where data ->> 'shift_id' = '20000000-0000-0000-0000-000000000002'),
+                array['request_again'], 'one notice for the shift: the invitation');
+
