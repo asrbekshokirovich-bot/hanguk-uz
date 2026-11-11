@@ -3,7 +3,10 @@ name: Hanguk Ish — emulyatorda ishga tushirish
 # Release APK'lar haqiqiy Android'da ochiladimi: emulyatorda (API 34) ikkala
 # ilova o'rnatiladi, ishga tushadi, birinchi ekranni chizadi va bosishga
 # javob beradi (A01 → T1, BA0), hech narsa yiqilmaydi. Release'da R8 va
-# plaginlar (shared_preferences, Supabase) debug testlardan farq qiladi.
+# plaginlar (shared_preferences, Supabase, share_plus) debug testlardan
+# farq qiladi. Keyin demo ilovalarda odamdek uzun yurish (P33): ro'yxatdan
+# o'tish, A02, smena olish, ish kuni, baho, til saqlanishi; BA1, BA3 QR va
+# BA5 CSV ulashish oynasiga.
 # Ekran rasmlari va logcat: hanguk-ish-ci prerelease'da <branch>-smoke.zip.
 
 on:
@@ -84,6 +87,8 @@ jobs:
           api-level: 34
           arch: x86_64
           target: google_apis
+          # A common phone screen (1080×2400): the walks need fewer swipes.
+          profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: hanguk_ish
