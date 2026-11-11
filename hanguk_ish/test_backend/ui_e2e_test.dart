@@ -20,6 +20,7 @@ import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
+import 'package:hanguk_ish/data/backend/supabase_live_updates.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
 import 'package:hanguk_ish/data/models/business.dart';
 import 'package:hanguk_ish/data/models/employer.dart';
@@ -27,6 +28,7 @@ import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/account_repository.dart';
 import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/employer_repository.dart';
+import 'package:hanguk_ish/data/repositories/live_updates.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/design/widgets/forms.dart';
@@ -457,8 +459,9 @@ void main() {
     await _close(tester);
   });
 
-  /// The worker's app, signed in, opened at [location] (or the start).
-  Widget workerApp({String? location}) => capture(ProviderScope(
+  /// The worker's app, signed in, opened at [location] (or the start);
+  /// [live]: with Realtime, as the real app runs.
+  Widget workerApp({String? location, bool live = false}) => capture(ProviderScope(
         overrides: [
           backendConfigProvider.overrideWithValue(_config),
           supabaseClientProvider.overrideWithValue(worker),
@@ -468,18 +471,21 @@ void main() {
           workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
           locationServiceProvider.overrideWithValue(const _AtTheBeach()),
           liveTimersProvider.overrideWithValue(false),
+          if (live) liveUpdatesProvider.overrideWith((ref) => SupabaseLiveUpdates(worker)),
           if (location != null) workerInitialLocationProvider.overrideWithValue(location),
         ],
         child: const WorkerApp(),
       ));
 
-  /// The owner's app, signed in, opened at [location] (or the start).
-  Widget ownerApp({String? location}) => capture(ProviderScope(
+  /// The owner's app, signed in, opened at [location] (or the start);
+  /// [live]: with Realtime, as the real app runs.
+  Widget ownerApp({String? location, bool live = false}) => capture(ProviderScope(
         overrides: [
           backendConfigProvider.overrideWithValue(_config),
           supabaseClientProvider.overrideWithValue(owner),
           authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(owner)),
           employerRepositoryProvider.overrideWithValue(SupabaseEmployerRepository(owner, _config)),
+          if (live) liveUpdatesProvider.overrideWith((ref) => SupabaseLiveUpdates(owner)),
           if (location != null) employerInitialLocationProvider.overrideWithValue(location),
         ],
         child: const EmployerApp(),
@@ -745,7 +751,7 @@ void main() {
           slots: 1,
           autoConfirm: false,
         ))))!;
-    await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(live.id)));
+    await tester.pumpWidget(ownerApp(location: EmployerRoutes.shift(live.id), live: true));
     await _until(tester, _text('E2E 실시간'));
     expect(_text(Ko.applicants(1)), findsNothing);
     // The worker applies elsewhere; nothing is tapped here.
@@ -756,7 +762,7 @@ void main() {
     await _close(tester);
 
     // A12 open on the worker's side: the 확정 arrives by itself too.
-    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications));
+    await tester.pumpWidget(workerApp(location: WorkerRoutes.notifications, live: true));
     await _until(tester, _text('Smena tasdiqlandi'));
     final before = _text('Smena tasdiqlandi').evaluate().length;
     await tester.runAsync(() => employer.decide(applied!.applicationId, accept: true));
