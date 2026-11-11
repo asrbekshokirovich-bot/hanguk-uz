@@ -25,14 +25,22 @@ out=build/smoke
 mkdir -p "$out"
 ui() { python3 tool/smoke_ui.py "$@"; }
 # Every adb call has a deadline: an emulator that stops answering fails the
-# run in minutes instead of holding it to the job's limit.
+# run in minutes instead of holding it to the job's limit. (--foreground: only
+# adb itself is stopped, never anything else in its process group.)
 adb() {
   local limit=60
   case "${1:-}" in install) limit=300 ;; esac
-  timeout "$limit" adb "$@"
+  timeout --foreground "$limit" adb "$@"
 }
 failed=0
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
+adb shell getprop ro.build.version.sdk | tee "$out/sdk.txt"
+
+# The whole log as it happens, so the last lines before an emulator goes away
+# are kept (each app's own log is taken at its end, finish below).
+command adb logcat -v threadtime >"$out/logcat-stream.txt" 2>&1 &
+logcat_pid=$!
+trap 'kill "$logcat_pid" 2>/dev/null || true' EXIT
 
 # The system settles before the first app (the emulator starts from a
 # settled snapshot, ish-smoke.yml).
