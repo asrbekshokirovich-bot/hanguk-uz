@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/build_config.dart';
+import 'device_place.dart';
 
 /// One event as the app records it; what [AppEvents.debugOnTrack] sees.
 @immutable
@@ -727,9 +728,23 @@ class _Sink with WidgetsBindingObserver {
 
   Map<String, Object?> _contextNow() => {
     ..._context,
+    ..._placeNow(),
     'ui_lang': ?AppEvents._language,
     'sent_at': DateTime.now().toUtc().toIso8601String(),
   };
+
+  /// The phone's region and UTC offset at send time ([devicePlace]); read
+  /// per batch because a phone can change its time zone while the app runs.
+  Map<String, Object> _placeNow() {
+    try {
+      return devicePlace(
+        WidgetsBinding.instance.platformDispatcher.locale,
+        DateTime.now().timeZoneOffset,
+      );
+    } catch (_) {
+      return const {};
+    }
+  }
 
   Future<void> flush() async {
     _timer?.cancel();
