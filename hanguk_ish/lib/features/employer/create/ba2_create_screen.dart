@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/format/digit_mask.dart';
-import '../../../core/money/won.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
 import '../../../data/models/employer.dart';
@@ -618,7 +617,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                     text: Biz.costLead(_slots, _minutes),
                     children: [
                       TextSpan(
-                        text: Won.employer(cost),
+                        text: Biz.money(cost),
                         style: hiStyle(15, FontWeight.w700, family: HiFamily.mono),
                       ),
                     ],

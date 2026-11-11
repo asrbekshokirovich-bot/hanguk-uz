@@ -86,7 +86,13 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                   children: [
                     const HiBrandTile(),
                     const SizedBox(height: 20),
-                    Row(
+                    // One line as in the prototype; a longer badge
+                    // («Для работодателя») goes under the name on a narrow
+                    // screen instead of off it.
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Semantics(
                           header: true,
@@ -101,7 +107,6 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
                         HiNavyPill(Biz.ownerBadge),
                       ],
                     ),

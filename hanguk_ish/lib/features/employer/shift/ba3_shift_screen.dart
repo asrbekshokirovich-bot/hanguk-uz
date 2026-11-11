@@ -194,7 +194,11 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                           child: HiText(shift.title, style: hiStyle(26, FontWeight.w800, height: 1.2, letterSpacingEm: -0.02)),
                         ),
                         const SizedBox(height: 8),
-                        Row(
+                        // Two chips side by side; on a narrow screen in a
+                        // longer language the second goes under the first.
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
                           children: [
                             EmployerChip.forState(
                               shift.state(now) == EmployerShiftState.urgent && !now.isBefore(shift.startsAt)
@@ -203,10 +207,8 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                               open: shift.openSlots,
                               large: true,
                             ),
-                            if (shift.state(now) == EmployerShiftState.urgent && !now.isBefore(shift.startsAt)) ...[
-                              const SizedBox(width: 8),
+                            if (shift.state(now) == EmployerShiftState.urgent && !now.isBefore(shift.startsAt))
                               EmployerChip.forState(EmployerShiftState.urgent, open: shift.openSlots, large: true),
-                            ],
                           ],
                         ),
                         const SizedBox(height: 8),

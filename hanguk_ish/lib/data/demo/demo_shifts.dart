@@ -296,7 +296,7 @@ ShiftListing demoOfferedShift(DateTime now) => _shift('demo-offer-1', _sangam,
     .copyWith(offer: const ShiftOffer(id: 'demo-offer-1', status: OfferStatus.sent, note: demoOfferNote));
 
 /// What the staff wrote with the demo offer.
-const demoOfferNote = "Ertalab 8:50 da kirish eshigi oldida kutib olamiz.";
+const demoOfferNote = 'Ertalab 8:50 da kirish eshigi oldida kutib olamiz.';
 
 /// The worker's finished shifts in the demo: the prototype's November on
 /// A09 (1, 3, 5, 7 and 8 November, the first four already paid).

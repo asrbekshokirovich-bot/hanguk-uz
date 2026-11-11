@@ -33,11 +33,13 @@ void main() {
     usePhone(tester);
     String? phone;
     String? bizNo;
-    await tester.pumpWidget(MaterialApp(
-      home: Ba0LoginScreen(onStart: (p, b) {
-        phone = p;
-        bizNo = b;
-      }),
+    await tester.pumpWidget(ProviderScope(
+      child: MaterialApp(
+        home: Ba0LoginScreen(onStart: (p, b) {
+          phone = p;
+          bizNo = b;
+        }),
+      ),
     ));
     final fields = find.byType(TextField);
     expect(fields, findsNWidgets(2));
