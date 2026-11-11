@@ -4,6 +4,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/data/demo/demo_account.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/my_shift.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
@@ -70,6 +71,22 @@ void main() {
       addTearDown(container.dispose);
       await open(tester, container);
       await expectScreen(tester, _name('A12-Bildirishnomalar', language));
+    });
+
+    // P40: with an offer from Hanguk's staff on top (not in the prototype).
+    testWidgets('A12-Taklif — ${language.code}', (tester) async {
+      usePhone(tester);
+      final clock = TestClock(prototypeNow)..at(12, 35);
+      final container = appContainer(
+        language: language,
+        location: WorkerRoutes.notifications,
+        clock: clock.call,
+        account: DemoAccountRepository(now: prototypeNow, offers: true),
+        unread: 3,
+      );
+      addTearDown(container.dispose);
+      await open(tester, container);
+      await expectScreen(tester, _name('A12-Taklif', language));
     });
   }
 }

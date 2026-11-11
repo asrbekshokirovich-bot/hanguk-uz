@@ -135,6 +135,35 @@ void main() {
       expect(invite.shiftId, '20000000-0000-0000-0000-000000000001');
     });
 
+    test('an offer from Hanguk\'s staff: the notification and the job (P39)', () {
+      final offers = [for (final c in sampleList('my_notifications_offer')) hiNotificationFromJson(c)];
+      expect(offers, hasLength(1));
+      final n = offers.single!;
+      expect(n.kind, NotificationKind.jobOffer);
+      expect(n.note, 'Ertalab 10 da yetib keling');
+      expect(n.wage, 13000);
+      expect(n.businessName('ko'), startsWith('홍대 이삿짐센터'));
+      expect(n.businessName('uz'), startsWith("Hongdae ko'chish xizmati"));
+      expect(n.startsAt!.isBefore(n.endsAt!), isTrue);
+      expect(n.read, isFalse);
+
+      final job = shiftListingFromJson(samples['shift_details_offer'] as Json);
+      expect(job.id, n.shiftId);
+      expect(job.offer!.status, OfferStatus.sent);
+      expect(job.offer!.note, 'Ertalab 10 da yetib keling');
+      expect(job.myStatus, isNull);
+      expect(job.hourlyWage, 13000);
+      expect(job.slotsLeft, 2);
+      expect(job.business.category, BusinessCategory.logistics);
+      expect(job.displayDuties('ko'), ['짐 나르기', '포장 보조']);
+
+      final declined = shiftListingFromJson(samples['shift_details_offer_declined'] as Json);
+      expect(declined.offer!.status, OfferStatus.declined);
+      expect(shiftListingFromJson(samples['shift_details'] as Json).offer, isNull, reason: 'no offer');
+      expect([for (final c in sampleList('shift_feed')) c['id']], isNot(contains(job.id)),
+          reason: 'an invite-only job is not in the feed');
+    });
+
     test('the evening digest names the worker\'s district by its code', () {
       final digest = hiNotificationFromJson({
         'id': 20,

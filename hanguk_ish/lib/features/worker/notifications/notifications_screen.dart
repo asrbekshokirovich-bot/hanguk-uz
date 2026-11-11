@@ -207,6 +207,7 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.message => (HiIcons.messageCircle, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.newShift => (HiIcons.briefcase, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.nearbyShifts => (HiIcons.mapPin, HiColors.surface, HiColors.ink, 2.0),
+      NotificationKind.jobOffer => (HiIcons.send, HiColors.lime, HiColors.onLime, 2.0),
     };
     final title = switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderTitle(HiDates.countdown(n.minutesBefore ?? 0, lang)),
@@ -218,6 +219,7 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.message => l10n.notifMessageTitle,
       NotificationKind.newShift => l10n.notifNewShiftTitle,
       NotificationKind.nearbyShifts => l10n.notifNearbyTitle(n.areaName(lang), n.count ?? 0),
+      NotificationKind.jobOffer => l10n.notifOfferTitle,
     };
     final day = n.startsAt == null ? '' : HiDates.weekdayAndDate(n.startsAt!, lang);
     // «12 000 ₩/soat» stays together, as in the prototype.
@@ -240,6 +242,16 @@ class _NotificationCard extends StatelessWidget {
           n.distanceKm == null ? '' : formatKm(n.distanceKm!, lang),
         )),
       NotificationKind.nearbyShifts => l10n.notifNearbyText(_categories(l10n), _wageRange()),
+      // The staff's note, if any, on its own line.
+      NotificationKind.jobOffer => [
+          l10n.notifOfferText(
+            business,
+            n.startsAt == null ? '' : HiDates.weekdayInSentence(n.startsAt!, lang),
+            range,
+            Won.worker(n.wage ?? 0),
+          ),
+          if ((n.note ?? '').trim().isNotEmpty) l10n.offerNote(n.note!.trim()),
+        ].join('\n'),
     });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);
 
@@ -263,6 +275,9 @@ class _NotificationCard extends StatelessWidget {
           onTap: n.shiftId == null ? actions.feed : () => actions.shift(n.shiftId!),
         ),
       NotificationKind.nearbyShifts => _LinkAction(label: l10n.view, fresh: fresh, onTap: actions.feed),
+      NotificationKind.jobOffer => n.shiftId == null
+          ? null
+          : _LinkAction(label: l10n.view, fresh: fresh, onTap: () => actions.shift(n.shiftId!)),
     };
 
     return Semantics(

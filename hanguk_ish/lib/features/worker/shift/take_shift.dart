@@ -33,6 +33,22 @@ String takeShiftError(WorkerL10n l10n, Object error) => switch (error) {
       _ => l10n.errorGeneric,
     };
 
+/// A05 «Qiziqmayman»: turns the staff's offer down, then shows the job
+/// again (its card says so). A failure is told in a snackbar.
+Future<void> declineShiftOffer(BuildContext context, WidgetRef ref, ShiftListing shift) async {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = WorkerL10n.of(context);
+  try {
+    await ref.read(shiftRepositoryProvider).declineOffer(shift.id);
+  } on Object catch (error) {
+    // Already answered elsewhere: the fresh job shows how.
+    if (error is! ShiftActionException || error.code != 'NOT_FOUND') {
+      messenger?.showSnackBar(SnackBar(content: Text(takeShiftError(l10n, error))));
+    }
+  }
+  if (context.mounted) ref.invalidate(shiftDetailProvider(shift.id));
+}
+
 /// A05 «Smenani olasizmi?»: the confirmation sheet. Applies when confirmed
 /// and returns the result; null when closed. A refusal closes the sheet and
 /// shows its reason.

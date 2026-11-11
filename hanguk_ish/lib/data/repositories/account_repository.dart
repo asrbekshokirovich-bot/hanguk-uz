@@ -23,4 +23,4 @@ abstract interface class WorkerAccountRepository {
 }
 
 /// The repository the app uses. Demo data until a backend is configured.
-final accountRepositoryProvider = Provider<WorkerAccountRepository>((ref) => DemoAccountRepository());
+final accountRepositoryProvider = Provider<WorkerAccountRepository>((ref) => DemoAccountRepository(offers: true));

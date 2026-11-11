@@ -34,6 +34,9 @@ enum NotificationKind {
   message,
   newShift,
   nearbyShifts,
+
+  /// Hanguk's staff offered the worker a job (hanguk.uz, P39).
+  jobOffer,
 }
 
 /// One entry of A12, with the values its sentence is built from (so it reads
@@ -61,6 +64,7 @@ class HiNotification {
     this.categories = const [],
     this.lat,
     this.lng,
+    this.note,
   });
 
   final String id;
@@ -92,6 +96,9 @@ class HiNotification {
   final double? lat;
   final double? lng;
 
+  /// [NotificationKind.jobOffer]: what the staff wrote with the offer.
+  final String? note;
+
   String businessName(String lang) => businessNames[lang] ?? businessNames['en'] ?? businessNames['ko'] ?? '';
 
   String areaName(String lang) => areaNames[lang] ?? areaNames['en'] ?? areaNames['ko'] ?? '';
@@ -117,6 +124,7 @@ class HiNotification {
         categories: categories,
         lat: lat,
         lng: lng,
+        note: note,
       );
 }
 

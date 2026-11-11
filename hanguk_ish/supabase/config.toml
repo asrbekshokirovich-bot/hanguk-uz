@@ -43,6 +43,11 @@ template = "Hanguk Ish kodi: {{ .Code }}"
 # a new worker (A01 → A02) and a new owner (BA0) who sign up in the screen tests
 821000000041 = "123456"
 821000000051 = "123456"
+# Hanguk's staff on hanguk.uz, the worker they offer a job and one they do not
+# (test_backend/offers_test.dart)
+821000000061 = "123456"
+821000000062 = "123456"
+821000000063 = "123456"
 
 # GoTrue accepts phone sign-in only with a provider enabled; the test numbers
 # above never reach it. Local stack only — production uses the provider set

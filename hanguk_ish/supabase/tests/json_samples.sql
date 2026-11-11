@@ -93,6 +93,32 @@ select public.decide_application((select id from public.applications
                                   where shift_id = '20000000-0000-0000-0000-000000000002'
                                     and worker_id = '00000000-0000-0000-0000-0000000000a1'), true);
 
+-- Hanguk's staff (P39, hanguk.uz): an employer found on Telegram, an
+-- invite-only job tomorrow, offers to a1 (open) and a2 (who turns it down).
+select tests.as_admin();
+insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000c1', '+821000000031');
+update public.profiles set first_name = 'Dilnoza', last_name = 'Rahimova'
+where id = '00000000-0000-0000-0000-0000000000c1';
+insert into public.staff_members (user_id) values ('00000000-0000-0000-0000-0000000000c1');
+create temp table staff_ids (k text primary key, v uuid);
+grant all on staff_ids to authenticated;
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
+insert into staff_ids select 'biz', public.staff_save_business(
+  null, '홍대 이삿짐센터', 'logistics', '홍대', '마포구 와우산로 21', '1층', 'Mapo-gu', 37.5560, 126.9230,
+  '{"uz": "Hongdae ko''chish xizmati"}',
+  '{"contact_name": "김사장", "phone": "010-5555-1234", "telegram": "@hongdae_move",
+    "source": "https://t.me/koreajobs_uz/1234", "notes": "Naqd to''laydi"}');
+insert into staff_ids select 'job', public.staff_save_shift(
+  null, (select v from staff_ids where k = 'biz'), '이삿짐 운반 보조',
+  date_trunc('hour', now()) + interval '1 day 2 hours', date_trunc('hour', now()) + interval '1 day 6 hours',
+  13000, 2, E'짐 나르기\n포장 보조', '편한 옷, 운동화', '마포구 와우산로 21', null, null, false, true,
+  'https://t.me/koreajobs_uz/1234', '오전 10시까지 도착');
+select public.staff_send_offers((select v from staff_ids where k = 'job'),
+  array['00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2']::uuid[],
+  'Ertalab 10 da yetib keling');
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+select public.decline_job_offer((select v from staff_ids where k = 'job'));
+
 -- Worker side.
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 insert into samples values
@@ -104,9 +130,12 @@ insert into samples values
   ('my_profile_worker', public.my_profile()),
   ('worker_stats', (select jsonb_agg(to_jsonb(s)) from public.worker_stats('00000000-0000-0000-0000-0000000000a1') s)),
   ('messages', (select jsonb_agg(to_jsonb(m) order by m.created_at, m.id) from public.messages m
-                where m.application_id = '30000000-0000-0000-0000-000000000004'));
+                where m.application_id = '30000000-0000-0000-0000-000000000004')),
+  ('shift_details_offer', public.shift_details((select v from staff_ids where k = 'job'), 37.5580, 126.9501)),
+  ('my_notifications_offer', public.my_notifications(100, '{job_offer}'));
 select tests.as_user('00000000-0000-0000-0000-0000000000a2');
 insert into samples values
+  ('shift_details_offer_declined', public.shift_details((select v from staff_ids where k = 'job'))),
   ('my_shifts_a2', public.my_shifts()),
   ('worker_earnings', (select jsonb_agg(to_jsonb(e)) from public.worker_earnings(
       (now() at time zone 'Asia/Seoul')::date - 7, (now() at time zone 'Asia/Seoul')::date + 1) e));
@@ -127,6 +156,14 @@ insert into samples values
   ('my_notifications_employer', public.my_notifications(100, '{new_applicant,worker_cancelled,no_show,chat_message}')),
   ('minimum_wage', to_jsonb(public.minimum_wage(now()))),
   ('shift_qr', to_jsonb(public.shift_qr('20000000-0000-0000-0000-000000000004')));
+
+-- hanguk.uz (CRM «Hanguk Ish»).
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
+insert into samples values
+  ('staff_businesses', public.staff_businesses()),
+  ('staff_board', public.staff_board(now() - interval '1 day', now() + interval '4 days')),
+  ('staff_shift', public.staff_shift((select v from staff_ids where k = 'job'))),
+  ('staff_candidates', public.staff_candidates((select v from staff_ids where k = 'job'), 20));
 
 select tests.as_admin();
 select jsonb_pretty(jsonb_object_agg(name, value order by name)) from samples;

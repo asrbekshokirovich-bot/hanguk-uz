@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_controller.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 import 'package:hanguk_ish/l10n/gen/worker_l10n.dart';
@@ -63,6 +64,19 @@ void main() {
       await tester.tap(find.text(l10n.takeShift));
       await tester.pumpAndSettle();
       await expectScreen(tester, _name('A05-Tasdiqlash', language));
+    });
+
+    // P40: a job Hanguk's staff offered (not in the prototype).
+    testWidgets('A05-Taklif — ${language.code}', (tester) async {
+      usePhone(tester, _tall);
+      final container = appContainer(
+        language: language,
+        location: WorkerRoutes.shift('demo-offer-1'),
+        repository: DemoShiftRepository(now: prototypeNow, offers: true),
+      );
+      addTearDown(container.dispose);
+      await open(tester, container);
+      await expectScreen(tester, _name('A05-Taklif', language));
     });
 
     testWidgets('A05-Olindi — ${language.code}', (tester) async {

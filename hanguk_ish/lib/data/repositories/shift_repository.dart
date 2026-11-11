@@ -74,6 +74,9 @@ abstract interface class ShiftRepository {
   /// A05 «Tasdiqlash» → `apply_to_shift`.
   Future<ApplyResult> apply(String shiftId);
 
+  /// A05 «Qiziqmayman»: turns down the staff's offer → `decline_job_offer`.
+  Future<void> declineOffer(String shiftId);
+
   /// A06: the worker's applications, newest shifts last.
   Future<List<MyShift>> myShifts();
 
@@ -99,4 +102,4 @@ abstract interface class ShiftRepository {
 }
 
 /// The repository the app uses. Demo data until a backend is configured.
-final shiftRepositoryProvider = Provider<ShiftRepository>((ref) => DemoShiftRepository());
+final shiftRepositoryProvider = Provider<ShiftRepository>((ref) => DemoShiftRepository(offers: true));

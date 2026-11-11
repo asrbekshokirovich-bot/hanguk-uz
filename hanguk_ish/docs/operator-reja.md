@@ -32,7 +32,7 @@ Telegram guruh/kanal ──► xodim ish beruvchi bilan gaplashadi
 
 | # | Qaror | Nega |
 |---|---|---|
-| Q1 | Xodim hanguk.uz CRM'ida «Hanguk Ish» bo'limida ishlaydi; Hanguk Ish bazasiga **alohida kirish** (email + parol, bir marta, brauzer eslab qoladi). Bo'lim faqat CRM xodimlariga ko'rinadi. | Hanguk Ish — alohida Supabase loyiha (sizning qaroringiz). Ikki loyiha orasida bitta kirish keyin qilinadi. |
+| Q1 | Xodim hanguk.uz CRM'ida «Hanguk Ish» bo'limida ishlaydi; Hanguk Ish bazasiga **alohida kirish** — telefon raqam + SMS kod (ilovalardagidek; bir marta, brauzer eslab qoladi). Xodim qilish: admin `staff_members` ga qo'shadi. Bo'lim faqat CRM xodimlariga ko'rinadi. | Hanguk Ish — alohida Supabase loyiha (sizning qaroringiz). Email kirishni yoqish hammaga email bilan ro'yxatdan o'tishni ham ochadi (telefon tasdig'isiz akkaunt) — shuning uchun mavjud SMS yo'li. |
 | Q2 | Xodim kiritgan ish beruvchi — «xodim boshqaradigan biznes»: 사업자등록번호 shart emas, 국세청 tekshiruvisiz. | Telegram'dan topilgan ish beruvchining raqami ko'pincha ma'lum emas. |
 | Q3 | Bunday ish **faqat taklif bilan**: umumiy lentada, xaritada va «yaqinda yangi smena» xabarlarida chiqmaydi; faqat taklif olgan ishchi ko'radi va oladi. Xodim xohlasa umumiy qiladi. | Tashqi ish beruvchiga notanish odam yuborilmasin; xodim nazorat qiladi. |
 | Q4 | Ish beruvchining telefoni, Telegram'i, manba (post havolasi), izohlar — **faqat xodimlarga**. Ishchi biznes nomi, joyi, vaqt, maosh, vazifalarni ko'radi. | Ishchi xodim orqali ishlaydi. |

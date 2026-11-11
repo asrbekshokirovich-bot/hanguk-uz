@@ -144,7 +144,15 @@ ShiftListing shiftListingFromJson(Json json, {PublicUrl publicUrl = _noUrl}) {
     lng: _double(json['lng']),
     myStatus: applicationStatusFrom(_strOrNull(json['my_status'])),
     myApplicationId: _strOrNull(json['my_application_id']),
+    offer: _offer(_obj(json['offer'])),
   );
+}
+
+/// `shift_card.offer` (P39) → [ShiftOffer]; null without one.
+ShiftOffer? _offer(Json json) {
+  final status = offerStatusFrom(_strOrNull(json['status']));
+  if (status == null) return null;
+  return ShiftOffer(id: _str(json['id']), status: status, note: _str(json['note']));
 }
 
 /// `application_card` (my_shifts / my_shift) → [MyShift].
@@ -196,6 +204,7 @@ const workerNotificationKinds = [
   'request_again',
   'chat_message',
   'payment_marked',
+  'job_offer',
 ];
 
 /// `notification_card` → an A12 entry; null for kinds the worker app does not
@@ -214,6 +223,7 @@ HiNotification? hiNotificationFromJson(Json json) {
     'chat_message' => NotificationKind.message,
     'new_shift_match' || 'request_again' => NotificationKind.newShift,
     'nearby_digest' => NotificationKind.nearbyShifts,
+    'job_offer' => NotificationKind.jobOffer,
     _ => null,
   };
   if (kind == null) return null;
@@ -251,6 +261,7 @@ HiNotification? hiNotificationFromJson(Json json) {
     categories: [for (final c in _list(data['categories'])) if (c is String) c],
     lat: _double(shift['lat']) ?? _double(data['lat']),
     lng: _double(shift['lng']) ?? _double(data['lng']),
+    note: _strOrNull(data['note']),
   );
 }
 

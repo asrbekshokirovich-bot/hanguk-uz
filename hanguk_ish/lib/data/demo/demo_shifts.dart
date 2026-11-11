@@ -279,6 +279,25 @@ List<ShiftListing> demoShifts(DateTime now) {
     });
 }
 
+/// A job Hanguk's staff offered the worker (hanguk.uz, P39): tomorrow at
+/// Sangam Logistics, for the invited only — not in the feed or on the map,
+/// opened from A12. The demo app has it; the prototype's screens do not.
+ShiftListing demoOfferedShift(DateTime now) => _shift('demo-offer-1', _sangam,
+        day: now.add(const Duration(days: 1)), startHour: 9, hours: 5, wage: 12000, slots: 2, left: 2, km: 2.7,
+        auto: false,
+        ko: '물류 상하차 보조',
+        title: {'uz': 'Yuk ortish va tushirish', 'ru': 'Погрузка и разгрузка', 'en': 'Loading and unloading'},
+        duties: '박스 상하차\n분류 보조',
+        dutiesI18n: {
+          'uz': 'Qutilarni ortish va tushirish\nSaralashga yordam berish',
+          'ru': 'Погрузка и разгрузка коробок\nПомощь в сортировке',
+          'en': 'Loading and unloading boxes\nHelping with sorting',
+        })
+    .copyWith(offer: const ShiftOffer(id: 'demo-offer-1', status: OfferStatus.sent, note: demoOfferNote));
+
+/// What the staff wrote with the demo offer.
+const demoOfferNote = "Ertalab 8:50 da kirish eshigi oldida kutib olamiz.";
+
 /// The worker's finished shifts in the demo: the prototype's November on
 /// A09 (1, 3, 5, 7 and 8 November, the first four already paid).
 List<MyShift> demoHistory(DateTime now) {
@@ -334,8 +353,14 @@ class DemoShiftRepository implements ShiftRepository {
     DateTime Function()? clock,
     this.strictTimes = false,
     bool history = true,
+    bool offers = false,
   })  : _clock = clock ?? DateTime.now,
         _shifts = {for (final s in demoShifts(now ?? DateTime.now())) s.id: s} {
+    if (offers) {
+      final offered = demoOfferedShift(now ?? DateTime.now());
+      _shifts[offered.id] = offered;
+      _inviteOnly.add(offered.id);
+    }
     if (history) {
       for (final past in demoHistory(now ?? DateTime.now())) {
         _apps[past.applicationId] = past;
@@ -345,6 +370,9 @@ class DemoShiftRepository implements ShiftRepository {
   }
 
   final Map<String, ShiftListing> _shifts;
+
+  /// Jobs only invited workers see (not in the feed).
+  final Set<String> _inviteOnly = {};
   final Map<String, MyShift> _apps = {};
   final Map<String, List<ChatMessage>> _chats = {};
   final DateTime Function() _clock;
@@ -366,6 +394,7 @@ class DemoShiftRepository implements ShiftRepository {
   Future<List<ShiftListing>> feed(FeedQuery query) async {
     await _wait();
     return _shifts.values.where((s) {
+      if (_inviteOnly.contains(s.id)) return false;
       if (s.startsAt.isBefore(query.from) || !s.startsAt.isBefore(query.to)) return false;
       if (query.minWage != null && s.hourlyWage < query.minWage!) return false;
       if (query.radiusKm != null && (s.distanceKm ?? 0) > query.radiusKm!) return false;
@@ -400,10 +429,23 @@ class DemoShiftRepository implements ShiftRepository {
       myStatus: status,
       myApplicationId: id,
       slotsLeft: shift.autoConfirm ? shift.slotsLeft - 1 : shift.slotsLeft,
+      // Taking an offered job answers the offer.
+      offer: shift.offer?.withStatus(OfferStatus.applied),
     );
     _shifts[shiftId] = updated;
     _apps[id] = MyShift(applicationId: id, shift: updated, status: status);
     return ApplyResult(applicationId: id, status: status);
+  }
+
+  @override
+  Future<void> declineOffer(String shiftId) async {
+    await _wait();
+    final shift = _shifts[shiftId];
+    final offer = shift?.offer;
+    if (shift == null || offer == null || offer.status != OfferStatus.sent) {
+      throw const ShiftActionException('NOT_FOUND');
+    }
+    _shifts[shiftId] = shift.copyWith(offer: offer.withStatus(OfferStatus.declined));
   }
 
   /// Applications with their shift as it is now.

@@ -1472,6 +1472,53 @@
       }
     }
   },
+  "notifOfferTitle": "Sizga ish taklif qilindi",
+  "@notifOfferTitle": {
+    "description": "A12 va A05: Hanguk xodimi ishchiga ish taklif qildi (P39)."
+  },
+  "notifOfferText": "{business} · {day}, {range} · {wage}/soat",
+  "@notifOfferText": {
+    "description": "A12: taklif qilingan ish.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      },
+      "wage": {
+        "type": "String"
+      }
+    }
+  },
+  "offerNote": "Xodim izohi: {note}",
+  "@offerNote": {
+    "description": "A12 va A05: xodim taklifga yozgan izoh.",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "offerBannerText": "Hanguk xodimi bu ishni siz uchun tanladi. Smenani olsangiz, ish beruvchi bilan kelishib tasdiqlaymiz.",
+  "@offerBannerText": {
+    "description": "A05: taklif qilingan ish banneri."
+  },
+  "offerDeclinedTitle": "Taklifni rad etgansiz",
+  "@offerDeclinedTitle": {
+    "description": "A05: ishchi «Qiziqmayman» degan."
+  },
+  "offerDeclinedText": "Fikringiz o'zgarsa, smenani hali ham olishingiz mumkin.",
+  "@offerDeclinedText": {
+    "description": "A05: rad etilgan taklif."
+  },
+  "declineOffer": "Qiziqmayman",
+  "@declineOffer": {
+    "description": "A05: taklifni rad etish tugmasi."
+  },
   "notifNearbyTitle": "{area} yaqinida {n} ta yangi smena",
   "@notifNearbyTitle": {
     "description": "A12: yaqin atrofdagi smenalar.",

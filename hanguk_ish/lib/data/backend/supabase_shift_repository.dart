@@ -66,6 +66,10 @@ class SupabaseShiftRepository implements ShiftRepository {
       });
 
   @override
+  Future<void> declineOffer(String shiftId) =>
+      backendCall(() => _client.rpc('decline_job_offer', params: {'p_shift': shiftId}));
+
+  @override
   Future<List<MyShift>> myShifts() => backendCall(() async {
         final cards = await _client.rpc('my_shifts');
         return [for (final card in cards as List) _myShift(card)];

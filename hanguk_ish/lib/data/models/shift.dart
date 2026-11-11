@@ -18,6 +18,29 @@ ApplicationStatus? applicationStatusFrom(String? value) => switch (value) {
       _ => null,
     };
 
+/// Hanguk's staff offered the worker this job (hanguk.uz, P39): «Sizga ish
+/// taklif qilindi».
+enum OfferStatus { sent, declined, applied }
+
+OfferStatus? offerStatusFrom(String? value) => switch (value) {
+      'sent' => OfferStatus.sent,
+      'declined' => OfferStatus.declined,
+      'applied' => OfferStatus.applied,
+      _ => null,
+    };
+
+/// The offer the signed-in worker has for a shift, with the staff's note.
+@immutable
+class ShiftOffer {
+  const ShiftOffer({required this.id, required this.status, this.note = ''});
+
+  final String id;
+  final OfferStatus status;
+  final String note;
+
+  ShiftOffer withStatus(OfferStatus status) => ShiftOffer(id: id, status: status, note: note);
+}
+
 /// The worker-facing text of a shift in one language.
 @immutable
 class ShiftText {
@@ -51,6 +74,7 @@ class ShiftListing {
     this.lng,
     this.myStatus,
     this.myApplicationId,
+    this.offer,
   });
 
   final String id;
@@ -79,6 +103,9 @@ class ShiftListing {
 
   final ApplicationStatus? myStatus;
   final String? myApplicationId;
+
+  /// Hanguk's staff offered this job to the worker (null: no offer).
+  final ShiftOffer? offer;
 
   int get plannedMinutes => endsAt.difference(startsAt).inMinutes;
 
@@ -122,7 +149,8 @@ class ShiftListing {
       .where((d) => d.isNotEmpty)
       .toList();
 
-  ShiftListing copyWith({int? slotsLeft, ApplicationStatus? myStatus, String? myApplicationId}) => ShiftListing(
+  ShiftListing copyWith({int? slotsLeft, ApplicationStatus? myStatus, String? myApplicationId, ShiftOffer? offer}) =>
+      ShiftListing(
         id: id,
         business: business,
         title: title,
@@ -141,5 +169,6 @@ class ShiftListing {
         lng: lng,
         myStatus: myStatus ?? this.myStatus,
         myApplicationId: myApplicationId ?? this.myApplicationId,
+        offer: offer ?? this.offer,
       );
 }

@@ -20,6 +20,7 @@ import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../settings/app_language.dart';
 import 'shift_widgets.dart';
+import 'take_shift.dart' show declineShiftOffer;
 
 /// One shift, fresh from the repository (A05).
 final shiftDetailProvider = FutureProvider.autoDispose.family<ShiftListing?, String>(
@@ -138,6 +139,9 @@ class _Detail extends ConsumerWidget {
     final dress = shift.displayDress(lang);
     final distance = shift.distanceKm;
     final bottom = HiInsets.bottom(context, 30);
+    // Hanguk's staff offered this job (P39): until it is taken.
+    final offer = taken ? null : shift.offer;
+    final offerOpen = offer?.status == OfferStatus.sent;
 
     return Stack(
       children: [
@@ -179,6 +183,10 @@ class _Detail extends ConsumerWidget {
                               '${HiDates.duration(shift.plannedMinutes, lang)}',
                           style: hiStyle(15, FontWeight.w600, color: HiColors.textSoft),
                         ),
+                        if (offer != null && offer.status != OfferStatus.applied) ...[
+                          const SizedBox(height: 14),
+                          _OfferCard(offer: offer),
+                        ],
                         const SizedBox(height: 14),
                         _EmployerCard(shift: shift, lang: lang),
                         const SizedBox(height: 14),
@@ -265,14 +273,118 @@ class _Detail extends ConsumerWidget {
               color: HiColors.navy,
               border: Border(top: BorderSide(color: HiColors.white12)),
             ),
-            child: HiButton(
-              label: l10n.takeShift,
-              height: 56,
-              onPressed: taken || full ? null : () => onTake(shift),
-            ),
+            child: offerOpen
+                ? Row(
+                    children: [
+                      Expanded(child: _DeclineOfferButton(shift: shift)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: HiButton(label: l10n.takeShift, height: 56, onPressed: full ? null : () => onTake(shift)),
+                      ),
+                    ],
+                  )
+                : HiButton(
+                    label: l10n.takeShift,
+                    height: 56,
+                    onPressed: taken || full ? null : () => onTake(shift),
+                  ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// «Sizga ish taklif qilindi» with the staff's note; once turned down, that
+/// the job can still be taken.
+class _OfferCard extends StatelessWidget {
+  const _OfferCard({required this.offer});
+
+  final ShiftOffer offer;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = WorkerL10n.of(context);
+    final declined = offer.status == OfferStatus.declined;
+    final note = offer.note.trim();
+    final ink = declined ? HiColors.white : HiColors.onLime;
+    return Semantics(
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: declined
+            ? BoxDecoration(
+                color: HiColors.white06,
+                borderRadius: BorderRadius.circular(HiRadii.card),
+                border: Border.all(color: HiColors.white16),
+              )
+            : BoxDecoration(
+                color: HiColors.lime,
+                borderRadius: BorderRadius.circular(HiRadii.card),
+                border: Border.fromBorderSide(HiBorders.ink),
+                boxShadow: HiShadows.hard,
+              ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HiIcon(declined ? HiIcons.info : HiIcons.send, size: 20, strokeWidth: 2, color: ink),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: HiText(
+                      declined ? l10n.offerDeclinedTitle : l10n.notifOfferTitle,
+                      style: hiStyle(16, FontWeight.w800, height: 1.3, color: ink),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  HiText(
+                    declined ? l10n.offerDeclinedText : l10n.offerBannerText,
+                    style: hiStyle(15, FontWeight.w500, height: 1.45, color: declined ? HiColors.textSoft : ink),
+                  ),
+                  if (!declined && note.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    HiText(l10n.offerNote(note), style: hiStyle(15, FontWeight.w700, height: 1.45, color: ink)),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «Qiziqmayman»: turns the offer down; the card then says so.
+class _DeclineOfferButton extends ConsumerStatefulWidget {
+  const _DeclineOfferButton({required this.shift});
+
+  final ShiftListing shift;
+
+  @override
+  ConsumerState<_DeclineOfferButton> createState() => _DeclineOfferButtonState();
+}
+
+class _DeclineOfferButtonState extends ConsumerState<_DeclineOfferButton> {
+  bool _busy = false;
+
+  Future<void> _decline() async {
+    setState(() => _busy = true);
+    await declineShiftOffer(context, ref, widget.shift);
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return HiButton(
+      label: WorkerL10n.of(context).declineOffer,
+      style: HiButtonStyle.ghost,
+      height: 56,
+      onPressed: _busy ? null : _decline,
     );
   }
 }

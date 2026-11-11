@@ -5,6 +5,7 @@ library;
 import '../../core/time/kst.dart';
 import '../models/account.dart';
 import '../repositories/account_repository.dart';
+import 'demo_shifts.dart' show demoOfferNote;
 
 /// The prototype's A11 numbers: 24 shifts, 21 ratings averaging 4.9,
 /// reliability 98.
@@ -68,9 +69,33 @@ List<HiNotification> demoNotifications(DateTime now) {
   ];
 }
 
-/// In-memory [WorkerAccountRepository].
+/// The demo app's offer from Hanguk's staff (P39–P40), newest: the job of
+/// [demoOfferedShift]. Not on the prototype's A12.
+HiNotification demoOfferNotification(DateTime now) {
+  final d = Kst.wallClock(now);
+  DateTime at(int dayOffset, int hour, int minute) => Kst.instantOf(d.year, d.month, d.day + dayOffset, hour, minute);
+  return HiNotification(
+    id: 'demo-offer-n1',
+    kind: NotificationKind.jobOffer,
+    createdAt: at(0, 12, 30),
+    businessNames: _sangamNames,
+    businessId: 'demo-sangam',
+    shiftId: 'demo-offer-1',
+    startsAt: at(1, 9, 0),
+    endsAt: at(1, 14, 0),
+    wage: 12000,
+    note: demoOfferNote,
+  );
+}
+
+/// In-memory [WorkerAccountRepository]. With [offers], the demo app's offer
+/// comes first (the screen tests keep the prototype's four).
 class DemoAccountRepository implements WorkerAccountRepository {
-  DemoAccountRepository({DateTime? now}) : _notifications = demoNotifications(now ?? DateTime.now());
+  DemoAccountRepository({DateTime? now, bool offers = false})
+      : _notifications = [
+          if (offers) demoOfferNotification(now ?? DateTime.now()),
+          ...demoNotifications(now ?? DateTime.now()),
+        ];
 
   List<HiNotification> _notifications;
   final List<(ReportSubject, String)> reports = [];
