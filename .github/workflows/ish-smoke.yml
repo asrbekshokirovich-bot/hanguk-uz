@@ -58,7 +58,8 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
-      # demo: as sent today (arm64 for phones, x86_64 for the emulator);
+      # demo: as sent today (arm64 for phones, x86_64 for the emulator), at a
+      # set hour;
       # backend: a database address that answers nothing.
       - name: Release APKs
         run: |
@@ -66,8 +67,11 @@ jobs:
           mkdir -p build/smoke-apks
           out=build/app/outputs/flutter-apk
           for app in worker employer; do
+            # The demo at a set hour (13:30 in Seoul): its shifts are laid out
+            # around now, and the walks need the same day whenever they run.
             flutter build apk --release --flavor "$app" -t "lib/main_$app.dart" \
-              --target-platform android-arm64,android-x64 --split-per-abi
+              --target-platform android-arm64,android-x64 --split-per-abi \
+              --dart-define=ISH_DEMO_KST=13:30
             cp "$out/app-x86_64-$app-release.apk" "build/smoke-apks/demo-$app-x86_64.apk"
             cp "$out/app-arm64-v8a-$app-release.apk" "build/smoke-apks/demo-$app-arm64.apk"
             flutter build apk --release --flavor "$app" -t "lib/main_$app.dart" \

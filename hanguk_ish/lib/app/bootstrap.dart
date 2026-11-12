@@ -5,8 +5,15 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/time/clock.dart';
 import '../data/backend/backend.dart';
 import '../data/backend/overrides.dart';
+import '../data/demo/demo_account.dart';
+import '../data/demo/demo_employer.dart';
+import '../data/demo/demo_shifts.dart';
+import '../data/repositories/account_repository.dart';
+import '../data/repositories/employer_repository.dart';
+import '../data/repositories/shift_repository.dart';
 import '../design/theme.dart';
 import '../features/employer/language.dart';
 import '../features/worker/settings/app_language.dart';
@@ -46,6 +53,18 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
       postgrestOptions: ishPostgrestOptions,
     );
     overrides.addAll(backendOverrides(backend, Supabase.instance.client));
+  } else {
+    // The emulator smoke test runs the demo at a set hour (ish-smoke.yml).
+    final clock = demoClockAt(const String.fromEnvironment('ISH_DEMO_KST'));
+    if (clock != null) {
+      final now = clock();
+      overrides.addAll([
+        clockProvider.overrideWithValue(clock),
+        shiftRepositoryProvider.overrideWithValue(DemoShiftRepository(now: now, clock: clock, offers: true)),
+        accountRepositoryProvider.overrideWithValue(DemoAccountRepository(now: now, offers: true)),
+        employerRepositoryProvider.overrideWithValue(DemoEmployerRepository(now: now, clock: clock)),
+      ]);
+    }
   }
   runApp(ProviderScope(overrides: overrides, child: app));
 }
