@@ -2,6 +2,11 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
+// The CRM is used in Tashkent, and the tests' dates are written for its clock:
+// a transfer made on the 6th must not become «05.11» because the machine that
+// runs the tests is in another time zone (CI is in UTC, a laptop anywhere).
+process.env.TZ = 'Asia/Tashkent';
+
 export default defineConfig({
   plugins: [react()],
   test: {
