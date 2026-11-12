@@ -1,14 +1,10 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Ochiq sahifalar indekslanadi; CRM va shaxsiy kabinetlar — yo'q.
 User-agent: *
 Allow: /
+Disallow: /crm
+Disallow: /portal
+Disallow: /center
+Disallow: /university-portal
+Disallow: /system-map
+
+Sitemap: https://www.hanguk.uz/sitemap.xml
