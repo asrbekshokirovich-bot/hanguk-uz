@@ -1,12 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { NativeContainer } from '@/components/native/NativeContainer';
+import { BackButton } from '@/components/BackButton';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export default function Privacy() {
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const { i18n } = useTranslation();
   // The app opens this page with ?lang= in its own language (ky is not a
   // site language, so it is handled here).
   const queryLang = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('lang') : null;
@@ -291,15 +289,14 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
   };
 
   const c = content[lang as keyof typeof content] || content.en;
+  usePageTitle(c.title);
 
   return (
     <NativeContainer className="bg-background">
       <div className="min-h-screen bg-background text-foreground flex flex-col">
         <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-[env(safe-area-inset-top)]">
           <div className="container mx-auto px-4 h-16 flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="flex-shrink-0" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton />
             <h1 className="text-lg font-semibold truncate">{c.title}</h1>
           </div>
         </header>

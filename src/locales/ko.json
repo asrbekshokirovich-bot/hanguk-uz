@@ -2139,7 +2139,18 @@
     "footerLinks": "안내",
     "footerSupport": "고객 지원",
     "footerPrivacy": "개인정보 처리방침",
-    "footerTerms": "이용약관"
+    "footerTerms": "이용약관",
+    "pageTitle": "Hanguk Consulting — 한국 대학 유학",
+    "mockApplication": "서울대학교 지원",
+    "mockSubmitted": "제출 완료",
+    "mockStepDocs": "서류",
+    "mockStepTranslation": "번역",
+    "mockStepApostille": "아포스티유",
+    "mockStepSubmit": "제출",
+    "mockStepVisa": "비자",
+    "mockLevel": "4급",
+    "mockDocuments": "서류",
+    "mockAcceptedWho": "사르도르 → 한양대학교"
   },
   "linkContact": {
     "title": "{{name}} 연결 대상",

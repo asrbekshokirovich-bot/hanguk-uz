@@ -2470,7 +2470,18 @@
     "footerLinks": "Ma'lumot",
     "footerSupport": "Yordam",
     "footerPrivacy": "Maxfiylik siyosati",
-    "footerTerms": "Foydalanish shartlari"
+    "footerTerms": "Foydalanish shartlari",
+    "pageTitle": "Hanguk Consulting — Janubiy Koreya universitetlari",
+    "mockApplication": "Seul Milliy Universitetiga ariza",
+    "mockSubmitted": "Topshirildi",
+    "mockStepDocs": "Hujjat",
+    "mockStepTranslation": "Tarjima",
+    "mockStepApostille": "Apostil",
+    "mockStepSubmit": "Topshirish",
+    "mockStepVisa": "Viza",
+    "mockLevel": "4-daraja",
+    "mockDocuments": "Hujjatlar",
+    "mockAcceptedWho": "Sardor → Hanyang universiteti"
   },
   "linkContact": {
     "title": "{{name}} — kimga biriktiramiz?",

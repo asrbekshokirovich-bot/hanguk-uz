@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Logo } from "@/components/Logo";
 import { Home } from "lucide-react";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const NotFound = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  usePageTitle(`404 · ${t('errors.notFound')}`);
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
