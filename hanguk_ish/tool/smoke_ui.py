@@ -8,6 +8,8 @@
   smoke_ui.py tapbelow ANCHOR TEXT        taps the first TEXT under ANCHOR
   smoke_ui.py tapend TEXT DP              taps DP above the bottom edge of TEXT's
                                           node, swiping until that edge is on screen
+  smoke_ui.py tapx TEXT DP                taps DP left of the screen's right edge,
+                                          level with TEXT's node
   smoke_ui.py scrollto TEXT [swipes]      swipes up until TEXT is on screen
   smoke_ui.py field N VALUE [seconds]     taps the Nth text field, types VALUE
   smoke_ui.py type VALUE                  types into the focused field
@@ -217,6 +219,15 @@ def main():
         y = int(node['bottom'] - dp * density())
         tap_at(node['x'], y)
         print(f"tapped {dp:g} dp above the bottom of {node['words']!r} @ {node['x']},{y}")
+    elif command == 'tapx':
+        # A button at the end of a row whose words Flutter merged into the
+        # row's node (BA5's «CSV 다운로드» beside the title).
+        text, dp = args[0], float(args[1])
+        width, _ = display()
+        node = find(text, 30)
+        x = int(width - dp * density())
+        tap_at(x, node['y'])
+        print(f"tapped {dp:g} dp from the right, level with {node['words']!r} @ {x},{node['y']}")
     elif command == 'tapbelow':
         # The first TEXT under ANCHOR (a field under its label).
         anchor_text, text = args[0], args[1]
