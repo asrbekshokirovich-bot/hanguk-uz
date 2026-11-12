@@ -177,7 +177,7 @@ serve(async (req) => {
       .select("*")
       .eq("id", sessionId)
       .eq("student_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (sessionError || !session) {
       return new Response(
@@ -239,7 +239,7 @@ serve(async (req) => {
       .from("profiles")
       .select("full_name, topik_level, ielts_score, language_track, korean_region_preference, study_work_priority")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     // The student's universities: confirmed choices (Universitet tanlash), best
     // rank first. The legacy applications table is not read — it had no
@@ -291,8 +291,7 @@ serve(async (req) => {
     // Build university context
     let universityContext = "";
     let universityPrograms = "";
-    let universityNotes = "";
-    
+
     let targetUniId = targetUniversityId;
     if (!targetUniId && studentChoices && studentChoices.length > 0) {
       targetUniId = studentChoices[0].institution_id;
@@ -329,33 +328,11 @@ ${programs.map(p => `- ${p.program_name} (${p.faculty_name || 'General'}) - ${p.
 `;
       }
 
-      const { data: notes } = await adminClient
-        .from("university_notes")
-        .select("content, note_type")
-        .eq("university_id", targetUniId)
-        .limit(5);
-      
-      if (notes && notes.length > 0) {
-        universityNotes = `
-=== INSIDER TIPS & NOTES ===
-${notes.map(n => `[${n.note_type}]: ${n.content}`).join('\n')}
-`;
-      }
-
-      const { data: admissionPeriods } = await adminClient
-        .from("university_admission_periods")
-        .select("semester, year, application_start, application_end, language_track")
-        .eq("university_id", targetUniId)
-        .gte("application_end", new Date().toISOString())
-        .order("application_start", { ascending: true })
-        .limit(3);
-      
-      if (admissionPeriods && admissionPeriods.length > 0) {
-        universityContext += `
-=== UPCOMING ADMISSIONS ===
-${admissionPeriods.map(a => `- ${a.year} ${a.semester}: Applications ${a.application_start} to ${a.application_end} (${a.language_track || 'All tracks'})`).join('\n')}
-`;
-      }
+      // Two more lookups used to follow, on every message of every interview,
+      // and both always failed: university_notes (the table does not exist —
+      // 404) and university_admission_periods by university_id (the column is
+      // institution_id, and the table has not been updated since 2026-09-01 —
+      // 400). Neither ever put a line into the prompt.
     }
 
     // Build student profile context
@@ -443,7 +420,6 @@ ${universityContext ? `
 USE THIS UNIVERSITY INFORMATION IN YOUR QUESTIONS:
 ${universityContext}
 ${universityPrograms}
-${universityNotes}
 ` : ''}
 
 ${studentContext ? `

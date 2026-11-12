@@ -4,7 +4,9 @@
 //   * A new lead marked answered within 30 seconds of arriving: almost always
 //     an automatic message nobody at Hanguk wrote (the Instagram form template
 //     hid leads for a day before anyone noticed). One alert per lead.
-//   * At 09:30 Tashkent, yesterday's count: new leads, answered, unanswered.
+//   * At 09:30 Tashkent, yesterday's count: new leads, answered, unanswered —
+//     and yesterday's Instagram comments with the ones nobody answered (the
+//     CRM has no page for comments, so this is the only place they show).
 // deno-lint-ignore-file no-explicit-any
 
 /** The service-role client lead-sla-check already holds. */
@@ -25,6 +27,20 @@ interface DailyReport {
   answered: number;
   unanswered: number;
 }
+
+/** fn_instagram_comments_daily: one day's comments under Hanguk's posts, reels and ads. */
+export interface CommentDigest {
+  total: number;
+  unanswered: number;
+  /** The latest of those still waiting, five at most. */
+  items: { username?: string | null; text?: string | null; media?: string | null }[];
+}
+
+/** Where the comment was left (instagram_comments.media_product_type). */
+const MEDIA: Record<string, string> = { AD: "reklama", REELS: "reels", FEED: "post", STORY: "story" };
+
+/** What the SQL cuts a comment's text to; one that long is shown as cut. */
+const COMMENT_TEXT_MAX = 160;
 
 const MONTHS = [
   "yanvar", "fevral", "mart", "aprel", "may", "iyun",
@@ -54,7 +70,24 @@ function composeQuickExit(l: QuickExit): string {
   ].join("\n");
 }
 
-function composeReport(r: DailyReport): string {
+/** The comments part of the morning report; nothing on a day nobody commented. */
+export function composeComments(c: CommentDigest | null | undefined): string[] {
+  if (!c || !(Number(c.total) > 0)) return [];
+  const waiting = Number(c.unanswered) || 0;
+  const items = Array.isArray(c.items) ? c.items : [];
+  const lines = [``, `💬 Instagram izohlari: ${c.total} ta, javob kutayotgani: ${waiting} ta`];
+  for (const it of items) {
+    const who = it.username ? `@${it.username}` : "(noma'lum)";
+    const where = it.media ? MEDIA[it.media] : undefined;
+    const text = (it.text ?? "").trim();
+    lines.push(`• ${who}${where ? ` (${where})` : ""}: «${text}${text.length >= COMMENT_TEXT_MAX ? "…" : ""}»`);
+  }
+  if (waiting > items.length) lines.push(`…va yana ${waiting - items.length} ta`);
+  if (waiting > 0) lines.push(`Javob Instagram ilovasidan yoziladi — CRM'da izohlar bo'limi yo'q.`);
+  return lines;
+}
+
+export function composeReport(r: DailyReport, comments?: CommentDigest | null): string {
   const [, m, d] = r.report_day.split("-").map(Number);
   return [
     `📊 Kechagi lidlar (${d}-${MONTHS[m - 1]})`,
@@ -62,7 +95,19 @@ function composeReport(r: DailyReport): string {
     `Yangi lidlar: ${r.new_leads}`,
     `Xodim javob bergan: ${r.answered}`,
     `Javobsiz: ${r.unanswered}`,
+    ...composeComments(comments),
   ].join("\n");
+}
+
+/** That day's comments; null (and the report goes out without them) when the query fails. */
+async function commentsOf(supabase: Admin, day: string): Promise<CommentDigest | null> {
+  const { data, error } = await supabase.rpc("fn_instagram_comments_daily", { p_day: day });
+  if (error) {
+    console.error("lead-sla-check: instagram comments:", error.message);
+    return null;
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  return row ? (row as CommentDigest) : null;
 }
 
 export async function runWatchdogs(
@@ -80,7 +125,16 @@ export async function runWatchdogs(
   const exits = (quick.data ?? []) as QuickExit[];
   const reports = (report.data ?? []) as DailyReport[];
 
-  if (dry) return { quick_exits: exits.length, report_sent: false, dry: { exits, reports } };
+  const comments = new Map<string, CommentDigest | null>();
+  for (const r of reports) comments.set(r.report_day, await commentsOf(supabase, r.report_day));
+
+  if (dry) {
+    return {
+      quick_exits: exits.length,
+      report_sent: false,
+      dry: { exits, reports, texts: reports.map((r) => composeReport(r, comments.get(r.report_day))) },
+    };
+  }
   if (!exits.length && !reports.length) return { quick_exits: 0, report_sent: false };
 
   const chats = await watchdogChats(supabase);
@@ -94,7 +148,8 @@ export async function runWatchdogs(
   }
   let reportSent = false;
   for (const r of reports) {
-    for (const chat of chats) if (await send(chat, composeReport(r))) reportSent = true;
+    const text = composeReport(r, comments.get(r.report_day));
+    for (const chat of chats) if (await send(chat, text)) reportSent = true;
   }
   return { quick_exits: exits.length, report_sent: reportSent };
 }

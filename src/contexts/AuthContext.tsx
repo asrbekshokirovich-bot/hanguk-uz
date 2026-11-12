@@ -24,7 +24,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
   signInGuest: (email: string, password: string) => Promise<{ error: Error | null; data?: any }>;
-  signUpGuest: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; data?: any }>;
+  signUpGuest: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null; data?: any }>;
   signUpOwner: (username: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   createStaffAccount: (username: string, password: string, fullName: string, roles: string[]) => Promise<{ error: Error | null; userId?: string }>;
   signOut: () => Promise<void>;
@@ -134,10 +134,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUpGuest = async (email: string, password: string, fullName: string) => {
+  const signUpGuest = async (email: string, password: string, fullName: string, phone?: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('guest-auth', {
-        body: { action: 'signup', email, password, fullName },
+        body: { action: 'signup', email, password, fullName, ...(phone ? { phone } : {}) },
       });
 
       if (error && !data) {

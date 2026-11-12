@@ -23,6 +23,8 @@ export interface IntakeForm {
   sourceNote: string;
   note: string;
   followUp: string;
+  /** "HH:MM" Tashkent time, or '' for a date-only follow-up. */
+  followUpTime: string;
 }
 
 export const EMPTY_FORM: IntakeForm = {
@@ -39,6 +41,7 @@ export const EMPTY_FORM: IntakeForm = {
   sourceNote: '',
   note: '',
   followUp: '',
+  followUpTime: '',
 };
 
 /**
@@ -67,6 +70,7 @@ export const initialsOf = (fullName: string): string => {
 /** Loads an existing lead into the form. */
 export const formFromLead = (lead: Lead): IntakeForm => {
   const { firstName, lastName } = splitName(lead.full_name);
+  const followUp = followUpParts(lead.next_follow_up);
   return {
     firstName,
     lastName,
@@ -80,7 +84,8 @@ export const formFromLead = (lead: Lead): IntakeForm => {
     source: lead.how_heard ?? '',
     sourceNote: lead.source_note ?? '',
     note: lead.notes ?? '',
-    followUp: lead.next_follow_up ? lead.next_follow_up.slice(0, 10) : '',
+    followUp: followUp.date,
+    followUpTime: followUp.time,
   };
 };
 
@@ -112,7 +117,7 @@ export const leadDataFromForm = (form: IntakeForm): CreateLeadData => {
     how_heard: trimmed(form.source) ?? undefined,
     source_note: needsSourceNote(form.source) ? trimmed(form.sourceNote) : null,
     notes: trimmed(form.note) ?? undefined,
-    next_follow_up: trimmed(form.followUp) ?? undefined,
+    next_follow_up: followUpForSave(form.followUp, form.followUpTime),
   };
 };
 
@@ -395,7 +400,7 @@ export interface DateParts {
 
 export const describeDate = (value: string, now: Date = new Date()): DateParts | null => {
   if (!value) return null;
-  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  const date = new Date(`${followUpParts(value).date}T00:00:00`);
   if (Number.isNaN(date.getTime())) return null;
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return {
@@ -411,4 +416,43 @@ export const isoDaysFromNow = (days: number, now: Date = new Date()): string => 
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${date.getFullYear()}-${month}-${day}`;
+};
+
+const TASHKENT = 'Asia/Tashkent';
+
+/**
+ * A stored follow-up split into the form's date and time (Asrbek, 2026-11-12:
+ * "bu yerda soat qo'shish kerak"). Both are read in Tashkent time, so a call
+ * set for 03:00 does not slip to the previous day. A bare date, or a stamp at
+ * exactly 00:00 UTC (how date-only saves were stored before), has no time.
+ */
+export const followUpParts = (value: string | null | undefined): { date: string; time: string } => {
+  if (!value) return { date: '', time: '' };
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return { date: value, time: '' };
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return { date: value.slice(0, 10), time: '' };
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: TASHKENT,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  );
+  const date = `${p.year}-${p.month}-${p.day}`;
+  const dateOnly = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+  return { date, time: dateOnly ? '' : `${p.hour}:${p.minute}` };
+};
+
+/** Date only → "2026-11-12" as before; with a time → "2026-11-12T15:30:00+05:00". */
+export const followUpForSave = (date: string, time: string): string | undefined => {
+  const d = date.trim();
+  if (!d) return undefined;
+  const t = time.trim();
+  return /^\d{2}:\d{2}$/.test(t) ? `${d}T${t}:00+05:00` : d;
 };

@@ -250,7 +250,7 @@ export function StudentDetail({
 
       toast({
         title: t('common.success'),
-        description: 'Payment plan updated',
+        description: t('crmMsg.paymentPlanUpdated', { defaultValue: 'Payment plan updated' }),
       });
       onRefresh();
     } catch (err: any) {
@@ -277,7 +277,7 @@ export function StudentDetail({
 
       toast({
         title: t('common.success'),
-        description: 'Payment mode updated',
+        description: t('crmMsg.paymentModeUpdated', { defaultValue: 'Payment mode updated' }),
       });
       onRefresh();
     } catch (err: any) {
@@ -324,11 +324,11 @@ export function StudentDetail({
 
       if (error) throw error;
 
-      toast({ title: 'Suggestion removed successfully' });
+      toast({ title: t('crmMsg.suggestionRemoved', { defaultValue: 'Suggestion removed successfully' }) });
       fetchSuggestions();
     } catch (err: any) {
       toast({
-        title: 'Failed to remove suggestion',
+        title: t('crmMsg.suggestionRemoveFailed', { defaultValue: 'Failed to remove suggestion' }),
         description: err?.message || 'Unknown error',
         variant: 'destructive',
       });
@@ -391,11 +391,11 @@ export function StudentDetail({
       // Universitet tanlash / Onlayn / Oflayn ariza.
       const { error } = await supabase.from('applications').update({ status: 'documents_collection' }).eq('id', appId);
       if (error) throw error;
-      toast({ title: 'Application approved successfully' });
+      toast({ title: t('crmMsg.applicationApproved', { defaultValue: 'Application approved successfully' }) });
       onRefresh();
     } catch (err: any) {
       toast({
-        title: 'Failed to approve application',
+        title: t('crmMsg.applicationApproveFailed', { defaultValue: 'Failed to approve application' }),
         description: err?.message || 'Unknown error',
         variant: 'destructive',
       });
@@ -413,11 +413,11 @@ export function StudentDetail({
         .eq('id', appId);
 
       if (error) throw error;
-      toast({ title: 'Application rejected and removed' });
+      toast({ title: t('crmMsg.applicationRejected', { defaultValue: 'Application rejected and removed' }) });
       onRefresh();
     } catch (err: any) {
       toast({
-        title: 'Failed to reject application',
+        title: t('crmMsg.applicationRejectFailed', { defaultValue: 'Failed to reject application' }),
         description: err?.message || 'Unknown error',
         variant: 'destructive',
       });
@@ -499,9 +499,9 @@ export function StudentDetail({
     if (!error) {
       setNewNote('');
       fetchNotes();
-      toast({ title: 'Note added successfully' });
+      toast({ title: t('crmMsg.noteAdded', { defaultValue: 'Note added successfully' }) });
     } else {
-      toast({ title: 'Failed to add note', variant: 'destructive' });
+      toast({ title: t('crmMsg.noteAddFailed', { defaultValue: 'Failed to add note' }), variant: 'destructive' });
     }
   };
 
@@ -513,7 +513,7 @@ export function StudentDetail({
 
     if (!error) {
       fetchNotes();
-      toast({ title: 'Note deleted' });
+      toast({ title: t('crmMsg.noteDeleted', { defaultValue: 'Note deleted' }) });
     }
   };
 
@@ -531,9 +531,9 @@ export function StudentDetail({
     if (!error) {
       setNewComment('');
       fetchComments();
-      toast({ title: 'Comment posted successfully' });
+      toast({ title: t('crmMsg.commentPosted', { defaultValue: 'Comment posted successfully' }) });
     } else {
-      toast({ title: 'Failed to post comment', variant: 'destructive' });
+      toast({ title: t('crmMsg.commentPostFailed', { defaultValue: 'Failed to post comment' }), variant: 'destructive' });
     }
   };
 
@@ -552,9 +552,9 @@ export function StudentDetail({
 
     if (!error) {
       fetchPayments();
-      toast({ title: 'Payment deleted' });
+      toast({ title: t('crmMsg.paymentDeleted', { defaultValue: 'Payment deleted' }) });
     } else {
-      toast({ title: 'Failed to delete payment', variant: 'destructive' });
+      toast({ title: t('crmMsg.paymentDeleteFailed', { defaultValue: 'Failed to delete payment' }), variant: 'destructive' });
     }
   };
 
@@ -600,7 +600,7 @@ export function StudentDetail({
       a.click();
       URL.revokeObjectURL(url);
     } else {
-      toast({ title: 'Failed to download document', variant: 'destructive' });
+      toast({ title: t('crmMsg.documentDownloadFailed', { defaultValue: 'Failed to download document' }), variant: 'destructive' });
     }
   };
 
@@ -750,7 +750,7 @@ export function StudentDetail({
         setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
       }
     } catch (err: any) {
-      toast({ title: 'Failed to load document', description: err.message, variant: 'destructive' });
+      toast({ title: t('crmMsg.documentLoadFailed', { defaultValue: 'Failed to load document' }), description: err.message, variant: 'destructive' });
     } finally {
       setViewingDocId(null);
     }
@@ -801,14 +801,14 @@ export function StudentDetail({
       // DB insert succeeded — no cleanup needed
       uploadedFilePath = null;
 
-      toast({ title: 'Document uploaded successfully' });
+      toast({ title: t('crmMsg.documentUploaded', { defaultValue: 'Document uploaded successfully' }) });
       await fetchDocuments();
     } catch (error: any) {
       // Bug #3 fix: If storage upload succeeded but DB insert failed, remove the orphaned file
       if (uploadedFilePath) {
         await supabase.storage.from('student-documents').remove([uploadedFilePath]);
       }
-      toast({ title: 'Failed to upload', description: error.message, variant: 'destructive' });
+      toast({ title: t('crmMsg.uploadFailed', { defaultValue: 'Failed to upload' }), description: error.message, variant: 'destructive' });
     } finally {
       setUploadingFile(false);
       setSlotUploadDocType(null);
@@ -1201,7 +1201,7 @@ export function StudentDetail({
                           size="sm"
                           onClick={async () => {
                             await navigator.clipboard.writeText((student as any).magic_code);
-                            toast({ title: 'Code copied!' });
+                            toast({ title: t('crmMsg.codeCopied', { defaultValue: 'Code copied!' }) });
                           }}
                         >
                           <Copy className="h-4 w-4" />

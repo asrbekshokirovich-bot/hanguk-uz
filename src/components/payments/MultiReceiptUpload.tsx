@@ -35,8 +35,8 @@ export function MultiReceiptUpload({
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: 'Invalid file',
-        description: 'Please upload an image file',
+        title: t('crmMsg.invalidFile', { defaultValue: 'Invalid file' }),
+        description: t('crmMsg.imageOnly', { defaultValue: 'Please upload an image file' }),
         variant: 'destructive',
       });
       return null;
@@ -45,8 +45,8 @@ export function MultiReceiptUpload({
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: 'File too large',
-        description: 'Maximum file size is 5MB',
+        title: t('crmMsg.fileTooLarge', { defaultValue: 'File too large' }),
+        description: t('crmMsg.maxFileSize5', { defaultValue: 'Maximum file size is 5MB' }),
         variant: 'destructive',
       });
       return null;
@@ -74,7 +74,7 @@ export function MultiReceiptUpload({
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
-        title: 'Upload failed',
+        title: t('crmMsg.uploadFailedTitle', { defaultValue: 'Upload failed' }),
         description: error.message || 'Failed to upload receipt',
         variant: 'destructive',
       });
@@ -87,8 +87,8 @@ export function MultiReceiptUpload({
     
     if (value.length + fileArray.length > maxFiles) {
       toast({
-        title: 'Too many files',
-        description: `Maximum ${maxFiles} files allowed`,
+        title: t('crmMsg.tooManyFiles', { defaultValue: 'Too many files' }),
+        description: t('crmMsg.maxFiles', { max: maxFiles, defaultValue: 'Maximum {{max}} files allowed' }),
         variant: 'destructive',
       });
       return;
@@ -103,7 +103,7 @@ export function MultiReceiptUpload({
     if (successfulUploads.length > 0) {
       onChange([...value, ...successfulUploads]);
       toast({
-        title: 'Receipts uploaded',
+        title: t('crmMsg.receiptsUploaded', { defaultValue: 'Receipts uploaded' }),
         description: `${successfulUploads.length} file(s) uploaded successfully`,
       });
     }
@@ -184,16 +184,16 @@ export function MultiReceiptUpload({
         await handleFilesUpload(imageFiles);
       } else {
         toast({
-          title: 'No image found',
-          description: 'No image found in clipboard',
+          title: t('crmMsg.noImageFound', { defaultValue: 'No image found' }),
+          description: t('crmMsg.noImageInClipboard', { defaultValue: 'No image found in clipboard' }),
           variant: 'destructive',
         });
       }
     } catch (error) {
       console.error('Paste error:', error);
       toast({
-        title: 'Paste failed',
-        description: 'Failed to paste from clipboard. Try using Ctrl+V instead.',
+        title: t('crmMsg.pasteFailed', { defaultValue: 'Paste failed' }),
+        description: t('crmMsg.pasteFailedHint', { defaultValue: 'Failed to paste from clipboard. Try using Ctrl+V instead.' }),
         variant: 'destructive',
       });
     }

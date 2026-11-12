@@ -108,7 +108,7 @@ function buildGroups(
         { title: t('navigation.dashboard'), url: '/crm', icon: Home, visible: isAdmin },
         { title: 'Hanguk AI', url: '/crm/ai', icon: Bot, visible: isAdmin, highlight: true },
         { title: t('navigation.students'), url: '/crm/students', icon: Users, visible: true },
-        { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: isAdmin },
+        { title: t('navigation.applications'), url: '/crm/applications', icon: GraduationCap, visible: isAdmin || isDocumentHandler || isCallOperator },
         { title: t('navigation.documents'), url: '/crm/documents', icon: FolderOpen, visible: isAdmin || isDocumentHandler },
         { title: t('navigation.universities'), url: '/crm/universities', icon: GraduationCap, visible: true },
         { title: 'Universitet tanlash', url: '/crm/university-selection', icon: ListChecks, visible: isAdmin || isDocumentHandler || isCallOperator },

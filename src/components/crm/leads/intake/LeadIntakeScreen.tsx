@@ -53,6 +53,12 @@ interface LeadIntakeScreenProps {
 
 /* ── shared field chrome ───────────────────────────────────────────────── */
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+/** Every 5 minutes, plus a stored minute off that grid so it is not lost. */
+const minuteOptions = (current: string) =>
+  current && !MINUTES.includes(current) ? [...MINUTES, current].sort() : MINUTES;
+
 const fieldClass =
   'h-11 rounded-[10px] border border-input bg-background px-3.5 text-[15px] text-foreground ' +
   'outline-none transition focus:border-accent focus:ring-[3px] focus:ring-accent/35';
@@ -486,6 +492,46 @@ export const LeadIntakeScreen = ({
                   onChange={(v) => set('followUp')(v)}
                   className="min-w-[190px]"
                 />
+                {/* Two 24-hour selects, not <input type="time">: that one follows
+                    the browser's locale and showed staff AM/PM (Asrbek, 2026-11-12). */}
+                <div className="flex items-center gap-1">
+                  <select
+                    aria-label={t('leads.intake.fields.followUpTime')}
+                    value={form.followUpTime.slice(0, 2)}
+                    onChange={(event) => {
+                      const hour = event.target.value;
+                      const minute = form.followUpTime.slice(3, 5) || '00';
+                      set('followUpTime')(hour ? `${hour}:${minute}` : '');
+                    }}
+                    disabled={!form.followUp}
+                    className={cn(fieldClass, 'w-[76px] px-2')}
+                  >
+                    <option value="">--</option>
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                  <span aria-hidden className="font-semibold">:</span>
+                  <select
+                    aria-label={t('leads.intake.fields.followUpMinute')}
+                    value={form.followUpTime.slice(3, 5)}
+                    onChange={(event) => {
+                      const hour = form.followUpTime.slice(0, 2);
+                      if (hour) set('followUpTime')(`${hour}:${event.target.value}`);
+                    }}
+                    disabled={!form.followUp || !form.followUpTime}
+                    className={cn(fieldClass, 'w-[76px] px-2')}
+                  >
+                    {!form.followUpTime && <option value="">--</option>}
+                    {minuteOptions(form.followUpTime.slice(3, 5)).map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <button
                   type="button"
                   onClick={() => set('followUp')(isoDaysFromNow(1, now))}
@@ -503,7 +549,9 @@ export const LeadIntakeScreen = ({
               </div>
               {followUp && (
                 <p className="text-[13px] text-muted-foreground">
-                  {t('leads.intake.scheduled', { when: relative.label(followUp) })}
+                  {t('leads.intake.scheduled', {
+                    when: [relative.label(followUp), form.followUpTime].filter(Boolean).join(' · '),
+                  })}
                 </p>
               )}
             </div>

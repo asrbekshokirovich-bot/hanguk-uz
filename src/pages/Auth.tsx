@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { normalizeVisitorPhone, sanitizeVisitorPhone } from '@/lib/visitorPhone';
+import { safeInternalPath } from '@/lib/safePath';
 import { Loader2, User, Lock, Crown, GraduationCap, Briefcase, Eye, EyeOff, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
@@ -118,6 +121,7 @@ async function invokeStudentLogin(normalizedCode: string): Promise<StudentLoginR
 
 export default function Auth() {
   const { t } = useTranslation();
+  usePageTitle(t('auth.login'));
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signInWithUsername, signInGuest, signUpGuest, signUpOwner, user } = useAuth();
@@ -143,6 +147,7 @@ export default function Auth() {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [confirmSignUpPassword, setConfirmSignUpPassword] = useState('');
   const [signUpFullName, setSignUpFullName] = useState('');
+  const [signUpPhone, setSignUpPhone] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmSignUpPassword, setShowConfirmSignUpPassword] = useState(false);
@@ -194,12 +199,9 @@ export default function Auth() {
     if (user) {
       // A survey link shared over Telegram sends a signed-out student here
       // with ?next=/surveys/<id>; without this they land on / and the link
-      // is lost. Only same-site paths are honoured — a leading "//" would
-      // be a protocol-relative URL to someone else's host.
-      const next = searchParams.get('next');
-      const safeNext =
-        next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
-      navigate(safeNext);
+      // is lost. Only paths on this site are honoured (safeInternalPath says
+      // why "/" at the start is not proof of that).
+      navigate(safeInternalPath(searchParams.get('next')) ?? '/');
     }
   }, [user, navigate, searchParams]);
 
@@ -227,7 +229,7 @@ export default function Auth() {
     if (!isEmail && !usernameSchema.safeParse(username).success) {
       toast({
         title: t('auth.loginError'),
-        description: 'Username must be 3-20 characters (letters, numbers, underscores)',
+        description: t('auth.usernameRules', { defaultValue: 'Username must be 3-20 characters (letters, numbers, underscores)' }),
         variant: 'destructive'
       });
       return;
@@ -244,7 +246,7 @@ export default function Auth() {
         setLoading(false);
         toast({
           title: t('auth.loginError'),
-          description: "Staff login must use a username.",
+          description: t('auth.staffUsernameOnly', { defaultValue: 'Staff sign in with a username, not an email.' }),
           variant: 'destructive'
         });
         return;
@@ -310,7 +312,9 @@ export default function Auth() {
 
         toast({
           title: t('auth.loginSuccess'),
-          description: `Welcome, ${result.profile?.full_name || 'Student'}!`,
+          description: result.profile?.full_name
+            ? t('auth.welcomeName', { name: result.profile.full_name, defaultValue: 'Welcome, {{name}}!' })
+            : undefined,
         });
         navigate('/'); // Let Index.tsx handle role-based routing
         return;
@@ -325,7 +329,7 @@ export default function Auth() {
       console.error('[Auth] Student login error details:', error);
       toast({
         title: t('auth.loginError'),
-        description: error?.message || 'Error occurred',
+        description: error?.message || t('auth.genericError', { defaultValue: 'Something went wrong' }),
         variant: 'destructive',
       });
     } finally {
@@ -339,22 +343,22 @@ export default function Auth() {
     // Validation
     if (!usernameSchema.safeParse(username).success) {
       toast({
-        title: 'Setup Error',
-        description: 'Username must be 3-20 characters (letters, numbers, underscores)',
+        title: t('auth.setupError', { defaultValue: 'Setup Error' }),
+        description: t('auth.usernameRules', { defaultValue: 'Username must be 3-20 characters (letters, numbers, underscores)' }),
         variant: 'destructive'
       });
       return;
     }
     if (!passwordSchema.safeParse(password).success) {
-      toast({ title: 'Setup Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: t('auth.invalidPassword'), variant: 'destructive' });
       return;
     }
     if (password !== confirmPassword) {
-      toast({ title: 'Setup Error', description: t('auth.passwordMismatch'), variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: t('auth.passwordMismatch'), variant: 'destructive' });
       return;
     }
     if (!fullName.trim()) {
-      toast({ title: 'Setup Error', description: 'Full name is required', variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: t('auth.fullNameRequired', { defaultValue: 'Full name is required' }), variant: 'destructive' });
       return;
     }
 
@@ -363,9 +367,9 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({ title: 'Setup Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Owner account created successfully!' });
+      toast({ title: t('auth.ownerCreated', { defaultValue: 'Owner account created successfully!' }) });
       navigate('/');
     }
   };
@@ -385,7 +389,19 @@ export default function Auth() {
     if (!signUpFullName.trim()) {
       toast({
         title: t('auth.loginError'),
-        description: 'Full name is required',
+        description: t('auth.fullNameRequired', { defaultValue: 'Full name is required' }),
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // A consultant calls back: without a number that can be dialled the
+    // registration reaches nobody (16 people before 2026-11-12).
+    const phone = normalizeVisitorPhone(signUpPhone);
+    if (!phone) {
+      toast({
+        title: t('auth.loginError'),
+        description: t('auth.phoneInvalid', { defaultValue: 'Enter your full phone number (for example, +998 90 123 45 67)' }),
         variant: 'destructive'
       });
       return;
@@ -394,7 +410,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { data: guestData, error: guestError } = await signUpGuest(signUpEmail, signUpPassword, signUpFullName);
+      const { data: guestData, error: guestError } = await signUpGuest(signUpEmail, signUpPassword, signUpFullName, phone);
 
       if (guestError) {
         throw guestError;
@@ -402,7 +418,7 @@ export default function Auth() {
 
       toast({
         title: t('auth.registeredSuccess'),
-        description: t('auth.dataSaved'),
+        description: t('auth.consultantWillCall', { defaultValue: 'A consultant will contact you soon.' }),
       });
 
       // Clear fields and navigate
@@ -410,11 +426,12 @@ export default function Auth() {
       setSignUpPassword('');
       setConfirmSignUpPassword('');
       setSignUpFullName('');
+      setSignUpPhone('');
       navigate('/');
     } catch (error: any) {
       toast({
         title: t('auth.loginError'),
-        description: error.message || 'Signup failed',
+        description: error.message || t('auth.signupFailed', { defaultValue: 'Signup failed' }),
         variant: 'destructive'
       });
     } finally {
@@ -600,6 +617,19 @@ export default function Auth() {
                     <div className="space-y-2">
                       <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
                       <Input id="signup-name" type="text" value={signUpFullName} onChange={(e) => setSignUpFullName(e.target.value.toUpperCase())} placeholder={t('auth.fullName')} className="uppercase" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-phone">{t('auth.phone', { defaultValue: 'Phone number' })}</Label>
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={signUpPhone}
+                        onChange={(e) => setSignUpPhone(sanitizeVisitorPhone(e.target.value))}
+                        placeholder="+998 90 123 45 67"
+                        required
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">{t('auth.email')}</Label>

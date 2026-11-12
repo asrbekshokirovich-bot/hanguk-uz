@@ -295,6 +295,15 @@ describe('LeadIntakeScreen', () => {
     expect(screen.getByLabelText('Qayta aloqa sanasi')).toHaveValue('21.08.2026');
   });
 
+  it('adds a time to the follow-up', () => {
+    setup();
+    expect(screen.getByLabelText('Soat')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Ertaga' }));
+    fireEvent.change(screen.getByLabelText('Soat'), { target: { value: '15' } });
+    fireEvent.change(screen.getByLabelText('Daqiqa'), { target: { value: '30' } });
+    expect(screen.getByText(/Rejalashtirilgan: 15-avgust · ertaga · 15:30/)).toBeInTheDocument();
+  });
+
   it('records a single choice per group', () => {
     setup();
     const bachelor = screen.getByRole('radio', { name: 'Bakalavr' });

@@ -352,6 +352,8 @@ export default function CRMPortal() {
           </>
         );
       case 'applications':
+        // All staff see the board (Asrbek, 2026-11-12: "hammaga"); RLS already allows these roles.
+        if (!(isAdmin || isDocumentHandler || isCallOperator)) return <AccessDenied />;
         return (
           <>
             <div style={{ display: selectedStudent ? 'none' : undefined }} className="space-y-4">

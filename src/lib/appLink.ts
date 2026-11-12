@@ -17,6 +17,15 @@ export const APP_PACKAGE = 'com.hanguk.studentapp.hanguk_app';
 export const APP_WEB_URL: string =
   (import.meta.env.VITE_APP_WEB_URL as string | undefined) || 'https://hanguk.uz/ilova/app/';
 
+/**
+ * Where "get the app" goes: hanguk.uz/app (public/app.html, outside this
+ * single-page app). A phone is sent straight to its store — the App Store or
+ * Google Play; a computer sees the page with both badges, the QR code and the
+ * demo. It is a page of its own, so it is linked with a plain <a href>, never
+ * with the router.
+ */
+export const APP_DOWNLOAD_URL = '/app';
+
 /** The App Store page, once the app is there; no button without it. */
 export const APP_STORE_URL: string | null = (import.meta.env.VITE_APP_STORE_URL as string | undefined) || null;
 

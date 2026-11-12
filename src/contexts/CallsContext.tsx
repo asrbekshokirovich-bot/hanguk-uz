@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useRe
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 export interface Call {
   id: string;
@@ -53,6 +54,7 @@ const CallsContext = createContext<CallsContextType | undefined>(undefined);
 export function CallsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [calls, setCalls] = useState<Call[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchCallsRef = useRef<() => Promise<void>>();
@@ -116,11 +118,11 @@ export function CallsProvider({ children }: { children: ReactNode }) {
       });
 
     if (error) {
-      toast({ title: 'Error', description: 'Failed to log call', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crmMsg.callLogFailed', { defaultValue: 'Failed to log call' }), variant: 'destructive' });
       return false;
     }
 
-    toast({ title: 'Success', description: 'Call logged successfully' });
+    toast({ title: t('common.success'), description: t('crmMsg.callLogged', { defaultValue: 'Call logged successfully' }) });
     return true;
   };
 
@@ -131,11 +133,11 @@ export function CallsProvider({ children }: { children: ReactNode }) {
       .eq('id', callId);
 
     if (error) {
-      toast({ title: 'Error', description: 'Failed to update call', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crmMsg.callUpdateFailed', { defaultValue: 'Failed to update call' }), variant: 'destructive' });
       return false;
     }
 
-    toast({ title: 'Success', description: 'Call updated successfully' });
+    toast({ title: t('common.success'), description: t('crmMsg.callUpdated', { defaultValue: 'Call updated successfully' }) });
     return true;
   };
 
@@ -146,11 +148,11 @@ export function CallsProvider({ children }: { children: ReactNode }) {
       .eq('id', callId);
 
     if (error) {
-      toast({ title: 'Error', description: 'Failed to delete call', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crmMsg.callDeleteFailed', { defaultValue: 'Failed to delete call' }), variant: 'destructive' });
       return false;
     }
 
-    toast({ title: 'Success', description: 'Call deleted successfully' });
+    toast({ title: t('common.success'), description: t('crmMsg.callDeleted', { defaultValue: 'Call deleted successfully' }) });
     return true;
   };
 
