@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_ish/core/time/clock.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 
 void main() {
@@ -39,6 +40,30 @@ void main() {
       final end = Kst.instantOf(2026, 11, 10, 19, 0);
       expect(Kst.minutesBetween(start, end), 300);
       expect(Kst.minutesBetween(end, start), -300);
+    });
+  });
+
+  group('demoClockAt (the smoke test\'s set hour)', () {
+    test('starts at that Korean time on today\'s Korean date and runs on', () {
+      var real = DateTime.utc(2026, 11, 12, 10, 17, 30); // 19:17:30 in Seoul
+      final clock = demoClockAt('13:30', () => real)!;
+      final start = Kst.wallClock(clock());
+      expect([start.year, start.month, start.day, start.hour, start.minute], [2026, 11, 12, 13, 30]);
+      real = real.add(const Duration(minutes: 7, seconds: 5));
+      final later = Kst.wallClock(clock());
+      expect([later.hour, later.minute, later.second], [13, 37, 5]);
+    });
+
+    test('the Korean date, not UTC\'s: just after midnight in Seoul', () {
+      final clock = demoClockAt('09:00', () => DateTime.utc(2026, 11, 12, 15, 30))!; // 00:30, Nov 13 in Seoul
+      final wall = Kst.wallClock(clock());
+      expect([wall.month, wall.day, wall.hour], [11, 13, 9]);
+    });
+
+    test('nothing set or not HH:MM: no demo clock', () {
+      for (final value in ['', '9:00', '24:00', '13:60', '13:30:00', 'noon']) {
+        expect(demoClockAt(value), isNull, reason: value);
+      }
     });
   });
 }
