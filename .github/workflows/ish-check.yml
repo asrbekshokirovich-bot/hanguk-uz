@@ -221,19 +221,36 @@ jobs:
       # as base64, ISH_UPLOAD_KEYSTORE_PASSWORD, ISH_UPLOAD_KEY_ALIAS,
       # ISH_UPLOAD_KEY_PASSWORD) the two app bundles are built and signed for
       # upload. The APKs above stay on the sideload test key.
+      # Without a key of its own, Hanguk Ish signs with the student app's upload
+      # key (android-release.yml, same Play account): Play accepts one upload
+      # key for several apps, and Play App Signing still gives each app its own
+      # signing key. ISH_UPLOAD_* set later take over (a new key for an app
+      # already on Play goes through Play Console → App signing → upload key reset).
       - name: Play bundles (when the upload key is set)
         env:
           UPLOAD_KEYSTORE: ${{ secrets.ISH_UPLOAD_KEYSTORE }}
           UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ISH_UPLOAD_KEYSTORE_PASSWORD }}
           UPLOAD_KEY_ALIAS: ${{ secrets.ISH_UPLOAD_KEY_ALIAS }}
           UPLOAD_KEY_PASSWORD: ${{ secrets.ISH_UPLOAD_KEY_PASSWORD }}
+          STUDENT_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STUDENT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          STUDENT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          STUDENT_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -eu
+          if [ -z "$UPLOAD_KEYSTORE" ] && [ -n "$STUDENT_KEYSTORE" ]; then
+            echo "No ISH_UPLOAD_KEYSTORE: signing with the student app's upload key."
+            UPLOAD_KEYSTORE=$STUDENT_KEYSTORE
+            UPLOAD_KEYSTORE_PASSWORD=$STUDENT_KEYSTORE_PASSWORD
+            UPLOAD_KEY_ALIAS=$STUDENT_KEY_ALIAS
+            UPLOAD_KEY_PASSWORD=$STUDENT_KEY_PASSWORD
+          fi
           if [ -z "$UPLOAD_KEYSTORE" ]; then
             echo "No upload key in the secrets: no Play bundles."
             exit 0
           fi
-          echo "$UPLOAD_KEYSTORE" | base64 -d > android/upload.keystore
+          printf '%s' "$UPLOAD_KEYSTORE" | base64 -d > android/upload.keystore
+          chmod 600 android/upload.keystore
           {
             echo "storeFile=upload.keystore"
             echo "storePassword=$UPLOAD_KEYSTORE_PASSWORD"
@@ -246,6 +263,11 @@ jobs:
               --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY"
           done
           rm -f android/key.properties android/upload.keystore
+          # What Play will see: the upload certificate and the version code.
+          for app in worker employer; do
+            aab="build/app/outputs/bundle/${app}Release/app-${app}-release.aab"
+            echo "$app: versionCode ${{ github.run_number }}, $(keytool -printcert -jarfile "$aab" | grep -m1 'SHA1:' | xargs)"
+          done
 
       - name: Publish APKs
         env:
