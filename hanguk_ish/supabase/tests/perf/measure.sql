@@ -103,6 +103,17 @@ select pg_temp.ms('CRM staff_shift (50 offers)',
 select pg_temp.ms('CRM staff_businesses',
   $$select ish.staff_businesses()$$,
   '00000000-0000-0000-0002-0000000001f4', 100);
+-- P52: the 500 app businesses with their 40 000 shifts, and the complaints.
+select pg_temp.ms('CRM staff_app_businesses (500)',
+  $$select ish.staff_app_businesses()$$,
+  '00000000-0000-0000-0002-0000000001f4', 1500);
+insert into ish.reports (reporter_id, reason, body, created_at)
+select ('00000000-0000-0000-0001-' || lpad(to_hex(1 + i % 20000), 12, '0'))::uuid,
+       (array['employer', 'payment', 'safety', 'other'])[1 + i % 4], 'perf ' || i, now() - make_interval(hours => i)
+from generate_series(1, 2000) i;
+select pg_temp.ms('CRM staff_reports (200 of 2 000)',
+  $$select ish.staff_reports(200)$$,
+  '00000000-0000-0000-0002-0000000001f4', 100);
 select pg_temp.ms('job close_finished_shifts (every 10 min)', $$select ish.close_finished_shifts()$$, null, 3000);
 select pg_temp.ms('job queue_shift_reminders (every 10 min)', $$select ish.queue_shift_reminders()$$, null, 1000);
 select pg_temp.ms('job queue_nearby_digests (daily)', $$select ish.queue_nearby_digests()$$, null, 25000);

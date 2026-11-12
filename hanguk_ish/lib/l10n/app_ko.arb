@@ -473,6 +473,8 @@
   "bizReviewPendingText": "국세청 확인이 끝나면 올린 근무가 근무자에게 보여요.",
   "bizReviewRejectedTitle": "확인되지 않은 사업자",
   "bizReviewRejectedText": "국세청에서 폐업 사업자로 확인되어 근무가 근무자에게 보이지 않아요.",
+  "bizReviewSuspendedTitle": "정지된 사업장",
+  "bizReviewSuspendedText": "Hanguk에서 이 사업장을 정지해 근무가 근무자에게 보이지 않아요.",
   "bizNotificationsTitle": "알림",
   "bizYesterday": "어제",
   "bizNoNotifications": "새 알림이 없어요",

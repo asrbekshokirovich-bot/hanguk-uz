@@ -2738,7 +2738,9 @@
     "seoulTime": "시간은 한국(서울) 시간 기준이에요.",
     "tabs": {
       "jobs": "일자리",
-      "employers": "사업장"
+      "employers": "사업장",
+      "appBusinesses": "앱 사업장",
+      "reports": "신고"
     },
     "board": {
       "newJob": "새 일자리",
@@ -2915,6 +2917,60 @@
       "NOT_AUTHENTICATED": "다시 로그인하세요.",
       "OFFLINE": "인터넷 연결이 없어요.",
       "UNKNOWN": "문제가 생겼어요. 다시 시도해 주세요."
+    },
+    "appBusinesses": {
+      "intro": "사장님 앱에서 열린 사업장입니다. 확인 없이 바로 열리므로 의심스러우면 정지하세요: 근무가 근무자에게 보이지 않고 지원할 수 없어요.",
+      "empty": "앱에서 열린 사업장이 아직 없어요.",
+      "business": "사업장",
+      "status": "상태",
+      "opened": "개설일",
+      "shifts": "근무",
+      "actions": "작업",
+      "statusActive": "운영 중",
+      "statusSuspended": "정지됨",
+      "statusPending": "확인 중",
+      "shiftsLine": "모집 중 {{open}} · 전체 {{total}}",
+      "last24h": "24시간: {{count}}",
+      "placeholder": "실제 이름 미입력",
+      "edit": "수정",
+      "editTitle": "사업장 정보",
+      "suspend": "정지",
+      "resume": "재개",
+      "suspendTitle": "사업장을 정지할까요?",
+      "suspendText": "근무가 근무자에게 보이지 않고 새 지원을 받을 수 없어요.",
+      "suspendCrew": "확정된 근무자: {{count}}명 — 근무는 그대로예요.",
+      "resumeTitle": "사업장을 재개할까요?",
+      "resumeText": "근무가 다시 근무자에게 보여요.",
+      "suspended": "정지했어요",
+      "resumed": "재개했어요"
+    },
+    "reports": {
+      "intro": "근무자가 앱에서 보낸 신고예요. 열린 신고가 위에 있어요. 확인하고 상태를 표시하세요.",
+      "empty": "아직 신고가 없어요.",
+      "when": "일시",
+      "reason": "주제",
+      "text": "내용",
+      "worker": "근무자",
+      "status": "상태",
+      "reasons": {
+        "employer": "사업장",
+        "payment": "급여",
+        "safety": "안전",
+        "other": "기타",
+        "unpaid": "미지급",
+        "not_as_described": "설명과 다름",
+        "time_dispute": "시간 분쟁",
+        "no_show": "노쇼",
+        "behaviour": "태도"
+      },
+      "statuses": {
+        "open": "접수",
+        "in_review": "확인 중",
+        "closed": "완료"
+      },
+      "history": "근무 {{completed}}회 · 노쇼 {{noShows}}회",
+      "noName": "이름 없음",
+      "changed": "상태를 바꿨어요"
     }
   },
   "calendarPage": {

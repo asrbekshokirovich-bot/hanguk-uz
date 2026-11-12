@@ -33,12 +33,14 @@ select ('10000000-0000-0000-0001-' || lpad(to_hex(i), 12, '0'))::uuid,
        ('00000000-0000-0000-0002-' || lpad(to_hex(i), 12, '0'))::uuid, 'owner'
 from generate_series(1, 500) i;
 
--- 40 000 shifts: from 60 days ago to 14 days ahead, on the hour.
-insert into ish.shifts (id, business_id, title, starts_at, ends_at, hourly_wage, slots, auto_confirm, status)
+-- 40 000 shifts: from 60 days ago to 14 days ahead, on the hour; each was
+-- posted days before (not all today: an app business posts 30 a day, P52).
+insert into ish.shifts (id, business_id, title, starts_at, ends_at, hourly_wage, slots, auto_confirm, status,
+                        created_at)
 select ('20000000-0000-0000-0001-' || lpad(to_hex(i), 12, '0'))::uuid,
        ('10000000-0000-0000-0001-' || lpad(to_hex(1 + i % 500), 12, '0'))::uuid,
        '근무 ' || i, t, t + interval '4 hours', 11000, (1 + i % 4)::smallint, i % 2 = 0,
-       'open'::ish.shift_status
+       'open'::ish.shift_status, least(t - interval '3 days', now() - interval '2 days')
 from (select i, date_trunc('hour', now() - interval '60 days' + (random() * interval '74 days')) as t
       from generate_series(1, 40000) i) x;
 

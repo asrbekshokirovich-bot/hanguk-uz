@@ -3779,7 +3779,9 @@
     "seoulTime": "Times are Korea (Seoul) time.",
     "tabs": {
       "jobs": "Jobs",
-      "employers": "Employers"
+      "employers": "Employers",
+      "appBusinesses": "App businesses",
+      "reports": "Complaints"
     },
     "board": {
       "newJob": "New job",
@@ -3959,6 +3961,60 @@
       "NOT_AUTHENTICATED": "Sign in again.",
       "OFFLINE": "No internet connection.",
       "UNKNOWN": "Something went wrong. Please try again."
+    },
+    "appBusinesses": {
+      "intro": "Businesses opened in the 사장님 app. They open at once, without a check — if one looks suspicious, suspend it: workers won't see its shifts and nobody can apply.",
+      "empty": "No business has been opened in the app yet.",
+      "business": "Business",
+      "status": "Status",
+      "opened": "Opened",
+      "shifts": "Shifts",
+      "actions": "Actions",
+      "statusActive": "Active",
+      "statusSuspended": "Suspended",
+      "statusPending": "In review",
+      "shiftsLine": "{{open}} open · {{total}} in all",
+      "last24h": "Last 24 h: {{count}}",
+      "placeholder": "No real name yet",
+      "edit": "Edit",
+      "editTitle": "Business details",
+      "suspend": "Suspend",
+      "resume": "Resume",
+      "suspendTitle": "Suspend this business?",
+      "suspendText": "workers won't see its shifts and new applications are blocked.",
+      "suspendCrew": "Confirmed workers: {{count}} — they keep their shifts.",
+      "resumeTitle": "Resume this business?",
+      "resumeText": "workers will see its shifts again.",
+      "suspended": "Suspended",
+      "resumed": "Resumed"
+    },
+    "reports": {
+      "intro": "Complaints workers sent from the app — open ones on top. Look into each and set its status.",
+      "empty": "No complaints yet.",
+      "when": "When",
+      "reason": "Subject",
+      "text": "Text",
+      "worker": "Worker",
+      "status": "Status",
+      "reasons": {
+        "employer": "Employer",
+        "payment": "Pay",
+        "safety": "Safety",
+        "other": "Other",
+        "unpaid": "Unpaid",
+        "not_as_described": "Not as described",
+        "time_dispute": "Time dispute",
+        "no_show": "No-show",
+        "behaviour": "Behaviour"
+      },
+      "statuses": {
+        "open": "Open",
+        "in_review": "In review",
+        "closed": "Closed"
+      },
+      "history": "{{completed}} shifts · {{noShows}} no-shows",
+      "noName": "No name",
+      "changed": "Status changed"
     }
   },
   "calendarPage": {

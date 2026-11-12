@@ -2430,6 +2430,14 @@
   "@bizReviewRejectedText": {
     "description": "사장님 ilovasi (P43): reviewRejectedText"
   },
+  "bizReviewSuspendedTitle": "Biznes to'xtatilgan",
+  "@bizReviewSuspendedTitle": {
+    "description": "사장님 ilovasi (P52): BA1 — Hanguk xodimi biznesni to'xtatgan (biznes raqamisiz)"
+  },
+  "bizReviewSuspendedText": "Hanguk bu biznesni to'xtatgan — smenalar ishchilarga ko'rinmaydi.",
+  "@bizReviewSuspendedText": {
+    "description": "사장님 ilovasi (P52): BA1 — to'xtatilgan biznes izohi"
+  },
   "bizNotificationsTitle": "Bildirishnomalar",
   "@bizNotificationsTitle": {
     "description": "사장님 ilovasi (P43): notificationsTitle"

@@ -3839,7 +3839,9 @@
     "seoulTime": "Vaqtlar Koreya (Seul) vaqti bilan.",
     "tabs": {
       "jobs": "Ishlar",
-      "employers": "Ish beruvchilar"
+      "employers": "Ish beruvchilar",
+      "appBusinesses": "Ilovadagi bizneslar",
+      "reports": "Shikoyatlar"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -4016,6 +4018,60 @@
       "NOT_AUTHENTICATED": "Qaytadan kiring.",
       "OFFLINE": "Internet aloqasi yo'q.",
       "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring."
+    },
+    "appBusinesses": {
+      "intro": "사장님 ilovasida ochilgan bizneslar. Ular tekshiruvsiz, darhol ochiladi — shubhali bo'lsa, to'xtating: smenalari ishchilarga ko'rinmaydi va ariza berib bo'lmaydi.",
+      "empty": "Ilovada hali biznes ochilmagan.",
+      "business": "Biznes",
+      "status": "Holati",
+      "opened": "Ochilgan",
+      "shifts": "Smenalar",
+      "actions": "Amallar",
+      "statusActive": "Faol",
+      "statusSuspended": "To'xtatilgan",
+      "statusPending": "Tekshiruvda",
+      "shiftsLine": "{{open}} ochiq · jami {{total}}",
+      "last24h": "24 soatda: {{count}}",
+      "placeholder": "Haqiqiy nomi qo'yilmagan",
+      "edit": "Tahrirlash",
+      "editTitle": "Biznes ma'lumotlari",
+      "suspend": "To'xtatish",
+      "resume": "Qayta yoqish",
+      "suspendTitle": "Biznesni to'xtatasizmi?",
+      "suspendText": "smenalari ishchilarga ko'rinmaydi va yangi ariza berib bo'lmaydi.",
+      "suspendCrew": "Tasdiqlangan ishchilar: {{count}} — smenalarida qoladi.",
+      "resumeTitle": "Biznesni qayta yoqasizmi?",
+      "resumeText": "smenalari yana ishchilarga ko'rinadi.",
+      "suspended": "To'xtatildi",
+      "resumed": "Qayta yoqildi"
+    },
+    "reports": {
+      "intro": "Ishchilar ilovadan yuborgan shikoyatlar — ochiqlari tepada. Ko'rib chiqing va holatini belgilang.",
+      "empty": "Hozircha shikoyat yo'q.",
+      "when": "Qachon",
+      "reason": "Mavzu",
+      "text": "Matn",
+      "worker": "Ishchi",
+      "status": "Holati",
+      "reasons": {
+        "employer": "Ish beruvchi",
+        "payment": "Maosh",
+        "safety": "Xavfsizlik",
+        "other": "Boshqa",
+        "unpaid": "To'lanmagan",
+        "not_as_described": "Ta'rifga mos emas",
+        "time_dispute": "Vaqt bo'yicha kelishmovchilik",
+        "no_show": "Kelmagan",
+        "behaviour": "Xulq-atvor"
+      },
+      "statuses": {
+        "open": "Ochiq",
+        "in_review": "Ko'rib chiqilmoqda",
+        "closed": "Yopilgan"
+      },
+      "history": "{{completed}} ta smena · {{noShows}} marta kelmagan",
+      "noName": "Ismi kiritilmagan",
+      "changed": "Holati o'zgardi"
     }
   },
   "calendarPage": {
