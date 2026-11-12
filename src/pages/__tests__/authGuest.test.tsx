@@ -140,4 +140,35 @@ describe('Auth — guest registration', () => {
     await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' })));
     expect(screen.getByTestId('where').textContent).toBe('/auth');
   });
+
+  it('staff sign-in mistakes are explained in the page\'s language, not in English', async () => {
+    const { container } = open();
+    fireEvent.click(await screen.findByRole('button', { name: /Xodim/ }));
+    const field = (id: string) => container.querySelector(`#${id}`) as HTMLInputElement;
+    await waitFor(() => expect(field('login-username')).not.toBeNull());
+
+    // Too short to be a login.
+    fireEvent.change(field('login-username'), { target: { value: 'ab' } });
+    fireEvent.change(field('login-password'), { target: { value: 'secret1' } });
+    fireEvent.submit(field('login-username').closest('form')!);
+    await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+      description: 'Login 3–20 belgidan iborat bo\'lishi kerak (harf, raqam, pastki chiziq)',
+    })));
+
+    // An email typed where the login goes.
+    toast.mockReset();
+    fireEvent.change(field('login-username'), { target: { value: 'ali@example.com' } });
+    fireEvent.submit(field('login-username').closest('form')!);
+    await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+      description: 'Xodimlar email bilan emas, login bilan kiradi.',
+    })));
+  });
+
+  it('the sign-in page\'s messages are written in every site language', () => {
+    for (const lng of ['uz', 'en', 'ru', 'ko']) {
+      for (const key of ['usernameRules', 'staffUsernameOnly', 'welcomeName', 'genericError', 'setupError', 'fullNameRequired', 'ownerCreated', 'signupFailed', 'phone', 'phoneInvalid', 'consultantWillCall']) {
+        expect(i18n.getResource(lng, 'translation', `auth.${key}`), `${lng}: auth.${key}`).toBeTruthy();
+      }
+    }
+  });
 });

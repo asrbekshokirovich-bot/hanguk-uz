@@ -197,7 +197,15 @@
     "createAccount": "계정 만들기",
     "phone": "전화번호",
     "phoneInvalid": "전화번호를 정확히 입력하세요 (예: +998 90 123 45 67)",
-    "consultantWillCall": "상담사가 곧 연락드리겠습니다."
+    "consultantWillCall": "상담사가 곧 연락드리겠습니다.",
+    "usernameRules": "아이디는 3~20자여야 합니다 (영문, 숫자, 밑줄)",
+    "staffUsernameOnly": "직원은 이메일이 아닌 아이디로 로그인합니다.",
+    "welcomeName": "{{name}}님, 환영합니다!",
+    "genericError": "오류가 발생했습니다",
+    "setupError": "설정 오류",
+    "fullNameRequired": "이름을 입력하세요",
+    "ownerCreated": "소유자 계정이 생성되었습니다!",
+    "signupFailed": "가입하지 못했습니다"
   },
   "navigation": {
     "home": "홈",

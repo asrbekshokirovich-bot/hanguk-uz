@@ -231,7 +231,7 @@ export default function Auth() {
     if (!isEmail && !usernameSchema.safeParse(username).success) {
       toast({
         title: t('auth.loginError'),
-        description: 'Username must be 3-20 characters (letters, numbers, underscores)',
+        description: t('auth.usernameRules', { defaultValue: 'Username must be 3-20 characters (letters, numbers, underscores)' }),
         variant: 'destructive'
       });
       return;
@@ -248,7 +248,7 @@ export default function Auth() {
         setLoading(false);
         toast({
           title: t('auth.loginError'),
-          description: "Staff login must use a username.",
+          description: t('auth.staffUsernameOnly', { defaultValue: 'Staff sign in with a username, not an email.' }),
           variant: 'destructive'
         });
         return;
@@ -314,7 +314,9 @@ export default function Auth() {
 
         toast({
           title: t('auth.loginSuccess'),
-          description: `Welcome, ${result.profile?.full_name || 'Student'}!`,
+          description: result.profile?.full_name
+            ? t('auth.welcomeName', { name: result.profile.full_name, defaultValue: 'Welcome, {{name}}!' })
+            : undefined,
         });
         navigate('/'); // Let Index.tsx handle role-based routing
         return;
@@ -329,7 +331,7 @@ export default function Auth() {
       console.error('[Auth] Student login error details:', error);
       toast({
         title: t('auth.loginError'),
-        description: error?.message || 'Error occurred',
+        description: error?.message || t('auth.genericError', { defaultValue: 'Something went wrong' }),
         variant: 'destructive',
       });
     } finally {
@@ -343,22 +345,22 @@ export default function Auth() {
     // Validation
     if (!usernameSchema.safeParse(username).success) {
       toast({
-        title: 'Setup Error',
-        description: 'Username must be 3-20 characters (letters, numbers, underscores)',
+        title: t('auth.setupError', { defaultValue: 'Setup Error' }),
+        description: t('auth.usernameRules', { defaultValue: 'Username must be 3-20 characters (letters, numbers, underscores)' }),
         variant: 'destructive'
       });
       return;
     }
     if (!passwordSchema.safeParse(password).success) {
-      toast({ title: 'Setup Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: t('auth.invalidPassword'), variant: 'destructive' });
       return;
     }
     if (password !== confirmPassword) {
-      toast({ title: 'Setup Error', description: t('auth.passwordMismatch'), variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: t('auth.passwordMismatch'), variant: 'destructive' });
       return;
     }
     if (!fullName.trim()) {
-      toast({ title: 'Setup Error', description: 'Full name is required', variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: t('auth.fullNameRequired', { defaultValue: 'Full name is required' }), variant: 'destructive' });
       return;
     }
 
@@ -367,9 +369,9 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({ title: 'Setup Error', description: error.message, variant: 'destructive' });
+      toast({ title: t('auth.setupError', { defaultValue: 'Setup Error' }), description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Owner account created successfully!' });
+      toast({ title: t('auth.ownerCreated', { defaultValue: 'Owner account created successfully!' }) });
       navigate('/');
     }
   };
@@ -389,7 +391,7 @@ export default function Auth() {
     if (!signUpFullName.trim()) {
       toast({
         title: t('auth.loginError'),
-        description: 'Full name is required',
+        description: t('auth.fullNameRequired', { defaultValue: 'Full name is required' }),
         variant: 'destructive'
       });
       return;
@@ -431,7 +433,7 @@ export default function Auth() {
     } catch (error: any) {
       toast({
         title: t('auth.loginError'),
-        description: error.message || 'Signup failed',
+        description: error.message || t('auth.signupFailed', { defaultValue: 'Signup failed' }),
         variant: 'destructive'
       });
     } finally {
