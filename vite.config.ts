@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      // Not registered by index.html for every visitor: the CRM registers it
+      // for the people who work in it (src/lib/serviceWorker.ts).
+      injectRegister: false,
       includeAssets: ["favicon.ico", "icon-1024.png", "brand-mark.png"],
       devOptions: {
         enabled: false,
@@ -51,9 +54,14 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,ico,png,svg,jpg,jpeg,webp,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        // hanguk.uz/ilova/* is the Flutter web app (another Vercel project,
-        // proxied by vercel.json) — never answer it with this SPA's index.html.
-        navigateFallbackDenylist: [/^\/ilova(\/|$)/],
+        // No page is answered from the worker. index.html is not in the
+        // precache (globPatterns has no html), so the default fallback route
+        // threw «non-precached-url» every time the worker started and was
+        // never registered. Saying so also keeps the pages that are not this
+        // SPA out of the worker's reach if html is ever precached: /app,
+        // /tv.html, /account-deletion.html and hanguk.uz/ilova/* (the Flutter
+        // web app, another Vercel project proxied by vercel.json).
+        navigateFallback: null,
         // No runtime cache for the Supabase API. Until 2026-11-11 a rule here
         // asked the service worker to keep every GET to *.supabase.co for a
         // day (NetworkFirst) under its URL alone — the Authorization header is

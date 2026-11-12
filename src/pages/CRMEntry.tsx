@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { IntakeProvider } from '@/contexts/IntakeContext';
 import { useUserRole } from '@/hooks/useUserRole';
+import { registerServiceWorker } from '@/lib/serviceWorker';
 
 // Staff never open the investor portal and the investor never opens the CRM:
 // each downloads only its own.
@@ -28,7 +29,14 @@ function PortalLoading() {
  * before either portal mounts, which is what this component is for.
  */
 export default function CRMEntry() {
-  const { isInvestor, loading } = useUserRole();
+  const { isInvestor, isStaff, loading } = useUserRole();
+
+  // The people who work here get the CRM's files kept on their device; a
+  // visitor of the public pages does not (src/lib/serviceWorker.ts).
+  const worksHere = !loading && (isStaff || isInvestor);
+  useEffect(() => {
+    if (worksHere) registerServiceWorker();
+  }, [worksHere]);
 
   if (loading) return <PortalLoading />;
 
