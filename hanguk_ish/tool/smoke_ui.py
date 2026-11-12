@@ -89,6 +89,22 @@ def screen():
     return nodes
 
 
+def wave_off_foreign_anr(nodes):
+    """The emulator's own apps (Pixel Launcher) sometimes stop answering under
+    load, and their «… isn't responding» box covers ours for the whole run.
+    Theirs is waved off («Wait»); ours (Hanguk Ish) is a failure and stays."""
+    title = next((n for n in nodes if re.search(r"isn.t responding", n['words'])), None)
+    if title is None or 'Hanguk Ish' in title['words']:
+        return False
+    wait = next((n for n in nodes if n['words'] == 'Wait'), None)
+    if wait is None:
+        return False
+    print(f"waved off: {title['words']!r}")
+    tap_at(wait['x'], wait['y'])
+    time.sleep(1)
+    return True
+
+
 def matches(node, text):
     if text.startswith('='):
         return node['words'] == text[1:]
@@ -106,6 +122,8 @@ def find(text, seconds, pick=0, quiet=False):
     last = []
     while True:
         last = screen()
+        if wave_off_foreign_anr(last):
+            continue
         found = sorted((n for n in last if matches(n, text)), key=lambda n: (n['y'], n['x']))
         if found and -len(found) <= pick < len(found):
             return found[pick]
@@ -154,7 +172,10 @@ def main():
         seconds = float(args[2]) if len(args) > 2 else 30
         deadline = time.time() + seconds
         while True:
-            fields = sorted((n for n in screen() if n['field']), key=lambda n: (n['y'], n['x']))
+            nodes = screen()
+            if wave_off_foreign_anr(nodes):
+                continue
+            fields = sorted((n for n in nodes if n['field']), key=lambda n: (n['y'], n['x']))
             if -len(fields) <= index < len(fields):
                 break
             if time.time() >= deadline:
