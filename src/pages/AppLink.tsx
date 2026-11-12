@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Logo } from '@/components/Logo';
 import { APP_STORE_URL, androidIntent, appUri, deviceOf, linkCode, playUrl, webUrl } from '@/lib/appLink';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 /**
  * hanguk.uz/l/<code>: the link an operator sends a lead (app analytics, stage
@@ -17,6 +18,7 @@ import { APP_STORE_URL, androidIntent, appUri, deviceOf, linkCode, playUrl, webU
  */
 export default function AppLink() {
   const { t } = useTranslation();
+  usePageTitle(t('appLink.title'));
   const { code: raw } = useParams();
   const code = linkCode(raw);
   const device = useMemo(() => deviceOf(navigator.userAgent), []);

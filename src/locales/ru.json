@@ -2216,7 +2216,18 @@
     "footerLinks": "Информация",
     "footerSupport": "Поддержка",
     "footerPrivacy": "Политика конфиденциальности",
-    "footerTerms": "Условия использования"
+    "footerTerms": "Условия использования",
+    "pageTitle": "Hanguk Consulting — университеты Южной Кореи",
+    "mockApplication": "Заявка в Сеульский национальный университет",
+    "mockSubmitted": "Подано",
+    "mockStepDocs": "Док-ты",
+    "mockStepTranslation": "Перевод",
+    "mockStepApostille": "Апостиль",
+    "mockStepSubmit": "Подача",
+    "mockStepVisa": "Виза",
+    "mockLevel": "Уровень 4",
+    "mockDocuments": "Документы",
+    "mockAcceptedWho": "Сардор → Университет Ханьян"
   },
   "linkContact": {
     "title": "К кому привязать {{name}}?",

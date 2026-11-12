@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '@/lib/i18n';
 
@@ -18,8 +18,14 @@ const open = () =>
     </MemoryRouter>,
   );
 
+/** Switch the language the way the switcher does, with the page on screen. */
+const speak = (lng: string) =>
+  act(async () => {
+    await i18n.changeLanguage(lng);
+  });
+
 beforeEach(async () => {
-  await i18n.changeLanguage('uz');
+  await speak('uz');
 });
 
 describe('home page', () => {
@@ -54,9 +60,38 @@ describe('home page', () => {
     expect(links.map((a) => a.textContent)).toEqual(['Yordam', 'Maxfiylik siyosati', 'Foydalanish shartlari']);
   });
 
-  it('the footer is written in every site language', async () => {
+  it('the example card in the hero speaks the visitor\'s language', async () => {
+    const view = open();
+    for (const text of ['Seul Milliy Universitetiga ariza', 'Topshirildi', 'Hujjat', 'Tarjima', 'Apostil', 'Topshirish', 'Viza', '4-daraja', 'Hujjatlar']) {
+      expect(screen.getByText(text), text).toBeTruthy();
+    }
+    expect(screen.queryByText('Submitted')).toBeNull();
+    view.unmount();
+
+    await speak('ru');
+    open();
+    for (const text of ['Подано', 'Перевод', 'Апостиль', 'Уровень 4']) {
+      expect(screen.getByText(text), text).toBeTruthy();
+    }
+    expect(screen.queryByText('Docs')).toBeNull();
+  });
+
+  it('the tab title and <html lang> follow the language', async () => {
+    open();
+    expect(document.title).toBe('Hanguk Consulting — Janubiy Koreya universitetlari');
+    expect(document.documentElement.lang).toBe('uz');
+    await speak('ko');
+    expect(document.documentElement.lang).toBe('ko');
+    expect(document.title).toBe('Hanguk Consulting — 한국 대학 유학');
+  });
+
+  it('the home page\'s new texts are written in every site language', async () => {
     for (const lng of ['uz', 'en', 'ru', 'ko']) {
-      for (const key of ['footerCity', 'footerContact', 'footerLinks', 'footerSupport', 'footerPrivacy', 'footerTerms']) {
+      for (const key of [
+        'footerCity', 'footerContact', 'footerLinks', 'footerSupport', 'footerPrivacy', 'footerTerms',
+        'pageTitle', 'mockApplication', 'mockSubmitted', 'mockStepDocs', 'mockStepTranslation', 'mockStepApostille',
+        'mockStepSubmit', 'mockStepVisa', 'mockLevel', 'mockDocuments', 'mockAcceptedWho',
+      ]) {
         expect(i18n.getResource(lng, 'translation', `landing.${key}`), `${lng}: landing.${key}`).toBeTruthy();
       }
     }

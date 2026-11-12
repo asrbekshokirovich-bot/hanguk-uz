@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -118,6 +119,7 @@ async function invokeStudentLogin(normalizedCode: string): Promise<StudentLoginR
 
 export default function Auth() {
   const { t } = useTranslation();
+  usePageTitle(t('auth.login'));
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signInWithUsername, signInGuest, signUpGuest, signUpOwner, user } = useAuth();

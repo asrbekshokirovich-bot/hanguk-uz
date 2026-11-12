@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail, MessageCircle, Phone, Instagram } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Mail, MessageCircle, Phone, Instagram } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { NativeContainer } from '@/components/native/NativeContainer';
+import { BackButton } from '@/components/BackButton';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { CONTACTS } from '@/lib/contacts';
 
 /**
@@ -19,8 +20,7 @@ import { CONTACTS } from '@/lib/contacts';
  */
 
 export default function Support() {
-  const { t: _t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const lang = i18n.language;
 
   const content = {
@@ -187,6 +187,7 @@ export default function Support() {
   };
 
   const c = content[lang as keyof typeof content] || content.en;
+  usePageTitle(c.title);
 
   const rows = [
     {
@@ -226,9 +227,7 @@ export default function Support() {
       <div className="min-h-screen bg-background text-foreground flex flex-col">
         <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b pt-[env(safe-area-inset-top)]">
           <div className="container mx-auto px-4 h-16 flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="flex-shrink-0" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton />
             <h1 className="text-lg font-semibold truncate">{c.title}</h1>
           </div>
         </header>

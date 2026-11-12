@@ -2410,7 +2410,18 @@
     "footerLinks": "Information",
     "footerSupport": "Support",
     "footerPrivacy": "Privacy Policy",
-    "footerTerms": "Terms of Service"
+    "footerTerms": "Terms of Service",
+    "pageTitle": "Hanguk Consulting — South Korean universities",
+    "mockApplication": "Application to Seoul National University",
+    "mockSubmitted": "Submitted",
+    "mockStepDocs": "Docs",
+    "mockStepTranslation": "Trans",
+    "mockStepApostille": "Apost",
+    "mockStepSubmit": "Submit",
+    "mockStepVisa": "Visa",
+    "mockLevel": "Level 4",
+    "mockDocuments": "Documents",
+    "mockAcceptedWho": "Sardor → Hanyang Univ."
   },
   "linkContact": {
     "title": "Attach {{name}} to…",
