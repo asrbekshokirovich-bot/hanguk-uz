@@ -1,6 +1,6 @@
 // deno test supabase/functions/infra-health-check/crashes_test.ts
 import { assertEquals } from "jsr:@std/assert@1";
-import { crashLine, type CrashRow } from "./crashes.ts";
+import { crashLine, type CrashRow, isStaleChunk } from "./crashes.ts";
 
 const row = (path: string | null, message: string, hits: number, user: string): CrashRow => ({ path, message, hits, user_id: user });
 
@@ -37,4 +37,33 @@ Deno.test("the same crash for several people and hours is one line; the worst th
 Deno.test("a long message is cut and a missing hit count is one", () => {
   const r = crashLine([{ path: "/crm", message: "m".repeat(500), hits: 0, user_id: "u1" }], 6);
   assertEquals(r.detail, `so'nggi 6 soatda 1 marta, 1 xodimda:\n/crm — ${"m".repeat(160)} (1 marta)`);
+});
+
+// What an open tab reported on 2026-11-12 after a deploy (web_client_errors).
+const STALE_STACK = "TypeError: Cannot read properties of undefined (reading 'default')\n    at y_ (https://www.hanguk.uz/assets/index-CFgAqY25.js:10:3572)\n\n    at Lazy\n    at Suspense\n    at Ex (https://www.hanguk.uz/assets/index-CFgAqY25.js:287:187)";
+const stale: CrashRow = {
+  path: "/crm/university-selection",
+  message: "Cannot read properties of undefined (reading 'default')",
+  hits: 1,
+  user_id: "u1",
+  stack: STALE_STACK,
+};
+
+Deno.test("a tab left open over a deploy is not a crash", () => {
+  assertEquals(isStaleChunk(stale), true);
+  assertEquals(crashLine([stale], 24), { state: "ok", detail: "so'nggi 24 soatda birorta sahifa yiqilmadi" });
+  // Real crashes beside it are still counted, without it.
+  assertEquals(crashLine([stale, row("/crm/leads", "Boom", 2, "u2")], 24), {
+    state: "fail",
+    detail: "so'nggi 24 soatda 2 marta, 1 xodimda:\n/crm/leads — Boom (2 marta)",
+  });
+});
+
+Deno.test("the same words from a page's own code are a crash", () => {
+  // Not thrown by React.lazy: some code of ours read `.default` of nothing.
+  const own = { ...stale, stack: "TypeError: Cannot read properties of undefined (reading 'default')\n    at pickLocale (https://www.hanguk.uz/assets/x.js:1:1)\n\n    at LeadsTable\n    at div" };
+  assertEquals(isStaleChunk(own), false);
+  assertEquals(crashLine([own], 24).state, "fail");
+  assertEquals(isStaleChunk({ message: "Cannot read properties of undefined (reading 'map')", stack: STALE_STACK }), false);
+  assertEquals(isStaleChunk({ message: stale.message, stack: null }), false);
 });
