@@ -45,6 +45,9 @@ done
 # answering them is suspected of taking the device down as the code screen
 # opens; the smoke turns autofill off.
 adbt shell settings put secure autofill_service null >/dev/null 2>&1 || true
+# The whole device log, kept on the runner as it comes: when the emulator
+# itself goes down, the per-app logcat afterwards has nothing.
+(adb logcat -v time '*:W' > "$out/live-logcat.txt" 2>&1 &)
 
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
@@ -110,20 +113,16 @@ employer() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
-  # BA0 (P54): the phone, then «Get started». The demo sends no SMS and opens
-  # the code screen; with the backend that answers nothing, it says the
-  # connection is missing. The app opens in the phone's language (P43):
-  # English on the emulator.
-  local next='Enter the code'
-  [ "$1" = backend ] && next='Check the internet connection'
-  if ui wait 'Get started' 90 && ui field 0 01012345678 && ui hidekb &&
-    ui tapto '=Get started' "$next" 40; then
-    echo "$name: BA0 phone → «Get started» → $next"
-  elif [ "$1" = backend ] && ui wait '=Get started' 5; then
-    # The connection message is a 4-second snack bar, and a busy emulator's
-    # screen dump can miss it. Still on BA0 and alive (finish checks for a
-    # crash or an ANR): it answered.
-    echo "::notice::$name: back on BA0, the connection message not caught"
+  # BA0 (P54): «Get started» with no number says so — no network and no
+  # typing, the same in the demo and with the backend (typing and the code
+  # screen are walked in walk_employer). The app opens in the phone's language
+  # (P43): English on the emulator.
+  if ui wait 'Get started' 90 && ui tapto '=Get started' 'Enter your phone number' 40; then
+    echo "$name: BA0 «Get started» without a number → asks for it"
+  elif ui wait '=Get started' 5; then
+    # A 4-second snack bar a busy emulator's screen dump can miss. Still on
+    # BA0 and alive (finish checks for a crash or an ANR): it answered.
+    echo "::notice::$name: still on BA0, the message not caught"
   else
     echo "::error::$name: BA0 did not answer the tap"
     failed=1
