@@ -4,6 +4,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import { getPlanByValue } from '@/hooks/useStudentPlan';
 import { isInitialPaymentOverdue, partialBalances, type CurrencyBalance } from '@/lib/paymentBalance';
 import { buildStudentPipeline, type StudentPipeline, type SubmissionFacts } from '@/lib/studentPipeline';
@@ -158,9 +159,16 @@ export function useCRMData() {
             .in('student_id', studentUserIds),
           activeIntakeId,
         ),
-        applyIntake(
-          supabase.from('documents').select('*').in('student_id', studentUserIds),
-          activeIntakeId,
+        // In pages: a season's documents pass 1000 at about 110 students
+        // (fall 2026 ended on 600), and a request cut at 1000 would show the
+        // students past it as having uploaded nothing.
+        fetchAllRows((from, to) =>
+          applyIntake(
+            supabase.from('documents').select('*').in('student_id', studentUserIds),
+            activeIntakeId,
+          )
+            .order('id')
+            .range(from, to),
         ),
         applyIntake(
           supabase.from('payments').select('student_id, status, payment_type, paid_amount, amount, currency').in('student_id', studentUserIds),
