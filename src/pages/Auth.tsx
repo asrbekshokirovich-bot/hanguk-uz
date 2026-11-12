@@ -200,15 +200,20 @@ export default function Auth() {
       const safeNext =
         next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
       navigate(safeNext);
-      return;
-    }
-
-    // Also redirect guests if they visit /auth while logged in
-    const guestSession = localStorage.getItem('guest_session');
-    if (guestSession) {
-      navigate('/guest-portal');
     }
   }, [user, navigate, searchParams]);
+
+  // A guest who registered here used to be sent to /guest-portal — a page that
+  // never existed — and `guest_session` in this browser then sent every later
+  // visit to /auth to the same "page not found", so the person could no longer
+  // reach the sign-in form at all. Nothing reads that key: remove what is left.
+  useEffect(() => {
+    try {
+      localStorage.removeItem('guest_session');
+    } catch {
+      // storage is not available: there is nothing to remove
+    }
+  }, []);
 
   if (user) {
     return null;
@@ -258,10 +263,9 @@ export default function Auth() {
       }
 
       if (guestData) {
-        localStorage.setItem('guest_session', JSON.stringify(guestData));
         setLoading(false);
         toast({ title: t('auth.loginSuccess') });
-        navigate('/guest-portal');
+        navigate('/');
         return;
       }
     }
@@ -396,9 +400,6 @@ export default function Auth() {
         throw guestError;
       }
 
-      // Keep guest_session for immediate access
-      localStorage.setItem('guest_session', JSON.stringify(guestData));
-
       toast({
         title: t('auth.registeredSuccess'),
         description: t('auth.dataSaved'),
@@ -409,7 +410,7 @@ export default function Auth() {
       setSignUpPassword('');
       setConfirmSignUpPassword('');
       setSignUpFullName('');
-      navigate('/guest-portal');
+      navigate('/');
     } catch (error: any) {
       toast({
         title: t('auth.loginError'),
