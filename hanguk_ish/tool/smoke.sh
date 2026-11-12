@@ -179,9 +179,9 @@ walk_worker() {
     shot a05-taken &&
     step 'back to the feed' ui tap '=Lentaga qaytish' &&
     step 'A06' ui tap '=Mening smenalarim' &&
-    step 'A06: the shift' ui wait '=Tasdiqlangan' &&
+    step 'A06: the shift' ui wait 'Tasdiqlangan' &&
     shot a06 &&
-    step 'A06 → A07' ui tap '=Tasdiqlangan' &&
+    step 'A06 → A07' ui tapbelow 'Smenalar holati' ' · ' &&
     step 'A07 check-in' ui wait 'Ishga kirish' 30 &&
     shot a07-in &&
     step 'A07: the printed code (demo)' ui tap '=QR kodni skanerlash' &&
@@ -250,7 +250,7 @@ walk_employer() {
     step 'BA5' ui tap '=리포트' &&
     step 'BA5: CSV button' ui scrollto 'CSV 다운로드' &&
     shot ba5 &&
-    step 'BA5: CSV' ui tap 'CSV 다운로드' &&
+    step 'BA5: CSV' ui tapx 'CSV 다운로드' 85 &&
     step 'BA5: the CSV goes to the share sheet' shared &&
     shot ba5-share &&
     adb shell input keyevent 4 &&
