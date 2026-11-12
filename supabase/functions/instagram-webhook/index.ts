@@ -204,7 +204,11 @@ Deno.serve(async (req) => {
       console.error("instagram-webhook processing error:", msg);
       if (eventRow) await admin.from("instagram_webhook_events").update({ error: msg }).eq("id", eventRow.id);
     }
-  })();
+  })().catch((e) => {
+    // Recording the failure failed too (the database was out of reach): the
+    // event stays unprocessed and upkeep runs it again.
+    console.error("instagram-webhook could not record the outcome:", e instanceof Error ? e.message : String(e));
+  });
   if (!runAfterResponse(work)) await work;
   return new Response("EVENT_RECEIVED", { status: 200 });
 });
