@@ -13,6 +13,7 @@ import { Logo } from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { normalizeVisitorPhone, sanitizeVisitorPhone } from '@/lib/visitorPhone';
+import { safeInternalPath } from '@/lib/safePath';
 import { Loader2, User, Lock, Crown, GraduationCap, Briefcase, Eye, EyeOff, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
@@ -198,12 +199,9 @@ export default function Auth() {
     if (user) {
       // A survey link shared over Telegram sends a signed-out student here
       // with ?next=/surveys/<id>; without this they land on / and the link
-      // is lost. Only same-site paths are honoured — a leading "//" would
-      // be a protocol-relative URL to someone else's host.
-      const next = searchParams.get('next');
-      const safeNext =
-        next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
-      navigate(safeNext);
+      // is lost. Only paths on this site are honoured (safeInternalPath says
+      // why "/" at the start is not proof of that).
+      navigate(safeInternalPath(searchParams.get('next')) ?? '/');
     }
   }, [user, navigate, searchParams]);
 
