@@ -52,7 +52,9 @@ void main() {
     await tester.pump();
     expect(starts, 1);
     done.complete();
-    await tester.pump();
+    // The start ends in a microtask; nothing else asks for a frame here (no
+    // text field blinking any more), so let it settle.
+    await tester.pumpAndSettle();
     expect(start().onPressed, isNotNull);
   });
 
