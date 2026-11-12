@@ -104,10 +104,24 @@ export async function setLanguage(code: LanguageCode): Promise<void> {
   await i18n.changeLanguage(code);
 }
 
+/**
+ * <html lang> says which language is on screen. It stayed "uz" whatever the
+ * visitor chose, so a screen reader read Russian or Korean with Uzbek rules
+ * and the browser's own "translate this page?" judged the page by the wrong
+ * language.
+ */
+function syncDocumentLanguage(lng: string | null | undefined): void {
+  if (typeof document === 'undefined') return;
+  const code = baseLanguage(lng);
+  if (code) document.documentElement.lang = code;
+}
+
 // However the language changes (the detector, a direct changeLanguage), its texts follow.
 i18n.on('languageChanged', (lng) => {
   void loadLanguage(lng);
+  syncDocumentLanguage(lng);
 });
+syncDocumentLanguage(i18n.language);
 
 /** Resolves when the texts of the language the page opens in are available. */
 export const i18nReady: Promise<void> = loadLanguage(i18n.language);

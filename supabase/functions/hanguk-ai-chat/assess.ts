@@ -97,6 +97,7 @@ export interface AssessGuideline {
   ieltsMin?: number | null;
   isPartner?: boolean | null;
   englishTrack?: boolean | null;
+  koreanTrack?: boolean | null;
   isActive?: boolean | null;
   visaRestricted?: boolean | null;
   regionCode?: string | null;
@@ -385,6 +386,7 @@ export function guidelineFromRow(r: Record<string, unknown>): AssessGuideline & 
     ieltsMin: r.ielts_min == null ? null : dartNum(r.ielts_min),
     isPartner: b("is_partner"),
     englishTrack: b("english_track"),
+    koreanTrack: b("korean_track"),
     isActive: b("is_active"),
     visaRestricted: b("visa_restricted"),
     regionCode: s("region_code"),
@@ -468,20 +470,53 @@ export function documentsBonus(input: AssessmentInputLike): number {
   return p;
 }
 
+/// assessment.dart meetsEnglish: whether the IELTS score meets the guideline's
+/// language requirement — a bachelor's or master's whose guideline has an
+/// English-taught track or names an IELTS minimum, and a score at or above
+/// that minimum (the rules' when the guideline names none).
+export function meetsEnglish(
+  input: AssessmentInputLike,
+  g: AssessGuideline,
+  rules: AssessRules = DEFAULT_RULES,
+): boolean {
+  const i = toAssessmentInput(input);
+  if (i.route !== "bachelor" && i.route !== "master") return false;
+  if (g.englishTrack !== true && g.ieltsMin == null) return false;
+  return i.ielts >= (g.ieltsMin ?? rules.englishIeltsMin);
+}
+
+/// assessment.dart languageBase: the better of the two ways in. Korean — the
+/// TOPIK level against the requirement (the route's when the Excel has none):
+/// short by 2+ 15, by one 30, met 55, one above 68, two above 78; a bachelor's
+/// or master's taught in English only (korean_track false) has no Korean way
+/// in. English (meetsEnglish) — 55, the same as a TOPIK requirement met.
+export function languageBase(
+  input: AssessmentInputLike,
+  g: AssessGuideline,
+  rules: AssessRules = DEFAULT_RULES,
+): number {
+  const i = toAssessmentInput(input);
+  const isDegree = i.route === "bachelor" || i.route === "master";
+  let base = 15;
+  if (!isDegree || g.koreanTrack !== false) {
+    const need = g.topikMin != null ? dartRound(g.topikMin) : topikMinFor(i.route, rules);
+    const diff = topikCounted(i) - need;
+    base = diff <= -2 ? 15 : diff === -1 ? 30 : diff === 0 ? 55 : diff === 1 ? 68 : 78;
+  }
+  if (base < 55 && meetsEnglish(i, g, rules)) base = 55;
+  return base;
+}
+
 /// assessment.dart admissionPercent: one university's admission chance from
-/// its TOPIK requirement (the route's when the Excel has none) against the
-/// student's level — short by 2+ 15, by one 30, met 55, one above 68, two
-/// above 78 — ±10 a certificate point from 3.5 (at most ±15), +5 for a
-/// partner, plus documentsBonus, kept within 5–95.
+/// its language requirement (languageBase) — ±10 a certificate point from 3.5
+/// (at most ±15), +5 for a partner, plus documentsBonus, kept within 5–95.
 export function admissionPercent(
   input: AssessmentInputLike,
   g: AssessGuideline,
   rules: AssessRules = DEFAULT_RULES,
 ): number {
   const i = toAssessmentInput(input);
-  const need = g.topikMin != null ? dartRound(g.topikMin) : topikMinFor(i.route, rules);
-  const diff = topikCounted(i) - need;
-  let p = diff <= -2 ? 15 : diff === -1 ? 30 : diff === 0 ? 55 : diff === 1 ? 68 : 78;
+  let p = languageBase(i, g, rules);
   p += dartRound(clamp((i.gpa - 3.5) * 10, -15, 15));
   if (g.isPartner === true) p += 5;
   p += documentsBonus(i);

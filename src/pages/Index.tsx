@@ -9,6 +9,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
+import { SiteFooter } from '@/components/landing/SiteFooter';
+import { APP_DOWNLOAD_URL } from '@/lib/appLink';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import {
   ArrowRight,
   Play,
@@ -27,6 +30,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { isStaff, isUniversityStaff, isInvestor, isLearningCenter, loading: roleLoading } = useUserRole();
+  usePageTitle(t('landing.pageTitle', { defaultValue: 'Hanguk Consulting — South Korean universities' }), { full: true });
 
   // Redirect logged-in users based on role - must be before any conditional returns
   useEffect(() => {
@@ -72,6 +76,15 @@ const Index = () => {
     ['38', t('landing.statUniversities', { defaultValue: 'Universities' })],
     ['1,200+', t('landing.statStudents', { defaultValue: 'Students' })],
     ['94%', t('landing.statAcceptance', { defaultValue: 'Acceptance' })],
+  ];
+
+  // The example card in the hero: its labels were English in every language.
+  const mockSteps = [
+    t('landing.mockStepDocs', { defaultValue: 'Docs' }),
+    t('landing.mockStepTranslation', { defaultValue: 'Trans' }),
+    t('landing.mockStepApostille', { defaultValue: 'Apost' }),
+    t('landing.mockStepSubmit', { defaultValue: 'Submit' }),
+    t('landing.mockStepVisa', { defaultValue: 'Visa' }),
   ];
 
   const features: [typeof FileText, string, string][] = [
@@ -124,9 +137,14 @@ const Index = () => {
               {t('landing.startJourney', { defaultValue: 'Start your journey' })}
               <ArrowRight className="ml-1 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/install')}>
-              <Play className="mr-1 h-5 w-5" />
-              {t('landing.watchHow', { defaultValue: 'Watch how it works' })}
+            {/* The app's own page (public/app.html): the demo on a computer,
+                the store on a phone. Until 2026-11-12 both app buttons led to
+                /install — how to add this website to the home screen. */}
+            <Button size="lg" variant="outline" asChild>
+              <a href={APP_DOWNLOAD_URL}>
+                <Play className="mr-1 h-5 w-5" />
+                {t('landing.watchHow', { defaultValue: 'Watch how it works' })}
+              </a>
             </Button>
           </div>
           <div className="mt-10 flex items-center gap-8">
@@ -149,12 +167,16 @@ const Index = () => {
               </Avatar>
               <div className="min-w-0 flex-1">
                 <div className="font-semibold">Aziz Karimov</div>
-                <div className="truncate text-xs text-muted-foreground">Application to Seoul National University</div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {t('landing.mockApplication', { defaultValue: 'Application to Seoul National University' })}
+                </div>
               </div>
-              <span className="shrink-0 rounded-full bg-info/10 px-2.5 py-0.5 text-xs font-semibold text-info">Submitted</span>
+              <span className="shrink-0 rounded-full bg-info/10 px-2.5 py-0.5 text-xs font-semibold text-info">
+                {t('landing.mockSubmitted', { defaultValue: 'Submitted' })}
+              </span>
             </div>
             <div className="mb-5 flex items-start">
-              {['Docs', 'Trans', 'Apost', 'Submit', 'Visa'].map((step, i) => {
+              {mockSteps.map((step, i) => {
                 const done = i < 3;
                 const current = i === 3;
                 return (
@@ -171,10 +193,12 @@ const Index = () => {
             <div className="grid grid-cols-2 gap-2.5">
               <div className="rounded-md bg-muted p-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">TOPIK</div>
-                <div className="text-lg font-bold">Level 4</div>
+                <div className="text-lg font-bold">{t('landing.mockLevel', { defaultValue: 'Level 4' })}</div>
               </div>
               <div className="rounded-md bg-muted p-3">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Documents</div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t('landing.mockDocuments', { defaultValue: 'Documents' })}
+                </div>
                 <div className="text-lg font-bold">6 / 7</div>
               </div>
             </div>
@@ -185,7 +209,9 @@ const Index = () => {
             </div>
             <div>
               <div className="text-xs font-bold">{t('landing.accepted', { defaultValue: 'Accepted!' })}</div>
-              <div className="text-[11px] text-muted-foreground">Sardor → Hanyang Univ.</div>
+              <div className="text-[11px] text-muted-foreground">
+                {t('landing.mockAcceptedWho', { defaultValue: 'Sardor → Hanyang Univ.' })}
+              </div>
             </div>
           </Card>
         </div>
@@ -245,13 +271,15 @@ const Index = () => {
               size="lg"
               variant="outline"
               className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              onClick={() => navigate('/install')}
+              asChild
             >
-              {t('landing.getApp', { defaultValue: 'Get the app' })}
+              <a href={APP_DOWNLOAD_URL}>{t('landing.getApp', { defaultValue: 'Get the app' })}</a>
             </Button>
           </div>
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 };

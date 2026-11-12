@@ -243,13 +243,13 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
     e.preventDefault();
 
     if (!student || !formData.fullName.trim()) {
-      toast({ title: t('common.error'), description: 'Full name is required', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crmMsg.fullNameRequired', { defaultValue: 'Full name is required' }), variant: 'destructive' });
       return;
     }
 
     const filledPhones = phones.map((p) => ({ ...p, phone: p.phone.trim() })).filter((p) => p.phone.length > 0);
     if (filledPhones.length === 0) {
-      toast({ title: t('common.error'), description: 'At least one phone number is required', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crmMsg.phoneRequired', { defaultValue: 'At least one phone number is required' }), variant: 'destructive' });
       return;
     }
     if (!filledPhones.some((p) => p.is_primary)) filledPhones[0].is_primary = true;
@@ -258,7 +258,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
     // re-application has no payments this season, so there is nothing to derive
     // and nothing to insist on — the student's paid season already carries it.
     if (!formData.contractDate && !formData.freeReapplication) {
-      toast({ title: t('common.error'), description: 'Contract date is required to calculate payment due dates', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('crmMsg.contractDateRequired', { defaultValue: 'Contract date is required to calculate payment due dates' }), variant: 'destructive' });
       return;
     }
 
@@ -383,7 +383,7 @@ export function EditStudentDialog({ open, onOpenChange, student, onSuccess }: Ed
         }
       }
 
-      toast({ title: t('common.success'), description: 'Student updated successfully' });
+      toast({ title: t('common.success'), description: t('crmMsg.studentUpdated', { defaultValue: 'Student updated successfully' }) });
       onOpenChange(false);
       onSuccess();
     } catch (error) {

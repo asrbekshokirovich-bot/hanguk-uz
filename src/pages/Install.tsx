@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Logo } from '@/components/Logo';
 import { usePlatform } from '@/hooks/usePlatform';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Download, Share, Smartphone, CheckCircle, PartyPopper } from 'lucide-react';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -14,6 +15,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 export default function Install() {
   const { t } = useTranslation();
+  usePageTitle(t('install.title'));
   const { isDespia, isIOS: isPlatformIOS, platform } = usePlatform();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);

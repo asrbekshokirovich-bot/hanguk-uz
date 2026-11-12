@@ -220,14 +220,14 @@ export default function UniversitiesContent() {
     pendingInstitution.current = null;
     if (!file || !institutionId) return;
     if (file.type && file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      toast({ title: 'Please choose a PDF file', variant: 'destructive' });
+      toast({ title: t('crmMsg.choosePdf', { defaultValue: 'Please choose a PDF file' }), variant: 'destructive' });
       return;
     }
     // Catch an oversize file before spending a base64 round trip on it.
     if (isTooLarge(file)) {
       toast({
-        title: 'File too large',
-        description: `${fileSizeMb(file)} MB — the limit is ${MAX_GUIDELINE_PDF_MB} MB.`,
+        title: t('crmMsg.fileTooLarge', { defaultValue: 'File too large' }),
+        description: t('crmMsg.fileTooLargeLimit', { size: fileSizeMb(file), max: MAX_GUIDELINE_PDF_MB, defaultValue: '{{size}} MB — the limit is {{max}} MB.' }),
         variant: 'destructive',
       });
       return;
@@ -241,11 +241,11 @@ export default function UniversitiesContent() {
         (err, fallback) => edgeFunctionError(err, fallback),
         'Upload failed',
       );
-      toast({ title: 'PDF uploaded', description: 'Queued for analysis.' });
+      toast({ title: t('crmMsg.pdfUploaded', { defaultValue: 'PDF uploaded' }), description: t('crmMsg.queuedForAnalysis', { defaultValue: 'Queued for analysis.' }) });
       loadStatus();
     } catch (err) {
       toast({
-        title: 'Upload failed',
+        title: t('crmMsg.uploadFailedTitle', { defaultValue: 'Upload failed' }),
         description: err instanceof Error ? err.message : String(err),
         variant: 'destructive',
       });
@@ -288,7 +288,7 @@ export default function UniversitiesContent() {
 
   const submitEdit = async () => {
     if (!fields.name_ko.trim()) {
-      toast({ title: 'Korean name required', variant: 'destructive' });
+      toast({ title: t('crmMsg.koreanNameRequired', { defaultValue: 'Korean name required' }), variant: 'destructive' });
       return;
     }
     setBusy(true);
@@ -296,16 +296,16 @@ export default function UniversitiesContent() {
       if (edit?.mode === 'create') {
         const { error } = await createUniversity(fieldsToPayload(fields));
         if (error) throw new Error(error.message);
-        toast({ title: 'Institution added', description: fields.name_ko });
+        toast({ title: t('crmMsg.institutionAdded', { defaultValue: 'Institution added' }), description: fields.name_ko });
       } else if (edit?.mode === 'edit') {
         const { error } = await updateUniversity(edit.row.id, fieldsToPayload(fields));
         if (error) throw new Error(error.message);
-        toast({ title: 'Saved', description: fields.name_ko });
+        toast({ title: t('crmMsg.saved', { defaultValue: 'Saved' }), description: fields.name_ko });
       }
       setEdit(null);
     } catch (err) {
       toast({
-        title: 'Save failed',
+        title: t('crmMsg.saveFailed', { defaultValue: 'Save failed' }),
         description: err instanceof Error ? err.message : String(err),
         variant: 'destructive',
       });
@@ -320,11 +320,11 @@ export default function UniversitiesContent() {
     try {
       const { error } = await deleteUniversity(confirmDelete.id);
       if (error) throw new Error(error.message);
-      toast({ title: 'Deleted', description: confirmDelete.name_ko ?? confirmDelete.id });
+      toast({ title: t('crmMsg.deleted', { defaultValue: 'Deleted' }), description: confirmDelete.name_ko ?? confirmDelete.id });
       setConfirmDelete(null);
     } catch (err) {
       toast({
-        title: 'Delete failed',
+        title: t('crmMsg.deleteFailed', { defaultValue: 'Delete failed' }),
         description: err instanceof Error ? err.message : String(err),
         variant: 'destructive',
       });

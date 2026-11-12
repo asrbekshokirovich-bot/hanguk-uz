@@ -32,6 +32,8 @@ import { CALL_RESULTS } from '@/components/crm/leads/intake/options';
 import { isNewLead } from '@/components/crm/leads/intake/sla';
 import { arrivedToday, isTodayLead } from '@/components/crm/leads/intake/today';
 import type { Lead } from '@/contexts/LeadsContext';
+import { SamePhoneDialog } from '@/components/crm/leads/SamePhoneDialog';
+import { leadsWithSamePhone, typedIntoExisting } from '@/components/crm/leads/samePhone';
 
 const TABS: LeadOutcome[] = ['active', 'converted', 'rejected'];
 
@@ -85,6 +87,9 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
   const [tab, setTab] = useState<LeadOutcome>('active');
   // The convert/reject confirmation, or `null` when nothing is pending.
   const [pending, setPending] = useState<{ mode: OutcomeMode; lead: Lead } | null>(null);
+  // A new lead typed with a number another lead already has: asked about
+  // before it is saved (leads/samePhone).
+  const [samePhone, setSamePhone] = useState<{ form: IntakeForm; matches: Lead[] } | null>(null);
   const [query, setQuery] = useState('');
   // Only leads from Kyrgyzstan (Madina's list; QA audit 2026-11-11).
   const [kgOnly, setKgOnly] = useState(false);
@@ -169,10 +174,17 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
     [editing],
   );
 
-  const handleSave = async (form: IntakeForm) => {
+  const saveLead = async (form: IntakeForm, allowSamePhone: boolean) => {
+    const payload = leadDataFromForm(form);
+    if (editing === 'new' && !allowSamePhone) {
+      const matches = leadsWithSamePhone(leads, payload.phone);
+      if (matches.length > 0) {
+        setSamePhone({ form, matches });
+        return;
+      }
+    }
     setBusy(true);
     try {
-      const payload = leadDataFromForm(form);
       if (editing === 'new') {
         await createLead(payload);
       } else if (editing) {
@@ -184,6 +196,25 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
       // `createLead`/`updateLead` surface their own toast; keep the sheet open
       // so the operator does not lose what they typed.
       console.error('Failed to save the lead:', error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSave = (form: IntakeForm) => saveLead(form, false);
+
+  /** The number was already there and the operator chose that record. */
+  const handleFillExisting = async (lead: Lead) => {
+    if (!samePhone) return;
+    setBusy(true);
+    try {
+      await updateLead(lead.id, typedIntoExisting(lead, leadDataFromForm(samePhone.form)));
+      await refetch();
+      setSamePhone(null);
+      setEditing(null);
+    } catch (error) {
+      // `updateLead` shows its own toast; the form stays open with what was typed.
+      console.error('Failed to write into the existing lead:', error);
     } finally {
       setBusy(false);
     }
@@ -433,6 +464,19 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
           }
         />
       )}
+
+      <SamePhoneDialog
+        matches={samePhone?.matches ?? []}
+        busy={busy}
+        onFill={(lead) => void handleFillExisting(lead)}
+        onCreateAnyway={() => {
+          if (!samePhone) return;
+          const { form } = samePhone;
+          setSamePhone(null);
+          void saveLead(form, true);
+        }}
+        onCancel={() => setSamePhone(null)}
+      />
 
       {pending && (
         <LeadOutcomeDialog

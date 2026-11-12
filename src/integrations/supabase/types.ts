@@ -13740,6 +13740,54 @@ export type Database = {
         }
         Relationships: []
       }
+      web_client_errors: {
+        Row: {
+          build: string | null
+          created_at: string
+          fingerprint: string
+          hits: number
+          hour_bucket: string
+          id: string
+          kind: string
+          last_seen_at: string
+          message: string
+          path: string | null
+          stack: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          build?: string | null
+          created_at?: string
+          fingerprint: string
+          hits?: number
+          hour_bucket?: string
+          id?: string
+          kind: string
+          last_seen_at?: string
+          message: string
+          path?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          build?: string | null
+          created_at?: string
+          fingerprint?: string
+          hits?: number
+          hour_bucket?: string
+          id?: string
+          kind?: string
+          last_seen_at?: string
+          message?: string
+          path?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       writing_streaks: {
         Row: {
           current_streak: number | null
@@ -17437,6 +17485,17 @@ export type Database = {
           p_student_id: string
         }
         Returns: undefined
+      }
+      web_error_log: {
+        Args: {
+          p_build?: string
+          p_kind: string
+          p_message: string
+          p_path?: string
+          p_stack?: string
+          p_user_agent?: string
+        }
+        Returns: boolean
       }
       withdraw_stage_notification: {
         Args: { p_institution?: string; p_kind: string; p_student: string }

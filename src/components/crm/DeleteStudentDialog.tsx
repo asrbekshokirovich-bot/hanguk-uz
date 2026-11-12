@@ -126,13 +126,13 @@ export function DeleteStudentDialog({ open, onOpenChange, student, onSuccess }: 
         await deleteSeasonOnly();
         toast({
           title: t('common.success'),
-          description: `Removed ${student.full_name} from ${seasonLabel}`,
+          description: t('crmMsg.studentRemovedFromSeason', { name: student.full_name, season: seasonLabel, defaultValue: 'Removed {{name}} from {{season}}' }),
         });
       } else {
         await deleteEntireStudent();
         toast({
           title: t('common.success'),
-          description: 'Student deleted successfully',
+          description: t('crmMsg.studentDeleted', { defaultValue: 'Student deleted successfully' }),
         });
       }
 

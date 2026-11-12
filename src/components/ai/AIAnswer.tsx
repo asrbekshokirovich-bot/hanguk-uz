@@ -8,6 +8,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { safeInternalPath } from '@/lib/safePath';
 import { AIMessageContent } from '@/components/ai/AIMessageContent';
 import {
   dmy, hostOf, leadSource, parseSeason, stepKeys,
@@ -37,7 +38,9 @@ function SourceIcon({ kind, className }: { kind: SourceKind; className?: string 
 
 function sourceHref(s: AnswerSource): { href: string; internal: boolean } | null {
   if (!s.url) return null;
-  if (s.kind === 'crm' && s.url.startsWith('/')) return { href: s.url, internal: true };
+  // A CRM source is a page of this site; anything that would leave it is no link.
+  const path = s.kind === 'crm' ? safeInternalPath(s.url) : null;
+  if (path) return { href: path, internal: true };
   if (/^https?:\/\//.test(s.url)) return { href: s.url, internal: false };
   return null;
 }
