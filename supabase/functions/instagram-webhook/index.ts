@@ -15,6 +15,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ensureIdentity, extractHandleFromText, extractPhoneFromText, resolveIdentity } from "../_shared/identity.ts";
 import { serviceKey } from "../_shared/keys.ts";
+import { retryFilter, runAfterResponse } from "./background.ts";
 
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey());
 
@@ -181,19 +182,30 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = JSON.parse(raw); } catch { return new Response("Bad JSON", { status: 400 }); }
 
-  // Store raw first, then process — always ACK 200 so Meta doesn't disable the subscription.
+  // Store raw first, then answer, then process — always ACK 200 so Meta doesn't
+  // disable the subscription.
+  //
+  // Meta wants its 200 within 5 seconds and unsubscribes an endpoint that keeps
+  // failing for an hour. Processing first — a profile read, a media download —
+  // took longer than that for 59 of 241 deliveries on 2026-11-12 (median 3.4 s,
+  // slowest 11 s). The event is on record before the answer goes out, so the
+  // work can follow it: the runtime keeps this instance alive until it is done,
+  // and upkeep (retryFailedEvents) picks up an event that was never finished.
   const { data: eventRow } = await admin.from("instagram_webhook_events")
     .insert({ event_kind: classify(body), payload: body, processed: false })
     .select("id").single();
 
-  try {
-    await processPayload(body, cfg);
-    if (eventRow) await admin.from("instagram_webhook_events").update({ processed: true }).eq("id", eventRow.id);
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("instagram-webhook processing error:", msg);
-    if (eventRow) await admin.from("instagram_webhook_events").update({ error: msg }).eq("id", eventRow.id);
-  }
+  const work = (async () => {
+    try {
+      await processPayload(body, cfg);
+      if (eventRow) await admin.from("instagram_webhook_events").update({ processed: true }).eq("id", eventRow.id);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("instagram-webhook processing error:", msg);
+      if (eventRow) await admin.from("instagram_webhook_events").update({ error: msg }).eq("id", eventRow.id);
+    }
+  })();
+  if (!runAfterResponse(work)) await work;
   return new Response("EVENT_RECEIVED", { status: 200 });
 });
 
@@ -569,12 +581,14 @@ async function runMaintenance(cfg: any): Promise<Record<string, unknown>> {
  * Events whose processing failed were acknowledged to Meta (it would disable
  * the subscription otherwise), so Meta never sends them again. Run them again
  * here; handleMessage skips a message it already stored, so a retry is safe.
+ * The same goes for an event nobody finished: it is answered before it is
+ * processed, and a run cut short leaves it unprocessed with no error.
  */
 async function retryFailedEvents(cfg: any): Promise<number> {
   const { data: failed, error } = await admin.from("instagram_webhook_events")
     .select("id, payload, retries")
     .eq("processed", false)
-    .not("error", "is", null)
+    .or(retryFilter(Date.now()))
     .lt("retries", MAX_EVENT_RETRIES)
     .gte("created_at", new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())
     .order("created_at")
