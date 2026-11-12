@@ -9,6 +9,27 @@ import {
 
 const row = (id: string, role: string, content: string | null) => ({ id, role, content });
 
+Deno.test("the client's cues are not the student's words", () => {
+  const turns = groupTurns([
+    row("s0", "student", "[Interview started in en]"),
+    row("i1", "interviewer", "Hello! Please introduce yourself."),
+    row("s1", "student", "The student is stuck and said nothing."),
+    row("s2", "student", "My name is Aziz."),
+    row("i2", "interviewer", "The student is stuck and said nothing."),
+  ]);
+  assertEquals(turns.map((t) => [t.id, t.role, t.content]), [
+    ["i1", "interviewer", "Hello! Please introduce yourself."],
+    ["s2", "student", "My name is Aziz."],
+    ["i2", "interviewer", "The student is stuck and said nothing."],
+  ]);
+  // An interview that is nothing but the start cue has no answer to score.
+  assertEquals(
+    groupTurns([row("s0", "student", "[Interview started - AI begins]"), row("i1", "interviewer", "Hello!")])
+      .filter((t) => t.role === "student"),
+    [],
+  );
+});
+
 Deno.test("fragments of one answer become one turn", () => {
   const turns = groupTurns([
     row("i1", "interviewer", "Hello! Are you ready?"),

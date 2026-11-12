@@ -514,7 +514,13 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
   /// Whether the student said anything the feedback can score.
   @visibleForTesting
   static bool hasStudentAnswer(List<InterviewMessage> messages) => messages.any(
-    (m) => m.role == 'student' && m.content.trim().isNotEmpty && !m.content.contains('[Interview started'),
+    (m) =>
+        m.role == 'student' &&
+        m.content.trim().isNotEmpty &&
+        !m.content.contains('[Interview started') &&
+        // What builds up to 2107 sent when asking for a hint; the function
+        // saved it as the student's answer.
+        m.content.trim() != 'The student is stuck and said nothing.',
   );
 
   Future<Map<String, dynamic>?> _endSessionInner(
@@ -869,9 +875,30 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
 
   // ── Hint generation ──────────────────────────────────────────────────────
 
-  Future<void> getHint(String contextText) async {
+  /// Counts the hints asked for and taken away: an answer that comes back
+  /// after the interviewer has moved on is for the last question, not this one.
+  int _hintSeq = 0;
+
+  /// The interviewer is speaking again: the hints on screen were for the
+  /// question before.
+  void clearHints() {
+    _hintSeq++;
+    if (_disposed || state.liveHints.isEmpty) return;
+    state = state.copyWith(liveHints: const []);
+  }
+
+  /// Asks for up to three hints for the question the interviewer asked last.
+  /// [heard] is what the student has started to say, if anything.
+  ///
+  /// The action is `hint`. Builds up to 2107 sent `get_hint`, which the
+  /// function did not know: it saved the request as the student's answer and
+  /// its own reply as a line of the interviewer's, and no hint ever came back.
+  /// Those builds also kept a hint on screen through the next question, so
+  /// the function gives `get_hint` none.
+  Future<void> getHint(String heard) async {
     final sessionId = state.sessionId;
     if (sessionId == null) return;
+    final seq = ++_hintSeq;
 
     try {
       final client = Supabase.instance.client;
@@ -879,28 +906,32 @@ class InterviewNotifier extends Notifier<InterviewSessionState> {
         'interview-ai',
         body: {
           'sessionId': sessionId,
-          'studentMessage': contextText,
+          'studentMessage': heard,
           'sessionType': state.sessionType,
           'language': state.selectedLanguage,
-          'persona': state.interviewerPersona,
-          'action': 'get_hint',
+          'action': 'hint',
         },
       );
+      if (_disposed || seq != _hintSeq) return;
 
-      final data = response.data as Map<String, dynamic>?;
-      if (data != null && data['hints'] != null) {
-        final hintsRaw = data['hints'] as String;
-        final parsedHints = hintsRaw
-            .split('\n')
-            .map((s) => s.trim().replaceAll(RegExp(r'^[-*•]\s*'), ''))
-            .where((s) => s.isNotEmpty)
-            .take(3)
-            .toList();
-        state = state.copyWith(liveHints: parsedHints);
-      }
+      final data = response.data;
+      final hints = hintLines(data is Map ? data['hints'] : null);
+      if (hints.isNotEmpty) state = state.copyWith(liveHints: hints);
     } on Exception catch (e) {
       debugPrint('Failed to get hints: $e');
     }
+  }
+
+  /// The function's hints (one a line) as the lines the screen lists.
+  @visibleForTesting
+  static List<String> hintLines(Object? raw) {
+    if (raw is! String) return const [];
+    return raw
+        .split('\n')
+        .map((s) => s.trim().replaceAll(RegExp(r'^[-*•]\s*'), '').trim())
+        .where((s) => s.isNotEmpty)
+        .take(3)
+        .toList();
   }
 
   // ── Feedback & History ──────────────────────────────────────────────────

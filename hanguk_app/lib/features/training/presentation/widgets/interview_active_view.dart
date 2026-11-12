@@ -494,6 +494,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           if (eventType == 'speech-start') {
             _greetTimer?.cancel();
             _reportConnect('greeted');
+            // The hints on screen were for the question before this one.
+            _notifier.clearHints();
             setState(() {
               _isAI_Speaking = true;
               _firstMessageReceived = true;
@@ -804,13 +806,7 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     _silenceTimer?.cancel();
     _silenceTimer = Timer(const Duration(seconds: 8), () {
       if (_isCallActive && !_isAI_Speaking && !_muted && mounted && !_isStopping) {
-        ref
-            .read(interviewProvider.notifier)
-            .getHint(
-              _currentWords.isEmpty
-                  ? 'The student is stuck and said nothing.'
-                  : _currentWords,
-            );
+        ref.read(interviewProvider.notifier).getHint(_currentWords);
       }
     });
   }

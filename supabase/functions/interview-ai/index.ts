@@ -6,6 +6,9 @@ import { ipLimiter } from "../_shared/rate-limiter.ts";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { serviceKey, publishableKey } from "../_shared/keys.ts";
 import { countsAgainstQuota, guestInterviewKey, guestInterviewLimit, weeklyLimitMessage } from "./guest_quota.ts";
+import { chatMessages, hintContext, hintMessages, isStart, parseHints, toChat } from "./dialog.ts";
+
+const GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 interface InterviewMessage {
   role: "interviewer" | "student";
@@ -60,6 +63,53 @@ Concentrate primarily on these question types:
 Ask 4-6 focused questions on language before wrapping up.`,
 };
 
+/**
+ * Up to three one-line hints for the question the interviewer asked last, as
+ * the app shows them ("\n"-separated); null when there is nothing to hint at
+ * or the model did not answer. A hint is a help, never an error.
+ */
+// deno-lint-ignore no-explicit-any
+async function hintFor(adminClient: any, sessionId: string, current: unknown, language: unknown): Promise<string | null> {
+  try {
+    // At most 8 a minute for one interview: the app asks after 8 s of silence.
+    if (!(await ipLimiter.checkLimit(`hint:${sessionId}`, 8, 60 * 1000))) return null;
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiApiKey) return null;
+
+    const { data: rows } = await adminClient
+      .from("interview_messages")
+      .select("role, content")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false })
+      .limit(40);
+    const ctx = hintContext(
+      ((rows ?? []) as InterviewMessage[]).slice().reverse(),
+      typeof current === "string" ? current : "",
+    );
+    if (!ctx) return null;
+
+    const res = await geminiFetch(GEMINI_CHAT_URL, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${geminiApiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gemini-2.5-flash",
+        messages: hintMessages(ctx, typeof language === "string" ? language : null),
+        max_tokens: 300,
+      }),
+    });
+    if (!res.ok) {
+      console.error("[interview-ai] hint:", res.status, (await res.text().catch(() => "")).slice(0, 200));
+      return null;
+    }
+    const data = await res.json();
+    const lines = parseHints(data.choices?.[0]?.message?.content);
+    return lines.length ? lines.join("\n") : null;
+  } catch (e) {
+    console.error("[interview-ai] hint:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -78,9 +128,13 @@ serve(async (req) => {
       throw new ApiError(401, "Authorization required");
     }
 
-    const { sessionId, studentMessage, sessionType, targetUniversityId, language, focusTopic } = await req.json();
-    
-    if (!sessionId || !studentMessage) {
+    const { sessionId, studentMessage, sessionType, targetUniversityId, language, focusTopic, action } = await req.json();
+    // "hint": the app's lifeline during a voice call. "get_hint": the same
+    // request from builds that leave a hint on screen after the interviewer
+    // has moved on to the next question — they are given none.
+    const wantsHint = action === "hint" || action === "get_hint";
+
+    if (!sessionId || (!studentMessage && !wantsHint)) {
       return new Response(
         JSON.stringify({ error: "sessionId and studentMessage are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -129,6 +183,18 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Session not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // A hint, not a turn of the interview: nothing is saved and no interview
+    // is counted. This request used to fall through to the code below, which
+    // saved it as the student's answer and wrote a reply into the transcript
+    // that nobody heard (_shared/interview-markers.ts).
+    if (wantsHint) {
+      const hints = action === "hint" ? await hintFor(adminClient, sessionId, studentMessage, language) : null;
+      return new Response(
+        JSON.stringify({ hints }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -307,10 +373,7 @@ Study/Work Priority: ${studentProfile.study_work_priority || 'Not specified'}
     }
 
     // Build conversation for AI
-    const conversationHistory = (messages || []).map((m: InterviewMessage) => ({
-      role: m.role === "interviewer" ? "assistant" : "user",
-      content: m.content,
-    }));
+    const conversationHistory = toChat((messages || []) as InterviewMessage[]);
 
     const questionBank = questions?.map(q => {
       const lang = language || "ko";
@@ -403,7 +466,7 @@ Sample questions for inspiration:
 ${questionBank}
 
 Current conversation length: ${conversationHistory.length} messages
-${conversationHistory.length === 0 ? `START THE INTERVIEW NOW. Warmly greet the student in ${interviewLang} and ask them to introduce themselves briefly.` : ""}
+${isStart(conversationHistory) ? `START THE INTERVIEW NOW. Warmly greet the student in ${interviewLang} and ask them to introduce themselves briefly.` : ""}
 ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more questions, then give a warm closing with brief suggestions for improvement." : ""}`;
 
     // Call gemini AI
@@ -413,7 +476,7 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
     }
 
     // geminiFetch: on a Gemini 429/503 the same request goes to Claude (2026-11-02)
-    const aiResponse = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const aiResponse = await geminiFetch(GEMINI_CHAT_URL, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${geminiApiKey}`,
@@ -421,11 +484,9 @@ ${conversationHistory.length >= 8 ? "The interview is nearing end. Ask 1-2 more 
       },
       body: JSON.stringify({
         model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...conversationHistory,
-          { role: "user", content: studentMessage },
-        ],
+        // The history was read after the student's message was saved and
+        // ends with it (dialog.ts).
+        messages: chatMessages(systemPrompt, conversationHistory, studentMessage),
         max_tokens: 300,
       }),
     });

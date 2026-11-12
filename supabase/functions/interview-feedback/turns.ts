@@ -10,6 +10,8 @@
 // 30 days before, 6 came back with no answer-by-answer review at all (every
 // one of the long ones), and the rest reviewed fragments like "and then I".
 
+import { isCue } from "../_shared/interview-markers.ts";
+
 export interface TranscriptMessage {
   id: string;
   role: string;
@@ -27,13 +29,17 @@ export interface Turn {
 
 /**
  * One turn per speaker change: consecutive rows by the same speaker are one
- * thing said. Empty rows are dropped. The order is the order given.
+ * thing said. Empty rows are dropped, and so are the rows that hold a cue
+ * from the client instead of the student's words ("[Interview started…]",
+ * the hint cue): 24 interviews were scored on nothing but the start cue, and
+ * the hint cue was read as the opening of the student's answer. The order is
+ * the order given.
  */
 export function groupTurns(messages: TranscriptMessage[]): Turn[] {
   const turns: Turn[] = [];
   for (const m of messages) {
     const text = (m.content ?? "").trim();
-    if (!text) continue;
+    if (!text || isCue(m.role, text)) continue;
     const last = turns[turns.length - 1];
     if (last && last.role === m.role) {
       last.content = `${last.content} ${text}`;
