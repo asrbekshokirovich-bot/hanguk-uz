@@ -2973,6 +2973,24 @@
     "contractUploaded": "계약서가 업로드되었습니다",
     "contractOpenFailed": "계약서를 열지 못했습니다. 다시 시도하세요.",
     "invalidAmount": "올바른 금액을 입력하세요",
-    "paymentRecorded": "결제가 기록되었습니다"
+    "paymentRecorded": "결제가 기록되었습니다",
+    "callLogFailed": "통화를 기록하지 못했습니다",
+    "callLogged": "통화가 기록되었습니다",
+    "callUpdateFailed": "통화를 수정하지 못했습니다",
+    "callUpdated": "통화가 수정되었습니다",
+    "callDeleteFailed": "통화를 삭제하지 못했습니다",
+    "callDeleted": "통화가 삭제되었습니다",
+    "universityRecommended": "대학을 추천했습니다 — 지원서가 생성되었습니다",
+    "universitySuggestFailed": "대학을 추천하지 못했습니다",
+    "choosePdf": "PDF 파일을 선택하세요",
+    "fileTooLargeLimit": "{{size}} MB — 최대 {{max}} MB입니다.",
+    "pdfUploaded": "PDF가 업로드되었습니다",
+    "queuedForAnalysis": "분석 대기열에 추가되었습니다.",
+    "koreanNameRequired": "한국어 이름을 입력하세요",
+    "institutionAdded": "기관이 추가되었습니다",
+    "saved": "저장되었습니다",
+    "saveFailed": "저장하지 못했습니다",
+    "deleted": "삭제되었습니다",
+    "deleteFailed": "삭제하지 못했습니다"
   }
 }

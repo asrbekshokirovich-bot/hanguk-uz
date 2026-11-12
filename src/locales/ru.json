@@ -3108,6 +3108,24 @@
     "contractUploaded": "Договор загружен",
     "contractOpenFailed": "Не удалось открыть договор. Попробуйте ещё раз.",
     "invalidAmount": "Введите корректную сумму",
-    "paymentRecorded": "Платёж записан"
+    "paymentRecorded": "Платёж записан",
+    "callLogFailed": "Не удалось записать звонок",
+    "callLogged": "Звонок записан",
+    "callUpdateFailed": "Не удалось обновить звонок",
+    "callUpdated": "Звонок обновлён",
+    "callDeleteFailed": "Не удалось удалить звонок",
+    "callDeleted": "Звонок удалён",
+    "universityRecommended": "Университет рекомендован — заявка создана",
+    "universitySuggestFailed": "Не удалось рекомендовать университет",
+    "choosePdf": "Выберите файл PDF",
+    "fileTooLargeLimit": "{{size}} МБ — предел {{max}} МБ.",
+    "pdfUploaded": "PDF загружен",
+    "queuedForAnalysis": "Поставлен в очередь на анализ.",
+    "koreanNameRequired": "Укажите название на корейском",
+    "institutionAdded": "Учреждение добавлено",
+    "saved": "Сохранено",
+    "saveFailed": "Не удалось сохранить",
+    "deleted": "Удалено",
+    "deleteFailed": "Не удалось удалить"
   }
 }

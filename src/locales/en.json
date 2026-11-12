@@ -4017,6 +4017,24 @@
     "contractUploaded": "Contract uploaded successfully",
     "contractOpenFailed": "Failed to open contract. Please try again.",
     "invalidAmount": "Please enter a valid amount",
-    "paymentRecorded": "Payment recorded successfully"
+    "paymentRecorded": "Payment recorded successfully",
+    "callLogFailed": "Failed to log call",
+    "callLogged": "Call logged successfully",
+    "callUpdateFailed": "Failed to update call",
+    "callUpdated": "Call updated successfully",
+    "callDeleteFailed": "Failed to delete call",
+    "callDeleted": "Call deleted successfully",
+    "universityRecommended": "University recommended — application created",
+    "universitySuggestFailed": "Failed to suggest university",
+    "choosePdf": "Please choose a PDF file",
+    "fileTooLargeLimit": "{{size}} MB — the limit is {{max}} MB.",
+    "pdfUploaded": "PDF uploaded",
+    "queuedForAnalysis": "Queued for analysis.",
+    "koreanNameRequired": "Korean name required",
+    "institutionAdded": "Institution added",
+    "saved": "Saved",
+    "saveFailed": "Save failed",
+    "deleted": "Deleted",
+    "deleteFailed": "Delete failed"
   }
 }
