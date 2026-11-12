@@ -4036,5 +4036,10 @@
     "saveFailed": "Save failed",
     "deleted": "Deleted",
     "deleteFailed": "Delete failed"
+  },
+  "errorScreen": {
+    "title": "Something went wrong",
+    "reload": "Clear cache and reload",
+    "toast": "Something went wrong. Reload the page."
   }
 }

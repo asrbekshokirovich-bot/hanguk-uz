@@ -10,7 +10,8 @@ import { ThemeProvider } from "next-themes";
 import { NativeRouterHandler } from "@/components/native/NativeRouterHandler";
 import { lazy, Suspense, useEffect } from "react";
 import { toast } from "sonner";
-import "@/lib/i18n";
+import i18n from "@/lib/i18n";
+import { reportClientError } from "@/lib/errorReporter";
 
 import Index from "./pages/Index";
 import { StudentDataProvider } from "./contexts/StudentDataContext";
@@ -73,11 +74,21 @@ function GlobalErrorBoundary({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      toast.error("Xatolik yuz berdi. Sahifani yangilang.", { duration: 4000 });
+      reportClientError("rejection", event.reason);
+      toast.error(i18n.t("errorScreen.toast", "Xatolik yuz berdi. Sahifani yangilang."), { duration: 4000 });
+    };
+    // Errors thrown outside React's render (event handlers, timers): nothing
+    // is shown — the page goes on — but they are written down.
+    const handleError = (event: ErrorEvent) => {
+      reportClientError("error", event.error ?? event.message);
     };
 
     window.addEventListener("unhandledrejection", handleRejection);
-    return () => window.removeEventListener("unhandledrejection", handleRejection);
+    window.addEventListener("error", handleError);
+    return () => {
+      window.removeEventListener("unhandledrejection", handleRejection);
+      window.removeEventListener("error", handleError);
+    };
   }, []);
 
   return <>{children}</>;
