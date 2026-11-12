@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/format/business_number.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
@@ -54,14 +53,14 @@ void _say(BuildContext context, String text) => (ScaffoldMessenger.of(context)..
     .showSnackBar(SnackBar(content: Text(text)));
 
 /// After signing in: an owner with a business opens BA1; a new owner's
-/// [businessNumber] is checked with 국세청 and registered first. A refusal
-/// or a lost connection goes back to BA0 with the reason; «시작하기» there
-/// continues from here, signed in already.
-Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref, {required String businessNumber}) async {
+/// business is opened first (P50: no 사업자등록번호, no check). A lost
+/// connection goes back to BA0 with the reason; «시작하기» there continues
+/// from here, signed in already.
+Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref) async {
   final repo = ref.read(employerRepositoryProvider);
   try {
     final businesses = await repo.businesses();
-    if (businesses.isEmpty) await repo.registerBusiness(businessNumber);
+    if (businesses.isEmpty) await repo.openBusiness();
     ref.invalidate(businessesProvider);
     if (context.mounted) context.go(EmployerRoutes.home);
   } catch (error) {
@@ -138,18 +137,11 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
         path: EmployerRoutes.login,
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => Ba0LoginScreen(
-            onStart: (businessNumber) async {
-              if (businessNumber.replaceAll(RegExp(r'\D'), '').length != 10) {
-                _say(context, Biz.loginIncomplete);
-                return;
-              }
-              if (!isValidBusinessNumber(businessNumber)) {
-                _say(context, Biz.bizNoInvalid);
-                return;
-              }
+            onStart: () async {
               final auth = ref.read(authRepositoryProvider);
-              // P49: no SMS — an account on this phone, unless one is signed
-              // in already (back from a refused registration).
+              // P49/P50: no SMS and no business number — an account on this
+              // phone, unless one is signed in already (back after a lost
+              // connection).
               if (auth.userId == null) {
                 try {
                   await auth.signIn();
@@ -158,7 +150,7 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
                   return;
                 }
               }
-              if (context.mounted) await continueOwnerAfterSignIn(context, ref, businessNumber: businessNumber);
+              if (context.mounted) await continueOwnerAfterSignIn(context, ref);
             },
           ),
         ),

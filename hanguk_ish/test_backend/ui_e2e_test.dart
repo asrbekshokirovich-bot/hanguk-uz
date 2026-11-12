@@ -1118,7 +1118,7 @@ void main() {
     await _close(tester);
   });
 
-  testWidgets('owner: a new owner signs up on BA0; with no 국세청 key the business waits and BA1 says so',
+  testWidgets('owner: a new owner starts on BA0 with nothing to type; the business is open at once (P50)',
       skip: _skip != null, (tester) async {
     phone(tester);
     final newcomer = _client(_anonKey);
@@ -1131,23 +1131,23 @@ void main() {
       ],
       child: const EmployerApp(),
     )));
-    // Signed out: the start gate opens BA0. P49: the business number only —
-    // «시작하기» starts an account on this phone.
+    // Signed out: the start gate opens BA0. P49/P50: no phone, no business
+    // number — «시작하기» starts an account on this phone and opens the
+    // business (open_business), without a check.
     await _until(tester, find.widgetWithText(HiButton, '시작하기'));
     await _settle(tester);
-    await tester.enterText(find.byType(TextField), '9990000054');
+    expect(find.byType(TextField), findsNothing, reason: 'nothing to type');
     await _tap(tester, find.widgetWithText(HiButton, '시작하기'));
-    // business-register files the number (no key in the local stack: it
-    // waits for 국세청) and BA1 opens on it.
     await _until(tester, _text('오늘의 근무'));
-    await _until(tester, _text(Biz.reviewPendingTitle));
-    expect(_text('사업장 999-00-00054'), findsWidgets, reason: 'the name until the store details are set');
     // A new business: no shifts yet (the day loaded, not still loading).
     await _until(tester, _text(Biz.noShiftsToday));
-    await _shot(tester, 'ba0-ba1-waiting');
+    expect(_text(Biz.reviewPendingTitle), findsNothing, reason: 'open at once, no check');
+    await _shot(tester, 'ba0-ba1-open');
     final mine = await tester.runAsync(() => SupabaseEmployerRepository(newcomer, _config).businesses());
-    expect(mine!.single.review, BusinessReview.pending);
-    expect(mine.single.bizNo, '9990000054');
+    expect(mine!.single.review, BusinessReview.verified);
+    expect(mine.single.bizNo, isNull);
+    expect(mine.single.name, startsWith('사업장 '));
+    expect(_text(mine.single.name), findsWidgets, reason: 'BA1 shows it');
     await _close(tester);
   });
 }

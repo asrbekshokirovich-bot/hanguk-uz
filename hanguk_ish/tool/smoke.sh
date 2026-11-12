@@ -83,10 +83,13 @@ employer() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
-  # BA0 with nothing filled in: it says what is missing. The app opens in the
-  # phone's language (P43): English on the emulator.
-  if ui wait 'Get started' 90 && ui tap 'Get started' && ui wait 'Enter the business number' 30; then
-    echo "$name: BA0 answers"
+  # BA0 «Get started» (P50: nothing to type): the demo opens BA1; with the
+  # backend that answers nothing, it says the connection is missing. The app
+  # opens in the phone's language (P43): English on the emulator.
+  local next="Today's shifts"
+  [ "$1" = backend ] && next='Check the internet connection'
+  if ui wait 'Get started' 90 && ui tap 'Get started' && ui wait "$next" 30; then
+    echo "$name: BA0 «Get started» → $next"
   else
     echo "::error::$name: BA0 did not answer the tap"
     failed=1
@@ -214,13 +217,11 @@ walk_employer() {
   local apk=$apks/demo-employer-$1.apk pkg=uz.hanguk.ish.biz name=walk-employer
   launch "$apk" "$pkg" "$name" || return
   # The app opens in the phone's language (P43, English here); the walk reads
-  # Korean, so it switches first. P49: the business number only, no SMS.
+  # Korean, so it switches first. P49/P50: no SMS, no business number.
   step 'BA0 opens' ui wait 'Get started' 90 &&
     step 'BA0: language' ui tap 'Language' &&
     step 'BA0: Korean' ui tap '=한국어' &&
     step 'BA0 in Korean' ui wait '시작하기' &&
-    step 'BA0: business number' ui field 0 1234567891 &&
-    ui hidekb &&
     step 'BA0 → BA1' ui tap '=시작하기' &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&

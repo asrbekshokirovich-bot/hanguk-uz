@@ -53,9 +53,6 @@ List<String> _literals(String path) {
 /// in every language.
 final _koreanData = <String>{
   'Hanguk Ish 사장님', '사장님', '한',
-  // Kept in brackets after the translation on purpose: the registration
-  // certificate is in Korean («Biznes raqami (사업자등록번호)»).
-  '사업자등록번호',
   for (final file in ['demo_employer', 'demo_shifts', 'demo_account'])
     for (final literal in _literals('lib/data/demo/$file.dart'))
       if (_hangul.hasMatch(literal))
@@ -209,7 +206,7 @@ void main() {
     testWidgets('Korean by default, as the prototype', (tester) async {
       await open(tester, EmployerRoutes.login);
       expect(find.text('시작하기'), findsOneWidget);
-      expect(find.text('사업자등록번호'), findsOneWidget);
+      expect(find.text('오늘 필요한 근무자, 바로 구하세요'), findsOneWidget);
     });
 
     testWidgets('BA0: the badge stands beside the name, as in the prototype', (tester) async {

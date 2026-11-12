@@ -557,6 +557,32 @@ void main() {
     });
   });
 
+  group('owner start (P50: open_business)', () {
+    test('opens the business without a number or a check; it comes back from the list', () async {
+      final backend = FakeBackend((r) {
+        if (rpcName(r) == 'open_business') return '10000000-0000-0000-0000-000000000001';
+        if (rpcName(r) == 'my_businesses') return samples['my_businesses'];
+        return null;
+      });
+      await backend.signIn();
+      final repo = SupabaseEmployerRepository(backend.client, config);
+      final business = await repo.openBusiness();
+      expect(business.id, '10000000-0000-0000-0000-000000000001');
+      final call = backend.requests.firstWhere((r) => rpcName(r) == 'open_business');
+      expect(call.method, 'POST');
+      expect(call.headers['Authorization'] ?? call.headers['authorization'], 'Bearer ${backend.accessToken}');
+      expect(backend.requests.where((r) => r.url.path.startsWith('/functions/')), isEmpty,
+          reason: 'no 국세청 check any more');
+    });
+
+    test('offline: said so', () async {
+      final backend = FakeBackend((r) => throw const SocketException('no route'));
+      await backend.signIn();
+      await expectLater(SupabaseEmployerRepository(backend.client, config).openBusiness(),
+          throwsA(isA<OfflineException>()));
+    });
+  });
+
   group('owner registration (ish-business-register)', () {
     test('the 국세청 check runs on the server; the new business comes back', () async {
       var refusal = '';

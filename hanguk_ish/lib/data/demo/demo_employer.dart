@@ -340,6 +340,12 @@ class DemoEmployerRepository implements EmployerRepository {
   }
 
   @override
+  Future<Business> openBusiness() async {
+    await _wait();
+    return demoDalbit;
+  }
+
+  @override
   Future<Business> registerBusiness(String businessNumber) async {
     await _wait();
     if (!isValidBusinessNumber(businessNumber)) throw const ShiftActionException('BIZ_NO_INVALID');

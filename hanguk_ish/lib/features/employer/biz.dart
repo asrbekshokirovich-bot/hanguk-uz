@@ -29,17 +29,12 @@ abstract final class Biz {
     _lang = language.code;
   }
 
-  static const bizNoPlaceholder = '000-00-00000';
-
   static String get ownerBadge => _l.bizOwnerBadge;
   static String get loginSubtitle => _l.bizLoginSubtitle;
-  static String get bizNoLabel => _l.bizBizNoLabel;
-  static String get bizNoHint => _l.bizBizNoHint;
   static String get start => _l.bizStart;
   static String get termsPrefix => _l.bizTermsPrefix;
   static String get termsLink => _l.bizTermsLink;
   static String get termsSuffix => _l.bizTermsSuffix;
-  static String get loginIncomplete => _l.bizLoginIncomplete;
   static String get bizNoInvalid => _l.bizBizNoInvalid;
   static String get navHome => _l.bizNavHome;
   static String get navWorkers => _l.bizNavWorkers;

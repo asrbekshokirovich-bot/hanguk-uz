@@ -159,6 +159,30 @@ void main() {
       await newcomer.auth.signOut();
     });
 
+    test('P50: «시작하기» opens the owner\'s business — no number, no check — and it posts at once', () async {
+      final owner = _client(_anonKey);
+      await SupabaseAuthRepository(owner).signIn();
+      final repo = SupabaseEmployerRepository(owner, config);
+      expect(await repo.businesses(), isEmpty);
+      final business = await repo.openBusiness();
+      expect(business.review, BusinessReview.verified);
+      expect(business.bizNo, isNull);
+      expect(business.name, startsWith('사업장 '));
+      expect((await repo.openBusiness()).id, business.id, reason: 'pressing again gives the same business');
+      expect([for (final b in await repo.businesses()) b.id], [business.id]);
+      final start = DateTime.now().toUtc().add(const Duration(days: 1));
+      final shift = await repo.createShift(ShiftDraft(
+        businessId: business.id,
+        title: '홀 서빙',
+        startsAt: start,
+        endsAt: start.add(const Duration(hours: 4)),
+        hourlyWage: 10800,
+        slots: 2,
+      ));
+      expect(shift.businessId, business.id, reason: 'posted without a check');
+      await owner.auth.signOut();
+    });
+
     test('the API serves the ish schema, and nothing of Hanguk Ish in public', () async {
       final publicApi = SupabaseClient(_url, _serviceKey,
           authOptions: const AuthClientOptions(autoRefreshToken: false));

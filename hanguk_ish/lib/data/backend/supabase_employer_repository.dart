@@ -31,6 +31,15 @@ class SupabaseEmployerRepository implements EmployerRepository {
       });
 
   @override
+  Future<Business> openBusiness() => backendCall(() async {
+        final id = await _client.rpc('open_business');
+        final cards = await _client.rpc('my_businesses') as List;
+        final businesses = [for (final card in cards) businessFromJson(card as Json, publicUrl: _config.publicUrl)];
+        if (businesses.isEmpty) throw const ShiftActionException('UNKNOWN');
+        return businesses.firstWhere((b) => b.id == id, orElse: () => businesses.first);
+      });
+
+  @override
   Future<Business> registerBusiness(String businessNumber) => backendCall(() async {
         final digits = businessNumber.replaceAll(RegExp(r'\D'), '');
         if (!isValidBusinessNumber(digits)) throw const ShiftActionException('BIZ_NO_INVALID');

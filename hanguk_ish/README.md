@@ -11,11 +11,13 @@ Bitta Flutter kod, ikki Android ilova:
 Dizayn: Claude Design prototipi (2026-11-10). Reja: loyiha hujjati
 `claude/hanguk-ish-qurish-reja.md`.
 
-Kirish (P49, Asrbek qarori): SMS yo'q. A01 «Boshlash» va BA0 «시작하기» telefonda
-anonim akkaunt ochadi (Supabase anonymous sign-in, `user_metadata.app =
-'hanguk_ish'`); prototipdagi «Telefon raqam bilan» / «Telegram bilan», T1/T2 va
-BA0'dagi telefon maydoni olib tashlangan. Akkaunt telefonda saqlanadi: ilova
-o'chirilsa, yangi akkaunt ochiladi.
+Kirish (P49, P50 — Asrbek qarori): SMS ham, biznes raqami ham yo'q. A01
+«Boshlash» va BA0 «시작하기» telefonda anonim akkaunt ochadi (Supabase anonymous
+sign-in, `user_metadata.app = 'hanguk_ish'`); prototipdagi «Telefon raqam bilan» /
+«Telegram bilan», T1/T2, BA0'dagi telefon va 사업자등록번호 maydonlari olib
+tashlangan. Sajangnimning biznesi «시작하기» da darhol, tekshiruvsiz ochiladi
+(`ish.open_business`, nomi «사업장 XXXX») va shu zahoti smena joylay oladi.
+Akkaunt telefonda saqlanadi: ilova o'chirilsa, yangi akkaunt ochiladi.
 
 ## Ishga tushirish
 

@@ -36,22 +36,23 @@ class ScriptedAuth extends DemoAuthRepository {
   }
 }
 
-/// An owner without a business yet, whose registration can be refused.
+/// An owner without a business yet (P50: «시작하기» opens one), whose
+/// connection can drop while it opens.
 class NewOwnerRepository extends DemoEmployerRepository {
   NewOwnerRepository() : super(now: employerPrototypeNow, clock: () => employerPrototypeNow);
 
-  bool registered = false;
-  String? refusal;
-  final numbers = <String>[];
+  bool opened = false;
+  int opens = 0;
+  Object? openError;
 
   @override
-  Future<List<Business>> businesses() async => registered ? const [demoDalbit] : const [];
+  Future<List<Business>> businesses() async => opened ? const [demoDalbit] : const [];
 
   @override
-  Future<Business> registerBusiness(String businessNumber) async {
-    numbers.add(businessNumber);
-    if (refusal case final code?) throw ShiftActionException(code);
-    registered = true;
+  Future<Business> openBusiness() async {
+    opens++;
+    if (openError case final error?) throw error;
+    opened = true;
     return demoDalbit;
   }
 }
@@ -210,33 +211,25 @@ void main() {
       return (repo, auth);
     }
 
-    Future<void> start(WidgetTester tester, {String bizNo = '1234567891'}) async {
-      await tester.enterText(find.byType(TextField), bizNo);
+    Future<void> start(WidgetTester tester) async {
       await tester.tap(find.text('시작하기'));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a new owner: an account, 국세청 registration, BA1', (tester) async {
+    testWidgets('a new owner: an account and a business at once, then BA1 (P50: nothing to type)', (tester) async {
       final (repo, auth) = await openBa0(tester);
+      expect(find.byType(TextField), findsNothing);
       await start(tester);
       expect(auth.signIns, 1);
-      expect(repo.numbers, ['123-45-67891']);
+      expect(repo.opens, 1);
       expect(find.text('오늘의 근무'), findsOneWidget);
     });
 
-    testWidgets('a refused number stays on BA0 with the reason; signed in, no second account', (tester) async {
-      final (repo, auth) = await openBa0(tester);
-      repo.refusal = 'BIZ_NO_TAKEN';
+    testWidgets('signed in already (back after a lost connection): no second account', (tester) async {
+      final (repo, auth) = await openBa0(tester, user: 'u1');
       await start(tester);
-      expect(find.text('이미 다른 계정에 등록된 사업자등록번호예요'), findsOneWidget);
-      expect(find.text('시작하기'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
-
-      repo.refusal = null;
-      await start(tester, bizNo: '1248100998');
-      expect(auth.signIns, 1, reason: 'already signed in');
-      expect(repo.numbers.last, '124-81-00998');
+      expect(auth.signIns, 0);
+      expect(repo.opens, 1);
       expect(find.text('오늘의 근무'), findsOneWidget);
     });
 
@@ -245,20 +238,24 @@ void main() {
       auth.signInError = const ShiftActionException('TOO_MANY_REQUESTS');
       await start(tester);
       expect(find.text('시도가 너무 많아요. 잠시 후 다시 시도해 주세요'), findsOneWidget);
-      expect(repo.numbers, isEmpty);
+      expect(repo.opens, 0);
       expect(find.text('시작하기'), findsOneWidget);
     });
 
-    testWidgets('a short or wrong number is caught before any account', (tester) async {
+    testWidgets('offline while the business opens: back on BA0 with the reason, then again', (tester) async {
       final (repo, auth) = await openBa0(tester);
-      await start(tester, bizNo: '12345');
-      expect(find.text('사업자등록번호를 입력해 주세요'), findsOneWidget);
+      repo.openError = const OfflineException();
+      await start(tester);
+      expect(find.text('인터넷 연결을 확인해 주세요'), findsOneWidget);
+      expect(find.text('시작하기'), findsOneWidget);
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
-      await start(tester, bizNo: '1234567890');
-      expect(find.text('사업자등록번호를 확인해 주세요'), findsOneWidget);
-      expect(auth.signIns, 0);
-      expect(repo.numbers, isEmpty);
+
+      repo.openError = null;
+      await start(tester);
+      expect(auth.signIns, 1, reason: 'signed in already');
+      expect(repo.opens, 2);
+      expect(find.text('오늘의 근무'), findsOneWidget);
     });
   });
 }

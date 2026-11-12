@@ -25,7 +25,8 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_limits.sql` | suiiste'molga qarshi cheklovlar (pastda) |
 | `migrations/…_ish_storage_limits.sql` | «ish-avatars» bucket: faqat rasm, 2 MiB gacha — hosted loyihada ham (`config.toml` faqat lokal) |
 | `migrations/…_ish_service_role.sql` | `ish` sxemasida service_role (edge funksiyalar) ruxsatlari |
-| `functions/ish-business-register/` | BA0: 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish; `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
+| `migrations/…_ish_open_business.sql` | P50: BA0 «시작하기» — `open_business()` sajangnim biznesini darhol, raqamsiz va tekshiruvsiz (`verified`) ochadi; bitta akkauntga bitta biznes |
+| `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): anonim kirish yoqiq; testlar odamlarini telefon + test kod bilan kiritadi |
 
@@ -37,7 +38,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 - QR: kirish boshlanishdan 30 daqiqa oldin ochiladi, tugashda yopiladi; chiqish tugashdan 2 soat keyin yopiladi; 1 daqiqadan kech — 지각 (T6).
 - Maosh: QR bo'yicha haqiqiy vaqt, rejadan oshmaydi (T7).
 - Ishonchlilik: bajarilgan +1 (100 gacha), 24 soatdan kam qolganda bekor −5, kelmaslik −20 (T5).
-- NTS «01 계속사업자» bo'lsa biznes darhol tasdiqlanadi (T8).
+- NTS «01 계속사업자» bo'lsa biznes darhol tasdiqlanadi (T8). P50 (Asrbek qarori): BA0 dagi biznes raqamsiz va tekshiruvsiz darhol tasdiqlangan holda ochiladi.
 - Cheklovlar (oshsa `TOO_MANY_REQUESTS`, ilovalar «urinishlar juda ko'p» deb tushuntiradi):
   - chat — daqiqasiga 20, kuniga 300 xabar;
   - arizalar — kuniga 30, bitta smenaga 3 marta;
@@ -51,9 +52,10 @@ hanguk.uz loyihasida (`lysjdtyanhdfphqyijsr`), bir marta. Prod bazadagi har bir
 o'zgarish Asrbekning ruxsati bilan. `supabase db push` ishlatilmaydi — prod
 tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 
-Holat (2026-11-11): hammasi bajarilgan — 21 migratsiya prod'da (P48), sxema test
-bazasi bilan bir xil; `ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan.
-P49 (SMS'siz kirish): 3-band anonim kirishga almashdi.
+Holat (2026-11-12): 21 migratsiya prod'da (P48), sxema test bazasi bilan bir xil;
+`ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan. P49 (SMS'siz kirish):
+ildiz migratsiyasi prod'da, 3-band (anonim kirish) Asrbek yoqadi. P50
+(`…_ish_open_business.sql`) — prod'ga Asrbek ruxsati bilan.
 
 1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
    «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):
@@ -106,7 +108,7 @@ PGHOST=… PGPORT=… PGUSER=postgres bash tests/perf.sh
 
 | Funksiya | Kim chaqiradi | Nima qiladi |
 |---|---|---|
-| `ish-business-register` | sajangnim ilovasi, BA0 dan keyin (kirgan foydalanuvchi) | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED, TOO_MANY_REQUESTS |
+| `ish-business-register` | sajangnim ilovasi: raqamli, hali kutayotgan biznes (BA1 qayta so'raydi). P50 dan BA0 chaqirmaydi | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED, TOO_MANY_REQUESTS |
 
 Sirlar (dashboard → Edge Functions → Secrets): `NTS_SERVICE_KEY` — data.go.kr «국세청_사업자등록정보 진위확인 및 상태조회 서비스», «Decoding» kalit.
 
