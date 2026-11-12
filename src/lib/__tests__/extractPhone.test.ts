@@ -1,8 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-
-vi.mock('https://esm.sh/@supabase/supabase-js@2', () => ({}));
-
-import { extractPhoneFromText } from '../../../supabase/functions/_shared/identity';
+import { describe, expect, it } from 'vitest';
+import { extractPhoneFromText } from '../../../supabase/functions/_shared/phone';
 
 describe('extractPhoneFromText (Instagram/Telegram, 2026-11-12)', () => {
   it('reads the Meta lead form phone, not "2027" glued to it', () => {
