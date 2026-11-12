@@ -7,28 +7,47 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ThemeProvider } from "next-themes";
 import { NativeRouterHandler } from "@/components/native/NativeRouterHandler";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { toast } from "sonner";
 import "@/lib/i18n";
 
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Install from "./pages/Install";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Support from "./pages/Support";
-import StudentPortal from "./pages/StudentPortal";
 import { StudentDataProvider } from "./contexts/StudentDataContext";
-import SurveyList from "./pages/SurveyList";
-import SurveyFill from "./pages/SurveyFill";
-import CRMEntry from "./pages/CRMEntry";
-import InterviewPractice from "./pages/InterviewPractice";
-import StudyPlanTrainer from "./pages/StudyPlanTrainer";
-import UniversityStaffPortal from "./pages/UniversityStaffPortal";
-import LearningCenterPortal from "./pages/LearningCenterPortal";
-import NotFound from "./pages/NotFound";
-import SystemMap from "./pages/SystemMap";
-import AppLink from "./pages/AppLink";
+
+// Every page but the landing is loaded when its route is opened. They used to
+// be imported here, so the first visit to hanguk.uz downloaded the whole CRM,
+// the investor portal, the charts and the map — one 3.2 MB script (945 KB
+// gzipped; 24 s on the office connection on 2026-11-11) — before the landing
+// page could draw.
+const Auth = lazy(() => import("./pages/Auth"));
+const Install = lazy(() => import("./pages/Install"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Support = lazy(() => import("./pages/Support"));
+const StudentPortal = lazy(() => import("./pages/StudentPortal"));
+const SurveyList = lazy(() => import("./pages/SurveyList"));
+const SurveyFill = lazy(() => import("./pages/SurveyFill"));
+const CRMEntry = lazy(() => import("./pages/CRMEntry"));
+const InterviewPractice = lazy(() => import("./pages/InterviewPractice"));
+const StudyPlanTrainer = lazy(() => import("./pages/StudyPlanTrainer"));
+const UniversityStaffPortal = lazy(() => import("./pages/UniversityStaffPortal"));
+const LearningCenterPortal = lazy(() => import("./pages/LearningCenterPortal"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const SystemMap = lazy(() => import("./pages/SystemMap"));
+const AppLink = lazy(() => import("./pages/AppLink"));
+
+/** What a route shows while its page is on the way — the spinner CRMEntry already uses. */
+function RouteLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div
+        className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary"
+        role="status"
+        aria-label="Loading"
+      />
+    </div>
+  );
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +99,7 @@ const App = () => (
             <AuthProvider>
               <StaffPresenceProvider>
                 <MentionNotificationsProvider>
+                  <Suspense fallback={<RouteLoading />}>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
@@ -115,6 +135,7 @@ const App = () => (
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                  </Suspense>
                 </MentionNotificationsProvider>
               </StaffPresenceProvider>
             </AuthProvider>

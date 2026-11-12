@@ -1,7 +1,23 @@
+import { lazy, Suspense } from 'react';
 import { IntakeProvider } from '@/contexts/IntakeContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import CRMPortal from './CRMPortal';
-import InvestorPortal from './investor/InvestorPortal';
+
+// Staff never open the investor portal and the investor never opens the CRM:
+// each downloads only its own.
+const CRMPortal = lazy(() => import('./CRMPortal'));
+const InvestorPortal = lazy(() => import('./investor/InvestorPortal'));
+
+function PortalLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div
+        className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary"
+        role="status"
+        aria-label="Loading"
+      />
+    </div>
+  );
+}
 
 /**
  * The /crm/* fork.
@@ -14,23 +30,21 @@ import InvestorPortal from './investor/InvestorPortal';
 export default function CRMEntry() {
   const { isInvestor, loading } = useUserRole();
 
-  if (loading) {
+  if (loading) return <PortalLoading />;
+
+  if (isInvestor) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div
-          className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary"
-          role="status"
-          aria-label="Loading"
-        />
-      </div>
+      <Suspense fallback={<PortalLoading />}>
+        <InvestorPortal />
+      </Suspense>
     );
   }
 
-  if (isInvestor) return <InvestorPortal />;
-
   return (
     <IntakeProvider>
-      <CRMPortal />
+      <Suspense fallback={<PortalLoading />}>
+        <CRMPortal />
+      </Suspense>
     </IntakeProvider>
   );
 }
