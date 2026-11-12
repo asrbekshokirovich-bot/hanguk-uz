@@ -6,6 +6,8 @@
   smoke_ui.py tap TEXT [seconds] [n]      waits for it, then taps its middle
   smoke_ui.py tapif TEXT [seconds]        taps it if it comes (a system dialog)
   smoke_ui.py tapbelow ANCHOR TEXT        taps the first TEXT under ANCHOR
+  smoke_ui.py tapend TEXT DP              taps DP above the bottom edge of TEXT's
+                                          node, swiping until that edge is on screen
   smoke_ui.py scrollto TEXT [swipes]      swipes up until TEXT is on screen
   smoke_ui.py field N VALUE [seconds]     taps the Nth text field, types VALUE
   smoke_ui.py type VALUE                  types into the focused field
@@ -33,6 +35,7 @@ def adb(*args, timeout=60):
 
 
 _size = None
+_density = None
 
 
 def display():
@@ -42,6 +45,22 @@ def display():
         found = re.findall(r'(\d+)x(\d+)', adb('shell', 'wm', 'size'))
         _size = tuple(map(int, found[-1])) if found else (1080, 2400)
     return _size
+
+
+def density():
+    """Pixels per dp."""
+    global _density
+    if _density is None:
+        found = re.findall(r'(\d+)', adb('shell', 'wm', 'density'))
+        _density = int(found[-1]) / 160 if found else 2.625
+    return _density
+
+
+def swipe_up():
+    width, height = display()
+    adb('shell', 'input', 'swipe', str(width // 2), str(height * 7 // 10), str(width // 2),
+        str(height * 3 // 10), '400')
+    time.sleep(1)
 
 
 def screen():
@@ -65,7 +84,7 @@ def screen():
         x1, y1, x2, y2 = map(int, bounds)
         if x2 <= x1 or y2 <= y1 or not (0 <= (x1 + x2) // 2 < width and 0 <= (y1 + y2) // 2 < height):
             continue
-        nodes.append({'words': words, 'x': (x1 + x2) // 2, 'y': (y1 + y2) // 2,
+        nodes.append({'words': words, 'x': (x1 + x2) // 2, 'y': (y1 + y2) // 2, 'bottom': y2,
                       'field': node.get('class') == 'android.widget.EditText'})
     return nodes
 
@@ -157,11 +176,26 @@ def main():
             if node:
                 print(f'on screen: {node["words"]!r}')
                 return
-            width, height = display()
-            adb('shell', 'input', 'swipe', str(width // 2), str(height * 7 // 10), str(width // 2),
-                str(height * 3 // 10), '400')
-            time.sleep(1)
+            swipe_up()
         find(text, 3)
+    elif command == 'tapend':
+        # A button whose words Flutter merged into its card's node (BA3's QR
+        # card): the card's middle is not the button, its bottom edge is.
+        text, dp = args[0], float(args[1])
+        _, height = display()
+        node = find(text, 30)
+        for _ in range(4):
+            # Clear of the gesture bar: the edge is the card's, not the screen's.
+            if node['bottom'] < height - 60 * density():
+                break
+            swipe_up()
+            moved = find(text, 5)
+            if moved['bottom'] == node['bottom']:
+                break
+            node = moved
+        y = int(node['bottom'] - dp * density())
+        tap_at(node['x'], y)
+        print(f"tapped {dp:g} dp above the bottom of {node['words']!r} @ {node['x']},{y}")
     elif command == 'tapbelow':
         # The first TEXT under ANCHOR (a field under its label).
         anchor_text, text = args[0], args[1]

@@ -139,6 +139,7 @@ walk_worker() {
     step 'A02 opens' ui wait 'Profil · 1 / 3' &&
     shot a02-1 &&
     step 'A02-1: first name' ui field 0 Dilnoza &&
+    ui hidekb &&
     step 'A02-1: last name' ui field 1 Testova &&
     ui hidekb &&
     step 'A02-1 → 2' ui tap '=Davom etish' &&
@@ -190,7 +191,7 @@ walk_worker() {
     shot a11-ru &&
     adb shell am force-stop "$pkg" &&
     adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 &&
-    step 'after a restart: still Russian' ui wait 'По номеру телефона' 60 &&
+    step 'after a restart: still Russian' ui wait '=Начать' 60 &&
     shot a01-ru-restarted &&
     echo "$name: A01 → A02 ×3 → A03 → A05 → A06 → A07 in/out → A08 → A11 → Русский → restart" ||
     { shot failed-worker; failed=1; }
@@ -226,7 +227,7 @@ walk_employer() {
     step 'BA1 → BA3' ui tap '마감 정리 보조' &&
     step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
     shot ba3 &&
-    step 'BA3: QR' ui tap 'QR 인쇄·공유' &&
+    step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
     step 'BA3: the QR picture goes to the share sheet' shared &&
     shot ba3-share &&
     adb shell input keyevent 4 &&
@@ -240,7 +241,7 @@ walk_employer() {
     shot ba5-share &&
     adb shell input keyevent 4 &&
     step 'back in BA5' ui wait 'CSV 다운로드' &&
-    echo "$name: BA0 → code → BA1 → BA3 → QR share → BA5 → CSV share" ||
+    echo "$name: BA0 → BA1 → BA3 → QR share → BA5 → CSV share" ||
     { shot failed-employer; failed=1; }
   finish "$pkg" "$name"
 }
