@@ -46,6 +46,17 @@ export function decide(t: Target, now: Date, auto: boolean): Decision {
   return { channel: t.telegram_id && t.account_label ? "telegram" : "task" };
 }
 
+/**
+ * Who a CRM task is filed under. tasks.created_by is NOT NULL, and the daily
+ * run has no signed-in user: until 2026-11-11 every automatic task failed on
+ * that (23 of 23, «null value in column "created_by"»). A person who pressed
+ * the button is the creator; the daily run files it under the student's
+ * consultant, or — with none — under the owner. null: nobody to file it under.
+ */
+export function taskCreator(caller: string | null, consultant: string | null, owner: string | null): string | null {
+  return caller ?? consultant ?? owner ?? null;
+}
+
 function first(name: string | null): string {
   return (name ?? "").trim().split(/\s+/)[0] ?? "";
 }

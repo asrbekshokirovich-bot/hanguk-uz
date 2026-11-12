@@ -1,6 +1,6 @@
 // deno test supabase/functions/student-app-invite/invite_test.ts
 import { assertEquals } from "jsr:@std/assert@1";
-import { appLink, decide, PLAY_URL, taskFor, telegramText, type Target } from "./invite.ts";
+import { appLink, decide, PLAY_URL, taskCreator, taskFor, telegramText, type Target } from "./invite.ts";
 
 const now = new Date("2026-11-20T06:10:00Z");
 const t = (o: Partial<Target> = {}): Target => ({
@@ -41,4 +41,14 @@ Deno.test("the task names the student and carries the code", () => {
   const k = taskFor(t({ telegram_id: null }), null);
   assertEquals(k.title, "Ilovaga taklif: Aziz Karimov");
   assertEquals(k.description.includes("123456") && k.description.includes(PLAY_URL), true);
+});
+
+Deno.test("a task always has a creator: the caller, else the consultant, else the owner", () => {
+  // by hand from the CRM
+  assertEquals(taskCreator("staff-1", "cons-1", "owner-1"), "staff-1");
+  // the daily run: nobody is signed in
+  assertEquals(taskCreator(null, "cons-1", "owner-1"), "cons-1");
+  assertEquals(taskCreator(null, null, "owner-1"), "owner-1");
+  // no owner on record: the caller records the failure instead of a NOT NULL error
+  assertEquals(taskCreator(null, null, null), null);
 });
