@@ -33,6 +33,13 @@ adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
 # their «isn't responding» box covers ours and eats the taps. No error boxes:
 # a crash or an ANR of ours is still caught in logcat (finish).
 adb shell settings put global hide_error_dialogs 1 >/dev/null 2>&1 || true
+# P54: the sign-in screens take a phone number and a code. Typing with the
+# on-screen keyboard up has taken the emulator down (adb gone right after);
+# with every input method off, `input text` still reaches the focused field
+# and no keyboard opens.
+for ime in $(adbt shell ime list -s 2>/dev/null | tr -d '\r'); do
+  adbt shell ime disable "$ime" >/dev/null 2>&1 || true
+done
 
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
