@@ -21,7 +21,9 @@ cd "$(dirname "$0")/.."
 apks=$1
 out=build/smoke
 mkdir -p "$out"
-ui() { python3 tool/smoke_ui.py "$@"; }
+# One screen command never waits longer than its own 90 s (an adb that stops
+# answering would hold the whole run until the job's limit).
+ui() { timeout 150 python3 tool/smoke_ui.py "$@"; }
 failed=0
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
 # The emulator's own apps (Pixel Launcher) stop answering under load, and
@@ -137,31 +139,28 @@ step() {
   return 1
 }
 
-# Takes the first shift of the feed that is confirmed at once (some wait for
-# the business). A03 → A05 → «Smenani olish»: the sheet says which kind it is
-# («…smena sizga biriktiriladi» / «…ariza ish beruvchiga yuboriladi»), so a
-# shift that would only send an application is left (back to the feed) —
-# otherwise its waiting application comes first in A06 (it starts earlier)
-# and A06 → A07 opens the wrong card. Which card is first depends on the time
-# of day (the demo shifts are around now). A feed card reads as one line (its
-# own «Olish» is inside the card's node), so the card opens A05, whose button
-# is a node of its own.
+# Takes shifts from the top of the feed until one is confirmed at once
+# (some wait for the business). A03 → A05 → «Smenani olish» → confirm, card
+# by card. A feed card reads as one line (its own «Olish» is inside the
+# card's node), so the card opens A05, whose button is a node of its own.
+# Which card comes first depends on the time of day (the demo shifts are
+# around now); a card that only sent an application stays in A06 too and
+# may come first there, so the taken one is remembered by its business:
+# «tapped 'Bom Mart, Kassir yordamchisi, …' @ x,y» → taken=Bom Mart.
+taken=
 take_confirmed() {
-  local card
-  for card in 0 1 2 3 4 5; do
-    ui tap ' soat' 30 "$card" || return 1
+  local card out
+  for card in 0 1 2 3 4; do
+    out=$(ui tap ' soat' 30 "$card") || { echo "$out"; return 1; }
+    echo "$out"
     ui tap '=Smenani olish' 30 || return 1
-    if ui wait 'smena sizga biriktiriladi' 10; then
-      ui tap '=Tasdiqlash' 15 || return 1
-      ui wait 'Smena olindi!' 15 && return 0
-      ui tapif '=Lentaga qaytish' 5
-    else
-      # The sheet, then A05: back to the feed.
-      adb shell input keyevent 4
-      sleep 1
-      adb shell input keyevent 4
-      ui wait ' soat' 15 || return 1
+    ui tap '=Tasdiqlash' 15 || return 1
+    if ui wait 'Smena olindi!' 10; then
+      taken=${out#tapped ?}
+      taken=${taken%%,*}
+      return 0
     fi
+    ui tapif '=Lentaga qaytish' 5
   done
   return 1
 }
@@ -203,7 +202,7 @@ walk_worker() {
     step 'A06' ui tap '=Mening smenalarim' &&
     step 'A06: the shift' ui wait 'Tasdiqlangan' &&
     shot a06 &&
-    step 'A06 → A07' ui tapbelow 'Smenalar holati' ' · ' &&
+    step "A06 → A07 ($taken)" ui tapbelow 'Smenalar holati' "${taken:- · }" &&
     step 'A07 check-in' ui wait 'Ishga kirish' 30 &&
     shot a07-in &&
     step 'A07: the printed code (demo)' ui tap '=QR kodni skanerlash' &&
