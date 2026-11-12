@@ -473,6 +473,8 @@
   "bizReviewPendingText": "Once 국세청 (the tax office) confirms it, workers will see your shifts.",
   "bizReviewRejectedTitle": "Business not confirmed",
   "bizReviewRejectedText": "국세청 (the tax office) lists the business as closed — workers cannot see its shifts.",
+  "bizReviewSuspendedTitle": "Business suspended",
+  "bizReviewSuspendedText": "Hanguk has suspended this business — workers cannot see its shifts.",
   "bizNotificationsTitle": "Notifications",
   "bizYesterday": "Yesterday",
   "bizNoNotifications": "No new notifications",

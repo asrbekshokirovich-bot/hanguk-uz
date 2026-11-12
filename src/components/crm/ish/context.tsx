@@ -33,6 +33,7 @@ export const ishKeys = {
   staff: ['ish', 'staff'] as const,
   board: (from: string) => ['ish', 'board', from] as const,
   businesses: ['ish', 'businesses'] as const,
+  appBusinesses: ['ish', 'appBusinesses'] as const,
   job: (id: string) => ['ish', 'job', id] as const,
   candidates: (id: string, km: number | null) => ['ish', 'candidates', id, km] as const,
   messages: (applicationId: string) => ['ish', 'messages', applicationId] as const,

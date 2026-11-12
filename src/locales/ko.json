@@ -2701,7 +2701,8 @@
     "seoulTime": "시간은 한국(서울) 시간 기준이에요.",
     "tabs": {
       "jobs": "일자리",
-      "employers": "사업장"
+      "employers": "사업장",
+      "appBusinesses": "앱 사업장"
     },
     "board": {
       "newJob": "새 일자리",
@@ -2878,6 +2879,31 @@
       "NOT_AUTHENTICATED": "다시 로그인하세요.",
       "OFFLINE": "인터넷 연결이 없어요.",
       "UNKNOWN": "문제가 생겼어요. 다시 시도해 주세요."
+    },
+    "appBusinesses": {
+      "intro": "사장님 앱에서 열린 사업장입니다. 확인 없이 바로 열리므로 의심스러우면 정지하세요: 근무가 근무자에게 보이지 않고 지원할 수 없어요.",
+      "empty": "앱에서 열린 사업장이 아직 없어요.",
+      "business": "사업장",
+      "status": "상태",
+      "opened": "개설일",
+      "shifts": "근무",
+      "actions": "작업",
+      "statusActive": "운영 중",
+      "statusSuspended": "정지됨",
+      "statusPending": "확인 중",
+      "shiftsLine": "모집 중 {{open}} · 전체 {{total}}",
+      "last24h": "24시간: {{count}}",
+      "placeholder": "실제 이름 미입력",
+      "edit": "수정",
+      "editTitle": "사업장 정보",
+      "suspend": "정지",
+      "resume": "재개",
+      "suspendTitle": "사업장을 정지할까요?",
+      "suspendText": "근무가 근무자에게 보이지 않고 새 지원을 받을 수 없어요. 확정된 근무자는 그대로이니 직접 연락해 주세요.",
+      "resumeTitle": "사업장을 재개할까요?",
+      "resumeText": "근무가 다시 근무자에게 보여요.",
+      "suspended": "정지했어요",
+      "resumed": "재개했어요"
     }
   },
   "calendarPage": {

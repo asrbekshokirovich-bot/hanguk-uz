@@ -90,6 +90,14 @@ alohida kirish, SMS kod yoki Vercel o'zgaruvchisi kerak emas.
    Olib tashlash: `delete from ish.staff_members where user_id = …;`
    Ro'yxatda bo'lmasa, bo'lim «Hanguk Ish xodimlari ro'yxatida yo'q» deydi.
 
+«Ilovadagi bizneslar» yorlig'i (P52): sajangnim ilovasida tekshiruvsiz ochilgan
+bizneslar (eng yangisi tepada) — holati, ochilgan kuni, smenalar soni (24 soatda
+nechta). Xodim haqiqiy nom va manzilni qo'yadi («사업장 XXXX» nomlilar
+belgilanadi) va shubhali biznesni to'xtatadi: uning smenalari ishchilar
+lentasidan chiqadi, ariza berib bo'lmaydi, yangi smena qo'yilmaydi, sajangnim
+BA1 da «Biznes to'xtatilgan» deb ko'radi. Tasdiqlangan ishchilar smenasida
+qoladi — ular bilan xodim o'zi bog'lanadi. «Qayta yoqish» hammasini qaytaradi.
+
 ## Tuzilma
 
 ```

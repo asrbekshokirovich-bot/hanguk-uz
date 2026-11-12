@@ -8,7 +8,8 @@
  * staff member signs in with a test phone number (supabase/config.toml),
  * keeps an employer from Telegram, posts an invite-only job, offers it; the
  * worker answers with the same calls the app makes; the staff confirm, chat,
- * mark who came and that they were paid.
+ * mark who came and that they were paid. And the businesses the 사장님 app
+ * opens without a check (P50): the staff name one and suspend it (P52).
  *
  *   SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_KEY=… npx vitest run src/lib/ish/__e2e__
  *
@@ -221,5 +222,75 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
       'my_shifts',
     );
     expect(earned.find((a) => a.shift.id === jobId)).toMatchObject({ status: 'completed', pay_amount: 45500 });
+  });
+
+  it('a business the 사장님 app opened at once: the staff name it, suspend it and let it back (P52)', async () => {
+    // The 사장님 app: an anonymous account, «시작하기» (P50) and a shift.
+    const owner = client(anonKey);
+    const started = await owner.auth.signInAnonymously({ options: { data: { app: 'hanguk_ish' } } });
+    expect(started.error).toBeNull();
+    const opened = await call<string>(owner, 'open_business');
+    const { startsAt, endsAt } = jobTimes(addDays(seoulToday(), 2), '11:00', '15:00');
+    const posted = await owner
+      .from('shifts')
+      .insert({ business_id: opened, title: '홀 서빙', starts_at: startsAt, ends_at: endsAt, hourly_wage: 13000, slots: 1 })
+      .select('id')
+      .single();
+    expect(posted.error).toBeNull();
+    const shiftId = (posted.data as { id: string }).id;
+
+    const listed = await api.appBusinesses();
+    expect(listed.find((b) => b.id === opened)).toMatchObject({
+      status: 'verified',
+      biz_no: null,
+      shifts: 1,
+      open_shifts: 1,
+      shifts_24h: 1,
+    });
+    expect(listed.find((b) => b.id === opened)?.name).toMatch(/^사업장 [0-9A-F]{4}$/);
+    expect(listed.some((b) => b.id === businessId)).toBe(false);
+
+    expect(
+      await api.updateAppBusiness({
+        id: opened,
+        name: ' 순대국집 신촌점 ',
+        nameUz: 'Sundaeguk',
+        category: 'restaurant',
+        area: '신촌',
+        address: '마포구 신촌로 1',
+        addressDetail: '1층',
+      }),
+    ).toBe(opened);
+    expect((await api.appBusinesses()).find((b) => b.id === opened)).toMatchObject({
+      name: '순대국집 신촌점',
+      name_i18n: { uz: 'Sundaeguk' },
+      category: 'restaurant',
+      area: '신촌',
+    });
+
+    const feed = async () =>
+      (
+        await call<{ id: string }[]>(worker, 'shift_feed', {
+          p_from: new Date().toISOString(),
+          p_to: new Date(Date.now() + 4 * 86_400_000).toISOString(),
+        })
+      ).map((x) => x.id);
+    expect(await feed()).toContain(shiftId);
+
+    expect(await api.setAppBusinessBlocked(opened, true)).toBe('rejected');
+    expect(await feed()).not.toContain(shiftId);
+    await expect(call(worker, 'apply_to_shift', { p_shift: shiftId })).rejects.toThrow('SHIFT_CLOSED');
+    // The owner's app sees it suspended (BA1) and cannot post.
+    const mine = await call<{ id: string; status: string; biz_no: string | null }[]>(owner, 'my_businesses');
+    expect(mine.find((b) => b.id === opened)).toMatchObject({ status: 'rejected', biz_no: null });
+    const refused = await owner
+      .from('shifts')
+      .insert({ business_id: opened, title: '마감', starts_at: startsAt, ends_at: endsAt, hourly_wage: 13000, slots: 1 });
+    expect(refused.error?.message).toBe('BUSINESS_NOT_VERIFIED');
+
+    expect(await api.setAppBusinessBlocked(opened, false)).toBe('verified');
+    expect(await feed()).toContain(shiftId);
+    // Not the staff's own employers.
+    await expect(api.setAppBusinessBlocked(businessId, true)).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 });

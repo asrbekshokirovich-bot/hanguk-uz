@@ -8,6 +8,7 @@ import { ishApi } from '@/lib/ish/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IshApiProvider, ishKeys } from './context';
+import { IshAppBusinesses } from './IshAppBusinesses';
 import { IshBoard } from './IshBoard';
 import { IshEmployers } from './IshEmployers';
 import { IshJobDetail } from './IshJobDetail';
@@ -109,12 +110,16 @@ function IshWorkspace({ account }: { account: string }) {
           <TabsList>
             <TabsTrigger value="jobs">{t('ish.tabs.jobs')}</TabsTrigger>
             <TabsTrigger value="employers">{t('ish.tabs.employers')}</TabsTrigger>
+            <TabsTrigger value="appBusinesses">{t('ish.tabs.appBusinesses')}</TabsTrigger>
           </TabsList>
           <TabsContent value="jobs" className="mt-4">
             <IshBoard onOpen={setJobId} />
           </TabsContent>
           <TabsContent value="employers" className="mt-4">
             <IshEmployers />
+          </TabsContent>
+          <TabsContent value="appBusinesses" className="mt-4">
+            <IshAppBusinesses />
           </TabsContent>
         </Tabs>
       )}

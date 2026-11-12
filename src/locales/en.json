@@ -3742,7 +3742,8 @@
     "seoulTime": "Times are Korea (Seoul) time.",
     "tabs": {
       "jobs": "Jobs",
-      "employers": "Employers"
+      "employers": "Employers",
+      "appBusinesses": "App businesses"
     },
     "board": {
       "newJob": "New job",
@@ -3922,6 +3923,31 @@
       "NOT_AUTHENTICATED": "Sign in again.",
       "OFFLINE": "No internet connection.",
       "UNKNOWN": "Something went wrong. Please try again."
+    },
+    "appBusinesses": {
+      "intro": "Businesses opened in the 사장님 app. They open at once, without a check — if one looks suspicious, suspend it: workers won't see its shifts and nobody can apply.",
+      "empty": "No business has been opened in the app yet.",
+      "business": "Business",
+      "status": "Status",
+      "opened": "Opened",
+      "shifts": "Shifts",
+      "actions": "Actions",
+      "statusActive": "Active",
+      "statusSuspended": "Suspended",
+      "statusPending": "In review",
+      "shiftsLine": "{{open}} open · {{total}} in all",
+      "last24h": "Last 24 h: {{count}}",
+      "placeholder": "No real name yet",
+      "edit": "Edit",
+      "editTitle": "Business details",
+      "suspend": "Suspend",
+      "resume": "Resume",
+      "suspendTitle": "Suspend this business?",
+      "suspendText": "workers won't see its shifts and new applications are blocked. Confirmed workers keep their shifts — contact them yourself.",
+      "resumeTitle": "Resume this business?",
+      "resumeText": "workers will see its shifts again.",
+      "suspended": "Suspended",
+      "resumed": "Resumed"
     }
   },
   "calendarPage": {

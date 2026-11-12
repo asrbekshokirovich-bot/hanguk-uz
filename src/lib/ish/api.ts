@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
+  IshAppBusiness,
+  IshAppBusinessInput,
   IshApplication,
   IshBoardRow,
   IshBusiness,
@@ -93,6 +95,25 @@ export function ishApi(client: SupabaseClient) {
           notes: b.contact.notes.trim(),
         },
       }),
+
+    /** P52: the businesses the 사장님 app opened (no check, P50), newest first. */
+    appBusinesses: async () => (await rpc<IshAppBusiness[] | null>('staff_app_businesses')) ?? [],
+
+    /** The real name and place of an app business (it opens as «사업장 XXXX»). */
+    updateAppBusiness: (b: IshAppBusinessInput) =>
+      rpc<string>('staff_update_app_business', {
+        p_business: b.id,
+        p_name: b.name.trim(),
+        p_category: b.category,
+        p_area: b.area.trim(),
+        p_address: b.address.trim(),
+        p_address_detail: b.addressDetail.trim(),
+        p_name_i18n: b.nameUz.trim() ? { uz: b.nameUz.trim() } : {},
+      }),
+
+    /** Suspend an app business (its shifts leave the feed, nobody applies) or let it back; the new status. */
+    setAppBusinessBlocked: (id: string, blocked: boolean) =>
+      rpc<string>('staff_set_app_business_blocked', { p_business: id, p_blocked: blocked }),
 
     /** Jobs starting in [from, to): the kept employers' and any with offers. */
     board: async (from: Date, to: Date) =>

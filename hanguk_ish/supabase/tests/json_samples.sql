@@ -157,13 +157,29 @@ insert into samples values
   ('minimum_wage', to_jsonb(ish.minimum_wage(now()))),
   ('shift_qr', to_jsonb(ish.shift_qr('20000000-0000-0000-0000-000000000004')));
 
+-- P50/P52: two owners who started without a number; the staff named the
+-- second one's business and suspended it.
+select tests.as_admin();
+insert into auth.users (id, is_anonymous, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000f1', true, '{"app": "hanguk_ish"}'),
+  ('00000000-0000-0000-0000-0000000000f2', true, '{"app": "hanguk_ish"}');
+select tests.as_user('00000000-0000-0000-0000-0000000000f1');
+insert into staff_ids select 'app_biz', ish.open_business();
+select tests.as_user('00000000-0000-0000-0000-0000000000f2');
+insert into staff_ids select 'app_biz_2', ish.open_business();
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
+select ish.staff_update_app_business((select v from staff_ids where k = 'app_biz_2'), '순대국집 신촌점', 'restaurant',
+                                     '신촌', '마포구 신촌로 1', '1층', '{"uz": "Sundaeguk · Sinchon"}');
+select ish.staff_set_app_business_blocked((select v from staff_ids where k = 'app_biz_2'), true);
+
 -- hanguk.uz (CRM «Hanguk Ish»).
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
 insert into samples values
   ('staff_businesses', ish.staff_businesses()),
   ('staff_board', ish.staff_board(now() - interval '1 day', now() + interval '4 days')),
   ('staff_shift', ish.staff_shift((select v from staff_ids where k = 'job'))),
-  ('staff_candidates', ish.staff_candidates((select v from staff_ids where k = 'job'), 20));
+  ('staff_candidates', ish.staff_candidates((select v from staff_ids where k = 'job'), 20)),
+  ('staff_app_businesses', ish.staff_app_businesses());
 
 select tests.as_admin();
 select jsonb_pretty(jsonb_object_agg(name, value order by name)) from samples;

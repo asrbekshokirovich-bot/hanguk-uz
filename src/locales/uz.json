@@ -3802,7 +3802,8 @@
     "seoulTime": "Vaqtlar Koreya (Seul) vaqti bilan.",
     "tabs": {
       "jobs": "Ishlar",
-      "employers": "Ish beruvchilar"
+      "employers": "Ish beruvchilar",
+      "appBusinesses": "Ilovadagi bizneslar"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -3979,6 +3980,31 @@
       "NOT_AUTHENTICATED": "Qaytadan kiring.",
       "OFFLINE": "Internet aloqasi yo'q.",
       "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring."
+    },
+    "appBusinesses": {
+      "intro": "사장님 ilovasida ochilgan bizneslar. Ular tekshiruvsiz, darhol ochiladi — shubhali bo'lsa, to'xtating: smenalari ishchilarga ko'rinmaydi va ariza berib bo'lmaydi.",
+      "empty": "Ilovada hali biznes ochilmagan.",
+      "business": "Biznes",
+      "status": "Holati",
+      "opened": "Ochilgan",
+      "shifts": "Smenalar",
+      "actions": "Amallar",
+      "statusActive": "Faol",
+      "statusSuspended": "To'xtatilgan",
+      "statusPending": "Tekshiruvda",
+      "shiftsLine": "{{open}} ochiq · jami {{total}}",
+      "last24h": "24 soatda: {{count}}",
+      "placeholder": "Haqiqiy nomi qo'yilmagan",
+      "edit": "Tahrirlash",
+      "editTitle": "Biznes ma'lumotlari",
+      "suspend": "To'xtatish",
+      "resume": "Qayta yoqish",
+      "suspendTitle": "Biznesni to'xtatasizmi?",
+      "suspendText": "smenalari ishchilarga ko'rinmaydi va yangi ariza berib bo'lmaydi. Tasdiqlangan ishchilar smenasida qoladi — ular bilan o'zingiz bog'laning.",
+      "resumeTitle": "Biznesni qayta yoqasizmi?",
+      "resumeText": "smenalari yana ishchilarga ko'rinadi.",
+      "suspended": "To'xtatildi",
+      "resumed": "Qayta yoqildi"
     }
   },
   "calendarPage": {

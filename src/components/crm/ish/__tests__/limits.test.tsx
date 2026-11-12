@@ -11,7 +11,9 @@ import { createInstance } from 'i18next';
 import type { ReactNode } from 'react';
 import uz from '@/locales/uz.json';
 import type { IshApi } from '@/lib/ish/api';
+import type { IshAppBusiness } from '@/lib/ish/types';
 import { IshApiProvider } from '../context';
+import { AppBusinessDialog } from '../IshAppBusinesses';
 import { IshBusinessDialog } from '../IshEmployers';
 import { IshJobDialog } from '../IshJobDialog';
 
@@ -60,6 +62,19 @@ describe('the forms hold the database\'s limits', () => {
       'ish-c-telegram': 64,
       'ish-c-source': 300,
       'ish-c-notes': 2000,
+    });
+  });
+
+  it('a business the app opened (P52): name, area, address', () => {
+    const business = { id: 'b-1', name: '사업장 A4BB', name_i18n: {}, category: 'other', area: '', address: '',
+                       address_detail: '' } as unknown as IshAppBusiness;
+    wrap(<AppBusinessDialog business={business} onClose={() => {}} />);
+    expect(maxLengths(['ish-ab-name', 'ish-ab-name-uz', 'ish-ab-area', 'ish-ab-address', 'ish-ab-detail'])).toEqual({
+      'ish-ab-name': 80,
+      'ish-ab-name-uz': 80,
+      'ish-ab-area': 40,
+      'ish-ab-address': 200,
+      'ish-ab-detail': 80,
     });
   });
 

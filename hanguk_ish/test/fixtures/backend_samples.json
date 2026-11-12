@@ -1874,6 +1874,136 @@
         },
         "my_application_id": null
     },
+    "staff_app_businesses": [
+        {
+            "id": "10000000-0000-0000-0000-000000000001",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "area": "신촌",
+            "name": "달빛카페 신촌점",
+            "biz_no": "1234567890",
+            "rating": 5.0,
+            "shifts": 7,
+            "status": "verified",
+            "address": "마포구 신촌로12길 15",
+            "category": "cafe",
+            "verified": true,
+            "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+            "name_i18n": {
+                "en": "Dalbit Cafe",
+                "ko": "달빛카페",
+                "ru": "Кафе Дальбит",
+                "uz": "Dalbit Kafe"
+            },
+            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+            "shifts_24h": 7,
+            "open_shifts": 6,
+            "rating_count": 1,
+            "translations": {
+                "en": {
+                    "area": "Sinchon",
+                    "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                    "address_detail": "2F"
+                },
+                "ru": {
+                    "area": "Синчон",
+                    "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                    "address_detail": "2 этаж"
+                },
+                "uz": {
+                    "area": "Sinchon",
+                    "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                    "address_detail": "2-qavat"
+                }
+            },
+            "last_shift_at": "2026-11-12T10:54:47.751949+05:00",
+            "address_detail": "2층",
+            "completed_shifts": 1
+        },
+        {
+            "id": "10000000-0000-0000-0000-000000000002",
+            "lat": null,
+            "lng": null,
+            "area": "",
+            "name": "이음식당",
+            "biz_no": "2234567890",
+            "rating": null,
+            "shifts": 1,
+            "status": "pending",
+            "address": "",
+            "category": "restaurant",
+            "verified": false,
+            "logo_path": null,
+            "name_i18n": {
+            },
+            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "photo_path": null,
+            "shifts_24h": 1,
+            "open_shifts": 1,
+            "rating_count": 0,
+            "translations": {
+            },
+            "last_shift_at": "2026-11-12T10:54:47.751949+05:00",
+            "address_detail": "",
+            "completed_shifts": 0
+        },
+        {
+            "id": "2fed80a2-6d4e-412e-9d1c-5dd0c5a16d09",
+            "lat": null,
+            "lng": null,
+            "area": "신촌",
+            "name": "순대국집 신촌점",
+            "biz_no": null,
+            "rating": null,
+            "shifts": 0,
+            "status": "rejected",
+            "address": "마포구 신촌로 1",
+            "category": "restaurant",
+            "verified": false,
+            "logo_path": null,
+            "name_i18n": {
+                "uz": "Sundaeguk · Sinchon"
+            },
+            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "photo_path": null,
+            "shifts_24h": 0,
+            "open_shifts": 0,
+            "rating_count": 0,
+            "translations": {
+            },
+            "last_shift_at": null,
+            "address_detail": "1층",
+            "completed_shifts": 0
+        },
+        {
+            "id": "a4bbffb9-083c-4eb5-9447-1c5000a2ff8b",
+            "lat": null,
+            "lng": null,
+            "area": "",
+            "name": "사업장 A4BB",
+            "biz_no": null,
+            "rating": null,
+            "shifts": 0,
+            "status": "verified",
+            "address": "",
+            "category": "other",
+            "verified": true,
+            "logo_path": null,
+            "name_i18n": {
+            },
+            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "photo_path": null,
+            "shifts_24h": 0,
+            "open_shifts": 0,
+            "rating_count": 0,
+            "translations": {
+            },
+            "last_shift_at": null,
+            "address_detail": "",
+            "completed_shifts": 0
+        }
+    ],
     "my_notifications_offer": [
         {
             "id": 13,

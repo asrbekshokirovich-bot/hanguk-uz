@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import uz from '@/locales/uz.json';
 import samples from '../../../../../hanguk_ish/test/fixtures/backend_samples.json';
 import IshContent, { IshSection } from '../IshContent';
-import type { IshJobPage } from '@/lib/ish/types';
+import type { IshAppBusiness, IshJobPage } from '@/lib/ish/types';
 
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QR') } }));
 // hanguk.uz's own client: the section uses it (P48, one project).
@@ -78,6 +78,10 @@ function renderWith(node: React.ReactNode) {
 }
 
 const job = samples.staff_shift as unknown as IshJobPage;
+// P52: the 사장님 app's businesses — one just opened (no real name), one the staff suspended.
+const appBusinesses = samples.staff_app_businesses as unknown as IshAppBusiness[];
+const appFresh = appBusinesses.find((b) => b.biz_no === null && b.status === 'verified')!;
+const appSuspended = appBusinesses.find((b) => b.status === 'rejected')!;
 
 const staffHandlers = (overrides: Record<string, Handler> = {}): Record<string, Handler> => ({
   is_staff: () => true,
@@ -86,6 +90,9 @@ const staffHandlers = (overrides: Record<string, Handler> = {}): Record<string, 
   staff_shift: () => job,
   staff_candidates: () => samples.staff_candidates,
   staff_send_offers: (p) => (p?.p_workers as string[]).length,
+  staff_app_businesses: () => appBusinesses,
+  staff_update_app_business: (p) => p?.p_business,
+  staff_set_app_business_blocked: (p) => (p?.p_blocked ? 'rejected' : 'verified'),
   ...overrides,
 });
 
@@ -229,6 +236,85 @@ describe('CRM → Hanguk Ish', () => {
     expect(await screen.findByText('홍대 이삿짐센터 · Logistika')).toBeInTheDocument();
     expect(screen.getByText('010-5555-1234 · @hongdae_move')).toBeInTheDocument();
     expect(screen.getByText('김사장')).toBeInTheDocument();
+  });
+
+  it('the businesses the app opened: one without a real name is pointed out, a suspended one says so', async () => {
+    const { client } = fakeClient(staffHandlers());
+    renderWith(<IshSection client={client} />);
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: 'Ilovadagi bizneslar' }));
+    const fresh = within(await screen.findByTestId(`ish-app-business-${appFresh.id}`));
+    expect(fresh.getByText(appFresh.name)).toBeInTheDocument();
+    expect(fresh.getByText("Haqiqiy nomi qo'yilmagan")).toBeInTheDocument();
+    expect(fresh.getByText('Faol')).toBeInTheDocument();
+    expect(fresh.getByRole('button', { name: "To'xtatish" })).toBeInTheDocument();
+    const stopped = within(screen.getByTestId(`ish-app-business-${appSuspended.id}`));
+    expect(stopped.getByText('Sundaeguk · Sinchon')).toBeInTheDocument();
+    expect(stopped.getByText("To'xtatilgan")).toBeInTheDocument();
+    expect(stopped.getByRole('button', { name: 'Qayta yoqish' })).toBeInTheDocument();
+    expect(stopped.queryByText("Haqiqiy nomi qo'yilmagan")).not.toBeInTheDocument();
+    const dalbit = within(screen.getByTestId('ish-app-business-10000000-0000-0000-0000-000000000001'));
+    expect(dalbit.getByText('6 ochiq · jami 7')).toBeInTheDocument();
+    expect(dalbit.getByText('24 soatda: 7')).toBeInTheDocument();
+    expect(within(screen.getByTestId('ish-app-business-10000000-0000-0000-0000-000000000002')).getByText('Tekshiruvda'))
+      .toBeInTheDocument();
+  });
+
+  it('suspending says first what it means for the workers, then asks the database', async () => {
+    const { client, rpc } = fakeClient(staffHandlers());
+    renderWith(<IshSection client={client} />);
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: 'Ilovadagi bizneslar' }));
+    const row = within(await screen.findByTestId(`ish-app-business-${appFresh.id}`));
+    fireEvent.click(row.getByRole('button', { name: "To'xtatish" }));
+    const dialog = within(await screen.findByRole('alertdialog'));
+    expect(dialog.getByText("Biznesni to'xtatasizmi?")).toBeInTheDocument();
+    expect(dialog.getByText(/smenalari ishchilarga ko'rinmaydi/)).toBeInTheDocument();
+    expect(rpc).not.toHaveBeenCalledWith('staff_set_app_business_blocked', expect.anything());
+    fireEvent.click(dialog.getByRole('button', { name: "To'xtatish" }));
+    await waitFor(() =>
+      expect(rpc).toHaveBeenCalledWith('staff_set_app_business_blocked', { p_business: appFresh.id, p_blocked: true }),
+    );
+  });
+
+  it('a suspended one is let back the same way', async () => {
+    const { client, rpc } = fakeClient(staffHandlers());
+    renderWith(<IshSection client={client} />);
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: 'Ilovadagi bizneslar' }));
+    const row = within(await screen.findByTestId(`ish-app-business-${appSuspended.id}`));
+    fireEvent.click(row.getByRole('button', { name: 'Qayta yoqish' }));
+    const dialog = within(await screen.findByRole('alertdialog'));
+    expect(dialog.getByText(/smenalari yana ishchilarga ko'rinadi/)).toBeInTheDocument();
+    fireEvent.click(dialog.getByRole('button', { name: 'Qayta yoqish' }));
+    await waitFor(() =>
+      expect(rpc).toHaveBeenCalledWith('staff_set_app_business_blocked', { p_business: appSuspended.id, p_blocked: false }),
+    );
+  });
+
+  it('the real name and place of an app business: trimmed, with the Uzbek name', async () => {
+    const { client, rpc } = fakeClient(staffHandlers());
+    renderWith(<IshSection client={client} />);
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: 'Ilovadagi bizneslar' }));
+    const row = within(await screen.findByTestId(`ish-app-business-${appFresh.id}`));
+    fireEvent.click(row.getByRole('button', { name: 'Tahrirlash' }));
+    const name = await screen.findByLabelText("Nomi (koreyscha, ishchilar ko'radi)");
+    expect(name).toHaveValue(appFresh.name);
+    fireEvent.change(name, { target: { value: '  ' } });
+    expect(screen.getByRole('button', { name: 'Saqlash' })).toBeDisabled();
+    fireEvent.change(name, { target: { value: ' 김밥천국 홍대점 ' } });
+    fireEvent.change(screen.getByLabelText("Nomi (o'zbekcha)"), { target: { value: ' Kimbap Cheonguk ' } });
+    fireEvent.change(screen.getByLabelText('Hudud (masalan, 홍대)'), { target: { value: '홍대' } });
+    fireEvent.change(screen.getByLabelText('Manzil (koreyscha)'), { target: { value: '마포구 와우산로 21 ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Saqlash' }));
+    await waitFor(() =>
+      expect(rpc).toHaveBeenCalledWith('staff_update_app_business', {
+        p_business: appFresh.id,
+        p_name: '김밥천국 홍대점',
+        p_category: 'other',
+        p_area: '홍대',
+        p_address: '마포구 와우산로 21',
+        p_address_detail: '',
+        p_name_i18n: { uz: 'Kimbap Cheonguk' },
+      }),
+    );
   });
 
   it('a refusal is told in words', async () => {

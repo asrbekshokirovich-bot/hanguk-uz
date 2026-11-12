@@ -17,8 +17,9 @@ select tests.eq(
     'my_shifts', 'open_business', 'rate_business', 'register_push_token', 'request_again', 'save_worker_profile',
     'set_shift_paid', 'shift_details', 'shift_feed', 'shift_qr',
     -- The staff's (hanguk.uz): each starts with require_staff().
-    'staff_board', 'staff_businesses', 'staff_candidates', 'staff_mark_attendance', 'staff_save_business',
-    'staff_save_shift', 'staff_send_offers', 'staff_shift',
+    'staff_app_businesses', 'staff_board', 'staff_businesses', 'staff_candidates', 'staff_mark_attendance',
+    'staff_save_business', 'staff_save_shift', 'staff_send_offers', 'staff_set_app_business_blocked', 'staff_shift',
+    'staff_update_app_business',
     'toggle_favorite', 'worker_earnings', 'worker_stats'
   ]::text[],
   'the owner-rights functions open to signed-in people are the reviewed ones');
