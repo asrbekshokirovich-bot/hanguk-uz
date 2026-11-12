@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
+import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_live_updates.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
