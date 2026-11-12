@@ -3,7 +3,7 @@
 // P53: Hanguk Ish's anonymous accounts are refused by hanguk.uz's functions;
 // hanguk.uz's own accounts (students, staff, guests) pass as before.
 import { assertEquals } from "jsr:@std/assert@1";
-import { isAnonymousAccount } from "./hanguk-ish.ts";
+import { isAnonymousAccount, isHangukIshAccount } from "./hanguk-ish.ts";
 import { requireCaller } from "./caller.ts";
 import { requireAuth } from "./auth.ts";
 
@@ -14,6 +14,14 @@ Deno.test("only an account Supabase marks anonymous is one", () => {
   assertEquals(isAnonymousAccount({ is_anonymous: null }), false);
   assertEquals(isAnonymousAccount(null), false);
   assertEquals(isAnonymousAccount(undefined), false);
+});
+
+Deno.test("P54: a phone account marked by the database is a Hanguk Ish account", () => {
+  assertEquals(isHangukIshAccount({ is_anonymous: false, app_metadata: { app: "hanguk_ish", provider: "phone" } }), true);
+  assertEquals(isHangukIshAccount({ is_anonymous: false, app_metadata: { provider: "email" } }), false);
+  assertEquals(isHangukIshAccount({ app_metadata: null }), false);
+  assertEquals(isHangukIshAccount({ app_metadata: { app: "other" } }), false);
+  assertEquals(isAnonymousAccount({ app_metadata: { app: "hanguk_ish" } }), true, "the old name follows");
 });
 
 /** Supabase Auth answers GET /auth/v1/user with [user]; everything else is a test failure. */
@@ -43,6 +51,7 @@ const request = () => new Request("https://project.supabase.co/functions/v1/x", 
 
 const student = { id: "11111111-1111-4111-8111-111111111111", aud: "authenticated", role: "authenticated", is_anonymous: false, app_metadata: {}, user_metadata: {} };
 const anonymous = { ...student, id: "22222222-2222-4222-8222-222222222222", is_anonymous: true, user_metadata: { app: "hanguk_ish" } };
+const phoneWorker = { ...student, id: "33333333-3333-4333-8333-333333333333", phone: "821012345678", app_metadata: { provider: "phone", providers: ["phone"], app: "hanguk_ish" }, user_metadata: { app: "hanguk_ish" } };
 
 Deno.test("requireCaller: a signed-in student passes, an anonymous account is refused (403)", async () => {
   const ok = await withAuthServer(student, () => requireCaller(request(), "user", {}));
@@ -59,6 +68,18 @@ Deno.test("requireAuth: the same rule", async () => {
   const user = await withAuthServer(student, () => requireAuth(request()));
   assertEquals(user.id, student.id);
   const status = await withAuthServer(anonymous, () =>
+    requireAuth(request()).then(() => 200, (e: { statusCode?: number }) => e.statusCode ?? 500));
+  assertEquals(status, 403);
+});
+
+Deno.test("P54: requireCaller and requireAuth refuse a Hanguk Ish phone account (403)", async () => {
+  const refused = await withAuthServer(phoneWorker, () => requireCaller(request(), "user", {}));
+  assertEquals(refused.ok, false);
+  if (!refused.ok) {
+    assertEquals(refused.response.status, 403);
+    await refused.response.body?.cancel();
+  }
+  const status = await withAuthServer(phoneWorker, () =>
     requireAuth(request()).then(() => 200, (e: { statusCode?: number }) => e.statusCode ?? 500));
   assertEquals(status, 403);
 });

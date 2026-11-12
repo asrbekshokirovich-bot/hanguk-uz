@@ -29,7 +29,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_app_business_oversight.sql` | P52: tekshiruvsiz ochilgan bizneslar ustidan xodim nazorati — `staff_app_businesses()` ro'yxat, `staff_update_app_business()` haqiqiy nom va manzil, `staff_set_app_business_blocked()` to'xtatish (`rejected`: smenalar lentadan chiqadi, ariza berib bo'lmaydi) / qayta yoqish; `staff_reports()` / `staff_set_report_status()` — ishchilar shikoyatlari (A11) va ularning holati; ilovadan bitta biznes 24 soatda ko'pi bilan 30 smena (`TOO_MANY_REQUESTS`); xodim yozgan o'zbekcha nom koreyscha nom o'zgarganda yo'qolmaydi |
 | `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
-| `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): anonim kirish yoqiq; testlar odamlarini telefon + test kod bilan kiritadi |
+| `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): telefon orqali kirish (P54), test raqamlar qat'iy kod bilan |
 
 ## Qoidalar (bazada tekshiriladi)
 
@@ -54,11 +54,11 @@ o'zgarish Asrbekning ruxsati bilan. `supabase db push` ishlatilmaydi — prod
 tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 
 Holat (2026-11-12): 21 migratsiya prod'da (P48), sxema test bazasi bilan bir xil;
-`ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan. P49 (SMS'siz kirish):
-ildiz migratsiyasi prod'da, 3-band (anonim kirish) Asrbek yoqadi. P50
-(`…_ish_open_business.sql`) — prod'ga Asrbek ruxsati bilan. P52
-(`…_ish_app_business_oversight.sql`) — prod'da (2026-11-12, Asrbek ruxsati
-bilan; 8 funksiya md5 bo'yicha test bazasi bilan bir xil).
+`ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan. P50
+(`…_ish_open_business.sql`) prod'da. P52 (`…_ish_app_business_oversight.sql`) —
+prod'da (2026-11-12, Asrbek ruxsati bilan; 8 funksiya md5 bo'yicha test bazasi
+bilan bir xil). P53 ildiz migratsiyasi prod'da. P54 (telefon + SMS kod):
+Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati bilan.
 
 1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
    «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):
@@ -69,22 +69,27 @@ bilan; 8 funksiya md5 bo'yicha test bazasi bilan bir xil).
      `ish.messages`, `ish.applications`) va «ish-avatars» bucket ham o'rnatiladi.
 2. Dashboard → Project Settings → Data API → **Exposed schemas**: `ish` ni qo'shish
    (bo'lmasa API `ish` ga javob bermaydi).
-3. Authentication → Sign In / Providers → **Allow anonymous sign-ins**: yoqish
-   (P49: ilovalar SMS'siz, telefonda anonim akkaunt ochadi). SMS provayderi kerak
-   emas. hanguk.uz'ning o'z kirishi o'zgarmaydi; anonim akkauntga hanguk.uz profili
-   ochilmaydi (`20261111180000_hanguk_ish_skip_anonymous.sql`). Akkaunt telefonda
-   saqlanadi: ilova o'chirilsa, yangisi ochiladi.
-   **Avval (P53):** anonim akkauntni istalgan odam ochishi mumkin, hanguk.uz esa
-   anonim kirish o'chiq deb qurilgan — uning jadvallari «har kim o'z qatorini»
-   yozishiga, bir qancha funksiyalari (AI intervyu, study plan, universitet
-   qidiruvi, HeyGen, TURN, push token) har qanday kirgan akkauntga ochiq. Shuning
-   uchun yoqishdan oldin: ildizdagi `20261112140000_hanguk_ish_no_anonymous.sql`
-   (hanguk.uz'ning barcha `public` jadvallari va bucket'lariga anonim akkauntga
-   restrictive policy; `ish` sxemasi va «ish-avatars» tegilmaydi) prod'ga
-   qo'yiladi va funksiyalar joylanadi (`supabase/functions/_shared/hanguk-ish.ts`:
-   anonim akkauntga 403; main'ga birlashganda `supabase-deploy.yml` o'zi joylaydi).
+3. Kirish (P54): Authentication → Sign In / Providers → **Phone** yoqiq, SMS
+   provayderi **Twilio Verify** (Account SID, Auth Token, Verify Service SID —
+   Asrbek 2026-11-12 da kiritdi). «Allow anonymous sign-ins» kerak emas (o'chiq).
+   Telefon akkauntini istalgan odam ochishi mumkin, hanguk.uz esa telefon
+   akkauntlarisiz qurilgan (2026-11-12: 352 akkauntdan 0 tasida telefon) — uning
+   jadvallari «har kim o'z qatorini» yozishiga, bir qancha funksiyalari (AI
+   intervyu, study plan, universitet qidiruvi, HeyGen, TURN, push token) har
+   qanday kirgan akkauntga ochiq. Shuning uchun ilovalar telefon bilan kirishidan
+   oldin, tartib bilan:
+   - `20261112140000_hanguk_ish_no_anonymous.sql` (P53): hanguk.uz'ning barcha
+     `public` jadvallari va bucket'lariga restrictive policy;
+   - `20261112160000_hanguk_ish_phone_accounts.sql` (P54): emailsiz (telefon
+     yoki anonim) har bir akkaunt ochilganda `app_metadata.app = 'hanguk_ish'`
+     bilan belgilanadi (belgi qayta yozilsa ham qaytadi), P53 policy'lari
+     belgilangan akkauntni ham ushlaydi, hanguk.uz profili ochilmaydi;
+   - funksiyalar (`supabase/functions/_shared/hanguk-ish.ts`
+     `isHangukIshAccount`: anonim yoki belgilangan akkauntga 403; main'ga
+     birlashganda `supabase-deploy.yml` o'zi joylaydi).
    Keyin yaratiladigan hanguk.uz jadvaliga shu policy o'z migratsiyasida
-   qo'shiladi (namunasi migratsiya boshida).
+   qo'shiladi (namunasi P54 migratsiyasi ichida).
+   Authentication → Rate Limits → SMS: soatiga kichik chegara (har SMS pullik).
 4. Edge funksiya `ish-business-register`: `supabase functions deploy ish-business-register
    --workdir hanguk_ish --project-ref lysjdtyanhdfphqyijsr` (yoki MCP
    `deploy_edge_function`: `index.ts`, `keys.ts`, `nts.ts`, verify_jwt yoqiq);

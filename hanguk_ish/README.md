@@ -11,13 +11,16 @@ Bitta Flutter kod, ikki Android ilova:
 Dizayn: Claude Design prototipi (2026-11-10). Reja: loyiha hujjati
 `claude/hanguk-ish-qurish-reja.md`.
 
-Kirish (P49, P50 — Asrbek qarori): SMS ham, biznes raqami ham yo'q. A01
-«Boshlash» va BA0 «시작하기» telefonda anonim akkaunt ochadi (Supabase anonymous
-sign-in, `user_metadata.app = 'hanguk_ish'`); prototipdagi «Telefon raqam bilan» /
-«Telegram bilan», T1/T2, BA0'dagi telefon va 사업자등록번호 maydonlari olib
-tashlangan. Sajangnimning biznesi «시작하기» da darhol, tekshiruvsiz ochiladi
-(`ish.open_business`, nomi «사업장 XXXX») va shu zahoti smena joylay oladi.
-Akkaunt telefonda saqlanadi: ilova o'chirilsa, yangi akkaunt ochiladi.
+Kirish (P54, 2026-11-12 — Asrbek qarori): telefon raqam va SMS kod (Supabase
+Phone provayderi, Twilio Verify). Ishchi ilovasida A01 «Telefon raqam bilan» →
+T1 (raqam) → T2 (6 xonali kod) → A02 yoki lenta; «Telegram bilan» hozircha «tez
+orada» deydi. Sajangnim ilovasida BA0: telefon raqam → «시작하기» → kod →
+biznes darhol, tekshiruvsiz ochiladi (P50: `ish.open_business`, nomi «사업장
+XXXX», 사업자등록번호 yo'q). Telefon bilan ochilgan akkaunt bazada
+`app_metadata.app = 'hanguk_ish'` bilan belgilanadi va hanguk.uz jadvallari
+hamda funksiyalaridan ajratiladi (ildizdagi
+`20261112160000_hanguk_ish_phone_accounts.sql`). P49–P50 dagi anonim kirish
+olib tashlandi.
 
 ## Ishga tushirish
 

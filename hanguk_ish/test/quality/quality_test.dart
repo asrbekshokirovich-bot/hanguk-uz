@@ -78,6 +78,8 @@ void main() {
 
     final screens = {
       'A01': WorkerRoutes.login,
+      'T1': WorkerRoutes.phone,
+      'T2': WorkerRoutes.phoneCode('010-1234-5678'),
       'A02-1': WorkerRoutes.profileName,
       'A02-2': WorkerRoutes.profileLanguages,
       'A02-3': WorkerRoutes.profileSchedule,
@@ -122,6 +124,7 @@ void main() {
 
     final screens = {
       'BA0': EmployerRoutes.login,
+      'BA0 code': EmployerRoutes.code('010-1234-5678'),
       'BA1': EmployerRoutes.home,
       'BA2': EmployerRoutes.create,
       'BA3': EmployerRoutes.shift('demo-es-close'),

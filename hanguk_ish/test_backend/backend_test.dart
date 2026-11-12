@@ -146,12 +146,15 @@ void main() {
       expect(row?['id'], user.id, reason: 'ish.profiles, made by ish.handle_new_user');
     });
 
-    test('P49: the apps\' account on this phone — anonymous, marked, with an ish profile', () async {
+    test('P54: the apps sign in by phone and SMS code — marked, with an ish profile', () async {
       final newcomer = _client(_anonKey);
-      await SupabaseAuthRepository(newcomer).signIn();
+      final auth = SupabaseAuthRepository(newcomer);
+      await auth.sendCode('010-0000-0081');
+      await auth.verifyCode('010-0000-0081', '123456');
       final user = newcomer.auth.currentUser!;
-      expect(user.phone ?? '', isEmpty, reason: 'no phone number, no SMS');
+      expect(user.phone, '821000000081');
       expect(user.email ?? '', isEmpty);
+      expect(user.isAnonymous, isFalse);
       expect(user.userMetadata?['app'], 'hanguk_ish');
       final row = await admin.from('profiles').select('id, phone').eq('id', user.id).maybeSingle();
       expect(row?['id'], user.id, reason: 'ish.profiles, made by ish.handle_new_user');
@@ -159,9 +162,12 @@ void main() {
       await newcomer.auth.signOut();
     });
 
-    test('P50: «시작하기» opens the owner\'s business — no number, no check — and it posts at once', () async {
+    test('P50/P54: after the code, «시작하기» opens the owner\'s business — no number, no check — and it posts at once',
+        () async {
       final owner = _client(_anonKey);
-      await SupabaseAuthRepository(owner).signIn();
+      final auth = SupabaseAuthRepository(owner);
+      await auth.sendCode('010-0000-0082');
+      await auth.verifyCode('010-0000-0082', '123456');
       final repo = SupabaseEmployerRepository(owner, config);
       expect(await repo.businesses(), isEmpty);
       final business = await repo.openBusiness();

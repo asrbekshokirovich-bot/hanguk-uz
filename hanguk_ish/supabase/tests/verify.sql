@@ -37,6 +37,15 @@ select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) li
 select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%is_anonymous%'
             then 'ok       hanguk.uz sign-up skips anonymous accounts (the apps'' sign-in, P49)'
             else 'MISSING  hanguk.uz public.handle_new_user does not skip anonymous accounts' end;
+-- P54 (20261112160000_hanguk_ish_phone_accounts.sql): phone accounts are
+-- marked app_metadata.app = 'hanguk_ish' and kept out of hanguk.uz's tables.
+select case when exists (select 1 from pg_trigger where tgrelid = 'auth.users'::regclass
+                         and tgname = 'hanguk_ish_mark_account' and tgenabled <> 'D')
+            then 'ok       phone and anonymous accounts are marked as Hanguk Ish''s (P54)'
+            else 'MISSING  auth.users trigger hanguk_ish_mark_account (P54)' end;
+select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%raw_app_meta_data%'
+            then 'ok       hanguk.uz sign-up skips marked (phone) accounts (P54)'
+            else 'MISSING  hanguk.uz public.handle_new_user does not skip marked accounts (P54)' end;
 \else
 select 'ok       no hanguk.uz sign-up trigger here (local stack)';
 \endif

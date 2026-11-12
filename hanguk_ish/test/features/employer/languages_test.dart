@@ -207,6 +207,7 @@ void main() {
       await open(tester, EmployerRoutes.login);
       expect(find.text('시작하기'), findsOneWidget);
       expect(find.text('오늘 필요한 근무자, 바로 구하세요'), findsOneWidget);
+      expect(find.text('휴대폰 번호'), findsOneWidget);
     });
 
     testWidgets('BA0: the badge stands beside the name, as in the prototype', (tester) async {
@@ -224,6 +225,7 @@ void main() {
       await tester.tap(find.text("O'zbekcha"));
       await tester.pumpAndSettle();
       expect(find.text('Boshlash'), findsOneWidget);
+      expect(find.text('Telefon raqam'), findsOneWidget);
       expect(find.text('Ish beruvchi'), findsOneWidget);
       expect(find.text('시작하기'), findsNothing);
       expect(container.read(employerLanguageProvider), AppLanguage.uz);
@@ -244,6 +246,7 @@ void main() {
 
     final screens = [
       EmployerRoutes.login,
+      EmployerRoutes.code('010-1234-5678'),
       EmployerRoutes.home,
       EmployerRoutes.create,
       EmployerRoutes.invite('demo-w-jasur'),

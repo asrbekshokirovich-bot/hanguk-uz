@@ -11,6 +11,7 @@ import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/business.dart';
 import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
+import 'package:hanguk_ish/design/widgets/auth.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
@@ -20,19 +21,27 @@ import '../helpers/fonts.dart';
 import '../helpers/phone.dart';
 import '../helpers/worker_harness.dart';
 
-/// Sign-in (P49: an account on this phone, no SMS) that fails with
-/// [signInError] when set.
+/// Sign-in that answers with [sendError] / [verifyError] when set.
 class ScriptedAuth extends DemoAuthRepository {
   ScriptedAuth({super.userId});
 
-  Object? signInError;
-  int signIns = 0;
+  Object? sendError;
+  Object? verifyError;
+  int sent = 0;
+  final codes = <String>[];
 
   @override
-  Future<void> signIn() async {
-    signIns++;
-    if (signInError case final error?) throw error;
-    return super.signIn();
+  Future<void> sendCode(String phone) async {
+    sent++;
+    if (sendError case final error?) throw error;
+    return super.sendCode(phone);
+  }
+
+  @override
+  Future<void> verifyCode(String phone, String code) async {
+    codes.add(code);
+    if (verifyError case final error?) throw error;
+    return super.verifyCode(phone, code);
   }
 }
 
@@ -85,67 +94,95 @@ void main() {
     });
   });
 
-  group('worker A01 «Boshlash»', () {
-    Future<(ProviderContainer, ScriptedAuth)> openA01(
-      WidgetTester tester, {
-      String? user,
-      InMemoryWorkerProfileRepository? profile,
-    }) async {
+  group('worker T1 / T2', () {
+    Future<(ProviderContainer, ScriptedAuth)> openPhone(WidgetTester tester, {InMemoryWorkerProfileRepository? profile}) async {
       usePhone(tester);
-      final auth = ScriptedAuth(userId: user);
-      final container = appContainer(location: WorkerRoutes.login, overrides: [
+      final auth = ScriptedAuth();
+      final container = appContainer(location: WorkerRoutes.phone, overrides: [
         authRepositoryProvider.overrideWithValue(auth),
         workerProfileRepositoryProvider.overrideWithValue(profile ?? InMemoryWorkerProfileRepository()),
       ]);
-      container.read(workerProfileDraftProvider.notifier).replace(const WorkerProfileDraft());
       addTearDown(container.dispose);
       await tester.pumpWidget(appHarness(container));
       await tester.pumpAndSettle();
       return (container, auth);
     }
 
-    testWidgets('a new account fills A02', (tester) async {
-      final (_, auth) = await openA01(tester);
-      await tester.tap(find.text('Boshlash'));
+    testWidgets('a refused SMS is explained on T1', (tester) async {
+      final (_, auth) = await openPhone(tester);
+      auth.sendError = const ShiftActionException('SMS_FAILED');
+      await tester.enterText(find.byType(TextField), '01012345678');
       await tester.pumpAndSettle();
-      expect(auth.signIns, 1);
-      expect(auth.userId, DemoAuthRepository.demoUser);
-      expect(find.text('Profil · 1 / 3'), findsOneWidget);
+      await tester.tap(find.text('Kod olish'));
+      await tester.pumpAndSettle();
+      expect(find.text("SMS yuborib bo'lmadi. Raqamni tekshirib, qayta urinib ko'ring."), findsOneWidget);
+      expect(find.byType(HiFormError), findsOneWidget);
+      auth.sendError = const OfflineException();
+      await tester.tap(find.text('Kod olish'));
+      await tester.pumpAndSettle();
+      expect(find.text("Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring."), findsOneWidget);
+      await tester.enterText(find.byType(TextField), '0101234');
+      await tester.pumpAndSettle();
+      expect(find.byType(HiFormError), findsNothing, reason: 'typing clears the message');
+      expect(tester.widget<HiButton>(find.widgetWithText(HiButton, 'Kod olish')).onPressed, isNull);
     });
 
-    testWidgets('a saved profile opens the feed with the profile loaded', (tester) async {
+    testWidgets('a wrong code is explained and cleared; a saved profile opens the feed', (tester) async {
       final profile = InMemoryWorkerProfileRepository();
       await profile.save(prototypeProfile());
-      final (container, _) = await openA01(tester, profile: profile);
-      await tester.tap(find.text('Boshlash'));
+      final (container, auth) = await openPhone(tester, profile: profile);
+      container.read(workerProfileDraftProvider.notifier).replace(const WorkerProfileDraft());
+      await tester.enterText(find.byType(TextField), '01012345678');
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Kod olish'));
+      await tester.pumpAndSettle();
+
+      auth.verifyError = const ShiftActionException('CODE_INVALID');
+      await tester.enterText(find.byType(TextField), '111111');
+      await tester.pumpAndSettle();
+      expect(find.text("Kod noto'g'ri yoki eskirgan. Qaytadan kiriting."), findsOneWidget);
+      expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty);
+
+      auth.verifyError = null;
+      await tester.enterText(find.byType(TextField), '654321');
+      await tester.pumpAndSettle();
+      expect(auth.codes, ['111111', '654321']);
       expect(find.text('Smenalar'), findsWidgets, reason: 'the feed');
-      expect(container.read(workerProfileDraftProvider).firstName, 'Aziz');
+      expect(container.read(workerProfileDraftProvider).firstName, 'Aziz', reason: 'the saved profile is loaded');
     });
 
-    testWidgets('signed in already: goes on without a second account', (tester) async {
-      final (_, auth) = await openA01(tester, user: 'u1');
-      await tester.tap(find.text('Boshlash'));
+    testWidgets('a new code after a minute', (tester) async {
+      final (_, auth) = await openPhone(tester);
+      await tester.enterText(find.byType(TextField), '01012345678');
       await tester.pumpAndSettle();
-      expect(auth.signIns, 0);
-      expect(find.text('Profil · 1 / 3'), findsOneWidget);
+      await tester.tap(find.text('Kod olish'));
+      await tester.pumpAndSettle();
+      expect(find.text('Qayta yuborish: 1:00'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 15));
+      expect(find.text('Qayta yuborish: 0:45'), findsOneWidget);
+      expect(find.text('Kodni qayta yuborish'), findsNothing);
+      await tester.pump(const Duration(seconds: 45));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kodni qayta yuborish'));
+      await tester.pumpAndSettle();
+      expect(auth.sent, 2);
+      expect(find.text('Yangi kod yuborildi.'), findsOneWidget);
+      expect(find.text('Qayta yuborish: 1:00'), findsOneWidget);
     });
 
-    for (final (error, text) in [
-      (const OfflineException(), "Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring."),
-      (const ShiftActionException('TOO_MANY_REQUESTS'), "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring."),
-      (const ShiftActionException('SIGN_IN_UNAVAILABLE'), "Xatolik yuz berdi. Qayta urinib ko'ring."),
+    for (final (code, text) in [
+      ('TOO_MANY_REQUESTS', "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring."),
+      ('PHONE_INVALID', "Raqam noto'g'ri. 010-0000-0000 ko'rinishida kiriting."),
+      ('SOMETHING', "Xatolik yuz berdi. Qayta urinib ko'ring."),
     ]) {
-      testWidgets('a failed start stays on A01 and says why: $error', (tester) async {
-        final (_, auth) = await openA01(tester);
-        auth.signInError = error;
-        await tester.tap(find.text('Boshlash'));
+      testWidgets('T1 names $code', (tester) async {
+        final (_, auth) = await openPhone(tester);
+        auth.sendError = ShiftActionException(code);
+        await tester.enterText(find.byType(TextField), '01012345678');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Kod olish'));
         await tester.pumpAndSettle();
         expect(find.text(text), findsOneWidget);
-        expect(find.text('Boshlash'), findsOneWidget, reason: 'still on A01');
-        expect(auth.userId, isNull);
-        expect(tester.widget<HiButton>(find.widgetWithText(HiButton, 'Boshlash')).onPressed, isNotNull,
-            reason: 'ready to try again');
       });
     }
   });
@@ -169,7 +206,7 @@ void main() {
 
     testWidgets('signed out: A01', (tester) async {
       await launch(tester);
-      expect(find.text('Boshlash'), findsOneWidget);
+      expect(find.text('Telefon raqam bilan'), findsOneWidget);
     });
 
     testWidgets('signed in without a profile: A02', (tester) async {
@@ -193,9 +230,23 @@ void main() {
       expect(live.read(workerInitialLocationProvider), WorkerRoutes.start);
       expect(live.read(employerInitialLocationProvider), EmployerRoutes.start);
     });
+
+    testWidgets('Telegram says it is coming when a backend is set', (tester) async {
+      usePhone(tester);
+      final container = appContainer(location: WorkerRoutes.login, overrides: [
+        backendConfigProvider.overrideWithValue(backend),
+      ]);
+      addTearDown(container.dispose);
+      await tester.pumpWidget(appHarness(container));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Telegram bilan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Telegram orqali kirish tez orada. Hozircha telefon raqam bilan kiring.'), findsOneWidget);
+      expect(find.text('Telefon raqam bilan'), findsOneWidget, reason: 'still on A01');
+    });
   });
 
-  group('owner sign-in', () {
+  group('owner sign-in (P54: phone + SMS code; P50: no business number)', () {
     Future<(NewOwnerRepository, ScriptedAuth)> openBa0(WidgetTester tester, {String? user}) async {
       usePhone(tester);
       final repo = NewOwnerRepository();
@@ -212,40 +263,38 @@ void main() {
     }
 
     Future<void> start(WidgetTester tester) async {
+      await tester.enterText(find.byType(TextField), '01012345678');
       await tester.tap(find.text('시작하기'));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a new owner: an account and a business at once, then BA1 (P50: nothing to type)', (tester) async {
+    testWidgets('a new owner: code, then the business opens at once, then BA1', (tester) async {
       final (repo, auth) = await openBa0(tester);
-      expect(find.byType(TextField), findsNothing);
       await start(tester);
-      expect(auth.signIns, 1);
+      expect(auth.sent, 1);
+      expect(repo.opens, 0, reason: 'not before the code');
+      await tester.enterText(find.byType(TextField), '123456');
+      await tester.pumpAndSettle();
+      expect(auth.codes, ['123456']);
       expect(repo.opens, 1);
       expect(find.text('오늘의 근무'), findsOneWidget);
     });
 
-    testWidgets('signed in already (back after a lost connection): no second account', (tester) async {
+    testWidgets('signed in already (back after a lost connection): no new SMS', (tester) async {
       final (repo, auth) = await openBa0(tester, user: 'u1');
       await start(tester);
-      expect(auth.signIns, 0);
+      expect(auth.sent, 0);
       expect(repo.opens, 1);
       expect(find.text('오늘의 근무'), findsOneWidget);
     });
 
-    testWidgets('a failed start stays on BA0 and says why', (tester) async {
-      final (repo, auth) = await openBa0(tester);
-      auth.signInError = const ShiftActionException('TOO_MANY_REQUESTS');
-      await start(tester);
-      expect(find.text('시도가 너무 많아요. 잠시 후 다시 시도해 주세요'), findsOneWidget);
-      expect(repo.opens, 0);
-      expect(find.text('시작하기'), findsOneWidget);
-    });
-
-    testWidgets('offline while the business opens: back on BA0 with the reason, then again', (tester) async {
+    testWidgets('offline while the business opens: back on BA0 with the reason, then again without a new SMS',
+        (tester) async {
       final (repo, auth) = await openBa0(tester);
       repo.openError = const OfflineException();
       await start(tester);
+      await tester.enterText(find.byType(TextField), '123456');
+      await tester.pumpAndSettle();
       expect(find.text('인터넷 연결을 확인해 주세요'), findsOneWidget);
       expect(find.text('시작하기'), findsOneWidget);
       await tester.pump(const Duration(seconds: 5));
@@ -253,9 +302,36 @@ void main() {
 
       repo.openError = null;
       await start(tester);
-      expect(auth.signIns, 1, reason: 'signed in already');
+      expect(auth.sent, 1, reason: 'signed in already');
       expect(repo.opens, 2);
       expect(find.text('오늘의 근무'), findsOneWidget);
+    });
+
+    testWidgets('a wrong code on the owner\'s T2', (tester) async {
+      final (_, auth) = await openBa0(tester);
+      await start(tester);
+      auth.verifyError = const ShiftActionException('CODE_INVALID');
+      await tester.enterText(find.byType(TextField), '000000');
+      await tester.pumpAndSettle();
+      expect(find.text('인증번호가 틀렸거나 만료됐어요. 다시 입력해 주세요'), findsOneWidget);
+      expect(find.byType(HiCodeField), findsOneWidget);
+    });
+
+    testWidgets('a refused SMS stays on BA0', (tester) async {
+      final (repo, auth) = await openBa0(tester);
+      auth.sendError = const ShiftActionException('TOO_MANY_REQUESTS');
+      await start(tester);
+      expect(find.text('시도가 너무 많아요. 잠시 후 다시 시도해 주세요'), findsOneWidget);
+      expect(find.text('인증번호 입력'), findsNothing);
+      expect(repo.opens, 0);
+    });
+
+    testWidgets('no number: says so, no SMS', (tester) async {
+      final (_, auth) = await openBa0(tester);
+      await tester.tap(find.text('시작하기'));
+      await tester.pumpAndSettle();
+      expect(find.text('휴대폰 번호를 입력해 주세요'), findsOneWidget);
+      expect(auth.sent, 0);
     });
   });
 }

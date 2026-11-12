@@ -21,40 +21,42 @@ void main() {
       'Hanguk Ish',
       '사장님용',
       '오늘 필요한 근무자, 바로 구하세요',
+      '휴대폰 번호',
       '시작하기',
     ]) {
       expect(find.text(text), findsOneWidget, reason: text);
     }
-    // P49: no phone number (no SMS); P50: no 사업자등록번호 either.
-    expect(find.byType(TextField), findsNothing, reason: 'nothing to type');
-    expect(find.text('휴대폰 번호'), findsNothing);
+    expect(find.text('010-0000-0000'), findsOneWidget);
+    // P54: the phone (SMS code) only; P50: no 사업자등록번호.
+    expect(find.byType(TextField), findsOneWidget);
     expect(find.text('사업자등록번호'), findsNothing);
   });
 
-  testWidgets('시작하기 waits for the start: one tap, one account', (tester) async {
+  testWidgets('the number is formatted while typing and handed to 시작하기 once', (tester) async {
     usePhone(tester);
-    var starts = 0;
+    final phones = <String>[];
     final done = Completer<void>();
     await tester.pumpWidget(ProviderScope(
       child: MaterialApp(
-        home: Ba0LoginScreen(onStart: () {
-          starts++;
+        home: Ba0LoginScreen(onStart: (phone) {
+          phones.add(phone);
           return done.future;
         }),
       ),
     ));
+    await tester.enterText(find.byType(TextField), '01012345678');
+    await tester.pump();
+    expect(find.text('010-1234-5678'), findsOneWidget);
     await tester.tap(find.text('시작하기'));
     await tester.pump();
-    expect(starts, 1);
+    expect(phones, ['010-1234-5678']);
     HiButton start() => tester.widget<HiButton>(find.widgetWithText(HiButton, '시작하기'));
-    expect(start().onPressed, isNull, reason: 'one tap, one account');
+    expect(start().onPressed, isNull, reason: 'one tap, one code');
     await tester.tap(find.text('시작하기'));
     await tester.pump();
-    expect(starts, 1);
+    expect(phones, hasLength(1));
     done.complete();
-    // The start ends in a microtask; nothing else asks for a frame here (no
-    // text field blinking any more), so let it settle.
-    await tester.pumpAndSettle();
+    await tester.pump();
     expect(start().onPressed, isNotNull);
   });
 

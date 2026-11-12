@@ -47,6 +47,7 @@ psql_q -d "$DB" -f tests/main_app_stub.sql
 psql_q -d "$DB" -f ../../supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql
 psql_q -d "$DB" -f ../../supabase/migrations/20261111180000_hanguk_ish_skip_anonymous.sql
 psql_q -d "$DB" -f ../../supabase/migrations/20261112140000_hanguk_ish_no_anonymous.sql
+psql_q -d "$DB" -f ../../supabase/migrations/20261112160000_hanguk_ish_phone_accounts.sql
 psql_q -d "$DB" -c "create trigger on_auth_user_created after insert on auth.users
                     for each row execute function public.handle_new_user()"
 for f in migrations/*.sql; do

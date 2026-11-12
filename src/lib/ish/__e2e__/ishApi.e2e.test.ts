@@ -226,10 +226,8 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
   });
 
   it('a business the 사장님 app opened at once: the staff name it, suspend it and let it back (P52)', async () => {
-    // The 사장님 app: an anonymous account, «시작하기» (P50) and a shift.
-    const owner = client(anonKey);
-    const started = await owner.auth.signInAnonymously({ options: { data: { app: 'hanguk_ish' } } });
-    expect(started.error).toBeNull();
+    // The 사장님 app: the owner's phone and SMS code (P54), «시작하기» (P50) and a shift.
+    const owner = await signIn('+821000000083');
     const opened = await call<string>(owner, 'open_business');
     const { startsAt, endsAt } = jobTimes(addDays(seoulToday(), 2), '11:00', '15:00');
     const posted = await owner

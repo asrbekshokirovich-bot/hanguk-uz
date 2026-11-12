@@ -1,13 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/format/phone.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/shift_repository.dart';
 import 'backend.dart';
 
-/// [AuthRepository] on Supabase Auth: an anonymous account (P49 — no SMS),
-/// marked as Hanguk Ish's (`user_metadata.app = 'hanguk_ish'`), so that
-/// hanguk.uz, whose project it shares, makes no profile of its own for it.
-/// The session is kept by `supabase_flutter` between launches.
+/// [AuthRepository] on Supabase Auth: an SMS code to the phone, verified by
+/// the server; the session is kept by `supabase_flutter` between launches.
 class SupabaseAuthRepository implements AuthRepository {
   SupabaseAuthRepository(this._client);
 
@@ -19,8 +18,18 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Stream<String?> get changes => _client.auth.onAuthStateChange.map((state) => state.session?.user.id);
 
+  String _e164(String phone) => KoreanPhone.toE164(phone) ?? (throw const ShiftActionException('PHONE_INVALID'));
+
   @override
-  Future<void> signIn() => authCall(() => _client.auth.signInAnonymously(data: ishSignUpData));
+  Future<void> sendCode(String phone) =>
+      authCall(() => _client.auth.signInWithOtp(phone: _e164(phone), data: ishSignUpData));
+
+  @override
+  Future<void> verifyCode(String phone, String code) => authCall(() async {
+        final token = code.trim();
+        if (!RegExp(r'^\d{6}$').hasMatch(token)) throw const ShiftActionException('CODE_INVALID');
+        await _client.auth.verifyOTP(phone: _e164(phone), token: token, type: OtpType.sms);
+      });
 
   @override
   Future<void> signOut() => authCall(() => _client.auth.signOut());
@@ -47,10 +56,14 @@ final _bodyCode = RegExp(r'"(?:error_)?code"\s*:\s*"([a-z_]+)"');
 String authErrorCode(String? code, String? status, String message) {
   final text = message.toLowerCase();
   return switch (code) {
-    'over_request_rate_limit' => 'TOO_MANY_REQUESTS',
-    'anonymous_provider_disabled' || 'signup_disabled' => 'SIGN_IN_UNAVAILABLE',
+    'otp_expired' || 'otp_disabled' => 'CODE_INVALID',
+    'over_sms_send_rate_limit' || 'over_request_rate_limit' => 'TOO_MANY_REQUESTS',
+    'sms_send_failed' => 'SMS_FAILED',
+    'validation_failed' || 'phone_not_confirmed' => 'PHONE_INVALID',
+    'phone_provider_disabled' || 'signup_disabled' => 'SIGN_IN_UNAVAILABLE',
     _ when status == '429' => 'TOO_MANY_REQUESTS',
-    _ when text.contains('anonymous') && text.contains('disabled') => 'SIGN_IN_UNAVAILABLE',
+    _ when text.contains('expired') || (text.contains('invalid') && (text.contains('otp') || text.contains('token'))) =>
+      'CODE_INVALID',
     _ => 'AUTH_FAILED',
   };
 }
