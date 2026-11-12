@@ -247,7 +247,15 @@
     "createAccount": "Hisob yaratish",
     "phone": "Telefon raqami",
     "phoneInvalid": "Telefon raqamini to'liq kiriting (masalan, +998 90 123 45 67)",
-    "consultantWillCall": "Maslahatchimiz tez orada siz bilan bog'lanadi."
+    "consultantWillCall": "Maslahatchimiz tez orada siz bilan bog'lanadi.",
+    "usernameRules": "Login 3–20 belgidan iborat bo'lishi kerak (harf, raqam, pastki chiziq)",
+    "staffUsernameOnly": "Xodimlar email bilan emas, login bilan kiradi.",
+    "welcomeName": "Xush kelibsiz, {{name}}!",
+    "genericError": "Xatolik yuz berdi",
+    "setupError": "Sozlash xatosi",
+    "fullNameRequired": "To'liq ismingizni kiriting",
+    "ownerCreated": "Owner hisobi yaratildi!",
+    "signupFailed": "Ro'yxatdan o'tib bo'lmadi"
   },
   "navigation": {
     "home": "Bosh sahifa",

@@ -198,7 +198,15 @@
     "createAccount": "Create Account",
     "phone": "Phone number",
     "phoneInvalid": "Enter your full phone number (for example, +998 90 123 45 67)",
-    "consultantWillCall": "A consultant will contact you soon."
+    "consultantWillCall": "A consultant will contact you soon.",
+    "usernameRules": "Username must be 3-20 characters (letters, numbers, underscores)",
+    "staffUsernameOnly": "Staff sign in with a username, not an email.",
+    "welcomeName": "Welcome, {{name}}!",
+    "genericError": "Something went wrong",
+    "setupError": "Setup Error",
+    "fullNameRequired": "Full name is required",
+    "ownerCreated": "Owner account created successfully!",
+    "signupFailed": "Signup failed"
   },
   "navigation": {
     "home": "Home",
