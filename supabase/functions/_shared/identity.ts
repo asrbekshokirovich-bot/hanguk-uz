@@ -50,13 +50,7 @@ export function normalizePhone(phone: string | null | undefined): string | null 
  * only ever used to look an EXISTING lead up by exact phone, never to
  * create or overwrite one, so a bogus digit string just fails to match.
  */
-export function extractPhoneFromText(text: string | null | undefined): string | null {
-  if (!text) return null;
-  const digits = text.replace(/\D/g, "");
-  if (!digits) return null;
-  const m = digits.match(/(?:998)?((?:9[0-9]|88|77|33|20)\d{7})/);
-  return m ? m[1] : null;
-}
+export { extractPhoneFromText } from "./phone.ts";
 
 /**
  * Pull an @handle a customer typed into free text — e.g. "telegramim

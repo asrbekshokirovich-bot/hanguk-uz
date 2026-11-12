@@ -10,6 +10,27 @@ import type { DateParts } from './intakeForm';
  * per-language formatter. The month name is looked up from a translated array,
  * which is why `describeDate` hands back a month *index*.
  */
+const TASHKENT = 'Asia/Tashkent';
+
+/** "08:57" today, else "09.11.2026 17:42" — always in Tashkent time. */
+export const exactTime = (d: Date, sameDay: boolean): string => {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: TASHKENT,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  );
+  const time = `${p.hour}:${p.minute}`;
+  return sameDay ? time : `${p.day}.${p.month}.${p.year} ${time}`;
+};
+
 export const useRelativeDate = (now: Date) => {
   const { t } = useTranslation();
 
@@ -42,11 +63,19 @@ export const useRelativeDate = (now: Date) => {
     const created = new Date(isoDate);
     if (Number.isNaN(created.getTime())) return '';
     const days = Math.floor((now.getTime() - created.getTime()) / 86_400_000);
-    if (days <= 0) return t('leads.intake.added.today');
-    if (days < 7) return t('leads.intake.added.days', { count: days });
-    if (days < 30) return t('leads.intake.added.weeks', { count: Math.floor(days / 7) });
-    if (days < 365) return t('leads.intake.added.months', { count: Math.floor(days / 30) });
-    return t('leads.intake.added.years', { count: Math.floor(days / 365) });
+    const age =
+      days <= 0
+        ? t('leads.intake.added.today')
+        : days < 7
+          ? t('leads.intake.added.days', { count: days })
+          : days < 30
+            ? t('leads.intake.added.weeks', { count: Math.floor(days / 7) })
+            : days < 365
+              ? t('leads.intake.added.months', { count: Math.floor(days / 30) })
+              : t('leads.intake.added.years', { count: Math.floor(days / 365) });
+    // The exact moment too (Asrbek, 2026-11-12): "bugun qo'shildi · 08:57",
+    // "3 kun oldin · 09.11.2026 17:42" — Tashkent time whatever the browser says.
+    return `${age} · ${exactTime(created, days <= 0)}`;
   };
 
   return { label, addedLabel };
