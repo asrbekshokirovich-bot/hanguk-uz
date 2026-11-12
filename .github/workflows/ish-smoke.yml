@@ -82,6 +82,14 @@ jobs:
           done
           ls -la build/smoke-apks
 
+      # The builds leave their Gradle and Kotlin daemons running, holding
+      # their memory to the end of the job: the emulator gets it.
+      - name: Stop the build daemons
+        run: |
+          (cd android && [ -x gradlew ] && ./gradlew --stop -q) || true
+          pkill -f 'GradleDaemon|KotlinCompileDaemon' || true
+          free -m
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
@@ -101,6 +109,20 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: hanguk_ish
           script: bash tool/smoke.sh build/smoke-apks
+
+      # When the emulator itself went away (adb: device offline), the host's
+      # kernel tells whether it crashed (a segfault, and in which library) or
+      # was killed for memory; its own crash reports go with the screens.
+      - name: The host after a failure
+        if: failure()
+        run: |
+          mkdir -p build/smoke
+          free -m | tee build/smoke/host-memory.txt
+          sudo dmesg -T >build/smoke/host-dmesg.txt 2>&1 || true
+          grep -iE 'segfault|general protection|traps:|killed process|out of memory|oom' \
+            build/smoke/host-dmesg.txt | tail -40 || true
+          find /tmp/android-runner "$HOME/.android" -name '*.dmp' 2>/dev/null | head -5 |
+            while read -r dump; do cp "$dump" build/smoke/ && echo "crash report: $dump"; done
 
       - name: Publish the screens and logs
         if: always()
