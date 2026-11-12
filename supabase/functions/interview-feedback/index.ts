@@ -57,7 +57,7 @@ serve(async (req) => {
       .select("*")
       .eq("id", sessionId)
       .eq("student_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (sessionError || !session) {
       return new Response(
@@ -66,12 +66,14 @@ serve(async (req) => {
       );
     }
 
-    // Check if feedback already exists
+    // Check if feedback already exists. (maybeSingle: "none yet" is the
+    // normal case on the first request, not an error — .single() logged a 406
+    // for every interview.)
     const { data: existingFeedback } = await adminClient
       .from("interview_feedback")
       .select("*")
       .eq("session_id", sessionId)
-      .single();
+      .maybeSingle();
 
     if (existingFeedback) {
       return new Response(
@@ -112,7 +114,7 @@ serve(async (req) => {
         .from("institutions")
         .select("name_ko, name_en, city_ko, tier")
         .eq("id", session.target_institution_id)
-        .single();
+        .maybeSingle();
 
       if (university) {
         universityContext = `
@@ -276,7 +278,7 @@ Include message_scores for EVERY student response in the transcript.`;
 
     // A long interview needs a longer reply: 8000 was enough for eight
     // answers and cut every longer review short.
-    let aiResponse = await callModel(systemPrompt, feedbackTokenBudget(answers.length));
+    const aiResponse = await callModel(systemPrompt, feedbackTokenBudget(answers.length));
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
@@ -416,6 +418,23 @@ Include message_scores for EVERY student response in the transcript.`;
       .single();
 
     if (saveError) {
+      // interview_feedback.session_id is unique. A second request for the same
+      // interview (a double tap, a retry while the first is still being
+      // written) loses the race here: the feedback exists — return it rather
+      // than "Failed to save feedback".
+      if (saveError.code === "23505") {
+        const { data: already } = await adminClient
+          .from("interview_feedback")
+          .select("*")
+          .eq("session_id", sessionId)
+          .maybeSingle();
+        if (already) {
+          return new Response(
+            JSON.stringify({ feedback: already }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
       console.error("Failed to save feedback:", saveError);
       return new Response(
         JSON.stringify({ error: "Failed to save feedback" }),
