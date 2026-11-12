@@ -192,9 +192,12 @@
     "username": "사용자 이름",
     "studentTabHelper": "상담사에게 매직 코드를 받은 학생용입니다.",
     "staffTabHelper": "아이디와 비밀번호가 있는 Hanguk 직원용입니다.",
-    "registerTabHelper": "게스트로 지원 현황을 확인하려면 계정을 만드세요.",
+    "registerTabHelper": "정보를 남겨 주시면 상담사가 연락드립니다.",
     "staffSignIn": "직원 로그인",
-    "createAccount": "계정 만들기"
+    "createAccount": "계정 만들기",
+    "phone": "전화번호",
+    "phoneInvalid": "전화번호를 정확히 입력하세요 (예: +998 90 123 45 67)",
+    "consultantWillCall": "상담사가 곧 연락드리겠습니다."
   },
   "navigation": {
     "home": "홈",

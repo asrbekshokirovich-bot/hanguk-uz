@@ -193,9 +193,12 @@
     "username": "Username",
     "studentTabHelper": "For students with a Magic Code from their consultant.",
     "staffTabHelper": "For Hanguk staff with a username and password.",
-    "registerTabHelper": "Create an account to track your applications as a guest.",
+    "registerTabHelper": "Leave your details — a consultant will contact you.",
     "staffSignIn": "Staff Sign-In",
-    "createAccount": "Create Account"
+    "createAccount": "Create Account",
+    "phone": "Phone number",
+    "phoneInvalid": "Enter your full phone number (for example, +998 90 123 45 67)",
+    "consultantWillCall": "A consultant will contact you soon."
   },
   "navigation": {
     "home": "Home",
