@@ -1,0 +1,123 @@
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
+import { Briefcase, Loader2, ShieldAlert } from 'lucide-react';
+import { ishClient } from '@/lib/ish/client';
+import { ishApi } from '@/lib/ish/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { IshApiProvider, ishKeys } from './context';
+import { IshBoard } from './IshBoard';
+import { IshEmployers } from './IshEmployers';
+import { IshJobDetail } from './IshJobDetail';
+
+/**
+ * CRM → «Hanguk Ish» (P41): Hanguk's staff keep employers found outside the
+ * app (Telegram groups and channels), post their jobs, offer them to workers
+ * who fit, confirm after the call with the employer, mark who came and that
+ * they were paid. Plan: hanguk_ish/docs/operator-reja.md.
+ *
+ * Hanguk Ish is the schema `ish` of hanguk.uz's own project (P48): the staff
+ * work with their hanguk.uz session; the database says who is staff.
+ */
+export default function IshContent() {
+  return <IshSection client={ishClient()} />;
+}
+
+/** The section on [client] (hanguk.uz's): the staff check, then the work. */
+export function IshSection({ client }: { client: SupabaseClient }) {
+  const { t } = useTranslation();
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
+
+  useEffect(() => {
+    let live = true;
+    client.auth.getSession().then(({ data }) => live && setSession(data.session));
+    const { data } = client.auth.onAuthStateChange((_event, next) => setSession(next));
+    return () => {
+      live = false;
+      data.subscription.unsubscribe();
+    };
+  }, [client]);
+
+  if (session === undefined) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!session) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center text-muted-foreground">{t('ish.errors.NOT_AUTHENTICATED')}</CardContent>
+      </Card>
+    );
+  }
+  return <IshStaffGate client={client} session={session} />;
+}
+
+function IshStaffGate({ client, session }: { client: SupabaseClient; session: Session }) {
+  const { t } = useTranslation();
+  const api = useMemo(() => ishApi(client), [client]);
+  const staff = useQuery({ queryKey: [...ishKeys.staff, session.user.id], queryFn: api.isStaff });
+  const account =
+    session.user.email || (session.user.phone ? `+${session.user.phone.replace(/^\+/, '')}` : session.user.id);
+
+  if (staff.isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (staff.data !== true) {
+    return (
+      <Card>
+        <CardContent className="space-y-4 p-8 text-center">
+          <ShieldAlert className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">{staff.isError ? t('ish.errors.UNKNOWN') : t('ish.notStaff', { account })}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <IshApiProvider api={api}>
+      <IshWorkspace account={account} />
+    </IshApiProvider>
+  );
+}
+
+function IshWorkspace({ account }: { account: string }) {
+  const { t } = useTranslation();
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [tab, setTab] = useState('jobs');
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Briefcase className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold">{t('ish.title')}</h2>
+        </div>
+        <div className="text-sm text-muted-foreground">{t('ish.signedInAs', { account })}</div>
+      </div>
+      {jobId ? (
+        <IshJobDetail jobId={jobId} onBack={() => setJobId(null)} />
+      ) : (
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList>
+            <TabsTrigger value="jobs">{t('ish.tabs.jobs')}</TabsTrigger>
+            <TabsTrigger value="employers">{t('ish.tabs.employers')}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="jobs" className="mt-4">
+            <IshBoard onOpen={setJobId} />
+          </TabsContent>
+          <TabsContent value="employers" className="mt-4">
+            <IshEmployers />
+          </TabsContent>
+        </Tabs>
+      )}
+    </div>
+  );
+}

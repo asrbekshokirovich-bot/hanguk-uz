@@ -1,0 +1,396 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../core/links/directions.dart';
+import '../data/backend/backend.dart';
+import '../data/repositories/auth_repository.dart';
+import '../data/repositories/live_updates.dart';
+import '../data/models/my_shift.dart';
+import '../data/models/shift.dart';
+import '../design/theme.dart';
+import '../design/tokens.dart';
+import '../design/widgets/backdrop.dart';
+import '../design/widgets/brand.dart';
+import '../features/worker/feed/feed_screen.dart';
+import '../features/worker/load_error.dart';
+import '../features/worker/chat/chat_screen.dart';
+import '../features/worker/earnings/earnings_screen.dart';
+import '../features/worker/map/map_screen.dart';
+import '../features/worker/me/me_screen.dart';
+import '../features/worker/my_shifts/my_shifts_screen.dart';
+import '../features/worker/notifications/notifications_screen.dart';
+import '../features/worker/onboarding/a01_login_screen.dart';
+import '../features/worker/profile/profile_screens.dart';
+import '../features/worker/profile/worker_profile_draft.dart';
+import '../features/worker/profile/worker_profile_repository.dart';
+import '../features/worker/settings/app_language.dart';
+import '../features/worker/shell/worker_shell.dart';
+import '../features/worker/shift/shift_detail_screen.dart';
+import '../features/worker/shift/take_shift.dart';
+import '../features/worker/work/work_screens.dart';
+import '../l10n/gen/worker_l10n.dart';
+import 'text_scale.dart';
+
+/// Paths of the worker app.
+abstract final class WorkerRoutes {
+  /// Decides where a launch opens (signed in? profile done?).
+  static const start = '/start';
+
+  static const login = '/';
+
+  static const profileName = '/profile/name';
+  static const profileLanguages = '/profile/languages';
+  static const profileSchedule = '/profile/schedule';
+
+  /// The tabs.
+  static const feed = '/feed';
+  static const map = '/map';
+  static const myShifts = '/my-shifts';
+  static const earnings = '/earnings';
+  static const me = '/me';
+
+  static const notifications = '/notifications';
+
+  /// Where the app opens once signed in.
+  static const home = feed;
+
+  static String shift(String id) => '/shift/$id';
+  static String checkIn(String app) => '/work/$app/check-in';
+  static String atWork(String app) => '/work/$app';
+  static String checkOut(String app) => '/work/$app/check-out';
+  static String result(String app) => '/work/$app/result';
+  static String rate(String app) => '/work/$app/rate';
+  static String chat(String app) => '/chat/$app';
+  static String taken(String id, {required bool pending}) => '/shift/$id/taken${pending ? '?pending=1' : ''}';
+}
+
+/// «Olish» / «Smenani olish»: the confirmation sheet, then the success page.
+Future<void> takeShift(BuildContext context, ShiftListing shift) async {
+  final result = await showTakeShiftSheet(context, shift);
+  if (result == null || !context.mounted) return;
+  await context.push(WorkerRoutes.taken(shift.id, pending: result.status == ApplicationStatus.pending));
+}
+
+MyShiftsActions _myShiftsActions(BuildContext context, WidgetRef ref) => MyShiftsActions(
+      openShift: (app) => context.push(WorkerRoutes.shift(app.shift.id)),
+      openCheckIn: (app) => context.push(WorkerRoutes.checkIn(app.applicationId)),
+      openAtWork: (app) => context.push(WorkerRoutes.atWork(app.applicationId)),
+      openResult: (app) => context.push(WorkerRoutes.result(app.applicationId)),
+      openRate: (app) => context.push(WorkerRoutes.rate(app.applicationId)),
+      openChat: (app) => context.push(WorkerRoutes.chat(app.applicationId)),
+      openDirections: (app) => _openDirections(context, ref, app),
+      openFeed: () => context.go(WorkerRoutes.feed),
+    );
+
+Future<void> _openDirections(BuildContext context, WidgetRef ref, MyShift app) async {
+  final lang = ref.read(appLanguageProvider).code;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = WorkerL10n.of(context);
+  final opened = await ref.read(linkOpenerProvider)(directionsUri(app.shift, app.shift.business.displayName(lang)));
+  if (!opened) messenger?.showSnackBar(SnackBar(content: Text(l10n.errorGeneric)));
+}
+
+FeedActions _feedActions(BuildContext context) => FeedActions(
+      openShift: (shift) => context.push(WorkerRoutes.shift(shift.id)),
+      takeShift: (shift) => takeShift(context, shift),
+      openFeed: () => context.go(WorkerRoutes.feed),
+      openMap: () => context.go(WorkerRoutes.map),
+      openNotifications: () => context.push(WorkerRoutes.notifications),
+    );
+
+/// Where the app opens: with a backend, the start gate (a saved session
+/// skips sign-in); the demo starts at A01. Tests open a screen directly.
+final workerInitialLocationProvider = Provider<String>(
+  (ref) => ref.watch(backendConfigProvider).isConfigured ? WorkerRoutes.start : WorkerRoutes.login,
+);
+
+/// Where a signed-in worker goes: the feed with the saved profile, A02 for a
+/// new account. Throws when the profile could not be loaded (offline).
+Future<String> _signedInLocation(WidgetRef ref) async {
+  final saved = await ref.read(workerProfileRepositoryProvider).load();
+  if (saved == null) return WorkerRoutes.profileName;
+  ref.read(workerProfileDraftProvider.notifier).replace(saved);
+  return WorkerRoutes.home;
+}
+
+/// After signing in: the saved profile opens the feed, a new account fills
+/// A02 first. When the profile does not load, the start screen says why and
+/// tries again — never A02, which would replace a saved profile.
+Future<void> continueAfterSignIn(BuildContext context, WidgetRef ref) async {
+  String location;
+  try {
+    location = await _signedInLocation(ref);
+  } on Object {
+    location = WorkerRoutes.start;
+  }
+  if (context.mounted) context.go(location);
+}
+
+/// A01 «Boshlash» (P49: no SMS): an account on this phone — unless one is
+/// signed in already, which goes on as it is — then A02 or the feed. A failure
+/// stays on A01 and says why.
+Future<void> startWorker(BuildContext context, WidgetRef ref) async {
+  final auth = ref.read(authRepositoryProvider);
+  if (auth.userId == null) {
+    try {
+      await auth.signIn();
+    } on Object catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(signInErrorText(WorkerL10n.of(context), error))));
+      }
+      return;
+    }
+  }
+  if (context.mounted) await continueAfterSignIn(context, ref);
+}
+
+/// The first frame of a launch with a backend: the brand on navy while the
+/// session and profile are checked. Offline, it says so and tries again on
+/// «Qayta urinish».
+class _StartGate extends ConsumerStatefulWidget {
+  const _StartGate();
+
+  @override
+  ConsumerState<_StartGate> createState() => _StartGateState();
+}
+
+class _StartGateState extends ConsumerState<_StartGate> {
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _continue());
+  }
+
+  Future<void> _continue() async {
+    if (!mounted) return;
+    if (ref.read(authRepositoryProvider).userId == null) {
+      context.go(WorkerRoutes.login);
+      return;
+    }
+    setState(() => _error = null);
+    try {
+      final location = await _signedInLocation(ref);
+      if (mounted) context.go(location);
+    } on Object catch (error) {
+      if (mounted) setState(() => _error = error);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final error = _error;
+    return Scaffold(
+      backgroundColor: HiColors.navy,
+      body: HiBackdrop(
+        glow: HiGlow.entry,
+        child: Center(
+          child: error == null
+              ? const HiBrandTile()
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: WorkerLoadError(error: error, onRetry: _continue),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Routes of the worker app.
+final workerRouterProvider = Provider<GoRouter>((ref) {
+  final router = GoRouter(
+    initialLocation: ref.watch(workerInitialLocationProvider),
+    routes: [
+      GoRoute(path: WorkerRoutes.start, builder: (context, state) => const _StartGate()),
+      GoRoute(
+        path: WorkerRoutes.login,
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => A01LoginScreen(onStart: () => startWorker(context, ref)),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.profileName,
+        builder: (context, state) => ProfileNameScreen(
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.login),
+          onNext: () => context.push(WorkerRoutes.profileLanguages),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.profileLanguages,
+        builder: (context, state) => ProfileLanguagesScreen(
+          onBack: () => context.pop(),
+          onNext: () => context.push(WorkerRoutes.profileSchedule),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.profileSchedule,
+        builder: (context, state) => ProfileScheduleScreen(
+          onBack: () => context.pop(),
+          onDone: () => context.go(WorkerRoutes.home),
+        ),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => WorkerShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.feed,
+              builder: (context, state) => FeedScreen(actions: _feedActions(context)),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.map,
+              builder: (context, state) => WorkerMapScreen(actions: _feedActions(context)),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.myShifts,
+              builder: (context, state) => Consumer(
+                builder: (context, ref, _) => MyShiftsScreen(actions: _myShiftsActions(context, ref)),
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.earnings,
+              builder: (context, state) => EarningsScreen(
+                onOpen: (app) => context.push(WorkerRoutes.result(app.applicationId)),
+              ),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: WorkerRoutes.me,
+              builder: (context, state) => const MeScreen(),
+            ),
+          ]),
+        ],
+      ),
+      GoRoute(
+        path: '/shift/:id',
+        builder: (context, state) => ShiftDetailScreen(
+          shiftId: state.pathParameters['id']!,
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+          onTake: (shift) => takeShift(context, shift),
+        ),
+        routes: [
+          GoRoute(
+            path: 'taken',
+            builder: (context, state) => ShiftTakenScreen(
+              shiftId: state.pathParameters['id']!,
+              pending: state.uri.queryParameters['pending'] == '1',
+              onClose: () => context.go(WorkerRoutes.feed),
+              onMyShifts: () => context.go(WorkerRoutes.myShifts),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/work/:app',
+        builder: (context, state) => AtWorkScreen(
+          applicationId: state.pathParameters['app']!,
+          onClose: () => context.go(WorkerRoutes.myShifts),
+          onScanOut: () => context.push(WorkerRoutes.checkOut(state.pathParameters['app']!)),
+        ),
+        routes: [
+          GoRoute(
+            path: 'check-in',
+            builder: (context, state) => QrScanScreen(
+              applicationId: state.pathParameters['app']!,
+              mode: QrScanMode.checkIn,
+              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+              onDone: (app) => context.pushReplacement(WorkerRoutes.atWork(app.applicationId)),
+            ),
+          ),
+          GoRoute(
+            path: 'check-out',
+            builder: (context, state) => QrScanScreen(
+              applicationId: state.pathParameters['app']!,
+              mode: QrScanMode.checkOut,
+              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.atWork(state.pathParameters['app']!)),
+              onDone: (app) => context.go(WorkerRoutes.result(app.applicationId)),
+            ),
+          ),
+          GoRoute(
+            path: 'result',
+            builder: (context, state) => ShiftResultScreen(
+              applicationId: state.pathParameters['app']!,
+              onClose: () => context.go(WorkerRoutes.feed),
+              onRate: () => context.push(WorkerRoutes.rate(state.pathParameters['app']!)),
+            ),
+          ),
+          GoRoute(
+            path: 'rate',
+            builder: (context, state) => RateBusinessScreen(
+              applicationId: state.pathParameters['app']!,
+              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+              onSent: () => context.go(WorkerRoutes.feed),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/chat/:app',
+        builder: (context, state) => ChatScreen(
+          applicationId: state.pathParameters['app']!,
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.notifications,
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => NotificationsScreen(
+            onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+            actions: NotificationActions(
+              directions: (n) async {
+                final lat = n.lat;
+                final lng = n.lng;
+                if (lat == null || lng == null) return;
+                await ref.read(linkOpenerProvider)(directionsUriTo(n.businessName(ref.read(appLanguageProvider).code), lat, lng));
+              },
+              myShifts: () => context.go(WorkerRoutes.myShifts),
+              shift: (id) => context.push(WorkerRoutes.shift(id)),
+              feed: () => context.go(WorkerRoutes.feed),
+              chat: (app) => context.push(WorkerRoutes.chat(app)),
+              earnings: () => context.go(WorkerRoutes.earnings),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+  // Signed out from elsewhere (the session ended): back to sign-in.
+  ref.listen(authUserProvider, (previous, next) {
+    if (next case AsyncData(value: null) when previous?.value != null) router.go(WorkerRoutes.login);
+  });
+  ref.onDispose(router.dispose);
+  return router;
+});
+
+/// «Hanguk Ish» — the worker app.
+class WorkerApp extends ConsumerWidget {
+  const WorkerApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final language = ref.watch(appLanguageProvider);
+    return MaterialApp.router(
+      onGenerateTitle: (context) => WorkerL10n.of(context).appTitle,
+      debugShowCheckedModeBanner: false,
+      theme: hiTheme(),
+      locale: language.locale,
+      supportedLocales: WorkerL10n.supportedLocales,
+      localizationsDelegates: WorkerL10n.localizationsDelegates,
+      routerConfig: ref.watch(workerRouterProvider),
+      builder: (context, child) =>
+          HiTextScaleCap(child: child ?? const SizedBox.shrink()),
+    );
+  }
+}

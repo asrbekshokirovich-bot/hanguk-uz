@@ -1,0 +1,103 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/data/demo/demo_account.dart';
+import 'package:hanguk_ish/data/demo/demo_shifts.dart';
+import 'package:hanguk_ish/data/models/account.dart';
+
+import '../../helpers/fonts.dart';
+import '../../helpers/phone.dart';
+import '../../helpers/worker_harness.dart';
+
+/// A12 with one notification of a new shift: an invitation (BA4 «다시
+/// 요청») of a business with no point yet, so no distance; [marks]: whether
+/// the server keeps the read mark.
+class OneNotice extends DemoAccountRepository {
+  OneNotice({this.km, this.marks = true, this.kind = NotificationKind.newShift, this.shiftId})
+      : super(now: prototypeNow);
+
+  final double? km;
+  final bool marks;
+  final NotificationKind kind;
+  final String? shiftId;
+  int markCalls = 0;
+  bool _read = false;
+
+  @override
+  Future<List<HiNotification>> notifications() async => [
+        HiNotification(
+          id: 'invite',
+          kind: kind,
+          createdAt: prototypeNow,
+          read: _read,
+          businessNames: const {'uz': 'E2E Kafe'},
+          shiftId: shiftId,
+          startsAt: prototypeNow.add(const Duration(days: 1)),
+          endsAt: prototypeNow.add(const Duration(days: 1, hours: 3)),
+          wage: 11000,
+          distanceKm: km,
+        ),
+      ];
+
+  @override
+  Future<void> markNotificationsRead() async {
+    markCalls++;
+    if (marks) _read = true;
+  }
+}
+
+void main() {
+  setUpAll(loadHiFonts);
+
+  Future<void> open(WidgetTester tester, OneNotice account) async {
+    usePhone(tester);
+    final container = appContainer(location: WorkerRoutes.notifications, account: account);
+    addTearDown(container.dispose);
+    await tester.pumpWidget(appHarness(container));
+    await tester.pumpAndSettle();
+  }
+
+  // Without the invisible word joiner that keeps «₩/soat» on one line.
+  String line(WidgetTester tester) => tester
+      .widgetList<Text>(find.byType(Text))
+      .map((t) => (t.data ?? '').replaceAll('\u2060', ''))
+      .singleWhere((t) => t.startsWith('E2E Kafe · '));
+
+  testWidgets('A12: a new shift with no distance ends at the wage, not in « · »', (tester) async {
+    await open(tester, OneNotice());
+    final text = line(tester);
+    expect(text, endsWith('/soat'));
+    expect(text, isNot(endsWith('·')));
+  });
+
+  testWidgets('A12: with a distance it ends with it', (tester) async {
+    await open(tester, OneNotice(km: 1.2));
+    expect(line(tester), endsWith('/soat · 1,2 km'));
+  });
+
+  testWidgets('A12: a server that keeps nothing read is asked once, not in a loop', (tester) async {
+    final account = OneNotice(marks: false);
+    await open(tester, account);
+    expect(account.markCalls, 1);
+  });
+
+  testWidgets('A12: a request nobody answered before the start says so, not «another worker was chosen»',
+      (tester) async {
+    await open(tester, OneNotice(kind: NotificationKind.expired));
+    expect(find.text('Ariza qabul qilinmadi'), findsOneWidget);
+    expect(find.textContaining('smenasi boshlandi, arizangizga javob berilmadi.'), findsOneWidget);
+    expect(find.textContaining('boshqa ishchi tanlandi'), findsNothing);
+  });
+
+  testWidgets('A12: a shift the business moved gives the new time and leads to it, to take it again',
+      (tester) async {
+    await open(tester, OneNotice(kind: NotificationKind.timeChanged, shiftId: 'demo-1'));
+    expect(find.text("Smena vaqti o'zgardi"), findsOneWidget);
+    expect(find.textContaining('E2E Kafe: smena endi '), findsOneWidget);
+    expect(find.textContaining('Arizangiz bekor qilindi — mos kelsa, qayta oling.'), findsOneWidget);
+    expect(find.text('Ariza qabul qilinmadi'), findsNothing);
+    await tester.tap(find.text("Ko'rish"));
+    await tester.pumpAndSettle();
+    expect(find.text('Smenani olish'), findsOneWidget, reason: 'A05 of the shift');
+  });
+}

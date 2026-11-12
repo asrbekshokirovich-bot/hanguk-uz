@@ -1,0 +1,117 @@
+name: Hanguk Ish — baza testlari
+
+# hanguk_ish/supabase: migratsiyalar, RLS va funksiyalar.
+#
+# postgres:   oddiy PostgreSQL 16 + tests/supabase_shim.sql — tez (≈1 daqiqa);
+#             keyin masshtab: 20 000 ishchi, 40 000 smena (tests/perf.sh).
+# supabase:   haqiqiy lokal Supabase stack (supabase start + db reset) — xuddi
+#             shu testlar Supabase'ning o'z auth sxemasi va rollari bilan.
+# functions:  edge funksiyalar (Deno): tip tekshiruvi va unit testlar.
+
+on:
+  push:
+    branches:
+      - 'ish/**'
+    paths:
+      - 'hanguk_ish/supabase/**'
+      # hanguk.uz's sign-up function: the tests run next to it (P48).
+      - 'supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql'
+      - 'supabase/migrations/20261111180000_hanguk_ish_skip_anonymous.sql'
+      - '.github/workflows/ish-backend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ish-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    name: Tests on PostgreSQL 16
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run tests
+        working-directory: hanguk_ish/supabase
+        run: bash tests/run.sh
+      # The same tests with next year's minimum wage in force: test shifts
+      # start from now(), and at the turn of the year «in two days» is next
+      # year — a wage legal today must not fail them then (P44).
+      - name: Run tests with next year's minimum wage
+        if: success() || failure()
+        working-directory: hanguk_ish/supabase
+        run: NEXT_YEAR=1 bash tests/run.sh
+      # 20 000 workers, 40 000 shifts: how long each call takes, and a
+      # failure when one is far slower than measured (tests/perf/).
+      - name: Scale (20 000 workers)
+        if: success() || failure()
+        working-directory: hanguk_ish/supabase
+        run: bash tests/perf.sh
+
+  supabase:
+    name: Tests on the Supabase stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      # The release download link needs no GitHub API call (setup-cli's
+      # «latest» lookup hit the anonymous API rate limit).
+      # Pinned like Flutter: a new CLI has changed its output before
+      # (ANON_KEY → PUBLISHABLE_KEY). Raise it in both ish-* workflows.
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/download/v3.1.0/supabase_linux_amd64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin supabase
+          supabase --version
+      - name: Start Supabase (database, auth, REST)
+        working-directory: hanguk_ish
+        run: |
+          supabase --version
+          supabase start -x studio,imgproxy,mailpit,vector,logflare,supavisor,edge-runtime,realtime,storage-api,postgres-meta
+      - name: Apply migrations
+        working-directory: hanguk_ish
+        run: supabase db reset --local
+      - name: Run tests
+        working-directory: hanguk_ish/supabase
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: bash tests/run.sh
+      - name: Lint (Supabase advisors)
+        if: always()
+        working-directory: hanguk_ish
+        run: supabase db lint --local --level warning || true
+
+  functions:
+    name: Edge functions (Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: hanguk_ish/supabase/functions
+    steps:
+      - uses: actions/checkout@v5
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check
+        run: deno check --node-modules-dir=auto */index.ts
+      - name: Unit tests
+        run: deno test --allow-env --allow-net

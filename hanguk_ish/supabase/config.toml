@@ -1,0 +1,87 @@
+# Hanguk Ish — local Supabase stack (supabase start --workdir hanguk_ish).
+# Hosted, Hanguk Ish lives in hanguk.uz's project (lysjdtyanhdfphqyijsr), in
+# its own schema `ish` (P48); this stack has only Hanguk Ish, served the same
+# way: `ish` among the API's schemas.
+project_id = "hanguk-ish"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "ish"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+# Both apps start an anonymous account on the phone — no SMS (P49). In
+# production: Authentication → Sign In / Providers → «Allow anonymous
+# sign-ins».
+enable_anonymous_sign_ins = true
+
+# Phone sign-in: the apps no longer use it (P49); the tests still sign their
+# people in by phone with these fixed codes.
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Hanguk Ish kodi: {{ .Code }}"
+
+[auth.sms.test_otp]
+# workers (Aziz, Malika) and business owners (Seoyeon, Minjun) of the tests
+821000000001 = "123456"
+821000000002 = "123456"
+821000000011 = "123456"
+821000000012 = "123456"
+# the worker and the owner of the screen tests (test_backend/ui_e2e_test.dart)
+821000000021 = "123456"
+821000000031 = "123456"
+# a new worker (A01 → A02) and a new owner (BA0) who sign up in the screen tests
+821000000041 = "123456"
+821000000051 = "123456"
+# Hanguk's staff on hanguk.uz, the worker they offer a job and one they do not
+# (test_backend/offers_test.dart)
+821000000061 = "123456"
+821000000062 = "123456"
+821000000063 = "123456"
+# the same from hanguk.uz's data layer with supabase-js (src/lib/ish/__e2e__)
+821000000071 = "123456"
+821000000072 = "123456"
+
+# GoTrue accepts phone sign-in only with a provider enabled; the test numbers
+# above never reach it. Local stack only — production uses the provider set
+# in the dashboard (Twilio Verify recommended), with real credentials.
+[auth.sms.twilio]
+enabled = true
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
+auth_token = "local-test-only"
+
+[auth.email]
+enable_signup = false
+
+# Profile photos (A02). The migration creates the bucket and its policies
+# too; here it is public and limited for the local stack (CI integration).
+[storage]
+enabled = true
+file_size_limit = "5MiB"
+
+[storage.buckets.ish-avatars]
+public = true
+file_size_limit = "2MiB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]
+
+# BA0: 국세청 check and registration (supabase/functions/ish-business-register).
+# NTS_SERVICE_KEY (data.go.kr «Decoding» key) is a secret set in the
+# dashboard; without it new businesses wait for a person (pending).
+[functions.ish-business-register]
+verify_jwt = true

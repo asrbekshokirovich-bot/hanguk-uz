@@ -1,0 +1,107 @@
+name: hanguk_ish
+description: "Hanguk Ish — Koreyada kunlik va qisqa smenali ishlar. Bitta kod, ikki ilova: ishchi (uz.hanguk.ish) va ish beruvchi (uz.hanguk.ish.biz)."
+publish_to: 'none'
+
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # flutter_localizations pins intl to the SDK's own version; `any` lets the
+  # resolver take exactly that one instead of fighting it.
+  intl: any
+  flutter_riverpod: ^3.3.1
+  go_router: ^17.2.0
+  # SVG path data → Path for the prototype's Lucide icons (lib/design/icons.dart).
+  path_parsing: ^1.0.1
+  # A02 «Rasm yuklash»: camera or gallery.
+  image_picker: ^1.1.2
+  # A07 entry / exit QR codes (camera, ML Kit barcode reader).
+  mobile_scanner: '>=6.0.0 <8.0.0'
+  # A06 «Yo'nalish»: opens the route in the map app.
+  url_launcher: ^6.3.0
+  # BA3 출퇴근 QR: the code each shift's workers scan (pure Dart encoder).
+  qr: ^3.0.2
+  # BA3 «QR 인쇄·공유», BA5 «CSV 다운로드»: the phone's share sheet.
+  share_plus: '>=11.0.0 <14.0.0'
+  # The Hanguk Ish database (supabase/): sign-in, functions, tables, Storage.
+  # Used only when the build names a backend (lib/data/backend/backend.dart).
+  supabase_flutter: ^2.9.0
+  # The app language between launches (already in the build through
+  # supabase_flutter's session storage).
+  shared_preferences: ^2.3.0
+  # Connection failures of the Supabase client (→ OfflineException).
+  http: ^1.2.0
+  # A03 / A04 with a backend: the phone's approximate position (shifts by
+  # distance). Asked once; a refusal leaves the feed without distances.
+  geolocator: '>=13.0.0 <15.0.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  # Tests replace the location plugin with a pretend phone (geolocator's own).
+  geolocator_platform_interface: ^4.2.0
+
+flutter:
+  uses-material-design: true
+  # Worker strings (uz, ru, en, ko) are generated from lib/l10n/*.arb on
+  # `flutter pub get` / `flutter gen-l10n` into lib/l10n/gen (not committed).
+  generate: true
+
+  # Fonts used by the prototype (Claude Design, 2026-11-10). Noto Sans KR is a
+  # KS X 1001 subset (2 350 Hangul syllables + jamo + punctuation + ₩), built
+  # from the Google Fonts variable font by tool/build_fonts.py; see
+  # assets/fonts/README.md.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-500.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-600.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-800.ttf
+          weight: 800
+        - asset: assets/fonts/Inter-900.ttf
+          weight: 900
+    - family: NotoSansKR
+      fonts:
+        - asset: assets/fonts/NotoSansKR-400.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansKR-500.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansKR-600.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSansKR-700.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansKR-800.ttf
+          weight: 800
+        - asset: assets/fonts/NotoSansKR-900.ttf
+          weight: 900
+    # ₩ in monospace text: the browser falls back to DejaVu Sans Mono for it;
+    # this is that glyph alone, renamed (assets/fonts/LICENSE-HiWonSign.txt).
+    - family: HiWonSign
+      fonts:
+        - asset: assets/fonts/HiWonSign-400.ttf
+          weight: 400
+        - asset: assets/fonts/HiWonSign-700.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-500.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-600.ttf
+          weight: 600
+        - asset: assets/fonts/JetBrainsMono-700.ttf
+          weight: 700
+        - asset: assets/fonts/JetBrainsMono-800.ttf
+          weight: 800

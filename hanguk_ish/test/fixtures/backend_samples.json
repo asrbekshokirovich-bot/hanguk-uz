@@ -1,0 +1,2743 @@
+{
+    "messages": [
+        {
+            "id": 1,
+            "body": "Salom, 10 daqiqada yetib boraman",
+            "lang": "uz",
+            "read_at": null,
+            "sender_id": "00000000-0000-0000-0000-0000000000a1",
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "translations": {
+            },
+            "application_id": "30000000-0000-0000-0000-000000000004"
+        },
+        {
+            "id": 2,
+            "body": "네, 기다릴게요",
+            "lang": "ko",
+            "read_at": null,
+            "sender_id": "00000000-0000-0000-0000-0000000000b1",
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "translations": {
+                "uz": "Xo'p, kutamiz"
+            },
+            "application_id": "30000000-0000-0000-0000-000000000004"
+        }
+    ],
+    "my_shift": {
+        "shift": {
+            "id": "20000000-0000-0000-0000-000000000004",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "dress": "",
+            "offer": null,
+            "slots": 3,
+            "title": "홀·카운터 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T08:48:06.869077+00:00",
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "rating": 5.0,
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "rating_count": 1,
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층",
+                "completed_shifts": 1
+            },
+            "my_status": "confirmed",
+            "starts_at": "2026-11-11T03:48:06.869077+00:00",
+            "slots_left": 2,
+            "distance_km": null,
+            "hourly_wage": 10500,
+            "auto_confirm": true,
+            "translations": {
+            },
+            "my_application_id": "30000000-0000-0000-0000-000000000004"
+        },
+        "status": "confirmed",
+        "my_tags": [
+        ],
+        "paid_at": null,
+        "my_stars": null,
+        "created_at": "2026-11-11T03:28:06.869077+00:00",
+        "decided_at": "2026-11-10T03:28:06.869077+00:00",
+        "pay_amount": null,
+        "check_in_at": null,
+        "late_cancel": false,
+        "cancelled_at": null,
+        "check_out_at": null,
+        "late_minutes": null,
+        "application_id": "30000000-0000-0000-0000-000000000004",
+        "worked_minutes": null
+    },
+    "shift_qr": "hanguk-ish:v1:20000000-0000-0000-0000-000000000004:2fcc9f2b8f1315d99168b776",
+    "shift_feed": [
+        {
+            "id": "20000000-0000-0000-0000-000000000004",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "dress": "",
+            "offer": null,
+            "slots": 3,
+            "title": "홀·카운터 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T08:48:06.869077+00:00",
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "rating": 5.0,
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "rating_count": 1,
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층",
+                "completed_shifts": 1
+            },
+            "my_status": "confirmed",
+            "starts_at": "2026-11-11T03:48:06.869077+00:00",
+            "slots_left": 2,
+            "distance_km": 1.195,
+            "hourly_wage": 10500,
+            "auto_confirm": true,
+            "translations": {
+            },
+            "my_application_id": "30000000-0000-0000-0000-000000000004"
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000006",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "dress": "",
+            "offer": null,
+            "slots": 2,
+            "title": "홀·카운터 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T09:28:06.869077+00:00",
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "rating": 5.0,
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "rating_count": 1,
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층",
+                "completed_shifts": 1
+            },
+            "my_status": null,
+            "starts_at": "2026-11-11T05:28:06.869077+00:00",
+            "slots_left": 1,
+            "distance_km": 1.195,
+            "hourly_wage": 10500,
+            "auto_confirm": true,
+            "translations": {
+            },
+            "my_application_id": null
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000001",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "dress": "검은색 바지, 운동화",
+            "offer": null,
+            "slots": 2,
+            "title": "홀·카운터 보조",
+            "duties": "주문 접수\n음료 보조\n홀 정리",
+            "status": "open",
+            "address": "마포구 신촌로12길 15, 2층",
+            "ends_at": "2026-11-13T08:28:06.869077+00:00",
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "rating": 5.0,
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "rating_count": 1,
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층",
+                "completed_shifts": 1
+            },
+            "my_status": null,
+            "starts_at": "2026-11-13T03:28:06.869077+00:00",
+            "slots_left": 2,
+            "distance_km": 1.195,
+            "hourly_wage": 10500,
+            "auto_confirm": true,
+            "translations": {
+                "uz": {
+                    "dress": "Qora shim, krossovka",
+                    "title": "Zal va kassa yordamchisi",
+                    "duties": "Buyurtma qabul qilish\nIchimliklar\nZalni tartibga solish",
+                    "address": "Mapo-gu, Sinchon-ro 12-gil 15, 2-qavat"
+                }
+            },
+            "my_application_id": null
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000003",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "dress": "",
+            "offer": null,
+            "slots": 3,
+            "title": "오픈 바리스타 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-13T11:28:06.869077+00:00",
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "rating": 5.0,
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "rating_count": 1,
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층",
+                "completed_shifts": 1
+            },
+            "my_status": null,
+            "starts_at": "2026-11-13T07:28:06.869077+00:00",
+            "slots_left": 3,
+            "distance_km": 1.195,
+            "hourly_wage": 10500,
+            "auto_confirm": true,
+            "translations": {
+            },
+            "my_application_id": null
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000002",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "dress": "",
+            "offer": null,
+            "slots": 1,
+            "title": "마감 정리 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-14T07:28:06.869077+00:00",
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "rating": 5.0,
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "rating_count": 1,
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층",
+                "completed_shifts": 1
+            },
+            "my_status": "confirmed",
+            "starts_at": "2026-11-14T03:28:06.869077+00:00",
+            "slots_left": 0,
+            "distance_km": 1.195,
+            "hourly_wage": 11000,
+            "auto_confirm": false,
+            "translations": {
+            },
+            "my_application_id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5"
+        }
+    ],
+    "staff_board": [
+        {
+            "id": "68739030-26fb-4f2c-ad33-02e92ffd47a9",
+            "lat": 37.556,
+            "lng": 126.923,
+            "dress": "편한 옷, 운동화",
+            "offer": null,
+            "slots": 2,
+            "title": "이삿짐 운반 보조",
+            "duties": "짐 나르기\n포장 보조",
+            "offers": {
+                "sent": 1,
+                "applied": 0,
+                "declined": 1
+            },
+            "status": "open",
+            "address": "마포구 와우산로 21",
+            "ends_at": "2026-11-12T09:00:00+00:00",
+            "managed": true,
+            "business": {
+                "id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+                "lat": 37.556,
+                "lng": 126.923,
+                "area": "홍대",
+                "name": "홍대 이삿짐센터",
+                "rating": null,
+                "address": "마포구 와우산로 21",
+                "category": "logistics",
+                "verified": true,
+                "logo_path": null,
+                "name_i18n": {
+                    "uz": "Hongdae ko'chish xizmati"
+                },
+                "photo_path": null,
+                "rating_count": 0,
+                "translations": {
+                },
+                "address_detail": "1층",
+                "completed_shifts": 0
+            },
+            "my_status": null,
+            "starts_at": "2026-11-12T05:00:00+00:00",
+            "slots_left": 2,
+            "distance_km": null,
+            "hourly_wage": 13000,
+            "invite_only": true,
+            "applications": {
+                "paid": 0,
+                "no_show": 0,
+                "pending": 0,
+                "completed": 0,
+                "confirmed": 0
+            },
+            "auto_confirm": false,
+            "translations": {
+            },
+            "attendance_due": false,
+            "my_application_id": null
+        }
+    ],
+    "staff_shift": {
+        "id": "68739030-26fb-4f2c-ad33-02e92ffd47a9",
+        "lat": 37.556,
+        "lng": 126.923,
+        "dress": "편한 옷, 운동화",
+        "notes": {
+            "notes": "오전 10시까지 도착",
+            "source": "https://t.me/koreajobs_uz/1234"
+        },
+        "offer": null,
+        "slots": 2,
+        "title": "이삿짐 운반 보조",
+        "duties": "짐 나르기\n포장 보조",
+        "offers": [
+            {
+                "id": "5699e378-976c-4c1d-97c4-aa415260de3f",
+                "note": "Ertalab 10 da yetib keling",
+                "status": "sent",
+                "worker": {
+                    "id": "00000000-0000-0000-0000-0000000000a1",
+                    "visa": null,
+                    "phone": "+821000000001",
+                    "topik": 4,
+                    "district": "Mapo-gu",
+                    "language": "uz",
+                    "no_shows": 1,
+                    "completed": 0,
+                    "languages": [
+                        "uz",
+                        "ru",
+                        "en",
+                        "ko"
+                    ],
+                    "last_name": "Karimov",
+                    "onboarded": true,
+                    "first_name": "Aziz",
+                    "university": "Sogang",
+                    "avatar_path": null,
+                    "reliability": 80
+                },
+                "created_at": "2026-11-11T03:28:06.869077+00:00",
+                "responded_at": null
+            },
+            {
+                "id": "cd785f1b-f0b2-46eb-8202-73c8a85d0c9d",
+                "note": "Ertalab 10 da yetib keling",
+                "status": "declined",
+                "worker": {
+                    "id": "00000000-0000-0000-0000-0000000000a2",
+                    "visa": null,
+                    "phone": "+821000000002",
+                    "topik": 5,
+                    "district": "Mapo-gu",
+                    "language": "uz",
+                    "no_shows": 0,
+                    "completed": 1,
+                    "languages": [
+                        "uz",
+                        "ru",
+                        "ko"
+                    ],
+                    "last_name": "Yusupova",
+                    "onboarded": true,
+                    "first_name": "Malika",
+                    "university": null,
+                    "avatar_path": null,
+                    "reliability": 100
+                },
+                "created_at": "2026-11-11T03:28:06.869077+00:00",
+                "responded_at": "2026-11-11T03:28:06.869077+00:00"
+            }
+        ],
+        "status": "open",
+        "address": "마포구 와우산로 21",
+        "contact": {
+            "notes": "Naqd to'laydi",
+            "phone": "010-5555-1234",
+            "source": "https://t.me/koreajobs_uz/1234",
+            "telegram": "@hongdae_move",
+            "contact_name": "김사장"
+        },
+        "ends_at": "2026-11-12T09:00:00+00:00",
+        "managed": true,
+        "business": {
+            "id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+            "lat": 37.556,
+            "lng": 126.923,
+            "area": "홍대",
+            "name": "홍대 이삿짐센터",
+            "rating": null,
+            "address": "마포구 와우산로 21",
+            "category": "logistics",
+            "verified": true,
+            "logo_path": null,
+            "name_i18n": {
+                "uz": "Hongdae ko'chish xizmati"
+            },
+            "photo_path": null,
+            "rating_count": 0,
+            "translations": {
+            },
+            "address_detail": "1층",
+            "completed_shifts": 0
+        },
+        "my_status": null,
+        "starts_at": "2026-11-12T05:00:00+00:00",
+        "slots_left": 2,
+        "business_id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+        "distance_km": null,
+        "hourly_wage": 13000,
+        "invite_only": true,
+        "applications": [
+        ],
+        "auto_confirm": false,
+        "translations": {
+        },
+        "my_application_id": null
+    },
+    "minimum_wage": 10320,
+    "my_shifts_a1": [
+        {
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000007",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "dress": "",
+                "offer": null,
+                "slots": 4,
+                "title": "주말 브런치 보조",
+                "duties": "",
+                "status": "open",
+                "address": "",
+                "ends_at": "2026-11-11T02:28:06.869077+00:00",
+                "business": {
+                    "id": "10000000-0000-0000-0000-000000000001",
+                    "lat": 37.5559,
+                    "lng": 126.9368,
+                    "area": "신촌",
+                    "name": "달빛카페 신촌점",
+                    "rating": 5.0,
+                    "address": "마포구 신촌로12길 15",
+                    "category": "cafe",
+                    "verified": true,
+                    "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                    "name_i18n": {
+                        "en": "Dalbit Cafe",
+                        "ko": "달빛카페",
+                        "ru": "Кафе Дальбит",
+                        "uz": "Dalbit Kafe"
+                    },
+                    "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                    "rating_count": 1,
+                    "translations": {
+                        "en": {
+                            "area": "Sinchon",
+                            "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                            "address_detail": "2F"
+                        },
+                        "ru": {
+                            "area": "Синчон",
+                            "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                            "address_detail": "2 этаж"
+                        },
+                        "uz": {
+                            "area": "Sinchon",
+                            "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                            "address_detail": "2-qavat"
+                        }
+                    },
+                    "address_detail": "2층",
+                    "completed_shifts": 1
+                },
+                "my_status": "no_show",
+                "starts_at": "2026-11-10T20:28:06.869077+00:00",
+                "slots_left": 3,
+                "distance_km": null,
+                "hourly_wage": 11000,
+                "auto_confirm": true,
+                "translations": {
+                },
+                "my_application_id": "30000000-0000-0000-0000-000000000071"
+            },
+            "status": "no_show",
+            "my_tags": [
+            ],
+            "paid_at": null,
+            "my_stars": null,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "decided_at": "2026-11-08T03:28:06.869077+00:00",
+            "pay_amount": null,
+            "check_in_at": null,
+            "late_cancel": false,
+            "cancelled_at": null,
+            "check_out_at": null,
+            "late_minutes": null,
+            "application_id": "30000000-0000-0000-0000-000000000071",
+            "worked_minutes": null
+        },
+        {
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000004",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "dress": "",
+                "offer": null,
+                "slots": 3,
+                "title": "홀·카운터 보조",
+                "duties": "",
+                "status": "open",
+                "address": "",
+                "ends_at": "2026-11-11T08:48:06.869077+00:00",
+                "business": {
+                    "id": "10000000-0000-0000-0000-000000000001",
+                    "lat": 37.5559,
+                    "lng": 126.9368,
+                    "area": "신촌",
+                    "name": "달빛카페 신촌점",
+                    "rating": 5.0,
+                    "address": "마포구 신촌로12길 15",
+                    "category": "cafe",
+                    "verified": true,
+                    "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                    "name_i18n": {
+                        "en": "Dalbit Cafe",
+                        "ko": "달빛카페",
+                        "ru": "Кафе Дальбит",
+                        "uz": "Dalbit Kafe"
+                    },
+                    "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                    "rating_count": 1,
+                    "translations": {
+                        "en": {
+                            "area": "Sinchon",
+                            "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                            "address_detail": "2F"
+                        },
+                        "ru": {
+                            "area": "Синчон",
+                            "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                            "address_detail": "2 этаж"
+                        },
+                        "uz": {
+                            "area": "Sinchon",
+                            "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                            "address_detail": "2-qavat"
+                        }
+                    },
+                    "address_detail": "2층",
+                    "completed_shifts": 1
+                },
+                "my_status": "confirmed",
+                "starts_at": "2026-11-11T03:48:06.869077+00:00",
+                "slots_left": 2,
+                "distance_km": null,
+                "hourly_wage": 10500,
+                "auto_confirm": true,
+                "translations": {
+                },
+                "my_application_id": "30000000-0000-0000-0000-000000000004"
+            },
+            "status": "confirmed",
+            "my_tags": [
+            ],
+            "paid_at": null,
+            "my_stars": null,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "decided_at": "2026-11-10T03:28:06.869077+00:00",
+            "pay_amount": null,
+            "check_in_at": null,
+            "late_cancel": false,
+            "cancelled_at": null,
+            "check_out_at": null,
+            "late_minutes": null,
+            "application_id": "30000000-0000-0000-0000-000000000004",
+            "worked_minutes": null
+        },
+        {
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000002",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "dress": "",
+                "offer": null,
+                "slots": 1,
+                "title": "마감 정리 보조",
+                "duties": "",
+                "status": "open",
+                "address": "",
+                "ends_at": "2026-11-14T07:28:06.869077+00:00",
+                "business": {
+                    "id": "10000000-0000-0000-0000-000000000001",
+                    "lat": 37.5559,
+                    "lng": 126.9368,
+                    "area": "신촌",
+                    "name": "달빛카페 신촌점",
+                    "rating": 5.0,
+                    "address": "마포구 신촌로12길 15",
+                    "category": "cafe",
+                    "verified": true,
+                    "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                    "name_i18n": {
+                        "en": "Dalbit Cafe",
+                        "ko": "달빛카페",
+                        "ru": "Кафе Дальбит",
+                        "uz": "Dalbit Kafe"
+                    },
+                    "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                    "rating_count": 1,
+                    "translations": {
+                        "en": {
+                            "area": "Sinchon",
+                            "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                            "address_detail": "2F"
+                        },
+                        "ru": {
+                            "area": "Синчон",
+                            "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                            "address_detail": "2 этаж"
+                        },
+                        "uz": {
+                            "area": "Sinchon",
+                            "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                            "address_detail": "2-qavat"
+                        }
+                    },
+                    "address_detail": "2층",
+                    "completed_shifts": 1
+                },
+                "my_status": "confirmed",
+                "starts_at": "2026-11-14T03:28:06.869077+00:00",
+                "slots_left": 0,
+                "distance_km": null,
+                "hourly_wage": 11000,
+                "auto_confirm": false,
+                "translations": {
+                },
+                "my_application_id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5"
+            },
+            "status": "confirmed",
+            "my_tags": [
+            ],
+            "paid_at": null,
+            "my_stars": null,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "decided_at": "2026-11-11T03:28:06.869077+00:00",
+            "pay_amount": null,
+            "check_in_at": null,
+            "late_cancel": false,
+            "cancelled_at": null,
+            "check_out_at": null,
+            "late_minutes": null,
+            "application_id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
+            "worked_minutes": null
+        }
+    ],
+    "my_shifts_a2": [
+        {
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000007",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "dress": "",
+                "offer": null,
+                "slots": 4,
+                "title": "주말 브런치 보조",
+                "duties": "",
+                "status": "open",
+                "address": "",
+                "ends_at": "2026-11-11T02:28:06.869077+00:00",
+                "business": {
+                    "id": "10000000-0000-0000-0000-000000000001",
+                    "lat": 37.5559,
+                    "lng": 126.9368,
+                    "area": "신촌",
+                    "name": "달빛카페 신촌점",
+                    "rating": 5.0,
+                    "address": "마포구 신촌로12길 15",
+                    "category": "cafe",
+                    "verified": true,
+                    "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                    "name_i18n": {
+                        "en": "Dalbit Cafe",
+                        "ko": "달빛카페",
+                        "ru": "Кафе Дальбит",
+                        "uz": "Dalbit Kafe"
+                    },
+                    "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                    "rating_count": 1,
+                    "translations": {
+                        "en": {
+                            "area": "Sinchon",
+                            "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                            "address_detail": "2F"
+                        },
+                        "ru": {
+                            "area": "Синчон",
+                            "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                            "address_detail": "2 этаж"
+                        },
+                        "uz": {
+                            "area": "Sinchon",
+                            "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                            "address_detail": "2-qavat"
+                        }
+                    },
+                    "address_detail": "2층",
+                    "completed_shifts": 1
+                },
+                "my_status": "completed",
+                "starts_at": "2026-11-10T20:28:06.869077+00:00",
+                "slots_left": 3,
+                "distance_km": null,
+                "hourly_wage": 11000,
+                "auto_confirm": true,
+                "translations": {
+                },
+                "my_application_id": "30000000-0000-0000-0000-000000000075"
+            },
+            "status": "completed",
+            "my_tags": [
+                "on_time",
+                "polite",
+                "would_return"
+            ],
+            "paid_at": "2026-11-11T03:28:06.869077+00:00",
+            "my_stars": 5,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "decided_at": "2026-11-09T03:28:06.869077+00:00",
+            "pay_amount": 66000,
+            "check_in_at": "2026-11-10T20:25:06.869077+00:00",
+            "late_cancel": false,
+            "cancelled_at": null,
+            "check_out_at": "2026-11-11T02:30:06.869077+00:00",
+            "late_minutes": 0,
+            "application_id": "30000000-0000-0000-0000-000000000075",
+            "worked_minutes": 360
+        },
+        {
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000005",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "dress": "",
+                "offer": null,
+                "slots": 3,
+                "title": "마감 정리 보조",
+                "duties": "",
+                "status": "open",
+                "address": "",
+                "ends_at": "2026-11-11T05:28:06.869077+00:00",
+                "business": {
+                    "id": "10000000-0000-0000-0000-000000000001",
+                    "lat": 37.5559,
+                    "lng": 126.9368,
+                    "area": "신촌",
+                    "name": "달빛카페 신촌점",
+                    "rating": 5.0,
+                    "address": "마포구 신촌로12길 15",
+                    "category": "cafe",
+                    "verified": true,
+                    "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                    "name_i18n": {
+                        "en": "Dalbit Cafe",
+                        "ko": "달빛카페",
+                        "ru": "Кафе Дальбит",
+                        "uz": "Dalbit Kafe"
+                    },
+                    "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                    "rating_count": 1,
+                    "translations": {
+                        "en": {
+                            "area": "Sinchon",
+                            "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                            "address_detail": "2F"
+                        },
+                        "ru": {
+                            "area": "Синчон",
+                            "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                            "address_detail": "2 этаж"
+                        },
+                        "uz": {
+                            "area": "Sinchon",
+                            "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                            "address_detail": "2-qavat"
+                        }
+                    },
+                    "address_detail": "2층",
+                    "completed_shifts": 1
+                },
+                "my_status": "checked_in",
+                "starts_at": "2026-11-11T00:28:06.869077+00:00",
+                "slots_left": 2,
+                "distance_km": null,
+                "hourly_wage": 12000,
+                "auto_confirm": false,
+                "translations": {
+                },
+                "my_application_id": "30000000-0000-0000-0000-000000000005"
+            },
+            "status": "checked_in",
+            "my_tags": [
+            ],
+            "paid_at": null,
+            "my_stars": null,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "decided_at": "2026-11-10T03:28:06.869077+00:00",
+            "pay_amount": null,
+            "check_in_at": "2026-11-11T00:30:06.869077+00:00",
+            "late_cancel": false,
+            "cancelled_at": null,
+            "check_out_at": null,
+            "late_minutes": 2,
+            "application_id": "30000000-0000-0000-0000-000000000005",
+            "worked_minutes": null
+        },
+        {
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000006",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "dress": "",
+                "offer": null,
+                "slots": 2,
+                "title": "홀·카운터 보조",
+                "duties": "",
+                "status": "open",
+                "address": "",
+                "ends_at": "2026-11-11T09:28:06.869077+00:00",
+                "business": {
+                    "id": "10000000-0000-0000-0000-000000000001",
+                    "lat": 37.5559,
+                    "lng": 126.9368,
+                    "area": "신촌",
+                    "name": "달빛카페 신촌점",
+                    "rating": 5.0,
+                    "address": "마포구 신촌로12길 15",
+                    "category": "cafe",
+                    "verified": true,
+                    "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                    "name_i18n": {
+                        "en": "Dalbit Cafe",
+                        "ko": "달빛카페",
+                        "ru": "Кафе Дальбит",
+                        "uz": "Dalbit Kafe"
+                    },
+                    "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                    "rating_count": 1,
+                    "translations": {
+                        "en": {
+                            "area": "Sinchon",
+                            "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                            "address_detail": "2F"
+                        },
+                        "ru": {
+                            "area": "Синчон",
+                            "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                            "address_detail": "2 этаж"
+                        },
+                        "uz": {
+                            "area": "Sinchon",
+                            "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                            "address_detail": "2-qavat"
+                        }
+                    },
+                    "address_detail": "2층",
+                    "completed_shifts": 1
+                },
+                "my_status": "confirmed",
+                "starts_at": "2026-11-11T05:28:06.869077+00:00",
+                "slots_left": 1,
+                "distance_km": null,
+                "hourly_wage": 10500,
+                "auto_confirm": true,
+                "translations": {
+                },
+                "my_application_id": "30000000-0000-0000-0000-000000000006"
+            },
+            "status": "confirmed",
+            "my_tags": [
+            ],
+            "paid_at": null,
+            "my_stars": null,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "decided_at": "2026-11-10T03:28:06.869077+00:00",
+            "pay_amount": null,
+            "check_in_at": null,
+            "late_cancel": false,
+            "cancelled_at": null,
+            "check_out_at": null,
+            "late_minutes": null,
+            "application_id": "30000000-0000-0000-0000-000000000006",
+            "worked_minutes": null
+        }
+    ],
+    "worker_stats": [
+        {
+            "rating": null,
+            "ratings": 0,
+            "reliability": 80,
+            "shifts_here": null,
+            "completed_shifts": 0
+        }
+    ],
+    "my_businesses": [
+        {
+            "id": "10000000-0000-0000-0000-000000000001",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "area": "신촌",
+            "name": "달빛카페 신촌점",
+            "role": "owner",
+            "biz_no": "1234567890",
+            "rating": 5.0,
+            "status": "verified",
+            "address": "마포구 신촌로12길 15",
+            "category": "cafe",
+            "verified": true,
+            "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+            "name_i18n": {
+                "en": "Dalbit Cafe",
+                "ko": "달빛카페",
+                "ru": "Кафе Дальбит",
+                "uz": "Dalbit Kafe"
+            },
+            "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+            "rating_count": 1,
+            "translations": {
+                "en": {
+                    "area": "Sinchon",
+                    "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                    "address_detail": "2F"
+                },
+                "ru": {
+                    "area": "Синчон",
+                    "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                    "address_detail": "2 этаж"
+                },
+                "uz": {
+                    "area": "Sinchon",
+                    "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                    "address_detail": "2-qavat"
+                }
+            },
+            "address_detail": "2층",
+            "completed_shifts": 1
+        }
+    ],
+    "shift_details": {
+        "id": "20000000-0000-0000-0000-000000000001",
+        "lat": 37.5559,
+        "lng": 126.9368,
+        "dress": "검은색 바지, 운동화",
+        "offer": null,
+        "slots": 2,
+        "title": "홀·카운터 보조",
+        "duties": "주문 접수\n음료 보조\n홀 정리",
+        "status": "open",
+        "address": "마포구 신촌로12길 15, 2층",
+        "ends_at": "2026-11-13T08:28:06.869077+00:00",
+        "business": {
+            "id": "10000000-0000-0000-0000-000000000001",
+            "lat": 37.5559,
+            "lng": 126.9368,
+            "area": "신촌",
+            "name": "달빛카페 신촌점",
+            "rating": 5.0,
+            "address": "마포구 신촌로12길 15",
+            "category": "cafe",
+            "verified": true,
+            "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+            "name_i18n": {
+                "en": "Dalbit Cafe",
+                "ko": "달빛카페",
+                "ru": "Кафе Дальбит",
+                "uz": "Dalbit Kafe"
+            },
+            "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+            "rating_count": 1,
+            "translations": {
+                "en": {
+                    "area": "Sinchon",
+                    "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                    "address_detail": "2F"
+                },
+                "ru": {
+                    "area": "Синчон",
+                    "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                    "address_detail": "2 этаж"
+                },
+                "uz": {
+                    "area": "Sinchon",
+                    "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                    "address_detail": "2-qavat"
+                }
+            },
+            "address_detail": "2층",
+            "completed_shifts": 1
+        },
+        "my_status": null,
+        "starts_at": "2026-11-13T03:28:06.869077+00:00",
+        "slots_left": 2,
+        "distance_km": 1.195,
+        "hourly_wage": 10500,
+        "auto_confirm": true,
+        "translations": {
+            "uz": {
+                "dress": "Qora shim, krossovka",
+                "title": "Zal va kassa yordamchisi",
+                "duties": "Buyurtma qabul qilish\nIchimliklar\nZalni tartibga solish",
+                "address": "Mapo-gu, Sinchon-ro 12-gil 15, 2-qavat"
+            }
+        },
+        "my_application_id": null
+    },
+    "apply_to_shift": {
+        "id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
+        "status": "pending",
+        "paid_at": null,
+        "shift_id": "20000000-0000-0000-0000-000000000002",
+        "worker_id": "00000000-0000-0000-0000-0000000000a1",
+        "created_at": "2026-11-11T03:28:06.869077+00:00",
+        "decided_at": null,
+        "pay_amount": null,
+        "updated_at": "2026-11-11T03:28:06.869077+00:00",
+        "check_in_at": null,
+        "late_cancel": false,
+        "cancelled_at": null,
+        "check_out_at": null,
+        "late_minutes": null,
+        "worked_minutes": null
+    },
+    "business_board": [
+        {
+            "id": "20000000-0000-0000-0000-000000000007",
+            "dress": "",
+            "slots": 4,
+            "title": "주말 브런치 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T02:28:06.869077+00:00",
+            "starts_at": "2026-11-10T20:28:06.869077+00:00",
+            "applicants": [
+                {
+                    "status": "no_show",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a1",
+                        "topik": 4,
+                        "rating": null,
+                        "favorite": false,
+                        "languages": [
+                            "uz",
+                            "ru",
+                            "en",
+                            "ko"
+                        ],
+                        "last_name": "Karimov",
+                        "first_name": "Aziz",
+                        "avatar_path": null,
+                        "reliability": 80,
+                        "shifts_here": 0,
+                        "last_worked_at": null,
+                        "completed_shifts": 0
+                    },
+                    "paid_at": null,
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-08T03:28:06.869077+00:00",
+                    "pay_amount": null,
+                    "check_in_at": null,
+                    "check_out_at": null,
+                    "late_minutes": null,
+                    "application_id": "30000000-0000-0000-0000-000000000071",
+                    "worked_minutes": null
+                },
+                {
+                    "status": "completed",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a2",
+                        "topik": 5,
+                        "rating": 5.0,
+                        "favorite": true,
+                        "languages": [
+                            "uz",
+                            "ru",
+                            "ko"
+                        ],
+                        "last_name": "Yusupova",
+                        "first_name": "Malika",
+                        "avatar_path": null,
+                        "reliability": 100,
+                        "shifts_here": 1,
+                        "last_worked_at": "2026-11-11T02:28:06.869077+00:00",
+                        "completed_shifts": 1
+                    },
+                    "paid_at": "2026-11-11T03:28:06.869077+00:00",
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-09T03:28:06.869077+00:00",
+                    "pay_amount": 66000,
+                    "check_in_at": "2026-11-10T20:25:06.869077+00:00",
+                    "check_out_at": "2026-11-11T02:30:06.869077+00:00",
+                    "late_minutes": 0,
+                    "application_id": "30000000-0000-0000-0000-000000000075",
+                    "worked_minutes": 360
+                }
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 11000,
+            "template_id": null,
+            "auto_confirm": true
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000005",
+            "dress": "",
+            "slots": 3,
+            "title": "마감 정리 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T05:28:06.869077+00:00",
+            "starts_at": "2026-11-11T00:28:06.869077+00:00",
+            "applicants": [
+                {
+                    "status": "checked_in",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a2",
+                        "topik": 5,
+                        "rating": 5.0,
+                        "favorite": true,
+                        "languages": [
+                            "uz",
+                            "ru",
+                            "ko"
+                        ],
+                        "last_name": "Yusupova",
+                        "first_name": "Malika",
+                        "avatar_path": null,
+                        "reliability": 100,
+                        "shifts_here": 1,
+                        "last_worked_at": "2026-11-11T02:28:06.869077+00:00",
+                        "completed_shifts": 1
+                    },
+                    "paid_at": null,
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-10T03:28:06.869077+00:00",
+                    "pay_amount": null,
+                    "check_in_at": "2026-11-11T00:30:06.869077+00:00",
+                    "check_out_at": null,
+                    "late_minutes": 2,
+                    "application_id": "30000000-0000-0000-0000-000000000005",
+                    "worked_minutes": null
+                }
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 12000,
+            "template_id": null,
+            "auto_confirm": false
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000004",
+            "dress": "",
+            "slots": 3,
+            "title": "홀·카운터 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T08:48:06.869077+00:00",
+            "starts_at": "2026-11-11T03:48:06.869077+00:00",
+            "applicants": [
+                {
+                    "status": "confirmed",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a1",
+                        "topik": 4,
+                        "rating": null,
+                        "favorite": false,
+                        "languages": [
+                            "uz",
+                            "ru",
+                            "en",
+                            "ko"
+                        ],
+                        "last_name": "Karimov",
+                        "first_name": "Aziz",
+                        "avatar_path": null,
+                        "reliability": 80,
+                        "shifts_here": 0,
+                        "last_worked_at": null,
+                        "completed_shifts": 0
+                    },
+                    "paid_at": null,
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-10T03:28:06.869077+00:00",
+                    "pay_amount": null,
+                    "check_in_at": null,
+                    "check_out_at": null,
+                    "late_minutes": null,
+                    "application_id": "30000000-0000-0000-0000-000000000004",
+                    "worked_minutes": null
+                }
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 10500,
+            "template_id": null,
+            "auto_confirm": true
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000006",
+            "dress": "",
+            "slots": 2,
+            "title": "홀·카운터 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-11T09:28:06.869077+00:00",
+            "starts_at": "2026-11-11T05:28:06.869077+00:00",
+            "applicants": [
+                {
+                    "status": "confirmed",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a2",
+                        "topik": 5,
+                        "rating": 5.0,
+                        "favorite": true,
+                        "languages": [
+                            "uz",
+                            "ru",
+                            "ko"
+                        ],
+                        "last_name": "Yusupova",
+                        "first_name": "Malika",
+                        "avatar_path": null,
+                        "reliability": 100,
+                        "shifts_here": 1,
+                        "last_worked_at": "2026-11-11T02:28:06.869077+00:00",
+                        "completed_shifts": 1
+                    },
+                    "paid_at": null,
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-10T03:28:06.869077+00:00",
+                    "pay_amount": null,
+                    "check_in_at": null,
+                    "check_out_at": null,
+                    "late_minutes": null,
+                    "application_id": "30000000-0000-0000-0000-000000000006",
+                    "worked_minutes": null
+                }
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 10500,
+            "template_id": null,
+            "auto_confirm": true
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000001",
+            "dress": "검은색 바지, 운동화",
+            "slots": 2,
+            "title": "홀·카운터 보조",
+            "duties": "주문 접수\n음료 보조\n홀 정리",
+            "status": "open",
+            "address": "마포구 신촌로12길 15, 2층",
+            "ends_at": "2026-11-13T08:28:06.869077+00:00",
+            "starts_at": "2026-11-13T03:28:06.869077+00:00",
+            "applicants": [
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 10500,
+            "template_id": null,
+            "auto_confirm": true
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000003",
+            "dress": "",
+            "slots": 3,
+            "title": "오픈 바리스타 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-13T11:28:06.869077+00:00",
+            "starts_at": "2026-11-13T07:28:06.869077+00:00",
+            "applicants": [
+                {
+                    "status": "cancelled",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a3",
+                        "topik": 6,
+                        "rating": null,
+                        "favorite": false,
+                        "languages": [
+                            "ru",
+                            "ko"
+                        ],
+                        "last_name": "Kim",
+                        "first_name": "Timur",
+                        "avatar_path": null,
+                        "reliability": 100,
+                        "shifts_here": 0,
+                        "last_worked_at": null,
+                        "completed_shifts": 0
+                    },
+                    "paid_at": null,
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-11T03:28:06.869077+00:00",
+                    "pay_amount": null,
+                    "check_in_at": null,
+                    "check_out_at": null,
+                    "late_minutes": null,
+                    "application_id": "c4c18128-fc1c-4b54-a5d3-6fb8af915a61",
+                    "worked_minutes": null
+                }
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 10500,
+            "template_id": null,
+            "auto_confirm": true
+        },
+        {
+            "id": "20000000-0000-0000-0000-000000000002",
+            "dress": "",
+            "slots": 1,
+            "title": "마감 정리 보조",
+            "duties": "",
+            "status": "open",
+            "address": "",
+            "ends_at": "2026-11-14T07:28:06.869077+00:00",
+            "starts_at": "2026-11-14T03:28:06.869077+00:00",
+            "applicants": [
+                {
+                    "status": "confirmed",
+                    "worker": {
+                        "id": "00000000-0000-0000-0000-0000000000a1",
+                        "topik": 4,
+                        "rating": null,
+                        "favorite": false,
+                        "languages": [
+                            "uz",
+                            "ru",
+                            "en",
+                            "ko"
+                        ],
+                        "last_name": "Karimov",
+                        "first_name": "Aziz",
+                        "avatar_path": null,
+                        "reliability": 80,
+                        "shifts_here": 0,
+                        "last_worked_at": null,
+                        "completed_shifts": 0
+                    },
+                    "paid_at": null,
+                    "created_at": "2026-11-11T03:28:06.869077+00:00",
+                    "decided_at": "2026-11-11T03:28:06.869077+00:00",
+                    "pay_amount": null,
+                    "check_in_at": null,
+                    "check_out_at": null,
+                    "late_minutes": null,
+                    "application_id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
+                    "worked_minutes": null
+                }
+            ],
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 11000,
+            "template_id": null,
+            "auto_confirm": false
+        }
+    ],
+    "employer_shift": {
+        "id": "20000000-0000-0000-0000-000000000005",
+        "dress": "",
+        "slots": 3,
+        "title": "마감 정리 보조",
+        "duties": "",
+        "status": "open",
+        "address": "",
+        "ends_at": "2026-11-11T05:28:06.869077+00:00",
+        "starts_at": "2026-11-11T00:28:06.869077+00:00",
+        "applicants": [
+            {
+                "status": "checked_in",
+                "worker": {
+                    "id": "00000000-0000-0000-0000-0000000000a2",
+                    "topik": 5,
+                    "rating": 5.0,
+                    "favorite": true,
+                    "languages": [
+                        "uz",
+                        "ru",
+                        "ko"
+                    ],
+                    "last_name": "Yusupova",
+                    "first_name": "Malika",
+                    "avatar_path": null,
+                    "reliability": 100,
+                    "shifts_here": 1,
+                    "last_worked_at": "2026-11-11T02:28:06.869077+00:00",
+                    "completed_shifts": 1
+                },
+                "paid_at": null,
+                "created_at": "2026-11-11T03:28:06.869077+00:00",
+                "decided_at": "2026-11-10T03:28:06.869077+00:00",
+                "pay_amount": null,
+                "check_in_at": "2026-11-11T00:30:06.869077+00:00",
+                "check_out_at": null,
+                "late_minutes": 2,
+                "application_id": "30000000-0000-0000-0000-000000000005",
+                "worked_minutes": null
+            }
+        ],
+        "business_id": "10000000-0000-0000-0000-000000000001",
+        "hourly_wage": 12000,
+        "template_id": null,
+        "auto_confirm": false
+    },
+    "my_profile_new": {
+        "id": "00000000-0000-0000-0000-0000000000a3",
+        "phone": "+821000000003",
+        "worker": {
+            "visa": null,
+            "topik": 6,
+            "district": null,
+            "languages": [
+                "ru",
+                "ko"
+            ],
+            "university": null,
+            "reliability": 100,
+            "availability": 0,
+            "onboarded_at": "2026-11-11T03:28:06.869077+00:00"
+        },
+        "language": "uz",
+        "last_name": "Kim",
+        "businesses": 0,
+        "first_name": "Timur",
+        "avatar_path": null,
+        "telegram_username": null
+    },
+    "business_report": [
+        {
+            "paid": true,
+            "title": "주말 브런치 보조",
+            "ends_at": "2026-11-11T02:28:06.869077+00:00",
+            "workers": 1,
+            "shift_id": "20000000-0000-0000-0000-000000000007",
+            "starts_at": "2026-11-10T20:28:06.869077+00:00",
+            "total_pay": 66000,
+            "hourly_wage": 11000,
+            "worked_minutes": 360
+        }
+    ],
+    "shift_templates": [
+        {
+            "id": "40000000-0000-0000-0000-000000000001",
+            "dress": "검은색 바지, 운동화 (앞치마 제공)",
+            "slots": 3,
+            "title": "홀·카운터 보조",
+            "duties": "주문 접수 · 음료 보조 · 홀 정리",
+            "address": "마포구 신촌로12길 15, 2층",
+            "end_time": "19:00:00",
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "start_time": "14:00:00",
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": 10500
+        },
+        {
+            "id": "40000000-0000-0000-0000-000000000002",
+            "dress": "",
+            "slots": null,
+            "title": "마감 정리 보조",
+            "duties": "",
+            "address": "",
+            "end_time": null,
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "start_time": null,
+            "business_id": "10000000-0000-0000-0000-000000000001",
+            "hourly_wage": null
+        }
+    ],
+    "worker_earnings": [
+        {
+            "paid": true,
+            "shift_id": "20000000-0000-0000-0000-000000000007",
+            "starts_at": "2026-11-10T20:28:06.869077+00:00",
+            "pay_amount": 66000,
+            "hourly_wage": 11000,
+            "business_name": "달빛카페 신촌점",
+            "application_id": "30000000-0000-0000-0000-000000000075",
+            "worked_minutes": 360,
+            "business_name_i18n": {
+                "en": "Dalbit Cafe",
+                "ko": "달빛카페",
+                "ru": "Кафе Дальбит",
+                "uz": "Dalbit Kafe"
+            }
+        }
+    ],
+    "business_workers": [
+        {
+            "id": "00000000-0000-0000-0000-0000000000a2",
+            "topik": 5,
+            "rating": 5.0,
+            "favorite": true,
+            "languages": [
+                "uz",
+                "ru",
+                "ko"
+            ],
+            "last_name": "Yusupova",
+            "first_name": "Malika",
+            "avatar_path": null,
+            "reliability": 100,
+            "shifts_here": 1,
+            "last_worked_at": "2026-11-11T02:28:06.869077+00:00",
+            "completed_shifts": 1
+        }
+    ],
+    "staff_businesses": [
+        {
+            "id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+            "lat": 37.556,
+            "lng": 126.923,
+            "area": "홍대",
+            "name": "홍대 이삿짐센터",
+            "rating": null,
+            "shifts": 1,
+            "address": "마포구 와우산로 21",
+            "contact": {
+                "notes": "Naqd to'laydi",
+                "phone": "010-5555-1234",
+                "source": "https://t.me/koreajobs_uz/1234",
+                "telegram": "@hongdae_move",
+                "contact_name": "김사장"
+            },
+            "category": "logistics",
+            "district": "Mapo-gu",
+            "verified": true,
+            "logo_path": null,
+            "name_i18n": {
+                "uz": "Hongdae ko'chish xizmati"
+            },
+            "photo_path": null,
+            "open_shifts": 1,
+            "rating_count": 0,
+            "translations": {
+            },
+            "address_detail": "1층",
+            "completed_shifts": 0
+        }
+    ],
+    "staff_candidates": [
+        {
+            "id": "00000000-0000-0000-0000-0000000000a2",
+            "busy": false,
+            "visa": null,
+            "phone": "+821000000002",
+            "topik": 5,
+            "district": "Mapo-gu",
+            "language": "uz",
+            "no_shows": 0,
+            "available": true,
+            "completed": 1,
+            "languages": [
+                "uz",
+                "ru",
+                "ko"
+            ],
+            "last_name": "Yusupova",
+            "onboarded": true,
+            "first_name": "Malika",
+            "university": null,
+            "avatar_path": null,
+            "distance_km": null,
+            "reliability": 100,
+            "offer_status": "declined",
+            "application_status": null
+        },
+        {
+            "id": "00000000-0000-0000-0000-0000000000a3",
+            "busy": false,
+            "visa": null,
+            "phone": "+821000000003",
+            "topik": 6,
+            "district": null,
+            "language": "uz",
+            "no_shows": 0,
+            "available": true,
+            "completed": 0,
+            "languages": [
+                "ru",
+                "ko"
+            ],
+            "last_name": "Kim",
+            "onboarded": true,
+            "first_name": "Timur",
+            "university": null,
+            "avatar_path": null,
+            "distance_km": null,
+            "reliability": 100,
+            "offer_status": null,
+            "application_status": null
+        },
+        {
+            "id": "00000000-0000-0000-0000-0000000000a1",
+            "busy": false,
+            "visa": null,
+            "phone": "+821000000001",
+            "topik": 4,
+            "district": "Mapo-gu",
+            "language": "uz",
+            "no_shows": 1,
+            "available": true,
+            "completed": 0,
+            "languages": [
+                "uz",
+                "ru",
+                "en",
+                "ko"
+            ],
+            "last_name": "Karimov",
+            "onboarded": true,
+            "first_name": "Aziz",
+            "university": "Sogang",
+            "avatar_path": null,
+            "distance_km": null,
+            "reliability": 80,
+            "offer_status": "sent",
+            "application_status": null
+        }
+    ],
+    "my_profile_worker": {
+        "id": "00000000-0000-0000-0000-0000000000a1",
+        "phone": "+821000000001",
+        "worker": {
+            "visa": null,
+            "topik": 4,
+            "district": "Mapo-gu",
+            "languages": [
+                "uz",
+                "ru",
+                "en",
+                "ko"
+            ],
+            "university": "Sogang",
+            "reliability": 80,
+            "availability": 268435455,
+            "onboarded_at": "2026-11-11T03:28:06.869077+00:00"
+        },
+        "language": "uz",
+        "last_name": "Karimov",
+        "businesses": 0,
+        "first_name": "Aziz",
+        "avatar_path": null,
+        "telegram_username": null
+    },
+    "shift_details_offer": {
+        "id": "68739030-26fb-4f2c-ad33-02e92ffd47a9",
+        "lat": 37.556,
+        "lng": 126.923,
+        "dress": "편한 옷, 운동화",
+        "offer": {
+            "id": "5699e378-976c-4c1d-97c4-aa415260de3f",
+            "note": "Ertalab 10 da yetib keling",
+            "status": "sent"
+        },
+        "slots": 2,
+        "title": "이삿짐 운반 보조",
+        "duties": "짐 나르기\n포장 보조",
+        "status": "open",
+        "address": "마포구 와우산로 21",
+        "ends_at": "2026-11-12T09:00:00+00:00",
+        "business": {
+            "id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+            "lat": 37.556,
+            "lng": 126.923,
+            "area": "홍대",
+            "name": "홍대 이삿짐센터",
+            "rating": null,
+            "address": "마포구 와우산로 21",
+            "category": "logistics",
+            "verified": true,
+            "logo_path": null,
+            "name_i18n": {
+                "uz": "Hongdae ko'chish xizmati"
+            },
+            "photo_path": null,
+            "rating_count": 0,
+            "translations": {
+            },
+            "address_detail": "1층",
+            "completed_shifts": 0
+        },
+        "my_status": null,
+        "starts_at": "2026-11-12T05:00:00+00:00",
+        "slots_left": 2,
+        "distance_km": 2.399,
+        "hourly_wage": 13000,
+        "auto_confirm": false,
+        "translations": {
+        },
+        "my_application_id": null
+    },
+    "my_notifications_offer": [
+        {
+            "id": 13,
+            "data": {
+                "note": "Ertalab 10 da yetib keling",
+                "offer_id": "5699e378-976c-4c1d-97c4-aa415260de3f",
+                "shift_id": "68739030-26fb-4f2c-ad33-02e92ffd47a9",
+                "business_id": "eeac0976-f7f1-441d-9d34-577b3302a014"
+            },
+            "kind": "job_offer",
+            "shift": {
+                "id": "68739030-26fb-4f2c-ad33-02e92ffd47a9",
+                "lat": 37.556,
+                "lng": 126.923,
+                "title": "이삿짐 운반 보조",
+                "status": "open",
+                "ends_at": "2026-11-12T09:00:00+00:00",
+                "starts_at": "2026-11-12T05:00:00+00:00",
+                "hourly_wage": 13000,
+                "translations": {
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+                "lat": 37.556,
+                "lng": 126.923,
+                "area": "홍대",
+                "name": "홍대 이삿짐센터",
+                "address": "마포구 와우산로 21",
+                "category": "logistics",
+                "verified": true,
+                "logo_path": null,
+                "name_i18n": {
+                    "uz": "Hongdae ko'chish xizmati"
+                },
+                "photo_path": null,
+                "translations": {
+                },
+                "address_detail": "1층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": null
+        }
+    ],
+    "my_notifications_worker": [
+        {
+            "id": 12,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000002",
+                "application_id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5"
+            },
+            "kind": "application_confirmed",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000002",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "마감 정리 보조",
+                "status": "open",
+                "ends_at": "2026-11-14T07:28:06.869077+00:00",
+                "starts_at": "2026-11-14T03:28:06.869077+00:00",
+                "hourly_wage": 11000,
+                "translations": {
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
+                "status": "confirmed",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 5,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000004",
+                "business_id": "10000000-0000-0000-0000-000000000001",
+                "application_id": "30000000-0000-0000-0000-000000000004"
+            },
+            "kind": "chat_message",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000004",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "홀·카운터 보조",
+                "status": "open",
+                "ends_at": "2026-11-11T08:48:06.869077+00:00",
+                "starts_at": "2026-11-11T03:48:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "30000000-0000-0000-0000-000000000004",
+                "status": "confirmed",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 6,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000004",
+                "application_id": "30000000-0000-0000-0000-000000000004",
+                "minutes_before": 120
+            },
+            "kind": "shift_reminder",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000004",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "홀·카운터 보조",
+                "status": "open",
+                "ends_at": "2026-11-11T08:48:06.869077+00:00",
+                "starts_at": "2026-11-11T03:48:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:27:06.869077+00:00",
+            "application": {
+                "id": "30000000-0000-0000-0000-000000000004",
+                "status": "confirmed",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 7,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000006",
+                "distance_km": 3.8
+            },
+            "kind": "new_shift_match",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000006",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "홀·카운터 보조",
+                "status": "open",
+                "ends_at": "2026-11-11T09:28:06.869077+00:00",
+                "starts_at": "2026-11-11T05:28:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-10T03:28:06.869077+00:00",
+            "application": null
+        },
+        {
+            "id": 8,
+            "data": {
+                "lat": 37.5563,
+                "lng": 126.9236,
+                "area": "홍대",
+                "count": 3,
+                "wage_max": 11500,
+                "wage_min": 10500,
+                "area_i18n": {
+                    "en": "Hongdae",
+                    "ru": "Хондэ",
+                    "uz": "Hongdae"
+                },
+                "categories": [
+                    "cafe",
+                    "retail"
+                ]
+            },
+            "kind": "nearby_digest",
+            "shift": null,
+            "worker": null,
+            "read_at": null,
+            "business": null,
+            "created_at": "2026-11-10T00:28:06.869077+00:00",
+            "application": null
+        },
+        {
+            "id": 9,
+            "data": {
+                "paid": true,
+                "shift_id": "20000000-0000-0000-0000-000000000007",
+                "application_id": "30000000-0000-0000-0000-000000000075"
+            },
+            "kind": "payment_marked",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000007",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "주말 브런치 보조",
+                "status": "open",
+                "ends_at": "2026-11-11T02:28:06.869077+00:00",
+                "starts_at": "2026-11-10T20:28:06.869077+00:00",
+                "hourly_wage": 11000,
+                "translations": {
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-09T03:28:06.869077+00:00",
+            "application": {
+                "id": "30000000-0000-0000-0000-000000000075",
+                "status": "completed",
+                "pay_amount": 66000,
+                "worked_minutes": 360
+            }
+        },
+        {
+            "id": 10,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000001",
+                "business_id": "10000000-0000-0000-0000-000000000001"
+            },
+            "kind": "request_again",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "홀·카운터 보조",
+                "status": "open",
+                "ends_at": "2026-11-13T08:28:06.869077+00:00",
+                "starts_at": "2026-11-13T03:28:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                    "uz": {
+                        "dress": "Qora shim, krossovka",
+                        "title": "Zal va kassa yordamchisi",
+                        "duties": "Buyurtma qabul qilish\nIchimliklar\nZalni tartibga solish",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15, 2-qavat"
+                    }
+                }
+            },
+            "worker": null,
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-08T03:28:06.869077+00:00",
+            "application": null
+        }
+    ],
+    "my_notifications_employer": [
+        {
+            "id": 11,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000007",
+                "worker_id": "00000000-0000-0000-0000-0000000000a1",
+                "application_id": "30000000-0000-0000-0000-000000000071"
+            },
+            "kind": "no_show",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000007",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "주말 브런치 보조",
+                "status": "open",
+                "ends_at": "2026-11-11T02:28:06.869077+00:00",
+                "starts_at": "2026-11-10T20:28:06.869077+00:00",
+                "hourly_wage": 11000,
+                "translations": {
+                }
+            },
+            "worker": {
+                "id": "00000000-0000-0000-0000-0000000000a1",
+                "last_name": "Karimov",
+                "first_name": "Aziz"
+            },
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "30000000-0000-0000-0000-000000000071",
+                "status": "no_show",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 4,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000004",
+                "worker_id": "00000000-0000-0000-0000-0000000000a1",
+                "application_id": "30000000-0000-0000-0000-000000000004"
+            },
+            "kind": "chat_message",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000004",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "홀·카운터 보조",
+                "status": "open",
+                "ends_at": "2026-11-11T08:48:06.869077+00:00",
+                "starts_at": "2026-11-11T03:48:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                }
+            },
+            "worker": {
+                "id": "00000000-0000-0000-0000-0000000000a1",
+                "last_name": "Karimov",
+                "first_name": "Aziz"
+            },
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "30000000-0000-0000-0000-000000000004",
+                "status": "confirmed",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 3,
+            "data": {
+                "late": false,
+                "shift_id": "20000000-0000-0000-0000-000000000003",
+                "worker_id": "00000000-0000-0000-0000-0000000000a3",
+                "application_id": "c4c18128-fc1c-4b54-a5d3-6fb8af915a61"
+            },
+            "kind": "worker_cancelled",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000003",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "오픈 바리스타 보조",
+                "status": "open",
+                "ends_at": "2026-11-13T11:28:06.869077+00:00",
+                "starts_at": "2026-11-13T07:28:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                }
+            },
+            "worker": {
+                "id": "00000000-0000-0000-0000-0000000000a3",
+                "last_name": "Kim",
+                "first_name": "Timur"
+            },
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "c4c18128-fc1c-4b54-a5d3-6fb8af915a61",
+                "status": "cancelled",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 2,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000003",
+                "worker_id": "00000000-0000-0000-0000-0000000000a3",
+                "application_id": "c4c18128-fc1c-4b54-a5d3-6fb8af915a61",
+                "auto_confirmed": true
+            },
+            "kind": "new_applicant",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000003",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "오픈 바리스타 보조",
+                "status": "open",
+                "ends_at": "2026-11-13T11:28:06.869077+00:00",
+                "starts_at": "2026-11-13T07:28:06.869077+00:00",
+                "hourly_wage": 10500,
+                "translations": {
+                }
+            },
+            "worker": {
+                "id": "00000000-0000-0000-0000-0000000000a3",
+                "last_name": "Kim",
+                "first_name": "Timur"
+            },
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "c4c18128-fc1c-4b54-a5d3-6fb8af915a61",
+                "status": "cancelled",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        },
+        {
+            "id": 1,
+            "data": {
+                "shift_id": "20000000-0000-0000-0000-000000000002",
+                "worker_id": "00000000-0000-0000-0000-0000000000a1",
+                "application_id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
+                "auto_confirmed": false
+            },
+            "kind": "new_applicant",
+            "shift": {
+                "id": "20000000-0000-0000-0000-000000000002",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "title": "마감 정리 보조",
+                "status": "open",
+                "ends_at": "2026-11-14T07:28:06.869077+00:00",
+                "starts_at": "2026-11-14T03:28:06.869077+00:00",
+                "hourly_wage": 11000,
+                "translations": {
+                }
+            },
+            "worker": {
+                "id": "00000000-0000-0000-0000-0000000000a1",
+                "last_name": "Karimov",
+                "first_name": "Aziz"
+            },
+            "read_at": null,
+            "business": {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "lat": 37.5559,
+                "lng": 126.9368,
+                "area": "신촌",
+                "name": "달빛카페 신촌점",
+                "address": "마포구 신촌로12길 15",
+                "category": "cafe",
+                "verified": true,
+                "logo_path": "10000000-0000-0000-0000-000000000001/logo.png",
+                "name_i18n": {
+                    "en": "Dalbit Cafe",
+                    "ko": "달빛카페",
+                    "ru": "Кафе Дальбит",
+                    "uz": "Dalbit Kafe"
+                },
+                "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
+                "translations": {
+                    "en": {
+                        "area": "Sinchon",
+                        "address": "15 Sinchon-ro 12-gil, Mapo-gu",
+                        "address_detail": "2F"
+                    },
+                    "ru": {
+                        "area": "Синчон",
+                        "address": "Мапо-гу, Синчон-ро 12-гиль 15",
+                        "address_detail": "2 этаж"
+                    },
+                    "uz": {
+                        "area": "Sinchon",
+                        "address": "Mapo-gu, Sinchon-ro 12-gil 15",
+                        "address_detail": "2-qavat"
+                    }
+                },
+                "address_detail": "2층"
+            },
+            "created_at": "2026-11-11T03:28:06.869077+00:00",
+            "application": {
+                "id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
+                "status": "confirmed",
+                "pay_amount": null,
+                "worked_minutes": null
+            }
+        }
+    ],
+    "shift_details_offer_declined": {
+        "id": "68739030-26fb-4f2c-ad33-02e92ffd47a9",
+        "lat": 37.556,
+        "lng": 126.923,
+        "dress": "편한 옷, 운동화",
+        "offer": {
+            "id": "cd785f1b-f0b2-46eb-8202-73c8a85d0c9d",
+            "note": "Ertalab 10 da yetib keling",
+            "status": "declined"
+        },
+        "slots": 2,
+        "title": "이삿짐 운반 보조",
+        "duties": "짐 나르기\n포장 보조",
+        "status": "open",
+        "address": "마포구 와우산로 21",
+        "ends_at": "2026-11-12T09:00:00+00:00",
+        "business": {
+            "id": "eeac0976-f7f1-441d-9d34-577b3302a014",
+            "lat": 37.556,
+            "lng": 126.923,
+            "area": "홍대",
+            "name": "홍대 이삿짐센터",
+            "rating": null,
+            "address": "마포구 와우산로 21",
+            "category": "logistics",
+            "verified": true,
+            "logo_path": null,
+            "name_i18n": {
+                "uz": "Hongdae ko'chish xizmati"
+            },
+            "photo_path": null,
+            "rating_count": 0,
+            "translations": {
+            },
+            "address_detail": "1층",
+            "completed_shifts": 0
+        },
+        "my_status": null,
+        "starts_at": "2026-11-12T05:00:00+00:00",
+        "slots_left": 2,
+        "distance_km": null,
+        "hourly_wage": 13000,
+        "auto_confirm": false,
+        "translations": {
+        },
+        "my_application_id": null
+    }
+}

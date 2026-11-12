@@ -1,0 +1,152 @@
+name: Hanguk Ish — integratsiya (ilova ↔ baza)
+
+# Ilovalarning repozitoriylari (lib/data/backend) haqiqiy lokal Supabase
+# stack'da: telefon orqali kirish (config.toml'dagi test raqamlar), har
+# ekranning o'qishi, bazadagi qoidalar, Storage (avatarlar).
+# Testlar: hanguk_ish/test_backend/ — kalitlar bo'lmasa o'tkazib yuboriladi.
+#   backend_test.dart — repozitoriylar; ui_e2e_test.dart — ikkala ilovaning
+#   haqiqiy ekranlari haqiqiy ma'lumot bilan (lentadan smena olish, BA1/BA3);
+#   offers_test.dart — xodim taklifi ishchi ilovasida (P40).
+# Keyin hanguk.uz'ning «Hanguk Ish» bo'limi (src/lib/ish) haqiqiy supabase-js
+# bilan o'sha stack'da: xodim → taklif → ishchi → tasdiq → chat → davomat →
+# to'lov (src/lib/ish/__e2e__, P42).
+
+on:
+  push:
+    branches:
+      - 'ish/**'
+    paths:
+      - 'hanguk_ish/**'
+      - 'src/lib/ish/**'
+      - 'src/components/crm/ish/**'
+      - '.github/workflows/ish-integration.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ish-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  integration:
+    name: Repositories against a local Supabase stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v5
+
+      # Pinned like Flutter: a new CLI has changed its output before
+      # (ANON_KEY → PUBLISHABLE_KEY). Raise it in both ish-* workflows.
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL --retry 3 https://github.com/supabase/cli/releases/download/v3.1.0/supabase_linux_amd64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin supabase
+          supabase --version
+
+      # Database, auth (phone OTP), REST, Storage, edge functions, Realtime
+      # and the gateway; the rest is not needed by the apps.
+      - name: Start Supabase
+        run: supabase start -x studio,imgproxy,mailpit,vector,logflare,supavisor,postgres-meta
+
+      - name: Keys
+        run: |
+          supabase status -o env > /tmp/supabase.env
+          set -a; . /tmp/supabase.env; set +a
+          echo "SUPABASE_URL=${API_URL}" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=${ANON_KEY:-$PUBLISHABLE_KEY}" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_KEY=${SERVICE_ROLE_KEY:-$SECRET_KEY}" >> "$GITHUB_ENV"
+          echo "API $API_URL"
+
+      # The checks for production once the migrations are applied in hanguk.uz's
+      # project (README), here on the fresh stack: migrations, RLS, rights,
+      # pg_cron jobs, Realtime, the ish-avatars bucket, the minimum wage, indexes.
+      - name: Database as the migrations leave it
+        run: bash supabase/tests/verify.sh postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # Pinned: a newer Flutter may drop the Android Gradle Plugin,
+          # Gradle and Kotlin versions this project uses (3.47 already warns).
+          # Raise it here and in the other ish-* workflows together.
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get && flutter gen-l10n
+
+      # One file at a time: they share the database.
+      - name: Integration tests
+        run: flutter test test_backend --concurrency=1 --coverage --reporter github
+
+      # hanguk.uz's «Hanguk Ish» data layer with the real supabase-js on the
+      # same stack (after the app's tests: its own test numbers).
+      - uses: actions/setup-node@v4
+        if: success() || failure()
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: hanguk.uz → Hanguk Ish (supabase-js)
+        if: success() || failure()
+        working-directory: .
+        run: |
+          npm ci --no-audit --no-fund --loglevel=error
+          npx vitest run src/lib/ish/__e2e__ --reporter verbose
+
+      # The CRM section's own tests (Telegram post parser, Seoul times, the
+      # API layer, the forms), with the staff's browser in Tashkent and far
+      # away too: the times typed are Korean wherever the browser is. (The
+      # supabase-js file above skips itself here: no stack address.)
+      - name: hanguk.uz CRM «Hanguk Ish» tests in three time zones
+        if: success() || failure()
+        working-directory: .
+        env:
+          SUPABASE_URL: ''
+          SUPABASE_ANON_KEY: ''
+          SUPABASE_SERVICE_KEY: ''
+        run: |
+          unset SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_KEY
+          for tz in UTC Asia/Tashkent America/Los_Angeles; do
+            echo "== $tz"
+            TZ=$tz npx vitest run src/lib/ish src/components/crm/ish
+          done
+
+      # Lines of lib/ the real-backend tests run (the job summary).
+      - name: Coverage
+        if: success() || failure()
+        run: |
+          [ -f coverage/lcov.info ] || exit 0
+          python3 tool/coverage_summary.py coverage/lcov.info "Integration tests (local Supabase): coverage of lib/" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Real data as the apps draw it (test_backend/ui_e2e_test.dart), next to
+      # ish-check.yml's screens in the hanguk-ish-ci prerelease:
+      # <branch>-e2e-screens.zip.
+      - name: Publish the E2E screens
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -u
+          [ -d build/screens2x ] && [ -n "$(ls -A build/screens2x)" ] || exit 0
+          ASSET_PREFIX="${GITHUB_REF_NAME//\//-}"
+          (cd build/screens2x && zip -qr "../../${ASSET_PREFIX}-e2e-screens.zip" .)
+          for i in 1 2 3; do
+            gh release upload hanguk-ish-ci "${ASSET_PREFIX}-e2e-screens.zip" --clobber && break
+            sleep 5
+          done
+
+      - name: Server logs
+        if: failure()
+        run: |
+          for c in auth rest storage edge_runtime realtime kong db; do
+            echo "::group::$c"; docker logs --tail 80 "supabase_${c}_hanguk-ish" 2>&1 || true; echo "::endgroup::"
+          done

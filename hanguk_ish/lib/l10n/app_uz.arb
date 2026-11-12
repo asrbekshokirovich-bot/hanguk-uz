@@ -1,0 +1,2651 @@
+{
+  "@@locale": "uz",
+  "appTitle": "Hanguk Ish",
+  "@appTitle": {
+    "description": "Ilova nomi (A01)."
+  },
+  "appTagline": "Koreyada kunlik va qisqa smenali ishlar",
+  "@appTagline": {
+    "description": "A01: nom ostidagi qisqa ta'rif."
+  },
+  "appLanguage": "Ilova tili",
+  "@appLanguage": {
+    "description": "A11: ilova tili qatori."
+  },
+  "termsPrefix": "",
+  "@termsPrefix": {
+    "description": "A01: rozilik jumlasi, havoladan OLDINGI qism (o'zbekchada bo'sh)."
+  },
+  "termsLink": "Foydalanish shartlari",
+  "@termsLink": {
+    "description": "A01: rozilik jumlasidagi havola (tagiga chizilgan)."
+  },
+  "termsSuffix": "ga roziman",
+  "@termsSuffix": {
+    "description": "A01: rozilik jumlasi, havoladan KEYINGI qism."
+  },
+  "start": "Boshlash",
+  "@start": {
+    "description": "A01: yagona tugma (P49, SMS yo'q) — shu telefonda akkaunt ochib, A02 ga o'tadi."
+  },
+  "profileStepOf": "Profil · {step} / {total}",
+  "@profileStepOf": {
+    "description": "A02: yuqoridagi sarlavha.",
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "stepNumber": "{step}-qadam",
+  "@stepNumber": {
+    "description": "A02: qadam raqami.",
+    "placeholders": {
+      "step": {
+        "type": "int"
+      }
+    }
+  },
+  "profileNameTitle": "Ism va rasm",
+  "@profileNameTitle": {
+    "description": "A02-1 sarlavha."
+  },
+  "profileNameSubtitle": "Ish beruvchi sizni shu ism va rasm bilan ko'radi.",
+  "@profileNameSubtitle": {
+    "description": "A02-1 izoh."
+  },
+  "photoUpload": "Rasm yuklash",
+  "@photoUpload": {
+    "description": "A02-1: rasm tugmasi."
+  },
+  "photoHint": "Yuzingiz aniq ko'rinsin",
+  "@photoHint": {
+    "description": "A02-1: rasm ostidagi maslahat."
+  },
+  "photoFromCamera": "Suratga olish",
+  "@photoFromCamera": {
+    "description": "Rasm manbasi: kamera."
+  },
+  "photoFromGallery": "Galereyadan tanlash",
+  "@photoFromGallery": {
+    "description": "Rasm manbasi: galereya."
+  },
+  "firstName": "Ism",
+  "@firstName": {
+    "description": "A02-1: ism maydoni."
+  },
+  "lastName": "Familiya",
+  "@lastName": {
+    "description": "A02-1: familiya maydoni."
+  },
+  "continueButton": "Davom etish",
+  "@continueButton": {
+    "description": "A02: keyingi qadam tugmasi."
+  },
+  "profileLanguagesTitle": "Tillar va koreys darajasi",
+  "@profileLanguagesTitle": {
+    "description": "A02-2 sarlavha."
+  },
+  "spokenLanguagesQuestion": "Qaysi tillarda gaplashasiz?",
+  "@spokenLanguagesQuestion": {
+    "description": "A02-2: tillar bo'limi."
+  },
+  "langUzbek": "O'zbekcha",
+  "@langUzbek": {
+    "description": "Til nomi."
+  },
+  "langRussian": "Ruscha",
+  "@langRussian": {
+    "description": "Til nomi."
+  },
+  "langEnglish": "Inglizcha",
+  "@langEnglish": {
+    "description": "Til nomi."
+  },
+  "langKorean": "Koreyscha",
+  "@langKorean": {
+    "description": "Til nomi."
+  },
+  "langKazakh": "Qozoqcha",
+  "@langKazakh": {
+    "description": "Til nomi."
+  },
+  "langKyrgyz": "Qirg'izcha",
+  "@langKyrgyz": {
+    "description": "Til nomi."
+  },
+  "langTajik": "Tojikcha",
+  "@langTajik": {
+    "description": "Til nomi."
+  },
+  "topikTitle": "Koreys tili darajasi (TOPIK)",
+  "@topikTitle": {
+    "description": "A02-2: TOPIK bo'limi."
+  },
+  "topikMin": "0 — sertifikat yo'q",
+  "@topikMin": {
+    "description": "A02-2: TOPIK shkalasining chap izohi."
+  },
+  "topikMax": "6 — eng yuqori",
+  "@topikMax": {
+    "description": "A02-2: TOPIK shkalasining o'ng izohi."
+  },
+  "university": "Universitet",
+  "@university": {
+    "description": "A02-2: universitet maydoni."
+  },
+  "district": "Tuman",
+  "@district": {
+    "description": "A02-2: tuman maydoni."
+  },
+  "choose": "Tanlang",
+  "@choose": {
+    "description": "Tanlash maydoni bo'sh bo'lganda."
+  },
+  "search": "Qidirish",
+  "@search": {
+    "description": "Ro'yxatda qidirish."
+  },
+  "notAStudent": "Talaba emasman",
+  "@notAStudent": {
+    "description": "Universitet ro'yxatidagi variant."
+  },
+  "useTyped": "«{text}» ni tanlash",
+  "@useTyped": {
+    "description": "Ro'yxatda yo'q bo'lsa, yozilganini tanlash.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "profileScheduleTitle": "Bo'sh vaqt jadvali",
+  "@profileScheduleTitle": {
+    "description": "A02-3 sarlavha."
+  },
+  "profileScheduleSubtitle": "Qachon ishlay olasiz? Mos smenalar shu vaqtga keladi.",
+  "@profileScheduleSubtitle": {
+    "description": "A02-3 izoh."
+  },
+  "slotMorning": "Ertalab",
+  "@slotMorning": {
+    "description": "06–12."
+  },
+  "slotDay": "Kunduzi",
+  "@slotDay": {
+    "description": "12–18."
+  },
+  "slotEvening": "Kechqurun",
+  "@slotEvening": {
+    "description": "18–24."
+  },
+  "slotNight": "Tunda",
+  "@slotNight": {
+    "description": "00–06."
+  },
+  "dayShortMon": "Du",
+  "@dayShortMon": {
+    "description": "Qisqa kun."
+  },
+  "dayShortTue": "Se",
+  "@dayShortTue": {
+    "description": "Qisqa kun."
+  },
+  "dayShortWed": "Ch",
+  "@dayShortWed": {
+    "description": "Qisqa kun."
+  },
+  "dayShortThu": "Pa",
+  "@dayShortThu": {
+    "description": "Qisqa kun."
+  },
+  "dayShortFri": "Ju",
+  "@dayShortFri": {
+    "description": "Qisqa kun."
+  },
+  "dayShortSat": "Sh",
+  "@dayShortSat": {
+    "description": "Qisqa kun."
+  },
+  "dayShortSun": "Ya",
+  "@dayShortSun": {
+    "description": "Qisqa kun."
+  },
+  "dayMon": "Dushanba",
+  "@dayMon": {
+    "description": "Kun nomi."
+  },
+  "dayTue": "Seshanba",
+  "@dayTue": {
+    "description": "Kun nomi."
+  },
+  "dayWed": "Chorshanba",
+  "@dayWed": {
+    "description": "Kun nomi."
+  },
+  "dayThu": "Payshanba",
+  "@dayThu": {
+    "description": "Kun nomi."
+  },
+  "dayFri": "Juma",
+  "@dayFri": {
+    "description": "Kun nomi."
+  },
+  "daySat": "Shanba",
+  "@daySat": {
+    "description": "Kun nomi."
+  },
+  "daySun": "Yakshanba",
+  "@daySun": {
+    "description": "Kun nomi."
+  },
+  "visaType": "Viza turi",
+  "@visaType": {
+    "description": "A02-3: viza bo'limi."
+  },
+  "optional": "Ixtiyoriy",
+  "@optional": {
+    "description": "A02-3: ixtiyoriy belgisi."
+  },
+  "visaOther": "Boshqa",
+  "@visaOther": {
+    "description": "A02-3: boshqa viza."
+  },
+  "saveAndStart": "Saqlash va boshlash",
+  "@saveAndStart": {
+    "description": "A02-3: oxirgi tugma."
+  },
+  "errorGeneric": "Xatolik yuz berdi. Qayta urinib ko'ring.",
+  "@errorGeneric": {
+    "description": "Umumiy xato xabari."
+  },
+  "navShifts": "Smenalar",
+  "@navShifts": {
+    "description": "Pastki menyu: lenta."
+  },
+  "navMap": "Xarita",
+  "@navMap": {
+    "description": "Pastki menyu: xarita."
+  },
+  "navMyShifts": "Mening smenalarim",
+  "@navMyShifts": {
+    "description": "Pastki menyu: mening smenalarim."
+  },
+  "navEarnings": "Daromad",
+  "@navEarnings": {
+    "description": "Pastki menyu: daromad."
+  },
+  "navProfile": "Profil",
+  "@navProfile": {
+    "description": "Pastki menyu: profil."
+  },
+  "feedTitle": "Smenalar",
+  "@feedTitle": {
+    "description": "A03 sarlavha."
+  },
+  "mapTitle": "Xarita",
+  "@mapTitle": {
+    "description": "A04 sarlavha."
+  },
+  "viewList": "Ro'yxat",
+  "@viewList": {
+    "description": "Ko'rinish: ro'yxat (ekran o'quvchi uchun)."
+  },
+  "viewMap": "Xarita",
+  "@viewMap": {
+    "description": "Ko'rinish: xarita (ekran o'quvchi uchun)."
+  },
+  "notifications": "Bildirishnomalar",
+  "@notifications": {
+    "description": "Qo'ng'iroqcha tugmasi (ekran o'quvchi uchun)."
+  },
+  "shiftCount": "· {n} ta smena",
+  "@shiftCount": {
+    "description": "A03: joylashuv yonidagi smenalar soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "dayToday": "Bugun",
+  "@dayToday": {
+    "description": "Kun tanlash."
+  },
+  "dayTomorrow": "Ertaga",
+  "@dayTomorrow": {
+    "description": "Kun tanlash."
+  },
+  "dayWeekend": "Hafta oxiri",
+  "@dayWeekend": {
+    "description": "Kun tanlash."
+  },
+  "allFilters": "Barcha filtrlar",
+  "@allFilters": {
+    "description": "Filtr tugmasi (ekran o'quvchi uchun)."
+  },
+  "filterPay": "Maosh",
+  "@filterPay": {
+    "description": "Filtr: maosh."
+  },
+  "filterPayValue": "Maosh: {amount}+",
+  "@filterPayValue": {
+    "description": "Faol maosh filtri.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "filterDistance": "Masofa",
+  "@filterDistance": {
+    "description": "Filtr: masofa."
+  },
+  "filterDistanceValue": "Masofa: {km} km",
+  "@filterDistanceValue": {
+    "description": "Faol masofa filtri.",
+    "placeholders": {
+      "km": {
+        "type": "int"
+      }
+    }
+  },
+  "filterCategory": "Soha",
+  "@filterCategory": {
+    "description": "Filtr: soha."
+  },
+  "filterTime": "Vaqt",
+  "@filterTime": {
+    "description": "Filtr: vaqt."
+  },
+  "filterAny": "Farqi yo'q",
+  "@filterAny": {
+    "description": "Filtr: hammasi."
+  },
+  "filterApply": "Qo'llash",
+  "@filterApply": {
+    "description": "Filtr oynasi tugmasi."
+  },
+  "filterReset": "Tozalash",
+  "@filterReset": {
+    "description": "Filtrlarni tozalash."
+  },
+  "catCafe": "Kafe",
+  "@catCafe": {
+    "description": "Soha."
+  },
+  "catRestaurant": "Restoran",
+  "@catRestaurant": {
+    "description": "Soha."
+  },
+  "catRetail": "Do'kon",
+  "@catRetail": {
+    "description": "Soha."
+  },
+  "catLogistics": "Logistika",
+  "@catLogistics": {
+    "description": "Soha."
+  },
+  "catEvent": "Tadbir",
+  "@catEvent": {
+    "description": "Soha."
+  },
+  "catOffice": "Ofis",
+  "@catOffice": {
+    "description": "Soha."
+  },
+  "catOther": "Boshqa",
+  "@catOther": {
+    "description": "Soha."
+  },
+  "verified": "Tasdiqlangan",
+  "@verified": {
+    "description": "Tasdiqlangan ish beruvchi."
+  },
+  "slotsLeft": "{n} joy qoldi",
+  "@slotsLeft": {
+    "description": "Qolgan o'rinlar.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "perHour": "/ soat",
+  "@perHour": {
+    "description": "Soatlik maosh yonida."
+  },
+  "total": "Jami",
+  "@total": {
+    "description": "Smena uchun jami."
+  },
+  "take": "Olish",
+  "@take": {
+    "description": "Kartadagi tugma."
+  },
+  "emptyTitle": "Yaqin atrofda smena yo'q",
+  "@emptyTitle": {
+    "description": "A03 bo'sh holat."
+  },
+  "emptyText": "Filtrni o'zgartiring",
+  "@emptyText": {
+    "description": "A03 bo'sh holat izohi."
+  },
+  "emptyAction": "Filtrni o'zgartirish",
+  "@emptyAction": {
+    "description": "A03 bo'sh holat tugmasi."
+  },
+  "offlineBanner": "Oflayn rejim",
+  "@offlineBanner": {
+    "description": "A03 internet yo'q: yuqoridagi belgi."
+  },
+  "offlineTitle": "Internet aloqasi yo'q",
+  "@offlineTitle": {
+    "description": "A03 internet yo'q."
+  },
+  "offlineText": "Ulanishni tekshirib, qayta urinib ko'ring.",
+  "@offlineText": {
+    "description": "A03 internet yo'q izohi."
+  },
+  "retry": "Qayta urinish",
+  "@retry": {
+    "description": "Qayta urinish tugmasi."
+  },
+  "loadingShifts": "Smenalar yuklanmoqda",
+  "@loadingShifts": {
+    "description": "Yuklanish (ekran o'quvchi uchun)."
+  },
+  "workplacePhoto": "Ish joyi rasmi",
+  "@workplacePhoto": {
+    "description": "A05: rasm o'rni."
+  },
+  "completedShifts": "{n} ta smena bajarilgan",
+  "@completedShifts": {
+    "description": "A05: ish beruvchi bajargan smenalar.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "payCalc": "Maosh hisobi",
+  "@payCalc": {
+    "description": "A05: maosh hisobi."
+  },
+  "duties": "Vazifalar",
+  "@duties": {
+    "description": "A05: vazifalar."
+  },
+  "dress": "Kiyim",
+  "@dress": {
+    "description": "A05: kiyim."
+  },
+  "address": "Manzil",
+  "@address": {
+    "description": "A05: manzil."
+  },
+  "walkMinutes": "piyoda {n} daqiqa",
+  "@walkMinutes": {
+    "description": "A05: piyoda yurish vaqti.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cancelPolicyTitle": "Bekor qilish qoidasi",
+  "@cancelPolicyTitle": {
+    "description": "A05: bekor qilish qoidasi."
+  },
+  "cancelPolicyText": "Smena boshlanishiga 24 soatdan ko'p qolganda bekor qilish bepul. Kechroq bekor qilsangiz yoki kelmasangiz, ishonchlilik balingiz pasayadi.",
+  "@cancelPolicyText": {
+    "description": "A05: qoida matni."
+  },
+  "takeShift": "Smenani olish",
+  "@takeShift": {
+    "description": "A05: pastki tugma."
+  },
+  "back": "Orqaga",
+  "@back": {
+    "description": "Orqaga tugmasi."
+  },
+  "close": "Yopish",
+  "@close": {
+    "description": "Yopish tugmasi."
+  },
+  "confirmTitle": "Smenani olasizmi?",
+  "@confirmTitle": {
+    "description": "A05 tasdiqlash sarlavhasi."
+  },
+  "confirmText": "Tasdiqlaganingizdan so'ng smena sizga biriktiriladi.",
+  "@confirmText": {
+    "description": "A05 tasdiqlash izohi."
+  },
+  "confirmTextPending": "Tasdiqlaganingizdan so'ng ariza ish beruvchiga yuboriladi.",
+  "@confirmTextPending": {
+    "description": "A05 tasdiqlash izohi (avto-tasdiq o'chiq smena)."
+  },
+  "startsIn": "Smena {time}dan keyin boshlanadi. Bekor qilsangiz, ishonchlilik balingiz pasayadi.",
+  "@startsIn": {
+    "description": "A05: 24 soatdan kam qolganda ogohlantirish.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "confirm": "Tasdiqlash",
+  "@confirm": {
+    "description": "Tasdiqlash tugmasi."
+  },
+  "takenTitle": "Smena olindi!",
+  "@takenTitle": {
+    "description": "A05 muvaffaqiyat sarlavhasi."
+  },
+  "takenText": "{business} sizni {day} {time} da kutadi. Smena oldidan eslatma yuboramiz.",
+  "@takenText": {
+    "description": "A05 muvaffaqiyat izohi.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingTitle": "Ariza yuborildi!",
+  "@pendingTitle": {
+    "description": "A05: avto-tasdiq o'chiq smenada yuborilgandan keyin."
+  },
+  "pendingText": "{business} tasdiqlashi bilan xabar beramiz.",
+  "@pendingText": {
+    "description": "A05: ariza yuborildi izohi.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      }
+    }
+  },
+  "scanQrOnArrival": "Ishga kirishda joyidagi QR kodni skanerlang",
+  "@scanQrOnArrival": {
+    "description": "A05: QR eslatma."
+  },
+  "goToMyShifts": "Mening smenalarimga o'tish",
+  "@goToMyShifts": {
+    "description": "A05: tugma."
+  },
+  "backToFeed": "Lentaga qaytish",
+  "@backToFeed": {
+    "description": "A05: tugma."
+  },
+  "perHourTotal": "{wage} / soat · Jami",
+  "@perHourTotal": {
+    "description": "A05: maosh qatori.",
+    "placeholders": {
+      "wage": {
+        "type": "String"
+      }
+    }
+  },
+  "errShiftFull": "Afsuski, bo'sh joy qolmadi.",
+  "@errShiftFull": {
+    "description": "Xato: joy tugagan."
+  },
+  "errTimeConflict": "Bu vaqtda sizda boshqa smena bor.",
+  "@errTimeConflict": {
+    "description": "Xato: vaqt kesishadi."
+  },
+  "errAlreadyApplied": "Bu smenani allaqachon olgansiz.",
+  "@errAlreadyApplied": {
+    "description": "Xato: allaqachon olingan."
+  },
+  "errShiftClosed": "Bu smena endi mavjud emas.",
+  "@errShiftClosed": {
+    "description": "Xato: smena yopilgan."
+  },
+  "errProfileIncomplete": "Avval profilni to'ldiring.",
+  "@errProfileIncomplete": {
+    "description": "Xato: profil to'liq emas."
+  },
+  "notificationsUnread": "Bildirishnomalar, {n} ta yangi",
+  "@notificationsUnread": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    },
+    "description": "A03/A04: qo'ng'iroqcha tugmasining ekran o'quvchi nomi, o'qilmagan bildirishnomalar bilan."
+  },
+  "myLocation": "Mening joylashuvim",
+  "selectedShift": "Tanlangan smena",
+  "employerSection": "Ish beruvchi",
+  "aboutShift": "Ish haqida",
+  "workplaceOnMap": "Ish joyi xaritada",
+  "closeSheet": "Oynani yopish",
+  "shiftInfo": "Smena ma'lumoti",
+  "errOffline": "Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring.",
+  "shiftNotFound": "Smena topilmadi",
+  "@myLocation": {
+    "description": "A04: xaritadagi «mening joylashuvim» tugmasi (ekran o'quvchi)."
+  },
+  "@selectedShift": {
+    "description": "A04: xarita pastidagi tanlangan smena kartasi (ekran o'quvchi)."
+  },
+  "@employerSection": {
+    "description": "A05: ish beruvchi kartasi (ekran o'quvchi)."
+  },
+  "@aboutShift": {
+    "description": "A05: vazifalar va kiyim kartasi (ekran o'quvchi)."
+  },
+  "@workplaceOnMap": {
+    "description": "A05: manzil kartasidagi kichik xarita (ekran o'quvchi)."
+  },
+  "@closeSheet": {
+    "description": "A05: tasdiqlash oynasi orqasini bosib yopish (ekran o'quvchi)."
+  },
+  "@shiftInfo": {
+    "description": "A05 «Smena olindi»: smena ma'lumoti kartasi (ekran o'quvchi)."
+  },
+  "@errOffline": {
+    "description": "Amal internet yo'qligi sababli bajarilmaganda."
+  },
+  "@shiftNotFound": {
+    "description": "A05: smena o'chirilgan yoki havola noto'g'ri."
+  },
+  "tabUpcoming": "Kelgusi",
+  "@tabUpcoming": {
+    "description": "A06: kelgusi smenalar tabi."
+  },
+  "tabDone": "Bajarilgan",
+  "@tabDone": {
+    "description": "A06: bajarilgan smenalar tabi."
+  },
+  "tabCancelled": "Bekor qilingan",
+  "@tabCancelled": {
+    "description": "A06: bekor qilingan smenalar tabi."
+  },
+  "myShiftsTabs": "Smenalar holati",
+  "@myShiftsTabs": {
+    "description": "A06: tablar guruhi (ekran o'quvchi)."
+  },
+  "timeLeft": "{time} qoldi",
+  "@timeLeft": {
+    "description": "A06/A07: smena boshlanishigacha qolgan vaqt.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "lateBy": "{time} kechikish",
+  "@lateBy": {
+    "description": "A07: smena boshlanganidan beri o'tgan vaqt (kechikish).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "statusConfirmed": "Tasdiqlangan",
+  "@statusConfirmed": {
+    "description": "A06: ariza holati."
+  },
+  "statusPending": "Tasdiq kutilmoqda",
+  "@statusPending": {
+    "description": "A06: ariza holati."
+  },
+  "statusAtWork": "Ishdasiz",
+  "@statusAtWork": {
+    "description": "A06/A07: ishga kirgan holat."
+  },
+  "statusDone": "Bajarildi",
+  "@statusDone": {
+    "description": "A06: bajarilgan smena."
+  },
+  "statusNoShow": "Kelmadingiz",
+  "@statusNoShow": {
+    "description": "A06: ishchi kelmagan smena."
+  },
+  "statusCancelled": "Bekor qilindi",
+  "@statusCancelled": {
+    "description": "A06: ishchi bekor qilgan."
+  },
+  "statusRejected": "Rad etildi",
+  "@statusRejected": {
+    "description": "A06: ish beruvchi rad etgan."
+  },
+  "paymentPending": "Kutilmoqda",
+  "@paymentPending": {
+    "description": "A07/A09: maosh hali to'lanmagan."
+  },
+  "paymentPaid": "To'landi",
+  "@paymentPaid": {
+    "description": "A07/A09: maosh to'langan."
+  },
+  "directions": "Yo'nalish",
+  "@directions": {
+    "description": "A06: xaritada yo'l ko'rsatish."
+  },
+  "chat": "Chat",
+  "@chat": {
+    "description": "A06: ish beruvchi bilan chat."
+  },
+  "cancelShift": "Bekor qilish",
+  "@cancelShift": {
+    "description": "A06: smenani bekor qilish."
+  },
+  "rateShort": "Baholash",
+  "@rateShort": {
+    "description": "A06: bajarilgan smenani baholash tugmasi."
+  },
+  "ratedStars": "Bahoyingiz: {stars} ★",
+  "@ratedStars": {
+    "description": "A06: berilgan baho.",
+    "placeholders": {
+      "stars": {
+        "type": "int"
+      }
+    }
+  },
+  "workedPay": "{duration} · {amount}",
+  "@workedPay": {
+    "description": "A06: ishlangan vaqt va maosh.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyUpcomingTitle": "Kelgusi smenalar yo'q",
+  "@emptyUpcomingTitle": {
+    "description": "A06: bo'sh holat."
+  },
+  "emptyUpcomingText": "Lentadan o'zingizga mos smenani tanlang.",
+  "@emptyUpcomingText": {
+    "description": "A06: bo'sh holat matni."
+  },
+  "emptyDoneTitle": "Hali bajarilgan smena yo'q",
+  "@emptyDoneTitle": {
+    "description": "A06: bo'sh holat."
+  },
+  "emptyDoneText": "Smenani tugatganingizdan so'ng u shu yerda ko'rinadi.",
+  "@emptyDoneText": {
+    "description": "A06: bo'sh holat matni."
+  },
+  "emptyCancelledTitle": "Bekor qilingan smena yo'q",
+  "@emptyCancelledTitle": {
+    "description": "A06: bo'sh holat."
+  },
+  "findShifts": "Smenalarni ko'rish",
+  "@findShifts": {
+    "description": "A06: lentaga o'tish tugmasi."
+  },
+  "cancelTitle": "Smenani bekor qilasizmi?",
+  "@cancelTitle": {
+    "description": "A06: bekor qilish oynasi sarlavhasi."
+  },
+  "cancelTextFree": "Smena boshlanishiga 24 soatdan ko'p qoldi — bekor qilish bepul.",
+  "@cancelTextFree": {
+    "description": "A06: erta bekor qilish."
+  },
+  "cancelTextLate": "Smena boshlanishiga 24 soatdan kam qoldi. Bekor qilsangiz, ishonchlilik balingiz pasayadi.",
+  "@cancelTextLate": {
+    "description": "A06: kech bekor qilish ogohlantirishi."
+  },
+  "cancelTextPending": "Ariza qaytarib olinadi.",
+  "@cancelTextPending": {
+    "description": "A06: kutilayotgan arizani bekor qilish."
+  },
+  "cancelConfirm": "Ha, bekor qilish",
+  "@cancelConfirm": {
+    "description": "A06: bekor qilishni tasdiqlash."
+  },
+  "cancelDone": "Smena bekor qilindi.",
+  "@cancelDone": {
+    "description": "A06: bekor qilingandan keyin xabar."
+  },
+  "errCannotCancel": "Bu smenani endi bekor qilib bo'lmaydi.",
+  "@errCannotCancel": {
+    "description": "A06: bekor qilish rad etildi."
+  },
+  "errShiftStarted": "Smena allaqachon boshlangan.",
+  "@errShiftStarted": {
+    "description": "A06: boshlangan smena."
+  },
+  "checkInTitle": "Ishga kirish",
+  "@checkInTitle": {
+    "description": "A07: kirish QR sarlavhasi."
+  },
+  "checkOutTitle": "Ishdan chiqish",
+  "@checkOutTitle": {
+    "description": "A07: chiqish QR sarlavhasi."
+  },
+  "flashlightOn": "Fonarni yoqish",
+  "@flashlightOn": {
+    "description": "A07: fonar tugmasi (ekran o'quvchi)."
+  },
+  "flashlightOff": "Fonarni o'chirish",
+  "@flashlightOff": {
+    "description": "A07: fonar tugmasi (ekran o'quvchi)."
+  },
+  "scanQr": "QR kodni skanerlash",
+  "@scanQr": {
+    "description": "A07: skanerlash ramkasi (ekran o'quvchi)."
+  },
+  "alignQr": "QR kodni ramkaga to'g'rilang",
+  "@alignQr": {
+    "description": "A07: kirish skaneri matni."
+  },
+  "autoRead": "Ish joyidagi kod avtomatik o'qiladi",
+  "@autoRead": {
+    "description": "A07: kirish skaneri izohi."
+  },
+  "scanOutTitle": "Chiqish uchun QR kodni skanerlang",
+  "@scanOutTitle": {
+    "description": "A07: chiqish skaneri matni."
+  },
+  "scanOutText": "Kirishdagi o'sha kod — ish joyida osilgan",
+  "@scanOutText": {
+    "description": "A07: chiqish skaneri izohi."
+  },
+  "currentShift": "Joriy smena",
+  "@currentShift": {
+    "description": "A07: pastki karta (ekran o'quvchi)."
+  },
+  "shiftSection": "Smena",
+  "@shiftSection": {
+    "description": "A07: pastki karta (ekran o'quvchi)."
+  },
+  "planUntil": "Reja: {time} gacha",
+  "@planUntil": {
+    "description": "A07: chiqish skaneri, smena tugash vaqti.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraDeniedTitle": "Kameraga ruxsat yo'q",
+  "@cameraDeniedTitle": {
+    "description": "A07: kamera ruxsati berilmagan."
+  },
+  "cameraDeniedText": "QR kodni skanerlash uchun sozlamalarda kameraga ruxsat bering.",
+  "@cameraDeniedText": {
+    "description": "A07: kamera ruxsati izohi."
+  },
+  "errQrInvalid": "Bu QR kod bu smenaga tegishli emas.",
+  "@errQrInvalid": {
+    "description": "A07: noto'g'ri QR."
+  },
+  "errNotConfirmed": "Bu smena sizga tasdiqlanmagan.",
+  "@errNotConfirmed": {
+    "description": "A07: tasdiqlanmagan smena."
+  },
+  "errAlreadyCheckedIn": "Siz allaqachon ishga kirgansiz.",
+  "@errAlreadyCheckedIn": {
+    "description": "A07: qayta kirish."
+  },
+  "errTooEarly": "Kirish smena boshlanishidan 30 daqiqa oldin ochiladi.",
+  "@errTooEarly": {
+    "description": "A07: juda erta."
+  },
+  "errTooLate": "Smena vaqti tugagan.",
+  "@errTooLate": {
+    "description": "A07: juda kech."
+  },
+  "errNotCheckedIn": "Avval ishga kirish QR kodini skanerlang.",
+  "@errNotCheckedIn": {
+    "description": "A07: kirmasdan chiqish."
+  },
+  "errAlreadyCheckedOut": "Siz allaqachon ishdan chiqqansiz.",
+  "@errAlreadyCheckedOut": {
+    "description": "A07: qayta chiqish."
+  },
+  "atWorkTitle": "Ish kuni",
+  "@atWorkTitle": {
+    "description": "A07: ishdasiz ekrani sarlavhasi."
+  },
+  "workedTime": "Ishlangan vaqt",
+  "@workedTime": {
+    "description": "A07: taymer yorlig'i."
+  },
+  "planDuration": "Reja: {duration}",
+  "@planDuration": {
+    "description": "A07: rejadagi davomiylik.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "checkInLabel": "Kirish",
+  "@checkInLabel": {
+    "description": "A07: kirish vaqti."
+  },
+  "checkOutLabel": "Chiqish",
+  "@checkOutLabel": {
+    "description": "A07: chiqish vaqti."
+  },
+  "plannedEnd": "Tugash (reja)",
+  "@plannedEnd": {
+    "description": "A07: rejadagi tugash vaqti."
+  },
+  "scanOutHint": "Ishni tugatgach, chiqish QR kodini skanerlang",
+  "@scanOutHint": {
+    "description": "A07: ishdasiz ekrani izohi."
+  },
+  "scanOutButton": "Chiqish — QR skanerlash",
+  "@scanOutButton": {
+    "description": "A07: chiqish tugmasi."
+  },
+  "workedA11y": "Ishlangan vaqt {hours} soat {minutes} daqiqa {seconds} soniya",
+  "@workedA11y": {
+    "description": "A07: taymer (ekran o'quvchi).",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "resultTitle": "Smena yakunlandi",
+  "@resultTitle": {
+    "description": "A07: natija sarlavhasi."
+  },
+  "resultThanks": "Rahmat, {name}! Bugungi ishingiz qayd etildi.",
+  "@resultThanks": {
+    "description": "A07: natija matni.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "resultThanksNoName": "Rahmat! Bugungi ishingiz qayd etildi.",
+  "@resultThanksNoName": {
+    "description": "A07: natija matni (ism yo'q)."
+  },
+  "workSummary": "Ish yakuni",
+  "@workSummary": {
+    "description": "A07: natija kartasi (ekran o'quvchi)."
+  },
+  "hourlyWage": "Soatlik maosh",
+  "@hourlyWage": {
+    "description": "A07: soatlik maosh."
+  },
+  "employerPays": "Maoshni ish beruvchi to'laydi",
+  "@employerPays": {
+    "description": "A07/A09: maosh kim tomonidan to'lanishi."
+  },
+  "rateEmployer": "Ish beruvchini baholash",
+  "@rateEmployer": {
+    "description": "A07: baholash tugmasi."
+  },
+  "later": "Keyinroq",
+  "@later": {
+    "description": "A07/A08: keyinga qoldirish."
+  },
+  "rateTitle": "Ish beruvchini baholang",
+  "@rateTitle": {
+    "description": "A08: sarlavha."
+  },
+  "rateText": "Fikringiz boshqa ishchilarga yordam beradi.",
+  "@rateText": {
+    "description": "A08: izoh."
+  },
+  "ratingGroup": "Baho",
+  "@ratingGroup": {
+    "description": "A08: yulduzlar guruhi (ekran o'quvchi)."
+  },
+  "starLabel": "{n} yulduz",
+  "@starLabel": {
+    "description": "A08: yulduz tugmasi (ekran o'quvchi).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "rating1": "Yomon",
+  "@rating1": {
+    "description": "A08: 1 yulduz."
+  },
+  "rating2": "Qoniqarsiz",
+  "@rating2": {
+    "description": "A08: 2 yulduz."
+  },
+  "rating3": "O'rtacha",
+  "@rating3": {
+    "description": "A08: 3 yulduz."
+  },
+  "rating4": "Yaxshi",
+  "@rating4": {
+    "description": "A08: 4 yulduz."
+  },
+  "rating5": "A'lo!",
+  "@rating5": {
+    "description": "A08: 5 yulduz."
+  },
+  "ratingHint": "Yulduzni tanlang",
+  "@ratingHint": {
+    "description": "A08: baho tanlanmagan."
+  },
+  "whatLiked": "Nima yoqdi?",
+  "@whatLiked": {
+    "description": "A08: teglar sarlavhasi."
+  },
+  "tagOnTime": "Vaqtida boshlandi",
+  "@tagOnTime": {
+    "description": "A08: teg."
+  },
+  "tagPolite": "Xushmuomala",
+  "@tagPolite": {
+    "description": "A08: teg."
+  },
+  "tagExplainedWell": "Yaxshi tushuntirdi",
+  "@tagExplainedWell": {
+    "description": "A08: teg."
+  },
+  "tagAsDescribed": "Ish tavsifga mos",
+  "@tagAsDescribed": {
+    "description": "A08: teg."
+  },
+  "tagBreakGiven": "Tanaffus berildi",
+  "@tagBreakGiven": {
+    "description": "A08: teg."
+  },
+  "tagCleanWorkplace": "Toza ish joyi",
+  "@tagCleanWorkplace": {
+    "description": "A08: teg."
+  },
+  "tagWouldReturn": "Yana ishlardim",
+  "@tagWouldReturn": {
+    "description": "A08: teg."
+  },
+  "sendRating": "Bahoni yuborish",
+  "@sendRating": {
+    "description": "A08: yuborish."
+  },
+  "ratingSent": "Rahmat! Bahoingiz yuborildi.",
+  "@ratingSent": {
+    "description": "A08: yuborilgandan keyin."
+  },
+  "earningsTitle": "Daromad",
+  "@earningsTitle": {
+    "description": "A09: sarlavha (= navEarnings)."
+  },
+  "prevMonth": "Oldingi oy",
+  "@prevMonth": {
+    "description": "A09: oy tugmasi (ekran o'quvchi)."
+  },
+  "nextMonth": "Keyingi oy",
+  "@nextMonth": {
+    "description": "A09: oy tugmasi (ekran o'quvchi)."
+  },
+  "monthTotal": "{month} bo'yicha jami",
+  "@monthTotal": {
+    "description": "A09: oy jami sarlavhasi.",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "monthTotalSection": "Oy bo'yicha jami",
+  "@monthTotalSection": {
+    "description": "A09: jami kartasi (ekran o'quvchi)."
+  },
+  "shiftsHours": "{shifts} smena · {hours} soat",
+  "@shiftsHours": {
+    "description": "A09: smenalar va soatlar soni.",
+    "placeholders": {
+      "shifts": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "shiftsList": "Smenalar",
+  "@shiftsList": {
+    "description": "A09: ro'yxat sarlavhasi."
+  },
+  "payLine": "{duration} × {wage}",
+  "@payLine": {
+    "description": "A09: soat × maosh.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "wage": {
+        "type": "String"
+      }
+    }
+  },
+  "emptyMonth": "Bu oyda bajarilgan smena yo'q",
+  "@emptyMonth": {
+    "description": "A09: bo'sh oy."
+  },
+  "chatTranslateNote": "Koreyscha xabarlar avtomatik o'zbekchaga tarjima qilinadi",
+  "@chatTranslateNote": {
+    "description": "A10: tarjima izohi."
+  },
+  "translation": "Tarjima",
+  "@translation": {
+    "description": "A10: tarjima yorlig'i."
+  },
+  "messages": "Xabarlar",
+  "@messages": {
+    "description": "A10: xabarlar ro'yxati (ekran o'quvchi)."
+  },
+  "messageHint": "Xabar yozing…",
+  "@messageHint": {
+    "description": "A10: xabar maydoni."
+  },
+  "messageLabel": "Xabar",
+  "@messageLabel": {
+    "description": "A10: xabar maydoni (ekran o'quvchi)."
+  },
+  "send": "Yuborish",
+  "@send": {
+    "description": "A10: yuborish tugmasi."
+  },
+  "chatEmpty": "Hali xabar yo'q. Ish beruvchiga birinchi bo'lib yozing.",
+  "@chatEmpty": {
+    "description": "A10: bo'sh chat."
+  },
+  "personalInfo": "Shaxsiy ma'lumot",
+  "@personalInfo": {
+    "description": "A11: profil kartasi (ekran o'quvchi)."
+  },
+  "reliability": "Ishonchlilik bali",
+  "@reliability": {
+    "description": "A11: ishonchlilik bali."
+  },
+  "outOf100": "/ 100",
+  "@outOf100": {
+    "description": "A11: ball shkalasi."
+  },
+  "completedShiftsLabel": "Bajarilgan smenalar",
+  "@completedShiftsLabel": {
+    "description": "A11: statistika."
+  },
+  "ratingsCount": "Baholar · {n} ta",
+  "@ratingsCount": {
+    "description": "A11: baholar soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ratingsLabel": "Baholar",
+  "@ratingsLabel": {
+    "description": "A11: baholar soni hali yuklanmaganda (son o'rniga)."
+  },
+  "languagesTitle": "Tillar",
+  "@languagesTitle": {
+    "description": "A11: tillar kartasi."
+  },
+  "nativeLanguage": "{language} · ona tili",
+  "@nativeLanguage": {
+    "description": "A11: ona tili.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "koreanTopik": "{language} · TOPIK {level}",
+  "@koreanTopik": {
+    "description": "A11: koreys tili darajasi.",
+    "placeholders": {
+      "language": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "report": "Shikoyat qilish",
+  "@report": {
+    "description": "A11: shikoyat tugmasi."
+  },
+  "help": "Yordam",
+  "@help": {
+    "description": "A11: yordam tugmasi."
+  },
+  "reportTitle": "Shikoyat",
+  "@reportTitle": {
+    "description": "A11: shikoyat oynasi sarlavhasi."
+  },
+  "reportAbout": "Nima haqida?",
+  "@reportAbout": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportEmployer": "Ish beruvchi",
+  "@reportEmployer": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportPayment": "Maosh",
+  "@reportPayment": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportSafety": "Xavfsizlik",
+  "@reportSafety": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportOther": "Boshqa",
+  "@reportOther": {
+    "description": "A11: shikoyat mavzusi."
+  },
+  "reportHint": "Nima bo'lganini yozing",
+  "@reportHint": {
+    "description": "A11: shikoyat matni."
+  },
+  "reportSend": "Yuborish",
+  "@reportSend": {
+    "description": "A11: shikoyatni yuborish."
+  },
+  "reportSent": "Shikoyatingiz qabul qilindi. Tez orada ko'rib chiqamiz.",
+  "@reportSent": {
+    "description": "A11: shikoyat yuborildi."
+  },
+  "helpTitle": "Yordam",
+  "@helpTitle": {
+    "description": "A11: yordam oynasi sarlavhasi."
+  },
+  "helpShiftsQ": "Smenani qanday olaman?",
+  "@helpShiftsQ": {
+    "description": "A11: savol."
+  },
+  "helpShiftsA": "Lentadan smenani tanlang va «Olish»ni bosing. Ba'zi smenalarni ish beruvchi tasdiqlaydi — tasdiqlanganda xabar keladi.",
+  "@helpShiftsA": {
+    "description": "A11: javob."
+  },
+  "helpQrQ": "Ishga kirish va chiqish qanday?",
+  "@helpQrQ": {
+    "description": "A11: savol."
+  },
+  "helpQrA": "Ish joyidagi QR kodni ilova orqali skanerlang: kelganda — kirish, ketayotganda — chiqish. Kirish smena boshlanishidan 30 daqiqa oldin ochiladi.",
+  "@helpQrA": {
+    "description": "A11: javob."
+  },
+  "helpPayQ": "Maoshni kim to'laydi?",
+  "@helpPayQ": {
+    "description": "A11: savol."
+  },
+  "helpPayA": "Maoshni ish beruvchi to'g'ridan-to'g'ri to'laydi. Ilova ishlagan vaqtingizni va summani qayd etadi.",
+  "@helpPayA": {
+    "description": "A11: javob."
+  },
+  "helpCancelQ": "Smenani bekor qilsam nima bo'ladi?",
+  "@helpCancelQ": {
+    "description": "A11: savol."
+  },
+  "today": "Bugun",
+  "@today": {
+    "description": "A12: kun sarlavhasi."
+  },
+  "yesterday": "Kecha",
+  "@yesterday": {
+    "description": "A12: kun sarlavhasi."
+  },
+  "notifReminderTitle": "Smenangizga {time} qoldi",
+  "@notifReminderTitle": {
+    "description": "A12: eslatma sarlavhasi.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifReminderText": "{business}, {range}. Kirishda QR kodni skanerlang.",
+  "@notifReminderText": {
+    "description": "A12: eslatma matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifConfirmedTitle": "Smena tasdiqlandi",
+  "@notifConfirmedTitle": {
+    "description": "A12: tasdiq sarlavhasi."
+  },
+  "notifConfirmedText": "{business}: {day}, {range} smenangiz tasdiqlandi.",
+  "@notifConfirmedText": {
+    "description": "A12: tasdiq matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifRejectedTitle": "Ariza qabul qilinmadi",
+  "@notifRejectedTitle": {
+    "description": "A12: rad etish sarlavhasi."
+  },
+  "notifRejectedText": "{business}: {day}, {range} smenasiga boshqa ishchi tanlandi.",
+  "@notifRejectedText": {
+    "description": "A12: rad etish matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifExpiredText": "{business}: {day}, {range} smenasi boshlandi, arizangizga javob berilmadi.",
+  "@notifExpiredText": {
+    "description": "A12: ish beruvchi smena boshlanguncha arizaga javob bermagan (ariza muddati o'tdi).",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTimeChangedTitle": "Smena vaqti o'zgardi",
+  "@notifTimeChangedTitle": {
+    "description": "A12: ish beruvchi kutilayotgan arizali smenaning vaqtini o'zgartirdi."
+  },
+  "notifTimeChangedText": "{business}: smena endi {day}, {range}. Arizangiz bekor qilindi — mos kelsa, qayta oling.",
+  "@notifTimeChangedText": {
+    "description": "A12: vaqti o'zgargan smena; day va range — yangi vaqt. Ariza bekor qilingan, ishchi qayta olishi mumkin.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifCancelledTitle": "Smena bekor qilindi",
+  "@notifCancelledTitle": {
+    "description": "A12: ish beruvchi bekor qildi."
+  },
+  "notifCancelledText": "{business}: {day}, {range} smenasini ish beruvchi bekor qildi.",
+  "@notifCancelledText": {
+    "description": "A12: bekor qilish matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPaidTitle": "Maosh to'landi",
+  "@notifPaidTitle": {
+    "description": "A12: to'lov sarlavhasi."
+  },
+  "notifPaidText": "{business}: {day} smenasi uchun {amount} to'langanini belgiladi.",
+  "@notifPaidText": {
+    "description": "A12: to'lov matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "notifMessageTitle": "Yangi xabar",
+  "@notifMessageTitle": {
+    "description": "A12: chat xabari."
+  },
+  "notifNewShiftTitle": "Sizga mos yangi smena",
+  "@notifNewShiftTitle": {
+    "description": "A12: yangi smena."
+  },
+  "notifNewShiftText": "{business} · {day}, {range} · {wage}/soat · {km}",
+  "@notifNewShiftText": {
+    "description": "A12: yangi smena matni.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      },
+      "wage": {
+        "type": "String"
+      },
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOfferTitle": "Sizga ish taklif qilindi",
+  "@notifOfferTitle": {
+    "description": "A12 va A05: Hanguk xodimi ishchiga ish taklif qildi (P39)."
+  },
+  "notifOfferText": "{business} · {day}, {range} · {wage}/soat",
+  "@notifOfferText": {
+    "description": "A12: taklif qilingan ish.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      },
+      "wage": {
+        "type": "String"
+      }
+    }
+  },
+  "offerNote": "Xodim izohi: {note}",
+  "@offerNote": {
+    "description": "A12 va A05: xodim taklifga yozgan izoh.",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "offerBannerText": "Hanguk xodimi bu ishni siz uchun tanladi. Smenani olsangiz, ish beruvchi bilan kelishib tasdiqlaymiz.",
+  "@offerBannerText": {
+    "description": "A05: taklif qilingan ish banneri."
+  },
+  "offerDeclinedTitle": "Taklifni rad etgansiz",
+  "@offerDeclinedTitle": {
+    "description": "A05: ishchi «Qiziqmayman» degan."
+  },
+  "offerDeclinedText": "Fikringiz o'zgarsa, smenani hali ham olishingiz mumkin.",
+  "@offerDeclinedText": {
+    "description": "A05: rad etilgan taklif."
+  },
+  "declineOffer": "Qiziqmayman",
+  "@declineOffer": {
+    "description": "A05: taklifni rad etish tugmasi."
+  },
+  "notifNearbyTitle": "{area} yaqinida {n} ta yangi smena",
+  "@notifNearbyTitle": {
+    "description": "A12: yaqin atrofdagi smenalar.",
+    "placeholders": {
+      "area": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notifNearbyText": "{categories} · {range}/soat",
+  "@notifNearbyText": {
+    "description": "A12: yaqin atrofdagi smenalar matni.",
+    "placeholders": {
+      "categories": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "andJoin": "{a} va {b}",
+  "@andJoin": {
+    "description": "A12: ikki narsani bog'lash.",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "viewShift": "Smenani ko'rish",
+  "@viewShift": {
+    "description": "A12: havola."
+  },
+  "view": "Ko'rish",
+  "@view": {
+    "description": "A12: havola."
+  },
+  "emptyNotifications": "Hozircha bildirishnoma yo'q",
+  "@emptyNotifications": {
+    "description": "A12: bo'sh holat."
+  },
+  "errTooManyRequests": "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring.",
+  "@errTooManyRequests": {
+    "description": "T1/T2: so'rovlar chegarasi."
+  },
+  "cameraFailedTitle": "Kamera ishga tushmadi",
+  "@cameraFailedTitle": {
+    "description": "A07: kamera ruxsatdan boshqa sabab bilan ochilmadi."
+  },
+  "cameraFailedText": "Ekranni yopib, qaytadan oching.",
+  "@cameraFailedText": {
+    "description": "A07: kamera ochilmaganda nima qilish kerak."
+  },
+  "openSettings": "Sozlamalarni ochish",
+  "@openSettings": {
+    "description": "A07: telefon sozlamalarida ilova sahifasini ochadi (kameraga ruxsat berish uchun)."
+  },
+  "photoFailed": "Rasmni olib bo'lmadi. Kamera va galereyaga ruxsatni tekshiring.",
+  "@photoFailed": {
+    "description": "A02: rasm olib yoki tanlab bo'lmadi (ruxsat yo'q yoki kamera band)."
+  },
+  "bizOwnerBadge": "Ish beruvchi",
+  "@bizOwnerBadge": {
+    "description": "사장님 ilovasi (P43): ownerBadge"
+  },
+  "bizLoginSubtitle": "Bugun kerakli ishchini darhol toping",
+  "@bizLoginSubtitle": {
+    "description": "사장님 ilovasi (P43): loginSubtitle"
+  },
+  "bizStart": "Boshlash",
+  "@bizStart": {
+    "description": "사장님 ilovasi (P43): start"
+  },
+  "bizTermsPrefix": "Boshlash orqali ",
+  "@bizTermsPrefix": {
+    "description": "사장님 ilovasi (P43): termsPrefix"
+  },
+  "bizTermsLink": "foydalanish shartlari",
+  "@bizTermsLink": {
+    "description": "사장님 ilovasi (P43): termsLink"
+  },
+  "bizTermsSuffix": "ga rozilik bildirasiz",
+  "@bizTermsSuffix": {
+    "description": "사장님 ilovasi (P43): termsSuffix"
+  },
+  "bizBizNoInvalid": "Biznes raqamini tekshiring",
+  "@bizBizNoInvalid": {
+    "description": "사장님 ilovasi (P43): bizNoInvalid"
+  },
+  "bizNavHome": "Bosh sahifa",
+  "@bizNavHome": {
+    "description": "사장님 ilovasi (P43): navHome"
+  },
+  "bizNavWorkers": "Ishchilar",
+  "@bizNavWorkers": {
+    "description": "사장님 ilovasi (P43): navWorkers"
+  },
+  "bizNavCreate": "Smena qo'yish",
+  "@bizNavCreate": {
+    "description": "사장님 ilovasi (P43): navCreate"
+  },
+  "bizNavReport": "Hisobot",
+  "@bizNavReport": {
+    "description": "사장님 ilovasi (P43): navReport"
+  },
+  "bizMenuLabel": "Ish beruvchi menyusi",
+  "@bizMenuLabel": {
+    "description": "사장님 ilovasi (P43): menuLabel"
+  },
+  "bizTodayTitle": "Bugungi smenalar",
+  "@bizTodayTitle": {
+    "description": "사장님 ilovasi (P43): todayTitle"
+  },
+  "bizAsOf": "{date} · {time} holatiga",
+  "@bizAsOf": {
+    "description": "사장님 ilovasi (P43): asOf",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bizBell": "{n, plural, =0{Bildirishnomalar} other{Bildirishnomalar: {n}}}",
+  "@bizBell": {
+    "description": "사장님 ilovasi (P43): bell",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizStoreSwitch": "Biznesni tanlash",
+  "@bizStoreSwitch": {
+    "description": "사장님 ilovasi (P43): storeSwitch"
+  },
+  "bizAttentionTitle": "E'tibor bering",
+  "@bizAttentionTitle": {
+    "description": "사장님 ilovasi (P43): attentionTitle"
+  },
+  "bizCheckApplicants": "Arizalarni ko'rish",
+  "@bizCheckApplicants": {
+    "description": "사장님 ilovasi (P43): checkApplicants"
+  },
+  "bizCheckShift": "Smenani ko'rish",
+  "@bizCheckShift": {
+    "description": "사장님 ilovasi (P43): checkShift"
+  },
+  "bizTodaySummary": "Bugun qisqacha",
+  "@bizTodaySummary": {
+    "description": "사장님 ilovasi (P43): todaySummary"
+  },
+  "bizAttentionLabel": "E'tibor",
+  "@bizAttentionLabel": {
+    "description": "사장님 ilovasi (P43): attentionLabel"
+  },
+  "bizStatShifts": "Smenalar",
+  "@bizStatShifts": {
+    "description": "사장님 ilovasi (P43): statShifts"
+  },
+  "bizStatConfirmed": "Tasdiqlangan",
+  "@bizStatConfirmed": {
+    "description": "사장님 ilovasi (P43): statConfirmed"
+  },
+  "bizStatOpen": "Bo'sh joy",
+  "@bizStatOpen": {
+    "description": "사장님 ilovasi (P43): statOpen"
+  },
+  "bizStatNoShow": "Kelmadi",
+  "@bizStatNoShow": {
+    "description": "사장님 ilovasi (P43): statNoShow"
+  },
+  "bizUnitCount": "ta",
+  "@bizUnitCount": {
+    "description": "사장님 ilovasi (P43): unitCount"
+  },
+  "bizUnitPeople": "kishi",
+  "@bizUnitPeople": {
+    "description": "사장님 ilovasi (P43): unitPeople"
+  },
+  "bizToday": "Bugun",
+  "@bizToday": {
+    "description": "사장님 ilovasi (P43): today"
+  },
+  "bizUpcoming": "Keyingi smenalar",
+  "@bizUpcoming": {
+    "description": "사장님 ilovasi (P43): upcoming"
+  },
+  "bizNoShiftsToday": "Bugunga smena qo'yilmagan",
+  "@bizNoShiftsToday": {
+    "description": "사장님 ilovasi (P43): noShiftsToday"
+  },
+  "bizNoShiftsTodayHint": "Kerakli vaqt va kishi sonini belgilab, smena qo'ying",
+  "@bizNoShiftsTodayHint": {
+    "description": "사장님 ilovasi (P43): noShiftsTodayHint"
+  },
+  "bizAttnNoShows": "{n} kishi kelmadi",
+  "@bizAttnNoShows": {
+    "description": "사장님 ilovasi (P43): attnNoShows",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizAttnOpen": "{n} ta bo'sh joy",
+  "@bizAttnOpen": {
+    "description": "사장님 ilovasi (P43): attnOpen",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizAttnOpenWaiting": "{n} ta bo'sh joy ({w} ta ariza)",
+  "@bizAttnOpenWaiting": {
+    "description": "사장님 ilovasi (P43): attnOpenWaiting",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "w": {
+        "type": "int"
+      }
+    }
+  },
+  "bizAttnWaiting": "{w} ta ariza",
+  "@bizAttnWaiting": {
+    "description": "사장님 ilovasi (P43): attnWaiting",
+    "placeholders": {
+      "w": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCrew": "Tasdiqlangan {c}/{s}",
+  "@bizCrew": {
+    "description": "사장님 ilovasi (P43): crew",
+    "placeholders": {
+      "c": {
+        "type": "int"
+      },
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCrewWaiting": " · {w} ta ariza",
+  "@bizCrewWaiting": {
+    "description": "사장님 ilovasi (P43): crewWaiting",
+    "placeholders": {
+      "w": {
+        "type": "int"
+      }
+    }
+  },
+  "bizStateDone": "Tugadi",
+  "@bizStateDone": {
+    "description": "사장님 ilovasi (P43): stateDone"
+  },
+  "bizStateInProgress": "Davom etmoqda",
+  "@bizStateInProgress": {
+    "description": "사장님 ilovasi (P43): stateInProgress"
+  },
+  "bizStateUrgent": "Shoshilinch",
+  "@bizStateUrgent": {
+    "description": "사장님 ilovasi (P43): stateUrgent"
+  },
+  "bizStateScheduled": "Rejada",
+  "@bizStateScheduled": {
+    "description": "사장님 ilovasi (P43): stateScheduled"
+  },
+  "bizStateRecruiting": "Qidirilmoqda",
+  "@bizStateRecruiting": {
+    "description": "사장님 ilovasi (P43): stateRecruiting"
+  },
+  "bizStateCancelled": "Bekor qilingan",
+  "@bizStateCancelled": {
+    "description": "사장님 ilovasi (P43): stateCancelled"
+  },
+  "bizUrgentSlots": "Shoshilinch: {n} joy",
+  "@bizUrgentSlots": {
+    "description": "사장님 ilovasi (P43): urgentSlots",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizRecruitingSlots": "Qidirilmoqda: {n} joy",
+  "@bizRecruitingSlots": {
+    "description": "사장님 ilovasi (P43): recruitingSlots",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCreateTitle": "Smena qo'yish",
+  "@bizCreateTitle": {
+    "description": "사장님 ilovasi (P43): createTitle"
+  },
+  "bizEditTitle": "Smenani tahrirlash",
+  "@bizEditTitle": {
+    "description": "사장님 ilovasi (P43): editTitle"
+  },
+  "bizClose": "Yopish",
+  "@bizClose": {
+    "description": "사장님 ilovasi (P43): close"
+  },
+  "bizTemplate": "Shablon",
+  "@bizTemplate": {
+    "description": "사장님 ilovasi (P43): template"
+  },
+  "bizTemplateContent": "Shablon mazmuni",
+  "@bizTemplateContent": {
+    "description": "사장님 ilovasi (P43): templateContent"
+  },
+  "bizShiftContent": "Smena mazmuni",
+  "@bizShiftContent": {
+    "description": "사장님 ilovasi (P43): shiftContent"
+  },
+  "bizShiftName": "Smena nomi",
+  "@bizShiftName": {
+    "description": "사장님 ilovasi (P43): shiftName"
+  },
+  "bizEdit": "Tahrirlash",
+  "@bizEdit": {
+    "description": "사장님 ilovasi (P43): edit"
+  },
+  "bizDuties": "Vazifalar",
+  "@bizDuties": {
+    "description": "사장님 ilovasi (P43): duties"
+  },
+  "bizDress": "Kiyim",
+  "@bizDress": {
+    "description": "사장님 ilovasi (P43): dress"
+  },
+  "bizAddress": "Manzil",
+  "@bizAddress": {
+    "description": "사장님 ilovasi (P43): address"
+  },
+  "bizDate": "Sana",
+  "@bizDate": {
+    "description": "사장님 ilovasi (P43): date"
+  },
+  "bizTomorrow": "Ertaga",
+  "@bizTomorrow": {
+    "description": "사장님 ilovasi (P43): tomorrow"
+  },
+  "bizOtherDay": "Boshqa kun",
+  "@bizOtherDay": {
+    "description": "사장님 ilovasi (P43): otherDay"
+  },
+  "bizPickDate": "Sanani tanlang",
+  "@bizPickDate": {
+    "description": "사장님 ilovasi (P43): pickDate"
+  },
+  "bizTime": "Vaqt",
+  "@bizTime": {
+    "description": "사장님 ilovasi (P43): time"
+  },
+  "bizStartTime": "Boshlanishi",
+  "@bizStartTime": {
+    "description": "사장님 ilovasi (P43): startTime"
+  },
+  "bizEndTime": "Tugashi",
+  "@bizEndTime": {
+    "description": "사장님 ilovasi (P43): endTime"
+  },
+  "bizWage": "Soatlik maosh",
+  "@bizWage": {
+    "description": "사장님 ilovasi (P43): wage"
+  },
+  "bizWon": "won",
+  "@bizWon": {
+    "description": "사장님 ilovasi (P43): won"
+  },
+  "bizMinimumWageOk": "Eng kam ish haqi ({amount}) dan kam emas",
+  "@bizMinimumWageOk": {
+    "description": "사장님 ilovasi (P43): minimumWageOk",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "bizMinimumWageLow": "Eng kam ish haqi ({amount}) dan past",
+  "@bizMinimumWageLow": {
+    "description": "사장님 ilovasi (P43): minimumWageLow",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "bizHeadcount": "Kishi soni",
+  "@bizHeadcount": {
+    "description": "사장님 ilovasi (P43): headcount"
+  },
+  "bizFewer": "Kamaytirish",
+  "@bizFewer": {
+    "description": "사장님 ilovasi (P43): fewer"
+  },
+  "bizMore": "Ko'paytirish",
+  "@bizMore": {
+    "description": "사장님 ilovasi (P43): more"
+  },
+  "bizAutoConfirm": "Avtomatik tasdiqlash",
+  "@bizAutoConfirm": {
+    "description": "사장님 ilovasi (P43): autoConfirm"
+  },
+  "bizAutoConfirmHint": "Ariza bergan darhol tasdiqlanadi",
+  "@bizAutoConfirmHint": {
+    "description": "사장님 ilovasi (P43): autoConfirmHint"
+  },
+  "bizPost": "Smena qo'yish",
+  "@bizPost": {
+    "description": "사장님 ilovasi (P43): post"
+  },
+  "bizSave": "Saqlash",
+  "@bizSave": {
+    "description": "사장님 ilovasi (P43): save"
+  },
+  "bizPosted": "Smena qo'yildi",
+  "@bizPosted": {
+    "description": "사장님 ilovasi (P43): posted"
+  },
+  "bizSaved": "Smena saqlandi",
+  "@bizSaved": {
+    "description": "사장님 ilovasi (P43): saved"
+  },
+  "bizTemplateSaved": "Shablon saqlandi",
+  "@bizTemplateSaved": {
+    "description": "사장님 ilovasi (P43): templateSaved"
+  },
+  "bizEditTemplate": "Shablonni tahrirlash",
+  "@bizEditTemplate": {
+    "description": "사장님 ilovasi (P43): editTemplate"
+  },
+  "bizCancel": "Bekor qilish",
+  "@bizCancel": {
+    "description": "사장님 ilovasi (P43): cancel"
+  },
+  "bizTimeLocked": "Tasdiqlangan ishchi bor — sana va vaqtni o'zgartirib bo'lmaydi",
+  "@bizTimeLocked": {
+    "description": "사장님 ilovasi (P43): timeLocked"
+  },
+  "bizSlotsLocked": "{n} kishi tasdiqlangan — bundan kamaytirib bo'lmaydi",
+  "@bizSlotsLocked": {
+    "description": "사장님 ilovasi (P43): slotsLocked",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizCostLead": "{people} · {duration} · taxminiy xarajat ",
+  "@bizCostLead": {
+    "description": "사장님 ilovasi (P43): costLead",
+    "placeholders": {
+      "people": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "bizPeople": "{n} kishi",
+  "@bizPeople": {
+    "description": "사장님 ilovasi (P43): people",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizBack": "Orqaga",
+  "@bizBack": {
+    "description": "사장님 ilovasi (P43): back"
+  },
+  "bizApplicants": "Arizalar: {n}",
+  "@bizApplicants": {
+    "description": "사장님 ilovasi (P43): applicants",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizDecideYourself": "O'zingiz tasdiqlang",
+  "@bizDecideYourself": {
+    "description": "사장님 ilovasi (P43): decideYourself"
+  },
+  "bizReject": "Rad etish",
+  "@bizReject": {
+    "description": "사장님 ilovasi (P43): reject"
+  },
+  "bizConfirm": "Tasdiqlash",
+  "@bizConfirm": {
+    "description": "사장님 ilovasi (P43): confirm"
+  },
+  "bizShiftTerms": "Soatiga {wage} · tasdiqlangan {c}/{s} · avtomatik tasdiq {auto}",
+  "@bizShiftTerms": {
+    "description": "사장님 ilovasi (P43): shiftTerms",
+    "placeholders": {
+      "wage": {
+        "type": "String"
+      },
+      "c": {
+        "type": "int"
+      },
+      "s": {
+        "type": "int"
+      },
+      "auto": {
+        "type": "String"
+      }
+    }
+  },
+  "bizOn": "yoqilgan",
+  "@bizOn": {
+    "description": "사장님 ilovasi (P43): on"
+  },
+  "bizOff": "o'chirilgan",
+  "@bizOff": {
+    "description": "사장님 ilovasi (P43): off"
+  },
+  "bizCompletedCount": "{n} ta smena",
+  "@bizCompletedCount": {
+    "description": "사장님 ilovasi (P43): completedCount",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizTopik": "TOPIK {level}",
+  "@bizTopik": {
+    "description": "사장님 ilovasi (P43): topik",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "bizTopikNone": "TOPIK yo'q",
+  "@bizTopikNone": {
+    "description": "사장님 ilovasi (P43): topikNone"
+  },
+  "bizAttendance": "Kelish-ketish",
+  "@bizAttendance": {
+    "description": "사장님 ilovasi (P43): attendance"
+  },
+  "bizNoCrew": "Hali tasdiqlangan ishchi yo'q",
+  "@bizNoCrew": {
+    "description": "사장님 ilovasi (P43): noCrew"
+  },
+  "bizCheckedInAt": "Keldi {time}",
+  "@bizCheckedInAt": {
+    "description": "사장님 ilovasi (P43): checkedInAt",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bizCheckedInOut": "Keldi {inAt} · ketdi {outAt}",
+  "@bizCheckedInOut": {
+    "description": "사장님 ilovasi (P43): checkedInOut",
+    "placeholders": {
+      "inAt": {
+        "type": "String"
+      },
+      "outAt": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotInYet": "Hali kelmagan",
+  "@bizNotInYet": {
+    "description": "사장님 ilovasi (P43): notInYet"
+  },
+  "bizAtWork": "Ishda",
+  "@bizAtWork": {
+    "description": "사장님 ilovasi (P43): atWork"
+  },
+  "bizLate": "{m} daq kechikdi",
+  "@bizLate": {
+    "description": "사장님 ilovasi (P43): late",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "bizMissing": "Kelmadi · {m} daq",
+  "@bizMissing": {
+    "description": "사장님 ilovasi (P43): missing",
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "bizNoShow": "Kelmadi",
+  "@bizNoShow": {
+    "description": "사장님 ilovasi (P43): noShow"
+  },
+  "bizBeforeStart": "Boshlanmagan",
+  "@bizBeforeStart": {
+    "description": "사장님 ilovasi (P43): beforeStart"
+  },
+  "bizLeftWork": "Ketdi",
+  "@bizLeftWork": {
+    "description": "사장님 ilovasi (P43): leftWork"
+  },
+  "bizQrTitle": "Kelish-ketish QR",
+  "@bizQrTitle": {
+    "description": "사장님 ilovasi (P43): qrTitle"
+  },
+  "bizQrNote": "Kelish va ketish uchun · faqat shu smenada",
+  "@bizQrNote": {
+    "description": "사장님 ilovasi (P43): qrNote"
+  },
+  "bizQrShare": "QR chop etish / ulashish",
+  "@bizQrShare": {
+    "description": "사장님 ilovasi (P43): qrShare"
+  },
+  "bizQrShareText": "{business} · {title} · {when} — kelish-ketish QR",
+  "@bizQrShareText": {
+    "description": "사장님 ilovasi (P43): qrShareText",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "bizConfirmed": "{name} tasdiqlandi",
+  "@bizConfirmed": {
+    "description": "사장님 ilovasi (P43): confirmed",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizRejected": "{name} arizasi rad etildi",
+  "@bizRejected": {
+    "description": "사장님 ilovasi (P43): rejected",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizEditShift": "Smenani tahrirlash",
+  "@bizEditShift": {
+    "description": "사장님 ilovasi (P43): editShift"
+  },
+  "bizCancelShift": "Smenani bekor qilish",
+  "@bizCancelShift": {
+    "description": "사장님 ilovasi (P43): cancelShift"
+  },
+  "bizCancelShiftTitle": "Smena bekor qilinsinmi?",
+  "@bizCancelShiftTitle": {
+    "description": "사장님 ilovasi (P43): cancelShiftTitle"
+  },
+  "bizCancelShiftText": "Tasdiqlangan ishchilar va arizachilarga xabar boradi.",
+  "@bizCancelShiftText": {
+    "description": "사장님 ilovasi (P43): cancelShiftText"
+  },
+  "bizShiftCancelled": "Smena bekor qilindi",
+  "@bizShiftCancelled": {
+    "description": "사장님 ilovasi (P43): shiftCancelled"
+  },
+  "bizWorkersTitle": "Ishchilar",
+  "@bizWorkersTitle": {
+    "description": "사장님 ilovasi (P43): workersTitle"
+  },
+  "bizFavorites": "Sevimlilar",
+  "@bizFavorites": {
+    "description": "사장님 ilovasi (P43): favorites"
+  },
+  "bizRecentWorkers": "Yaqinda ishlaganlar",
+  "@bizRecentWorkers": {
+    "description": "사장님 ilovasi (P43): recentWorkers"
+  },
+  "bizWorkersTabs": "Ishchilar ro'yxati",
+  "@bizWorkersTabs": {
+    "description": "사장님 ilovasi (P43): workersTabs"
+  },
+  "bizSearchPlaceholder": "Ism bo'yicha qidirish",
+  "@bizSearchPlaceholder": {
+    "description": "사장님 ilovasi (P43): searchPlaceholder"
+  },
+  "bizSearchLabel": "Ishchini qidirish",
+  "@bizSearchLabel": {
+    "description": "사장님 ilovasi (P43): searchLabel"
+  },
+  "bizTimesHere": "Bizda {n} marta · {topik}",
+  "@bizTimesHere": {
+    "description": "사장님 ilovasi (P43): timesHere",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "topik": {
+        "type": "String"
+      }
+    }
+  },
+  "bizUnfavorite": "{name} — sevimlilardan olib tashlash",
+  "@bizUnfavorite": {
+    "description": "사장님 ilovasi (P43): unfavorite",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizFavorite": "{name} — sevimlilarga qo'shish",
+  "@bizFavorite": {
+    "description": "사장님 ilovasi (P43): favorite",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizRequestAgain": "Yana chaqirish",
+  "@bizRequestAgain": {
+    "description": "사장님 ilovasi (P43): requestAgain"
+  },
+  "bizRequested": "{name}ga taklif yuborildi",
+  "@bizRequested": {
+    "description": "사장님 ilovasi (P43): requested",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNoFavorites": "Sevimli ishchilar yo'q",
+  "@bizNoFavorites": {
+    "description": "사장님 ilovasi (P43): noFavorites"
+  },
+  "bizNoFavoritesHint": "«Yaqinda ishlaganlar»da ★ ni bosib qo'shing",
+  "@bizNoFavoritesHint": {
+    "description": "사장님 ilovasi (P43): noFavoritesHint"
+  },
+  "bizNoWorkers": "Hali siz bilan ishlagan ishchi yo'q",
+  "@bizNoWorkers": {
+    "description": "사장님 ilovasi (P43): noWorkers"
+  },
+  "bizNoResults": "Hech narsa topilmadi",
+  "@bizNoResults": {
+    "description": "사장님 ilovasi (P43): noResults"
+  },
+  "bizReportTitle": "Hisobot",
+  "@bizReportTitle": {
+    "description": "사장님 ilovasi (P43): reportTitle"
+  },
+  "bizCsv": "CSV yuklab olish",
+  "@bizCsv": {
+    "description": "사장님 ilovasi (P43): csv"
+  },
+  "bizPeriod": "Davr",
+  "@bizPeriod": {
+    "description": "사장님 ilovasi (P43): period"
+  },
+  "bizThisWeek": "Bu hafta",
+  "@bizThisWeek": {
+    "description": "사장님 ilovasi (P43): thisWeek"
+  },
+  "bizThisMonth": "Bu oy",
+  "@bizThisMonth": {
+    "description": "사장님 ilovasi (P43): thisMonth"
+  },
+  "bizLastMonth": "O'tgan oy",
+  "@bizLastMonth": {
+    "description": "사장님 ilovasi (P43): lastMonth"
+  },
+  "bizPeriodSummary": "{period}: qisqacha",
+  "@bizPeriodSummary": {
+    "description": "사장님 ilovasi (P43): periodSummary",
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "bizTotalPaid": "{range}: jami to'lov",
+  "@bizTotalPaid": {
+    "description": "사장님 ilovasi (P43): totalPaid",
+    "placeholders": {
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "bizReportCounts": "{shifts} smena · {hours} · {persons} kishi-smena",
+  "@bizReportCounts": {
+    "description": "사장님 ilovasi (P43): reportCounts",
+    "placeholders": {
+      "shifts": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "String"
+      },
+      "persons": {
+        "type": "int"
+      }
+    }
+  },
+  "bizPaidCount": "To'langan · {n}",
+  "@bizPaidCount": {
+    "description": "사장님 ilovasi (P43): paidCount",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizPendingCount": "To'lanmagan · {n}",
+  "@bizPendingCount": {
+    "description": "사장님 ilovasi (P43): pendingCount",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizByShift": "Smenalar bo'yicha",
+  "@bizByShift": {
+    "description": "사장님 ilovasi (P43): byShift"
+  },
+  "bizCount": "{n} ta",
+  "@bizCount": {
+    "description": "사장님 ilovasi (P43): count",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "bizPaid": "To'langan",
+  "@bizPaid": {
+    "description": "사장님 ilovasi (P43): paid"
+  },
+  "bizPending": "To'lanmagan",
+  "@bizPending": {
+    "description": "사장님 ilovasi (P43): pending"
+  },
+  "bizMarkPaid": "To'langan deb belgilash",
+  "@bizMarkPaid": {
+    "description": "사장님 ilovasi (P43): markPaid"
+  },
+  "bizMarkPending": "To'lanmagan deb qaytarish",
+  "@bizMarkPending": {
+    "description": "사장님 ilovasi (P43): markPending"
+  },
+  "bizNoReport": "Bu davrda tugagan smena yo'q",
+  "@bizNoReport": {
+    "description": "사장님 ilovasi (P43): noReport"
+  },
+  "bizCsvHeader": "Sana,Hafta kuni,Smena,Kishi,Soat,Summa (won),To'lov",
+  "@bizCsvHeader": {
+    "description": "사장님 ilovasi (P43): csvHeader"
+  },
+  "bizCsvTitle": "{business} hisoboti, {range}",
+  "@bizCsvTitle": {
+    "description": "사장님 ilovasi (P43): csvTitle",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "bizReviewPendingTitle": "Biznes tekshirilmoqda",
+  "@bizReviewPendingTitle": {
+    "description": "사장님 ilovasi (P43): reviewPendingTitle"
+  },
+  "bizReviewPendingText": "국세청 tekshiruvi tugagach, smenalaringiz ishchilarga ko'rinadi.",
+  "@bizReviewPendingText": {
+    "description": "사장님 ilovasi (P43): reviewPendingText"
+  },
+  "bizReviewRejectedTitle": "Tasdiqlanmagan biznes",
+  "@bizReviewRejectedTitle": {
+    "description": "사장님 ilovasi (P43): reviewRejectedTitle"
+  },
+  "bizReviewRejectedText": "국세청 bu biznesni yopilgan deb ko'rsatgan — smenalar ishchilarga ko'rinmaydi.",
+  "@bizReviewRejectedText": {
+    "description": "사장님 ilovasi (P43): reviewRejectedText"
+  },
+  "bizNotificationsTitle": "Bildirishnomalar",
+  "@bizNotificationsTitle": {
+    "description": "사장님 ilovasi (P43): notificationsTitle"
+  },
+  "bizYesterday": "Kecha",
+  "@bizYesterday": {
+    "description": "사장님 ilovasi (P43): yesterday"
+  },
+  "bizNoNotifications": "Yangi bildirishnoma yo'q",
+  "@bizNoNotifications": {
+    "description": "사장님 ilovasi (P43): noNotifications"
+  },
+  "bizNotifNewApplicant": "Yangi ariza",
+  "@bizNotifNewApplicant": {
+    "description": "사장님 ilovasi (P43): notifNewApplicant"
+  },
+  "bizNotifCancelled": "Bekor qildi",
+  "@bizNotifCancelled": {
+    "description": "사장님 ilovasi (P43): notifCancelled"
+  },
+  "bizNotifNoShow": "Kelmadi",
+  "@bizNotifNoShow": {
+    "description": "사장님 ilovasi (P43): notifNoShow"
+  },
+  "bizNotifMessage": "Yangi xabar",
+  "@bizNotifMessage": {
+    "description": "사장님 ilovasi (P43): notifMessage"
+  },
+  "bizNotifNewApplicantText": "{worker} «{shift}» smenasiga ariza berdi",
+  "@bizNotifNewApplicantText": {
+    "description": "사장님 ilovasi (P43): notifNewApplicantText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifAutoConfirmed": "Avtomatik tasdiqlandi",
+  "@bizNotifAutoConfirmed": {
+    "description": "사장님 ilovasi (P43): notifAutoConfirmed"
+  },
+  "bizNotifAutoConfirmedText": "{worker} «{shift}» smenasiga ariza berdi va darhol tasdiqlandi",
+  "@bizNotifAutoConfirmedText": {
+    "description": "사장님 ilovasi (P43): notifAutoConfirmedText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifCancelledText": "{worker} «{shift}» smenasini bekor qildi",
+  "@bizNotifCancelledText": {
+    "description": "사장님 ilovasi (P43): notifCancelledText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifNoShowText": "{worker} «{shift}» smenasiga kelmadi",
+  "@bizNotifNoShowText": {
+    "description": "사장님 ilovasi (P43): notifNoShowText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifMessageText": "{worker} xabar yubordi · {shift}",
+  "@bizNotifMessageText": {
+    "description": "사장님 ilovasi (P43): notifMessageText",
+    "placeholders": {
+      "worker": {
+        "type": "String"
+      },
+      "shift": {
+        "type": "String"
+      }
+    }
+  },
+  "bizOfflineTitle": "Internet aloqasi yo'q",
+  "@bizOfflineTitle": {
+    "description": "사장님 ilovasi (P43): offlineTitle"
+  },
+  "bizOfflineText": "Ulanishni tekshirib, qayta urinib ko'ring.",
+  "@bizOfflineText": {
+    "description": "사장님 ilovasi (P43): offlineText"
+  },
+  "bizLoadFailed": "Yuklab bo'lmadi",
+  "@bizLoadFailed": {
+    "description": "사장님 ilovasi (P43): loadFailed"
+  },
+  "bizRetry": "Qayta urinish",
+  "@bizRetry": {
+    "description": "사장님 ilovasi (P43): retry"
+  },
+  "bizShiftNotFound": "Smena topilmadi",
+  "@bizShiftNotFound": {
+    "description": "사장님 ilovasi (P43): shiftNotFound"
+  },
+  "bizErrShiftFull": "Bo'sh joy qolmadi",
+  "@bizErrShiftFull": {
+    "description": "사장님 ilovasi (P43): errShiftFull"
+  },
+  "bizErrNotPending": "Bu arizaga allaqachon javob berilgan",
+  "@bizErrNotPending": {
+    "description": "사장님 ilovasi (P43): errNotPending"
+  },
+  "bizErrShiftEnded": "Smena tugagan",
+  "@bizErrShiftEnded": {
+    "description": "사장님 ilovasi (P43): errShiftEnded"
+  },
+  "bizErrShiftStarted": "Boshlangan smenani bekor qilib bo'lmaydi",
+  "@bizErrShiftStarted": {
+    "description": "사장님 ilovasi (P43): errShiftStarted"
+  },
+  "bizErrShiftClosed": "Bu smenaga hozir taklif qilib bo'lmaydi",
+  "@bizErrShiftClosed": {
+    "description": "사장님 ilovasi (P43): errShiftClosed"
+  },
+  "bizErrInThePast": "Bu vaqt o'tib ketgan",
+  "@bizErrInThePast": {
+    "description": "사장님 ilovasi (P43): errInThePast"
+  },
+  "bizErrInvalidTime": "Tugash vaqti boshlanishidan keyin bo'lsin",
+  "@bizErrInvalidTime": {
+    "description": "사장님 ilovasi (P43): errInvalidTime"
+  },
+  "bizErrTooLong": "Smena 16 soatdan oshmasin",
+  "@bizErrTooLong": {
+    "description": "사장님 ilovasi (P43): errTooLong"
+  },
+  "bizErrWageBelowMinimum": "Eng kam ish haqidan past",
+  "@bizErrWageBelowMinimum": {
+    "description": "사장님 ilovasi (P43): errWageBelowMinimum"
+  },
+  "bizErrSlotsBelowCrew": "Tasdiqlanganlardan kam qilib bo'lmaydi",
+  "@bizErrSlotsBelowCrew": {
+    "description": "사장님 ilovasi (P43): errSlotsBelowCrew"
+  },
+  "bizErrBusinessNotVerified": "Biznes tasdiqlangach smena qo'yish mumkin",
+  "@bizErrBusinessNotVerified": {
+    "description": "사장님 ilovasi (P43): errBusinessNotVerified"
+  },
+  "bizErrInvalid": "Kiritilganlarni tekshiring",
+  "@bizErrInvalid": {
+    "description": "사장님 ilovasi (P43): errInvalid"
+  },
+  "bizErrNotAuthenticated": "Qaytadan kiring",
+  "@bizErrNotAuthenticated": {
+    "description": "사장님 ilovasi (P43): errNotAuthenticated"
+  },
+  "bizErrForbidden": "Bu sizning biznesingiz smenasi emas",
+  "@bizErrForbidden": {
+    "description": "사장님 ilovasi (P43): errForbidden"
+  },
+  "bizErrTooManyRequests": "Urinishlar juda ko'p. Birozdan keyin qayta urinib ko'ring",
+  "@bizErrTooManyRequests": {
+    "description": "사장님 ilovasi (P43): errTooManyRequests"
+  },
+  "bizErrSignInUnavailable": "Hozir kirib bo'lmaydi. Birozdan keyin urinib ko'ring",
+  "@bizErrSignInUnavailable": {
+    "description": "사장님 ilovasi (P43): errSignInUnavailable"
+  },
+  "bizErrBizNoUnknown": "Bu raqam 국세청da ro'yxatda yo'q",
+  "@bizErrBizNoUnknown": {
+    "description": "사장님 ilovasi (P43): errBizNoUnknown"
+  },
+  "bizErrBizNoTaken": "Bu raqam boshqa akkauntga bog'langan",
+  "@bizErrBizNoTaken": {
+    "description": "사장님 ilovasi (P43): errBizNoTaken"
+  },
+  "bizErrBusinessClosed": "Yopilgan biznesni ro'yxatdan o'tkazib bo'lmaydi",
+  "@bizErrBusinessClosed": {
+    "description": "사장님 ilovasi (P43): errBusinessClosed"
+  },
+  "bizErrOffline": "Internet aloqasini tekshiring",
+  "@bizErrOffline": {
+    "description": "사장님 ilovasi (P43): errOffline"
+  },
+  "bizErrOther": "Qayta urinib ko'ring",
+  "@bizErrOther": {
+    "description": "사장님 ilovasi (P43): errOther"
+  },
+  "bizLanguage": "Til",
+  "@bizLanguage": {
+    "description": "사장님 ilovasi (P43): language"
+  },
+  "bizAsOfTime": "{time} holatiga",
+  "@bizAsOfTime": {
+    "description": "사장님 ilovasi (P43): asOfTime",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "bizHeadcountValue": "{n} kishi",
+  "@bizHeadcountValue": {
+    "description": "BA2: the number of workers in the box between − and + (Korean «3명»; English the number alone)",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
+}
