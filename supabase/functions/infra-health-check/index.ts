@@ -223,7 +223,7 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     const since = new Date(Date.now() - CRASH_WINDOW_HOURS * 3600e3).toISOString();
     const { data, error } = await supabase
       .from("web_client_errors")
-      .select("path, message, hits, user_id")
+      .select("path, message, hits, user_id, stack")
       .eq("kind", "crash")
       .gte("last_seen_at", since)
       .order("last_seen_at", { ascending: false })

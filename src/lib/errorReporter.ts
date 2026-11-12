@@ -5,6 +5,7 @@
  * in the way: a report that fails is dropped silently.
  */
 import { supabase } from '@/integrations/supabase/client';
+import { isReloadingForNewBuild } from '@/lib/buildReload';
 
 declare const __BUILD_ID__: string | undefined;
 
@@ -23,8 +24,9 @@ export interface ClientErrorReport {
 const NOISE: RegExp[] = [
   /^Script error\.?$/i, // another origin's script: the browser tells us nothing
   /ResizeObserver loop/i,
-  /Failed to fetch/i, // offline, or a request cut short (a stale chunk reloads the page: main.tsx)
+  /Failed to fetch/i, // offline, or a request cut short (a stale chunk reloads the page: buildReload.ts)
   /Load failed/i, // the same, in Safari's words
+  /dynamically imported module|Importing a module script failed/i, // a chunk that did not load, in Firefox's and Safari's words
   /NetworkError/i,
   /AbortError|operation was aborted|signal is aborted/i,
   /Should have a queue/, // React hot reload, development only
@@ -80,6 +82,9 @@ export function createErrorReporter(send: (report: ClientErrorReport) => Promise
 
   return function report(kind: ClientErrorKind, reason: unknown, extra?: { componentStack?: string | null }): boolean {
     try {
+      // The page is being replaced by a new build: what breaks meanwhile is
+      // the old build's missing files, not a fault to write down.
+      if (isReloadingForNewBuild()) return false;
       const { message, stack } = describeError(reason);
       const text = message.trim();
       if (!text || isNoise(text)) return false;
