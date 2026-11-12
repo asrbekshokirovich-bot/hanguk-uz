@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
+import { SiteFooter } from '@/components/landing/SiteFooter';
+import { APP_DOWNLOAD_URL } from '@/lib/appLink';
 import {
   ArrowRight,
   Play,
@@ -124,9 +126,14 @@ const Index = () => {
               {t('landing.startJourney', { defaultValue: 'Start your journey' })}
               <ArrowRight className="ml-1 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate('/install')}>
-              <Play className="mr-1 h-5 w-5" />
-              {t('landing.watchHow', { defaultValue: 'Watch how it works' })}
+            {/* The app's own page (public/app.html): the demo on a computer,
+                the store on a phone. Until 2026-11-12 both app buttons led to
+                /install — how to add this website to the home screen. */}
+            <Button size="lg" variant="outline" asChild>
+              <a href={APP_DOWNLOAD_URL}>
+                <Play className="mr-1 h-5 w-5" />
+                {t('landing.watchHow', { defaultValue: 'Watch how it works' })}
+              </a>
             </Button>
           </div>
           <div className="mt-10 flex items-center gap-8">
@@ -245,13 +252,15 @@ const Index = () => {
               size="lg"
               variant="outline"
               className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              onClick={() => navigate('/install')}
+              asChild
             >
-              {t('landing.getApp', { defaultValue: 'Get the app' })}
+              <a href={APP_DOWNLOAD_URL}>{t('landing.getApp', { defaultValue: 'Get the app' })}</a>
             </Button>
           </div>
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 };

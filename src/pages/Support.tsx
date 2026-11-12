@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Mail, MessageCircle, Phone, Instagram } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { NativeContainer } from '@/components/native/NativeContainer';
+import { CONTACTS } from '@/lib/contacts';
 
 /**
  * Public support page — the Support URL given to the App Store and Play.
@@ -14,18 +15,8 @@ import { NativeContainer } from '@/components/native/NativeContainer';
  * asked most (the Magic Code login above all — a user who cannot get in cannot
  * reach any in-app help).
  *
- * Channels are kept in sync with `hanguk_app/lib/core/config/contact_links.dart`,
- * which drives the same list inside the mobile app.
+ * The channels themselves are in `@/lib/contacts`.
  */
-
-const CONTACTS = {
-  email: 'support@hanguk.uz',
-  telegramDirect: 'https://t.me/hangukuz_consulting',
-  telegramChannel: 'https://t.me/hanguk_consulting',
-  instagram: 'https://www.instagram.com/hanguk_consulting',
-  phone: '+998505901530',
-  phoneDisplay: '+998 50 590 15 30',
-} as const;
 
 export default function Support() {
   const { t: _t, i18n } = useTranslation();

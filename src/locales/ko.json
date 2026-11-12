@@ -2133,7 +2133,13 @@
     "accepted": "합격!",
     "ctaHeading": "한국에서 공부할 준비가 되셨나요?",
     "ctaSub": "컨설턴트에게 매직 코드를 받아 오늘 시작하세요.",
-    "getApp": "앱 다운로드"
+    "getApp": "앱 다운로드",
+    "footerCity": "타슈켄트",
+    "footerContact": "문의",
+    "footerLinks": "안내",
+    "footerSupport": "고객 지원",
+    "footerPrivacy": "개인정보 처리방침",
+    "footerTerms": "이용약관"
   },
   "linkContact": {
     "title": "{{name}} 연결 대상",

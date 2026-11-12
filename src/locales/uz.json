@@ -2464,7 +2464,13 @@
     "accepted": "Qabul qilindi!",
     "ctaHeading": "Janubiy Koreyada o'qishga tayyormisiz?",
     "ctaSub": "Maslahatchidan kirish kodingizni oling va bugunoq boshlang.",
-    "getApp": "Ilovani o'rnatish"
+    "getApp": "Ilovani o'rnatish",
+    "footerCity": "Toshkent",
+    "footerContact": "Aloqa",
+    "footerLinks": "Ma'lumot",
+    "footerSupport": "Yordam",
+    "footerPrivacy": "Maxfiylik siyosati",
+    "footerTerms": "Foydalanish shartlari"
   },
   "linkContact": {
     "title": "{{name}} — kimga biriktiramiz?",
