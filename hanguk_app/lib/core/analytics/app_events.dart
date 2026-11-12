@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show HitTestResult;
 import 'package:flutter/rendering.dart' show RenderEditable, RenderImage, RenderParagraph;
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -404,16 +405,29 @@ abstract final class AppEvents {
 
   /// What kind of failure it was, without its message (which can carry
   /// user text): a Firebase plugin's code ("messaging/unknown"), an auth
-  /// error's HTTP status.
+  /// error's HTTP status, a plugin's own code ("permission_denied").
+  ///
+  /// The last one is why the interview's most frequent fatal error could not
+  /// be told apart: 17 `PlatformException`s in ten days, thrown from a plugin
+  /// (no line of the app's own to point at) and recorded with the type only.
   static String? errorCode(Object error) {
     final String? c = switch (error) {
       FirebaseException(:final plugin, :final code) => '$plugin/$code',
       AuthException(:final statusCode) => statusCode,
       PostgrestException(:final code) => code,
+      PlatformException(:final code) => _identifier(code),
       _ => null,
     };
     if (c == null || c.isEmpty) return null;
     return c.length > 60 ? c.substring(0, 60) : c;
+  }
+
+  /// A plugin's code as it is meant to be — a short identifier. One that
+  /// turned out to be a sentence (it could quote what the user typed) is not
+  /// sent.
+  static String? _identifier(String code) {
+    final c = code.trim();
+    return RegExp(r'^[\w./:-]{1,60}$').hasMatch(c) ? c : null;
   }
 
   /// Where it was thrown: the first frame in the app's own code
