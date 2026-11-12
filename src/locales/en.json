@@ -1093,7 +1093,8 @@
         "sourceNote": "Details",
         "note": "Additional note",
         "followUp": "Follow-up date",
-        "followUpTime": "Time"
+        "followUpTime": "Time",
+        "followUpMinute": "Minute"
       },
       "placeholders": {
         "firstName": "For example: Muhammad",
