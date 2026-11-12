@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/analytics/tracked.dart';
+import '../../data/answer_review.dart';
 import '../../data/interview_repository.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -333,7 +334,7 @@ class _InterviewAnalyticsViewState
     Map<String, String> byId,
   ) {
     final score = entry['score'];
-    final answer = byId[entry['message_id']?.toString()];
+    final answer = reviewedAnswer(entry, byId);
     final strengths = (entry['strengths'] as List<dynamic>?) ?? const [];
     final suggestions = (entry['suggestions'] as List<dynamic>?) ?? const [];
     final idealHint = entry['ideal_hint']?.toString();
@@ -374,7 +375,7 @@ class _InterviewAnalyticsViewState
                 ),
             ],
           ),
-          if (answer != null && answer.trim().isNotEmpty) ...[
+          if (answer != null) ...[
             const SizedBox(height: 8),
             Text(
               answer,

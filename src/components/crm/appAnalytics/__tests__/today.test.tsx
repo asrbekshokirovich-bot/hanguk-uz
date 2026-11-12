@@ -8,6 +8,11 @@ import type { TodayData } from '../today';
 
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 
+// A fixed clock, at noon. «Qachon» is written in calendar days («kecha 06:00»,
+// «2 kun»), so with the real clock the row asked 30 hours ago read «kecha …»
+// after 06:00 and «2 kun» before it — and the test, which looks for the one
+// «2 kun», failed on every run started in the first six hours of the day.
+vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 9, 26, 12, 0, 0) });
 const now = Date.now();
 const data: TodayData = {
   now: new Date(now).toISOString(),
