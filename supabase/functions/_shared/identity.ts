@@ -51,13 +51,13 @@ export function normalizePhone(phone: string | null | undefined): string | null 
  * create or overwrite one, so a bogus digit string just fails to match.
  */
 /**
- * Uzbek mobile number a customer typed, as 9 local digits ("906088542").
+ * Uzbek mobile number a customer typed, as 9 local digits ("901112233").
  *
  * Mirrors the database's fn_extract_phone: digits are joined only across the
  * spaces/dashes/dots/brackets INSIDE one number, never across words or lines.
  * The old version stripped every non-digit from the whole message first, so a
- * Meta lead form ("Qachon ketmoqchisiz?: 2027-yil … Phone number: 8 90 608 85
- * 42") became "…2027 8906088542" and "202789060" was saved — dozens of
+ * Meta lead form ("Qachon ketmoqchisiz?: 2027-yil … Phone number: 8 90 111 22
+ * 33") became "…2027 8901112233" and "202789011" was saved — dozens of
  * Instagram leads got such a number (2026-11-12). The form's "Phone number:"
  * line is read first; a leading 8 or 998 is a prefix, not part of the number.
  */

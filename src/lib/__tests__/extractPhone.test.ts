@@ -13,17 +13,17 @@ describe('extractPhoneFromText (Instagram/Telegram, 2026-11-12)', () => {
       "Koreys tili sertifikati bormi?: Yo'q",
       'Qachon ketmoqchisiz?: 2027-yil bahor–yoz',
       'Viloyat:: Boshqa viloyat',
-      'Full name: ergashevaa',
-      'Phone number: 8 90 608 85 42',
+      'Full name: Test Talaba',
+      'Phone number: 8 90 111 22 33',
     ].join('\n');
-    expect(extractPhoneFromText(form)).toBe('906088542');
+    expect(extractPhoneFromText(form)).toBe('901112233');
   });
 
   it('handles the usual ways people type a number', () => {
-    expect(extractPhoneFromText('raqamim +998 94 978 43 53')).toBe('949784353');
-    expect(extractPhoneFromText('998977733378')).toBe('977733378');
+    expect(extractPhoneFromText('raqamim +998 94 000 11 22')).toBe('940001122');
+    expect(extractPhoneFromText('998970001122')).toBe('970001122');
     expect(extractPhoneFromText('tel: (90) 123-45-67')).toBe('901234567');
-    expect(extractPhoneFromText('20 278 97 15 ga qo‘ng‘iroq qiling')).toBe('202789715');
+    expect(extractPhoneFromText('20 000 11 22 ga qo‘ng‘iroq qiling')).toBe('200001122');
   });
 
   it('does not build a number out of years, ages or separate lines', () => {
