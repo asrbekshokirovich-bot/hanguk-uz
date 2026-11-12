@@ -277,11 +277,22 @@ describe('CRM → Hanguk Ish', () => {
     const dialog = within(await screen.findByRole('alertdialog'));
     expect(dialog.getByText("Biznesni to'xtatasizmi?")).toBeInTheDocument();
     expect(dialog.getByText(/smenalari ishchilarga ko'rinmaydi/)).toBeInTheDocument();
+    expect(dialog.queryByText(/Tasdiqlangan ishchilar/)).not.toBeInTheDocument();
     expect(rpc).not.toHaveBeenCalledWith('staff_set_app_business_blocked', expect.anything());
     fireEvent.click(dialog.getByRole('button', { name: "To'xtatish" }));
     await waitFor(() =>
       expect(rpc).toHaveBeenCalledWith('staff_set_app_business_blocked', { p_business: appFresh.id, p_blocked: true }),
     );
+  });
+
+  it('suspending one with confirmed workers says how many stay on their shifts', async () => {
+    const { client } = fakeClient(staffHandlers());
+    renderWith(<IshSection client={client} />);
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: 'Ilovadagi bizneslar' }));
+    const dalbit = within(await screen.findByTestId('ish-app-business-10000000-0000-0000-0000-000000000001'));
+    fireEvent.click(dalbit.getByRole('button', { name: "To'xtatish" }));
+    const dialog = within(await screen.findByRole('alertdialog'));
+    expect(dialog.getByText('Tasdiqlangan ishchilar: 4 — smenalarida qoladi.')).toBeInTheDocument();
   });
 
   it('a suspended one is let back the same way', async () => {

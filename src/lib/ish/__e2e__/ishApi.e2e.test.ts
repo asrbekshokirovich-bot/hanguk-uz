@@ -247,6 +247,7 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
       shifts: 1,
       open_shifts: 1,
       shifts_24h: 1,
+      crew: 0,
     });
     expect(listed.find((b) => b.id === opened)?.name).toMatch(/^사업장 [0-9A-F]{4}$/);
     expect(listed.some((b) => b.id === businessId)).toBe(false);

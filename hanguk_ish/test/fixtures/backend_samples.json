@@ -1913,6 +1913,7 @@
             "lat": 37.5559,
             "lng": 126.9368,
             "area": "신촌",
+            "crew": 4,
             "name": "달빛카페 신촌점",
             "biz_no": "1234567890",
             "rating": 5.0,
@@ -1928,7 +1929,7 @@
                 "ru": "Кафе Дальбит",
                 "uz": "Dalbit Kafe"
             },
-            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "created_at": "2026-11-12T11:39:37.784036+05:00",
             "photo_path": "10000000-0000-0000-0000-000000000001/photo.jpg",
             "shifts_24h": 7,
             "open_shifts": 6,
@@ -1950,7 +1951,7 @@
                     "address_detail": "2-qavat"
                 }
             },
-            "last_shift_at": "2026-11-12T10:54:47.751949+05:00",
+            "last_shift_at": "2026-11-12T11:39:37.784036+05:00",
             "address_detail": "2층",
             "completed_shifts": 1
         },
@@ -1959,6 +1960,7 @@
             "lat": null,
             "lng": null,
             "area": "",
+            "crew": 0,
             "name": "이음식당",
             "biz_no": "2234567890",
             "rating": null,
@@ -1970,22 +1972,51 @@
             "logo_path": null,
             "name_i18n": {
             },
-            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "created_at": "2026-11-12T11:39:37.784036+05:00",
             "photo_path": null,
             "shifts_24h": 1,
             "open_shifts": 1,
             "rating_count": 0,
             "translations": {
             },
-            "last_shift_at": "2026-11-12T10:54:47.751949+05:00",
+            "last_shift_at": "2026-11-12T11:39:37.784036+05:00",
             "address_detail": "",
             "completed_shifts": 0
         },
         {
-            "id": "2fed80a2-6d4e-412e-9d1c-5dd0c5a16d09",
+            "id": "564ba7ba-3fe4-41d5-80f5-463ea7f4ec8c",
+            "lat": null,
+            "lng": null,
+            "area": "",
+            "crew": 0,
+            "name": "사업장 564B",
+            "biz_no": null,
+            "rating": null,
+            "shifts": 0,
+            "status": "verified",
+            "address": "",
+            "category": "other",
+            "verified": true,
+            "logo_path": null,
+            "name_i18n": {
+            },
+            "created_at": "2026-11-12T11:39:37.784036+05:00",
+            "photo_path": null,
+            "shifts_24h": 0,
+            "open_shifts": 0,
+            "rating_count": 0,
+            "translations": {
+            },
+            "last_shift_at": null,
+            "address_detail": "",
+            "completed_shifts": 0
+        },
+        {
+            "id": "b6836dd4-9d1b-4361-b8d1-6b38cd74d87f",
             "lat": null,
             "lng": null,
             "area": "신촌",
+            "crew": 0,
             "name": "순대국집 신촌점",
             "biz_no": null,
             "rating": null,
@@ -1998,7 +2029,7 @@
             "name_i18n": {
                 "uz": "Sundaeguk · Sinchon"
             },
-            "created_at": "2026-11-12T10:54:47.751949+05:00",
+            "created_at": "2026-11-12T11:39:37.784036+05:00",
             "photo_path": null,
             "shifts_24h": 0,
             "open_shifts": 0,
@@ -2007,33 +2038,6 @@
             },
             "last_shift_at": null,
             "address_detail": "1층",
-            "completed_shifts": 0
-        },
-        {
-            "id": "a4bbffb9-083c-4eb5-9447-1c5000a2ff8b",
-            "lat": null,
-            "lng": null,
-            "area": "",
-            "name": "사업장 A4BB",
-            "biz_no": null,
-            "rating": null,
-            "shifts": 0,
-            "status": "verified",
-            "address": "",
-            "category": "other",
-            "verified": true,
-            "logo_path": null,
-            "name_i18n": {
-            },
-            "created_at": "2026-11-12T10:54:47.751949+05:00",
-            "photo_path": null,
-            "shifts_24h": 0,
-            "open_shifts": 0,
-            "rating_count": 0,
-            "translations": {
-            },
-            "last_shift_at": null,
-            "address_detail": "",
             "completed_shifts": 0
         }
     ],

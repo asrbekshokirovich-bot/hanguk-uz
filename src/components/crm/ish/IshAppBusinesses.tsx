@@ -157,6 +157,11 @@ function BlockDialog({ business, onClose }: { business: IshAppBusiness; onClose:
             {' — '}
             {suspend ? t('ish.appBusinesses.suspendText') : t('ish.appBusinesses.resumeText')}
           </AlertDialogDescription>
+          {suspend && (business.crew ?? 0) > 0 && (
+            <p className="text-sm font-medium text-amber-700">
+              {t('ish.appBusinesses.suspendCrew', { count: business.crew })}
+            </p>
+          )}
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t('ish.cancel')}</AlertDialogCancel>

@@ -64,6 +64,8 @@ export interface IshAppBusiness extends IshBusinessBrief {
   /** Shifts it posted in the last 24 hours (the app allows 30). */
   shifts_24h: number;
   last_shift_at: string | null;
+  /** Workers confirmed for its shifts still to come (a suspension leaves them there). */
+  crew: number;
 }
 
 /** Where a complaint stands (the staff's note). */

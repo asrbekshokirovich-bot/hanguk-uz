@@ -47,6 +47,8 @@ select tests.eq((select (e ->> 'shifts')::int from listed, jsonb_array_elements(
 select tests.eq((select e ->> 'status' from listed, jsonb_array_elements(j) e
                  where e ->> 'id' = (select id from opened)::text), 'verified', 'open at once (P50)');
 select tests.eq((select j -> 0 ->> 'id' from listed), (select id from opened)::text, 'newest first');
+select tests.eq((select (e ->> 'crew')::int from listed, jsonb_array_elements(j) e
+                 where e ->> 'id' = (select id from opened)::text), 0, 'nobody confirmed yet');
 
 -- A real name and place.
 select tests.eq(ish.staff_update_app_business((select id from opened), '  순대국집 신촌점 ', 'restaurant', '신촌',
@@ -91,12 +93,20 @@ select tests.throws($$select ish.staff_update_app_business((select id from opene
 select tests.throws($$select ish.staff_update_app_business((select id from kept), '다른 이름')$$, 'NOT_FOUND',
                     'the staff''s own employers are saved with staff_save_business');
 
+-- a1 takes the shift (auto-confirmed): the staff see one worker on it.
+select tests.as_user('00000000-0000-0000-0000-0000000000a1');
+select ish.apply_to_shift((select id from s1));
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
+select tests.eq((select (e ->> 'crew')::int from jsonb_array_elements(ish.staff_app_businesses()) e
+                 where e ->> 'id' = (select id from opened)::text), 1, 'a confirmed worker on its shift');
+
 -- Suspended: out of the feed, nobody can apply, no new shift; let back: in again.
 select tests.eq(ish.staff_set_app_business_blocked((select id from opened), true), 'rejected', 'suspended');
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.ok(not exists (
   select 1 from jsonb_array_elements(ish.shift_feed(now(), now() + interval '3 days')) e
   where e ->> 'id' = (select id from s1)::text), 'the suspended business''s shift leaves the feed');
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
 select tests.throws($$select ish.apply_to_shift((select id from s1))$$, 'SHIFT_CLOSED',
                     'and nobody can apply');
 select tests.as_user('00000000-0000-0000-0000-0000000000f1');

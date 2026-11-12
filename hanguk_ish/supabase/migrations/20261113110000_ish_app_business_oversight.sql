@@ -22,7 +22,12 @@ begin
              'category', b.category, 'area', b.area, 'address', b.address,
              'address_detail', b.address_detail, 'name_i18n', b.name_i18n,
              'open_shifts', c.open_shifts, 'shifts', c.shifts, 'shifts_24h', c.shifts_24h,
-             'last_shift_at', c.last_shift_at)
+             'last_shift_at', c.last_shift_at,
+             -- Workers confirmed for its shifts still to come: a suspension leaves them there.
+             'crew', (select count(*) from ish.applications a
+                      join ish.shifts s on s.id = a.shift_id
+                      where s.business_id = b.id and s.ends_at > now()
+                        and a.status in ('confirmed', 'checked_in')))
            order by b.created_at desc, b.id)
     from ish.businesses b
     cross join lateral (
