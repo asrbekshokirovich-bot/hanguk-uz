@@ -24,6 +24,10 @@ mkdir -p "$out"
 ui() { python3 tool/smoke_ui.py "$@"; }
 failed=0
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
+# The emulator's own apps (Pixel Launcher) stop answering under load, and
+# their «isn't responding» box covers ours and eats the taps. No error boxes:
+# a crash or an ANR of ours is still caught in logcat (finish).
+adb shell settings put global hide_error_dialogs 1 >/dev/null 2>&1 || true
 
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
@@ -49,6 +53,11 @@ finish() {
   if grep -E "FATAL EXCEPTION|Fatal signal" "$out/$name-logcat.txt" >/dev/null; then
     echo "::error::$name: crashed (build/smoke/$name-logcat.txt)"
     grep -E -A15 "FATAL EXCEPTION|Fatal signal" "$out/$name-logcat.txt" | head -60
+    failed=1
+  fi
+  if grep -F "ANR in $pkg" "$out/$name-logcat.txt" >/dev/null; then
+    echo "::error::$name: stopped answering (ANR, build/smoke/$name-logcat.txt)"
+    grep -F -A10 "ANR in $pkg" "$out/$name-logcat.txt" | head -30
     failed=1
   fi
   # Dart errors the app caught or not: listed for review, not fatal here.
