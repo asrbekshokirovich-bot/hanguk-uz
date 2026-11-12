@@ -5,6 +5,7 @@ import type { Lead } from '@/contexts/LeadsContext';
 import { cn } from '@/lib/utils';
 import {
   describeDate,
+  followUpParts,
   formatPhoneForList,
   initialsOf,
   isKgLead,
@@ -187,7 +188,9 @@ export const LeadsTable = ({
                   </span>
                   {followUp && outcome === 'active' && (
                     <span className="block text-xs font-semibold leading-tight text-[hsl(var(--spring))]">
-                      {t('leads.intake.followUpPrefix', { when: relative.label(followUp) })}
+                      {t('leads.intake.followUpPrefix', {
+                        when: [relative.label(followUp), followUpParts(lead.next_follow_up).time].filter(Boolean).join(' · '),
+                      })}
                     </span>
                   )}
                   {countdown && (

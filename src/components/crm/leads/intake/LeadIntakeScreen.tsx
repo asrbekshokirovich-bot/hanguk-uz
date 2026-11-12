@@ -486,6 +486,14 @@ export const LeadIntakeScreen = ({
                   onChange={(v) => set('followUp')(v)}
                   className="min-w-[190px]"
                 />
+                <input
+                  type="time"
+                  aria-label={t('leads.intake.fields.followUpTime')}
+                  value={form.followUpTime}
+                  onChange={(event) => set('followUpTime')(event.target.value)}
+                  disabled={!form.followUp}
+                  className={cn(fieldClass, 'w-[130px]')}
+                />
                 <button
                   type="button"
                   onClick={() => set('followUp')(isoDaysFromNow(1, now))}
@@ -503,7 +511,9 @@ export const LeadIntakeScreen = ({
               </div>
               {followUp && (
                 <p className="text-[13px] text-muted-foreground">
-                  {t('leads.intake.scheduled', { when: relative.label(followUp) })}
+                  {t('leads.intake.scheduled', {
+                    when: [relative.label(followUp), form.followUpTime].filter(Boolean).join(' · '),
+                  })}
                 </p>
               )}
             </div>

@@ -1074,7 +1074,8 @@
         "source": "저희를 어떻게 알게 되었나요?",
         "sourceNote": "상세",
         "note": "추가 메모",
-        "followUp": "재연락 날짜"
+        "followUp": "재연락 날짜",
+        "followUpTime": "시간"
       },
       "placeholders": {
         "firstName": "예: Muhammad",
