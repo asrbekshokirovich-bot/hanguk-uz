@@ -1140,7 +1140,8 @@
         "sourceNote": "Aniqlashtirish",
         "note": "Qo‘shimcha izoh",
         "followUp": "Qayta aloqa sanasi",
-        "followUpTime": "Soat"
+        "followUpTime": "Soat",
+        "followUpMinute": "Daqiqa"
       },
       "placeholders": {
         "firstName": "Masalan: Muhammad",

@@ -299,7 +299,8 @@ describe('LeadIntakeScreen', () => {
     setup();
     expect(screen.getByLabelText('Soat')).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Ertaga' }));
-    fireEvent.change(screen.getByLabelText('Soat'), { target: { value: '15:30' } });
+    fireEvent.change(screen.getByLabelText('Soat'), { target: { value: '15' } });
+    fireEvent.change(screen.getByLabelText('Daqiqa'), { target: { value: '30' } });
     expect(screen.getByText(/Rejalashtirilgan: 15-avgust · ertaga · 15:30/)).toBeInTheDocument();
   });
 

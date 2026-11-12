@@ -1091,7 +1091,8 @@
         "sourceNote": "Уточнение",
         "note": "Дополнительная заметка",
         "followUp": "Дата повторного контакта",
-        "followUpTime": "Время"
+        "followUpTime": "Время",
+        "followUpMinute": "Минуты"
       },
       "placeholders": {
         "firstName": "Например: Мухаммад",

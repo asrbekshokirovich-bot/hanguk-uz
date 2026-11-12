@@ -1075,7 +1075,8 @@
         "sourceNote": "상세",
         "note": "추가 메모",
         "followUp": "재연락 날짜",
-        "followUpTime": "시간"
+        "followUpTime": "시간",
+        "followUpMinute": "분"
       },
       "placeholders": {
         "firstName": "예: Muhammad",
