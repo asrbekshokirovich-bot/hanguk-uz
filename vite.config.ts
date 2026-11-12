@@ -6,6 +6,10 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    // Which build an error report came from (src/lib/errorReporter.ts).
+    __BUILD_ID__: JSON.stringify((process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 8) || "local"),
+  },
   server: {
     host: "::",
     port: 8080,

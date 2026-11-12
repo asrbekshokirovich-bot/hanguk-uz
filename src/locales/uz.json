@@ -4093,5 +4093,10 @@
     "saveFailed": "Saqlab bo'lmadi",
     "deleted": "O'chirildi",
     "deleteFailed": "O'chirib bo'lmadi"
+  },
+  "errorScreen": {
+    "title": "Nimadir xato ketdi",
+    "reload": "Keshni tozalab, qayta yuklash",
+    "toast": "Xatolik yuz berdi. Sahifani yangilang."
   }
 }
