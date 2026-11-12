@@ -64,8 +64,7 @@ $$;
 
 revoke all on function public.trg_documents_path_follows_student() from public, anon, authenticated;
 
-drop trigger if exists documents_path_follows_student on public.documents;
-create trigger documents_path_follows_student
+create or replace trigger documents_path_follows_student
   before update of student_id on public.documents
   for each row execute function public.trg_documents_path_follows_student();
 
