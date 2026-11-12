@@ -2404,7 +2404,13 @@
     "accepted": "Accepted!",
     "ctaHeading": "Ready to study in South Korea?",
     "ctaSub": "Get your magic code from a consultant and start today.",
-    "getApp": "Get the app"
+    "getApp": "Get the app",
+    "footerCity": "Tashkent",
+    "footerContact": "Contact",
+    "footerLinks": "Information",
+    "footerSupport": "Support",
+    "footerPrivacy": "Privacy Policy",
+    "footerTerms": "Terms of Service"
   },
   "linkContact": {
     "title": "Attach {{name}} to…",

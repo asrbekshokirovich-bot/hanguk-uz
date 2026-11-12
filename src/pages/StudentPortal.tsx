@@ -30,6 +30,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { cn } from '@/lib/utils';
+import { APP_DOWNLOAD_URL } from '@/lib/appLink';
 import {
   GraduationCap,
   MapPin,
@@ -133,14 +134,11 @@ export default function StudentPortal() {
           <div className="flex items-center gap-2">
             {/* Show Get App button only for web users, not for Despia native users */}
             {isWeb && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/install')}
-                className="hidden sm:flex"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {t('install.getApp', 'Get App')}
+              <Button variant="outline" size="sm" className="hidden sm:flex" asChild>
+                <a href={APP_DOWNLOAD_URL}>
+                  <Download className="h-4 w-4 mr-2" />
+                  {t('install.getApp', 'Get App')}
+                </a>
               </Button>
             )}
             <LanguageSwitcher />
