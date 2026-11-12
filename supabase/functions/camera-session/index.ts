@@ -9,6 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { corsHeaders } from "../_shared/cors.ts";
 import { buildSession, clientIp, configProblems } from "./session.ts";
 import { serviceKey, publishableKey } from "../_shared/keys.ts";
+import { isAnonymousAccount } from "../_shared/hanguk-ish.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = publishableKey();
@@ -39,6 +40,7 @@ Deno.serve(async (req) => {
   });
   const { data: who } = await asUser.auth.getUser();
   if (!who?.user) return json({ error: "unauthorized" }, 401);
+  if (isAnonymousAccount(who.user)) return json({ error: "forbidden" }, 403);
   const userId = who.user.id;
   const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 

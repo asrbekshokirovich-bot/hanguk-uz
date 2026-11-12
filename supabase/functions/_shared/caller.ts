@@ -11,6 +11,7 @@
 // through on "user" / "staff" functions.
 import { createClient, type User } from "https://esm.sh/@supabase/supabase-js@2";
 import { publishableKey, secretKeys } from "./keys.ts";
+import { isAnonymousAccount } from "./hanguk-ish.ts";
 
 export type CallerLevel = "user" | "staff" | "service";
 
@@ -78,6 +79,8 @@ export async function requireCaller(
   if (error || !user) return deny(401, "Invalid or expired token");
   // Guest test accounts (guest-test-session) may only take the tests.
   if (user.app_metadata?.guest === true) return deny(403, "Forbidden");
+  // Hanguk Ish's anonymous accounts (P53): not hanguk.uz's people.
+  if (isAnonymousAccount(user)) return deny(403, "Forbidden");
 
   if (level === "staff") {
     const { data: isStaff, error: roleError } = await client.rpc("fn_is_inbox_staff");

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { publishableKey } from "../_shared/keys.ts";
+import { isAnonymousAccount } from "../_shared/hanguk-ish.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -66,6 +67,9 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) {
       return json({ error: "Unauthorized" }, 401);
+    }
+    if (isAnonymousAccount(user)) {
+      return json({ error: "Forbidden" }, 403);
     }
 
     const turnUrls = (Deno.env.get("TURN_URLS") ?? "")

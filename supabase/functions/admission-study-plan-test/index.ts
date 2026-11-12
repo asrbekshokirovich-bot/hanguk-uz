@@ -15,6 +15,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { serviceKey, publishableKey } from "../_shared/keys.ts";
+import { isAnonymousAccount } from "../_shared/hanguk-ish.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -60,6 +61,7 @@ serve(async (req) => {
     const admin = createClient(url, serviceKey());
     const { data: { user } } = await asUser.auth.getUser();
     if (!user) return json({ error: "Unauthorized" }, 401);
+    if (isAnonymousAccount(user)) return json({ error: "Forbidden" }, 403);
 
     const { data: uni } = await admin
       .from("institutions")
