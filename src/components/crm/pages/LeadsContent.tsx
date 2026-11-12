@@ -407,6 +407,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
             busy={busy}
             now={now}
             showCountdown={view === 'new'}
+            listKey={`${view}|${tab}|${query.trim()}|${kgOnly}`}
           />
         )}
       </div>

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Pencil, RotateCcw, Sparkles, X } from 'lucide-react';
 import type { Lead } from '@/contexts/LeadsContext';
@@ -33,7 +34,23 @@ interface LeadsTableProps {
   now: Date;
   /** Show the "Yangi lid" 10-minute countdown on rows that carry one. */
   showCountdown?: boolean;
+  /**
+   * Which list this is (tab, view, search…). When it changes the table goes
+   * back to its first page; while it stays the same, rows already shown stay
+   * shown as the list is worked through.
+   */
+  listKey?: string;
 }
+
+/**
+ * Rows drawn at once. The season's working list has over 700 leads, and with
+ * every row on the page it was 31 000 elements and more than a second of the
+ * browser doing nothing else, on each opening and each change. The list is
+ * sorted with today's calls first, so the top is what is being worked; the
+ * rest is one press away («Yana … ta ko‘rsatish», as in Xabarlar) and the
+ * search still looks through all of them.
+ */
+export const LEADS_PAGE = 120;
 
 /**
  * Column widths, kept in one place so the header and the rows cannot drift.
@@ -91,9 +108,13 @@ export const LeadsTable = ({
   busy,
   now,
   showCountdown = false,
+  listKey = '',
 }: LeadsTableProps) => {
   const { t } = useTranslation();
   const relative = useRelativeDate(now);
+  const [limit, setLimit] = useState(LEADS_PAGE);
+  useEffect(() => setLimit(LEADS_PAGE), [listKey]);
+  const shown = leads.length > limit ? leads.slice(0, limit) : leads;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
@@ -119,7 +140,7 @@ export const LeadsTable = ({
           <div className={PIN_RIGHT}>{t('leads.intake.columns.actions')}</div>
         </div>
 
-        {leads.map((lead) => {
+        {shown.map((lead) => {
           const complete = isLeadComplete(lead);
           const outcome = leadOutcome(lead);
           const convertible = canConvertLead(lead);
@@ -348,6 +369,15 @@ export const LeadsTable = ({
           );
         })}
       </div>
+      {leads.length > shown.length && (
+        <button
+          type="button"
+          onClick={() => setLimit((n) => n + LEADS_PAGE)}
+          className="sticky left-0 flex w-full items-center justify-center border-t border-border px-3 py-3 text-[12px] font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          {t('leads.intake.showMore', { count: leads.length - shown.length })}
+        </button>
+      )}
     </div>
   );
 };
