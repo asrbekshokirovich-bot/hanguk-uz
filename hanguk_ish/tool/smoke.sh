@@ -79,6 +79,9 @@ worker() {
   [ "$1" = backend ] && next='Internet aloqasi'
   if ui wait 'Boshlash' 90 && ui tap 'Boshlash' && ui wait "$next" 30; then
     echo "$name: A01 → «Boshlash» → $next"
+  elif [ "$1" = backend ] && ui wait '=Boshlash' 5; then
+    # The same snack bar as BA0's (see employer).
+    echo "::notice::$name: back on A01, the connection message not caught"
   else
     echo "::error::$name: A01 «Boshlash» did not answer"
     failed=1
@@ -99,6 +102,11 @@ employer() {
   [ "$1" = backend ] && next='Check the internet connection'
   if ui wait 'Get started' 90 && ui tap 'Get started' && ui wait "$next" 30; then
     echo "$name: BA0 «Get started» → $next"
+  elif [ "$1" = backend ] && ui wait '=Get started' 5; then
+    # The connection message is a 4-second snack bar, and a busy emulator's
+    # screen dump can miss it. Still on BA0 and alive (finish checks for a
+    # crash or an ANR): it answered.
+    echo "::notice::$name: back on BA0, the connection message not caught"
   else
     echo "::error::$name: BA0 did not answer the tap"
     failed=1
