@@ -1137,6 +1137,7 @@
         "December"
       ],
       "working": "Working…",
+      "showMore": "Show {{count}} more",
       "tabs": {
         "label": "Lead state",
         "active": "In progress",

@@ -1113,6 +1113,7 @@
         "12월"
       ],
       "working": "처리 중…",
+      "showMore": "{{count}}개 더 보기",
       "tabs": {
         "label": "리드 상태",
         "active": "진행 중",
