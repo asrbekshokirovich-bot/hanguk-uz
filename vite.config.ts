@@ -54,22 +54,15 @@ export default defineConfig(({ mode }) => ({
         // hanguk.uz/ilova/* is the Flutter web app (another Vercel project,
         // proxied by vercel.json) — never answer it with this SPA's index.html.
         navigateFallbackDenylist: [/^\/ilova(\/|$)/],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "supabase-cache",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-        ],
+        // No runtime cache for the Supabase API. Until 2026-11-11 a rule here
+        // asked the service worker to keep every GET to *.supabase.co for a
+        // day (NetworkFirst) under its URL alone — the Authorization header is
+        // not part of a cache key. Wherever that rule takes effect, one
+        // account's leads, payments and profiles stay on disk after sign-out
+        // and are offered to the next account on a shared computer whenever a
+        // request fails, and yesterday's data is shown as today's with nothing
+        // to say so. The CRM is not an offline app: a request that fails
+        // should fail. (AppInitializer removes the old cache where one was made.)
       },
     }),
   ].filter(Boolean),
