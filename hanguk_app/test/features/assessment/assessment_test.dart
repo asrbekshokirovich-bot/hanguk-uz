@@ -72,6 +72,75 @@ void main() {
     });
   });
 
+  group('admissionPercent: the English way in', () {
+    CatalogGuideline english({
+      num? ielts = 5.5,
+      bool? track = true,
+      bool? korean = true,
+      num? topik = 3,
+      String degree = 'bakalavr',
+    }) => CatalogGuideline(
+      id: 'g-e',
+      institutionId: 'e',
+      univNameEn: 'E University',
+      degree: degree,
+      koreanTrack: korean,
+      englishTrack: track,
+      topikMin: topik,
+      ieltsMin: ielts,
+      isActive: true,
+    );
+    int at(CatalogGuideline g, {int topik = 0, double ielts = 0, StudyRoute route = StudyRoute.bachelor}) =>
+        admissionPercent(AssessmentInput(topik: topik, ielts: ielts, gpa: 3.5, route: route), g);
+
+    test('IELTS at the guideline\'s minimum is the requirement met', () {
+      final g = english();
+      expect(at(g), 15);
+      // Under the minimum: only the documents' point for the score.
+      expect(at(g, ielts: 5.0), 16);
+      expect(at(g, ielts: 5.5), 57);
+      expect(at(g, ielts: 7.0), 60);
+      expect(meetsEnglish(const AssessmentInput(ielts: 5.5), g), isTrue);
+      expect(meetsEnglish(const AssessmentInput(ielts: 5.0), g), isFalse);
+    });
+
+    test('TOPIK above the requirement still counts for more', () {
+      final g = english();
+      expect(at(g, topik: 2, ielts: 5.5), 57);
+      expect(at(g, topik: 3, ielts: 5.5), 57);
+      expect(at(g, topik: 4, ielts: 5.5), 70);
+      expect(at(g, topik: 5), 78);
+    });
+
+    test('the guideline\'s own minimum; the rules\' when it names none', () {
+      final hard = english(ielts: 6.5);
+      expect(at(hard, ielts: 6.0), 18);
+      expect(at(hard, ielts: 6.5), 59);
+      final open = english(ielts: null);
+      expect(at(open, ielts: 5.0), 16);
+      expect(at(open, ielts: rules.englishIeltsMin.toDouble()), 57);
+    });
+
+    test('an IELTS minimum counts without the track flag', () {
+      final g = english(track: null, ielts: 6);
+      expect(at(g, ielts: 6.0), 58);
+      expect(at(english(track: null, ielts: null), ielts: 7.0), 20);
+    });
+
+    test('taught in English only: TOPIK does not count', () {
+      final g = english(korean: false, topik: null, ielts: 6.5);
+      expect(at(g, topik: 5), 15);
+      expect(at(g, topik: 5, ielts: 6.5), 59);
+      expect(at(english(korean: false, topik: null, ielts: 6.5, degree: 'magistratura'), ielts: 7.0, route: StudyRoute.master), 60);
+    });
+
+    test('other routes read TOPIK alone, as before', () {
+      final g = english();
+      expect(at(g, ielts: 7.0, route: StudyRoute.college), 20);
+      expect(at(english(korean: false, topik: null), topik: 1, route: StudyRoute.languageCourse), 55);
+    });
+  });
+
   test('requiredBank: the capital area\'s deposit when any university is there', () {
     final daegu = requiredBank(StudyRoute.bachelor, [uni('d')]);
     final seoul = requiredBank(StudyRoute.bachelor, [uni('d'), uni('s', city: 'Seoul')]);
