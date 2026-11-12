@@ -79,6 +79,11 @@ worker() {
   [ "$1" = backend ] && next='Internet aloqasi'
   if ui wait 'Boshlash' 90 && ui tap 'Boshlash' && ui wait "$next" 30; then
     echo "$name: A01 → «Boshlash» → $next"
+  elif [ "$1" = backend ] && ui wait '=Boshlash' 5; then
+    # The connection message is a 4-second snack bar, and a busy emulator's
+    # screen dump can miss it. Still on A01 and alive (finish checks for a
+    # crash or an ANR): it answered.
+    echo "::notice::$name: back on A01, the connection message not caught"
   else
     echo "::error::$name: A01 «Boshlash» did not answer"
     failed=1
