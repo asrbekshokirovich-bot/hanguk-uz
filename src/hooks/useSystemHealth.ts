@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export type HealthStatus = 'green' | 'amber' | 'red';
 
@@ -97,8 +98,14 @@ export function useSystemHealth(
       ] = await Promise.all([
         supabase.from('payments').select('status', { count: 'exact', head: false }),
         supabase.from('tasks').select('status', { count: 'exact', head: false }),
-        supabase.from('leads').select('status, updated_at', { count: 'exact', head: false }).eq('qualified', true),
-        supabase.from('message_threads').select('unread_count'),
+        // Both lists are longer than one request returns (1000): in pages.
+        fetchAllRows((from, to) =>
+          supabase.from('leads').select('status, updated_at').eq('qualified', true).order('id').range(from, to),
+        ),
+        // Only the threads that have something unread — the rest add nothing.
+        fetchAllRows((from, to) =>
+          supabase.from('message_threads').select('unread_count').gt('unread_count', 0).order('id').range(from, to),
+        ),
         supabase.from('applications').select('status, updated_at', { count: 'exact', head: false }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('interview_sessions').select('created_at, status, student_id', { count: 'exact' }).order('created_at', { ascending: false }).limit(1),

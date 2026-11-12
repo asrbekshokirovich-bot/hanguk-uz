@@ -7,6 +7,7 @@ import { useCommandCenterSync } from '@/hooks/useCommandCenterSync';
 import { useStaffMentions } from '@/hooks/useStaffMentions';
 import { extractMentions, getContentPreview, getUniqueMentionedUserIds } from '@/lib/mentionParser';
 import { createMention } from '@/hooks/useMentionNotifications';
+import { fetchProfileNames } from '@/lib/profileNames';
 
 export interface Task {
   id: string;
@@ -57,37 +58,14 @@ export function useTasks() {
     ).order('created_at', { ascending: false });
 
     if (!error && data) {
-      // Fetch profiles for assignees and creators
-      const tasksWithProfiles = await Promise.all(
-        data.map(async (task) => {
-          let assignee = null;
-          let creator = null;
-
-          if (task.assigned_to) {
-            const { data: assigneeData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', task.assigned_to)
-              .maybeSingle();
-            assignee = assigneeData;
-          }
-
-          if (task.created_by) {
-            const { data: creatorData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', task.created_by)
-              .maybeSingle();
-            creator = creatorData;
-          }
-
-          return {
-            ...task,
-            assignee,
-            creator,
-          };
-        })
-      );
+      // The names of everyone the tasks mention, in one request (it was two
+      // requests per task).
+      const names = await fetchProfileNames(data.flatMap((task) => [task.assigned_to, task.created_by]));
+      const tasksWithProfiles = data.map((task) => ({
+        ...task,
+        assignee: task.assigned_to ? names.get(task.assigned_to) ?? null : null,
+        creator: task.created_by ? names.get(task.created_by) ?? null : null,
+      }));
       setTasks(tasksWithProfiles as Task[]);
     }
     setLoading(false);
@@ -242,20 +220,11 @@ export function useTasks() {
       .order('created_at', { ascending: true });
 
     if (!error && data) {
-      const commentsWithUsers = await Promise.all(
-        data.map(async (comment) => {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', comment.user_id)
-            .maybeSingle();
-
-          return {
-            ...comment,
-            user: userData,
-          };
-        })
-      );
+      const names = await fetchProfileNames(data.map((comment) => comment.user_id));
+      const commentsWithUsers = data.map((comment) => ({
+        ...comment,
+        user: names.get(comment.user_id) ?? null,
+      }));
       return { data: commentsWithUsers as TaskComment[], error: null };
     }
     return { data: [], error };

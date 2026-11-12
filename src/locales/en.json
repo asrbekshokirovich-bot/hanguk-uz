@@ -631,6 +631,23 @@
     }
   },
   "leads": {
+    "toasts": {
+      "created": "Lead created successfully",
+      "createFailed": "Failed to create lead",
+      "updated": "Lead updated successfully",
+      "updateFailed": "Failed to update lead",
+      "deleted": "Lead deleted successfully",
+      "deleteFailed": "Failed to delete lead",
+      "converting": "Conversion already in progress...",
+      "notFound": "Lead not found",
+      "alreadyConverted": "This lead has already been converted to a student",
+      "phoneInUse": "Phone number already in use, creating without phone...",
+      "converted": "Lead converted to student! Magic code: {{code}}",
+      "convertFailed": "Failed to convert lead",
+      "analyzed": "Lead analyzed successfully",
+      "analyzedAll": "All leads analyzed",
+      "analyzeFailed": "Failed to analyze lead"
+    },
     "dispositions": {
       "title": "Log this call",
       "reached": "Reached",
@@ -1137,6 +1154,7 @@
         "December"
       ],
       "working": "Working…",
+      "showMore": "Show {{count}} more",
       "tabs": {
         "label": "Lead state",
         "active": "In progress",
@@ -1185,7 +1203,9 @@
         "confirm": "Yes, delete"
       },
       "editRow": "Edit",
-      "openProfile": "Profile"
+      "openProfile": "Profile",
+      "kgFilter": "Kyrgyzstan",
+      "kgBadgeTitle": "Lead from Kyrgyzstan (+996)"
     },
     "profile": {
       "back": "Back to list",
@@ -3903,5 +3923,19 @@
       "OFFLINE": "No internet connection.",
       "UNKNOWN": "Something went wrong. Please try again."
     }
+  },
+  "calendarPage": {
+    "subtitle": "View tasks and payment deadlines",
+    "today": "Today",
+    "payment": "Payment",
+    "selectDay": "Select a day",
+    "assigned": "Assigned",
+    "activeTasks": "Active Tasks",
+    "urgentTasks": "Urgent Tasks",
+    "pendingPayments": "Pending Payments",
+    "dueThisWeek": "Due This Week",
+    "more": "+{{count}} more",
+    "paymentOf": "Payment: {{name}}",
+    "unknown": "Unknown"
   }
 }

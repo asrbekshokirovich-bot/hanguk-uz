@@ -13,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { corsHeaders } from "../_shared/cors.ts";
 import { serviceKey } from "../_shared/keys.ts";
 import { requireCaller } from "../_shared/caller.ts";
-import { decide, taskFor, telegramText, type Target } from "./invite.ts";
+import { decide, taskCreator, taskFor, telegramText, type Target } from "./invite.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = serviceKey();
@@ -58,6 +58,18 @@ Deno.serve(async (req) => {
   }
 
   const createdBy = caller.service ? null : caller.user.id;
+  // The daily run has nobody signed in: its tasks are filed under the
+  // consultant or, with none, the owner (taskCreator). Looked up once, and only
+  // if a task is going to be made.
+  let owner: string | null | undefined;
+  const ownerId = async (): Promise<string | null> => {
+    if (owner === undefined) {
+      const { data: rows } = await admin.from("user_roles").select("user_id")
+        .eq("role", "owner").order("created_at", { ascending: true }).limit(1);
+      owner = (rows?.[0]?.user_id as string | undefined) ?? null;
+    }
+    return owner;
+  };
   let telegram = 0, task = 0, failed = 0, skipped = 0;
   for (const { t, d } of plan) {
     if ("skip" in d) {
@@ -76,11 +88,14 @@ Deno.serve(async (req) => {
       else telegram++;
     } else {
       const text = taskFor(t, APP_STORE_URL);
-      const { data: row, error: e } = await admin.from("tasks").insert({
-        title: text.title, description: text.description, priority: "normal", status: "todo",
-        student_id: t.student_id, assigned_to: t.consultant, created_by: createdBy, source: "crm",
-        due_date: new Date(now.getTime() + 2 * 86_400_000).toISOString(),
-      }).select("id").single();
+      const creator = taskCreator(createdBy, t.consultant, createdBy || t.consultant ? null : await ownerId());
+      const { data: row, error: e } = creator
+        ? await admin.from("tasks").insert({
+          title: text.title, description: text.description, priority: "normal", status: "todo",
+          student_id: t.student_id, assigned_to: t.consultant, created_by: creator, source: "crm",
+          due_date: new Date(now.getTime() + 2 * 86_400_000).toISOString(),
+        }).select("id").single()
+        : { data: null, error: { message: "no_task_creator: owner topilmadi" } };
       await admin.from("student_app_invites").insert({
         student_id: t.student_id, channel: "task", status: e ? "failed" : "task_created",
         task_id: row?.id ?? null, error: e?.message ?? null, auto, created_by: createdBy,

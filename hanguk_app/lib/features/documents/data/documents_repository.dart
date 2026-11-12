@@ -1,6 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:io';
 import '../domain/document.dart';
 import '../domain/document_type.dart';
 
@@ -39,12 +41,68 @@ final documentsProvider = FutureProvider<List<AppDocument>>((ref) async {
   }
 });
 
+/// The file name's extension, lower case, without the dot; '' when it has none.
+String documentExtension(String fileName) {
+  final dot = fileName.lastIndexOf('.');
+  if (dot < 0 || dot == fileName.length - 1) return '';
+  return fileName.substring(dot + 1).toLowerCase();
+}
+
+/// What the server is told a document is. The app accepts jpg, jpeg, png and
+/// pdf. Until 2026-11-11 this was `'application/$ext'` — `application/jpg`,
+/// `application/JPG` — which is no type at all, and `process-document` hands
+/// the stored value to the model as the file's MIME type.
+String documentMimeType(String fileName) {
+  switch (documentExtension(fileName)) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'pdf':
+      return 'application/pdf';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+/// The last part of a path, whichever way its slashes lean.
+String documentBaseName(String path) => path.split(RegExp(r'[/\\]')).last;
+
 class DocumentsRepository {
   final SupabaseClient _client;
 
   DocumentsRepository(this._client);
 
+  /// A file picked on a phone or a desktop.
   Future<void> uploadDocument(File file, DocumentType type) async {
+    final size = await file.length();
+    await _store(
+      type: type,
+      originalName: documentBaseName(file.path),
+      size: size,
+      send: (path, options) =>
+          _client.storage.from('student-documents').upload(path, file, fileOptions: options),
+    );
+  }
+
+  /// A file picked in the browser: there is no path there, only the bytes.
+  Future<void> uploadDocumentBytes(Uint8List bytes, String originalName, DocumentType type) async {
+    await _store(
+      type: type,
+      originalName: documentBaseName(originalName),
+      size: bytes.length,
+      send: (path, options) =>
+          _client.storage.from('student-documents').uploadBinary(path, bytes, fileOptions: options),
+    );
+  }
+
+  Future<void> _store({
+    required DocumentType type,
+    required String originalName,
+    required int size,
+    required Future<Object?> Function(String path, FileOptions options) send,
+  }) async {
     final user = _client.auth.currentUser;
     if (user == null) {
       // Typically throw an exception, returning mock for Phase 6 build tests
@@ -52,24 +110,32 @@ class DocumentsRepository {
       return;
     }
 
-    final fileExt = file.path.split('.').last;
-    final fileName =
-        '${user.id}/${type.id}-${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+    final ext = documentExtension(originalName);
+    final mime = documentMimeType(originalName);
+    final path =
+        '${user.id}/${type.id}-${DateTime.now().millisecondsSinceEpoch}${ext.isEmpty ? '' : '.$ext'}';
 
     // Upload to Storage
-    await _client.storage
-        .from('student-documents')
-        .upload(fileName, file, fileOptions: const FileOptions(upsert: false));
+    await send(path, FileOptions(upsert: false, contentType: mime));
 
     // Insert into 'documents' table
-    await _client.from('documents').insert({
-      'student_id': user.id,
-      'name': '[${type.id}] ${file.path.split('/').last}',
-      'file_path': fileName,
-      'file_type': 'application/$fileExt', // simplified type map
-      'file_size': await file.length(),
-      'status': 'uploaded',
-    });
+    try {
+      await _client.from('documents').insert({
+        'student_id': user.id,
+        'name': '[${type.id}] $originalName',
+        'file_path': path,
+        'file_type': mime,
+        'file_size': size,
+        'status': 'uploaded',
+      });
+    } catch (_) {
+      // A file with no row is seen by nobody — not the student, not the CRM.
+      // Take it back so a second try does not leave two.
+      try {
+        await _client.storage.from('student-documents').remove([path]);
+      } catch (_) {}
+      rethrow;
+    }
   }
 
   Future<void> deleteDocument(AppDocument doc) async {

@@ -14,6 +14,8 @@
 //   telegram_ingest  Telegram messages still in telegram_ingest_failures after
 //                    30 minutes → must be 0
 //   instagram_sync   minutes since instagram-maintenance last synced → fails past 60
+//   cron_jobs        pg_cron jobs whose latest runs all failed (fn_cron_failing_jobs)
+//                    → must be none
 //
 // mediateka_feed used to stay ok while the feed had been silent for 94 days: it
 // only alarmed if the feed had been alive within the previous 7 days, so a
@@ -33,6 +35,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { serviceKey } from "../_shared/keys.ts";
 import { isServiceRequest } from "../_shared/caller.ts";
+import { type CronFailure, cronJobsLine } from "./cron.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -180,6 +183,23 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     out.push({ check: "instagram_sync", state, detail });
   }
 
+  // 8. pg_cron jobs that keep failing.
+  //
+  // «app-signals» failed every minute from 2026-11-07 to 2026-11-11 — a row in
+  // cron.job_run_details that nobody reads — and with it every operator signal
+  // from the app. A job whose last runs all failed is a fault to hear about
+  // within the hour, whatever the job is.
+  {
+    const { data, error } = await supabase.rpc("fn_cron_failing_jobs");
+    // Before its migration is applied the function does not exist: say
+    // nothing rather than report a fault that is only a deploy order.
+    const missing = error && (error.code === "PGRST202" || error.code === "42883");
+    if (!missing) {
+      if (error) out.push({ check: "cron_jobs", state: "fail", detail: `so'rov xatosi: ${error.message}` });
+      else out.push({ check: "cron_jobs", ...cronJobsLine((data ?? []) as CronFailure[]) });
+    }
+  }
+
   return out;
 }
 
@@ -191,6 +211,7 @@ const LABEL: Record<string, string> = {
   telegram_userbot: "Telegram userbot (akkaunt sessiyasi)",
   telegram_ingest: "Telegram xabarlari (telegram-ingest)",
   instagram_sync: "Instagram zaxira sinxronlash",
+  cron_jobs: "Rejali ishlar (pg_cron)",
 };
 
 /**
@@ -209,6 +230,8 @@ const HINT: Record<string, string> = {
     "telegram_ingest_failures jadvalidagi xatoni ko'ring; telegram-poll har daqiqada qayta urinadi.",
   instagram_sync:
     "instagram_sync_state.last_error ni ko'ring: token yoki Instagram API ruxsati muammosi bo'lishi mumkin.",
+  cron_jobs:
+    "Supabase → Integrations → Cron → ishning oxirgi ishga tushishlari (cron.job_run_details.return_message) ni ko'ring.",
 };
 
 function compose(r: CheckResult): string {

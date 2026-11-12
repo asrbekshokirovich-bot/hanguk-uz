@@ -19,7 +19,7 @@ export type StageKind =
   | "deadline_3"
   | "deadline_1";
 
-export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
+export type Lang = "uz" | "ru" | "en" | "ko" | "vi" | "ky";
 
 export interface StageMessage {
   title: string;
@@ -28,7 +28,7 @@ export interface StageMessage {
 
 const list = (names: string[], lang: Lang) => {
   if (names.length <= 1) return names[0] ?? "";
-  const and = { uz: "va", ru: "и", en: "and", ko: "및", vi: "và" }[lang];
+  const and = { uz: "va", ru: "и", en: "and", ko: "및", vi: "và", ky: "жана" }[lang];
   return `${names.slice(0, -1).join(", ")} ${and} ${names[names.length - 1]}`;
 };
 
@@ -41,6 +41,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: () => ({ title: "Your documents are complete ✅", body: "All your documents have been checked and approved. We are now preparing your university applications." }),
     ko: () => ({ title: "서류 준비 완료 ✅", body: "모든 서류가 확인 및 승인되었습니다. 이제 대학 지원서를 준비합니다." }),
     vi: () => ({ title: "Hồ sơ đã đầy đủ ✅", body: "Tất cả giấy tờ của bạn đã được kiểm tra và duyệt. Chúng tôi đang chuẩn bị hồ sơ nộp trường." }),
+    ky: () => ({ title: "Документтериңиз чогултулду ✅", body: "Бардык документтериңиз текшерилип, бекитилди. Эми университеттерге арыз даярдайбыз." }),
   },
   university_offered: {
     uz: (n) => ({
@@ -65,6 +66,10 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
       title: "Chọn trường",
       body: `Tư vấn viên đã chọn ${list(n, "vi")} cho bạn. Hãy xem trong ứng dụng và trả lời.`,
     }),
+    ky: (n) => ({
+      title: "Университет тандоо",
+      body: `Консультантыңыз сиз үчүн тандады: ${list(n, "ky")}. Тиркемеден карап, жооп бериңиз.`,
+    }),
   },
   university_confirmed: {
     uz: (n) => ({ title: "Universitet biriktirildi", body: `${list(n, "uz")} — yakuniy tasdiqlandi. Endi ariza tayyorlanadi.` }),
@@ -72,6 +77,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "University confirmed", body: `${list(n, "en")} — confirmed. Your application is being prepared.` }),
     ko: (n) => ({ title: "대학 확정", body: `${list(n, "ko")} — 최종 확정되었습니다. 지원서를 준비합니다.` }),
     vi: (n) => ({ title: "Đã xác nhận trường", body: `${list(n, "vi")} — đã xác nhận. Hồ sơ của bạn đang được chuẩn bị.` }),
+    ky: (n) => ({ title: "Университет бекитилди", body: `${list(n, "ky")} — акыркы жолу ырасталды. Эми арыз даярдалат.` }),
   },
   online_submitted: {
     uz: (n) => ({ title: "Onlayn ariza topshirildi", body: `Onlayn arizangiz topshirildi: ${list(n, "uz")}.` }),
@@ -79,6 +85,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Online application submitted", body: `Your online application to ${list(n, "en")} has been submitted.` }),
     ko: (n) => ({ title: "온라인 지원 완료", body: `온라인 지원서가 제출되었습니다: ${list(n, "ko")}.` }),
     vi: (n) => ({ title: "Đã nộp hồ sơ trực tuyến", body: `Hồ sơ trực tuyến của bạn vào ${list(n, "vi")} đã được nộp.` }),
+    ky: (n) => ({ title: "Онлайн арыз тапшырылды", body: `Онлайн арызыңыз тапшырылды: ${list(n, "ky")}.` }),
   },
   offline_sent: {
     uz: (n) => ({ title: "Oflayn ariza yuborildi 📮", body: `Hujjatlaringiz pochta orqali jo'natildi: ${list(n, "uz")}.` }),
@@ -86,6 +93,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Paper documents posted 📮", body: `Your documents have been posted to ${list(n, "en")}.` }),
     ko: (n) => ({ title: "서류 발송 완료 📮", body: `서류를 우편으로 발송했습니다: ${list(n, "ko")}.` }),
     vi: (n) => ({ title: "Đã gửi hồ sơ giấy 📮", body: `Hồ sơ của bạn đã được gửi bưu điện tới ${list(n, "vi")}.` }),
+    ky: (n) => ({ title: "Документтер жөнөтүлдү 📮", body: `Документтериңиз почта аркылуу жөнөтүлдү: ${list(n, "ky")}.` }),
   },
   admission_accepted: {
     uz: (n) => ({ title: "Tabriklaymiz! 🎓", body: `Siz qabul qilindingiz: ${list(n, "uz")}.` }),
@@ -93,6 +101,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Congratulations! 🎓", body: `You have been admitted to ${list(n, "en")}.` }),
     ko: (n) => ({ title: "축하합니다! 🎓", body: `합격했습니다: ${list(n, "ko")}.` }),
     vi: (n) => ({ title: "Chúc mừng! 🎓", body: `Bạn đã trúng tuyển: ${list(n, "vi")}.` }),
+    ky: (n) => ({ title: "Куттуктайбыз! 🎓", body: `Сиз кабыл алындыңыз: ${list(n, "ky")}.` }),
   },
   final_university: {
     uz: (n) => ({ title: "Yakuniy universitet", body: `Konsultantingiz tavsiyasi: ${list(n, "uz")}. Ilovada tasdiqlang.` }),
@@ -100,6 +109,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Your final university", body: `Your consultant recommends ${list(n, "en")}. Confirm it in the app.` }),
     ko: (n) => ({ title: "최종 대학", body: `상담사 추천: ${list(n, "ko")}. 앱에서 확인해 주세요.` }),
     vi: (n) => ({ title: "Trường cuối cùng", body: `Tư vấn viên đề xuất ${list(n, "vi")}. Hãy xác nhận trong ứng dụng.` }),
+    ky: (n) => ({ title: "Акыркы университет", body: `Консультанттын сунушу: ${list(n, "ky")}. Тиркемеден ырастаңыз.` }),
   },
   // 2026-11-07: har bir CRM bosqichida xabar (suhbat, rad javobi, viza).
   interview_scheduled: {
@@ -108,6 +118,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Interview scheduled 🗓", body: `Your interview is scheduled: ${list(n, "en")}. See the date and time in the app.` }),
     ko: (n) => ({ title: "면접 일정 확정 🗓", body: `면접 일정이 정해졌습니다: ${list(n, "ko")}. 날짜와 시간은 앱에서 확인하세요.` }),
     vi: (n) => ({ title: "Đã có lịch phỏng vấn 🗓", body: `Lịch phỏng vấn đã được xếp: ${list(n, "vi")}. Xem ngày giờ trong ứng dụng.` }),
+    ky: (n) => ({ title: "Маек белгиленди 🗓", body: `Маектин датасы белгиленди: ${list(n, "ky")}. Күнүн жана убактысын тиркемеден көрүңүз.` }),
   },
   admission_rejected: {
     uz: (n) => ({ title: "Universitet javobi", body: `${list(n, "uz")} javob berdi: bu safar qabul qilinmadingiz. Konsultantingiz keyingi qadamni aytadi.` }),
@@ -115,6 +126,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "University decision", body: `${list(n, "en")}: not admitted this time. Your consultant will tell you the next step.` }),
     ko: (n) => ({ title: "대학 결과", body: `${list(n, "ko")}: 이번에는 불합격입니다. 상담사가 다음 단계를 안내해 드립니다.` }),
     vi: (n) => ({ title: "Kết quả từ trường", body: `${list(n, "vi")}: lần này bạn chưa trúng tuyển. Tư vấn viên sẽ hướng dẫn bước tiếp theo.` }),
+    ky: (n) => ({ title: "Университеттин жообу", body: `${list(n, "ky")}: бул жолу кабыл алынган жоксуз. Консультантыңыз кийинки кадамды айтат.` }),
   },
   visa_process: {
     uz: () => ({ title: "Viza jarayoni boshlandi", body: "Viza uchun hujjatlaringiz tayyorlanmoqda. Batafsil ilovada." }),
@@ -122,6 +134,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: () => ({ title: "Visa process started", body: "We are preparing your visa documents. Details in the app." }),
     ko: () => ({ title: "비자 절차 시작", body: "비자 서류를 준비하고 있습니다. 자세한 내용은 앱에서 확인하세요." }),
     vi: () => ({ title: "Bắt đầu làm visa", body: "Chúng tôi đang chuẩn bị hồ sơ visa cho bạn. Chi tiết trong ứng dụng." }),
+    ky: () => ({ title: "Виза иштери башталды", body: "Виза үчүн документтериңиз даярдалууда. Толугу тиркемеде." }),
   },
   visa_waiting: {
     uz: () => ({ title: "Viza arizasi topshirildi", body: "Viza arizangiz topshirildi, natijasini kutyapmiz." }),
@@ -129,6 +142,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: () => ({ title: "Visa application submitted", body: "Your visa application has been submitted; we are waiting for the result." }),
     ko: () => ({ title: "비자 신청 완료", body: "비자 신청서가 제출되었습니다. 결과를 기다리고 있습니다." }),
     vi: () => ({ title: "Đã nộp hồ sơ visa", body: "Hồ sơ visa của bạn đã được nộp, đang chờ kết quả." }),
+    ky: () => ({ title: "Виза арызы тапшырылды", body: "Виза арызыңыз тапшырылды, жыйынтыгын күтүп жатабыз." }),
   },
   visa_received: {
     uz: () => ({ title: "Viza tayyor! ✈️", body: "Tabriklaymiz, vizangiz chiqdi. Parvoz va turar joy bo'yicha konsultantingiz bog'lanadi." }),
@@ -136,6 +150,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: () => ({ title: "Your visa is ready! ✈️", body: "Congratulations, your visa has been issued. Your consultant will contact you about the flight and housing." }),
     ko: () => ({ title: "비자 발급 완료! ✈️", body: "축하합니다, 비자가 발급되었습니다. 항공편과 숙소는 상담사가 안내해 드립니다." }),
     vi: () => ({ title: "Visa đã có! ✈️", body: "Chúc mừng, visa của bạn đã được cấp. Tư vấn viên sẽ liên hệ về chuyến bay và chỗ ở." }),
+    ky: () => ({ title: "Виза даяр! ✈️", body: "Куттуктайбыз, визаңыз чыкты. Учуу жана турак жай боюнча консультантыңыз байланышат." }),
   },
   // 4-signal (the app analytics plan): an offer the student has not answered
   // for 48 hours. Once per offer.
@@ -148,6 +163,7 @@ const TEXT: Record<StageKind, Record<Lang, Builder>> = {
     en: (n) => ({ title: "Waiting for your answer", body: `Your consultant picked ${list(n, "en")} for you. Take a look in the app and answer.` }),
     ko: (n) => ({ title: "답변을 기다리고 있습니다", body: `상담사가 추천한 대학: ${list(n, "ko")}. 앱에서 확인하고 답변해 주세요.` }),
     vi: (n) => ({ title: "Chúng tôi đang chờ bạn trả lời", body: `Tư vấn viên đã chọn ${list(n, "vi")} cho bạn. Hãy xem trong ứng dụng và trả lời.` }),
+    ky: (n) => ({ title: "Жообуңузду күтүп жатабыз", body: `Консультантыңыз тандаган университеттер: ${list(n, "ky")}. Тиркемеден карап, жооп бериңиз.` }),
   },
   // Onlayn ariza muddati (20261103150000_deadline_reminders.sql): 7, 3 va 1 kun
   // oldin, talaba tanlagan va onlayn arizasi hali topshirilmagan universitetlar.
@@ -179,6 +195,10 @@ function deadline(days: number): Record<Lang, Builder> {
       title: last ? "Ngày mai hết hạn nộp hồ sơ trực tuyến ⏰" : `Còn ${days} ngày để nộp hồ sơ trực tuyến ⏰`,
       body: `${list(n, "vi")}: hạn nộp hồ sơ trực tuyến kết thúc ${last ? "vào ngày mai" : `sau ${days} ngày`}. Hãy kiểm tra hồ sơ của bạn và hỏi tư vấn viên nếu cần.`,
     }),
+    ky: (n) => ({
+      title: last ? "Онлайн арыз берүү эртең бүтөт ⏰" : `Онлайн арызга ${days} күн калды ⏰`,
+      body: `${list(n, "ky")}: онлайн арыз берүү мөөнөтү ${last ? "эртең" : `${days} күндөн кийин`} бүтөт. Документтериңиз даяр экенин текшериңиз, суроо болсо консультантыңызга жазыңыз.`,
+    }),
   };
 }
 
@@ -197,7 +217,7 @@ export function pushData(kind: StageKind): Record<string, string> {
 
 export function normalizeLang(raw: string | null | undefined): Lang {
   const l = (raw ?? "").toLowerCase().slice(0, 2);
-  return (["uz", "ru", "en", "ko", "vi"] as const).includes(l as Lang) ? (l as Lang) : "uz";
+  return (["uz", "ru", "en", "ko", "vi", "ky"] as const).includes(l as Lang) ? (l as Lang) : "uz";
 }
 
 /** `names` are the universities the notification is about (empty for documents_ready). */

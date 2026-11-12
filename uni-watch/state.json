@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-10T11:10:03+00:00",
+ "last_run": "2026-11-11T18:44:37+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -108,6 +108,7 @@
    "43ebd8a3fafe3608"
   ],
   "https://admission.kangnam.ac.kr/main.htm": [
+   "a92a52e0fb0ed6b0",
    "80241fc2ce1dbea7",
    "0a27f0eb50965532",
    "1aab3f1c51834b99",
@@ -567,6 +568,8 @@
    "b10580b72e2bd18b"
   ],
   "https://iccu.ac.kr": [
+   "fa7f5d255b3ef29e",
+   "479437fc6190dea3",
    "d3804f99c51d2fac",
    "22bd4475f35f2867"
   ],
@@ -632,6 +635,7 @@
   ],
   "https://iphak.kit.ac.kr/": [],
   "https://iphak.kumoh.ac.kr/": [
+   "cbb0d0caa48136ae",
    "aef25b705a01276e",
    "3218dbc69ad561e8",
    "1ace8a59d7e55195",
@@ -1080,6 +1084,7 @@
   "https://kcgu.ac.kr": [],
   "https://kings.ac.kr": [],
   "https://kkot.ac.kr": [
+   "cf0fc93dd31b2a27",
    "8f7bb0c0901d9d4f",
    "e9906a592298c484",
    "3d309513db89a18f",
@@ -1169,7 +1174,10 @@
    "7ce1590c97f62a31"
   ],
   "https://www.ajou.ac.kr/kr/admission/list01.do": [],
-  "https://www.bdu.ac.kr/ent/index.do": [],
+  "https://www.bdu.ac.kr/ent/index.do": [
+   "f97f7196e85816ff",
+   "806eaa3ea19641b9"
+  ],
   "https://www.bible.ac.kr/": [],
   "https://www.bsks.ac.kr/": [],
   "https://www.busanarts.ac.kr/": [],

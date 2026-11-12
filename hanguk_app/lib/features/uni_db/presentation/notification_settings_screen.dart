@@ -218,6 +218,7 @@ class _PrefsCardState extends ConsumerState<_PrefsCard> {
     bool? notifyOnScholarshipChange,
   }) async {
     setState(() => _busy = true);
+    final container = ProviderScope.containerOf(context, listen: false);
     try {
       await updateNotificationPrefs(
         institutionId: _institutionId,
@@ -226,8 +227,8 @@ class _PrefsCardState extends ConsumerState<_PrefsCard> {
         notifyOnRequirementChange: notifyOnRequirementChange,
         notifyOnScholarshipChange: notifyOnScholarshipChange,
       );
-      ref.invalidate(notificationSettingsProvider);
-      ref.invalidate(institutionTrackingProvider(_institutionId));
+      container.invalidate(notificationSettingsProvider);
+      container.invalidate(institutionTrackingProvider(_institutionId));
     } catch (err) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

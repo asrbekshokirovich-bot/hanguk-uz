@@ -2597,6 +2597,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The call could not be connected. Please check your internet and try again.';
 
   @override
+  String get interviewErrorServiceDown =>
+      'The voice interview service is unavailable right now. Please try again a little later.';
+
+  @override
   String get onbResultRouteLanguageCourse => 'Language course';
 
   @override
@@ -5762,4 +5766,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vzAnswersCleared => 'Answers cleared';
+
+  @override
+  String get countryScreenTitle => 'Choose your country';
+
+  @override
+  String get countryScreenTitleAccent => 'country';
+
+  @override
+  String get countryScreenSubtitle =>
+      'Phone code, prices and visa rules are shown for this country';
+
+  @override
+  String get countryScreenGuessHint => 'Picked from your phone\'s settings';
+
+  @override
+  String get countryUzbekistan => 'Uzbekistan';
+
+  @override
+  String get countryKyrgyzstan => 'Kyrgyzstan';
+
+  @override
+  String get countryUzCaption => '+998 · sum';
+
+  @override
+  String get countryKgCaption => '+996 · som';
+
+  @override
+  String get countryLabel => 'Country';
+
+  @override
+  String get countrySheetTitle => 'Choose a country';
+
+  @override
+  String get ajBishkek => 'Bishkek';
+
+  @override
+  String get leadKgConsent =>
+      'I agree that my personal data (name, phone, answers) is sent to Hanguk Consulting for the consultation and stored on a server in the Republic of Korea.';
+
+  @override
+  String get fdReportFillFirst => 'Fill in the test first.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      'Admission and visa chances are worked out from your answers: age, certificate, language level, bank.';
+
+  @override
+  String get fdReportFillFirstCta => 'Fill in the test';
 }

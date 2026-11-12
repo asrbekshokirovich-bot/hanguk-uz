@@ -2613,6 +2613,10 @@ class AppLocalizationsUz extends AppLocalizations {
       'Qo‘ng‘iroqqa ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.';
 
   @override
+  String get interviewErrorServiceDown =>
+      'Ovozli suhbat xizmati hozir ishlamayapti. Birozdan keyin qayta urinib ko‘ring.';
+
+  @override
   String get onbResultRouteLanguageCourse => 'Til kursi';
 
   @override
@@ -5750,4 +5754,52 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get vzAnswersCleared => 'Javoblar tozalandi';
+
+  @override
+  String get countryScreenTitle => 'Mamlakatni tanlang';
+
+  @override
+  String get countryScreenTitleAccent => 'tanlang';
+
+  @override
+  String get countryScreenSubtitle =>
+      'Telefon kodi, narxlar va viza qoidalari shunga qarab ko\'rsatiladi';
+
+  @override
+  String get countryScreenGuessHint => 'Telefon sozlamasiga qarab belgilandi';
+
+  @override
+  String get countryUzbekistan => 'O‘zbekiston';
+
+  @override
+  String get countryKyrgyzstan => 'Qirg‘iziston';
+
+  @override
+  String get countryUzCaption => '+998 · so\'m';
+
+  @override
+  String get countryKgCaption => '+996 · som';
+
+  @override
+  String get countryLabel => 'Mamlakat';
+
+  @override
+  String get countrySheetTitle => 'Mamlakatni tanlang';
+
+  @override
+  String get ajBishkek => 'Bishkek';
+
+  @override
+  String get leadKgConsent =>
+      'Shaxsiy ma\'lumotlarim (ism, telefon, javoblar) maslahat uchun Hanguk Consulting\'ga yuborilishi va Koreya Respublikasidagi serverda saqlanishiga roziman.';
+
+  @override
+  String get fdReportFillFirst => 'Avval testni to\'ldiring.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      'Kirish va viza foizlari javoblaringizdan hisoblanadi: yosh, attestat, til darajasi, bank.';
+
+  @override
+  String get fdReportFillFirstCta => 'Testni to\'ldirish';
 }

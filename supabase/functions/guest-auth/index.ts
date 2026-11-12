@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { serviceKey } from "../_shared/keys.ts";
+import { ipLimiter } from "../_shared/rate-limiter.ts";
+import { type GuestDb, type GuestLead, handleGuestAuth, type PasswordCheck } from "./logic.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,6 +16,15 @@ const corsHeaders = {
 // plaintext `password` column — to anyone with the anon key. This function
 // moves that logic server-side (service role) so the `leads` table can be
 // locked to staff only.
+//
+// The rules are in logic.ts; this file is the database behind them.
+
+/** The function or table the migration adds is not there yet. */
+const notMigrated = (error: { code?: string } | null) =>
+  !!error && ['PGRST202', 'PGRST205', '42883', '42P01'].includes(error.code ?? '');
+
+const LEAD_COLUMNS = 'id, full_name, email, password, login_count, login_history';
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -26,11 +37,17 @@ Deno.serve(async (req) => {
     });
 
   try {
-    const { action, email, password, fullName } = await req.json();
+    const input = await req.json();
 
-    const normalizedEmail = (email ?? '').trim().toLowerCase();
-    if (!normalizedEmail || !password) {
-      return json({ success: false, code: 'MISSING_FIELDS', message: 'Email and password are required' }, 400);
+    // Nobody signs in here: anyone can call it. A browser that hammers it is
+    // slowed down (per running instance — the per-account lock in the
+    // database is what actually stops password guessing).
+    const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
+    const allowed = input?.action === 'signup'
+      ? await ipLimiter.checkLimit(`guest-signup:${ip}`, 5, 60 * 60 * 1000)
+      : await ipLimiter.checkLimit(`guest-login:${ip}`, 30, 10 * 60 * 1000);
+    if (!allowed) {
+      return json({ success: false, code: 'TOO_MANY_ATTEMPTS', message: 'Too many attempts. Try again later.' }, 429);
     }
 
     const admin = createClient(
@@ -39,94 +56,57 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Never return the password column to the client.
-    const stripPassword = (lead: Record<string, unknown>) => {
-      const { password: _pw, ...rest } = lead;
-      return rest;
+    const db: GuestDb = {
+      async findLeadByEmail(email) {
+        const { data, error } = await admin.from('leads').select(LEAD_COLUMNS).eq('email', email).limit(1).maybeSingle();
+        if (error) throw error;
+        return (data as GuestLead | null) ?? null;
+      },
+      async insertLead({ full_name, email, now }) {
+        const { data, error } = await admin
+          .from('leads')
+          .insert({
+            full_name,
+            email,
+            created_at: now,
+            updated_at: now,
+            login_count: 1,
+            login_history: [now],
+            source: 'Public Registration',
+            status: 'new',
+          })
+          .select('id, full_name, email')
+          .single();
+        if (error) throw error;
+        return data as GuestLead;
+      },
+      async setPassword(leadId, password) {
+        const { error } = await admin.rpc('fn_guest_set_password', { p_lead_id: leadId, p_password: password });
+        if (notMigrated(error)) return 'missing';
+        if (error) throw error;
+        return 'ok';
+      },
+      async checkPassword(leadId, password): Promise<PasswordCheck> {
+        const { data, error } = await admin.rpc('fn_guest_check_password', { p_lead_id: leadId, p_password: password });
+        if (notMigrated(error)) return 'missing';
+        if (error) throw error;
+        return (['ok', 'wrong', 'locked', 'none'].includes(data as string) ? data : 'wrong') as PasswordCheck;
+      },
+      async setLegacyPassword(leadId, password) {
+        const { error } = await admin.from('leads').update({ password }).eq('id', leadId);
+        if (error) throw error;
+      },
+      async recordLogin(leadId, count, history, now) {
+        const { error } = await admin
+          .from('leads')
+          .update({ login_count: count, login_history: history, updated_at: now })
+          .eq('id', leadId);
+        if (error) console.error('Login stats update error (non-fatal):', error);
+      },
     };
 
-    if (action === 'signup') {
-      if (!fullName?.trim()) {
-        return json({ success: false, code: 'MISSING_NAME', message: 'Full name is required' }, 400);
-      }
-
-      const { data: existing, error: checkError } = await admin
-        .from('leads')
-        .select('id')
-        .eq('email', normalizedEmail)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('Signup duplicate-check error:', checkError);
-        return json({ success: false, code: 'SERVER_ERROR', message: 'Failed to register' }, 500);
-      }
-
-      if (existing) {
-        return json({ success: false, code: 'EMAIL_EXISTS', message: "Bu email allaqachon ro'yxatdan o'tgan." });
-      }
-
-      const now = new Date().toISOString();
-      const { data: created, error: insertError } = await admin
-        .from('leads')
-        .insert({
-          full_name: fullName,
-          email: normalizedEmail,
-          password,
-          created_at: now,
-          updated_at: now,
-          login_count: 1,
-          login_history: [now],
-          source: 'Public Registration',
-          status: 'new',
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Signup insert error:', insertError);
-        return json({ success: false, code: 'SERVER_ERROR', message: 'Failed to register' }, 500);
-      }
-
-      return json({ success: true, lead: stripPassword(created) });
-    }
-
-    // Default action: login
-    const { data: lead, error: lookupError } = await admin
-      .from('leads')
-      .select('*')
-      .eq('email', normalizedEmail)
-      .maybeSingle();
-
-    if (lookupError) {
-      console.error('Login lookup error:', lookupError);
-      return json({ success: false, code: 'SERVER_ERROR', message: 'Failed to sign in' }, 500);
-    }
-
-    if (!lead) {
-      return json({ success: false, code: 'EMAIL_NOT_FOUND', message: 'Email not found' });
-    }
-
-    if ((lead as Record<string, unknown>).password !== password) {
-      return json({ success: false, code: 'INVALID_PASSWORD', message: 'Invalid email or password' });
-    }
-
-    const now = new Date().toISOString();
-    const loginCount = ((lead as Record<string, number>).login_count || 0) + 1;
-    const loginHistory = [now, ...(((lead as Record<string, string[]>).login_history) || [])].slice(0, 20);
-
-    const { error: updateError } = await admin
-      .from('leads')
-      .update({ login_count: loginCount, login_history: loginHistory, updated_at: now })
-      .eq('id', (lead as Record<string, string>).id);
-
-    if (updateError) {
-      console.error('Login stats update error (non-fatal):', updateError);
-    }
-
-    return json({
-      success: true,
-      lead: stripPassword({ ...lead, login_count: loginCount, login_history: loginHistory }),
-    });
+    const reply = await handleGuestAuth(db, input ?? {}, new Date().toISOString());
+    return json(reply.body, reply.status);
   } catch (error) {
     console.error('Unexpected guest-auth error:', error);
     return json({ success: false, code: 'SERVER_ERROR', message: 'Internal server error' }, 500);

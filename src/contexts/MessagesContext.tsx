@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import { useAuth } from '@/contexts/AuthContext';
 import { isHiddenMessage } from '@/components/crm/messages/hiddenMessages';
 
@@ -270,15 +271,40 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
    * previously this was two unbounded queries (all threads + ALL messages).
    */
   const fetchThreads = useCallback(async () => {
-    const { data, error } = await (supabase.rpc as any)('get_thread_previews');
+    // In pages: the API answers at most 1000 rows and does not say when it
+    // stopped there — with 1111 conversations the 111 oldest were simply not
+    // in the inbox (2026-11-11). Newest first; the first page is shown as soon
+    // as it arrives, older conversations join it.
+    const { error } = await fetchAllRows<any>(
+      (from, to) =>
+        (supabase.rpc as any)('get_thread_previews')
+          .order('last_message_at', { ascending: false })
+          .order('id', { ascending: true })
+          .range(from, to),
+      {
+        onPage: (rows, index) => {
+          const page = rows.map(rowToThread);
+          if (index === 0) {
+            setThreads(page);
+            setLoading(false);
+          } else if (page.length > 0) {
+            // Realtime may have touched the list since the first page: add
+            // only what is not there yet.
+            setThreads((prev) => {
+              const known = new Set(prev.map((t) => t.id));
+              const older = page.filter((t) => !known.has(t.id));
+              return older.length ? sortThreads([...prev, ...older]) : prev;
+            });
+          }
+        },
+      },
+    );
     if (error) {
       // An inbox that failed to load and an inbox with nothing in it look
       // identical on screen. This error was read by nothing at all; at minimum
       // it belongs in the console so "where are my conversations" has an
       // answer.
       console.error('get_thread_previews failed', error);
-    } else if (data) {
-      setThreads((data as any[]).map(rowToThread));
     }
     setLoading(false);
   }, []);

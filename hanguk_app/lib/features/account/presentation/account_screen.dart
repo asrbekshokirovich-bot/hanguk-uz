@@ -16,8 +16,11 @@ import '../../../core/config/app_config.dart';
 import '../../../design_system/seoul_night/seoul_night.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/data/auth_repository.dart';
+import '../../../core/country/app_country.dart';
 import '../../entry/data/entry_store.dart';
+import '../../entry/presentation/country_sheet.dart';
 import '../../entry/presentation/language_sheet.dart';
+import '../../entry/presentation/widgets/country_cards.dart';
 import '../../training/presentation/study_plan_screen.dart';
 import '../../../features/discover/presentation/widgets/app_nav.dart';
 
@@ -191,8 +194,12 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   }
 
   Future<void> _openLegal(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
+    final parsed = Uri.tryParse(url);
+    if (parsed == null) return;
+    // The page opens in the app's language (KG8: the site has no Kyrgyz,
+    // its privacy page reads ?lang=).
+    final lang = ref.read(entryProvider).languageCode;
+    final uri = lang == null ? parsed : parsed.replace(queryParameters: {...parsed.queryParameters, 'lang': lang});
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
@@ -334,6 +341,21 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                         Localizations.localeOf(context).languageCode] ??
                     l10n.entryLanguageLabel,
                 onPressed: tracked('account.entry_language_label', () => showLanguageSheet(context, ref)),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // The country chosen after the language (plan KG2): phone code,
+            // currency, contacts.
+            _AccountCard(
+              glyph: '나',
+              title: l10n.countryLabel,
+              ko: '나라',
+              child: SeoulOutlineButton(
+                icon: Icons.location_on_outlined,
+                label: countryName(l10n, ref.watch(entryProvider).country ?? AppCountry.uz),
+                onPressed: tracked('account.country', () => showCountrySheet(context, ref)),
               ),
             ),
 

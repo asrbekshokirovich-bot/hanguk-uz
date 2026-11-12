@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/analytics/tracked.dart';
+import '../../data/answer_review.dart';
 import '../../data/interview_repository.dart';
 import '../../../../design_system/seoul_night/seoul_night.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -333,7 +334,7 @@ class _InterviewAnalyticsViewState
     Map<String, String> byId,
   ) {
     final score = entry['score'];
-    final answer = byId[entry['message_id']?.toString()];
+    final answer = reviewedAnswer(entry, byId);
     final strengths = (entry['strengths'] as List<dynamic>?) ?? const [];
     final suggestions = (entry['suggestions'] as List<dynamic>?) ?? const [];
     final idealHint = entry['ideal_hint']?.toString();
@@ -374,7 +375,7 @@ class _InterviewAnalyticsViewState
                 ),
             ],
           ),
-          if (answer != null && answer.trim().isNotEmpty) ...[
+          if (answer != null) ...[
             const SizedBox(height: 8),
             Text(
               answer,
@@ -567,24 +568,31 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
   }
 
   Future<void> _fetchAudioUrl() async {
-    final url = await ref
-        .read(interviewProvider.notifier)
-        .fetchRecordingUrl(widget.callId);
-    if (!mounted) return;
-
-    if (url != null) {
-      setState(() {
-        _recordingUrl = url;
-        _isLoading = false;
-      });
-      await _audioPlayer.setSourceUrl(url);
-    } else {
-      setState(() {
-        // Sentinel — translated at render time in build().
-        _error = 'audio_recording_not_found';
-        _isLoading = false;
-      });
+    // Nothing here may throw past this method: it is started from initState
+    // and never awaited, so an error becomes a fatal one for the whole app
+    // (StateError and TimeoutException from setSourceUrl, build 2106). A
+    // recording that cannot be loaded is the «not found» state.
+    try {
+      final url = await ref.read(interviewProvider.notifier).fetchRecordingUrl(widget.callId);
+      if (!mounted) return;
+      if (url != null) {
+        setState(() {
+          _recordingUrl = url;
+          _isLoading = false;
+        });
+        await _audioPlayer.setSourceUrl(url);
+        return;
+      }
+    } catch (e) {
+      debugPrint('interview recording: $e');
     }
+    if (!mounted) return;
+    setState(() {
+      // Sentinel — translated at render time in build().
+      _recordingUrl = null;
+      _error = 'audio_recording_not_found';
+      _isLoading = false;
+    });
   }
 
   @override

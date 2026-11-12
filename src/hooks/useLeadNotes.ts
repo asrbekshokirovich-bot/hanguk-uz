@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchProfileNames } from '@/lib/profileNames';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -78,16 +79,10 @@ export const useLeadNotes = (leadId: string | null) => {
 
       if (error) throw error;
 
-      // Fetch author names
-      const notesWithAuthors = await Promise.all(
-        (data || []).map(async (note) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', note.created_by)
-            .maybeSingle();
-          return { ...note, author: profile } as LeadNote;
-        })
+      // The authors' names, in one request (it was one per note).
+      const names = await fetchProfileNames((data || []).map((note) => note.created_by));
+      const notesWithAuthors = (data || []).map(
+        (note) => ({ ...note, author: names.get(note.created_by) ?? null }) as LeadNote,
       );
 
       setNotes(notesWithAuthors);

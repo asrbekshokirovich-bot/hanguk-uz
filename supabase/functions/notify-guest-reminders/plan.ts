@@ -3,7 +3,7 @@
 // phone, at most two in 7 days, nothing 22:00–08:00 Tashkent. Several
 // universities due the same day go as one message.
 
-export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
+export type Lang = "uz" | "ru" | "en" | "ko" | "vi" | "ky";
 export type Kind = "deadline_7" | "deadline_3" | "deadline_1" | "guideline_new";
 export type Mode = "off" | "test" | "all";
 
@@ -58,7 +58,7 @@ export function isQuiet(now: Date): boolean {
 
 export function normalizeLang(raw: string | null | undefined): Lang {
   const l = (raw ?? "").toLowerCase().slice(0, 2);
-  return (["uz", "ru", "en", "ko", "vi"] as const).includes(l as Lang) ? (l as Lang) : "uz";
+  return (["uz", "ru", "en", "ko", "vi", "ky"] as const).includes(l as Lang) ? (l as Lang) : "uz";
 }
 
 export function parseMode(raw: string | undefined | null): Mode {

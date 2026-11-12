@@ -112,9 +112,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInGuest = async (email: string, password: string) => {
     try {
-      // Guest credentials are validated server-side (service role) so the
-      // `leads` table — which stores plaintext passwords — is never exposed to
-      // the anon key. See supabase/functions/guest-auth.
+      // Guest credentials are checked server-side (supabase/functions/guest-auth)
+      // against a hash only server code can read; the reply names the guest
+      // (id, name, email) and carries nothing else from the leads table.
       const { data, error } = await supabase.functions.invoke('guest-auth', {
         body: { action: 'login', email, password },
       });
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!data?.success) {
-        // data.code is one of EMAIL_NOT_FOUND | INVALID_PASSWORD | SERVER_ERROR
+        // data.code: EMAIL_NOT_FOUND | INVALID_PASSWORD | TOO_MANY_ATTEMPTS | SERVER_ERROR
         return { error: new Error(data?.code || 'INVALID_CREDENTIALS') };
       }
 

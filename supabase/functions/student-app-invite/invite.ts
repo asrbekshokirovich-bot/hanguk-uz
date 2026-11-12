@@ -1,7 +1,7 @@
 // The invite's text and the choice of channel, without the network
 // (invite_test.ts). Ushlab qolish rejasi P13.
 
-export type Lang = "uz" | "ru" | "en" | "ko" | "vi";
+export type Lang = "uz" | "ru" | "en" | "ko" | "vi" | "ky";
 
 export interface Target {
   student_id: string;
@@ -22,7 +22,7 @@ export const AUTO_CONTRACT_DAYS = 14;
 
 export function normalizeLang(raw: string | null | undefined): Lang {
   const l = (raw ?? "").toLowerCase().slice(0, 2);
-  return (["uz", "ru", "en", "ko", "vi"] as const).includes(l as Lang) ? (l as Lang) : "uz";
+  return (["uz", "ru", "en", "ko", "vi", "ky"] as const).includes(l as Lang) ? (l as Lang) : "uz";
 }
 
 /** The link: hanguk.uz/l/<code> ties the phone to the lead (src/lib/appLink.ts); else Google Play. */
@@ -44,6 +44,17 @@ export function decide(t: Target, now: Date, auto: boolean): Decision {
     if (!Number.isFinite(c) || now.getTime() - c > AUTO_CONTRACT_DAYS * 86_400_000) return { skip: "old_contract" };
   }
   return { channel: t.telegram_id && t.account_label ? "telegram" : "task" };
+}
+
+/**
+ * Who a CRM task is filed under. tasks.created_by is NOT NULL, and the daily
+ * run has no signed-in user: until 2026-11-11 every automatic task failed on
+ * that (23 of 23, «null value in column "created_by"»). A person who pressed
+ * the button is the creator; the daily run files it under the student's
+ * consultant, or — with none — under the owner. null: nobody to file it under.
+ */
+export function taskCreator(caller: string | null, consultant: string | null, owner: string | null): string | null {
+  return caller ?? consultant ?? owner ?? null;
 }
 
 function first(name: string | null): string {
@@ -81,6 +92,12 @@ export function telegramText(t: Target, iosUrl: string | null): string {
         `Xin chào${n ? ` ${n}` : ""}! Ứng dụng Hanguk cho bạn xem hồ sơ, giấy tờ và hạn của các trường.`,
         `Cài đặt: ${link}${ios ? `\niPhone: ${ios}` : ""}`,
         `Mã đăng nhập: ${code}`,
+      ].join("\n\n");
+    case "ky":
+      return [
+        `Саламатсызбы${n ? `, ${n}` : ""}! Hanguk тиркемесинде арызыңызды, документтериңизди жана университеттердин мөөнөттөрүн көрөсүз.`,
+        `Орнотуңуз: ${link}${ios ? `\niPhone: ${ios}` : ""}`,
+        `Кирүү коду: ${code}`,
       ].join("\n\n");
     default:
       return [

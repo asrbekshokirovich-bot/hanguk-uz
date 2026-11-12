@@ -64,12 +64,16 @@ class QuizRepository {
     }
   }
 
-  /// S04: name, phone (`+998…`), the answers and the computed result.
+  /// S04: name, phone (`+998…` / `+996…`), the answers and the computed
+  /// result. [country] is sent only when it is not Uzbekistan, the server's
+  /// default (plan KG3), so a build that knows Kyrgyzstan still works with a
+  /// server that does not.
   Future<QuizSubmitResult> submit({
     required String phoneE164,
     required String name,
     required Map<String, dynamic> answers,
     required Map<String, dynamic> result,
+    String country = 'UZ',
   }) async {
     try {
       final data = await _client.rpc(
@@ -79,6 +83,7 @@ class QuizRepository {
           'p_name': name,
           'p_answers': answers,
           'p_result': result,
+          if (country != 'UZ') 'p_country': country,
         },
       );
       return parseQuizSubmitResponse(data);

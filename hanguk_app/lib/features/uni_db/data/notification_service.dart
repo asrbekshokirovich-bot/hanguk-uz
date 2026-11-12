@@ -36,6 +36,7 @@ const Map<String, ({String alerts, String general})> _channelNames = {
   'en': (alerts: 'Hanguk alerts', general: 'Hanguk notifications'),
   'ko': (alerts: 'Hanguk 실시간 알림', general: 'Hanguk 알림'),
   'ru': (alerts: 'Оповещения Hanguk', general: 'Уведомления Hanguk'),
+  'ky': (alerts: 'Hanguk эскертүүлөрү', general: 'Hanguk билдирмелери'),
 };
 
 ({String alerts, String general}) get _channelNamesForApp =>

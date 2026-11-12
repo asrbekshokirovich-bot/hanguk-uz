@@ -137,6 +137,37 @@ export const phoneDigits = (phone: string) => phone.replace(/\D/g, '');
 export const UZ_PREFIX = '+998';
 
 /**
+ * A Kyrgyz number (plan KG3, 2026-11-11): typed with its "+996", or stored
+ * whole (996 + 9 digits). Such a number keeps +996; everything else is Uzbek.
+ */
+export const KG_PREFIX = '+996';
+
+export const isKgPhone = (phone: string | null | undefined): boolean => {
+  const value = (phone ?? '').trim();
+  if (value.startsWith(KG_PREFIX)) return true;
+  const digits = phoneDigits(value);
+  return digits.length === 12 && digits.startsWith('996');
+};
+
+/**
+ * A lead from Kyrgyzstan (QA audit 2026-11-11): the server tags it
+ * `country = 'KG'` (the app form and the +996 trigger); a +996 number that has
+ * not been saved since still counts.
+ */
+export const isKgLead = (lead: { country?: string | null; phone?: string | null }): boolean =>
+  lead.country === 'KG' || isKgPhone(lead.phone);
+
+/** The 9 digits after +996, at most 9. */
+export const kgLocalDigits = (phone: string | null | undefined): string => {
+  const digits = phoneDigits((phone ?? '').trim());
+  return (digits.startsWith('996') ? digits.slice(3) : digits).slice(0, MIN_PHONE_DIGITS);
+};
+
+/** The local digits of the number in the field, Kyrgyz or Uzbek. */
+export const localDigits = (phone: string | null | undefined): string =>
+  isKgPhone(phone) ? kgLocalDigits(phone) : uzLocalDigits(phone);
+
+/**
  * The local part (operator code + number) of an Uzbek number, at most 9 digits.
  * A leading 998 is the country code only when more than 9 digits were given —
  * "998 90 ..." pasted whole — so a 9-digit local number is never cut.
@@ -156,6 +187,14 @@ export const uzLocalDigits = (phone: string | null | undefined): string => {
  * without the country code; the field now always shows and keeps +998.
  */
 export const formatPhoneInput = (value: string): string => {
+  // "+", "+9", "+99" while typing a country code by hand: kept, so "+996" can
+  // be reached; "+996 …" is a Kyrgyz number, spaced 700 123 456.
+  if (/^\+9{0,2}$/.test(value.trim())) return value.trim();
+  if (isKgPhone(value)) {
+    const kg = kgLocalDigits(value);
+    const groups = [kg.slice(0, 3), kg.slice(3, 6), kg.slice(6, 9)].filter(Boolean);
+    return groups.length ? `${KG_PREFIX} ${groups.join(' ')}` : KG_PREFIX;
+  }
   const local = uzLocalDigits(value);
   if (!local) return '';
   const parts = [local.slice(0, 2), local.slice(2, 5), local.slice(5, 7), local.slice(7, 9)].filter(Boolean);
@@ -169,11 +208,19 @@ export const phoneForInput = (stored: string | null | undefined): string => {
   const numbers = phoneNumbersOf(raw);
   const digits = numbers[0] ?? '';
   const isUz = numbers.length === 1 && (digits.length === 9 || (digits.length === 12 && digits.startsWith('998')));
-  return isUz ? formatPhoneInput(raw) : raw;
+  const isKg = numbers.length === 1 && digits.length === 12 && digits.startsWith('996');
+  return isUz || isKg ? formatPhoneInput(raw) : raw;
 };
 
 /** Saved as "+998XXXXXXXXX" — the canonical form the rest of the system matches on. */
 export const phoneForSave = (value: string): string | undefined => {
+  // A Kyrgyz number keeps +996 — it was cut to "+998 99 6…" before (plan KG3).
+  if (isKgPhone(value)) {
+    const kg = kgLocalDigits(value);
+    if (kg.length === MIN_PHONE_DIGITS) return `${KG_PREFIX}${kg}`;
+    const trimmed = value.trim();
+    return trimmed === KG_PREFIX ? undefined : trimmed;
+  }
   const local = uzLocalDigits(value);
   if (local.length === MIN_PHONE_DIGITS) return `${UZ_PREFIX}${local}`;
   const trimmed = value.trim();
@@ -191,7 +238,7 @@ export const validateIntake = (form: IntakeForm): IntakeErrors => {
   const errors: IntakeErrors = {};
   if (!form.firstName.trim()) errors.firstName = true;
   if (!form.lastName.trim()) errors.lastName = true;
-  if (uzLocalDigits(form.phone).length !== MIN_PHONE_DIGITS) errors.phone = true;
+  if (localDigits(form.phone).length !== MIN_PHONE_DIGITS) errors.phone = true;
 
   const age = Number.parseInt(form.age, 10);
   if (!(Number.isFinite(age) && age >= MIN_AGE && age <= MAX_AGE)) errors.age = true;

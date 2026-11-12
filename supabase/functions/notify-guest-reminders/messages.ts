@@ -7,7 +7,7 @@ export interface Text {
   body: string;
 }
 
-const AND: Record<Lang, string> = { uz: "va", ru: "и", en: "and", ko: "및", vi: "và" };
+const AND: Record<Lang, string> = { uz: "va", ru: "и", en: "and", ko: "및", vi: "và", ky: "жана" };
 
 export function list(names: string[], lang: Lang): string {
   const n = names.filter((x) => x.trim() !== "");
@@ -41,6 +41,11 @@ function deadline(days: number, lang: Lang, names: string): Text {
         title: last ? "Ngày mai hết hạn nộp hồ sơ trực tuyến ⏰" : `Còn ${days} ngày để nộp hồ sơ trực tuyến ⏰`,
         body: `${names}: hạn nộp hồ sơ trực tuyến kết thúc ${last ? "vào ngày mai" : `sau ${days} ngày`}. Xem các bước và danh sách giấy tờ trong ứng dụng.`,
       };
+    case "ky":
+      return {
+        title: last ? "Онлайн арыз берүү эртең бүтөт ⏰" : `Онлайн арызга ${days} күн калды ⏰`,
+        body: `${names}: онлайн арыз берүү мөөнөтү ${last ? "эртең" : `${days} күндөн кийин`} бүтөт. Баскычтарды жана документтердин тизмесин тиркемеден көрүңүз.`,
+      };
     default:
       return {
         title: last ? "Ertaga onlayn ariza muddati tugaydi ⏰" : `Onlayn arizaga ${days} kun qoldi ⏰`,
@@ -59,6 +64,8 @@ function guidelineNew(lang: Lang, names: string): Text {
       return { title: "새 모집요강 📄", body: `${names}: 새 학기 모집요강이 나왔습니다. 앱에서 일정을 확인하세요.` };
     case "vi":
       return { title: "Có hướng dẫn tuyển sinh mới 📄", body: `${names}: đã có hướng dẫn tuyển sinh kỳ mới. Xem lịch trong ứng dụng.` };
+    case "ky":
+      return { title: "Жаңы кабыл алуу көрсөтмөсү 📄", body: `${names}: жаңы семестрдин кабыл алуу көрсөтмөсү чыкты. Даталарды тиркемеден көрүңүз.` };
     default:
       return { title: "Yangi qabul yo'riqnomasi 📄", body: `${names}: yangi semestr qabul yo'riqnomasi chiqdi. Sanalarni ilovada ko'ring.` };
   }
@@ -93,7 +100,7 @@ export function telegramHtml(t: Text): string {
   return `<b>${esc(t.title)}</b>\n\n${esc(t.body)}`;
 }
 
-const STOP: Record<Lang, string> = { uz: "To'xtatish", ru: "Отключить", en: "Stop", ko: "중지", vi: "Dừng" };
+const STOP: Record<Lang, string> = { uz: "To'xtatish", ru: "Отключить", en: "Stop", ko: "중지", vi: "Dừng", ky: "Токтотуу" };
 export function stopLabel(lang: Lang): string {
   return STOP[lang];
 }

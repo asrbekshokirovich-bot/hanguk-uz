@@ -99,7 +99,7 @@ async function takeWebQuota(ctx: ToolCtx): Promise<boolean> {
 export const WEB_FETCH: AgentTool = {
   name: "web_fetch",
   description:
-    "Open one web page and read its text — for checking a rule or date on an official site (university admissions page, Study in Korea, HiKorea, the Korean embassy in Tashkent, TOPIK). Students can open official sites only. The result says official=true/false; say in the answer which site the fact came from and the date you read it.",
+    "Open one web page and read its text — for checking a rule or date on an official site (university admissions page, Study in Korea, HiKorea, the Korean embassy in Tashkent or Bishkek, TOPIK). Students can open official sites only. The result says official=true/false; say in the answer which site the fact came from and the date you read it.",
   parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
   audiences: ["staff", "student"],
   run: async (ctx, a) => {

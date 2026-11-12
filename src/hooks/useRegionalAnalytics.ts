@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 // Uzbekistan regions with standardized names for mapping
 export const UZBEKISTAN_REGIONS = [
@@ -84,7 +85,13 @@ export function useRegionalAnalytics() {
       // Leads and students are scoped to the active intake so the map matches
       // the rest of the CRM.
       const [leadsRes, profilesRes, membersRes] = await Promise.all([
-        applyIntake(supabase.from('leads').select('id, city').eq('qualified', true), activeIntakeId),
+        // In pages: the season had 1065 leads on 2026-11-12 and one request
+        // returns at most 1000 — the map was counting 65 people too few.
+        fetchAllRows<{ id: string; city: string | null }>((from, to) =>
+          applyIntake(supabase.from('leads').select('id, city').eq('qualified', true), activeIntakeId)
+            .order('id')
+            .range(from, to),
+        ),
         supabase.from('profiles').select('user_id, city, office_location'),
         applyIntake(supabase.from('student_intakes').select('student_id'), activeIntakeId),
       ]);

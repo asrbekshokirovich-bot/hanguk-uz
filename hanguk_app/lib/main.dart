@@ -13,6 +13,7 @@ import 'core/analytics/identity_links.dart';
 import 'core/analytics/tracked.dart';
 import 'core/auth/refresh_backoff.dart';
 import 'core/config/app_config.dart';
+import 'core/country/app_country.dart';
 import 'core/money/fx_rates.dart';
 import 'core/push/guest_push.dart';
 import 'core/router/app_router.dart';
@@ -62,8 +63,11 @@ Future<void> main() async {
   EntryStore.initial = await EntryStore.load();
 
   // Yesterday's bank rates for fees in won, before the first frame; today's
-  // are asked for once the app is up (FxRates).
+  // are asked for once the app is up (FxRates). Set up for Kyrgyzstan: the
+  // Kyrgyz bank's too (plan KG4).
   await FxRates.loadSaved();
+  FxRates.country = EntryStore.initial.country?.code ?? 'UZ';
+  if (FxRates.country == 'KG') await KgsRates.loadSaved();
 
   // Show a splash while Supabase initializes — prevents ANR on slow emulators
   runApp(const _SplashApp());
@@ -83,6 +87,7 @@ Future<void> main() async {
 
   // Usage events (what is opened and pressed; see AppEvents).
   AppEvents.setLanguage(EntryStore.initial.languageCode);
+  AppEvents.setCountry(EntryStore.initial.country?.code);
   await AppEvents.start();
   AppEvents.installErrorHooks();
   AppEvents.track('app_open', props: {'signed_in': _signedIn(), 'cold': true});
@@ -120,6 +125,7 @@ Future<void> main() async {
   );
   WidgetsBinding.instance.addPostFrameCallback((_) => AppEvents.ready());
   unawaited(FxRates.refreshAndRebuild());
+  if (FxRates.country == 'KG') unawaited(KgsRates.refreshAndRebuild());
 }
 
 /// Lightweight splash shown while Supabase initialises (prevents ANR).
@@ -157,6 +163,12 @@ class HangukApp extends ConsumerWidget {
         );
     // A guest who allowed pushes keeps a current token in the app's language.
     unawaited(GuestPush.refresh(locale?.languageCode));
+    // Switched to Kyrgyzstan: the Kyrgyz bank's rates for fees in som (KG4).
+    ref.listen(entryProvider.select((s) => s.country), (previous, next) {
+      if (next == AppCountry.kg && previous != next) {
+        unawaited(KgsRates.loadSaved().then((_) => KgsRates.refreshAndRebuild()));
+      }
+    });
     unawaited(ReviewPrompt.noteStart());
 
     return MaterialApp.router(

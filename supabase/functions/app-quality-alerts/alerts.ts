@@ -3,7 +3,7 @@
 
 export interface Alert {
   id?: number;
-  kind: "version_zero" | "daily_volume";
+  kind: "version_zero" | "daily_volume" | "voice_down";
   key: string;
   day: string;
   detail: Record<string, unknown>;
@@ -33,6 +33,23 @@ export function alertText(a: Alert, describe: (event: string) => string | undefi
       ``,
       `Oldingi ${d.old_build}-build: ${num(d.old_devices)} qurilmadan ${num(d.old_event_devices)} tasida bor edi.`,
       `Yangi build: ${num(d.new_devices)} qurilma, shu nisbatda taxminan ${num(d.expected)} ta kutilgan edi — 0 keldi.`,
+      ``,
+      `Tekshirish: CRM → Ilova analitikasi → Sifat`,
+      link,
+    ].join("\n");
+  }
+  if (a.kind === "voice_down") {
+    // The provider's own words when it refused the call (builds from 2108);
+    // older builds only say that the call did not start.
+    const reason = String(d.reason ?? "").trim();
+    const status = d.status == null || d.status === "" ? "" : `, ${d.status}`;
+    return [
+      `🔴 Ilova: ovozli suhbat boshlanmayapti.`,
+      ``,
+      `Oxirgi ${num(d.hours)} soatda ${num(d.fails)} ta urinish xato bilan tugadi (${num(d.devices)} ta qurilma), shundan beri birortasi ham ulanmadi.`,
+      reason
+        ? `Sabab (xizmat javobi${status}): ${reason}`
+        : `Sababi ilovadan kelmadi (eski build). Avval Vapi kabinetida balans va xizmat holatini tekshiring.`,
       ``,
       `Tekshirish: CRM → Ilova analitikasi → Sifat`,
       link,

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { serviceKey, publishableKey } from "../_shared/keys.ts";
+import { feedbackTokenBudget, groupTurns, normalizeMessageScores, parseFeedback, transcriptOf } from "./turns.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -124,18 +125,28 @@ IMPORTANT: Evaluate if the student demonstrated knowledge about this specific un
       }
     }
 
-    // Build transcript for analysis with message IDs
-    const transcript = messages.map(m => 
-      `[${m.id}] ${m.role === "interviewer" ? "면접관" : "학생"}: ${m.content}`
-    ).join("\n\n");
+    // The transcript, one line per thing said. interview_messages has a row
+    // for every piece the speech-to-text returned, so one answer is many rows:
+    // they are joined here, and an answer is scored once (see turns.ts).
+    const turns = groupTurns(messages);
+    const answers = turns.filter((t) => t.role === "student");
+    if (answers.length === 0) {
+      // Rows, but nothing in them: the same as never having spoken.
+      return new Response(
+        JSON.stringify({ error: "Not enough conversation data for feedback" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const transcript = transcriptOf(turns);
 
-    // Get student message IDs for per-answer scoring
-    const studentMessageIds = studentTurns.map(m => m.id);
+    // The ids the per-answer review refers to: the first row of each answer.
+    const studentMessageIds = answers.map((t) => t.id);
 
     const feedbackLang = language === "uz" ? "Uzbek" : 
                          language === "ru" ? "Russian" :
                          language === "en" ? "English" :
-                         language === "vi" ? "Vietnamese" : "Korean";
+                         language === "vi" ? "Vietnamese" :
+                         language === "ky" ? "Kyrgyz" : "Korean";
 
     const systemPrompt = `You are an expert Korean university admission interview evaluator. 
 Analyze this practice interview transcript and provide detailed feedback.
@@ -186,7 +197,7 @@ SPECIFIC EVALUATION POINTS:
 - Did they explain their post-graduation plans clearly?
 
 PER-ANSWER SCORING:
-For each student response (identified by message ID), provide individual feedback.
+For each student response (identified by the ID in square brackets before it), provide individual feedback.
 Be concrete about WHAT went wrong and WHERE: name the weak part of that specific answer, and give a stronger version.
 Student message IDs to score: ${studentMessageIds.join(", ")}
 
@@ -229,19 +240,6 @@ Include message_scores for EVERY student response in the transcript.`;
       );
     }
 
-    // Extract the JSON object from a model reply, tolerating markdown fences
-    // and any stray prose around it.
-    const parseFeedback = (raw: string) => {
-      let s = (raw ?? "").trim();
-      if (!s) throw new Error("empty content");
-      // strip ```json ... ``` fences
-      s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
-      const first = s.indexOf("{");
-      const last = s.lastIndexOf("}");
-      if (first === -1 || last <= first) throw new Error("no JSON object found");
-      return JSON.parse(s.slice(first, last + 1));
-    };
-
     const callModel = async (sys: string, maxTokens: number) => {
       const res = await geminiFetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
         method: "POST",
@@ -276,7 +274,9 @@ Include message_scores for EVERY student response in the transcript.`;
       return res;
     };
 
-    let aiResponse = await callModel(systemPrompt, 8000);
+    // A long interview needs a longer reply: 8000 was enough for eight
+    // answers and cut every longer review short.
+    let aiResponse = await callModel(systemPrompt, feedbackTokenBudget(answers.length));
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
@@ -299,9 +299,19 @@ Include message_scores for EVERY student response in the transcript.`;
     let feedbackText = aiData.choices?.[0]?.message?.content || "";
     let finishReason = aiData.choices?.[0]?.finish_reason;
 
-    let feedbackData;
+    // deno-lint-ignore no-explicit-any
+    let feedbackData: any;
     try {
-      feedbackData = parseFeedback(feedbackText);
+      const parsed = parseFeedback(feedbackText);
+      feedbackData = parsed.data;
+      if (parsed.truncated) {
+        // Cut short all the same: the overall evaluation and the answers
+        // reviewed before the cut are whole, and are kept.
+        console.warn(
+          `Feedback reply cut short (finish_reason: ${finishReason}): kept ` +
+            `${Array.isArray(feedbackData.message_scores) ? feedbackData.message_scores.length : 0} of ${answers.length} answers`,
+        );
+      }
     } catch (parseError) {
       console.error(
         "Feedback parse failed (finish_reason:", finishReason, "):",
@@ -323,7 +333,7 @@ Include message_scores for EVERY student response in the transcript.`;
         feedbackText = aiData.choices?.[0]?.message?.content || "";
         finishReason = aiData.choices?.[0]?.finish_reason;
         try {
-          feedbackData = parseFeedback(feedbackText);
+          feedbackData = parseFeedback(feedbackText).data;
           feedbackData.message_scores = [];
         } catch (retryError) {
           console.error("Retry parse failed too:", retryError);
@@ -381,6 +391,11 @@ Include message_scores for EVERY student response in the transcript.`;
 
     const mean = componentScores.reduce((a, b) => a + b, 0) / componentScores.length;
     feedbackData.overall_score = Math.min(10, Math.max(1, Math.round(mean)));
+
+    // One review per answer the student gave, each with the words it is
+    // about: the app shows them under the review, and has no other way to
+    // tell which answer it belongs to.
+    feedbackData.message_scores = normalizeMessageScores(feedbackData.message_scores, answers);
 
     // Save feedback to database with message_scores
     const { data: savedFeedback, error: saveError } = await adminClient

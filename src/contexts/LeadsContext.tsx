@@ -6,11 +6,21 @@ import { applyIntake } from '@/lib/intakeQuery';
 import { edgeFunctionError } from '@/lib/edgeFunctionError';
 import { edgeFunctionStatus } from '@/lib/sessionCheck';
 import { toast } from 'sonner';
+import i18n from '@/lib/i18n';
+import { fetchAllRows } from '@/lib/fetchAllRows';
+import { applyLeadChanges, buildLeadLookups, enrichLead, LEAD_PARTIAL_REFRESH_MAX, type LeadLookups } from '@/lib/leadsSync';
+
+/** How long the names of staff and students are reused between partial re-reads. */
+const LOOKUPS_TTL_MS = 5 * 60 * 1000;
+/** A tab hidden this long re-reads the whole list when it comes back: it may have missed changes. */
+const HIDDEN_REFRESH_MS = 5 * 60 * 1000;
 
 export interface Lead {
   id: string;
   full_name: string;
   phone: string | null;
+  /** ISO country of the lead ('UZ' / 'KG'); null — Uzbekistan. */
+  country?: string | null;
   email: string | null;
   source: 'manual' | 'telegram' | 'instagram' | 'call' | 'ai_detected' | 'learning_center';
   source_id: string | null;
@@ -160,50 +170,99 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const fetchLeads = async () => {
+  // The season the list is for, readable from callbacks that outlive a render.
+  const intakeRef = useRef(activeIntakeId);
+  intakeRef.current = activeIntakeId;
+  const lookupsRef = useRef<{ at: number; value: LeadLookups } | null>(null);
+  // Every read of the list goes through this chain, one after another, so a
+  // slow answer can never land on top of a newer one.
+  const syncChainRef = useRef<Promise<void>>(Promise.resolve());
+  const fullQueuedRef = useRef<Promise<void> | null>(null);
+
+  /**
+   * The list's own filter — the whole list and a partial re-read ask under it.
+   * Only qualified rows — see leads.qualified: a phone number, a chat that
+   * arrived as a new lead (new_lead_at, from 2026-10-12), or an answer in a
+   * chat Hanguk started (replied_chat_at). Without this filter the 192
+   * Instagram handles auto-created from older chats sit in the pipeline as
+   * unworkable rows and distort every count on the page.
+   */
+  const leadsQuery = () => applyIntake(supabase.from('leads').select('*').eq('qualified', true), intakeRef.current);
+
+  const loadLookups = async (force: boolean): Promise<LeadLookups> => {
+    const cached = lookupsRef.current;
+    if (!force && cached && Date.now() - cached.at < LOOKUPS_TTL_MS) return cached.value;
+    const [students, everyone] = await Promise.all([
+      supabase.from('profiles').select('full_name, phone, magic_code').not('magic_code', 'is', null),
+      supabase.from('profiles').select('user_id, full_name'),
+    ]);
+    const value = buildLeadLookups(students.data, everyone.data);
+    // A failed read is not remembered: the next one tries again.
+    if (!students.error && !everyone.error) lookupsRef.current = { at: Date.now(), value };
+    else if (cached) return cached.value;
+    return value;
+  };
+
+  const readAllLeads = async () => {
     const isInitialLoad = !hasLoadedOnceRef.current;
+    const intakeAtStart = intakeRef.current;
     try {
       if (isInitialLoad) setLoading(true);
-      const [{ data, error }, { data: studentProfiles }, { data: allProfiles }] = await Promise.all([
-        // Only qualified rows — see leads.qualified: a phone number, a chat
-        // that arrived as a new lead (new_lead_at, from 2026-10-12), or an
-        // answer in a chat Hanguk started (replied_chat_at). Without this
-        // filter the 192 Instagram handles auto-created from older chats sit in
-        // the pipeline as unworkable rows and distort every count on the page.
-        applyIntake(supabase.from('leads').select('*').eq('qualified', true), activeIntakeId),
-        supabase.from('profiles').select('full_name, phone, magic_code').not('magic_code', 'is', null),
-        supabase.from('profiles').select('user_id, full_name'),
+      const [{ data, error }, lookups] = await Promise.all([
+        // In pages: one request returns at most 1000 rows and does not say
+        // when it stopped there (fetchAllRows). Ordered, so the pages tile.
+        fetchAllRows<Record<string, unknown>>((from, to) =>
+          leadsQuery().order('created_at', { ascending: true }).order('id', { ascending: true }).range(from, to)),
+        loadLookups(true),
       ]);
 
       if (error) throw error;
+      // The season changed while this was on its way: its own read follows.
+      if (intakeRef.current !== intakeAtStart) return;
 
-      const assigneeMap = new Map<string, { full_name: string | null }>();
-      (allProfiles || []).forEach(p => assigneeMap.set(p.user_id, { full_name: p.full_name }));
-
-      const normalizePhone = (p: string | null) => p ? p.replace(/\D/g, '').slice(-9) : '';
-      const studentNames = new Set(
-        (studentProfiles || []).map(p => (p.full_name || '').toLowerCase().trim())
-      );
-      const studentPhones = new Set(
-        (studentProfiles || []).filter(p => p.phone).map(p => normalizePhone(p.phone))
-      );
-
-      const enrichedLeads = (data || []).map(lead => ({
-        ...lead,
-        assignee: lead.assigned_to ? (assigneeMap.get(lead.assigned_to) || null) : null,
-        referrer: lead.referred_by_student_id ? (assigneeMap.get(lead.referred_by_student_id) || null) : null,
-        isAlreadyStudent:
-          studentNames.has(lead.full_name.toLowerCase().trim()) ||
-          (lead.phone ? studentPhones.has(normalizePhone(lead.phone)) : false),
-      }));
-
-      setLeads(sortLeads(enrichedLeads as Lead[]));
+      setLeads(sortLeads(data.map((lead) => enrichLead(lead as unknown as Lead, lookups)) as Lead[]));
       hasLoadedOnceRef.current = true;
     } catch (error) {
       console.error('Error fetching leads:', error);
     } finally {
       if (isInitialLoad) setLoading(false);
     }
+  };
+
+  /** Read the whole list. Calls made while one is already waiting share it. */
+  const fetchLeads = (): Promise<void> => {
+    if (fullQueuedRef.current) return fullQueuedRef.current;
+    const run = syncChainRef.current.then(() => {
+      fullQueuedRef.current = null;
+      return readAllLeads();
+    });
+    fullQueuedRef.current = run;
+    syncChainRef.current = run.catch(() => undefined);
+    return run;
+  };
+
+  /**
+   * Re-read only these leads and fold them into the list (applyLeadChanges):
+   * a few kilobytes instead of the whole list on every change.
+   */
+  const syncLeads = (ids: string[]): Promise<void> => {
+    const unique = [...new Set(ids)].filter(Boolean);
+    if (unique.length === 0) return syncChainRef.current;
+    if (unique.length > LEAD_PARTIAL_REFRESH_MAX || !hasLoadedOnceRef.current) return fetchLeads();
+    const run = syncChainRef.current.then(async () => {
+      const intakeAtStart = intakeRef.current;
+      const { data, error } = await leadsQuery().in('id', unique);
+      if (error) {
+        console.error('Error refreshing leads:', error);
+        return;
+      }
+      if (intakeRef.current !== intakeAtStart) return;
+      const lookups = await loadLookups(false);
+      const fresh = (data ?? []).map((lead) => enrichLead(lead as unknown as Lead, lookups)) as Lead[];
+      setLeads((prev) => sortLeads(applyLeadChanges(prev, unique, fresh)));
+    });
+    syncChainRef.current = run.catch(() => undefined);
+    return run;
   };
 
   fetchLeadsRef.current = fetchLeads;
@@ -222,12 +281,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Lead created successfully');
-      await fetchLeads();
+      toast.success(i18n.t('leads.toasts.created'));
+      await syncLeads([data.id]);
       return data;
     } catch (error) {
       console.error('Error creating lead:', error);
-      toast.error('Failed to create lead');
+      toast.error(i18n.t('leads.toasts.createFailed'));
       throw error;
     }
   };
@@ -274,12 +333,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Lead updated successfully');
+      toast.success(i18n.t('leads.toasts.updated'));
       // No fetchLeads() here, let the realtime listener handle it locally if possible
       // Actually wait, for 10 hooks we'll just implement the Phase 2 optimization inside the postgres_changes!
     } catch (error) {
       console.error('Error updating lead:', error);
-      toast.error('Failed to update lead');
+      toast.error(i18n.t('leads.toasts.updateFailed'));
       throw error;
     }
   };
@@ -293,18 +352,18 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Lead deleted successfully');
+      toast.success(i18n.t('leads.toasts.deleted'));
       setLeads(prev => prev.filter(l => l.id !== id));
     } catch (error) {
       console.error('Error deleting lead:', error);
-      toast.error('Failed to delete lead');
+      toast.error(i18n.t('leads.toasts.deleteFailed'));
       throw error;
     }
   };
 
   const convertToStudent = async (leadId: string): Promise<{ success: boolean; magicCode?: string }> => {
     if (convertingIds.current.has(leadId)) {
-      toast.info('Conversion already in progress...');
+      toast.info(i18n.t('leads.toasts.converting'));
       return { success: false };
     }
 
@@ -314,12 +373,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     // "already in progress".
     const lead = leads.find(l => l.id === leadId);
     if (!lead) {
-      toast.error('Lead not found');
+      toast.error(i18n.t('leads.toasts.notFound'));
       return { success: false };
     }
 
     if (lead.converted_to_student_id) {
-      toast.error('This lead has already been converted to a student');
+      toast.error(i18n.t('leads.toasts.alreadyConverted'));
       return { success: false };
     }
 
@@ -347,7 +406,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       const errorMsg = result.data?.error || (result.error as any)?.message || '';
       if (typeof errorMsg === 'string' && (errorMsg.includes('phone number already exists') || errorMsg.includes('phone number belongs'))) {
-        toast.info('Phone number already in use, creating without phone...');
+        toast.info(i18n.t('leads.toasts.phoneInUse'));
         result = await tryCreateStudent(false);
       }
 
@@ -371,12 +430,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (updateError) throw updateError;
 
-      toast.success(`Lead converted to student! Magic code: ${result.data.magicCode}`);
+      toast.success(i18n.t('leads.toasts.converted', { code: result.data.magicCode }));
       await fetchLeads();
       return { success: true, magicCode: result.data.magicCode };
     } catch (error) {
       console.error('Error converting lead:', error);
-      const message = error instanceof Error ? error.message : 'Failed to convert lead';
+      const message = error instanceof Error ? error.message : i18n.t('leads.toasts.convertFailed');
       toast.error(message);
       return { success: false };
     } finally {
@@ -392,12 +451,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.error) throw response.error;
 
-      toast.success(leadId ? 'Lead analyzed successfully' : 'All leads analyzed');
-      await fetchLeads();
+      toast.success(i18n.t(leadId ? 'leads.toasts.analyzed' : 'leads.toasts.analyzedAll'));
+      await (leadId ? syncLeads([leadId]) : fetchLeads());
       return response.data;
     } catch (error) {
       console.error('Error analyzing lead:', error);
-      toast.error('Failed to analyze lead');
+      toast.error(i18n.t('leads.toasts.analyzeFailed'));
       throw error;
     }
   };
@@ -435,13 +494,38 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
       .sort((a, b) => (b.priority_score || 0) - (a.priority_score || 0));
   }, [leads]);
 
-  // Handle phase 2 optimizations in Realtime changes (debounced local state injection)
+  const syncLeadsRef = useRef(syncLeads);
+  syncLeadsRef.current = syncLeads;
+
+  // Realtime: a change names its row; only the rows that changed are read
+  // again, a second and a half after the last change of a burst. The whole
+  // list is read on sign-in, when the channel comes back after a drop, and
+  // when the tab returns from a long time in the background — the moments a
+  // change may have been missed.
+  const userId = user?.id ?? null;
   useEffect(() => {
-    if (!user) return;
-    
+    if (!userId) return;
+
     fetchLeadsRef.current?.();
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const pendingIds = new Set<string>();
+    let pendingFull = false;
+    let subscribedBefore = false;
+    let hiddenAt: number | null = null;
+
+    const flush = () => {
+      debounceTimer = null;
+      const ids = [...pendingIds];
+      pendingIds.clear();
+      if (pendingFull) {
+        pendingFull = false;
+        fetchLeadsRef.current?.();
+      } else {
+        syncLeadsRef.current?.(ids);
+      }
+    };
+
     const channelId = `leads-realtime-global`;
     const channel = supabase
       .channel(channelId)
@@ -453,21 +537,38 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
           table: 'leads',
         },
         (payload) => {
-          // We could try to instantly update 'leads', but for safety just debounce the fetch.
-          // By being a Global Context, a debounce fetch across one Provider resolves the N+1 issue for exactly N components.
+          const id =
+            (payload.new as { id?: string } | null)?.id ?? (payload.old as { id?: string } | null)?.id ?? null;
+          if (id) pendingIds.add(id);
+          else pendingFull = true;
           if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(() => {
-            fetchLeadsRef.current?.();
-          }, 1500); // 1.5 second throttle to handle massive bulk saves cleanly
+          debounceTimer = setTimeout(flush, 1500); // one read for a burst of saves
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') return;
+        // Joined again after a drop: whatever changed meanwhile was not delivered.
+        if (subscribedBefore) fetchLeadsRef.current?.();
+        subscribedBefore = true;
+      });
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now();
+      } else if (hiddenAt !== null) {
+        const away = Date.now() - hiddenAt;
+        hiddenAt = null;
+        if (away >= HIDDEN_REFRESH_MS) fetchLeadsRef.current?.();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       if (debounceTimer) clearTimeout(debounceTimer);
+      document.removeEventListener('visibilitychange', onVisibility);
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [userId]);
 
   // Re-scope leads when the active intake changes.
   useEffect(() => {

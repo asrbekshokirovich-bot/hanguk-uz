@@ -2506,6 +2506,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '통화에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
 
   @override
+  String get interviewErrorServiceDown =>
+      '음성 면접 서비스를 지금 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
   String get onbResultRouteLanguageCourse => '어학연수';
 
   @override
@@ -5545,4 +5549,51 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get vzAnswersCleared => '답변을 초기화했어요';
+
+  @override
+  String get countryScreenTitle => '국가를 선택하세요';
+
+  @override
+  String get countryScreenTitleAccent => '선택하세요';
+
+  @override
+  String get countryScreenSubtitle => '전화 국가번호, 가격, 비자 규정이 이 국가에 맞게 표시됩니다';
+
+  @override
+  String get countryScreenGuessHint => '휴대폰 설정에 따라 선택되었습니다';
+
+  @override
+  String get countryUzbekistan => '우즈베키스탄';
+
+  @override
+  String get countryKyrgyzstan => '키르기스스탄';
+
+  @override
+  String get countryUzCaption => '+998 · 숨';
+
+  @override
+  String get countryKgCaption => '+996 · 솜';
+
+  @override
+  String get countryLabel => '국가';
+
+  @override
+  String get countrySheetTitle => '국가 선택';
+
+  @override
+  String get ajBishkek => '비슈케크';
+
+  @override
+  String get leadKgConsent =>
+      '상담을 위해 제 개인정보(이름, 전화번호, 답변)가 Hanguk Consulting에 전달되고 대한민국에 있는 서버에 저장되는 것에 동의합니다.';
+
+  @override
+  String get fdReportFillFirst => '먼저 테스트를 작성하세요.';
+
+  @override
+  String get fdReportFillFirstBody =>
+      '입학·비자 가능성은 나이, 성적, 언어 수준, 잔고 등 답변으로 계산됩니다.';
+
+  @override
+  String get fdReportFillFirstCta => '테스트 작성하기';
 }

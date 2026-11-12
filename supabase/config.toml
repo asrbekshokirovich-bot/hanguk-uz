@@ -326,3 +326,8 @@ verify_jwt = false
 # kodda yozuv egasi (interview_sessions.student_id) yoki xodim tekshiriladi.
 [functions.vapi-fetch-recording]
 verify_jwt = true
+
+# 2026-11-11: Qirg'iziston Milliy banki XML'larini veb-ilovaga CORS bilan uzatadi
+# (nbkr.kg o'zi CORS bermaydi). Ochiq ma'lumot, faqat GET — JWT kerak emas.
+[functions.fx-kgs]
+verify_jwt = false

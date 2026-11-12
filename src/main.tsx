@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { AppInitializer } from "./components/native/AppInitializer";
 import "./index.css";
+import { i18nReady } from "./lib/i18n";
 
 // After a deploy, a page opened before it still asks for the old build's
 // chunks (a CRM tab, a lazily loaded page), and those files are gone — the
@@ -23,8 +24,14 @@ window.addEventListener("vite:preloadError", (event) => {
   window.location.reload();
 });
 
-createRoot(document.getElementById("root")!).render(
-  <AppInitializer>
-    <App />
-  </AppInitializer>
-);
+// Uzbek ships with the page; another language is fetched first, so the page
+// does not flash Uzbek before turning Russian. Never wait long for it: a slow
+// or failed download must not hold the whole site back.
+const LANGUAGE_WAIT_MS = 3000;
+Promise.race([i18nReady, new Promise<void>((resolve) => setTimeout(resolve, LANGUAGE_WAIT_MS))]).finally(() => {
+  createRoot(document.getElementById("root")!).render(
+    <AppInitializer>
+      <App />
+    </AppInitializer>
+  );
+});

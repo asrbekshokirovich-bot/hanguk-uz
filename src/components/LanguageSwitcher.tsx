@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { languages, type LanguageCode } from '@/lib/i18n';
+import { languages, setLanguage, type LanguageCode } from '@/lib/i18n';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +15,7 @@ export function LanguageSwitcher() {
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const changeLanguage = (code: LanguageCode) => {
-    i18n.changeLanguage(code);
+    void setLanguage(code);
     localStorage.setItem('hanguk-language', code);
   };
 

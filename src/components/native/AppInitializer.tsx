@@ -9,6 +9,16 @@ interface AppInitializerProps {
 export function AppInitializer({ children }: AppInitializerProps) {
   const { isDespia } = usePlatform();
 
+  // The service worker used to be told to keep a day of Supabase API answers
+  // in this cache (see vite.config.ts). It no longer is; remove what it may
+  // have left behind.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('caches' in window)) return;
+    window.caches.delete('supabase-cache').catch(() => {
+      // Storage is unavailable (private mode): there is nothing to remove.
+    });
+  }, []);
+
   useEffect(() => {
     const initializeApp = async () => {
       if (isDespia) {

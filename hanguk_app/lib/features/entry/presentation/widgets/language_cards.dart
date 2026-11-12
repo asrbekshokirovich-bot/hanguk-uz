@@ -25,6 +25,7 @@ class LanguageCards extends StatelessWidget {
     'ru': 'Rus tili',
     'en': 'Ingliz tili',
     'ko': 'Koreys tili',
+    'ky': "Qirg'iz tili",
   };
 
   @override

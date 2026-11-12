@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
     const result = await generateJSON<{ track: string; confidence?: number; reason?: string }>({
       prompt:
-        "You decide which study/interview language track a Korean-university applicant in Uzbekistan is pursuing, " +
+        "You decide which study/interview language track a Korean-university applicant from Uzbekistan or Kyrgyzstan is pursuing, " +
         "based on their conversations with our agency. Return 'korean' if they study/prepare in Korean (TOPIK, 한국어), " +
         "'english' if they pursue English-taught programs (IELTS, English interview), 'both' if clearly both, or " +
         "'unknown' if there is not enough signal.\n\n" +

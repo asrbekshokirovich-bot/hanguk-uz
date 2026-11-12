@@ -242,7 +242,8 @@ describe('UniversitySelectionContent', () => {
       expect(within(row).getByText('Korea University')).toBeInTheDocument();
       expect(within(row).getByText('₩100,000')).toBeInTheDocument();
       expect(within(row).getByText(/Chiqim: ₩90,000/)).toBeInTheDocument();
-      expect(within(row).getByRole('link', { name: 'chek' })).toHaveAttribute('href', 'https://x/chek.pdf');
+      // The link gets its address once the receipt URL is signed (receipts are private since #575).
+      expect(await within(row).findByRole('link', { name: 'chek' })).toHaveAttribute('href', 'https://x/chek.pdf');
 
       fireEvent.click(within(row).getByLabelText('Tahrirlash'));
       const amount = within(panel).getByPlaceholderText('Masalan: 100000') as HTMLInputElement;

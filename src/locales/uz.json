@@ -678,6 +678,23 @@
     }
   },
   "leads": {
+    "toasts": {
+      "created": "Lid yaratildi",
+      "createFailed": "Lidni yaratib bo‘lmadi",
+      "updated": "Lid saqlandi",
+      "updateFailed": "Lidni saqlab bo‘lmadi",
+      "deleted": "Lid o‘chirildi",
+      "deleteFailed": "Lidni o‘chirib bo‘lmadi",
+      "converting": "Talabaga aylantirish allaqachon ketyapti…",
+      "notFound": "Lid topilmadi",
+      "alreadyConverted": "Bu lid allaqachon talabaga aylantirilgan",
+      "phoneInUse": "Bu telefon raqami band — telefonsiz yaratilmoqda…",
+      "converted": "Lid talabaga aylantirildi! Kirish kodi: {{code}}",
+      "convertFailed": "Lidni talabaga aylantirib bo‘lmadi",
+      "analyzed": "Lid tahlil qilindi",
+      "analyzedAll": "Hamma lidlar tahlil qilindi",
+      "analyzeFailed": "Lidni tahlil qilib bo‘lmadi"
+    },
     "dispositions": {
       "title": "Ushbu qo‘ng‘iroqni yozib qo‘yish",
       "reached": "Gaplashdim",
@@ -1184,6 +1201,7 @@
         "dekabr"
       ],
       "working": "Bajarilmoqda…",
+      "showMore": "Yana {{count}} ta ko‘rsatish",
       "tabs": {
         "label": "Lid holati",
         "active": "Ishlanmoqda",
@@ -1232,7 +1250,9 @@
         "confirm": "Ha, o‘chirilsin"
       },
       "editRow": "Tahrirlash",
-      "openProfile": "Profil"
+      "openProfile": "Profil",
+      "kgFilter": "Qirg'iziston",
+      "kgBadgeTitle": "Qirg'iziston lidi (+996)"
     },
     "profile": {
       "back": "Ro'yxatga qaytish",
@@ -3960,5 +3980,19 @@
       "OFFLINE": "Internet aloqasi yo'q.",
       "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring."
     }
+  },
+  "calendarPage": {
+    "subtitle": "Vazifalar va to‘lov muddatlari",
+    "today": "Bugun",
+    "payment": "To‘lov",
+    "selectDay": "Kunni tanlang",
+    "assigned": "Biriktirilgan",
+    "activeTasks": "Faol vazifalar",
+    "urgentTasks": "Shoshilinch vazifalar",
+    "pendingPayments": "Kutilayotgan to‘lovlar",
+    "dueThisWeek": "Shu hafta muddati keladi",
+    "more": "yana {{count}} ta",
+    "paymentOf": "To‘lov: {{name}}",
+    "unknown": "Noma’lum"
   }
 }

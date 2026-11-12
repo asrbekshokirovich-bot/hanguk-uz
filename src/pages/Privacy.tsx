@@ -7,12 +7,15 @@ import { NativeContainer } from '@/components/native/NativeContainer';
 export default function Privacy() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const lang = i18n.language;
+  // The app opens this page with ?lang= in its own language (ky is not a
+  // site language, so it is handled here).
+  const queryLang = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('lang') : null;
+  const lang = queryLang || i18n.language;
 
   const content = {
     en: {
       title: 'Privacy Policy',
-      lastUpdated: 'Last Updated: October 2026',
+      lastUpdated: 'Last Updated: November 2026',
       intro: 'Hanguk Consulting ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application and services.',
       sections: [
         {
@@ -37,7 +40,9 @@ In the app we record what you open and press (for example the screens you visit,
         },
         {
           title: '3. Data Storage and Security',
-          content: 'Your data is stored securely using industry-standard encryption. We use Supabase for data storage, which provides enterprise-grade security. We implement appropriate technical and organizational measures to protect your personal information.'
+          content: `Your data is stored securely using industry-standard encryption. We use Supabase for data storage, which provides enterprise-grade security. We implement appropriate technical and organizational measures to protect your personal information.
+
+Our database servers are in Seoul, Republic of Korea. If you use the app from Kyrgyzstan or another country, your data is transferred to and stored in the Republic of Korea. In Kyrgyzstan, the request form asks for your consent to this before anything is sent.`
         },
         {
           title: '4. Third-Party Services',
@@ -65,7 +70,7 @@ These services have their own privacy policies and data handling practices.`
     },
     uz: {
       title: 'Maxfiylik siyosati',
-      lastUpdated: 'Oxirgi yangilanish: 2026-yil oktyabr',
+      lastUpdated: 'Oxirgi yangilanish: 2026-yil noyabr',
       intro: 'Hanguk Consulting ("biz") sizning maxfiyligingizni himoya qilishga sodiqmiz. Ushbu Maxfiylik siyosati mobil ilovamiz va xizmatlarimizdan foydalanganingizda ma\'lumotlaringizni qanday to\'plashimiz, ishlatishimiz va himoya qilishimizni tushuntiradi.',
       sections: [
         {
@@ -90,7 +95,9 @@ Ilovada nimani ochganingiz va bosganingiz (masalan, qaysi ekranlarni ochganingiz
         },
         {
           title: '3. Ma\'lumotlarni saqlash va xavfsizlik',
-          content: 'Ma\'lumotlaringiz sanoat standartidagi shifrlash yordamida xavfsiz saqlanadi. Ma\'lumotlarni saqlash uchun korxona darajasidagi xavfsizlikni ta\'minlovchi Supabase\'dan foydalanamiz.'
+          content: `Ma'lumotlaringiz sanoat standartidagi shifrlash yordamida xavfsiz saqlanadi. Ma'lumotlarni saqlash uchun korxona darajasidagi xavfsizlikni ta'minlovchi Supabase'dan foydalanamiz.
+
+Ma'lumotlar bazasi serverlarimiz Koreya Respublikasining Seul shahrida joylashgan. Ilovadan Qirg'iziston yoki boshqa davlatdan foydalansangiz, ma'lumotlaringiz Koreya Respublikasiga uzatiladi va o'sha yerda saqlanadi. Qirg'izistonda murojaat formasi buning uchun, hech narsa yuborilishidan oldin, roziligingizni so'raydi.`
         },
         {
           title: '4. Uchinchi tomon xizmatlari',
@@ -118,7 +125,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
     },
     ru: {
       title: 'Политика конфиденциальности',
-      lastUpdated: 'Последнее обновление: Октябрь 2026',
+      lastUpdated: 'Последнее обновление: Ноябрь 2026',
       intro: 'Hanguk Consulting ("мы") стремится защитить вашу конфиденциальность. Эта Политика конфиденциальности объясняет, как мы собираем, используем и защищаем вашу информацию при использовании нашего мобильного приложения и услуг.',
       sections: [
         {
@@ -143,7 +150,9 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
         },
         {
           title: '3. Хранение и безопасность данных',
-          content: 'Ваши данные надёжно хранятся с использованием шифрования по отраслевым стандартам. Мы используем Supabase для хранения данных, который обеспечивает корпоративный уровень безопасности.'
+          content: `Ваши данные надёжно хранятся с использованием шифрования по отраслевым стандартам. Мы используем Supabase для хранения данных, который обеспечивает корпоративный уровень безопасности.
+
+Серверы нашей базы данных находятся в Сеуле, Республика Корея. Если вы пользуетесь приложением из Кыргызстана или другой страны, ваши данные передаются в Республику Корея и хранятся там. В Кыргызстане форма заявки до отправки запрашивает ваше согласие на это.`
         },
         {
           title: '4. Сторонние сервисы',
@@ -171,7 +180,7 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
     },
     ko: {
       title: '개인정보 처리방침',
-      lastUpdated: '최종 업데이트: 2026년 10월',
+      lastUpdated: '최종 업데이트: 2026년 11월',
       intro: 'Hanguk Consulting("당사")은 귀하의 개인정보 보호를 위해 최선을 다하고 있습니다. 본 개인정보 처리방침은 귀하가 당사의 모바일 애플리케이션 및 서비스를 이용할 때 정보를 수집, 사용 및 보호하는 방법을 설명합니다.',
       sections: [
         {
@@ -196,7 +205,9 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
         },
         {
           title: '3. 데이터 저장 및 보안',
-          content: '귀하의 데이터는 업계 표준 암호화를 사용하여 안전하게 저장됩니다. 엔터프라이즈급 보안을 제공하는 Supabase를 사용합니다.'
+          content: `귀하의 데이터는 업계 표준 암호화를 사용하여 안전하게 저장됩니다. 엔터프라이즈급 보안을 제공하는 Supabase를 사용합니다.
+
+데이터베이스 서버는 대한민국 서울에 있습니다. 키르기스스탄 등 다른 국가에서 앱을 사용하는 경우 귀하의 데이터는 대한민국으로 이전되어 저장됩니다. 키르기스스탄에서는 신청서를 보내기 전에 이에 대한 동의를 요청합니다.`
         },
         {
           title: '4. 제3자 서비스',
@@ -219,6 +230,61 @@ Bu xizmatlar o'zlarining maxfiylik siyosatlariga ega.`
         {
           title: '6. 문의하기',
           content: '본 개인정보 처리방침에 대한 문의사항은 support@hanguk.uz으로 연락해 주세요'
+        }
+      ]
+    },
+    ky: {
+      title: 'Купуялык саясаты',
+      lastUpdated: 'Акыркы жаңыртуу: 2026-жылдын ноябры',
+      intro: 'Hanguk Consulting («биз») сиздин купуялыгыңызды коргоого милдеттенет. Бул Купуялык саясаты мобилдик тиркемебизди жана кызматтарыбызды колдонгонуңузда маалыматыңызды кантип чогултуп, колдонуп жана коргой турганыбызды түшүндүрөт.',
+      sections: [
+        {
+          title: '1. Биз чогулткан маалымат',
+          content: `Биз сиз өзүңүз берген маалыматты чогултабыз, анын ичинде:
+• Жеке маалымат (аты-жөнү, электрондук почта, телефон номери)
+• Окуу документтери
+• Университеттерге арыз материалдары
+• Кызматкерлерибиз менен жазышуу тарыхы
+• Түзмөк маалыматы жана колдонуу маалыматы
+
+Тиркемеде сиз эмнени ачып, эмнени басканыңызды (мисалы, кирген экрандарыңызды, көргөн же сактаган университеттериңизди жана аткарган кадамдарыңызды) кокус орнотуу идентификатору, тиркеменин версиясы жана убакыт менен кошо жазабыз. Эгер сиз бизге өтүнүч жөнөтсөңүз же кирсеңиз, бул аракеттер консультантыңыз сизге жакшыраак жардам бериши жана тиркемени жакшыртышыбыз үчүн өтүнүчүңүзгө же аккаунтуңузга байланышат. Сиз жазган текстти, сырсөздөрдү же кардар коддорун жана баалоодо киргизген сандарды жазбайбыз.`
+        },
+        {
+          title: '2. Маалыматты кантип колдонобуз',
+          content: `Чогулткан маалыматты төмөнкүлөр үчүн колдонобуз:
+• Университетке арыздарыңызды иштетүү
+• Кызматтарыбыз боюнча сиз менен байланышуу
+• Тиркемени жана кызматтарды жакшыртуу
+• Мөөнөттөр жана жаңылыктар тууралуу билдирме жөнөтүү
+• Колдоо көрсөтүү`
+        },
+        {
+          title: '3. Маалыматты сактоо жана коопсуздук',
+          content: `Маалыматыңыз тармактык стандарттагы шифрлөө менен коопсуз сакталат. Маалыматты сактоо үчүн ишкана деңгээлиндеги коопсуздукту камсыз кылган Supabase'ти колдонобуз.
+
+Маалымат базабыздын серверлери Корея Республикасынын Сеул шаарында жайгашкан. Тиркемени Кыргызстандан же башка өлкөдөн колдонсоңуз, маалыматыңыз Корея Республикасына өткөрүлүп, ошол жерде сакталат. Кыргызстанда арыз формасы эч нерсе жөнөтүлө электе буга макулдугуңузду сурайт.`
+        },
+        {
+          title: '4. Үчүнчү тараптын кызматтары',
+          content: `Төмөнкү үчүнчү тараптын кызматтарын колдонобуз:
+• Supabase (маалымат базасы жана аутентификация)
+• Firebase Cloud Messaging (билдирмелер)
+• Mapbox (карталар жана жайгашкан жер)
+• ElevenLabs (үн кызматтары)
+Бул кызматтардын өздөрүнүн купуялык саясаттары бар.`
+        },
+        {
+          title: '5. Сиздин укуктарыңыз',
+          content: `Сиз төмөнкүлөргө укуктуусуз:
+• Жеке маалыматыңызды көрүү
+• Маалыматты оңдоону суроо
+• Маалыматты өчүрүүнү суроо
+• Маркетингдик билдирүүлөрдөн баш тартуу
+• Маалыматыңызды экспорттоо`
+        },
+        {
+          title: '6. Биз менен байланышыңыз',
+          content: 'Бул Купуялык саясаты боюнча суроолоруңуз болсо, support@hanguk.uz дарегине жазыңыз'
         }
       ]
     }

@@ -1,8 +1,6 @@
 {
   "git": {
-    "deploymentEnabled": {
-      "ish/**": false
-    }
+    "deploymentEnabled": { "main": true, "**": false }
   },
   "redirects": [
     { "source": "/ilova", "destination": "/ilova/", "permanent": false },

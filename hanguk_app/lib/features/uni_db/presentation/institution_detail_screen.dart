@@ -350,14 +350,15 @@ class _TrackToggleState extends ConsumerState<_TrackToggle> {
 
   Future<void> _toggle(bool track) async {
     setState(() => _busy = true);
+    final container = ProviderScope.containerOf(context, listen: false);
     try {
       await setInstitutionTracking(
         institutionId: widget.institutionId,
         track: track,
       );
-      ref.invalidate(institutionTrackingProvider(widget.institutionId));
-      ref.invalidate(notificationSettingsProvider);
-      ref.invalidate(userTrackedProvider);
+      container.invalidate(institutionTrackingProvider(widget.institutionId));
+      container.invalidate(notificationSettingsProvider);
+      container.invalidate(userTrackedProvider);
     } catch (err) {
       if (!mounted) return;
       final l = AppLocalizations.of(context)!;
