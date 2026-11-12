@@ -1,0 +1,68 @@
+name: Web check (tests, types, build)
+
+# The site and CRM (src/) had no check at all: unit tests, the type check and
+# the build ran only on somebody's machine, if they ran. On 2026-11-11 main had
+# two red tests and seven suites that could not start without a local .env, and
+# nobody had been told. This runs on every pull request that touches the web
+# code — about three minutes on Linux.
+#
+#   Unit tests   npx vitest run                (must pass)
+#   Types        node scripts/tsc-ratchet.mjs  (per-file error counts may only go down;
+#                                               see scripts/tsc-baseline.json)
+#   Build        npx vite build                (must pass — what Vercel will run)
+#
+# Edge-function code that the web tests import is in the path filter too.
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "vitest.config.ts"
+      - "tsconfig*.json"
+      - "tailwind.config.ts"
+      - "postcss.config.js"
+      - "scripts/tsc-ratchet.mjs"
+      - "scripts/tsc-baseline.json"
+      - "supabase/functions/_shared/**"
+      - "supabase/functions/hanguk-ai-chat/**"
+      - "supabase/functions/guideline-index/**"
+      - "supabase/functions/notify-student-stages/**"
+      - "supabase/functions/staff-bot/**"
+      - ".github/workflows/web-check.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: web-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Types (may only improve)
+        run: node scripts/tsc-ratchet.mjs
+
+      - name: Build
+        run: npx vite build
