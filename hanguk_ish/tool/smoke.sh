@@ -21,9 +21,12 @@ cd "$(dirname "$0")/.."
 apks=$1
 out=build/smoke
 mkdir -p "$out"
-# One screen command never waits longer than its own 90 s (an adb that stops
-# answering would hold the whole run until the job's limit).
+# One screen command never waits longer than its own 90 s, nor one adb call
+# for a picture or the log: an emulator that stops answering would otherwise
+# hold the whole run until the job's limit (it did, twice, after a walk had
+# already failed).
 ui() { timeout 150 python3 tool/smoke_ui.py "$@"; }
+adbt() { timeout 60 adb "$@"; }
 failed=0
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
 # The emulator's own apps (Pixel Launcher) stop answering under load, and
@@ -34,21 +37,21 @@ adb shell settings put global hide_error_dialogs 1 >/dev/null 2>&1 || true
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
   local apk=$1 pkg=$2 name=$3
-  adb uninstall "$pkg" >/dev/null 2>&1 || true
-  if ! adb install -r "$apk" >"$out/$name-install.txt" 2>&1; then
+  adbt uninstall "$pkg" >/dev/null 2>&1 || true
+  if ! timeout 300 adb install -r "$apk" >"$out/$name-install.txt" 2>&1; then
     cat "$out/$name-install.txt"
     return 2
   fi
-  adb logcat -c
-  adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  adbt logcat -c
+  adbt shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 }
 
 # Still running, nothing fatal in the log; the screen as it is.
 finish() {
   local pkg=$1 name=$2
-  adb exec-out screencap -p >"$out/$name.png" || true
-  adb logcat -d >"$out/$name-logcat.txt" 2>&1 || true
-  if ! adb shell pidof "$pkg" >/dev/null 2>&1; then
+  adbt exec-out screencap -p >"$out/$name.png" || true
+  adbt logcat -d >"$out/$name-logcat.txt" 2>&1 || true
+  if ! adbt shell pidof "$pkg" >/dev/null 2>&1; then
     echo "::error::$name: the app is not running any more"
     failed=1
   fi
@@ -127,7 +130,7 @@ employer demo arm64
 
 # --- The longer walks -------------------------------------------------------
 
-shot() { adb exec-out screencap -p >"$out/walk-$1.png" 2>/dev/null || true; }
+shot() { adbt exec-out screencap -p >"$out/walk-$1.png" 2>/dev/null || true; }
 # step <what> <command…>: runs it; on failure says what did not happen.
 step() {
   local what=$1
@@ -263,16 +266,16 @@ walk_employer() {
     step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
     step 'BA3: the QR picture goes to the share sheet' shared &&
     shot ba3-share &&
-    adb shell input keyevent 4 &&
+    adbt shell input keyevent 4 &&
     step 'back in BA3' ui wait 'QR 인쇄·공유' &&
-    adb shell input keyevent 4 &&
+    adbt shell input keyevent 4 &&
     step 'BA5' ui tap '=리포트' &&
     step 'BA5: CSV button' ui scrollto 'CSV 다운로드' &&
     shot ba5 &&
     step 'BA5: CSV' ui tapx 'CSV 다운로드' 85 &&
     step 'BA5: the CSV goes to the share sheet' shared &&
     shot ba5-share &&
-    adb shell input keyevent 4 &&
+    adbt shell input keyevent 4 &&
     step 'back in BA5' ui wait 'CSV 다운로드' &&
     echo "$name: BA0 → BA1 → BA3 → QR share → BA5 → CSV share" ||
     { shot failed-employer; failed=1; }
