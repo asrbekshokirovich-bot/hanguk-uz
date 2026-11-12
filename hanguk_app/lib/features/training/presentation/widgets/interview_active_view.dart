@@ -13,6 +13,7 @@ import '../../../../core/config/app_config.dart';
 import '../../../../core/platform/screen_awake.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../discover/presentation/widgets/app_nav.dart' show dropPendingTab;
+import '../../data/call_failure.dart';
 import '../../data/interview_repository.dart';
 import '../../data/vapi_event_parser.dart' as vapi;
 
@@ -93,7 +94,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
     AppEvents.track('interview_connect', props: {
       'result': result,
       'ms': _connectClock.elapsedMilliseconds,
-      if (error != null) 'error': error.runtimeType.toString(),
+      // The provider's own answer when it refused the call (call_failure.dart).
+      if (error != null) ...callFailureProps(error),
     });
   }
   String _lastQuestion = '';
@@ -396,6 +398,8 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
         if (eventLabel == 'speech-start') {
           _greetTimer?.cancel();
           _reportConnect('greeted');
+          // The hints on screen were for the question before this one.
+          _notifier.clearHints();
           setState(() {
             _isAI_Speaking = true;
             _firstMessageReceived = true;
@@ -586,7 +590,9 @@ class _InterviewActiveViewState extends ConsumerState<InterviewActiveView>
           // The exception text is technical English: log it, and say it in
           // the app's language on screen.
           debugPrint('[VAPI START ERROR] $e');
-          _errorMessage = AppLocalizations.of(context)!.interviewErrorCallFailed;
+          // The provider refusing the call is not the student's internet.
+          final l = AppLocalizations.of(context)!;
+          _errorMessage = providerRefused(e) ? l.interviewErrorServiceDown : l.interviewErrorCallFailed;
         });
       }
     }

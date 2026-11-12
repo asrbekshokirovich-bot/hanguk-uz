@@ -3256,6 +3256,10 @@
   "@interviewErrorCallFailed": {
     "description": "The interview voice call failed for a technical reason."
   },
+  "interviewErrorServiceDown": "The voice interview service is unavailable right now. Please try again a little later.",
+  "@interviewErrorServiceDown": {
+    "description": "The call provider refused the interview call (not the student's connection): asking them to check their internet would be wrong."
+  },
   "onbResultRouteLanguageCourse": "Language course",
   "@onbResultRouteLanguageCourse": {
     "description": "S03 context line: study route"

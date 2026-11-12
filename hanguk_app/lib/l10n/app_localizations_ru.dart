@@ -2610,6 +2610,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось подключить звонок. Проверьте интернет и попробуйте ещё раз.';
 
   @override
+  String get interviewErrorServiceDown =>
+      'Сервис голосового интервью сейчас недоступен. Попробуйте чуть позже.';
+
+  @override
   String get onbResultRouteLanguageCourse => 'Языковые курсы';
 
   @override

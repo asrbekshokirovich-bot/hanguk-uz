@@ -906,6 +906,7 @@
   "interviewErrorNoGreeting": "Suhbatdosh javob bermadi. Orqaga qaytib, qayta urinib ko‘ring.",
   "interviewErrorEndedBeforeGreeting": "Suhbatdosh gapirishga ulgurmay qo‘ng‘iroq tugadi. Qayta urinib ko‘ring.",
   "interviewErrorCallFailed": "Qo‘ng‘iroqqa ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.",
+  "interviewErrorServiceDown": "Ovozli suhbat xizmati hozir ishlamayapti. Birozdan keyin qayta urinib ko‘ring.",
   "onbResultRouteLanguageCourse": "Til kursi",
   "onbResultRouteBachelor": "Bakalavr",
   "onbResultRouteMaster": "Magistratura",

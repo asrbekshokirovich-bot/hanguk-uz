@@ -2597,6 +2597,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The call could not be connected. Please check your internet and try again.';
 
   @override
+  String get interviewErrorServiceDown =>
+      'The voice interview service is unavailable right now. Please try again a little later.';
+
+  @override
   String get onbResultRouteLanguageCourse => 'Language course';
 
   @override

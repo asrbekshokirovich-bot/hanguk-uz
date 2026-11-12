@@ -2617,6 +2617,10 @@ class AppLocalizationsKy extends AppLocalizations {
       'Чалууга туташуу мүмкүн болгон жок. Интернетти текшерип, кайра аракет кылыңыз.';
 
   @override
+  String get interviewErrorServiceDown =>
+      'Үн маек кызматы азыр иштебей жатат. Бир аздан кийин кайра аракет кылыңыз.';
+
+  @override
   String get onbResultRouteLanguageCourse => 'Language course';
 
   @override

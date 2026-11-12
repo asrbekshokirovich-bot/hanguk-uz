@@ -2506,6 +2506,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '통화에 연결할 수 없습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
 
   @override
+  String get interviewErrorServiceDown =>
+      '음성 면접 서비스를 지금 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
   String get onbResultRouteLanguageCourse => '어학연수';
 
   @override
