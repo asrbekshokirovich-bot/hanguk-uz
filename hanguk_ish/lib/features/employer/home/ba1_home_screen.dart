@@ -103,7 +103,11 @@ class Ba1HomeScreen extends ConsumerWidget {
               const SizedBox(height: 14),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: _ReviewNotice(rejected: business.review == BusinessReview.rejected),
+                child: _ReviewNotice(
+                  rejected: business.review == BusinessReview.rejected,
+                  // Opened without a number (P50): only Hanguk's staff refuse it.
+                  suspended: business.bizNo == null,
+                ),
               ),
             ],
             if (shifts.isLoading && !shifts.hasValue)
@@ -174,10 +178,13 @@ class Ba1HomeScreen extends ConsumerWidget {
 
 /// A business 국세청 has not confirmed: its shifts do not reach workers yet
 /// (pending) or at all (rejected), so the owner is told why nobody applies.
+/// One opened without a number (P50) is refused only by Hanguk's staff
+/// (P52: suspended in the CRM), so it says that and not 국세청.
 class _ReviewNotice extends StatelessWidget {
-  const _ReviewNotice({required this.rejected});
+  const _ReviewNotice({required this.rejected, required this.suspended});
 
   final bool rejected;
+  final bool suspended;
 
   @override
   Widget build(BuildContext context) {
@@ -209,12 +216,20 @@ class _ReviewNotice extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   HiText(
-                    rejected ? Biz.reviewRejectedTitle : Biz.reviewPendingTitle,
+                    switch ((rejected, suspended)) {
+                      (true, true) => Biz.reviewSuspendedTitle,
+                      (true, false) => Biz.reviewRejectedTitle,
+                      _ => Biz.reviewPendingTitle,
+                    },
                     style: hiStyle(16, FontWeight.w800, color: HiColors.ink),
                   ),
                   const SizedBox(height: 3),
                   HiText(
-                    rejected ? Biz.reviewRejectedText : Biz.reviewPendingText,
+                    switch ((rejected, suspended)) {
+                      (true, true) => Biz.reviewSuspendedText,
+                      (true, false) => Biz.reviewRejectedText,
+                      _ => Biz.reviewPendingText,
+                    },
                     style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted),
                   ),
                 ],

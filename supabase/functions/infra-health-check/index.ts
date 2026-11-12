@@ -14,7 +14,12 @@
 //   telegram_ingest  Telegram messages still in telegram_ingest_failures after
 //                    30 minutes → must be 0
 //   instagram_sync   minutes since instagram-maintenance last synced → fails past 60
+//   instagram_token  days until the Instagram token expires → fails under 40
+//                    (the weekly refresh keeps it at 53 or more)
 //   cron_jobs        pg_cron jobs whose latest runs all failed (fn_cron_failing_jobs)
+//                    → must be none
+//   crm_crashes      pages of the site that fell over for someone signed in
+//                    (web_client_errors, kind = crash) in the last 24 hours
 //                    → must be none
 //
 // mediateka_feed used to stay ok while the feed had been silent for 94 days: it
@@ -36,6 +41,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { serviceKey } from "../_shared/keys.ts";
 import { isServiceRequest } from "../_shared/caller.ts";
 import { type CronFailure, cronJobsLine } from "./cron.ts";
+import { type CrashRow, crashLine } from "./crashes.ts";
+import { type IgAccountRow, igTokenLine } from "./ig_token.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,6 +64,13 @@ const MEDIATEKA_SILENT_HOURS = 24;
  * which refuses to queue replies behind a userbot this quiet.
  */
 const USERBOT_STALE_MINUTES = 5;
+
+/**
+ * How far back a page crash still counts. A day: the alert comes when the
+ * first one is reported and the all-clear a day after the last, so a crash
+ * that happens once every morning stays one fault, not an alert a day.
+ */
+const CRASH_WINDOW_HOURS = 24;
 
 /** A Telegram message still not in the CRM after this long is a fault. */
 const INGEST_STUCK_MINUTES = 30;
@@ -200,6 +214,38 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     }
   }
 
+  // 9. Pages of the site that fell over for the people working in it.
+  //
+  // The CRM's error screen left no trace: an operator saw "Something went
+  // wrong", reloaded, and nobody else ever knew. The browser now reports it
+  // (src/lib/errorReporter.ts → web_error_log) and this is who reads it.
+  {
+    const since = new Date(Date.now() - CRASH_WINDOW_HOURS * 3600e3).toISOString();
+    const { data, error } = await supabase
+      .from("web_client_errors")
+      .select("path, message, hits, user_id, stack")
+      .eq("kind", "crash")
+      .gte("last_seen_at", since)
+      .order("last_seen_at", { ascending: false })
+      .limit(500);
+    // Before its migration is applied the table does not exist: say nothing.
+    const missing = error && (error.code === "PGRST205" || error.code === "42P01");
+    if (!missing) {
+      if (error) out.push({ check: "crm_crashes", state: "fail", detail: `so'rov xatosi: ${error.message}` });
+      else out.push({ check: "crm_crashes", ...crashLine((data ?? []) as CrashRow[], CRASH_WINDOW_HOURS) });
+    }
+  }
+
+  // 10. The Instagram token's remaining life (see ig_token.ts).
+  {
+    const { data, error } = await supabase
+      .from("instagram_accounts")
+      .select("username, token_expires_at")
+      .eq("active", true);
+    if (error) out.push({ check: "instagram_token", state: "fail", detail: `so'rov xatosi: ${error.message}` });
+    else out.push({ check: "instagram_token", ...igTokenLine((data ?? []) as IgAccountRow[], Date.now()) });
+  }
+
   return out;
 }
 
@@ -211,7 +257,9 @@ const LABEL: Record<string, string> = {
   telegram_userbot: "Telegram userbot (akkaunt sessiyasi)",
   telegram_ingest: "Telegram xabarlari (telegram-ingest)",
   instagram_sync: "Instagram zaxira sinxronlash",
+  instagram_token: "Instagram tokeni",
   cron_jobs: "Rejali ishlar (pg_cron)",
+  crm_crashes: "CRM sahifalari (brauzerdagi xatolar)",
 };
 
 /**
@@ -230,8 +278,13 @@ const HINT: Record<string, string> = {
     "telegram_ingest_failures jadvalidagi xatoni ko'ring; telegram-poll har daqiqada qayta urinadi.",
   instagram_sync:
     "instagram_sync_state.last_error ni ko'ring: token yoki Instagram API ruxsati muammosi bo'lishi mumkin.",
+  instagram_token:
+    "Token har dushanba yangilanishi kerak (instagram-token-refresh). Funksiya logidagi Instagram javobini ko'ring; " +
+    "token tugasa Instagram'ga javob yuborib bo'lmaydi va sinxronlash to'xtaydi.",
   cron_jobs:
     "Supabase → Integrations → Cron → ishning oxirgi ishga tushishlari (cron.job_run_details.return_message) ni ko'ring.",
+  crm_crashes:
+    "Tafsiloti web_client_errors jadvalida (sahifa, xato matni, stack). Claude'ga «CRM xatolarini ko'r» deb yozing.",
 };
 
 function compose(r: CheckResult): string {

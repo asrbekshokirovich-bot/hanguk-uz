@@ -501,6 +501,8 @@
   "bizReviewPendingText": "После проверки в 국세청 ваши смены увидят работники.",
   "bizReviewRejectedTitle": "Бизнес не подтверждён",
   "bizReviewRejectedText": "По данным 국세청 бизнес закрыт — работники не видят смены.",
+  "bizReviewSuspendedTitle": "Бизнес приостановлен",
+  "bizReviewSuspendedText": "Hanguk приостановил этот бизнес — работники не видят смены.",
   "bizNotificationsTitle": "Уведомления",
   "bizYesterday": "Вчера",
   "bizNoNotifications": "Новых уведомлений нет",

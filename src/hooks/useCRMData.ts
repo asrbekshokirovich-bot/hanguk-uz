@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
+import i18n from '@/lib/i18n';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
 import { fetchAllRows } from '@/lib/fetchAllRows';
@@ -90,7 +91,7 @@ export function useCRMData() {
 
       if (membershipError) {
         console.error('Error fetching student memberships:', membershipError);
-        toast.error('Failed to load students');
+        toast.error(i18n.t('crmMsg.loadStudentsFailed', { defaultValue: 'Failed to load students' }));
         return;
       }
 
@@ -117,7 +118,7 @@ export function useCRMData() {
 
       if (staffError) {
         console.error('Error fetching staff roles:', staffError);
-        toast.error('Failed to load staff roles');
+        toast.error(i18n.t('crmMsg.loadStaffRolesFailed', { defaultValue: 'Failed to load staff roles' }));
         return;
       }
 
@@ -131,7 +132,7 @@ export function useCRMData() {
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
-        toast.error('Failed to load student profiles');
+        toast.error(i18n.t('crmMsg.loadStudentProfilesFailed', { defaultValue: 'Failed to load student profiles' }));
         return;
       }
 
@@ -334,7 +335,7 @@ export function useCRMData() {
       setStudents(studentsWithData);
     } catch (error) {
       console.error('Unexpected error in fetchStudents:', error);
-      toast.error('Failed to load students');
+      toast.error(i18n.t('crmMsg.loadStudentsFailed', { defaultValue: 'Failed to load students' }));
     }
   };
 
@@ -347,7 +348,7 @@ export function useCRMData() {
 
       if (error) {
         console.error('Error fetching universities:', error);
-        toast.error('Failed to load universities');
+        toast.error(i18n.t('crmMsg.loadUniversitiesFailed', { defaultValue: 'Failed to load universities' }));
         return;
       }
       if (data) setUniversities(data);

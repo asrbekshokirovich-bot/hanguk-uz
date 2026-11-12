@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 import { useUniversities } from '@/hooks/useUniversities';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveIntake } from '@/contexts/IntakeContext';
@@ -34,6 +35,7 @@ export function SuggestUniversityDialog({
   onSuccess,
 }: SuggestUniversityDialogProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { universities, loading: loadingUniversities } = useUniversities();
   const { activeIntakeId } = useActiveIntake();
 
@@ -82,12 +84,12 @@ export function SuggestUniversityDialog({
         console.warn('Application insert note:', appError.message);
       }
 
-      toast({ title: 'University recommended — application created' });
+      toast({ title: t('crmMsg.universityRecommended', { defaultValue: 'University recommended — application created' }) });
       handleClose();
       onSuccess();
     } catch (err: any) {
       toast({
-        title: 'Failed to suggest university',
+        title: t('crmMsg.universitySuggestFailed', { defaultValue: 'Failed to suggest university' }),
         description: err?.message || 'Unknown error',
         variant: 'destructive',
       });
@@ -108,12 +110,12 @@ export function SuggestUniversityDialog({
 
       if (error) throw error;
 
-      toast({ title: 'Suggestion removed successfully' });
+      toast({ title: t('crmMsg.suggestionRemoved', { defaultValue: 'Suggestion removed successfully' }) });
       setSelectedUniversityId(null);
       onSuccess();
     } catch (err: any) {
       toast({
-        title: 'Failed to remove suggestion',
+        title: t('crmMsg.suggestionRemoveFailed', { defaultValue: 'Failed to remove suggestion' }),
         description: err?.message || 'Unknown error',
         variant: 'destructive',
       });

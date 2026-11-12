@@ -28,6 +28,7 @@ mkdir -p "$out"
 ui() { timeout 150 python3 tool/smoke_ui.py "$@"; }
 adbt() { timeout 60 adb "$@"; }
 failed=0
+stream=
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
 # The emulator's own apps (Pixel Launcher) stop answering under load, and
 # their «isn't responding» box covers ours and eats the taps. No error boxes:
@@ -61,6 +62,10 @@ launch() {
   # land seconds later and restart the activity under the first tap (P31).
   timeout 90 adb shell am wait-for-broadcast-idle >/dev/null 2>&1 || true
   adbt logcat -c
+  # The log as it comes, for when the emulator itself goes away: finish's
+  # dump needs a device that still answers.
+  adb logcat -v threadtime >"$out/$name-stream.txt" 2>&1 &
+  stream=$!
   adbt shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 }
 
@@ -68,7 +73,11 @@ launch() {
 finish() {
   local pkg=$1 name=$2
   adbt exec-out screencap -p >"$out/$name.png" || true
-  adbt logcat -d >"$out/$name-logcat.txt" 2>&1 || true
+  if adbt logcat -d >"$out/$name-logcat.txt" 2>&1; then
+    rm -f "$out/$name-stream.txt" # the dump has it all
+  fi
+  kill "$stream" 2>/dev/null || true
+  stream=
   if ! adbt shell pidof "$pkg" >/dev/null 2>&1; then
     echo "::error::$name: the app is not running any more"
     failed=1
@@ -279,16 +288,6 @@ walk_employer() {
     step 'code (the demo takes any six digits)' ui type 123456 &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&
-    step 'BA1 → BA3' ui tap '마감 정리 보조' 30 -1 &&
-    step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
-    shot ba3 &&
-    step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
-    step 'BA3: the QR picture goes to the share sheet' shared &&
-    shot ba3-share &&
-    adbt shell input keyevent 4 &&
-    step 'back in BA3' ui wait 'QR 인쇄·공유' &&
-    adbt shell input keyevent 4 &&
-    step 'BA1 again' ui wait '오늘의 근무' 30 &&
     step 'BA5' ui tap '=리포트' &&
     step 'BA5: CSV button' ui scrollto 'CSV 다운로드' &&
     shot ba5 &&
@@ -297,8 +296,20 @@ walk_employer() {
     shot ba5-share &&
     adbt shell input keyevent 4 &&
     step 'back in BA5' ui wait 'CSV 다운로드' &&
-    echo "$name: BA0 → BA1 → BA3 → QR share → BA5 → CSV share" ||
+    step 'BA5 → BA1' ui tap '=홈' &&
+    step 'BA1 again' ui wait '오늘의 근무' 30 &&
+    step 'BA1 → BA3' ui tap '마감 정리 보조' 30 -1 &&
+    step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
+    shot ba3 &&
+    step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
+    step 'BA3: the QR picture goes to the share sheet' shared &&
+    shot ba3-share &&
+    echo "$name: BA0 → BA1 → BA5 → CSV share → BA1 → BA3 → QR share" ||
     { shot failed-employer; failed=1; }
+  # The QR's share sheet stays open to the end. Closing it, the emulator
+  # itself (not the app) has gone away now and then on the very next step —
+  # adb «device offline», whether that step went back to BA1 or to BA5 — and
+  # the walk has seen what it came for.
   finish "$pkg" "$name"
 }
 

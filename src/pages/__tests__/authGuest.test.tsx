@@ -62,15 +62,51 @@ describe('Auth — guest registration', () => {
     const field = (id: string) => container.querySelector(`#${id}`) as HTMLInputElement;
     await waitFor(() => expect(field('signup-name')).not.toBeNull());
     fireEvent.change(field('signup-name'), { target: { value: 'Ali Valiyev' } });
+    fireEvent.change(field('signup-phone'), { target: { value: '90 123 45 67' } });
     fireEvent.change(field('signup-email'), { target: { value: 'ali@example.com' } });
     fireEvent.change(field('signup-password'), { target: { value: 'secret1' } });
     fireEvent.change(field('signup-confirm'), { target: { value: 'secret1' } });
     fireEvent.submit(field('signup-name').closest('form')!);
 
-    await waitFor(() => expect(signUpGuest).toHaveBeenCalledWith('ali@example.com', 'secret1', 'ALI VALIYEV'));
+    // The number goes to the server the way the CRM keeps it.
+    await waitFor(() => expect(signUpGuest).toHaveBeenCalledWith('ali@example.com', 'secret1', 'ALI VALIYEV', '+998901234567'));
     await waitFor(() => expect(screen.getByTestId('where').textContent).toBe('/'));
     expect(localStorage.getItem('guest_session')).toBeNull();
-    expect(toast).toHaveBeenCalledWith(expect.objectContaining({ title: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz' }));
+    expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz',
+      description: 'Maslahatchimiz tez orada siz bilan bog\'lanadi.',
+    }));
+  });
+
+  it('asks for a phone number: without one that can be called nothing is sent', async () => {
+    const { container } = open();
+    await toRegistration();
+    const field = (id: string) => container.querySelector(`#${id}`) as HTMLInputElement;
+    await waitFor(() => expect(field('signup-phone')).not.toBeNull());
+    expect(field('signup-phone').required).toBe(true);
+    expect(field('signup-phone').type).toBe('tel');
+    // Letters do not get into the field.
+    fireEvent.change(field('signup-phone'), { target: { value: 'tel 12345' } });
+    expect(field('signup-phone').value).toBe(' 12345');
+
+    fireEvent.change(field('signup-name'), { target: { value: 'Ali Valiyev' } });
+    fireEvent.change(field('signup-email'), { target: { value: 'ali@example.com' } });
+    fireEvent.change(field('signup-password'), { target: { value: 'secret1' } });
+    fireEvent.change(field('signup-confirm'), { target: { value: 'secret1' } });
+    fireEvent.submit(field('signup-name').closest('form')!);
+
+    await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+      variant: 'destructive',
+      description: 'Telefon raqamini to\'liq kiriting (masalan, +998 90 123 45 67)',
+    })));
+    expect(signUpGuest).not.toHaveBeenCalled();
+    expect(screen.getByTestId('where').textContent).toBe('/auth');
+  });
+
+  it('the form no longer promises a guest account that does nothing', async () => {
+    open();
+    await toRegistration();
+    expect(await screen.findByText('Ma\'lumotlaringizni qoldiring — maslahatchimiz siz bilan bog\'lanadi.')).toBeTruthy();
   });
 
   it('a guest signing in goes to the home page too', async () => {
@@ -96,11 +132,43 @@ describe('Auth — guest registration', () => {
     const field = (id: string) => container.querySelector(`#${id}`) as HTMLInputElement;
     await waitFor(() => expect(field('signup-name')).not.toBeNull());
     fireEvent.change(field('signup-name'), { target: { value: 'Ali' } });
+    fireEvent.change(field('signup-phone'), { target: { value: '+998 90 123 45 67' } });
     fireEvent.change(field('signup-email'), { target: { value: 'ali@example.com' } });
     fireEvent.change(field('signup-password'), { target: { value: 'secret1' } });
     fireEvent.change(field('signup-confirm'), { target: { value: 'secret1' } });
     fireEvent.submit(field('signup-name').closest('form')!);
     await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' })));
     expect(screen.getByTestId('where').textContent).toBe('/auth');
+  });
+
+  it('staff sign-in mistakes are explained in the page\'s language, not in English', async () => {
+    const { container } = open();
+    fireEvent.click(await screen.findByRole('button', { name: /Xodim/ }));
+    const field = (id: string) => container.querySelector(`#${id}`) as HTMLInputElement;
+    await waitFor(() => expect(field('login-username')).not.toBeNull());
+
+    // Too short to be a login.
+    fireEvent.change(field('login-username'), { target: { value: 'ab' } });
+    fireEvent.change(field('login-password'), { target: { value: 'secret1' } });
+    fireEvent.submit(field('login-username').closest('form')!);
+    await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+      description: 'Login 3–20 belgidan iborat bo\'lishi kerak (harf, raqam, pastki chiziq)',
+    })));
+
+    // An email typed where the login goes.
+    toast.mockReset();
+    fireEvent.change(field('login-username'), { target: { value: 'ali@example.com' } });
+    fireEvent.submit(field('login-username').closest('form')!);
+    await waitFor(() => expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+      description: 'Xodimlar email bilan emas, login bilan kiradi.',
+    })));
+  });
+
+  it('the sign-in page\'s messages are written in every site language', () => {
+    for (const lng of ['uz', 'en', 'ru', 'ko']) {
+      for (const key of ['usernameRules', 'staffUsernameOnly', 'welcomeName', 'genericError', 'setupError', 'fullNameRequired', 'ownerCreated', 'signupFailed', 'phone', 'phoneInvalid', 'consultantWillCall']) {
+        expect(i18n.getResource(lng, 'translation', `auth.${key}`), `${lng}: auth.${key}`).toBeTruthy();
+      }
+    }
   });
 });

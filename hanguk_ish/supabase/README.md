@@ -26,6 +26,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_storage_limits.sql` | «ish-avatars» bucket: faqat rasm, 2 MiB gacha — hosted loyihada ham (`config.toml` faqat lokal) |
 | `migrations/…_ish_service_role.sql` | `ish` sxemasida service_role (edge funksiyalar) ruxsatlari |
 | `migrations/…_ish_open_business.sql` | P50: BA0 «시작하기» — `open_business()` sajangnim biznesini darhol, raqamsiz va tekshiruvsiz (`verified`) ochadi; bitta akkauntga bitta biznes |
+| `migrations/…_ish_app_business_oversight.sql` | P52: tekshiruvsiz ochilgan bizneslar ustidan xodim nazorati — `staff_app_businesses()` ro'yxat, `staff_update_app_business()` haqiqiy nom va manzil, `staff_set_app_business_blocked()` to'xtatish (`rejected`: smenalar lentadan chiqadi, ariza berib bo'lmaydi) / qayta yoqish; `staff_reports()` / `staff_set_report_status()` — ishchilar shikoyatlari (A11) va ularning holati; ilovadan bitta biznes 24 soatda ko'pi bilan 30 smena (`TOO_MANY_REQUESTS`); xodim yozgan o'zbekcha nom koreyscha nom o'zgarganda yo'qolmaydi |
 | `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): telefon orqali kirish (P54), test raqamlar qat'iy kod bilan |
@@ -54,8 +55,10 @@ tarixi repo fayllari bilan mos emas (`.github/workflows/supabase-deploy.yml`).
 
 Holat (2026-11-12): 21 migratsiya prod'da (P48), sxema test bazasi bilan bir xil;
 `ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan. P50
-(`…_ish_open_business.sql`) prod'da. P54 (telefon + SMS kod): Phone/Twilio Verify
-yoqildi; P53 va P54 ildiz migratsiyalari — prod'ga Asrbek ruxsati bilan.
+(`…_ish_open_business.sql`) prod'da. P52 (`…_ish_app_business_oversight.sql`) —
+prod'da (2026-11-12, Asrbek ruxsati bilan; 8 funksiya md5 bo'yicha test bazasi
+bilan bir xil). P53 ildiz migratsiyasi prod'da. P54 (telefon + SMS kod):
+Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati bilan.
 
 1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
    «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):

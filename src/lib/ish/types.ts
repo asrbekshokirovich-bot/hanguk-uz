@@ -53,6 +53,48 @@ export interface IshBusiness extends IshBusinessBrief {
   shifts: number;
 }
 
+/** `staff_app_businesses` (P52): a business the 사장님 app opened at once, without a check (P50). */
+export interface IshAppBusiness extends IshBusinessBrief {
+  /** verified: open; rejected: suspended by the staff; pending: waits for 국세청 (a number was given). */
+  status: 'verified' | 'pending' | 'rejected';
+  biz_no: string | null;
+  created_at: string;
+  open_shifts: number;
+  shifts: number;
+  /** Shifts it posted in the last 24 hours (the app allows 30). */
+  shifts_24h: number;
+  last_shift_at: string | null;
+  /** Workers confirmed for its shifts still to come (a suspension leaves them there). */
+  crew: number;
+}
+
+/** Where a complaint stands (the staff's note). */
+export type ReportStatus = 'open' | 'in_review' | 'closed';
+
+/** `staff_reports` (P52): a worker's complaint from the app (A11 «Shikoyat»). */
+export interface IshReport {
+  id: string;
+  /** employer, payment, safety, other (A11); older: unpaid, not_as_described, time_dispute, no_show, behaviour. */
+  reason: string;
+  body: string;
+  status: ReportStatus;
+  created_at: string;
+  worker: IshWorker | null;
+  business: IshBusinessBrief | null;
+  shift_id: string | null;
+}
+
+/** What the app business form sends (`staff_update_app_business`). */
+export interface IshAppBusinessInput {
+  id: string;
+  name: string;
+  nameUz: string;
+  category: BusinessCategory;
+  area: string;
+  address: string;
+  addressDetail: string;
+}
+
 /** The worker-app card of a job, as the staff functions start from it. */
 export interface IshJobCard {
   id: string;

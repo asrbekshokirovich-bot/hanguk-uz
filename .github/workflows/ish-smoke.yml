@@ -58,7 +58,8 @@ jobs:
       - name: Dependencies
         run: flutter pub get
 
-      # demo: as sent today (arm64 for phones, x86_64 for the emulator);
+      # demo: as sent today (arm64 for phones, x86_64 for the emulator), at a
+      # set hour;
       # backend: a database address that answers nothing.
       - name: Release APKs
         run: |
@@ -66,8 +67,11 @@ jobs:
           mkdir -p build/smoke-apks
           out=build/app/outputs/flutter-apk
           for app in worker employer; do
+            # The demo at a set hour (13:30 in Seoul): its shifts are laid out
+            # around now, and the walks need the same day whenever they run.
             flutter build apk --release --flavor "$app" -t "lib/main_$app.dart" \
-              --target-platform android-arm64,android-x64 --split-per-abi
+              --target-platform android-arm64,android-x64 --split-per-abi \
+              --dart-define=ISH_DEMO_KST=13:30
             cp "$out/app-x86_64-$app-release.apk" "build/smoke-apks/demo-$app-x86_64.apk"
             cp "$out/app-arm64-v8a-$app-release.apk" "build/smoke-apks/demo-$app-arm64.apk"
             flutter build apk --release --flavor "$app" -t "lib/main_$app.dart" \
@@ -77,6 +81,14 @@ jobs:
             cp "$out/app-x86_64-$app-release.apk" "build/smoke-apks/backend-$app-x86_64.apk"
           done
           ls -la build/smoke-apks
+
+      # The builds leave their Gradle and Kotlin daemons running, holding
+      # their memory to the end of the job: the emulator gets it.
+      - name: Stop the build daemons
+        run: |
+          (cd android && [ -x gradlew ] && ./gradlew --stop -q) || true
+          pkill -f 'GradleDaemon|KotlinCompileDaemon' || true
+          free -m
 
       - name: Enable KVM
         run: |
@@ -97,6 +109,20 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           working-directory: hanguk_ish
           script: bash tool/smoke.sh build/smoke-apks
+
+      # When the emulator itself went away (adb: device offline), the host's
+      # kernel tells whether it crashed (a segfault, and in which library) or
+      # was killed for memory; its own crash reports go with the screens.
+      - name: The host after a failure
+        if: failure()
+        run: |
+          mkdir -p build/smoke
+          free -m | tee build/smoke/host-memory.txt
+          sudo dmesg -T >build/smoke/host-dmesg.txt 2>&1 || true
+          grep -iE 'segfault|general protection|traps:|killed process|out of memory|oom' \
+            build/smoke/host-dmesg.txt | tail -40 || true
+          find /tmp/android-runner "$HOME/.android" -name '*.dmp' 2>/dev/null | head -5 |
+            while read -r dump; do cp "$dump" build/smoke/ && echo "crash report: $dump"; done
 
       - name: Publish the screens and logs
         if: always()

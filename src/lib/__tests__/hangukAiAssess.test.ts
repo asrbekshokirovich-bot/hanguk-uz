@@ -8,7 +8,9 @@ import {
   dartRound,
   documentsBonus,
   groupCatalogRows,
+  guidelineFromRow,
   kdbDeposit,
+  meetsEnglish,
   requiredBank,
   rulesFromRows,
   segmentsOf,
@@ -68,6 +70,79 @@ describe('assessment_test.dart — admissionPercent', () => {
     expect(admissionPercent({ topik: 3, gpa: 3.5 }, primary(uni('n')))).toBe(
       admissionPercent({ topik: 3, gpa: 3.5 }, primary(uni('r', { topik: rules.bachelorTopikMin }))),
     );
+  });
+});
+
+describe('assessment_test.dart — admissionPercent: the English way in', () => {
+  const english = (
+    o: { ielts?: number | null; track?: boolean | null; korean?: boolean | null; topik?: number | null } = {},
+  ) => ({
+    id: 'g-e',
+    univNameEn: 'E University',
+    degree: 'bakalavr',
+    koreanTrack: o.korean === undefined ? true : o.korean,
+    englishTrack: o.track === undefined ? true : o.track,
+    topikMin: o.topik === undefined ? 3 : o.topik,
+    ieltsMin: o.ielts === undefined ? 5.5 : o.ielts,
+    isActive: true,
+  });
+  type G = ReturnType<typeof english>;
+  const at = (g: G, x: { topik?: number; ielts?: number; route?: 'bachelor' | 'master' | 'college' | 'languageCourse' } = {}) =>
+    admissionPercent({ topik: x.topik ?? 0, ielts: x.ielts ?? 0, gpa: 3.5, route: x.route ?? 'bachelor' }, g);
+
+  it("IELTS at the guideline's minimum is the requirement met", () => {
+    const g = english();
+    expect(at(g)).toBe(15);
+    expect(at(g, { ielts: 5.0 })).toBe(16);
+    expect(at(g, { ielts: 5.5 })).toBe(57);
+    expect(at(g, { ielts: 7.0 })).toBe(60);
+    expect(meetsEnglish({ ielts: 5.5 }, g)).toBe(true);
+    expect(meetsEnglish({ ielts: 5.0 }, g)).toBe(false);
+  });
+
+  it('TOPIK above the requirement still counts for more', () => {
+    const g = english();
+    expect(at(g, { topik: 2, ielts: 5.5 })).toBe(57);
+    expect(at(g, { topik: 3, ielts: 5.5 })).toBe(57);
+    expect(at(g, { topik: 4, ielts: 5.5 })).toBe(70);
+    expect(at(g, { topik: 5 })).toBe(78);
+  });
+
+  it("the guideline's own minimum; the rules' when it names none", () => {
+    const hard = english({ ielts: 6.5 });
+    expect(at(hard, { ielts: 6.0 })).toBe(18);
+    expect(at(hard, { ielts: 6.5 })).toBe(59);
+    const open = english({ ielts: null });
+    expect(at(open, { ielts: 5.0 })).toBe(16);
+    expect(at(open, { ielts: rules.englishIeltsMin })).toBe(57);
+  });
+
+  it('an IELTS minimum counts without the track flag', () => {
+    expect(at(english({ track: null, ielts: 6 }), { ielts: 6.0 })).toBe(58);
+    expect(at(english({ track: null, ielts: null }), { ielts: 7.0 })).toBe(20);
+  });
+
+  it('taught in English only: TOPIK does not count', () => {
+    const g = english({ korean: false, topik: null, ielts: 6.5 });
+    expect(at(g, { topik: 5 })).toBe(15);
+    expect(at(g, { topik: 5, ielts: 6.5 })).toBe(59);
+    expect(at(g, { ielts: 7.0, route: 'master' })).toBe(60);
+  });
+
+  it('other routes read TOPIK alone, as before', () => {
+    expect(at(english(), { ielts: 7.0, route: 'college' })).toBe(20);
+    expect(at(english({ korean: false, topik: null }), { topik: 1, route: 'languageCourse' })).toBe(55);
+  });
+
+  it('the catalogue row carries both tracks', () => {
+    const g = guidelineFromRow({
+      guideline_id: 'g1', institution_id: 'u1', daraja: 'bakalavr',
+      english_track: true, korean_track: false, topik_min: null, ielts_min: '6.5',
+    });
+    expect(g.koreanTrack).toBe(false);
+    expect(g.englishTrack).toBe(true);
+    expect(admissionPercent({ topik: 6, gpa: 3.5 }, g)).toBe(15);
+    expect(admissionPercent({ ielts: 6.5, gpa: 3.5 }, g)).toBe(59);
   });
 });
 

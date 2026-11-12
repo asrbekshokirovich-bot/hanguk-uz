@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { type GuestDb, type GuestLead, handleGuestAuth, type PasswordCheck } from "./logic.ts";
+import { type GuestDb, type GuestLead, handleGuestAuth, normalizeGuestPhone, type PasswordCheck } from "./logic.ts";
 
 const NOW = "2026-11-12T03:00:00.000Z";
 
@@ -10,11 +10,14 @@ function fakeDb(opts: { migrated?: boolean; leads?: GuestLead[]; hashes?: Record
   const hashes: Record<string, string> = { ...(opts.hashes ?? {}) };
   const locked = new Set(opts.locked ?? []);
   const logins: { id: string; count: number; history: string[] }[] = [];
+  /** The number each new lead was created with. */
+  const phones: (string | null)[] = [];
   const db: GuestDb = {
     findLeadByEmail: (email) => Promise.resolve(leads.find((l) => l.email === email) ?? null),
     insertLead: (row) => {
       const lead: GuestLead = { id: `lead-${leads.length + 1}`, full_name: row.full_name, email: row.email, password: null };
       leads.push(lead);
+      phones.push(row.phone);
       return Promise.resolve(lead);
     },
     setPassword: (id, password) => {
@@ -37,7 +40,7 @@ function fakeDb(opts: { migrated?: boolean; leads?: GuestLead[]; hashes?: Record
       return Promise.resolve();
     },
   };
-  return { db, leads, hashes, logins };
+  return { db, leads, hashes, logins, phones };
 }
 
 const signup = (db: GuestDb, over: Record<string, unknown> = {}) =>
@@ -126,4 +129,49 @@ Deno.test("what is missing or malformed is refused before the database is asked"
   assertEquals((await signup(f.db, { password: "x".repeat(201) })).body.code, "INVALID_FIELDS");
   assertEquals((await signup(f.db, { fullName: "A".repeat(121) })).body.code, "INVALID_FIELDS");
   assertEquals(f.leads.length, 0);
+});
+
+Deno.test("a phone number is kept the way the CRM keeps it, however it was typed", () => {
+  for (const [typed, kept] of [
+    ["90 123 45 67", "+998901234567"],
+    ["901234567", "+998901234567"],
+    ["+998 (90) 123-45-67", "+998901234567"],
+    ["998901234567", "+998901234567"],
+    ["8 90 123 45 67", "+998901234567"],
+    ["50 590 15 30", "+998505901530"],
+    ["+996 700 123 456", "+996700123456"],
+    ["996700123456", "+996700123456"],
+    ["+82 10 1234 5678", "+821012345678"],
+    ["+7 701 123 45 67", "+77011234567"],
+  ] as const) {
+    assertEquals(normalizeGuestPhone(typed), kept, typed);
+  }
+  // Not a number, too short, or another country's without its "+": not guessed.
+  for (const typed of ["", "   ", "12345", "+12345", "abc", "77011234567", "+1234567890123456", null, 901234567]) {
+    assertEquals(normalizeGuestPhone(typed), null, String(typed));
+  }
+});
+
+Deno.test("sign-up with a number makes a lead that can be called", async () => {
+  const f = fakeDb();
+  const r = await signup(f.db, { phone: " 90 123 45 67 " });
+  assertEquals(r.status, 200);
+  assertEquals(f.phones, ["+998901234567"]);
+  // The reply still says nothing but who they are.
+  assertEquals(r.body, { success: true, lead: { id: "lead-1", full_name: "ALI VALIYEV", email: "ali@example.com" } });
+});
+
+Deno.test("a number that is not one is refused before anything is written", async () => {
+  const f = fakeDb();
+  const r = await signup(f.db, { phone: "12345" });
+  assertEquals(r.status, 400);
+  assertEquals(r.body.code, "INVALID_PHONE");
+  assertEquals(f.leads.length, 0);
+});
+
+Deno.test("a page loaded before the form asked for a number still registers", async () => {
+  const f = fakeDb();
+  assertEquals((await signup(f.db)).status, 200);
+  assertEquals((await signup(f.db, { email: "b@example.com", phone: "   " })).status, 200);
+  assertEquals(f.phones, [null, null]);
 });

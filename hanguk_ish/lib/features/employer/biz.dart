@@ -174,6 +174,8 @@ abstract final class Biz {
   static String get reviewPendingText => _l.bizReviewPendingText;
   static String get reviewRejectedTitle => _l.bizReviewRejectedTitle;
   static String get reviewRejectedText => _l.bizReviewRejectedText;
+  static String get reviewSuspendedTitle => _l.bizReviewSuspendedTitle;
+  static String get reviewSuspendedText => _l.bizReviewSuspendedText;
   static String get notificationsTitle => _l.bizNotificationsTitle;
   static String get yesterday => _l.bizYesterday;
   static String get noNotifications => _l.bizNoNotifications;
