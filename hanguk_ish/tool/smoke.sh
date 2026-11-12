@@ -267,8 +267,11 @@ walk_employer() {
     step 'BA3: the QR picture goes to the share sheet' shared &&
     shot ba3-share &&
     adbt shell input keyevent 4 &&
-    step 'back in BA3' ui wait 'QR 인쇄·공유' &&
-    adbt shell input keyevent 4 &&
+    # Back from the share sheet: BA3, whose own back goes to BA1 — or BA1
+    # already, when the sheet had gone by itself and taken the back. An
+    # Android back on BA1 closes the app (it did, after BA3 had seemed back).
+    ui tapif '=뒤로' 10 &&
+    step 'BA1 again' ui wait '오늘의 근무' 30 &&
     step 'BA5' ui tap '=리포트' &&
     step 'BA5: CSV button' ui scrollto 'CSV 다운로드' &&
     shot ba5 &&
