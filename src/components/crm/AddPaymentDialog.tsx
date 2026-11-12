@@ -241,7 +241,7 @@ export function AddPaymentDialog({
     if (!formData.amount || Number(formData.amount) <= 0) {
       toast({
         title: t('common.error'),
-        description: 'Please enter a valid amount',
+        description: t('crmMsg.invalidAmount', { defaultValue: 'Please enter a valid amount' }),
         variant: 'destructive',
       });
       return;
@@ -388,7 +388,7 @@ export function AddPaymentDialog({
 
       toast({
         title: t('common.success'),
-        description: 'Payment recorded successfully',
+        description: t('crmMsg.paymentRecorded', { defaultValue: 'Payment recorded successfully' }),
       });
 
       // Reset form

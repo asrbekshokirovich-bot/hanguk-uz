@@ -246,10 +246,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
     try {
       await navigator.clipboard.writeText(createdMagicCode);
       setCopied(true);
-      toast({ title: 'Code copied to clipboard!' });
+      toast({ title: t('crmMsg.codeCopied', { defaultValue: 'Code copied!' }) });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({ title: 'Failed to copy', variant: 'destructive' });
+      toast({ title: t('crmMsg.copyFailed', { defaultValue: 'Failed to copy' }), variant: 'destructive' });
     }
   };
 

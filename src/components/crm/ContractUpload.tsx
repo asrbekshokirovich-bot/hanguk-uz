@@ -30,7 +30,7 @@ export function ContractUpload({ value, onChange, studentId, disabled }: Contrac
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: t('common.error'),
-        description: 'Please upload a PDF or image file (JPEG, PNG, WebP)',
+        description: t('crmMsg.contractFileType', { defaultValue: 'Please upload a PDF or image file (JPEG, PNG, WebP)' }),
         variant: 'destructive',
       });
       return;
@@ -40,7 +40,7 @@ export function ContractUpload({ value, onChange, studentId, disabled }: Contrac
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: t('common.error'),
-        description: 'File size must be less than 10MB',
+        description: t('crmMsg.maxFileSize10', { defaultValue: 'File size must be less than 10MB' }),
         variant: 'destructive',
       });
       return;
@@ -69,7 +69,7 @@ export function ContractUpload({ value, onChange, studentId, disabled }: Contrac
 
       toast({
         title: t('common.success'),
-        description: 'Contract uploaded successfully',
+        description: t('crmMsg.contractUploaded', { defaultValue: 'Contract uploaded successfully' }),
       });
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -152,7 +152,7 @@ export function ContractUpload({ value, onChange, studentId, disabled }: Contrac
     } catch (error: any) {
       toast({
         title: t('common.error'),
-        description: 'Failed to open contract. Please try again.',
+        description: t('crmMsg.contractOpenFailed', { defaultValue: 'Failed to open contract. Please try again.' }),
         variant: 'destructive',
       });
     } finally {
