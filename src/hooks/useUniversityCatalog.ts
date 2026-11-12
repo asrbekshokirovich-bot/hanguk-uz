@@ -13,6 +13,7 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import type { GuidelinePayload } from '@/lib/universityGuidelineExcel';
 import {
   EMPTY_EXTRAS,
@@ -399,11 +400,10 @@ export function useGuidelineImport() {
 
   return useMutation<ImportOutcome, Error, ImportArgs>({
     mutationFn: async ({ payload, institutionId }) => {
-      const { data, error } = await supabase.rpc(
-        // @ts-expect-error - import_university_guideline not in generated types yet
-        'import_university_guideline',
-        { payload: { ...payload, institution_id: institutionId ?? null } },
-      );
+      const { data, error } = await supabase.rpc('import_university_guideline', {
+        // The payload's rows are typed for the Excel reader; to the database it is JSON.
+        payload: { ...payload, institution_id: institutionId ?? null } as unknown as Json,
+      });
       if (error) throw new Error(error.message);
       return data as unknown as ImportOutcome;
     },
