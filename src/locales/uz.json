@@ -4074,6 +4074,24 @@
     "contractUploaded": "Shartnoma yuklandi",
     "contractOpenFailed": "Shartnomani ochib bo'lmadi. Qayta urinib ko'ring.",
     "invalidAmount": "To'g'ri summa kiriting",
-    "paymentRecorded": "To'lov qayd etildi"
+    "paymentRecorded": "To'lov qayd etildi",
+    "callLogFailed": "Qo'ng'iroqni yozib bo'lmadi",
+    "callLogged": "Qo'ng'iroq yozildi",
+    "callUpdateFailed": "Qo'ng'iroqni yangilab bo'lmadi",
+    "callUpdated": "Qo'ng'iroq yangilandi",
+    "callDeleteFailed": "Qo'ng'iroqni o'chirib bo'lmadi",
+    "callDeleted": "Qo'ng'iroq o'chirildi",
+    "universityRecommended": "Universitet tavsiya qilindi — ariza yaratildi",
+    "universitySuggestFailed": "Universitetni tavsiya qilib bo'lmadi",
+    "choosePdf": "PDF fayl tanlang",
+    "fileTooLargeLimit": "{{size}} MB — chegara {{max}} MB.",
+    "pdfUploaded": "PDF yuklandi",
+    "queuedForAnalysis": "Tahlil navbatiga qo'yildi.",
+    "koreanNameRequired": "Koreyscha nomini kiriting",
+    "institutionAdded": "Muassasa qo'shildi",
+    "saved": "Saqlandi",
+    "saveFailed": "Saqlab bo'lmadi",
+    "deleted": "O'chirildi",
+    "deleteFailed": "O'chirib bo'lmadi"
   }
 }
