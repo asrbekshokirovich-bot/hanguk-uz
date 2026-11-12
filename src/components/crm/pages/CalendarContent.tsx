@@ -77,7 +77,7 @@ export default function CalendarContent() {
       if (payment.due_date) {
         allEvents.push({
           id: payment.id,
-          title: `Payment: ${payment.student?.full_name || 'Unknown'}`,
+          title: t('calendarPage.paymentOf', { name: payment.student?.full_name || t('calendarPage.unknown') }),
           date: parseISO(payment.due_date),
           type: 'payment',
           status: payment.status,
@@ -88,7 +88,8 @@ export default function CalendarContent() {
     });
 
     return allEvents;
-  }, [tasks, payments]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, payments, i18n.language]);
 
   // Get events for a specific date
   const getEventsForDate = (date: Date) => {
@@ -131,8 +132,20 @@ export default function CalendarContent() {
 
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
 
-  // Week day headers
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // Week day headers, Sunday first as the grid is laid out, in the page's language.
+  const weekDays = Array.from({ length: 7 }, (_, i) =>
+    format(new Date(2026, 0, 4 + i), 'EEE', { locale: getLocale() }), // 4 Jan 2026 is a Sunday
+  );
+
+  // What a task's or a payment's state is called — the words the Vazifalar and
+  // To'lovlar pages use for the same values.
+  const priorityLabel = (priority: string) =>
+    ({ urgent: t('tasks.urgent'), high: t('tasks.high'), normal: t('tasks.normal'), low: t('tasks.low') })[priority] ?? priority;
+  const statusLabel = (type: CalendarEvent['type'], status: string) =>
+    (type === 'task'
+      ? { todo: t('tasks.todo'), in_progress: t('tasks.inProgress'), completed: t('tasks.completed'), cancelled: t('tasks.cancelled') }
+      : { pending: t('payments.pending'), partial: t('payments.partial'), completed: t('payments.completed'), overdue: t('payments.overdue') }
+    )[status] ?? status;
 
   if (loading) {
     return (
@@ -153,7 +166,7 @@ export default function CalendarContent() {
             {t('navigation.calendar')}
           </h1>
           <p className="text-muted-foreground">
-            View tasks and payment deadlines
+            {t('calendarPage.subtitle')}
           </p>
         </div>
         
@@ -184,7 +197,7 @@ export default function CalendarContent() {
               setSelectedDate(new Date());
             }}
           >
-            Today
+            {t('calendarPage.today')}
           </Button>
         </div>
       </div>
@@ -259,7 +272,7 @@ export default function CalendarContent() {
                       ))}
                       {dayEvents.length > 3 && (
                         <div className="text-xs text-muted-foreground px-1">
-                          +{dayEvents.length - 3} more
+                          {t('calendarPage.more', { count: dayEvents.length - 3 })}
                         </div>
                       )}
                     </div>
@@ -272,19 +285,19 @@ export default function CalendarContent() {
             <div className="flex items-center gap-4 mt-4 pt-4 border-t">
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-3 h-3 rounded bg-destructive" />
-                <span>Urgent</span>
+                <span>{t('tasks.urgent')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-3 h-3 rounded bg-warning" />
-                <span>High</span>
+                <span>{t('tasks.high')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-3 h-3 rounded bg-info" />
-                <span>Normal</span>
+                <span>{t('tasks.normal')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <div className="w-3 h-3 rounded bg-success" />
-                <span>Payment</span>
+                <span>{t('calendarPage.payment')}</span>
               </div>
             </div>
           </CardContent>
@@ -294,7 +307,7 @@ export default function CalendarContent() {
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">
-              {selectedDate ? format(selectedDate, 'EEEE, MMM d', { locale: getLocale() }) : 'Select a day'}
+              {selectedDate ? format(selectedDate, 'EEEE, MMM d', { locale: getLocale() }) : t('calendarPage.selectDay')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -334,7 +347,7 @@ export default function CalendarContent() {
                       <div className="mt-2 flex flex-wrap gap-1">
                         {event.type === 'task' && event.priority && (
                           <Badge variant="outline" className="text-xs">
-                            {event.priority}
+                            {priorityLabel(event.priority)}
                           </Badge>
                         )}
                         {event.status && (
@@ -342,7 +355,7 @@ export default function CalendarContent() {
                             variant={event.status === 'completed' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
-                            {event.status}
+                            {statusLabel(event.type, event.status)}
                           </Badge>
                         )}
                         {event.type === 'payment' && event.amount && (
@@ -355,7 +368,7 @@ export default function CalendarContent() {
                       {event.assignee && (
                         <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                           <User className="h-3 w-3" />
-                          <span>Assigned</span>
+                          <span>{t('calendarPage.assigned')}</span>
                         </div>
                       )}
                     </div>
@@ -377,7 +390,7 @@ export default function CalendarContent() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{tasks.filter(t => t.status !== 'completed').length}</p>
-                <p className="text-xs text-muted-foreground">Active Tasks</p>
+                <p className="text-xs text-muted-foreground">{t('calendarPage.activeTasks')}</p>
               </div>
             </div>
           </CardContent>
@@ -391,7 +404,7 @@ export default function CalendarContent() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length}</p>
-                <p className="text-xs text-muted-foreground">Urgent Tasks</p>
+                <p className="text-xs text-muted-foreground">{t('calendarPage.urgentTasks')}</p>
               </div>
             </div>
           </CardContent>
@@ -405,7 +418,7 @@ export default function CalendarContent() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{payments.filter(p => p.status === 'pending').length}</p>
-                <p className="text-xs text-muted-foreground">Pending Payments</p>
+                <p className="text-xs text-muted-foreground">{t('calendarPage.pendingPayments')}</p>
               </div>
             </div>
           </CardContent>
@@ -425,7 +438,7 @@ export default function CalendarContent() {
                     return e.date >= today && e.date <= weekFromNow;
                   }).length}
                 </p>
-                <p className="text-xs text-muted-foreground">Due This Week</p>
+                <p className="text-xs text-muted-foreground">{t('calendarPage.dueThisWeek')}</p>
               </div>
             </div>
           </CardContent>

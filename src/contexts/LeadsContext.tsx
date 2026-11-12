@@ -6,6 +6,7 @@ import { applyIntake } from '@/lib/intakeQuery';
 import { edgeFunctionError } from '@/lib/edgeFunctionError';
 import { edgeFunctionStatus } from '@/lib/sessionCheck';
 import { toast } from 'sonner';
+import i18n from '@/lib/i18n';
 import { fetchAllRows } from '@/lib/fetchAllRows';
 import { applyLeadChanges, buildLeadLookups, enrichLead, LEAD_PARTIAL_REFRESH_MAX, type LeadLookups } from '@/lib/leadsSync';
 
@@ -280,12 +281,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Lead created successfully');
+      toast.success(i18n.t('leads.toasts.created'));
       await syncLeads([data.id]);
       return data;
     } catch (error) {
       console.error('Error creating lead:', error);
-      toast.error('Failed to create lead');
+      toast.error(i18n.t('leads.toasts.createFailed'));
       throw error;
     }
   };
@@ -332,12 +333,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Lead updated successfully');
+      toast.success(i18n.t('leads.toasts.updated'));
       // No fetchLeads() here, let the realtime listener handle it locally if possible
       // Actually wait, for 10 hooks we'll just implement the Phase 2 optimization inside the postgres_changes!
     } catch (error) {
       console.error('Error updating lead:', error);
-      toast.error('Failed to update lead');
+      toast.error(i18n.t('leads.toasts.updateFailed'));
       throw error;
     }
   };
@@ -351,18 +352,18 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      toast.success('Lead deleted successfully');
+      toast.success(i18n.t('leads.toasts.deleted'));
       setLeads(prev => prev.filter(l => l.id !== id));
     } catch (error) {
       console.error('Error deleting lead:', error);
-      toast.error('Failed to delete lead');
+      toast.error(i18n.t('leads.toasts.deleteFailed'));
       throw error;
     }
   };
 
   const convertToStudent = async (leadId: string): Promise<{ success: boolean; magicCode?: string }> => {
     if (convertingIds.current.has(leadId)) {
-      toast.info('Conversion already in progress...');
+      toast.info(i18n.t('leads.toasts.converting'));
       return { success: false };
     }
 
@@ -372,12 +373,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
     // "already in progress".
     const lead = leads.find(l => l.id === leadId);
     if (!lead) {
-      toast.error('Lead not found');
+      toast.error(i18n.t('leads.toasts.notFound'));
       return { success: false };
     }
 
     if (lead.converted_to_student_id) {
-      toast.error('This lead has already been converted to a student');
+      toast.error(i18n.t('leads.toasts.alreadyConverted'));
       return { success: false };
     }
 
@@ -405,7 +406,7 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       const errorMsg = result.data?.error || (result.error as any)?.message || '';
       if (typeof errorMsg === 'string' && (errorMsg.includes('phone number already exists') || errorMsg.includes('phone number belongs'))) {
-        toast.info('Phone number already in use, creating without phone...');
+        toast.info(i18n.t('leads.toasts.phoneInUse'));
         result = await tryCreateStudent(false);
       }
 
@@ -429,12 +430,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (updateError) throw updateError;
 
-      toast.success(`Lead converted to student! Magic code: ${result.data.magicCode}`);
+      toast.success(i18n.t('leads.toasts.converted', { code: result.data.magicCode }));
       await fetchLeads();
       return { success: true, magicCode: result.data.magicCode };
     } catch (error) {
       console.error('Error converting lead:', error);
-      const message = error instanceof Error ? error.message : 'Failed to convert lead';
+      const message = error instanceof Error ? error.message : i18n.t('leads.toasts.convertFailed');
       toast.error(message);
       return { success: false };
     } finally {
@@ -450,12 +451,12 @@ export const LeadsProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.error) throw response.error;
 
-      toast.success(leadId ? 'Lead analyzed successfully' : 'All leads analyzed');
+      toast.success(i18n.t(leadId ? 'leads.toasts.analyzed' : 'leads.toasts.analyzedAll'));
       await (leadId ? syncLeads([leadId]) : fetchLeads());
       return response.data;
     } catch (error) {
       console.error('Error analyzing lead:', error);
-      toast.error('Failed to analyze lead');
+      toast.error(i18n.t('leads.toasts.analyzeFailed'));
       throw error;
     }
   };
