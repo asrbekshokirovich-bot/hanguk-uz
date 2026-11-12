@@ -131,7 +131,6 @@ export function useUniversityAdmissions(institutionId: string | null) {
       // the cycle_id FK in one round-trip. Hide superseded cycles (matches the
       // admission_cycles_app_read RLS policy).
       const cyclesQ = supabase
-        // @ts-expect-error - uni_db tables not in generated types yet
         .from('admission_cycles')
         .select(
           '*, requirements(*), documents_required(*)',
@@ -143,13 +142,11 @@ export function useUniversityAdmissions(institutionId: string | null) {
 
       // Institution-scoped data.
       const scholarshipsQ = supabase
-        // @ts-expect-error - uni_db tables not in generated types yet
         .from('scholarships')
         .select('*')
         .eq('institution_id', id);
 
       const tuitionQ = supabase
-        // @ts-expect-error - uni_db tables not in generated types yet
         .from('tuition')
         .select('*')
         .eq('institution_id', id)

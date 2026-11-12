@@ -29,7 +29,6 @@ export function useInstitutionNotes(institutionId: string | null) {
     enabled: !!institutionId,
     queryFn: async () => {
       const { data, error } = await supabase
-        // @ts-expect-error - institution_notes not in generated types yet
         .from('institution_notes')
         .select('*')
         .eq('institution_id', institutionId as string)
@@ -55,7 +54,6 @@ export function useInstitutionNoteActions(institutionId: string | null) {
     mutationFn: async ({ institutionId: id, noteType, content }) => {
       const body = { institution_id: id, note_type: noteType, content: content.trim() };
       const { error } = await supabase
-        // @ts-expect-error - institution_notes not in generated types yet
         .from('institution_notes')
         .insert(body as never);
       if (error) throw new Error(error.message);
@@ -67,7 +65,6 @@ export function useInstitutionNoteActions(institutionId: string | null) {
   const remove = useMutation<void, Error, string>({
     mutationFn: async (noteId: string) => {
       const { error } = await supabase
-        // @ts-expect-error - institution_notes not in generated types yet
         .from('institution_notes')
         .update({ is_active: false } as never)
         .eq('id', noteId);

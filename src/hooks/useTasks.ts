@@ -79,13 +79,19 @@ export function useTasks() {
     assigned_to?: string;
     student_id?: string;
     application_id?: string;
+    /** The board column the task was added in. It used to be dropped here, so
+     *  a task added under «Jarayonda» or «Bajarildi» appeared under «Bajarish kerak». */
+    status?: Task['status'];
   }) => {
     if (!user) return { error: new Error('Not authenticated') };
 
+    const status = task.status ?? 'todo';
     const { error, data } = await supabase
       .from('tasks')
       .insert({
         title: task.title,
+        status,
+        completed_at: status === 'completed' ? new Date().toISOString() : null,
         description: task.description || null,
         priority: task.priority || 'normal',
         due_date: task.due_date || null,
