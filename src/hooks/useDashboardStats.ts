@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveIntake } from '@/contexts/IntakeContext';
 import { applyIntake } from '@/lib/intakeQuery';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import {
   computeDashboard,
   type DashboardNumbers,
@@ -81,11 +82,16 @@ export function useDashboardStats() {
           .from('student_university_submissions')
           .select('student_id, institution_id, online_submitted_at, offline_sent_at, interview_at, result, result_at, final_at, visa_status')
           .in('student_id', ids.length ? ids : none),
-        supabase
-          .from('documents')
-          .select('student_id, name, file_path, status, created_at')
-          .in('student_id', ids.length ? ids : none)
-          .limit(5000),
+        // `.limit(5000)` asked for more than one request can return (1000):
+        // in pages instead.
+        fetchAllRows((from, to) =>
+          supabase
+            .from('documents')
+            .select('student_id, name, file_path, status, created_at')
+            .in('student_id', ids.length ? ids : none)
+            .order('id')
+            .range(from, to),
+        ),
       ]);
       const submissions = (subsRes.data ?? []) as DashSubmission[];
       const uniIds = [...new Set(submissions.map((s) => s.institution_id))];
