@@ -1491,6 +1491,13 @@
         }
       },
       "openChat": "Chatni ochish"
+    },
+    "samePhone": {
+      "title": "Bu raqam bilan lid bor",
+      "body": "Yangi yozuv ochmasdan, yozganlaringizni mavjud lidga qo'shishingiz mumkin. Boshqa odam bo'lsa (masalan, bir oiladan) — yangi lid yarating.",
+      "fill": "Shu lidga yozish",
+      "createAnyway": "Baribir yangi lid",
+      "notCalled": "qo'ng'iroq qilinmagan"
     }
   },
   "universities": {

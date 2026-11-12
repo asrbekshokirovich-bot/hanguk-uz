@@ -1422,6 +1422,13 @@
         }
       },
       "openChat": "Open chat"
+    },
+    "samePhone": {
+      "title": "A lead with this number already exists",
+      "body": "You can add what you typed to the existing lead instead of opening a new record. If it is someone else (a sibling on the same phone, say), create a new lead.",
+      "fill": "Write to this lead",
+      "createAnyway": "Create a new lead anyway",
+      "notCalled": "not called yet"
     }
   },
   "universities": {
