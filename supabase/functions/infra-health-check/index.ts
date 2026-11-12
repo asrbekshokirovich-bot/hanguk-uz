@@ -14,6 +14,8 @@
 //   telegram_ingest  Telegram messages still in telegram_ingest_failures after
 //                    30 minutes → must be 0
 //   instagram_sync   minutes since instagram-maintenance last synced → fails past 60
+//   instagram_token  days until the Instagram token expires → fails under 40
+//                    (the weekly refresh keeps it at 53 or more)
 //   cron_jobs        pg_cron jobs whose latest runs all failed (fn_cron_failing_jobs)
 //                    → must be none
 //   crm_crashes      pages of the site that fell over for someone signed in
@@ -40,6 +42,7 @@ import { serviceKey } from "../_shared/keys.ts";
 import { isServiceRequest } from "../_shared/caller.ts";
 import { type CronFailure, cronJobsLine } from "./cron.ts";
 import { type CrashRow, crashLine } from "./crashes.ts";
+import { type IgAccountRow, igTokenLine } from "./ig_token.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -233,6 +236,16 @@ async function runChecks(supabase: ReturnType<typeof createClient>): Promise<Che
     }
   }
 
+  // 10. The Instagram token's remaining life (see ig_token.ts).
+  {
+    const { data, error } = await supabase
+      .from("instagram_accounts")
+      .select("username, token_expires_at")
+      .eq("active", true);
+    if (error) out.push({ check: "instagram_token", state: "fail", detail: `so'rov xatosi: ${error.message}` });
+    else out.push({ check: "instagram_token", ...igTokenLine((data ?? []) as IgAccountRow[], Date.now()) });
+  }
+
   return out;
 }
 
@@ -244,6 +257,7 @@ const LABEL: Record<string, string> = {
   telegram_userbot: "Telegram userbot (akkaunt sessiyasi)",
   telegram_ingest: "Telegram xabarlari (telegram-ingest)",
   instagram_sync: "Instagram zaxira sinxronlash",
+  instagram_token: "Instagram tokeni",
   cron_jobs: "Rejali ishlar (pg_cron)",
   crm_crashes: "CRM sahifalari (brauzerdagi xatolar)",
 };
@@ -264,6 +278,9 @@ const HINT: Record<string, string> = {
     "telegram_ingest_failures jadvalidagi xatoni ko'ring; telegram-poll har daqiqada qayta urinadi.",
   instagram_sync:
     "instagram_sync_state.last_error ni ko'ring: token yoki Instagram API ruxsati muammosi bo'lishi mumkin.",
+  instagram_token:
+    "Token har dushanba yangilanishi kerak (instagram-token-refresh). Funksiya logidagi Instagram javobini ko'ring; " +
+    "token tugasa Instagram'ga javob yuborib bo'lmaydi va sinxronlash to'xtaydi.",
   cron_jobs:
     "Supabase → Integrations → Cron → ishning oxirgi ishga tushishlari (cron.job_run_details.return_message) ni ko'ring.",
   crm_crashes:
