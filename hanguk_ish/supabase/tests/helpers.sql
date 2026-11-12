@@ -37,12 +37,19 @@ begin
   raise exception 'FAILED: % (no error, wanted "%")', msg, want;
 end $$;
 
--- Acts as [p_user] through PostgREST: role authenticated + JWT claims.
+-- Whether [p_user] is an anonymous account (Supabase puts it in the JWT).
+create function tests.is_anonymous(p_user uuid) returns boolean
+language sql stable security definer as $$
+  select coalesce((select u.is_anonymous from auth.users u where u.id = p_user), false)
+$$;
+
+-- Acts as [p_user] through PostgREST: role authenticated + JWT claims (with
+-- is_anonymous, as Supabase Auth issues them).
 create function tests.as_user(p_user uuid) returns void
 language plpgsql as $$
 begin
   perform set_config('request.jwt.claims',
-    json_build_object('sub', p_user, 'role', 'authenticated')::text, true);
+    json_build_object('sub', p_user, 'role', 'authenticated', 'is_anonymous', tests.is_anonymous(p_user))::text, true);
   perform set_config('role', 'authenticated', true);
 end $$;
 

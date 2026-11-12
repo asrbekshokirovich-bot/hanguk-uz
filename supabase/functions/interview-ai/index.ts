@@ -7,6 +7,7 @@ import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { serviceKey, publishableKey } from "../_shared/keys.ts";
 import { countsAgainstQuota, guestInterviewKey, guestInterviewLimit, weeklyLimitMessage } from "./guest_quota.ts";
 import { chatMessages, hintContext, hintMessages, isStart, parseHints, toChat } from "./dialog.ts";
+import { isAnonymousAccount } from "../_shared/hanguk-ish.ts";
 
 const GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
@@ -157,6 +158,12 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (isAnonymousAccount(user)) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

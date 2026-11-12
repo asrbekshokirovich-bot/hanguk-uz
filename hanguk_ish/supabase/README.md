@@ -71,6 +71,17 @@ ildiz migratsiyasi prod'da, 3-band (anonim kirish) Asrbek yoqadi. P50
    emas. hanguk.uz'ning o'z kirishi o'zgarmaydi; anonim akkauntga hanguk.uz profili
    ochilmaydi (`20261111180000_hanguk_ish_skip_anonymous.sql`). Akkaunt telefonda
    saqlanadi: ilova o'chirilsa, yangisi ochiladi.
+   **Avval (P53):** anonim akkauntni istalgan odam ochishi mumkin, hanguk.uz esa
+   anonim kirish o'chiq deb qurilgan — uning jadvallari «har kim o'z qatorini»
+   yozishiga, bir qancha funksiyalari (AI intervyu, study plan, universitet
+   qidiruvi, HeyGen, TURN, push token) har qanday kirgan akkauntga ochiq. Shuning
+   uchun yoqishdan oldin: ildizdagi `20261112140000_hanguk_ish_no_anonymous.sql`
+   (hanguk.uz'ning barcha `public` jadvallari va bucket'lariga anonim akkauntga
+   restrictive policy; `ish` sxemasi va «ish-avatars» tegilmaydi) prod'ga
+   qo'yiladi va funksiyalar joylanadi (`supabase/functions/_shared/hanguk-ish.ts`:
+   anonim akkauntga 403; main'ga birlashganda `supabase-deploy.yml` o'zi joylaydi).
+   Keyin yaratiladigan hanguk.uz jadvaliga shu policy o'z migratsiyasida
+   qo'shiladi (namunasi migratsiya boshida).
 4. Edge funksiya `ish-business-register`: `supabase functions deploy ish-business-register
    --workdir hanguk_ish --project-ref lysjdtyanhdfphqyijsr` (yoki MCP
    `deploy_edge_function`: `index.ts`, `keys.ts`, `nts.ts`, verify_jwt yoqiq);

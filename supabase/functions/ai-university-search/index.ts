@@ -34,6 +34,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { parseTermsReply, queryKey } from "./search.ts";
 import { geminiFetch } from "../_shared/claude-fallback.ts";
 import { serviceKey } from "../_shared/keys.ts";
+import { isAnonymousAccount } from "../_shared/hanguk-ish.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = serviceKey();
@@ -172,6 +173,8 @@ async function signedInUser(req: Request): Promise<string | null> {
     return null;
   }
   const { data } = await admin.auth.getUser(token);
+  // A Hanguk Ish anonymous account (P53) searches as a guest: per IP.
+  if (isAnonymousAccount(data?.user)) return null;
   return data?.user?.id ?? null;
 }
 

@@ -17,6 +17,10 @@ create table public.messages (id uuid primary key default gen_random_uuid(), bod
 alter table public.profiles enable row level security;
 alter table public.applications enable row level security;
 alter table public.messages enable row level security;
+-- As in production: a signed-in account may write itself a profile (P53
+-- keeps anonymous accounts from it).
+create policy profiles_insert_own on public.profiles for insert to authenticated
+  with check (auth.uid() = user_id);
 
 -- A hanguk.uz table with rights of its own: they must stay as they are.
 create table public.main_canary (id int primary key, note text);

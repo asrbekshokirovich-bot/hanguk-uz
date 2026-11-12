@@ -101,6 +101,30 @@ select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq((select note from public.main_canary where id = 1), 'hanguk.uz',
                 'hanguk.uz row: readable by its own policy');
 select tests.as_admin();
+
+-- P53: an anonymous account (the apps' since P49) is kept out of hanguk.uz's
+-- tables (supabase/migrations/…_hanguk_ish_no_anonymous.sql at the repository
+-- root): the policy that lets a signed-in account read the row does not let it.
+-- Its Hanguk Ish side works as before.
+select tests.eq((select count(*)::int from pg_policy
+                 where polname = 'hanguk_ish_no_anonymous' and not polpermissive
+                   and polrelid in ('public.profiles'::regclass, 'public.applications'::regclass,
+                                    'public.messages'::regclass, 'public.main_canary'::regclass)),
+                4, 'every hanguk.uz table with row security keeps anonymous accounts out');
+select tests.eq((select count(*)::int from pg_policy
+                 where polname = 'hanguk_ish_no_anonymous'
+                   and polrelid in (select c.oid from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                                    where n.nspname = 'ish')),
+                0, 'Hanguk Ish''s own tables are not touched');
+select tests.as_user('00000000-0000-0000-0000-0000000000e4');
+select tests.eq((select count(*)::int from public.main_canary), 0, 'an anonymous account: hanguk.uz rows are not for it');
+select tests.throws($$insert into public.profiles (user_id, full_name) values ('00000000-0000-0000-0000-0000000000e4', 'x')$$,
+                    'row-level security', 'nor can it write itself a hanguk.uz profile');
+select tests.eq((select count(*)::int from ish.profiles where id = '00000000-0000-0000-0000-0000000000e4'), 1,
+                'its Hanguk Ish profile is there for it');
+select tests.as_user('00000000-0000-0000-0000-0000000000a1');
+select tests.eq((select count(*)::int from public.main_canary), 1, 'a hanguk.uz account still reads the row');
+select tests.as_admin();
 select tests.ok(exists (select 1 from pg_publication_tables
                         where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'messages'),
                 'hanguk.uz live updates: its table is still in the publication');

@@ -21,8 +21,14 @@ cd "$(dirname "$0")/.."
 apks=$1
 out=build/smoke
 mkdir -p "$out"
-ui() { python3 tool/smoke_ui.py "$@"; }
+# One screen command never waits longer than its own 90 s, nor one adb call
+# for a picture or the log: an emulator that stops answering would otherwise
+# hold the whole run until the job's limit (it did, twice, after a walk had
+# already failed).
+ui() { timeout 150 python3 tool/smoke_ui.py "$@"; }
+adbt() { timeout 60 adb "$@"; }
 failed=0
+stream=
 adb shell getprop ro.product.cpu.abilist | tee "$out/abilist.txt"
 # The emulator's own apps (Pixel Launcher) stop answering under load, and
 # their «isn't responding» box covers ours and eats the taps. No error boxes:
@@ -32,21 +38,32 @@ adb shell settings put global hide_error_dialogs 1 >/dev/null 2>&1 || true
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
   local apk=$1 pkg=$2 name=$3
-  adb uninstall "$pkg" >/dev/null 2>&1 || true
-  if ! adb install -r "$apk" >"$out/$name-install.txt" 2>&1; then
+  adbt uninstall "$pkg" >/dev/null 2>&1 || true
+  if ! timeout 300 adb install -r "$apk" >"$out/$name-install.txt" 2>&1; then
     cat "$out/$name-install.txt"
     return 2
   fi
-  adb logcat -c
-  adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  # Android finishes an install with broadcasts; on a slow emulator they can
+  # land seconds later and restart the activity under the first tap (P31).
+  timeout 90 adb shell am wait-for-broadcast-idle >/dev/null 2>&1 || true
+  adbt logcat -c
+  # The log as it comes, for when the emulator itself goes away: finish's
+  # dump needs a device that still answers.
+  adb logcat -v threadtime >"$out/$name-stream.txt" 2>&1 &
+  stream=$!
+  adbt shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 }
 
 # Still running, nothing fatal in the log; the screen as it is.
 finish() {
   local pkg=$1 name=$2
-  adb exec-out screencap -p >"$out/$name.png" || true
-  adb logcat -d >"$out/$name-logcat.txt" 2>&1 || true
-  if ! adb shell pidof "$pkg" >/dev/null 2>&1; then
+  adbt exec-out screencap -p >"$out/$name.png" || true
+  if adbt logcat -d >"$out/$name-logcat.txt" 2>&1; then
+    rm -f "$out/$name-stream.txt" # the dump has it all
+  fi
+  kill "$stream" 2>/dev/null || true
+  stream=
+  if ! adbt shell pidof "$pkg" >/dev/null 2>&1; then
     echo "::error::$name: the app is not running any more"
     failed=1
   fi
@@ -77,7 +94,7 @@ worker() {
   # answers nothing, it says the connection is missing.
   local next='Profil · 1 / 3'
   [ "$1" = backend ] && next='Internet aloqasi'
-  if ui wait 'Boshlash' 90 && ui tap 'Boshlash' && ui wait "$next" 30; then
+  if ui wait 'Boshlash' 90 && ui tapto 'Boshlash' "$next" 40; then
     echo "$name: A01 → «Boshlash» → $next"
   elif [ "$1" = backend ] && ui wait '=Boshlash' 5; then
     # The connection message is a 4-second snack bar, and a busy emulator's
@@ -102,7 +119,7 @@ employer() {
   # opens in the phone's language (P43): English on the emulator.
   local next="Today's shifts"
   [ "$1" = backend ] && next='Check the internet connection'
-  if ui wait 'Get started' 90 && ui tap 'Get started' && ui wait "$next" 30; then
+  if ui wait 'Get started' 90 && ui tapto 'Get started' "$next" 40; then
     echo "$name: BA0 «Get started» → $next"
   elif [ "$1" = backend ] && ui wait '=Get started' 5; then
     # The connection message is a 4-second snack bar, and a busy emulator's
@@ -125,7 +142,7 @@ employer demo arm64
 
 # --- The longer walks -------------------------------------------------------
 
-shot() { adb exec-out screencap -p >"$out/walk-$1.png" 2>/dev/null || true; }
+shot() { adbt exec-out screencap -p >"$out/walk-$1.png" 2>/dev/null || true; }
 # step <what> <command…>: runs it; on failure says what did not happen.
 step() {
   local what=$1
@@ -138,18 +155,24 @@ step() {
 }
 
 # Takes shifts from the top of the feed until one is confirmed at once
-# (some wait for the business).
-# A03 → A05 → «Smenani olish» → confirm, card by card until one is
-# confirmed at once (auto-confirm). A feed card reads as one line (its own
-# «Olish» is inside the card's node), so the card opens A05, whose button
-# is a node of its own.
+# (some wait for the business). A03 → A05 → «Smenani olish» → confirm, card
+# by card. A feed card reads as one line (its own «Olish» is inside the
+# card's node), so the card opens A05, whose button is a node of its own.
+# Which card comes first depends on the time of day (the demo shifts are
+# around now); a card that only sent an application stays in A06 too and
+# may come first there, so the taken one is remembered by its business:
+# «tapped 'Bom Mart, Kassir yordamchisi, …' @ x,y» → taken=Bom Mart.
+taken=
 take_confirmed() {
-  local card
-  for card in 0 1 2; do
-    ui tap ' soat' 30 "$card" || return 1
+  local card out
+  for card in 0 1 2 3 4; do
+    out=$(ui tap ' soat' 30 "$card") || { echo "$out"; return 1; }
+    echo "$out"
     ui tap '=Smenani olish' 30 || return 1
     ui tap '=Tasdiqlash' 15 || return 1
     if ui wait 'Smena olindi!' 10; then
+      taken=${out#tapped ?}
+      taken=${taken%%,*}
       return 0
     fi
     ui tapif '=Lentaga qaytish' 5
@@ -194,7 +217,7 @@ walk_worker() {
     step 'A06' ui tap '=Mening smenalarim' &&
     step 'A06: the shift' ui wait 'Tasdiqlangan' &&
     shot a06 &&
-    step 'A06 → A07' ui tapbelow 'Smenalar holati' ' · ' &&
+    step "A06 → A07 ($taken)" ui tapbelow 'Smenalar holati' "${taken:- · }" &&
     step 'A07 check-in' ui wait 'Ishga kirish' 30 &&
     shot a07-in &&
     step 'A07: the printed code (demo)' ui tap '=QR kodni skanerlash' &&
@@ -249,25 +272,28 @@ walk_employer() {
     step 'BA0 → BA1' ui tap '=시작하기' &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&
-    step 'BA1 → BA3' ui tap '마감 정리 보조' 30 -1 &&
-    step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
-    shot ba3 &&
-    step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
-    step 'BA3: the QR picture goes to the share sheet' shared &&
-    shot ba3-share &&
-    adb shell input keyevent 4 &&
-    step 'back in BA3' ui wait 'QR 인쇄·공유' &&
-    adb shell input keyevent 4 &&
     step 'BA5' ui tap '=리포트' &&
     step 'BA5: CSV button' ui scrollto 'CSV 다운로드' &&
     shot ba5 &&
     step 'BA5: CSV' ui tapx 'CSV 다운로드' 85 &&
     step 'BA5: the CSV goes to the share sheet' shared &&
     shot ba5-share &&
-    adb shell input keyevent 4 &&
+    adbt shell input keyevent 4 &&
     step 'back in BA5' ui wait 'CSV 다운로드' &&
-    echo "$name: BA0 → BA1 → BA3 → QR share → BA5 → CSV share" ||
+    step 'BA5 → BA1' ui tap '=홈' &&
+    step 'BA1 again' ui wait '오늘의 근무' 30 &&
+    step 'BA1 → BA3' ui tap '마감 정리 보조' 30 -1 &&
+    step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
+    shot ba3 &&
+    step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
+    step 'BA3: the QR picture goes to the share sheet' shared &&
+    shot ba3-share &&
+    echo "$name: BA0 → BA1 → BA5 → CSV share → BA1 → BA3 → QR share" ||
     { shot failed-employer; failed=1; }
+  # The QR's share sheet stays open to the end. Closing it, the emulator
+  # itself (not the app) has gone away now and then on the very next step —
+  # adb «device offline», whether that step went back to BA1 or to BA5 — and
+  # the walk has seen what it came for.
   finish "$pkg" "$name"
 }
 
