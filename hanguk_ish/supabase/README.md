@@ -57,7 +57,8 @@ Holat (2026-11-12): 21 migratsiya prod'da (P48), sxema test bazasi bilan bir xil
 `ish` API'da; funksiya joylangan; xodim (Asrbek) qo'shilgan. P49 (SMS'siz kirish):
 ildiz migratsiyasi prod'da, 3-band (anonim kirish) Asrbek yoqadi. P50
 (`…_ish_open_business.sql`) — prod'ga Asrbek ruxsati bilan. P52
-(`…_ish_app_business_oversight.sql`) — Asrbek ruxsatini kutadi.
+(`…_ish_app_business_oversight.sql`) — prod'da (2026-11-12, Asrbek ruxsati
+bilan; 8 funksiya md5 bo'yicha test bazasi bilan bir xil).
 
 1. Migratsiyalar, nom tartibida, Supabase MCP `apply_migration` bilan (yoki
    «Supabase apply migrations» workflow — u faqat `main` dagi fayllarni oladi):
