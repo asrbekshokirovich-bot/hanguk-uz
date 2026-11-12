@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Lead } from '@/contexts/LeadsContext';
 import {
+  followUpForSave,
+  followUpParts,
   EMPTY_FORM,
   describeDate,
   formFromLead,
@@ -460,5 +462,20 @@ describe('intake phone field — Kyrgyz numbers (plan KG3)', () => {
     const form = formFromLead(completeLead());
     expect(validateIntake({ ...form, phone: '+996 700 123 456' }).phone).toBeUndefined();
     expect(validateIntake({ ...form, phone: '+996 700 123' }).phone).toBe(true);
+  });
+});
+
+describe('follow-up time', () => {
+  it('saves a date alone as before, and a time in Tashkent offset', () => {
+    expect(followUpForSave('2026-11-12', '')).toBe('2026-11-12');
+    expect(followUpForSave('2026-11-12', '15:30')).toBe('2026-11-12T15:30:00+05:00');
+    expect(followUpForSave('', '15:30')).toBeUndefined();
+  });
+  it('reads a stored stamp back in Tashkent time', () => {
+    expect(followUpParts('2026-11-12T10:30:00+00:00')).toEqual({ date: '2026-11-12', time: '15:30' });
+    expect(followUpParts('2026-11-11T22:00:00+00:00')).toEqual({ date: '2026-11-12', time: '03:00' });
+    expect(followUpParts('2026-11-12T00:00:00+00:00')).toEqual({ date: '2026-11-12', time: '' });
+    expect(followUpParts('2026-11-12')).toEqual({ date: '2026-11-12', time: '' });
+    expect(followUpParts(null)).toEqual({ date: '', time: '' });
   });
 });

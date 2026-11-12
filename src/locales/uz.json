@@ -1139,7 +1139,8 @@
         "source": "Bizni qanday topdi?",
         "sourceNote": "Aniqlashtirish",
         "note": "Qo‘shimcha izoh",
-        "followUp": "Qayta aloqa sanasi"
+        "followUp": "Qayta aloqa sanasi",
+        "followUpTime": "Soat"
       },
       "placeholders": {
         "firstName": "Masalan: Muhammad",
