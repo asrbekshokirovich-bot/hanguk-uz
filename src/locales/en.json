@@ -3743,7 +3743,8 @@
     "tabs": {
       "jobs": "Jobs",
       "employers": "Employers",
-      "appBusinesses": "App businesses"
+      "appBusinesses": "App businesses",
+      "reports": "Complaints"
     },
     "board": {
       "newJob": "New job",
@@ -3948,6 +3949,34 @@
       "resumeText": "workers will see its shifts again.",
       "suspended": "Suspended",
       "resumed": "Resumed"
+    },
+    "reports": {
+      "intro": "Complaints workers sent from the app — open ones on top. Look into each and set its status.",
+      "empty": "No complaints yet.",
+      "when": "When",
+      "reason": "Subject",
+      "text": "Text",
+      "worker": "Worker",
+      "status": "Status",
+      "reasons": {
+        "employer": "Employer",
+        "payment": "Pay",
+        "safety": "Safety",
+        "other": "Other",
+        "unpaid": "Unpaid",
+        "not_as_described": "Not as described",
+        "time_dispute": "Time dispute",
+        "no_show": "No-show",
+        "behaviour": "Behaviour"
+      },
+      "statuses": {
+        "open": "Open",
+        "in_review": "In review",
+        "closed": "Closed"
+      },
+      "history": "{{completed}} shifts · {{noShows}} no-shows",
+      "noName": "No name",
+      "changed": "Status changed"
     }
   },
   "calendarPage": {

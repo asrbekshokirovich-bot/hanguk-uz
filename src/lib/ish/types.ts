@@ -66,6 +66,22 @@ export interface IshAppBusiness extends IshBusinessBrief {
   last_shift_at: string | null;
 }
 
+/** Where a complaint stands (the staff's note). */
+export type ReportStatus = 'open' | 'in_review' | 'closed';
+
+/** `staff_reports` (P52): a worker's complaint from the app (A11 «Shikoyat»). */
+export interface IshReport {
+  id: string;
+  /** employer, payment, safety, other (A11); older: unpaid, not_as_described, time_dispute, no_show, behaviour. */
+  reason: string;
+  body: string;
+  status: ReportStatus;
+  created_at: string;
+  worker: IshWorker | null;
+  business: IshBusinessBrief | null;
+  shift_id: string | null;
+}
+
 /** What the app business form sends (`staff_update_app_business`). */
 export interface IshAppBusinessInput {
   id: string;

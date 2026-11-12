@@ -9,7 +9,8 @@
  * keeps an employer from Telegram, posts an invite-only job, offers it; the
  * worker answers with the same calls the app makes; the staff confirm, chat,
  * mark who came and that they were paid. And the businesses the 사장님 app
- * opens without a check (P50): the staff name one and suspend it (P52).
+ * opens without a check (P50): the staff name one and suspend it, and read
+ * the workers' complaints (P52).
  *
  *   SUPABASE_URL=… SUPABASE_ANON_KEY=… SUPABASE_SERVICE_KEY=… npx vitest run src/lib/ish/__e2e__
  *
@@ -292,5 +293,19 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
     expect(await feed()).toContain(shiftId);
     // Not the staff's own employers.
     await expect(api.setAppBusinessBlocked(businessId, true)).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+
+  it('a worker\'s complaint (A11) reaches the staff, who note where it stands (P52)', async () => {
+    // What the app sends (A11 «Shikoyat»).
+    const sent = await worker.from('reports').insert({ reason: 'employer', body: 'Ish beruvchi kech to\'ladi' });
+    expect(sent.error).toBeNull();
+    const seen = (await api.reports()).find((r) => r.body === "Ish beruvchi kech to'ladi");
+    expect(seen).toMatchObject({ reason: 'employer', status: 'open' });
+    expect(seen?.worker).toMatchObject({ id: workerId, first_name: 'Dilshod', last_name: 'Ergashev' });
+    expect(await api.setReportStatus(seen!.id, 'closed')).toBe('closed');
+    // The worker sees theirs only (RLS), with where it stands.
+    const own = await worker.from('reports').select('status').eq('id', seen!.id).single();
+    expect(own.data).toEqual({ status: 'closed' });
+    await expect(call(worker, 'staff_reports')).rejects.toThrow('FORBIDDEN');
   });
 });

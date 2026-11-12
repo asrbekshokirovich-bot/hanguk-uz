@@ -2702,7 +2702,8 @@
     "tabs": {
       "jobs": "일자리",
       "employers": "사업장",
-      "appBusinesses": "앱 사업장"
+      "appBusinesses": "앱 사업장",
+      "reports": "신고"
     },
     "board": {
       "newJob": "새 일자리",
@@ -2904,6 +2905,34 @@
       "resumeText": "근무가 다시 근무자에게 보여요.",
       "suspended": "정지했어요",
       "resumed": "재개했어요"
+    },
+    "reports": {
+      "intro": "근무자가 앱에서 보낸 신고예요. 열린 신고가 위에 있어요. 확인하고 상태를 표시하세요.",
+      "empty": "아직 신고가 없어요.",
+      "when": "일시",
+      "reason": "주제",
+      "text": "내용",
+      "worker": "근무자",
+      "status": "상태",
+      "reasons": {
+        "employer": "사업장",
+        "payment": "급여",
+        "safety": "안전",
+        "other": "기타",
+        "unpaid": "미지급",
+        "not_as_described": "설명과 다름",
+        "time_dispute": "시간 분쟁",
+        "no_show": "노쇼",
+        "behaviour": "태도"
+      },
+      "statuses": {
+        "open": "접수",
+        "in_review": "확인 중",
+        "closed": "완료"
+      },
+      "history": "근무 {{completed}}회 · 노쇼 {{noShows}}회",
+      "noName": "이름 없음",
+      "changed": "상태를 바꿨어요"
     }
   },
   "calendarPage": {

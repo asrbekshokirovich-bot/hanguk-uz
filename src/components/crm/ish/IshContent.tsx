@@ -5,13 +5,15 @@ import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { Briefcase, Loader2, ShieldAlert } from 'lucide-react';
 import { ishClient } from '@/lib/ish/client';
 import { ishApi } from '@/lib/ish/api';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { IshApiProvider, ishKeys } from './context';
+import { IshApiProvider, ishKeys, useIshApi } from './context';
 import { IshAppBusinesses } from './IshAppBusinesses';
 import { IshBoard } from './IshBoard';
 import { IshEmployers } from './IshEmployers';
 import { IshJobDetail } from './IshJobDetail';
+import { IshReports } from './IshReports';
 
 /**
  * CRM → «Hanguk Ish» (P41): Hanguk's staff keep employers found outside the
@@ -91,8 +93,12 @@ function IshStaffGate({ client, session }: { client: SupabaseClient; session: Se
 
 function IshWorkspace({ account }: { account: string }) {
   const { t } = useTranslation();
+  const api = useIshApi();
   const [jobId, setJobId] = useState<string | null>(null);
   const [tab, setTab] = useState('jobs');
+  // The complaints not closed yet, on the tab (P52).
+  const reports = useQuery({ queryKey: ishKeys.reports, queryFn: api.reports });
+  const open = (reports.data ?? []).filter((r) => r.status !== 'closed').length;
 
   return (
     <div className="space-y-4">
@@ -107,10 +113,18 @@ function IshWorkspace({ account }: { account: string }) {
         <IshJobDetail jobId={jobId} onBack={() => setJobId(null)} />
       ) : (
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
+          <TabsList className="h-auto flex-wrap">
             <TabsTrigger value="jobs">{t('ish.tabs.jobs')}</TabsTrigger>
             <TabsTrigger value="employers">{t('ish.tabs.employers')}</TabsTrigger>
             <TabsTrigger value="appBusinesses">{t('ish.tabs.appBusinesses')}</TabsTrigger>
+            <TabsTrigger value="reports" className="gap-1.5">
+              {t('ish.tabs.reports')}
+              {open > 0 && (
+                <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                  {open}
+                </Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="jobs" className="mt-4">
             <IshBoard onOpen={setJobId} />
@@ -120,6 +134,9 @@ function IshWorkspace({ account }: { account: string }) {
           </TabsContent>
           <TabsContent value="appBusinesses" className="mt-4">
             <IshAppBusinesses />
+          </TabsContent>
+          <TabsContent value="reports" className="mt-4">
+            <IshReports />
           </TabsContent>
         </Tabs>
       )}

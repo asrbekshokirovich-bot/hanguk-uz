@@ -3803,7 +3803,8 @@
     "tabs": {
       "jobs": "Ishlar",
       "employers": "Ish beruvchilar",
-      "appBusinesses": "Ilovadagi bizneslar"
+      "appBusinesses": "Ilovadagi bizneslar",
+      "reports": "Shikoyatlar"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -4005,6 +4006,34 @@
       "resumeText": "smenalari yana ishchilarga ko'rinadi.",
       "suspended": "To'xtatildi",
       "resumed": "Qayta yoqildi"
+    },
+    "reports": {
+      "intro": "Ishchilar ilovadan yuborgan shikoyatlar — ochiqlari tepada. Ko'rib chiqing va holatini belgilang.",
+      "empty": "Hozircha shikoyat yo'q.",
+      "when": "Qachon",
+      "reason": "Mavzu",
+      "text": "Matn",
+      "worker": "Ishchi",
+      "status": "Holati",
+      "reasons": {
+        "employer": "Ish beruvchi",
+        "payment": "Maosh",
+        "safety": "Xavfsizlik",
+        "other": "Boshqa",
+        "unpaid": "To'lanmagan",
+        "not_as_described": "Ta'rifga mos emas",
+        "time_dispute": "Vaqt bo'yicha kelishmovchilik",
+        "no_show": "Kelmagan",
+        "behaviour": "Xulq-atvor"
+      },
+      "statuses": {
+        "open": "Ochiq",
+        "in_review": "Ko'rib chiqilmoqda",
+        "closed": "Yopilgan"
+      },
+      "history": "{{completed}} ta smena · {{noShows}} marta kelmagan",
+      "noName": "Ismi kiritilmagan",
+      "changed": "Holati o'zgardi"
     }
   },
   "calendarPage": {

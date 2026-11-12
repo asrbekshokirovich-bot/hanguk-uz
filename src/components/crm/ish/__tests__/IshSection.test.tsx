@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import uz from '@/locales/uz.json';
 import samples from '../../../../../hanguk_ish/test/fixtures/backend_samples.json';
 import IshContent, { IshSection } from '../IshContent';
-import type { IshAppBusiness, IshJobPage } from '@/lib/ish/types';
+import type { IshAppBusiness, IshJobPage, IshReport } from '@/lib/ish/types';
 
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,QR') } }));
 // hanguk.uz's own client: the section uses it (P48, one project).
@@ -82,6 +82,7 @@ const job = samples.staff_shift as unknown as IshJobPage;
 const appBusinesses = samples.staff_app_businesses as unknown as IshAppBusiness[];
 const appFresh = appBusinesses.find((b) => b.biz_no === null && b.status === 'verified')!;
 const appSuspended = appBusinesses.find((b) => b.status === 'rejected')!;
+const reports = samples.staff_reports as unknown as IshReport[];
 
 const staffHandlers = (overrides: Record<string, Handler> = {}): Record<string, Handler> => ({
   is_staff: () => true,
@@ -93,10 +94,18 @@ const staffHandlers = (overrides: Record<string, Handler> = {}): Record<string, 
   staff_app_businesses: () => appBusinesses,
   staff_update_app_business: (p) => p?.p_business,
   staff_set_app_business_blocked: (p) => (p?.p_blocked ? 'rejected' : 'verified'),
+  staff_reports: () => reports,
+  staff_set_report_status: (p) => p?.p_status,
   ...overrides,
 });
 
 describe('CRM → Hanguk Ish', () => {
+  beforeAll(() => {
+    // Radix Select asks for these; jsdom has none.
+    Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+  });
   beforeEach(() => {
     // The samples' moment: the day before the job.
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -315,6 +324,37 @@ describe('CRM → Hanguk Ish', () => {
         p_name_i18n: { uz: 'Kimbap Cheonguk' },
       }),
     );
+  });
+
+  it('the workers\' complaints reach the staff: how many are open, who wrote what; the staff note where each stands', async () => {
+    const { client, rpc } = fakeClient(staffHandlers());
+    renderWith(<IshSection client={client} />);
+    const tab = await screen.findByRole('tab', { name: /Shikoyatlar/ });
+    await waitFor(() => expect(tab).toHaveTextContent('Shikoyatlar1'));
+    fireEvent.mouseDown(tab);
+    const report = reports[0];
+    const row = within(await screen.findByTestId(`ish-report-${report.id}`));
+    expect(row.getByText('Ish beruvchi')).toBeInTheDocument();
+    expect(row.getByText("Ish beruvchi to'lovni kechiktiryapti")).toBeInTheDocument();
+    expect(row.getByText('Aziz Karimov')).toBeInTheDocument();
+    expect(row.getByText('+821000000001').closest('a')).toHaveAttribute('href', 'tel:+821000000001');
+    expect(row.getByText('0 ta smena · 1 marta kelmagan')).toBeInTheDocument();
+    const status = row.getByRole('combobox', { name: 'Holati' });
+    expect(status).toHaveTextContent('Ochiq');
+    fireEvent.keyDown(status, { key: 'Enter' });
+    fireEvent.click(await screen.findByRole('option', { name: 'Yopilgan' }));
+    await waitFor(() =>
+      expect(rpc).toHaveBeenCalledWith('staff_set_report_status', { p_report: report.id, p_status: 'closed' }),
+    );
+  });
+
+  it('no complaints: said so, and no count on the tab', async () => {
+    const { client } = fakeClient(staffHandlers({ staff_reports: () => [] }));
+    renderWith(<IshSection client={client} />);
+    const tab = await screen.findByRole('tab', { name: 'Shikoyatlar' });
+    fireEvent.mouseDown(tab);
+    expect(await screen.findByText("Hozircha shikoyat yo'q.")).toBeInTheDocument();
+    expect(tab).toHaveTextContent(/^Shikoyatlar$/);
   });
 
   it('a refusal is told in words', async () => {

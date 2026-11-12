@@ -1190,6 +1190,39 @@
         },
         "my_application_id": null
     },
+    "staff_reports": [
+        {
+            "id": "8cd7a80c-7bfe-4793-af13-3c8bfd96157e",
+            "body": "Ish beruvchi to'lovni kechiktiryapti",
+            "reason": "employer",
+            "status": "open",
+            "worker": {
+                "id": "00000000-0000-0000-0000-0000000000a1",
+                "visa": null,
+                "phone": "+821000000001",
+                "topik": 4,
+                "district": "Mapo-gu",
+                "language": "uz",
+                "no_shows": 1,
+                "completed": 0,
+                "languages": [
+                    "uz",
+                    "ru",
+                    "en",
+                    "ko"
+                ],
+                "last_name": "Karimov",
+                "onboarded": true,
+                "first_name": "Aziz",
+                "university": "Sogang",
+                "avatar_path": null,
+                "reliability": 80
+            },
+            "business": null,
+            "shift_id": null,
+            "created_at": "2026-11-12T11:08:54.477045+05:00"
+        }
+    ],
     "apply_to_shift": {
         "id": "9adc6c4b-fc12-4b5d-8617-42030a229cf5",
         "status": "pending",

@@ -2,7 +2,8 @@
 -- without a check (P50). Asrbek chose «no check, at once»; the safeguard
 -- against a fake employer is the staff: they see every app business, give
 -- it its real name, and suspend it (its shifts leave the feed, nobody can
--- apply) or let it back. And one app business cannot flood the feed.
+-- apply) or let it back; they read the workers' complaints. And one app
+-- business cannot flood the feed.
 
 -- The app's businesses (not the employers the staff keep), newest first,
 -- with what the staff need to judge one.
@@ -20,14 +21,18 @@ begin
              'status', b.status, 'biz_no', b.biz_no, 'created_at', b.created_at,
              'category', b.category, 'area', b.area, 'address', b.address,
              'address_detail', b.address_detail, 'name_i18n', b.name_i18n,
-             'open_shifts', (select count(*) from ish.shifts s
-                             where s.business_id = b.id and s.status = 'open' and s.ends_at > now()),
-             'shifts', (select count(*) from ish.shifts s where s.business_id = b.id),
-             'shifts_24h', (select count(*) from ish.shifts s
-                            where s.business_id = b.id and s.created_at > now() - interval '24 hours'),
-             'last_shift_at', (select max(s.created_at) from ish.shifts s where s.business_id = b.id))
+             'open_shifts', c.open_shifts, 'shifts', c.shifts, 'shifts_24h', c.shifts_24h,
+             'last_shift_at', c.last_shift_at)
            order by b.created_at desc, b.id)
     from ish.businesses b
+    cross join lateral (
+      select count(*) filter (where s.status = 'open' and s.ends_at > now()) as open_shifts,
+             count(*) as shifts,
+             count(*) filter (where s.created_at > now() - interval '24 hours') as shifts_24h,
+             max(s.created_at) as last_shift_at
+      from ish.shifts s
+      where s.business_id = b.id
+    ) c
     where not b.managed_by_staff
   ), '[]'::jsonb);
 end
@@ -164,6 +169,61 @@ revoke execute on function ish.staff_set_app_business_blocked(uuid, boolean) fro
 grant execute on function ish.staff_app_businesses() to authenticated;
 grant execute on function ish.staff_update_app_business(uuid, text, text, text, text, text, jsonb) to authenticated;
 grant execute on function ish.staff_set_app_business_blocked(uuid, boolean) to authenticated;
+
+-- The workers' complaints (A11 «Shikoyat qilish»): kept since P8, read by
+-- nobody until now. Open ones first, newest first.
+create function ish.staff_reports(p_limit int default 100)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ish
+as $$
+begin
+  perform ish.require_staff();
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id', r.id, 'reason', r.reason, 'body', r.body, 'status', r.status, 'created_at', r.created_at,
+             'worker', ish.staff_worker_card(r.reporter_id),
+             'business', case when r.business_id is not null then ish.business_card(r.business_id) end,
+             'shift_id', a.shift_id)
+           order by r.status = 'closed', r.created_at desc, r.id)
+    from (
+      select * from ish.reports
+      order by status = 'closed', created_at desc, id
+      limit greatest(1, least(coalesce(p_limit, 100), 500))
+    ) r
+    left join ish.applications a on a.id = r.application_id
+  ), '[]'::jsonb);
+end
+$$;
+
+-- open → in_review → closed (or back): the staff's note of where it stands.
+create function ish.staff_set_report_status(p_report uuid, p_status text)
+returns text
+language plpgsql
+security definer
+set search_path = ish
+as $$
+declare
+  v_status text;
+begin
+  perform ish.require_staff();
+  if p_status is null or p_status not in ('open', 'in_review', 'closed') then
+    raise exception 'INVALID';
+  end if;
+  update ish.reports set status = p_status where id = p_report returning status into v_status;
+  if v_status is null then
+    raise exception 'NOT_FOUND';
+  end if;
+  return v_status;
+end
+$$;
+
+revoke execute on function ish.staff_reports(int) from public, anon;
+revoke execute on function ish.staff_set_report_status(uuid, text) from public, anon;
+grant execute on function ish.staff_reports(int) to authenticated;
+grant execute on function ish.staff_set_report_status(uuid, text) to authenticated;
 
 -- One business posts at most 30 shifts a day from the app (TOO_MANY_REQUESTS,
 -- which the 사장님 app explains). The staff's own changes are not counted.

@@ -10,6 +10,8 @@ import type {
   IshJobInput,
   IshJobPage,
   IshMessage,
+  IshReport,
+  ReportStatus,
 } from './types';
 
 /** A refusal of the Hanguk Ish database with its stable code ('SHIFT_CLOSED', …). */
@@ -114,6 +116,13 @@ export function ishApi(client: SupabaseClient) {
     /** Suspend an app business (its shifts leave the feed, nobody applies) or let it back; the new status. */
     setAppBusinessBlocked: (id: string, blocked: boolean) =>
       rpc<string>('staff_set_app_business_blocked', { p_business: id, p_blocked: blocked }),
+
+    /** P52: the workers' complaints from the app, open ones first. */
+    reports: async () => (await rpc<IshReport[] | null>('staff_reports', { p_limit: 200 })) ?? [],
+
+    /** Where a complaint stands: open, in_review, closed. */
+    setReportStatus: (id: string, status: ReportStatus) =>
+      rpc<string>('staff_set_report_status', { p_report: id, p_status: status }),
 
     /** Jobs starting in [from, to): the kept employers' and any with offers. */
     board: async (from: Date, to: Date) =>
