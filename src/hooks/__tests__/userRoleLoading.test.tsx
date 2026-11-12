@@ -8,6 +8,8 @@ let held = false;
 let failRoles = false;
 let failAccess = false;
 let financeAccess = false;
+/** How many times user_roles was read. */
+let reads = 0;
 
 vi.mock('@/integrations/supabase/client', () => {
   const answer = <T,>(value: T) =>
@@ -17,7 +19,7 @@ vi.mock('@/integrations/supabase/client', () => {
       return {
         select: () => ({
           eq: (_c: string, id: string) =>
-            answer(failRoles ? { data: null, error: { message: 'boom' } } : { data: (rolesOf[id] ?? []).map((role) => ({ role })), error: null }),
+            (reads++, answer)(failRoles ? { data: null, error: { message: 'boom' } } : { data: (rolesOf[id] ?? []).map((role) => ({ role })), error: null }),
         }),
       };
     }
@@ -39,7 +41,7 @@ vi.mock('@/integrations/supabase/client', () => {
 let auth: { user: { id: string } | null; loading: boolean } = { user: null, loading: true };
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => auth }));
 
-import { useUserRole } from '@/hooks/useUserRole';
+import { resetUserRoleStore, useUserRole } from '@/hooks/useUserRole';
 
 /** Every render the hook's caller saw. */
 const mount = () => {
@@ -59,6 +61,8 @@ beforeEach(() => {
   failRoles = false;
   failAccess = false;
   financeAccess = false;
+  reads = 0;
+  resetUserRoleStore();
 });
 
 describe('useUserRole — loading', () => {
@@ -155,6 +159,72 @@ describe('useUserRole — loading', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.isOwner).toBe(false);
     expect(result.current.roles).toEqual([]);
+  });
+
+  it('every hook on a page shares one read', async () => {
+    held = true;
+    auth = { user: { id: 'staff' }, loading: false };
+    const hooks = [mount(), mount(), mount(), mount(), mount(), mount(), mount()];
+    await new Promise((r) => setTimeout(r, 20));
+    expect(hooks.every((h) => h.result.current.loading)).toBe(true);
+    release?.();
+    await waitFor(() => expect(hooks.every((h) => !h.result.current.loading && h.result.current.isStaff)).toBe(true));
+    expect(reads).toBe(1);
+    // A hook mounted later (another page, a dialog) has its answer at once.
+    const late = mount();
+    expect(late.result.current.loading).toBe(false);
+    expect(late.result.current.isStaff).toBe(true);
+    expect(late.seen.some((s) => s.loading)).toBe(false);
+    expect(reads).toBe(1);
+  });
+
+  it('a new token is one more read for the whole page, not one per hook', async () => {
+    auth = { user: { id: 'staff' }, loading: false };
+    const hooks = [mount(), mount(), mount()];
+    await waitFor(() => expect(hooks.every((h) => !h.result.current.loading)).toBe(true));
+    expect(reads).toBe(1);
+    auth = { user: { id: 'staff' }, loading: false }; // one new object, handed to all of them
+    hooks.forEach((h) => h.rerender());
+    await new Promise((r) => setTimeout(r, 30));
+    expect(reads).toBe(2);
+  });
+
+  it('the session announced twice at start-up is one read', async () => {
+    held = true;
+    auth = { user: { id: 'staff' }, loading: false };
+    const { result, rerender } = mount();
+    auth = { user: { id: 'staff' }, loading: false }; // the second announcement, while the read is out
+    rerender();
+    await new Promise((r) => setTimeout(r, 20));
+    release?.();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(reads).toBe(1);
+  });
+
+  it('a user object that is new on every render does not read for ever', async () => {
+    const { result } = renderHook(() => {
+      auth = { user: { id: 'staff' }, loading: false };
+      return useUserRole();
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await new Promise((r) => setTimeout(r, 60));
+    // The first read, and one re-read that finds nothing new and renders nothing.
+    expect(reads).toBeLessThanOrEqual(2);
+    expect(result.current.isStaff).toBe(true);
+  });
+
+  it('signing out forgets the roles everywhere at once', async () => {
+    auth = { user: { id: 'owner' }, loading: false };
+    const a = mount();
+    const b = mount();
+    await waitFor(() => expect(a.result.current.isOwner && b.result.current.isOwner).toBe(true));
+    auth = { user: null, loading: false };
+    a.rerender();
+    b.rerender();
+    await waitFor(() => expect(a.result.current.loading).toBe(false));
+    expect(a.result.current.roles).toEqual([]);
+    expect(b.result.current.roles).toEqual([]);
+    expect(b.seen.filter((s) => s.user === null && s.isStaff)).toEqual([]);
   });
 
   it('a failed read of an access table is «no access» for a new account', async () => {
