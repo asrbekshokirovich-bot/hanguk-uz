@@ -12,6 +12,7 @@ import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { Logo } from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { normalizeVisitorPhone, sanitizeVisitorPhone } from '@/lib/visitorPhone';
 import { Loader2, User, Lock, Crown, GraduationCap, Briefcase, Eye, EyeOff, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
@@ -145,6 +146,7 @@ export default function Auth() {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [confirmSignUpPassword, setConfirmSignUpPassword] = useState('');
   const [signUpFullName, setSignUpFullName] = useState('');
+  const [signUpPhone, setSignUpPhone] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmSignUpPassword, setShowConfirmSignUpPassword] = useState(false);
@@ -393,10 +395,22 @@ export default function Auth() {
       return;
     }
 
+    // A consultant calls back: without a number that can be dialled the
+    // registration reaches nobody (16 people before 2026-11-12).
+    const phone = normalizeVisitorPhone(signUpPhone);
+    if (!phone) {
+      toast({
+        title: t('auth.loginError'),
+        description: t('auth.phoneInvalid', { defaultValue: 'Enter your full phone number (for example, +998 90 123 45 67)' }),
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data: guestData, error: guestError } = await signUpGuest(signUpEmail, signUpPassword, signUpFullName);
+      const { data: guestData, error: guestError } = await signUpGuest(signUpEmail, signUpPassword, signUpFullName, phone);
 
       if (guestError) {
         throw guestError;
@@ -404,7 +418,7 @@ export default function Auth() {
 
       toast({
         title: t('auth.registeredSuccess'),
-        description: t('auth.dataSaved'),
+        description: t('auth.consultantWillCall', { defaultValue: 'A consultant will contact you soon.' }),
       });
 
       // Clear fields and navigate
@@ -412,6 +426,7 @@ export default function Auth() {
       setSignUpPassword('');
       setConfirmSignUpPassword('');
       setSignUpFullName('');
+      setSignUpPhone('');
       navigate('/');
     } catch (error: any) {
       toast({
@@ -602,6 +617,19 @@ export default function Auth() {
                     <div className="space-y-2">
                       <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
                       <Input id="signup-name" type="text" value={signUpFullName} onChange={(e) => setSignUpFullName(e.target.value.toUpperCase())} placeholder={t('auth.fullName')} className="uppercase" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-phone">{t('auth.phone', { defaultValue: 'Phone number' })}</Label>
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={signUpPhone}
+                        onChange={(e) => setSignUpPhone(sanitizeVisitorPhone(e.target.value))}
+                        placeholder="+998 90 123 45 67"
+                        required
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">{t('auth.email')}</Label>

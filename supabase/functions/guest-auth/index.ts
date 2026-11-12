@@ -62,19 +62,31 @@ Deno.serve(async (req) => {
         if (error) throw error;
         return (data as GuestLead | null) ?? null;
       },
-      async insertLead({ full_name, email, now }) {
+      async insertLead({ full_name, email, phone, now }) {
+        const row: Record<string, unknown> = {
+          full_name,
+          email,
+          created_at: now,
+          updated_at: now,
+          login_count: 1,
+          login_history: [now],
+          source: 'Public Registration',
+          status: 'new',
+        };
+        if (phone) {
+          // Somebody to call: a "Yangi lid", as a request from the app is
+          // (app_quiz_submit). Its 10 minutes start now, or at 09:00 on the
+          // next working day when the site is used after hours.
+          const { data: slaStart, error: slaError } = await admin.rpc('fn_lead_sla_start', { p_at: now });
+          if (slaError) console.error('fn_lead_sla_start failed (non-fatal):', slaError.message);
+          row.phone = phone;
+          row.contact_channel = 'Sayt formasi';
+          row.new_lead_at = now;
+          row.sla_start_at = typeof slaStart === 'string' && slaStart ? slaStart : now;
+        }
         const { data, error } = await admin
           .from('leads')
-          .insert({
-            full_name,
-            email,
-            created_at: now,
-            updated_at: now,
-            login_count: 1,
-            login_history: [now],
-            source: 'Public Registration',
-            status: 'new',
-          })
+          .insert(row)
           .select('id, full_name, email')
           .single();
         if (error) throw error;

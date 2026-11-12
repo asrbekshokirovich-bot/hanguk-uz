@@ -242,9 +242,12 @@
     "username": "Foydalanuvchi nomi",
     "studentTabHelper": "Maslahatchidan Magic Code olgan talabalar uchun.",
     "staffTabHelper": "Login va parolga ega Hanguk xodimlari uchun.",
-    "registerTabHelper": "Mehmon sifatida arizalarni kuzatish uchun hisob yarating.",
+    "registerTabHelper": "Ma'lumotlaringizni qoldiring — maslahatchimiz siz bilan bog'lanadi.",
     "staffSignIn": "Xodim kirishi",
-    "createAccount": "Hisob yaratish"
+    "createAccount": "Hisob yaratish",
+    "phone": "Telefon raqami",
+    "phoneInvalid": "Telefon raqamini to'liq kiriting (masalan, +998 90 123 45 67)",
+    "consultantWillCall": "Maslahatchimiz tez orada siz bilan bog'lanadi."
   },
   "navigation": {
     "home": "Bosh sahifa",
