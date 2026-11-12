@@ -542,8 +542,9 @@ int segmentsOf(int percent) => percent < 25
 /// The visa side is [visaScore] ("Vizam chiqadimi?"), its band high from
 /// 65 and mid from 40.
 ///
-/// Admission is per university, from its own TOPIK requirement (the route's
-/// when the Excel gives none) against the student's level — short by two or
+/// Admission is per university, from its language requirement
+/// ([languageBase]: TOPIK against the university's own requirement, or the
+/// IELTS score where the programme is taught in English) — short by two or
 /// more 15, by one 30, met 55, one above 68, two above 78 — moved by the
 /// certificate (±10 per point from 3.5, at most ±15) and +5 for an official
 /// partner, kept within 5–95.
@@ -639,21 +640,57 @@ EligibilityBand visaBandOf(int percent) => percent >= 65
 /// raise it, a gap of two years and more lowers it, and a TOPIK certificate
 /// over two years old counts as none.
 int admissionPercent(AssessmentInput input, CatalogGuideline g, {EligibilityRules rules = const EligibilityRules()}) {
-  final need = g.topikMin?.round() ?? rules.topikMin(input.route);
-  final diff = input.topikCounted - need;
-  var p = diff <= -2
-      ? 15
-      : diff == -1
-      ? 30
-      : diff == 0
-      ? 55
-      : diff == 1
-      ? 68
-      : 78;
+  var p = languageBase(input, g, rules: rules);
   p += ((input.gpa - 3.5) * 10).clamp(-15, 15).round();
   if (g.isPartner == true) p += 5;
   p += documentsBonus(input);
   return p.clamp(5, 95);
+}
+
+/// The language part of [admissionPercent]: the better of the two ways in.
+///
+/// Korean: the student's TOPIK against the university's requirement (the
+/// route's when the Excel gives none) — short by two or more 15, by one 30,
+/// met 55, one above 68, two above 78. A bachelor's or master's taught in
+/// English only (the guideline's `korean_track` is false) has no Korean way
+/// in, so TOPIK does not count there.
+///
+/// English ([meetsEnglish]): the IELTS score meets the guideline's minimum —
+/// 55, the same as a TOPIK requirement met. Until November 2026 only TOPIK
+/// was read, so an applicant with IELTS and no TOPIK saw 15–20% at
+/// universities whose own guideline takes IELTS (Sejong, KAIST and most of
+/// the catalogue), and one with TOPIK saw 68% at programmes that do not ask
+/// for Korean at all.
+int languageBase(AssessmentInput input, CatalogGuideline g, {EligibilityRules rules = const EligibilityRules()}) {
+  var base = 15;
+  if (!input.route.isDegree || g.koreanTrack != false) {
+    final need = g.topikMin?.round() ?? rules.topikMin(input.route);
+    final diff = input.topikCounted - need;
+    base = diff <= -2
+        ? 15
+        : diff == -1
+        ? 30
+        : diff == 0
+        ? 55
+        : diff == 1
+        ? 68
+        : 78;
+  }
+  if (base < 55 && meetsEnglish(input, g, rules: rules)) base = 55;
+  return base;
+}
+
+/// Whether the IELTS score meets [g]'s language requirement: a bachelor's or
+/// master's whose guideline has an English-taught track or names an IELTS
+/// minimum (the catalogue's `english_track`, `ielts_min`), and a score at or
+/// above that minimum — the rules' ([EligibilityRules.englishIeltsMin]) when
+/// the guideline names none. The quiz's own test (MatchedUniversity.viaEnglish)
+/// reads the track flag alone; here a named IELTS minimum is enough, since
+/// several guidelines take IELTS in place of TOPIK without the flag.
+bool meetsEnglish(AssessmentInput input, CatalogGuideline g, {EligibilityRules rules = const EligibilityRules()}) {
+  if (!input.route.isDegree) return false;
+  if (g.englishTrack != true && g.ieltsMin == null) return false;
+  return input.ielts >= (g.ieltsMin ?? rules.englishIeltsMin);
 }
 
 /// The points the documents' answers add (or take) on top of TOPIK and the
