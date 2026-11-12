@@ -120,10 +120,15 @@ step() {
 
 # Takes shifts from the top of the feed until one is confirmed at once
 # (some wait for the business).
+# A03 → A05 → «Smenani olish» → confirm, card by card until one is
+# confirmed at once (auto-confirm). A feed card reads as one line (its own
+# «Olish» is inside the card's node), so the card opens A05, whose button
+# is a node of its own.
 take_confirmed() {
-  local attempt
-  for attempt in 1 2 3 4 5; do
-    ui tap '=Olish' 30 0 || return 1
+  local card
+  for card in 0 1 2; do
+    ui tap ' soat' 30 "$card" || return 1
+    ui tap '=Smenani olish' 30 || return 1
     ui tap '=Tasdiqlash' 15 || return 1
     if ui wait 'Smena olindi!' 10; then
       return 0
@@ -162,7 +167,7 @@ walk_worker() {
     step 'A02-3: Saturday morning' ui tap '=Shanba, Ertalab' &&
     step 'A02-3 → feed' ui tap '=Saqlash va boshlash' &&
     ui tapif 'While using the app' 10 &&
-    step 'A03 feed' ui wait '=Olish' 30 &&
+    step 'A03 feed' ui wait ' soat' 30 &&
     shot a03-feed &&
     step 'A05: a shift confirmed at once' take_confirmed &&
     shot a05-taken &&
@@ -225,7 +230,7 @@ walk_employer() {
     step 'BA0 → BA1' ui tap '=시작하기' &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&
-    step 'BA1 → BA3' ui tap '마감 정리 보조' &&
+    step 'BA1 → BA3' ui tap '마감 정리 보조' 30 -1 &&
     step 'BA3: QR button' ui scrollto 'QR 인쇄·공유' &&
     shot ba3 &&
     step 'BA3: QR' ui tapend 'QR 인쇄·공유' 42 &&
