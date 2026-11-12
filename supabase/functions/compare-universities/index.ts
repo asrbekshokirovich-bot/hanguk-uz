@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serviceKey } from "../_shared/keys.ts";
+import { requireCaller } from "../_shared/caller.ts";
 
 // Student-facing university comparison. Rebuilt (2026-07) onto the uni_db
 // `institutions` + parsed-guideline tables after the legacy `universities` /
@@ -118,6 +119,14 @@ ${noteLines.length ? noteLines.join("\n") : "  - none"}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // Signed-in students and staff only. The function runs with verify_jwt off,
+  // and until 2026-11-12 answered anyone who knew the address: each call
+  // spends Claude credits and builds its answer from the staff's own notes on
+  // the universities («Staff notes & insider tips»), which are not public.
+  // The student portal — the only caller — sends the student's session token.
+  const caller = await requireCaller(req, "user", corsHeaders);
+  if (!caller.ok) return caller.response;
 
   try {
     const {
