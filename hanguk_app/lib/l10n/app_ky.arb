@@ -774,6 +774,7 @@
   "interviewErrorNoGreeting": "Интервьюер жооп берген жок. Артка кайтып, кайра аракет кылыңыз.",
   "interviewErrorEndedBeforeGreeting": "Интервьюер сүйлөй электе чалуу аяктады. Кайра аракет кылыңыз.",
   "interviewErrorCallFailed": "Чалууга туташуу мүмкүн болгон жок. Интернетти текшерип, кайра аракет кылыңыз.",
+  "interviewErrorServiceDown": "Үн маек кызматы азыр иштебей жатат. Бир аздан кийин кайра аракет кылыңыз.",
   "onbResultRouteLanguageCourse": "Language course",
   "onbResultRouteBachelor": "Bachelor's",
   "onbResultRouteMaster": "Master's",

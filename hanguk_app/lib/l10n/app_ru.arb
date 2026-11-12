@@ -906,6 +906,7 @@
   "interviewErrorNoGreeting": "Интервьюер не ответил. Вернитесь назад и попробуйте ещё раз.",
   "interviewErrorEndedBeforeGreeting": "Звонок завершился до того, как интервьюер заговорил. Попробуйте ещё раз.",
   "interviewErrorCallFailed": "Не удалось подключить звонок. Проверьте интернет и попробуйте ещё раз.",
+  "interviewErrorServiceDown": "Сервис голосового интервью сейчас недоступен. Попробуйте чуть позже.",
   "onbResultRouteLanguageCourse": "Языковые курсы",
   "onbResultRouteBachelor": "Бакалавриат",
   "onbResultRouteMaster": "Магистратура",

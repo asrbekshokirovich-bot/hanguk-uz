@@ -2613,6 +2613,10 @@ class AppLocalizationsUz extends AppLocalizations {
       'Qo‘ng‘iroqqa ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring.';
 
   @override
+  String get interviewErrorServiceDown =>
+      'Ovozli suhbat xizmati hozir ishlamayapti. Birozdan keyin qayta urinib ko‘ring.';
+
+  @override
   String get onbResultRouteLanguageCourse => 'Til kursi';
 
   @override

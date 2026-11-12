@@ -4742,6 +4742,12 @@ abstract class AppLocalizations {
   /// **'The call could not be connected. Please check your internet and try again.'**
   String get interviewErrorCallFailed;
 
+  /// The call provider refused the interview call (not the student's connection): asking them to check their internet would be wrong.
+  ///
+  /// In en, this message translates to:
+  /// **'The voice interview service is unavailable right now. Please try again a little later.'**
+  String get interviewErrorServiceDown;
+
   /// S03 context line: study route
   ///
   /// In en, this message translates to:
