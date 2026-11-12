@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeAll } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 
 const rpc = vi.fn().mockResolvedValue({ error: null });
 vi.mock('@/integrations/supabase/client', () => ({ supabase: { rpc: (...a: unknown[]) => rpc(...a) } }));
@@ -60,6 +60,26 @@ describe('Hanguk AI answer card (CRM design)', () => {
     expect(screen.getByRole('button', { name: 'CRM sahifasi' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Yaxshi javob' }));
     expect(rpc).toHaveBeenCalledWith('ai_run_feedback', { p_run: 'run-2', p_value: 1, p_note: null });
+  });
+
+  it('a CRM source opens its page; one that would leave the site opens nothing', () => {
+    const Where = () => <div data-testid="where">{useLocation().pathname}</div>;
+    const chip = (url: string) =>
+      render(
+        <MemoryRouter initialEntries={['/crm/ai']}>
+          <AIAnswer content="Javob." meta={{ runId: 'run-3', sources: [{ kind: 'crm', label: 'Talaba kartasi', url }] }} />
+          <Where />
+        </MemoryRouter>,
+      );
+
+    const bad = chip('/\\evil.example/login');
+    fireEvent.click(screen.getByRole('button', { name: 'CRM sahifasi' }));
+    expect(screen.getByTestId('where').textContent).toBe('/crm/ai');
+    bad.unmount();
+
+    chip('/crm/students?student=s1');
+    fireEvent.click(screen.getByRole('button', { name: 'CRM sahifasi' }));
+    expect(screen.getByTestId('where').textContent).toBe('/crm/students');
   });
 
   it('while running shows the steps without the footer', () => {
