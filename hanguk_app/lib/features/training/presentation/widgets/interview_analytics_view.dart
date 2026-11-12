@@ -567,24 +567,31 @@ class _AudioPlayerWidgetState extends ConsumerState<_AudioPlayerWidget> {
   }
 
   Future<void> _fetchAudioUrl() async {
-    final url = await ref
-        .read(interviewProvider.notifier)
-        .fetchRecordingUrl(widget.callId);
-    if (!mounted) return;
-
-    if (url != null) {
-      setState(() {
-        _recordingUrl = url;
-        _isLoading = false;
-      });
-      await _audioPlayer.setSourceUrl(url);
-    } else {
-      setState(() {
-        // Sentinel — translated at render time in build().
-        _error = 'audio_recording_not_found';
-        _isLoading = false;
-      });
+    // Nothing here may throw past this method: it is started from initState
+    // and never awaited, so an error becomes a fatal one for the whole app
+    // (StateError and TimeoutException from setSourceUrl, build 2106). A
+    // recording that cannot be loaded is the «not found» state.
+    try {
+      final url = await ref.read(interviewProvider.notifier).fetchRecordingUrl(widget.callId);
+      if (!mounted) return;
+      if (url != null) {
+        setState(() {
+          _recordingUrl = url;
+          _isLoading = false;
+        });
+        await _audioPlayer.setSourceUrl(url);
+        return;
+      }
+    } catch (e) {
+      debugPrint('interview recording: $e');
     }
+    if (!mounted) return;
+    setState(() {
+      // Sentinel — translated at render time in build().
+      _recordingUrl = null;
+      _error = 'audio_recording_not_found';
+      _isLoading = false;
+    });
   }
 
   @override
