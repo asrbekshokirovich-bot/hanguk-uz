@@ -42,6 +42,9 @@ launch() {
     cat "$out/$name-install.txt"
     return 2
   fi
+  # Android finishes an install with broadcasts; on a slow emulator they can
+  # land seconds later and restart the activity under the first tap (P31).
+  timeout 90 adb shell am wait-for-broadcast-idle >/dev/null 2>&1 || true
   adbt logcat -c
   adbt shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 }
@@ -82,7 +85,7 @@ worker() {
   # answers nothing, it says the connection is missing.
   local next='Profil · 1 / 3'
   [ "$1" = backend ] && next='Internet aloqasi'
-  if ui wait 'Boshlash' 90 && ui tap 'Boshlash' && ui wait "$next" 30; then
+  if ui wait 'Boshlash' 90 && ui tapto 'Boshlash' "$next" 40; then
     echo "$name: A01 → «Boshlash» → $next"
   elif [ "$1" = backend ] && ui wait '=Boshlash' 5; then
     # The connection message is a 4-second snack bar, and a busy emulator's
@@ -107,7 +110,7 @@ employer() {
   # opens in the phone's language (P43): English on the emulator.
   local next="Today's shifts"
   [ "$1" = backend ] && next='Check the internet connection'
-  if ui wait 'Get started' 90 && ui tap 'Get started' && ui wait "$next" 30; then
+  if ui wait 'Get started' 90 && ui tapto 'Get started' "$next" 40; then
     echo "$name: BA0 «Get started» → $next"
   elif [ "$1" = backend ] && ui wait '=Get started' 5; then
     # The connection message is a 4-second snack bar, and a busy emulator's
@@ -267,10 +270,8 @@ walk_employer() {
     step 'BA3: the QR picture goes to the share sheet' shared &&
     shot ba3-share &&
     adbt shell input keyevent 4 &&
-    # Back from the share sheet: BA3, whose own back goes to BA1 — or BA1
-    # already, when the sheet had gone by itself and taken the back. An
-    # Android back on BA1 closes the app (it did, after BA3 had seemed back).
-    ui tapif '=뒤로' 10 &&
+    step 'back in BA3' ui wait 'QR 인쇄·공유' &&
+    adbt shell input keyevent 4 &&
     step 'BA1 again' ui wait '오늘의 근무' 30 &&
     step 'BA5' ui tap '=리포트' &&
     step 'BA5: CSV button' ui scrollto 'CSV 다운로드' &&

@@ -5,6 +5,7 @@
   smoke_ui.py gone TEXT [seconds]         until nothing on screen holds TEXT
   smoke_ui.py tap TEXT [seconds] [n]      waits for it, then taps its middle
   smoke_ui.py tapif TEXT [seconds]        taps it if it comes (a system dialog)
+  smoke_ui.py tapto TEXT NEXT [seconds]   taps TEXT until NEXT shows (a lost tap again)
   smoke_ui.py tapbelow ANCHOR TEXT        taps the first TEXT under ANCHOR
   smoke_ui.py tapend TEXT DP              taps DP above the bottom edge of TEXT's
                                           node, swiping until that edge is on screen
@@ -240,6 +241,32 @@ def main():
             sys.exit(1)
         tap_at(below[0]['x'], below[0]['y'])
         print(f"tapped {below[0]['words']!r} under {anchor['words']!r}")
+    elif command == 'tapto':
+        # Taps TEXT until NEXT shows (P31): a tap can be lost — right after an
+        # install Android may still be finishing the package and restart the
+        # activity, and a touch that lands while its window is replaced goes
+        # nowhere. While TEXT is still there and NEXT is not, it taps again
+        # (every 8 s, at most 3 times).
+        text, after = args[0], args[1]
+        seconds = float(args[2]) if len(args) > 2 else 40
+        deadline = time.time() + seconds
+        taps, last_tap, last = 0, 0.0, []
+        while time.time() < deadline:
+            last = screen()
+            if wave_off_foreign_anr(last):
+                continue
+            if any(matches(n, after) for n in last):
+                print(f"on screen: {after!r} (after {taps} tap{'s' if taps != 1 else ''})")
+                return
+            node = next((n for n in last if matches(n, text)), None)
+            if node and taps < 3 and (taps == 0 or time.time() - last_tap >= 8):
+                tap_at(node['x'], node['y'])
+                taps, last_tap = taps + 1, time.time()
+                print(f"tapped {node['words']!r} @ {node['x']},{node['y']}")
+            time.sleep(1)
+        print(f'NOT ON SCREEN: {after!r} after tapping {text!r} {taps} times. On screen:')
+        show(last)
+        sys.exit(1)
     elif command == 'tapif':
         text = args[0]
         seconds = float(args[1]) if len(args) > 1 else 5
