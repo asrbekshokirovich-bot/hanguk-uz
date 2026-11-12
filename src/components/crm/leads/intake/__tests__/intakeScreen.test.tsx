@@ -116,9 +116,9 @@ describe('LeadsTable', () => {
     expect(onOpenProfile).not.toHaveBeenCalled();
   });
 
-  it('reads the created-at line as a relative age', () => {
+  it('reads the created-at line as a relative age plus the exact Tashkent time', () => {
     renderWithI18n(table());
-    expect(screen.getByText('3 kun oldin')).toBeInTheDocument();
+    expect(screen.getByText(/^3 kun oldin · \d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/)).toBeInTheDocument();
   });
 
   it('offers convert and reject on a lead still being worked', () => {
