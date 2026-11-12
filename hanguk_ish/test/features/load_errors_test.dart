@@ -402,13 +402,17 @@ void main() {
       expect(container.read(workerProfileDraftProvider).firstName, 'Aziz');
     });
 
-    testWidgets('started on A01 while the profile does not load: the start screen, not A02', (tester) async {
+    testWidgets('signed in by SMS while the profile does not load: the start screen, not A02', (tester) async {
       final profile = OfflineProfile();
       await profile.save(prototypeProfile());
-      await open(tester, location: WorkerRoutes.login, overrides: [
+      await open(tester, location: WorkerRoutes.phone, overrides: [
         workerProfileRepositoryProvider.overrideWithValue(profile),
       ]);
-      await tester.tap(find.text('Boshlash'));
+      await tester.enterText(find.byType(TextField), '01012345678');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kod olish'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '123456');
       await tester.pumpAndSettle();
       expect(find.text(_uzOffline), findsOneWidget);
       expect(find.text('Profil · 1 / 3'), findsNothing);
@@ -422,7 +426,7 @@ void main() {
       await open(tester, location: WorkerRoutes.feed, overrides: [authRepositoryProvider.overrideWithValue(auth)]);
       await auth.signOut();
       await tester.pumpAndSettle();
-      expect(find.text('Boshlash'), findsOneWidget);
+      expect(find.text('Telefon raqam bilan'), findsOneWidget);
     });
 
     testWidgets('A12 offline, then the list; one arriving while open shows up and is marked read', (tester) async {

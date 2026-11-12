@@ -21,6 +21,7 @@ import '../features/worker/me/me_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
+import '../features/worker/onboarding/phone_screens.dart';
 import '../features/worker/profile/profile_screens.dart';
 import '../features/worker/profile/worker_profile_draft.dart';
 import '../features/worker/profile/worker_profile_repository.dart';
@@ -38,6 +39,10 @@ abstract final class WorkerRoutes {
   static const start = '/start';
 
   static const login = '/';
+
+  /// T1 phone number, T2 code.
+  static const phone = '/phone';
+  static String phoneCode(String phone) => '/phone/code?n=${Uri.encodeQueryComponent(phone)}';
 
   static const profileName = '/profile/name';
   static const profileLanguages = '/profile/languages';
@@ -127,26 +132,6 @@ Future<void> continueAfterSignIn(BuildContext context, WidgetRef ref) async {
   if (context.mounted) context.go(location);
 }
 
-/// A01 «Boshlash» (P49: no SMS): an account on this phone — unless one is
-/// signed in already, which goes on as it is — then A02 or the feed. A failure
-/// stays on A01 and says why.
-Future<void> startWorker(BuildContext context, WidgetRef ref) async {
-  final auth = ref.read(authRepositoryProvider);
-  if (auth.userId == null) {
-    try {
-      await auth.signIn();
-    } on Object catch (error) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(signInErrorText(WorkerL10n.of(context), error))));
-      }
-      return;
-    }
-  }
-  if (context.mounted) await continueAfterSignIn(context, ref);
-}
-
 /// The first frame of a launch with a backend: the brand on navy while the
 /// session and profile are checked. Offline, it says so and tries again on
 /// «Qayta urinish».
@@ -210,8 +195,40 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: WorkerRoutes.login,
         builder: (context, state) => Consumer(
-          builder: (context, ref, _) => A01LoginScreen(onStart: () => startWorker(context, ref)),
+          builder: (context, ref, _) => A01LoginScreen(
+            onPhone: () => context.push(WorkerRoutes.phone),
+            // Telegram sign-in needs the bot (T2): with a backend it says
+            // so; the demo continues to the profile as before.
+            onTelegram: () {
+              if (ref.read(backendConfigProvider).isConfigured) {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(WorkerL10n.of(context).telegramSoon)));
+              } else {
+                context.push(WorkerRoutes.profileName);
+              }
+            },
+          ),
         ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.phone,
+        builder: (context, state) => PhoneEntryScreen(
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.login),
+          onSent: (phone) => context.push(WorkerRoutes.phoneCode(phone)),
+        ),
+        routes: [
+          GoRoute(
+            path: 'code',
+            builder: (context, state) => Consumer(
+              builder: (context, ref, _) => PhoneCodeScreen(
+                phone: state.uri.queryParameters['n'] ?? '',
+                onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.phone),
+                onVerified: () => continueAfterSignIn(context, ref),
+              ),
+            ),
+          ),
+        ],
       ),
       GoRoute(
         path: WorkerRoutes.profileName,

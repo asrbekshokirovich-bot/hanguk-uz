@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/format/phone.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
@@ -14,6 +15,7 @@ import '../features/employer/create/ba2_create_screen.dart';
 import '../features/employer/home/ba1_home_screen.dart';
 import '../features/employer/biz.dart';
 import '../features/employer/language.dart';
+import '../features/employer/login/ba0_code_screen.dart';
 import '../features/employer/login/ba0_login_screen.dart';
 import '../features/employer/notifications/employer_notifications_screen.dart';
 import '../features/employer/providers.dart';
@@ -31,6 +33,9 @@ abstract final class EmployerRoutes {
   static const start = '/start';
 
   static const login = '/';
+
+  /// T2: the SMS code after BA0.
+  static String code(String phone) => '/code?n=${Uri.encodeQueryComponent(phone)}';
 
   static const home = '/home';
   static const workers = '/workers';
@@ -137,21 +142,37 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
         path: EmployerRoutes.login,
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => Ba0LoginScreen(
-            onStart: () async {
-              final auth = ref.read(authRepositoryProvider);
-              // P49/P50: no SMS and no business number — an account on this
-              // phone, unless one is signed in already (back after a lost
-              // connection).
-              if (auth.userId == null) {
-                try {
-                  await auth.signIn();
-                } catch (error) {
-                  if (context.mounted) _say(context, Biz.error(error));
-                  return;
-                }
+            onStart: (phone) async {
+              // P54: the owner's phone and an SMS code (Twilio Verify); the
+              // business opens at once, unchecked (P50).
+              if (KoreanPhone.toE164(phone) == null) {
+                _say(context, Biz.loginIncomplete);
+                return;
               }
-              if (context.mounted) await continueOwnerAfterSignIn(context, ref);
+              final auth = ref.read(authRepositoryProvider);
+              if (auth.userId != null) {
+                // Back after a lost connection: signed in already.
+                await continueOwnerAfterSignIn(context, ref);
+                return;
+              }
+              try {
+                await auth.sendCode(phone);
+              } catch (error) {
+                if (context.mounted) _say(context, Biz.error(error));
+                return;
+              }
+              if (context.mounted) context.push(EmployerRoutes.code(phone));
             },
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/code',
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => Ba0CodeScreen(
+            phone: state.uri.queryParameters['n'] ?? '',
+            onBack: () => context.canPop() ? context.pop() : context.go(EmployerRoutes.login),
+            onVerified: () => continueOwnerAfterSignIn(context, ref),
           ),
         ),
       ),

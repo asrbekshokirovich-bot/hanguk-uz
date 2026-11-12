@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/format/digit_mask.dart';
 import '../../../design/insets.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/brand.dart';
 import '../../../design/widgets/buttons.dart';
+import '../../../design/widgets/forms.dart';
 import '../../../design/widgets/layout.dart';
 import '../../../design/widgets/link_text.dart';
 import '../biz.dart';
 import '../language.dart';
 
-/// BA0 «App Login». Since P49 there is no phone number and no SMS code, and
-/// since P50 no 사업자등록번호 either (Asrbek): «시작하기» starts an account on
-/// this phone and opens the owner's business at once.
+/// BA0 «App Login»: the owner's mobile number; «시작하기» sends an SMS code
+/// (P54, Twilio Verify) and the business opens at once after it. No
+/// 사업자등록번호 (P50, Asrbek).
 class Ba0LoginScreen extends StatefulWidget {
   const Ba0LoginScreen({super.key, this.onStart, this.onTerms});
 
-  /// "시작하기"; the button waits while it runs.
-  final Future<void> Function()? onStart;
+  /// "시작하기" with the formatted phone; the button waits while it runs.
+  final Future<void> Function(String phone)? onStart;
 
   /// The "이용약관" link.
   final VoidCallback? onTerms;
@@ -28,14 +30,22 @@ class Ba0LoginScreen extends StatefulWidget {
 }
 
 class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
+  final _phone = TextEditingController();
+  final _phoneMask = DigitGroupsFormatter.koreanMobile();
   bool _starting = false;
+
+  @override
+  void dispose() {
+    _phone.dispose();
+    super.dispose();
+  }
 
   Future<void> _start() async {
     final start = widget.onStart;
     if (start == null || _starting) return;
     setState(() => _starting = true);
     try {
-      await start();
+      await start(_phone.text);
     } finally {
       if (mounted) setState(() => _starting = false);
     }
@@ -66,7 +76,10 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
 
   Widget _layout(BuildContext context) {
     return HiPinnedBottomLayout(
-          top: Padding(
+          top: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+          Padding(
             padding: EdgeInsets.fromLTRB(
               18,
               HiInsets.top(context, 96),
@@ -114,6 +127,33 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                 ),
               ],
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 40, 22, 0),
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  HiText(
+                    Biz.phoneLabel,
+                    style: hiStyle(15, FontWeight.w700, color: HiColors.textSoft),
+                  ),
+                  const SizedBox(height: 8),
+                  HiInputField(
+                    controller: _phone,
+                    mono: true,
+                    placeholder: Biz.phonePlaceholder,
+                    keyboardType: TextInputType.phone,
+                    autofillHints: const [AutofillHints.telephoneNumber],
+                    inputFormatters: [_phoneMask],
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _start(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+            ],
           ),
           bottom: Padding(
             padding: EdgeInsets.fromLTRB(

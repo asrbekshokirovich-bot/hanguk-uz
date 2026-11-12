@@ -21,6 +21,9 @@ create table auth.users (
   raw_user_meta_data jsonb not null default '{}'::jsonb,
   -- Supabase Auth's anonymous accounts (the apps' sign-in since P49).
   is_anonymous boolean not null default false,
+  -- Set by Supabase Auth and the service key only; P54 marks Hanguk Ish's
+  -- accounts here (app_metadata.app = 'hanguk_ish').
+  raw_app_meta_data jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 

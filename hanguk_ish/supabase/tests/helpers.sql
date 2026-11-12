@@ -45,11 +45,18 @@ $$;
 
 -- Acts as [p_user] through PostgREST: role authenticated + JWT claims (with
 -- is_anonymous, as Supabase Auth issues them).
+-- The account's app_metadata, as Supabase Auth puts it in the token (P54).
+create function tests.app_metadata(p_user uuid) returns jsonb
+language sql stable security definer as $$
+  select coalesce((select u.raw_app_meta_data from auth.users u where u.id = p_user), '{}'::jsonb)
+$$;
+
 create function tests.as_user(p_user uuid) returns void
 language plpgsql as $$
 begin
   perform set_config('request.jwt.claims',
-    json_build_object('sub', p_user, 'role', 'authenticated', 'is_anonymous', tests.is_anonymous(p_user))::text, true);
+    json_build_object('sub', p_user, 'role', 'authenticated', 'is_anonymous', tests.is_anonymous(p_user),
+                      'app_metadata', tests.app_metadata(p_user))::text, true);
   perform set_config('role', 'authenticated', true);
 end $$;
 

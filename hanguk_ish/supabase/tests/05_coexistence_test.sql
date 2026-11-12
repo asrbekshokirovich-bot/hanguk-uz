@@ -97,9 +97,11 @@ select tests.ok(not has_table_privilege('authenticated', 'public.main_canary', '
                 'hanguk.uz table: and still cannot write it');
 select tests.ok(not has_table_privilege('anon', 'public.main_canary', 'select'),
                 'hanguk.uz table: signed-out still cannot read it');
-select tests.as_user('00000000-0000-0000-0000-0000000000a1');
+select tests.as_user('00000000-0000-0000-0000-0000000000e2');  -- Ali, a hanguk.uz e-mail account
 select tests.eq((select note from public.main_canary where id = 1), 'hanguk.uz',
                 'hanguk.uz row: readable by its own policy');
+select tests.as_user('00000000-0000-0000-0000-0000000000a1');  -- Aziz, a worker who signed in by phone (P54)
+select tests.eq((select count(*)::int from public.main_canary), 0, 'a Hanguk Ish phone account: not for it');
 select tests.as_admin();
 
 -- P53: an anonymous account (the apps' since P49) is kept out of hanguk.uz's
@@ -122,8 +124,42 @@ select tests.throws($$insert into public.profiles (user_id, full_name) values ('
                     'row-level security', 'nor can it write itself a hanguk.uz profile');
 select tests.eq((select count(*)::int from ish.profiles where id = '00000000-0000-0000-0000-0000000000e4'), 1,
                 'its Hanguk Ish profile is there for it');
-select tests.as_user('00000000-0000-0000-0000-0000000000a1');
+select tests.as_user('00000000-0000-0000-0000-0000000000e2');  -- Ali, a hanguk.uz e-mail account
 select tests.eq((select count(*)::int from public.main_canary), 1, 'a hanguk.uz account still reads the row');
+select tests.as_admin();
+-- P54: the apps sign in by phone and SMS code again. Every account made
+-- without an e-mail (phone-only, anonymous) or marked by the apps carries
+-- app_metadata.app = 'hanguk_ish' from the start
+-- (…_hanguk_ish_phone_accounts.sql at the repository root), and keeps it.
+select tests.eq((select raw_app_meta_data->>'app' from auth.users where id = '00000000-0000-0000-0000-0000000000e3'),
+                'hanguk_ish', 'a phone-only account is marked as Hanguk Ish''s');
+select tests.eq((select raw_app_meta_data->>'app' from auth.users where id = '00000000-0000-0000-0000-0000000000e1'),
+                'hanguk_ish', 'an account the app marks is marked');
+select tests.eq((select raw_app_meta_data->>'app' from auth.users where id = '00000000-0000-0000-0000-0000000000e4'),
+                'hanguk_ish', 'an anonymous account is marked');
+select tests.ok((select raw_app_meta_data->>'app' from auth.users where id = '00000000-0000-0000-0000-0000000000e2') is null,
+                'a hanguk.uz e-mail account is not');
+-- Supabase Auth writes app_metadata again on sign-in, without the mark.
+update auth.users set raw_app_meta_data = '{"provider": "phone", "providers": ["phone"]}'
+where id = '00000000-0000-0000-0000-0000000000e3';
+select tests.eq((select raw_app_meta_data from auth.users where id = '00000000-0000-0000-0000-0000000000e3'),
+                '{"app": "hanguk_ish", "provider": "phone", "providers": ["phone"]}'::jsonb,
+                'the mark stays when app_metadata is written again');
+-- Adding an e-mail later does not take it away either.
+update auth.users set email = 'e3@example.com' where id = '00000000-0000-0000-0000-0000000000e3';
+select tests.eq((select raw_app_meta_data->>'app' from auth.users where id = '00000000-0000-0000-0000-0000000000e3'),
+                'hanguk_ish', 'nor does an e-mail added later');
+update auth.users set email = null where id = '00000000-0000-0000-0000-0000000000e3';
+select tests.ok(not exists (select 1 from public.profiles where user_id = '00000000-0000-0000-0000-0000000000e3'),
+                'a phone account: no hanguk.uz profile row');
+select tests.as_user('00000000-0000-0000-0000-0000000000e3');
+select tests.eq((select count(*)::int from public.main_canary), 0, 'a phone account: hanguk.uz rows are not for it');
+select tests.throws($$insert into public.profiles (user_id, full_name) values ('00000000-0000-0000-0000-0000000000e3', 'x')$$,
+                    'row-level security', 'nor can it write itself a hanguk.uz profile');
+select tests.eq((select count(*)::int from ish.profiles where id = '00000000-0000-0000-0000-0000000000e3'), 1,
+                'its Hanguk Ish profile is there for it');
+select tests.as_user('00000000-0000-0000-0000-0000000000e2');  -- Ali, a hanguk.uz e-mail account
+select tests.eq((select count(*)::int from public.main_canary), 1, 'a hanguk.uz account still reads the row (P54)');
 select tests.as_admin();
 select tests.ok(exists (select 1 from pg_publication_tables
                         where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'messages'),

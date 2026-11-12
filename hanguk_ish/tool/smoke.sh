@@ -81,19 +81,12 @@ worker() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
-  # A01 «Boshlash» (P49: no SMS): the demo opens A02; with the backend that
-  # answers nothing, it says the connection is missing.
-  local next='Profil · 1 / 3'
-  [ "$1" = backend ] && next='Internet aloqasi'
-  if ui wait 'Boshlash' 90 && ui tapto 'Boshlash' "$next" 40; then
-    echo "$name: A01 → «Boshlash» → $next"
-  elif [ "$1" = backend ] && ui wait '=Boshlash' 5; then
-    # The connection message is a 4-second snack bar, and a busy emulator's
-    # screen dump can miss it. Still on A01 and alive (finish checks for a
-    # crash or an ANR): it answered.
-    echo "::notice::$name: back on A01, the connection message not caught"
+  # A01 «Telefon raqam bilan» (P54): T1 opens — no network needed, the
+  # same in the demo and with the backend.
+  if ui wait 'Telefon raqam bilan' 90 && ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz' 40; then
+    echo "$name: A01 → «Telefon raqam bilan» → T1"
   else
-    echo "::error::$name: A01 «Boshlash» did not answer"
+    echo "::error::$name: A01 «Telefon raqam bilan» did not answer"
     failed=1
   fi
   finish uz.hanguk.ish "$name"
@@ -105,13 +98,15 @@ employer() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
-  # BA0 «Get started» (P50: nothing to type): the demo opens BA1; with the
-  # backend that answers nothing, it says the connection is missing. The app
-  # opens in the phone's language (P43): English on the emulator.
-  local next="Today's shifts"
+  # BA0 (P54): the phone, then «Get started». The demo sends no SMS and opens
+  # the code screen; with the backend that answers nothing, it says the
+  # connection is missing. The app opens in the phone's language (P43):
+  # English on the emulator.
+  local next='Enter the code'
   [ "$1" = backend ] && next='Check the internet connection'
-  if ui wait 'Get started' 90 && ui tapto 'Get started' "$next" 40; then
-    echo "$name: BA0 «Get started» → $next"
+  if ui wait 'Get started' 90 && ui field 0 01012345678 && ui hidekb &&
+    ui tapto '=Get started' "$next" 40; then
+    echo "$name: BA0 phone → «Get started» → $next"
   elif [ "$1" = backend ] && ui wait '=Get started' 5; then
     # The connection message is a 4-second snack bar, and a busy emulator's
     # screen dump can miss it. Still on BA0 and alive (finish checks for a
@@ -176,8 +171,13 @@ walk_worker() {
   launch "$apk" "$pkg" "$name" || return
   # Sinchon, Seoul: the demo shifts are around it.
   adb emu geo fix 126.9368 37.5559 >/dev/null 2>&1 || true
-  step 'A01 → A02' ui tap 'Boshlash' 90 &&
-    step 'A02 opens' ui wait 'Profil · 1 / 3' &&
+  step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
+    step 'T1: number' ui field 0 01012345678 &&
+    ui hidekb &&
+    step 'T1 → T2' ui tap '=Kod olish' &&
+    step 'T2 opens' ui wait 'Kodni kiriting' 30 &&
+    step 'T2: code (the demo takes any six digits)' ui type 123456 &&
+    step 'A02 opens' ui wait 'Profil · 1 / 3' 30 &&
     shot a02-1 &&
     step 'A02-1: first name' ui field 0 Dilnoza &&
     ui hidekb &&
@@ -232,7 +232,7 @@ walk_worker() {
     shot a11-ru &&
     adb shell am force-stop "$pkg" &&
     adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 &&
-    step 'after a restart: still Russian' ui wait '=Начать' 60 &&
+    step 'after a restart: still Russian' ui wait '=По номеру телефона' 60 &&
     shot a01-ru-restarted &&
     echo "$name: A01 → A02 ×3 → A03 → A05 → A06 → A07 in/out → A08 → A11 → Русский → restart" ||
     { shot failed-worker; failed=1; }
@@ -255,12 +255,17 @@ walk_employer() {
   local apk=$apks/demo-employer-$1.apk pkg=uz.hanguk.ish.biz name=walk-employer
   launch "$apk" "$pkg" "$name" || return
   # The app opens in the phone's language (P43, English here); the walk reads
-  # Korean, so it switches first. P49/P50: no SMS, no business number.
+  # Korean, so it switches first. P54: the phone and an SMS code; P50: no
+  # business number.
   step 'BA0 opens' ui wait 'Get started' 90 &&
     step 'BA0: language' ui tap 'Language' &&
     step 'BA0: Korean' ui tap '=한국어' &&
     step 'BA0 in Korean' ui wait '시작하기' &&
-    step 'BA0 → BA1' ui tap '=시작하기' &&
+    step 'BA0: phone' ui field 0 01012345678 &&
+    ui hidekb &&
+    step 'BA0 → code' ui tap '=시작하기' &&
+    step 'code opens' ui wait '인증번호 입력' 30 &&
+    step 'code (the demo takes any six digits)' ui type 123456 &&
     step 'BA1' ui wait '오늘의 근무' 30 &&
     shot ba1 &&
     step 'BA1 → BA3' ui tap '마감 정리 보조' 30 -1 &&

@@ -18,6 +18,7 @@ on:
       - 'supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql'
       - 'supabase/migrations/20261111180000_hanguk_ish_skip_anonymous.sql'
       - 'supabase/migrations/20261112140000_hanguk_ish_no_anonymous.sql'
+      - 'supabase/migrations/20261112160000_hanguk_ish_phone_accounts.sql'
       - '.github/workflows/ish-backend.yml'
   workflow_dispatch:
 

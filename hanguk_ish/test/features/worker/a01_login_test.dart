@@ -31,10 +31,8 @@ void main() {
     for (final label in ["O'zbekcha", 'Русский', 'English', '한국어']) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
-    // P49: one «Boshlash» instead of «Telefon raqam bilan» / «Telegram bilan».
-    expect(find.text('Boshlash'), findsOneWidget);
-    expect(find.text('Telefon raqam bilan'), findsNothing);
-    expect(find.text('Telegram bilan'), findsNothing);
+    expect(find.text('Telefon raqam bilan'), findsOneWidget);
+    expect(find.text('Telegram bilan'), findsOneWidget);
     final selected = tester.widgetList<HiOptionTile>(find.byType(HiOptionTile)).where((t) => t.selected);
     expect(selected.map((t) => t.label), ["O'zbekcha"]);
   });
@@ -42,10 +40,10 @@ void main() {
   testWidgets('choosing a language switches the whole screen', (tester) async {
     final container = await pumpApp(tester);
     final expected = {
-      'Русский': ('Язык приложения', 'Начать'),
-      'English': ('App language', 'Get started'),
-      '한국어': ('앱 언어', '시작하기'),
-      "O'zbekcha": ('Ilova tili', 'Boshlash'),
+      'Русский': ('Язык приложения', 'По номеру телефона'),
+      'English': ('App language', 'Continue with phone'),
+      '한국어': ('앱 언어', '휴대폰 번호로 시작'),
+      "O'zbekcha": ('Ilova tili', 'Telefon raqam bilan'),
     };
     for (final MapEntry(key: label, value: texts) in expected.entries) {
       await tester.tap(find.text(label));
@@ -56,19 +54,21 @@ void main() {
     }
   });
 
-  testWidgets('«Boshlash» works only while the terms box is ticked', (tester) async {
+  testWidgets('sign-in buttons work only while the terms box is ticked', (tester) async {
     await pumpApp(tester);
-    expect(button(tester, 'Boshlash').onPressed, isNotNull);
+    expect(button(tester, 'Telefon raqam bilan').onPressed, isNotNull);
     expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isTrue);
 
     await tester.tap(find.byType(HiCheckbox));
     await tester.pumpAndSettle();
     expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isFalse);
-    expect(button(tester, 'Boshlash').onPressed, isNull);
+    expect(button(tester, 'Telefon raqam bilan').onPressed, isNull);
+    expect(button(tester, 'Telegram bilan').onPressed, isNull);
 
     await tester.tap(find.byType(HiCheckbox));
     await tester.pumpAndSettle();
-    expect(button(tester, 'Boshlash').onPressed, isNotNull);
+    expect(button(tester, 'Telefon raqam bilan').onPressed, isNotNull);
+    expect(button(tester, 'Telegram bilan').onPressed, isNotNull);
   });
 
   for (final phone in [TestPhone.android, TestPhone.small]) {
@@ -76,9 +76,9 @@ void main() {
       await pumpApp(tester, phone: phone);
       expect(tester.takeException(), isNull);
       // The main action stays reachable (scrolled into view on short screens).
-      await tester.ensureVisible(find.text('Boshlash'));
+      await tester.ensureVisible(find.text('Telegram bilan'));
       await tester.pumpAndSettle();
-      expect(find.text('Boshlash').hitTestable(), findsOneWidget);
+      expect(find.text('Telegram bilan').hitTestable(), findsOneWidget);
     });
   }
 }
