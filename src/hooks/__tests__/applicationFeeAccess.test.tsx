@@ -26,7 +26,7 @@ vi.mock('@/integrations/supabase/client', () => {
 
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u' } }) }));
 
-import { useUserRole } from '@/hooks/useUserRole';
+import { resetUserRoleStore, useUserRole } from '@/hooks/useUserRole';
 // Not a hook despite the name: a plain builder, called here outside React.
 import { useSidebarGroups as buildSidebarGroups } from '@/components/crm/CRMSidebar';
 import { hasApplicationFeeRole } from '@/lib/applicationFeeAccess';
@@ -52,6 +52,8 @@ describe('Application fee access', () => {
   beforeEach(() => {
     db.roles = [];
     db.tables = {};
+    // The answer is shared by every hook on a page; each test is a new page.
+    resetUserRoleStore();
   });
 
   it('an owner sees the block, and Universitet tanlash where it lives', async () => {
