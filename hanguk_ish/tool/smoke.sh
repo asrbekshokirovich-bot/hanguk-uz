@@ -40,6 +40,11 @@ adb shell settings put global hide_error_dialogs 1 >/dev/null 2>&1 || true
 for ime in $(adbt shell ime list -s 2>/dev/null | tr -d '\r'); do
   adbt shell ime disable "$ime" >/dev/null 2>&1 || true
 done
+# The code fields ask for SMS one-time-code autofill and the phone fields for
+# a phone number (useful on a phone). On the emulator the autofill service
+# answering them is suspected of taking the device down as the code screen
+# opens; the smoke turns autofill off.
+adbt shell settings put secure autofill_service null >/dev/null 2>&1 || true
 
 # Installs and starts it; 2 when this emulator cannot run it.
 launch() {
