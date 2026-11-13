@@ -172,7 +172,7 @@ export function useCRMData() {
             .range(from, to),
         ),
         applyIntake(
-          supabase.from('payments').select('student_id, status, payment_type, paid_amount, amount, currency').in('student_id', studentUserIds),
+          supabase.from('payments').select('student_id, status, payment_type, paid_amount, amount, list_amount, currency').in('student_id', studentUserIds),
           activeIntakeId,
         ),
         untyped.from('student_university_submissions').select(SUBMISSION_COLUMNS).in('student_id', studentUserIds),

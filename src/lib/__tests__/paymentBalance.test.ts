@@ -85,6 +85,26 @@ describe('isInitialPaymentOverdue', () => {
     expect(isInitialPaymentOverdue({ ...base, payments: [pay()], today: '2026-10-22' })).toBe(true);
   });
 
+  it('a discount lowers what is owed: $5,000 plan, $1,000 off, $4,000 paid is not overdue', () => {
+    expect(
+      isInitialPaymentOverdue({
+        ...base,
+        payments: [pay({ amount: 4000, list_amount: 5000, paid_amount: 4000, status: 'completed' })],
+        today: '2026-11-13',
+      }),
+    ).toBe(false);
+  });
+
+  it('with a discount, paying less than the discounted price is still overdue', () => {
+    expect(
+      isInitialPaymentOverdue({
+        ...base,
+        payments: [pay({ amount: 4000, list_amount: 5000, paid_amount: 3000, status: 'partial' })],
+        today: '2026-11-13',
+      }),
+    ).toBe(true);
+  });
+
   it('paid in full in two transfers is not overdue', () => {
     expect(
       isInitialPaymentOverdue({
