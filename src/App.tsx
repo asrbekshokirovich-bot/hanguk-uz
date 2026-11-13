@@ -25,6 +25,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Install = lazy(() => import("./pages/Install"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const IshPrivacy = lazy(() => import("./pages/IshPrivacy"));
 const Support = lazy(() => import("./pages/Support"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
 const SurveyList = lazy(() => import("./pages/SurveyList"));
@@ -121,6 +122,8 @@ const App = () => (
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/privacy-policy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
+                    {/* Hanguk Ish apps: privacy policy linked from Google Play. */}
+                    <Route path="/ish/privacy" element={<IshPrivacy />} />
                     {/* Support URL given to App Store Connect and Play (App
                         Review guideline 1.5, 2026-08-07). Must stay public. */}
                     <Route path="/support" element={<Support />} />
