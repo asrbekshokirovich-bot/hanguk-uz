@@ -3781,7 +3781,8 @@
       "jobs": "Jobs",
       "employers": "Employers",
       "appBusinesses": "App businesses",
-      "reports": "Complaints"
+      "reports": "Complaints",
+      "staff": "Staff"
     },
     "board": {
       "newJob": "New job",
@@ -3960,7 +3961,8 @@
       "BUSINESS_NOT_VERIFIED": "The employer is not verified.",
       "NOT_AUTHENTICATED": "Sign in again.",
       "OFFLINE": "No internet connection.",
-      "UNKNOWN": "Something went wrong. Please try again."
+      "UNKNOWN": "Something went wrong. Please try again.",
+      "SELF": "You cannot change your own role or remove yourself — another admin does that."
     },
     "appBusinesses": {
       "intro": "Businesses opened in the 사장님 app. They open at once, without a check — if one looks suspicious, suspend it: workers won't see its shifts and nobody can apply.",
@@ -4015,6 +4017,30 @@
       "history": "{{completed}} shifts · {{noShows}} no-shows",
       "noName": "No name",
       "changed": "Status changed"
+    },
+    "staff": {
+      "intro": "Who works in the Hanguk Ish section. Only hanguk.uz CRM staff can be added; an admin keeps the list.",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "added": "Added",
+      "you": "you",
+      "roles": {
+        "operator": "Operator",
+        "admin": "Admin"
+      },
+      "add": "Add",
+      "addLabel": "CRM staff member",
+      "addPlaceholder": "Choose a staff member",
+      "newRole": "Role of the new staff member",
+      "noCandidates": "No CRM staff left to add.",
+      "addedToast": "Added",
+      "roleChanged": "Role changed",
+      "remove": "Remove",
+      "removeTitle": "Remove from the staff list?",
+      "removeText": "the Hanguk Ish section of the CRM closes for them; the employers and jobs they added stay.",
+      "removed": "Removed",
+      "noName": "No name"
     }
   },
   "calendarPage": {

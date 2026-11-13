@@ -149,6 +149,24 @@ describe('ishApi', () => {
     ]);
   });
 
+  it('P58: the staff list — who is an admin, the list, adding with a role, the role, removing', async () => {
+    const { client, rpc } = fakeClient({ data: true });
+    const api = ishApi(client);
+    expect(await api.isStaffAdmin()).toBe(true);
+    await api.addStaff('u-1', 'operator');
+    await api.setStaffRole('u-1', 'admin');
+    await api.removeStaff('u-1');
+    expect(rpc.mock.calls).toEqual([
+      ['is_staff_admin', undefined],
+      ['staff_add', { p_user: 'u-1', p_role: 'operator' }],
+      ['staff_set_role', { p_user: 'u-1', p_role: 'admin' }],
+      ['staff_remove', { p_user: 'u-1' }],
+    ]);
+    const empty = fakeClient({ data: null });
+    expect(await ishApi(empty.client).staffPeople()).toEqual({ staff: [], candidates: [] });
+    expect(empty.rpc).toHaveBeenCalledWith('staff_people', undefined);
+  });
+
   it('a refusal comes back with its code', async () => {
     const { client } = fakeClient({ error: { message: 'FORBIDDEN', code: 'P0001' } });
     await expect(ishApi(client).businesses()).rejects.toMatchObject({ code: 'FORBIDDEN' });

@@ -11,6 +11,8 @@ import type {
   IshJobPage,
   IshMessage,
   IshReport,
+  IshStaffPeople,
+  IshStaffRole,
   ReportStatus,
 } from './types';
 
@@ -123,6 +125,23 @@ export function ishApi(client: SupabaseClient) {
     /** Where a complaint stands: open, in_review, closed. */
     setReportStatus: (id: string, status: ReportStatus) =>
       rpc<string>('staff_set_report_status', { p_report: id, p_status: status }),
+
+    /** P58: whether the signed-in staff member keeps the staff list (a Hanguk Ish admin). */
+    isStaffAdmin: () => rpc<boolean>('is_staff_admin'),
+
+    /** The staff (admins first) and the hanguk.uz CRM people who could be added. */
+    staffPeople: async () => (await rpc<IshStaffPeople | null>('staff_people')) ?? { staff: [], candidates: [] },
+
+    /** Puts a CRM account on the staff list (already on it: only its role changes). */
+    addStaff: (userId: string, role: IshStaffRole) => rpc<string>('staff_add', { p_user: userId, p_role: role }),
+
+    setStaffRole: (userId: string, role: IshStaffRole) =>
+      rpc<string>('staff_set_role', { p_user: userId, p_role: role }),
+
+    /** Off the staff list: the section closes for them; what they made stays. */
+    removeStaff: async (userId: string) => {
+      await rpc<null>('staff_remove', { p_user: userId });
+    },
 
     /** Jobs starting in [from, to): the kept employers' and any with offers. */
     board: async (from: Date, to: Date) =>

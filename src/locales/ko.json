@@ -2740,7 +2740,8 @@
       "jobs": "일자리",
       "employers": "사업장",
       "appBusinesses": "앱 사업장",
-      "reports": "신고"
+      "reports": "신고",
+      "staff": "직원"
     },
     "board": {
       "newJob": "새 일자리",
@@ -2916,7 +2917,8 @@
       "BUSINESS_NOT_VERIFIED": "확인되지 않은 사업장이에요.",
       "NOT_AUTHENTICATED": "다시 로그인하세요.",
       "OFFLINE": "인터넷 연결이 없어요.",
-      "UNKNOWN": "문제가 생겼어요. 다시 시도해 주세요."
+      "UNKNOWN": "문제가 생겼어요. 다시 시도해 주세요.",
+      "SELF": "자신의 역할을 바꾸거나 자신을 뺄 수 없어요. 다른 관리자가 해야 해요."
     },
     "appBusinesses": {
       "intro": "사장님 앱에서 열린 사업장입니다. 확인 없이 바로 열리므로 의심스러우면 정지하세요: 근무가 근무자에게 보이지 않고 지원할 수 없어요.",
@@ -2971,6 +2973,30 @@
       "history": "근무 {{completed}}회 · 노쇼 {{noShows}}회",
       "noName": "이름 없음",
       "changed": "상태를 바꿨어요"
+    },
+    "staff": {
+      "intro": "Hanguk Ish 섹션에서 일하는 사람들이에요. hanguk.uz CRM 직원만 추가할 수 있고, 관리자가 목록을 관리해요.",
+      "name": "이름",
+      "email": "이메일",
+      "role": "역할",
+      "added": "추가한 날",
+      "you": "나",
+      "roles": {
+        "operator": "운영자",
+        "admin": "관리자"
+      },
+      "add": "추가",
+      "addLabel": "CRM 직원",
+      "addPlaceholder": "직원을 선택하세요",
+      "newRole": "새 직원의 역할",
+      "noCandidates": "추가할 CRM 직원이 없어요.",
+      "addedToast": "추가했어요",
+      "roleChanged": "역할을 바꿨어요",
+      "remove": "목록에서 빼기",
+      "removeTitle": "직원 목록에서 뺄까요?",
+      "removeText": "CRM의 Hanguk Ish 섹션이 이 사람에게 닫혀요. 이 사람이 추가한 사업장과 일자리는 그대로 남아요.",
+      "removed": "목록에서 뺐어요",
+      "noName": "이름 없음"
     }
   },
   "calendarPage": {

@@ -230,3 +230,32 @@ export interface IshJobInput {
   source: string;
   notes: string;
 }
+
+/** P58: Hanguk Ish's own staff roles — an admin keeps the staff list. */
+export type IshStaffRole = 'operator' | 'admin';
+
+/** `staff_people`: one of Hanguk Ish's staff. */
+export interface IshStaffMember {
+  id: string;
+  role: IshStaffRole;
+  added_at: string;
+  /** As in the CRM (hanguk.uz's profile), else the Hanguk Ish profile. */
+  name: string | null;
+  email: string | null;
+  /** The signed-in admin: nobody changes or removes themselves. */
+  me: boolean;
+}
+
+/** `staff_people`: a hanguk.uz CRM account not on the list yet. */
+export interface IshStaffCandidate {
+  id: string;
+  name: string | null;
+  email: string | null;
+  /** Its CRM roles (call_operator, admin, …). */
+  roles: string[];
+}
+
+export interface IshStaffPeople {
+  staff: IshStaffMember[];
+  candidates: IshStaffCandidate[];
+}
