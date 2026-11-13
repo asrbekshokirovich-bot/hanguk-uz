@@ -87,11 +87,12 @@ telefonga keladi: Firebase Cloud Messaging, talaba ilovasining Firebase
 loyihasi (`hanguk-consulting`) — server o'sha loyihaning kaliti bilan yuboradi
 (`supabase/functions/ish-push`, `hanguk_ish/supabase/README.md`).
 
-- Sozlash (bir marta): Firebase console → `hanguk-consulting` → Add app →
-  Android: `uz.hanguk.ish` va `uz.hanguk.ish.biz`; so'ng `google-services.json`
-  (ikkala ilova bitta faylda) → `android/app/google-services.json` (commit
-  qilinadi, talaba ilovasidagi kabi). Fayl bo'lmasa ilovalar push'siz
-  ishlaydi (Gradle plagini faqat fayl bo'lsa qo'llanadi).
+- Sozlash: Firebase console → `hanguk-consulting` → Add app → Android; har
+  ilovaning `google-services.json` i o'z papkasida (commit qilinadi, talaba
+  ilovasidagi kabi): ishchi — `android/app/src/worker/` (`uz.hanguk.ish`,
+  2026-11-13 dan bor), sajangnim — `android/app/src/employer/`
+  (`uz.hanguk.ish.biz`, hali ro'yxatdan o'tmagan). Fayli yo'q ilova push'siz
+  ishlaydi: Gradle ogohlantiradi, build to'xtamaydi.
 - Kirgandan keyin (va har ochilishda kirgan bo'lsa) telefon tokeni
   `register_push_token` ga yoziladi, Firebase yangilasa — qayta; Android 13+
   ruxsati bir marta so'raladi. Chiqishdan oldin token akkauntdan olinadi.

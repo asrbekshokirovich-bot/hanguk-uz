@@ -4,4 +4,4 @@ useDefault = true
 [allowlist]
 description = "Public client identifiers: Supabase publishable key; Firebase app config files (API key is a public client id, restricted by bundle/package)"
 regexes = ['''sb_publishable_[A-Za-z0-9_-]+''']
-paths = ['''hanguk_app/ios/Runner/GoogleService-Info\.plist''', '''hanguk_app/android/app/google-services\.json''']
+paths = ['''hanguk_app/ios/Runner/GoogleService-Info\.plist''', '''hanguk_app/android/app/google-services\.json''', '''hanguk_ish/android/app/src/(worker|employer)/google-services\.json''']
