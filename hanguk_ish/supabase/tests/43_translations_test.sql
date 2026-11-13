@@ -206,6 +206,9 @@ begin
   perform ish.translation_kick();
   perform tests.eq((select count(*)::int from net.calls), 0, 'nothing due: no call');
 
+  -- Only Hanguk Ish's own functions.
+  perform tests.throws($q$select ish.ask_function('db-exec')$q$, 'INVALID', 'not hanguk.uz''s functions');
+
   -- A failing call does not fail the write.
   create or replace function net.http_post(url text, body jsonb default '{}', params jsonb default '{}',
                                            headers jsonb default '{}', timeout_milliseconds int default 5000)
@@ -225,6 +228,7 @@ select tests.throws($$select ish.translation_save('message', (select id::text fr
                     'nor write a translation');
 select tests.throws($$select ish.translation_fail('message', '1', 'x')$$, 'permission denied', 'nor mark a failure');
 select tests.throws($$select ish.translation_kick()$$, 'permission denied', 'nor call the translator');
+select tests.throws($$select ish.ask_function('ish-translate')$$, 'permission denied', 'nor any function');
 select tests.throws($$select ish.translation_tick()$$, 'permission denied', 'nor run the minute job');
 select tests.throws($$select ish.translation_source(m) from ish.messages m$$, 'permission denied', 'nor read the hash source');
 select tests.throws($$update ish.messages set translations = '{"uz": "x"}' where id = (select id from m1)$$, 'permission denied',

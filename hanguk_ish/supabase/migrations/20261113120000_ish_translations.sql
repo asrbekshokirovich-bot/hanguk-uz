@@ -148,8 +148,12 @@ begin
 end
 $$;
 
--- Asks ish-translate to work the queue, when something is due.
-create function ish.translation_kick()
+-- Asks one of Hanguk Ish's edge functions (ish-…) to run: a POST with no
+-- body, the project's secret key from the vault on `apikey` — as hanguk.uz's
+-- pg_cron jobs call theirs. What it is to do waits for it in a table. Without
+-- pg_net or the key (the tests, a local stack) it does nothing; an error is
+-- only a warning: asking is never worth a failed write.
+create function ish.ask_function(p_function text)
 returns void
 language plpgsql
 security definer
@@ -158,26 +162,42 @@ as $$
 declare
   v_key text;
 begin
-  if not exists (select 1 from ish.translation_queue q where q.next_at <= now() and q.attempts < 10) then
-    return;
+  if p_function is null or p_function !~ '^ish-[a-z0-9-]{1,40}$' then
+    raise exception 'INVALID';
   end if;
-  if to_regclass('vault.decrypted_secrets') is null
-     or not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                    where n.nspname = 'net' and p.proname = 'http_post') then
-    return;
+  begin
+    if to_regclass('vault.decrypted_secrets') is null
+       or not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                      where n.nspname = 'net' and p.proname = 'http_post') then
+      return;
+    end if;
+    execute 'select decrypted_secret from vault.decrypted_secrets where name = $1 limit 1'
+      into v_key using 'secret_key';
+    if coalesce(v_key, '') = '' then
+      return;
+    end if;
+    execute 'select net.http_post(url := $1, body := $2, headers := $3, timeout_milliseconds := $4)'
+      using 'https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/' || p_function,
+            '{}'::jsonb,
+            jsonb_build_object('Content-Type', 'application/json', 'apikey', v_key),
+            10000;
+  exception when others then
+    raise warning 'ish.ask_function(%): %', p_function, sqlerrm;
+  end;
+end
+$$;
+
+-- Asks ish-translate to work the queue, when something is due.
+create function ish.translation_kick()
+returns void
+language plpgsql
+security definer
+set search_path = ish
+as $$
+begin
+  if exists (select 1 from ish.translation_queue q where q.next_at <= now() and q.attempts < 10) then
+    perform ish.ask_function('ish-translate');
   end if;
-  execute 'select decrypted_secret from vault.decrypted_secrets where name = $1 limit 1'
-    into v_key using 'secret_key';
-  if coalesce(v_key, '') = '' then
-    return;
-  end if;
-  execute 'select net.http_post(url := $1, body := $2, headers := $3, timeout_milliseconds := $4)'
-    using 'https://lysjdtyanhdfphqyijsr.supabase.co/functions/v1/ish-translate',
-          '{}'::jsonb,
-          jsonb_build_object('Content-Type', 'application/json', 'apikey', v_key),
-          10000;
-exception when others then
-  raise warning 'ish.translation_kick: %', sqlerrm;
 end
 $$;
 
@@ -320,7 +340,8 @@ begin
 end
 $$;
 
-revoke execute on function ish.translation_source(ish.messages), ish.translation_source(ish.shifts),
+revoke execute on function ish.ask_function(text),
+  ish.translation_source(ish.messages), ish.translation_source(ish.shifts),
   ish.translation_source(ish.businesses), ish.translation_texts(text, text), ish.translation_kick(),
   ish.translation_claim(int), ish.translation_save(text, text, text, text, jsonb, jsonb),
   ish.translation_fail(text, text, text), ish.translation_tick()
