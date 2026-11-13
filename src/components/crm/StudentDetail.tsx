@@ -188,7 +188,9 @@ export function StudentDetail({
 }: StudentDetailProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { canDeletePaymentInstallments } = useUserRole();
+  const { canDeletePaymentInstallments, isAdmin, canSeeFinance } = useUserRole();
+  // Same rule as the RLS on payments/payment_transactions: owner, admin or finance access.
+  const canDeletePayments = isAdmin || canSeeFinance;
   const { activeIntakeId } = useActiveIntake();
   const { toast } = useToast();
   const [inviting, setInviting] = useState(false);
@@ -538,24 +540,23 @@ export function StudentDetail({
   };
 
   const handleDeletePayment = async (paymentId: string) => {
-    // Delete transactions first
-    await supabase
-      .from('payment_transactions')
-      .delete()
-      .eq('payment_id', paymentId);
+    // RLS silently skips rows the user may not delete (no error, 0 rows), so
+    // count what was really deleted — before, "Payment deleted" showed while
+    // the payment stayed (2026-11-13).
+    const failed = () =>
+      toast({
+        title: t('crmMsg.paymentDeleteFailed', { defaultValue: 'Failed to delete payment' }),
+        description: "To'lovni o'chirishga ruxsatingiz yo'q yoki to'lov o'chmadi.",
+        variant: 'destructive',
+      });
 
-    // Then delete payment
-    const { error } = await supabase
-      .from('payments')
-      .delete()
-      .eq('id', paymentId);
+    const { error: txError } = await supabase.from('payment_transactions').delete().eq('payment_id', paymentId);
+    if (txError) return failed();
 
-    if (!error) {
-      fetchPayments();
-      toast({ title: t('crmMsg.paymentDeleted', { defaultValue: 'Payment deleted' }) });
-    } else {
-      toast({ title: t('crmMsg.paymentDeleteFailed', { defaultValue: 'Failed to delete payment' }), variant: 'destructive' });
-    }
+    const { data, error } = await supabase.from('payments').delete().eq('id', paymentId).select('id');
+    fetchPayments();
+    if (error || !data || data.length === 0) return failed();
+    toast({ title: t('crmMsg.paymentDeleted', { defaultValue: 'Payment deleted' }) });
   };
 
   // Set the applicant track (bachelor/master/gks) for ALL of this student's
@@ -1474,13 +1475,15 @@ export function StudentDetail({
                             <Button variant="outline" size="icon" onClick={() => setEditingPayment(payment)}>
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              onClick={() => handleDeletePayment(payment.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDeletePayments && (
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleDeletePayment(payment.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
 
