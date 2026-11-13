@@ -1,7 +1,7 @@
 # Ochilmagan universitet saytlari
 
-Oxirgi tekshiruv: 2026-11-13T10:58:06+00:00
-Tekshirildi: 408 ta · Ochilmadi: 101 ta
+Oxirgi tekshiruv: 2026-11-13T18:33:53+00:00
+Tekshirildi: 408 ta · Ochilmadi: 102 ta
 
 Bu saytlar kuzatuvdan TASHQARIDA. Tuzatish uchun `universities.csv`
 faylidagi mos qatorning manzilini to'g'rilang — keyingi yurishda
@@ -18,7 +18,7 @@ bu ro'yxatdan tushadi.
 | 거제대학교 (Koje College) | https://koje.ac.kr | ConnectError: [Errno -5] No address associated with hostname |
 | 경남정보대학교 (Kyungnam College of Information & Technology) | https://iphak.kit.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
 | 경동대학교 (Kyungdong University) | https://global.kduniv.ac.kr/iphak/ | ConnectError: [Errno -3] Temporary failure in name resolution |
-| 경북과학대학교 (Kyongbuk College of Science) | https://kbsu.ac.kr | ConnectTimeout:  |
+| 경북과학대학교 (Kyongbuk College of Science) | https://kbsu.ac.kr | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 경북보건대학교 (Gyeongbuk College of Health) | https://gbhc.ac.kr | ConnectError: [Errno -2] Name or service not known |
 | 경성대학교 (Kyungsung University) | https://kscms.ks.ac.kr/ia/CMS/Contents/Contents.do?mCode=MN056 | ConnectTimeout:  |
 | 경운대학교 (Kyungwoon University) | https://www.ikw.ac.kr/worldle/page/3879/2759.tc?protocol=http | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
@@ -41,6 +41,7 @@ bu ro'yxatdan tushadi.
 | 동강대학교 (Donggang University) | https://ipsi.dkc.ac.kr/ | ConnectError: [Errno -3] Temporary failure in name resolution |
 | 동국대학교 WISE캠퍼스 (Dongguk University (WISE/Gyeongju Campus)) | https://ipsi.dongguk.ac.kr/ | ConnectTimeout:  |
 | 동부산대학교 (Dong-Busan College) | https://www.dpc.ac.kr/ | ConnectError: [Errno -2] Name or service not known |
+| 동아보건대학교 (Donga College of Health) | https://dhc.ac.kr | ConnectTimeout:  |
 | 동주대학교 (Dongju College) | https://ipsi.dongju.ac.kr/ipsi | ConnectError: [Errno -2] Name or service not known |
 | 루터대학교 (Luther University) | https://admission.ltu.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1011 |
 | 목포대학교 (Mokpo National University) | https://ipsi.mokpo.ac.kr/ | ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certifica |
