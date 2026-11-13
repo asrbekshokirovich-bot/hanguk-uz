@@ -510,7 +510,13 @@ void main() {
       final subscription = SupabaseLiveUpdates(aziz).changes().listen(events.add);
       addTearDown(subscription.cancel);
       await _live(admin, aziz.auth.currentUser!.id, events);
-      final first = await admin.from('messages').select('id').eq('application_id', azizNow).order('id').limit(1).single();
+      final first = await admin
+          .from('messages')
+          .select('id')
+          .eq('application_id', azizNow)
+          .order('id', ascending: true)
+          .limit(1)
+          .single();
       expect(
         await admin.from('translation_queue').select('kind').eq('kind', 'message').eq('ref', '${first['id']}'),
         isNotEmpty,
@@ -526,9 +532,10 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 200));
       }
       expect(events, isNotEmpty, reason: 'A10 reloads while it is open');
-      final thread = await azizShifts.messages(azizNow);
-      expect(thread.first.lang, 'uz');
-      expect(thread.first.translations['ko'], '감사합니다, 좋은 하루였어요');
+      final translated = (await azizShifts.messages(azizNow)).singleWhere((m) => m.id == '${first['id']}');
+      expect(translated.body, 'Rahmat, yaxshi kun bo\'ldi');
+      expect(translated.lang, 'uz');
+      expect(translated.translations['ko'], '감사합니다, 좋은 하루였어요');
     });
 
     test('live: a change to an application reaches its owner, not other workers', () async {
