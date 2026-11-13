@@ -19,6 +19,8 @@ export interface BalancePayment {
   amount: number | string | null;
   paid_amount: number | string | null;
   currency: string | null;
+  /** Price before the discount (payments.list_amount); null when there is none. */
+  list_amount?: number | string | null;
 }
 
 export interface CurrencyBalance {
@@ -44,6 +46,16 @@ export function paidTowardsInitial(payments: BalancePayment[]): number {
   return payments
     .filter((p) => p.status !== 'refunded' && INITIAL_PAYMENT_TYPES.includes(p.payment_type))
     .reduce((sum, p) => sum + num(p.paid_amount), 0);
+}
+
+/**
+ * Discount given on the contract payment: list_amount − amount on the initial
+ * payment rows ("Chegirma (summa)", 2026-11-10). Refunded rows left out.
+ */
+export function initialDiscount(payments: BalancePayment[]): number {
+  return payments
+    .filter((p) => p.status !== 'refunded' && INITIAL_PAYMENT_TYPES.includes(p.payment_type))
+    .reduce((sum, p) => (p.list_amount == null ? sum : sum + Math.max(num(p.list_amount) - num(p.amount), 0)), 0);
 }
 
 /**
@@ -109,7 +121,9 @@ export function isInitialPaymentOverdue(input: OverdueInput): boolean {
 
   // NO RISK is paid in full only, whatever mode the student row carries.
   const installment = input.paymentMode === 'installment' && plan.allowInstallment !== false;
-  const expected = installment ? plan.firstPayment : plan.priceOneTime;
+  // A discount lowers what is owed: a $5,000 plan with $1,000 off is fully
+  // paid at $4,000 (Asrbek, 2026-11-13 — such students were showing red).
+  const expected = (installment ? plan.firstPayment : plan.priceOneTime) - initialDiscount(input.payments);
   if (expected <= 0) return false;
 
   const due = calculateFirstPaymentDueDate(input.contractDate);
