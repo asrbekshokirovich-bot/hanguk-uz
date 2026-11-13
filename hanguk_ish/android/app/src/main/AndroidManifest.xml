@@ -3,6 +3,8 @@
     <!-- A07: the entry / exit QR codes are read with the camera. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- P56: A12 / 알림 notifications while the app is closed (Android 13+ asks). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="@string/app_name"

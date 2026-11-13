@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../app/flavor.dart';
 import '../../features/worker/feed/feed_area.dart';
 import '../../features/worker/profile/worker_profile_draft.dart';
 import '../../features/worker/profile/worker_profile_repository.dart';
@@ -12,19 +14,30 @@ import '../repositories/account_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/employer_repository.dart';
 import '../repositories/live_updates.dart';
+import '../repositories/push_service.dart';
 import '../repositories/shift_repository.dart';
 import 'backend.dart';
 import 'supabase_account_repository.dart';
 import 'supabase_auth_repository.dart';
 import 'supabase_employer_repository.dart';
 import 'supabase_live_updates.dart';
+import 'supabase_push_tokens.dart';
 import 'supabase_shift_repository.dart';
 
 /// Points every repository of both apps at the Hanguk Ish database.
 List<Override> backendOverrides(BackendConfig config, SupabaseClient client) => [
       backendConfigProvider.overrideWithValue(config),
       supabaseClientProvider.overrideWithValue(client),
-      authRepositoryProvider.overrideWith((ref) => SupabaseAuthRepository(client)),
+      authRepositoryProvider.overrideWith((ref) => SupabaseAuthRepository(
+            client,
+            // P56: this phone stops getting the account's pushes.
+            beforeSignOut: () async => ref.read(pushRegistrationProvider)?.signingOut(),
+          )),
+      pushTokensProvider.overrideWith((ref) => SupabasePushTokens(
+            client,
+            app: ref.watch(flavorProvider) == Flavor.employer ? 'employer' : 'worker',
+            platform: defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android',
+          )),
       liveUpdatesProvider.overrideWith((ref) => SupabaseLiveUpdates(client)),
       appResumesProvider.overrideWith((ref) {
         final resumes = StreamController<void>.broadcast();

@@ -6,6 +6,15 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services") apply false
+}
+
+// Push (P56): Firebase reads android/app/google-services.json — both apps
+// (uz.hanguk.ish, uz.hanguk.ish.biz) in the Firebase project of the student
+// app (hanguk-consulting), whose service account the server sends with.
+// Without the file the apps build and run as before, without pushes.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 // The Play upload key: android/key.properties (storeFile, storePassword,
