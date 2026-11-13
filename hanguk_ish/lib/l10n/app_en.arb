@@ -552,5 +552,6 @@
   "deleteAccountTitle": "Delete your account?",
   "deleteAccountText": "Your profile, applications, messages and ratings will be deleted for good. This can't be undone.",
   "deleteAccountConfirm": "Yes, delete",
-  "deleteAccountDone": "Your account has been deleted."
+  "deleteAccountDone": "Your account has been deleted.",
+  "bizDeleteAccountText": "Your business, its shifts, applications and messages will be deleted for good. This can't be undone."
 }

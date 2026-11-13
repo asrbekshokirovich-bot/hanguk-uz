@@ -4,6 +4,7 @@ import '../icons.dart';
 import '../insets.dart';
 import '../tokens.dart';
 import '../typography.dart';
+import 'buttons.dart';
 import 'forms.dart';
 import 'pressable.dart';
 
@@ -26,6 +27,7 @@ Future<String?> showHiPicker(
   String? selected,
   String Function(String typed)? allowTyped,
   bool searchable = true,
+  HiPickerAction? action,
 }) {
   return showModalBottomSheet<String>(
     context: context,
@@ -41,8 +43,18 @@ Future<String?> showHiPicker(
       selected: selected,
       allowTyped: allowTyped,
       searchable: searchable,
+      action: action,
     ),
   );
+}
+
+/// A red text button under a picker's list (the 사장님 app's «계정 삭제»
+/// under its language list): tapping it returns [value].
+class HiPickerAction {
+  const HiPickerAction(this.value, this.label);
+
+  final String value;
+  final String label;
 }
 
 /// A white bottom sheet with checkable [options] and «apply» / «reset»
@@ -196,6 +208,7 @@ class _PickerSheet extends StatefulWidget {
     required this.selected,
     required this.allowTyped,
     required this.searchable,
+    this.action,
   });
 
   final String title;
@@ -204,6 +217,7 @@ class _PickerSheet extends StatefulWidget {
   final String? selected;
   final String Function(String typed)? allowTyped;
   final bool searchable;
+  final HiPickerAction? action;
 
   @override
   State<_PickerSheet> createState() => _PickerSheetState();
@@ -281,6 +295,17 @@ class _PickerSheetState extends State<_PickerSheet> {
               ],
             ),
           ),
+          if (widget.action case final action?) ...[
+            const SizedBox(height: 8),
+            HiButton(
+              label: action.label,
+              style: HiButtonStyle.text,
+              textColor: HiColors.redInk,
+              height: 44,
+              fontSize: 15,
+              onPressed: () => Navigator.of(context).pop(action.value),
+            ),
+          ],
         ],
       ),
     );

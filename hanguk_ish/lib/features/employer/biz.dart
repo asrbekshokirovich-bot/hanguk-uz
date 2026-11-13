@@ -114,6 +114,11 @@ abstract final class Biz {
   static String slotsLocked(int n) => _l.bizSlotsLocked(n);
   static String people(int n) => _l.bizPeople(n);
   static String get back => _l.bizBack;
+  static String get deleteAccount => _l.deleteAccount;
+  static String get deleteAccountTitle => _l.deleteAccountTitle;
+  static String get deleteAccountText => _l.bizDeleteAccountText;
+  static String get deleteAccountConfirm => _l.deleteAccountConfirm;
+  static String get deleteAccountDone => _l.deleteAccountDone;
   static String applicants(int n) => _l.bizApplicants(n);
   static String get decideYourself => _l.bizDecideYourself;
   static String get reject => _l.bizReject;
