@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-12T18:56:51+00:00",
+ "last_run": "2026-11-13T10:58:06+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -281,6 +281,8 @@
   "https://dst.ac.kr": [],
   "https://dsu.ac.kr": [],
   "https://ent.donga.ac.kr/": [
+   "ca7cc6bcd8ff345f",
+   "6fe4d97f24790957",
    "3fb812cf3ec7b48f",
    "484590dbd7d24964",
    "7bbcc8dfec59d511",
@@ -572,6 +574,7 @@
    "b10580b72e2bd18b"
   ],
   "https://iccu.ac.kr": [
+   "5d3e9c9943c2efc1",
    "fa7f5d255b3ef29e",
    "479437fc6190dea3",
    "d3804f99c51d2fac",
