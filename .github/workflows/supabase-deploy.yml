@@ -180,6 +180,7 @@ jobs:
           # live kabi), create-student (verify_jwt=true, live kabi).
           # 2026-11-13: ish-translate yangi (Hanguk Ish P55, mashina tarjimasi) — live
           # nusxasi yo'q, repo nusxasi joriy. verify_jwt = false (config.toml, pg_net).
+          # 2026-11-13: ish-staff-alerts yangi (P57, xodimlarga Telegram xabari) — xuddi shunday.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -259,6 +260,7 @@ jobs:
             vapi-fetch-recording
             fx-kgs
             ish-translate
+            ish-staff-alerts
           "
 
           for fn in $FUNCTIONS; do

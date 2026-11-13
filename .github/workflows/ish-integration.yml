@@ -9,8 +9,8 @@ name: Hanguk Ish — integratsiya (ilova ↔ baza)
 #   offers_test.dart — xodim taklifi ishchi ilovasida (P40).
 # Keyin hanguk.uz'ning «Hanguk Ish» bo'limi (src/lib/ish) haqiqiy supabase-js
 # bilan o'sha stack'da: xodim → taklif → ishchi → tasdiq → chat → davomat →
-# to'lov (src/lib/ish/__e2e__, P42). Va ish-translate'ning navbati (P55):
-# trigger'lar, translation_claim / _save haqiqiy baza bilan (model — soxta).
+# to'lov (src/lib/ish/__e2e__, P42). Va ish-translate (P55) hamda
+# ish-staff-alerts (P57) navbatlari haqiqiy baza bilan (model va Telegram — soxta).
 
 on:
   push:
@@ -19,6 +19,7 @@ on:
     paths:
       - 'hanguk_ish/**'
       - 'supabase/functions/ish-translate/**'
+      - 'supabase/functions/ish-staff-alerts/**'
       - 'src/lib/ish/**'
       - 'src/components/crm/ish/**'
       - '.github/workflows/ish-integration.yml'
@@ -102,22 +103,25 @@ jobs:
           npm ci --no-audit --no-fund --loglevel=error
           npx vitest run src/lib/ish/__e2e__ --reporter verbose
 
-      # P55: ish-translate's queue with the real database — what the triggers
-      # queue, translation_claim / _save / _fail through PostgREST, what the
-      # rows then hold (the model is a stand-in; no AI key in CI).
+      # P55, P57: ish-translate's queue and ish-staff-alerts' outbox with the
+      # real database — what the triggers queue, the claim / save / done /
+      # fail functions through PostgREST, what the rows then hold (the model
+      # and Telegram are stand-ins: no keys in CI).
       - uses: denoland/setup-deno@v2
         if: success() || failure()
         with:
           deno-version: v2.x
 
-      - name: ish-translate against the stack (Deno)
+      - name: ish-translate and ish-staff-alerts against the stack (Deno)
         if: success() || failure()
         working-directory: .
         env:
           DENO_NO_PACKAGE_JSON: '1'
         run: |
           ISH_IT_URL="$SUPABASE_URL" ISH_IT_SERVICE_KEY="$SUPABASE_SERVICE_KEY" \
-            deno test --no-check --allow-env --allow-net supabase/functions/ish-translate/integration_test.ts
+            deno test --no-check --allow-env --allow-net \
+              supabase/functions/ish-translate/integration_test.ts \
+              supabase/functions/ish-staff-alerts/integration_test.ts
 
       # The CRM section's own tests (Telegram post parser, Seoul times, the
       # API layer, the forms), with the staff's browser in Tashkent and far

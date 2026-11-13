@@ -91,11 +91,19 @@ function IshStaffGate({ client, session }: { client: SupabaseClient; session: Se
   );
 }
 
+const TABS = ['jobs', 'employers', 'appBusinesses', 'reports'] as const;
+
+/** «/crm/ish?tab=reports»: a Hanguk Ish message to the staff (P57) opens its tab. */
+function initialTab(): string {
+  const wanted = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('tab');
+  return wanted && (TABS as readonly string[]).includes(wanted) ? wanted : 'jobs';
+}
+
 function IshWorkspace({ account }: { account: string }) {
   const { t } = useTranslation();
   const api = useIshApi();
   const [jobId, setJobId] = useState<string | null>(null);
-  const [tab, setTab] = useState('jobs');
+  const [tab, setTab] = useState(initialTab);
   // The complaints not closed yet, on the tab (P52).
   const reports = useQuery({ queryKey: ishKeys.reports, queryFn: api.reports });
   const open = (reports.data ?? []).filter((r) => r.status !== 'closed').length;

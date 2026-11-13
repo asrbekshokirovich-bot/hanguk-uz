@@ -31,6 +31,11 @@ o'z tilidan boshqa 4 tilga (uz, ru, en, ko), biznes — uz, ru, en; xodim
 yozgan nom almashtirilmaydi. A10 tarjimani ochiq chatda darhol ko'rsatadi
 (Realtime: xabarning o'zgarishi). Yangi kalit kerak emas.
 
+Xodimlarga Telegram (P57): sajangnim ilovasida yangi biznes ochilsa yoki
+ishchi shikoyat yuborsa, hanguk.uz'ning ogohlantirish chatiga xabar boradi
+(CRM'ning tegishli yorlig'i havolasi bilan: `/crm/ish?tab=appBusinesses`,
+`?tab=reports`). Yetmasa — baza qayta yuboradi.
+
 ## Ishga tushirish
 
 ```sh
