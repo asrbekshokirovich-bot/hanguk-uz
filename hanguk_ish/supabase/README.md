@@ -29,6 +29,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_app_business_oversight.sql` | P52: tekshiruvsiz ochilgan bizneslar ustidan xodim nazorati — `staff_app_businesses()` ro'yxat, `staff_update_app_business()` haqiqiy nom va manzil, `staff_set_app_business_blocked()` to'xtatish (`rejected`: smenalar lentadan chiqadi, ariza berib bo'lmaydi) / qayta yoqish; `staff_reports()` / `staff_set_report_status()` — ishchilar shikoyatlari (A11) va ularning holati; ilovadan bitta biznes 24 soatda ko'pi bilan 30 smena (`TOO_MANY_REQUESTS`); xodim yozgan o'zbekcha nom koreyscha nom o'zgarganda yo'qolmaydi |
 | `migrations/…_ish_translations.sql` | P55: mashina tarjimasi — yozilgan xabar, smena va biznes `translation_queue` ga tushadi (matni o'zgarsa qaytadan), baza `ish-translate` ni chaqiradi (pg_net, vault'dagi `secret_key`; pg_cron `ish-translate` har daqiqa); `translation_claim` (har urinish keyingisini 1, 2, 4 … 60 daqiqaga suradi, 10 urinish), `translation_save` (asl matn o'zgarmagan bo'lsagina yozadi; xodim yozgan nom qoladi), `translation_fail` — faqat service role |
 | `migrations/…_ish_staff_alerts.sql` | P57: sajangnim ilovasida ochilgan biznes va ishchi shikoyati — `staff_alerts` ga, baza `ish-staff-alerts` ni chaqiradi (Telegram: hanguk.uz'ning ogohlantirish boti va chati); yetmagan xabar 1, 2, 4 … 60 daqiqada qayta (8 urinish, pg_cron `ish-staff-alerts`); xodim boshqaradigan biznes — xabarsiz. Faqat service role |
+| `migrations/…_ish_staff_admin.sql` | P58: xodimlar ro'yxati CRM'da — Hanguk Ish admini (`staff_members.role = 'admin'`) `staff_people()` (xodimlar va qo'shish mumkin bo'lgan hanguk.uz CRM akkauntlari: `public.user_roles` — owner, admin, call_operator, document_handler, university_staff), `staff_add()` (Hanguk Ish profili bilan), `staff_set_role()`, `staff_remove()`; o'zini o'zgartirish/olib tashlash — `SELF` |
 | `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): telefon orqali kirish (P54), test raqamlar qat'iy kod bilan |
@@ -108,9 +109,9 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
 5. CI APK'lari shu bazaga ulanadi: `ish-check.yml` da hanguk.uz'ning manzili va
    publishable kaliti (ochiq, saytda ham bor). GitHub secrets `ISH_SUPABASE_URL`,
    `ISH_SUPABASE_PUBLISHABLE_KEY` berilsa — boshqa loyihaga.
-6. Xodimlar: hanguk.uz CRM akkaunti bilan — avval `ish.profiles`, keyin
-   `ish.staff_members` ga qo'shiladi (`hanguk_ish/README.md`, «Xodimlar»;
-   `tests/05_coexistence_test.sql`).
+6. Xodimlar: hanguk.uz CRM akkaunti bilan — P58 dan CRM → Hanguk Ish →
+   «Xodimlar» yorlig'ida (admin qo'shadi; `hanguk_ish/README.md`, «Xodimlar»).
+   Birinchi admin (Asrbek) prod'da bor.
 7. Tekshiruv:
    - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar
      (nomi bo'yicha), hanguk.uz triggeri Hanguk Ish'ni o'tkazib yuborishi, RLS,

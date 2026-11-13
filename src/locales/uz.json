@@ -3841,7 +3841,8 @@
       "jobs": "Ishlar",
       "employers": "Ish beruvchilar",
       "appBusinesses": "Ilovadagi bizneslar",
-      "reports": "Shikoyatlar"
+      "reports": "Shikoyatlar",
+      "staff": "Xodimlar"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -4017,7 +4018,8 @@
       "BUSINESS_NOT_VERIFIED": "Ish beruvchi tasdiqlanmagan.",
       "NOT_AUTHENTICATED": "Qaytadan kiring.",
       "OFFLINE": "Internet aloqasi yo'q.",
-      "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring."
+      "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring.",
+      "SELF": "O'zingizning rolingizni o'zgartira yoki o'zingizni olib tashlay olmaysiz — buni boshqa admin qiladi."
     },
     "appBusinesses": {
       "intro": "사장님 ilovasida ochilgan bizneslar. Ular tekshiruvsiz, darhol ochiladi — shubhali bo'lsa, to'xtating: smenalari ishchilarga ko'rinmaydi va ariza berib bo'lmaydi.",
@@ -4072,6 +4074,30 @@
       "history": "{{completed}} ta smena · {{noShows}} marta kelmagan",
       "noName": "Ismi kiritilmagan",
       "changed": "Holati o'zgardi"
+    },
+    "staff": {
+      "intro": "Hanguk Ish bo'limida kim ishlaydi. Faqat hanguk.uz CRM xodimlarini qo'shish mumkin; ro'yxatni admin yuritadi.",
+      "name": "Ism",
+      "email": "Email",
+      "role": "Roli",
+      "added": "Qo'shilgan",
+      "you": "siz",
+      "roles": {
+        "operator": "Operator",
+        "admin": "Admin"
+      },
+      "add": "Qo'shish",
+      "addLabel": "CRM xodimi",
+      "addPlaceholder": "Xodimni tanlang",
+      "newRole": "Yangi xodimning roli",
+      "noCandidates": "Qo'shish uchun CRM xodimi qolmadi.",
+      "addedToast": "Qo'shildi",
+      "roleChanged": "Roli o'zgardi",
+      "remove": "Olib tashlash",
+      "removeTitle": "Xodimlar ro'yxatidan olib tashlaysizmi?",
+      "removeText": "CRM'dagi Hanguk Ish bo'limi unga yopiladi; u kiritgan ish beruvchilar va ishlar qoladi.",
+      "removed": "Olib tashlandi",
+      "noName": "Ismi kiritilmagan"
     }
   },
   "calendarPage": {

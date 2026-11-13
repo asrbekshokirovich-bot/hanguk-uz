@@ -92,19 +92,13 @@ hanguk.uz'ning klienti va xodimning hanguk.uz sessiyasi bilan ishlaydi —
 alohida kirish, SMS kod yoki Vercel o'zgaruvchisi kerak emas.
 
 1. Xodim CRM'ga odatdagidek kiradi va «Hanguk Ish» bo'limini ochadi.
-2. Admin uni Hanguk Ish xodimi qiladi (Supabase → SQL Editor; hanguk.uz akkaunti email'i).
-   Avval Hanguk Ish profili (xodim yaratgan ish beruvchilar va eslatmalar unga
-   bog'lanadi; email bilan kirganlarda u o'zi paydo bo'lmaydi), keyin xodim qatori:
-
-   ```sql
-   insert into ish.profiles (id)
-   select id from auth.users where email = 'xodim@hanguk.local'
-   on conflict (id) do nothing;
-   insert into ish.staff_members (user_id)
-   select id from auth.users where email = 'xodim@hanguk.local';
-   ```
-
-   Olib tashlash: `delete from ish.staff_members where user_id = …;`
+2. Hanguk Ish admini (P58; hozir Asrbek) uni **«Xodimlar»** yorlig'ida qo'shadi:
+   ro'yxatdan hanguk.uz CRM xodimini tanlaydi (faqat CRM roli bor akkauntlar —
+   talaba, investor yoki ilova akkaunti emas), rolini (Operator / Admin)
+   belgilaydi. Hanguk Ish profili o'zi ochiladi (CRM'dagi ismi bilan). Rolini
+   o'zgartirish va olib tashlash ham shu yerda; o'zini o'zgartirib yoki olib
+   tashlab bo'lmaydi (har doim bitta admin qoladi). Olib tashlanganning profili
+   va kiritgan ish beruvchi/ishlari qoladi. Yorliq faqat adminlarga ko'rinadi.
    Ro'yxatda bo'lmasa, bo'lim «Hanguk Ish xodimlari ro'yxatida yo'q» deydi.
 
 «Ilovadagi bizneslar» yorlig'i (P52): sajangnim ilovasida tekshiruvsiz ochilgan

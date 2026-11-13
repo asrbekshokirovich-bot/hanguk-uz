@@ -96,6 +96,7 @@ const staffHandlers = (overrides: Record<string, Handler> = {}): Record<string, 
   staff_set_app_business_blocked: (p) => (p?.p_blocked ? 'rejected' : 'verified'),
   staff_reports: () => reports,
   staff_set_report_status: (p) => p?.p_status,
+  is_staff_admin: () => false,
   ...overrides,
 });
 
@@ -376,6 +377,28 @@ describe('CRM → Hanguk Ish', () => {
     } finally {
       window.history.pushState({}, '', '/');
     }
+  });
+
+  it('the staff list (P58) is a tab only for a Hanguk Ish admin', async () => {
+    const operator = fakeClient(staffHandlers());
+    const first = renderWith(<IshSection client={operator.client} />);
+    expect(await screen.findByRole('tab', { name: 'Ishlar' })).toBeInTheDocument();
+    await waitFor(() => expect(operator.rpc).toHaveBeenCalledWith('is_staff_admin', undefined));
+    expect(screen.queryByRole('tab', { name: 'Xodimlar' })).not.toBeInTheDocument();
+    first.unmount();
+    const admin = fakeClient(
+      staffHandlers({
+        is_staff_admin: () => true,
+        staff_people: () => ({
+          staff: [{ id: 'staff-1', role: 'admin', added_at: '2026-11-11T10:18:14Z', name: 'Aziza', email: 'aziza@hanguk.uz', me: true }],
+          candidates: [],
+        }),
+      }),
+    );
+    renderWith(<IshSection client={admin.client} />);
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: 'Xodimlar' }));
+    expect(await screen.findByTestId('ish-staff-staff-1')).toBeInTheDocument();
+    expect(admin.rpc).toHaveBeenCalledWith('staff_people', undefined);
   });
 
   it('no complaints: said so, and no count on the tab', async () => {

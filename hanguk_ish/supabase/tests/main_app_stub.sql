@@ -12,6 +12,14 @@ create table public.profiles (
   full_name text,
   preferred_language text not null default 'uz'
 );
+-- Who works in hanguk.uz's CRM (P58: only they can be Hanguk Ish staff).
+create type public.app_role as enum ('owner', 'admin', 'call_operator', 'document_handler', 'university_staff', 'investor');
+create table public.user_roles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  role public.app_role not null
+);
+alter table public.user_roles enable row level security;
 create table public.applications (id uuid primary key default gen_random_uuid(), student_id uuid, university text);
 create table public.messages (id uuid primary key default gen_random_uuid(), body text);
 alter table public.profiles enable row level security;

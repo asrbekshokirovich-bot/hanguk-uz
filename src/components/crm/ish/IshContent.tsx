@@ -14,6 +14,7 @@ import { IshBoard } from './IshBoard';
 import { IshEmployers } from './IshEmployers';
 import { IshJobDetail } from './IshJobDetail';
 import { IshReports } from './IshReports';
+import { IshStaff } from './IshStaff';
 
 /**
  * CRM → «Hanguk Ish» (P41): Hanguk's staff keep employers found outside the
@@ -91,7 +92,7 @@ function IshStaffGate({ client, session }: { client: SupabaseClient; session: Se
   );
 }
 
-const TABS = ['jobs', 'employers', 'appBusinesses', 'reports'] as const;
+const TABS = ['jobs', 'employers', 'appBusinesses', 'reports', 'staff'] as const;
 
 /** «/crm/ish?tab=reports»: a Hanguk Ish message to the staff (P57) opens its tab. */
 function initialTab(): string {
@@ -107,6 +108,8 @@ function IshWorkspace({ account }: { account: string }) {
   // The complaints not closed yet, on the tab (P52).
   const reports = useQuery({ queryKey: ishKeys.reports, queryFn: api.reports });
   const open = (reports.data ?? []).filter((r) => r.status !== 'closed').length;
+  // The staff list (P58): its tab only for a Hanguk Ish admin.
+  const admin = useQuery({ queryKey: ishKeys.staffAdmin, queryFn: api.isStaffAdmin });
 
   return (
     <div className="space-y-4">
@@ -133,6 +136,7 @@ function IshWorkspace({ account }: { account: string }) {
                 </Badge>
               )}
             </TabsTrigger>
+            {admin.data === true && <TabsTrigger value="staff">{t('ish.tabs.staff')}</TabsTrigger>}
           </TabsList>
           <TabsContent value="jobs" className="mt-4">
             <IshBoard onOpen={setJobId} />
@@ -146,6 +150,11 @@ function IshWorkspace({ account }: { account: string }) {
           <TabsContent value="reports" className="mt-4">
             <IshReports />
           </TabsContent>
+          {admin.data === true && (
+            <TabsContent value="staff" className="mt-4">
+              <IshStaff />
+            </TabsContent>
+          )}
         </Tabs>
       )}
     </div>

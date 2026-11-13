@@ -18,7 +18,7 @@ export function useIshApi(): IshApi {
 const KNOWN = new Set([
   'FORBIDDEN', 'NOT_FOUND', 'INVALID', 'INVALID_TIME', 'TOO_LONG', 'IN_THE_PAST', 'WAGE_BELOW_MINIMUM',
   'HAS_CREW', 'SLOTS_BELOW_CREW', 'SHIFT_CLOSED', 'SHIFT_ENDED', 'SHIFT_FULL', 'NOT_PENDING', 'TOO_EARLY',
-  'NOT_CONFIRMED', 'ALREADY_CHECKED_IN', 'BUSINESS_NOT_VERIFIED', 'NOT_AUTHENTICATED', 'OFFLINE',
+  'NOT_CONFIRMED', 'ALREADY_CHECKED_IN', 'BUSINESS_NOT_VERIFIED', 'NOT_AUTHENTICATED', 'OFFLINE', 'SELF',
 ]);
 
 /** What to tell the staff member when a call is refused or fails. */
@@ -35,6 +35,8 @@ export const ishKeys = {
   businesses: ['ish', 'businesses'] as const,
   appBusinesses: ['ish', 'appBusinesses'] as const,
   reports: ['ish', 'reports'] as const,
+  staffAdmin: ['ish', 'staffAdmin'] as const,
+  people: ['ish', 'people'] as const,
   job: (id: string) => ['ish', 'job', id] as const,
   candidates: (id: string, km: number | null) => ['ish', 'candidates', id, km] as const,
   messages: (applicationId: string) => ['ish', 'messages', applicationId] as const,
