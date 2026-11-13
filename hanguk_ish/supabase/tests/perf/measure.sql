@@ -117,4 +117,8 @@ select pg_temp.ms('CRM staff_reports (200 of 2 000)',
 select pg_temp.ms('job close_finished_shifts (every 10 min)', $$select ish.close_finished_shifts()$$, null, 3000);
 select pg_temp.ms('job queue_shift_reminders (every 10 min)', $$select ish.queue_shift_reminders()$$, null, 1000);
 select pg_temp.ms('job queue_nearby_digests (daily)', $$select ish.queue_nearby_digests()$$, null, 25000);
+-- P55: every seeded shift and business waits for ish-translate (40 500 rows).
+select pg_temp.ms('ish-translate translation_claim (10 of 40 000 waiting)',
+  $$select count(*) from ish.translation_claim(10)$$, null, 100);
+select pg_temp.ms('job translation_tick (every minute)', $$select ish.translation_tick()$$, null, 100);
 rollback;

@@ -178,6 +178,8 @@ jobs:
           # db-exec (live'dagi jstr() BigInt qo'shildi; verify_jwt=false + isServiceRequest),
           # investor-export, guest-auth, get-pdf-url, register-push-token (verify_jwt=false,
           # live kabi), create-student (verify_jwt=true, live kabi).
+          # 2026-11-13: ish-translate yangi (Hanguk Ish P55, mashina tarjimasi) — live
+          # nusxasi yo'q, repo nusxasi joriy. verify_jwt = false (config.toml, pg_net).
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -256,6 +258,7 @@ jobs:
             create-student
             vapi-fetch-recording
             fx-kgs
+            ish-translate
           "
 
           for fn in $FUNCTIONS; do

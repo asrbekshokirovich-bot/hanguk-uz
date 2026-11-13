@@ -331,3 +331,9 @@ verify_jwt = true
 # (nbkr.kg o'zi CORS bermaydi). Ochiq ma'lumot, faqat GET — JWT kerak emas.
 [functions.fx-kgs]
 verify_jwt = false
+
+# 2026-11-13 (Hanguk Ish P55): mashina tarjimasi. Chaqiruvchi — bazaning o'zi
+# (pg_net, `apikey`da vault'dagi sb_secret kalit; pg_cron `ish-translate`) —
+# shuning uchun shlyuz tekshiruvi o'chiq; funksiya isServiceRequest bilan tekshiradi.
+[functions.ish-translate]
+verify_jwt = false
