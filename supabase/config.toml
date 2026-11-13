@@ -342,3 +342,8 @@ verify_jwt = false
 # Chaqiruvchi — baza (pg_net + vault'dagi sb_secret; pg_cron `ish-staff-alerts`).
 [functions.ish-staff-alerts]
 verify_jwt = false
+
+# 2026-11-13 (Hanguk Ish P56): push (FCM) — A12 / 알림 bildirishnomasi telefonga.
+# Chaqiruvchi — baza (pg_net + vault'dagi sb_secret; pg_cron `ish-push`).
+[functions.ish-push]
+verify_jwt = false
