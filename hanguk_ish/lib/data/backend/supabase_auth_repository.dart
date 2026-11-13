@@ -8,9 +8,13 @@ import 'backend.dart';
 /// [AuthRepository] on Supabase Auth: an SMS code to the phone, verified by
 /// the server; the session is kept by `supabase_flutter` between launches.
 class SupabaseAuthRepository implements AuthRepository {
-  SupabaseAuthRepository(this._client);
+  SupabaseAuthRepository(this._client, {Future<void> Function()? beforeSignOut}) : _beforeSignOut = beforeSignOut;
 
   final SupabaseClient _client;
+
+  /// Runs while the session is still valid (P56: the phone's push token is
+  /// taken off the account).
+  final Future<void> Function()? _beforeSignOut;
 
   @override
   String? get userId => _client.auth.currentUser?.id;
@@ -32,7 +36,11 @@ class SupabaseAuthRepository implements AuthRepository {
       });
 
   @override
-  Future<void> signOut() => authCall(() => _client.auth.signOut());
+  Future<void> signOut() async {
+    final before = _beforeSignOut;
+    if (before != null) await before();
+    await authCall(() => _client.auth.signOut());
+  }
 }
 
 /// Runs a Supabase Auth call and names its failures for the screens.

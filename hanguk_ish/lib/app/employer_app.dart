@@ -25,6 +25,7 @@ import '../features/employer/shift/ba3_shift_screen.dart';
 import '../features/employer/widgets.dart';
 import '../features/employer/workers/ba4_workers_screen.dart';
 import '../l10n/gen/worker_l10n.dart';
+import 'push_opens.dart';
 import 'text_scale.dart';
 
 /// Paths of the employer app.
@@ -252,6 +253,9 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
   ref.listen(authUserProvider, (previous, next) {
     if (next case AsyncData(value: null) when previous?.value != null) router.go(EmployerRoutes.login);
   });
+  // P56: a tapped push opens 알림.
+  handlePushes(ref, router,
+      start: EmployerRoutes.start, home: EmployerRoutes.home, notifications: EmployerRoutes.notifications);
   ref.onDispose(router.dispose);
   return router;
 });

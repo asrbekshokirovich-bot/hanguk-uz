@@ -31,6 +31,7 @@ import '../features/worker/shift/shift_detail_screen.dart';
 import '../features/worker/shift/take_shift.dart';
 import '../features/worker/work/work_screens.dart';
 import '../l10n/gen/worker_l10n.dart';
+import 'push_opens.dart';
 import 'text_scale.dart';
 
 /// Paths of the worker app.
@@ -387,6 +388,9 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
   ref.listen(authUserProvider, (previous, next) {
     if (next case AsyncData(value: null) when previous?.value != null) router.go(WorkerRoutes.login);
   });
+  // P56: a tapped push opens A12.
+  handlePushes(ref, router,
+      start: WorkerRoutes.start, home: WorkerRoutes.home, notifications: WorkerRoutes.notifications);
   ref.onDispose(router.dispose);
   return router;
 });

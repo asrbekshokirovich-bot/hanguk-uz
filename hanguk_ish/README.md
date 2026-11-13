@@ -80,6 +80,28 @@ orqali yangi yuklash kalitini so'rashga to'g'ri keladi):
 keytool -genkey -v -keystore upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 
+## Push (P56)
+
+A12 (ishchi) va 알림 (sajangnim) bildirishnomalari ilova yopiq bo'lganda
+telefonga keladi: Firebase Cloud Messaging, talaba ilovasining Firebase
+loyihasi (`hanguk-consulting`) — server o'sha loyihaning kaliti bilan yuboradi
+(`supabase/functions/ish-push`, `hanguk_ish/supabase/README.md`).
+
+- Sozlash: Firebase console → `hanguk-consulting` → Add app → Android; har
+  ilovaning `google-services.json` i o'z papkasida (commit qilinadi, talaba
+  ilovasidagi kabi): ishchi — `android/app/src/worker/` (`uz.hanguk.ish`,
+  2026-11-13 dan bor), sajangnim — `android/app/src/employer/`
+  (`uz.hanguk.ish.biz`, hali ro'yxatdan o'tmagan). Fayli yo'q ilova push'siz
+  ishlaydi: Gradle ogohlantiradi, build to'xtamaydi.
+- Kirgandan keyin (va har ochilishda kirgan bo'lsa) telefon tokeni
+  `register_push_token` ga yoziladi, Firebase yangilasa — qayta; Android 13+
+  ruxsati bir marta so'raladi. Chiqishdan oldin token akkauntdan olinadi.
+- Matn — A12 / 알림 dagi sarlavha va qator, o'quvchining tilida
+  (`profiles.language`). Ilova ochiq bo'lsa push ko'rsatilmaydi (ekranlar
+  o'zi yangilanadi). Bosilsa — A12 / 알림 ochiladi.
+- Bildirishnoma ikonkasi (status bar uchun oq, shaffof fonli belgi) dizayni
+  hali yo'q: hozircha ilova ikonkasi.
+
 ## Xodimlar: hanguk.uz → CRM → «Hanguk Ish»
 
 Ilovadan tashqaridagi (Telegram guruh va kanallaridan topilgan) ish
@@ -133,6 +155,7 @@ tool/
   gen_icons.py          prototip SVG'laridan lib/design/hi_icons.g.dart
   build_fonts.py        Noto Sans KR / JetBrains Mono fayllarini qayta yig'ish
   gen_launcher_icons.py ilova ikonkalari
+  push_texts.py         ARB'dan supabase/functions/ish-push/texts.json (push matnlari)
   smoke.sh, smoke_ui.py emulyatorda release APK'lar bilan yurish (ish-smoke.yml)
 test_backend/           lokal Supabase'ga qarshi testlar (ish-integration.yml)
 supabase/               migratsiyalar, edge funksiyalar, SQL testlar

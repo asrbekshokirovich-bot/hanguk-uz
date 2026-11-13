@@ -1,0 +1,250 @@
+{
+  "districts": {
+    "dobong": {
+      "en": "Dobong-gu, Seoul",
+      "ko": "서울 도봉구",
+      "ru": "Тобон-гу, Сеул",
+      "uz": "Dobong-gu, Seul"
+    },
+    "dongdaemun": {
+      "en": "Dongdaemun-gu, Seoul",
+      "ko": "서울 동대문구",
+      "ru": "Тондэмун-гу, Сеул",
+      "uz": "Dongdaemun-gu, Seul"
+    },
+    "dongjak": {
+      "en": "Dongjak-gu, Seoul",
+      "ko": "서울 동작구",
+      "ru": "Тонджак-гу, Сеул",
+      "uz": "Dongjak-gu, Seul"
+    },
+    "eunpyeong": {
+      "en": "Eunpyeong-gu, Seoul",
+      "ko": "서울 은평구",
+      "ru": "Ынпхён-гу, Сеул",
+      "uz": "Eunpyeong-gu, Seul"
+    },
+    "gangbuk": {
+      "en": "Gangbuk-gu, Seoul",
+      "ko": "서울 강북구",
+      "ru": "Канбук-гу, Сеул",
+      "uz": "Gangbuk-gu, Seul"
+    },
+    "gangdong": {
+      "en": "Gangdong-gu, Seoul",
+      "ko": "서울 강동구",
+      "ru": "Кандон-гу, Сеул",
+      "uz": "Gangdong-gu, Seul"
+    },
+    "gangnam": {
+      "en": "Gangnam-gu, Seoul",
+      "ko": "서울 강남구",
+      "ru": "Каннам-гу, Сеул",
+      "uz": "Gangnam-gu, Seul"
+    },
+    "gangseo": {
+      "en": "Gangseo-gu, Seoul",
+      "ko": "서울 강서구",
+      "ru": "Кансо-гу, Сеул",
+      "uz": "Gangseo-gu, Seul"
+    },
+    "geumcheon": {
+      "en": "Geumcheon-gu, Seoul",
+      "ko": "서울 금천구",
+      "ru": "Кымчхон-гу, Сеул",
+      "uz": "Geumcheon-gu, Seul"
+    },
+    "guro": {
+      "en": "Guro-gu, Seoul",
+      "ko": "서울 구로구",
+      "ru": "Куро-гу, Сеул",
+      "uz": "Guro-gu, Seul"
+    },
+    "gwanak": {
+      "en": "Gwanak-gu, Seoul",
+      "ko": "서울 관악구",
+      "ru": "Кванак-гу, Сеул",
+      "uz": "Gwanak-gu, Seul"
+    },
+    "gwangjin": {
+      "en": "Gwangjin-gu, Seoul",
+      "ko": "서울 광진구",
+      "ru": "Кванджин-гу, Сеул",
+      "uz": "Gwangjin-gu, Seul"
+    },
+    "jongno": {
+      "en": "Jongno-gu, Seoul",
+      "ko": "서울 종로구",
+      "ru": "Чонно-гу, Сеул",
+      "uz": "Jongno-gu, Seul"
+    },
+    "jung": {
+      "en": "Jung-gu, Seoul",
+      "ko": "서울 중구",
+      "ru": "Чун-гу, Сеул",
+      "uz": "Jung-gu, Seul"
+    },
+    "jungnang": {
+      "en": "Jungnang-gu, Seoul",
+      "ko": "서울 중랑구",
+      "ru": "Чуннан-гу, Сеул",
+      "uz": "Jungnang-gu, Seul"
+    },
+    "mapo": {
+      "en": "Mapo-gu, Seoul",
+      "ko": "서울 마포구",
+      "ru": "Мапхо-гу, Сеул",
+      "uz": "Mapo-gu, Seul"
+    },
+    "nowon": {
+      "en": "Nowon-gu, Seoul",
+      "ko": "서울 노원구",
+      "ru": "Новон-гу, Сеул",
+      "uz": "Nowon-gu, Seul"
+    },
+    "seocho": {
+      "en": "Seocho-gu, Seoul",
+      "ko": "서울 서초구",
+      "ru": "Сочхо-гу, Сеул",
+      "uz": "Seocho-gu, Seul"
+    },
+    "seodaemun": {
+      "en": "Seodaemun-gu, Seoul",
+      "ko": "서울 서대문구",
+      "ru": "Содэмун-гу, Сеул",
+      "uz": "Seodaemun-gu, Seul"
+    },
+    "seongbuk": {
+      "en": "Seongbuk-gu, Seoul",
+      "ko": "서울 성북구",
+      "ru": "Сонбук-гу, Сеул",
+      "uz": "Seongbuk-gu, Seul"
+    },
+    "seongdong": {
+      "en": "Seongdong-gu, Seoul",
+      "ko": "서울 성동구",
+      "ru": "Сондон-гу, Сеул",
+      "uz": "Seongdong-gu, Seul"
+    },
+    "songpa": {
+      "en": "Songpa-gu, Seoul",
+      "ko": "서울 송파구",
+      "ru": "Сонпха-гу, Сеул",
+      "uz": "Songpa-gu, Seul"
+    },
+    "yangcheon": {
+      "en": "Yangcheon-gu, Seoul",
+      "ko": "서울 양천구",
+      "ru": "Янчхон-гу, Сеул",
+      "uz": "Yangcheon-gu, Seul"
+    },
+    "yeongdeungpo": {
+      "en": "Yeongdeungpo-gu, Seoul",
+      "ko": "서울 영등포구",
+      "ru": "Ёндынпхо-гу, Сеул",
+      "uz": "Yeongdeungpo-gu, Seul"
+    },
+    "yongsan": {
+      "en": "Yongsan-gu, Seoul",
+      "ko": "서울 용산구",
+      "ru": "Ёнсан-гу, Сеул",
+      "uz": "Yongsan-gu, Seul"
+    }
+  },
+  "seoul": {
+    "en": "Seoul",
+    "ko": "서울",
+    "ru": "Сеул",
+    "uz": "Seul"
+  },
+  "strings": {
+    "en": {
+      "bizNotifAutoConfirmed": "Auto-confirmed",
+      "bizNotifAutoConfirmedText": "{worker} applied for {shift} and was confirmed at once",
+      "bizNotifCancelled": "Cancelled",
+      "bizNotifCancelledText": "{worker} cancelled {shift}",
+      "bizNotifMessage": "New message",
+      "bizNotifMessageText": "{worker} sent a message · {shift}",
+      "bizNotifNewApplicant": "New applicant",
+      "bizNotifNewApplicantText": "{worker} applied for {shift}",
+      "bizNotifNoShow": "No-show",
+      "bizNotifNoShowText": "{worker} didn't come to {shift}",
+      "notifCancelledTitle": "Shift cancelled",
+      "notifConfirmedTitle": "Shift confirmed",
+      "notifMessageTitle": "New message",
+      "notifNearbyTitle": "{n, plural, one{{n} new shift near {area}} other{{n} new shifts near {area}}}",
+      "notifNewShiftTitle": "A new shift for you",
+      "notifOfferTitle": "You've been offered a job",
+      "notifPaidTitle": "Pay received",
+      "notifRejectedTitle": "Request declined",
+      "notifReminderTitle": "Your shift starts in {time}",
+      "notifTimeChangedTitle": "Shift time changed"
+    },
+    "ko": {
+      "bizNotifAutoConfirmed": "자동 확정",
+      "bizNotifAutoConfirmedText": "{worker}님이 {shift}에 지원해 바로 확정됐어요",
+      "bizNotifCancelled": "근무 취소",
+      "bizNotifCancelledText": "{worker}님이 {shift} 근무를 취소했어요",
+      "bizNotifMessage": "새 메시지",
+      "bizNotifMessageText": "{worker}님이 메시지를 보냈어요 · {shift}",
+      "bizNotifNewApplicant": "새 지원자",
+      "bizNotifNewApplicantText": "{worker}님이 {shift}에 지원했어요",
+      "bizNotifNoShow": "미출근",
+      "bizNotifNoShowText": "{worker}님이 {shift}에 출근하지 않았어요",
+      "notifCancelledTitle": "근무가 취소됐어요",
+      "notifConfirmedTitle": "근무가 확정됐어요",
+      "notifMessageTitle": "새 메시지",
+      "notifNearbyTitle": "{area} 근처 새 근무 {n}개",
+      "notifNewShiftTitle": "나에게 맞는 새 근무",
+      "notifOfferTitle": "근무 제안이 왔어요",
+      "notifPaidTitle": "급여가 지급됐어요",
+      "notifRejectedTitle": "신청이 거절됐어요",
+      "notifReminderTitle": "근무 시작까지 {time} 남았어요",
+      "notifTimeChangedTitle": "근무 시간이 바뀌었어요"
+    },
+    "ru": {
+      "bizNotifAutoConfirmed": "Автоподтверждение",
+      "bizNotifAutoConfirmedText": "{worker}: заявка на «{shift}», сразу подтверждено",
+      "bizNotifCancelled": "Отмена",
+      "bizNotifCancelledText": "{worker} отменил(а) смену «{shift}»",
+      "bizNotifMessage": "Новое сообщение",
+      "bizNotifMessageText": "{worker}: сообщение · {shift}",
+      "bizNotifNewApplicant": "Новая заявка",
+      "bizNotifNewApplicantText": "{worker}: заявка на «{shift}»",
+      "bizNotifNoShow": "Не пришёл",
+      "bizNotifNoShowText": "{worker} не пришёл(а) на «{shift}»",
+      "notifCancelledTitle": "Смена отменена",
+      "notifConfirmedTitle": "Смена подтверждена",
+      "notifMessageTitle": "Новое сообщение",
+      "notifNearbyTitle": "{n, plural, one{Рядом с {area} {n} новая смена} few{Рядом с {area} {n} новые смены} other{Рядом с {area} {n} новых смен}}",
+      "notifNewShiftTitle": "Новая подходящая смена",
+      "notifOfferTitle": "Вам предложили работу",
+      "notifPaidTitle": "Оплата получена",
+      "notifRejectedTitle": "Заявка отклонена",
+      "notifReminderTitle": "До смены осталось {time}",
+      "notifTimeChangedTitle": "Время смены изменилось"
+    },
+    "uz": {
+      "bizNotifAutoConfirmed": "Avtomatik tasdiqlandi",
+      "bizNotifAutoConfirmedText": "{worker} «{shift}» smenasiga ariza berdi va darhol tasdiqlandi",
+      "bizNotifCancelled": "Bekor qildi",
+      "bizNotifCancelledText": "{worker} «{shift}» smenasini bekor qildi",
+      "bizNotifMessage": "Yangi xabar",
+      "bizNotifMessageText": "{worker} xabar yubordi · {shift}",
+      "bizNotifNewApplicant": "Yangi ariza",
+      "bizNotifNewApplicantText": "{worker} «{shift}» smenasiga ariza berdi",
+      "bizNotifNoShow": "Kelmadi",
+      "bizNotifNoShowText": "{worker} «{shift}» smenasiga kelmadi",
+      "notifCancelledTitle": "Smena bekor qilindi",
+      "notifConfirmedTitle": "Smena tasdiqlandi",
+      "notifMessageTitle": "Yangi xabar",
+      "notifNearbyTitle": "{area} yaqinida {n} ta yangi smena",
+      "notifNewShiftTitle": "Sizga mos yangi smena",
+      "notifOfferTitle": "Sizga ish taklif qilindi",
+      "notifPaidTitle": "Maosh to'landi",
+      "notifRejectedTitle": "Ariza qabul qilinmadi",
+      "notifReminderTitle": "Smenangizga {time} qoldi",
+      "notifTimeChangedTitle": "Smena vaqti o'zgardi"
+    }
+  }
+}

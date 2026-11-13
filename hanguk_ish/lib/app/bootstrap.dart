@@ -7,12 +7,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/time/clock.dart';
 import '../data/backend/backend.dart';
+import '../data/backend/firebase_push_service.dart';
 import '../data/backend/overrides.dart';
 import '../data/demo/demo_account.dart';
 import '../data/demo/demo_employer.dart';
 import '../data/demo/demo_shifts.dart';
 import '../data/repositories/account_repository.dart';
 import '../data/repositories/employer_repository.dart';
+import '../data/repositories/push_service.dart';
 import '../data/repositories/shift_repository.dart';
 import '../design/theme.dart';
 import '../features/employer/language.dart';
@@ -35,8 +37,9 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
   // The language chosen before; without the device store, this launch
   // only. The employer app starts in the phone's language when it speaks it,
   // else Korean (P43).
+  SharedPreferences? prefs;
   try {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     overrides.add(languageStoreProvider.overrideWithValue(PrefsLanguageStore(prefs)));
   } on Object {
     // Kept for the session.
@@ -53,6 +56,9 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
       postgrestOptions: ishPostgrestOptions,
     );
     overrides.addAll(backendOverrides(backend, Supabase.instance.client));
+    // P56: pushes, when the build carries the Firebase configuration
+    // (android/app/google-services.json); without it, none.
+    overrides.add(pushServiceProvider.overrideWithValue(FirebasePushService(prefs: prefs)));
   } else {
     // The emulator smoke test runs the demo at a set hour (ish-smoke.yml).
     final clock = demoClockAt(const String.fromEnvironment('ISH_DEMO_KST'));

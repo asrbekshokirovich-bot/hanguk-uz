@@ -181,6 +181,7 @@ jobs:
           # 2026-11-13: ish-translate yangi (Hanguk Ish P55, mashina tarjimasi) — live
           # nusxasi yo'q, repo nusxasi joriy. verify_jwt = false (config.toml, pg_net).
           # 2026-11-13: ish-staff-alerts yangi (P57, xodimlarga Telegram xabari) — xuddi shunday.
+          # 2026-11-13: ish-push yangi (P56, Hanguk Ish push — FCM) — xuddi shunday.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -261,6 +262,7 @@ jobs:
             fx-kgs
             ish-translate
             ish-staff-alerts
+            ish-push
           "
 
           for fn in $FUNCTIONS; do

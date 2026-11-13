@@ -121,4 +121,12 @@ select pg_temp.ms('job queue_nearby_digests (daily)', $$select ish.queue_nearby_
 select pg_temp.ms('ish-translate translation_claim (10 of 40 000 waiting)',
   $$select count(*) from ish.translation_claim(10)$$, null, 100);
 select pg_temp.ms('job translation_tick (every minute)', $$select ish.translation_tick()$$, null, 100);
+-- P56: every worker has a phone; each notification then waits for ish-push.
+insert into ish.push_tokens (token, user_id, app)
+select 'perf-' || user_id, user_id, 'worker' from ish.worker_profiles;
+select pg_temp.ms('2 000 notifications in one statement, each to a phone (push_queue)',
+  $$insert into ish.notifications (user_id, kind, data)
+    select user_id, 'new_shift_match', '{}' from ish.worker_profiles limit 2000$$, null, 1000);
+select pg_temp.ms('ish-push push_claim (20 of 6 000 waiting)', $$select count(*) from ish.push_claim(20)$$, null, 100);
+select pg_temp.ms('job push_tick (every minute)', $$select ish.push_tick()$$, null, 100);
 rollback;

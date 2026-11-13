@@ -40,6 +40,10 @@ dependencies:
   # A03 / A04 with a backend: the phone's approximate position (shifts by
   # distance). Asked once; a refusal leaves the feed without distances.
   geolocator: '>=13.0.0 <15.0.0'
+  # P56 push: Firebase Cloud Messaging, the versions of the student app
+  # (hanguk_app). Without android/app/google-services.json: no pushes.
+  firebase_core: ^3.12.1
+  firebase_messaging: ^15.2.4
 
 dev_dependencies:
   flutter_test:

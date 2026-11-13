@@ -28,7 +28,6 @@ android/app/debug
 android/app/profile
 android/app/release
 android/key.properties
-android/app/google-services.json
 **/GeneratedPluginRegistrant.java
 **/*.jks
 **/*.keystore
