@@ -92,6 +92,7 @@ import { summarizeBalance } from '@/lib/paymentBalance';
 import { SuggestUniversityDialog } from './SuggestUniversityDialog';
 import { useUniversities } from '@/hooks/useUniversities';
 import { useUserRole } from '@/hooks/useUserRole';
+import { receiptPath } from '@/lib/receiptUrl';
 import AITranslationPage from '@/components/crm/pages/AITranslationPage';
 import { ClickToCall } from '@/components/calls/ClickToCall';
 import { StudentContacts } from './StudentContacts';
@@ -189,8 +190,8 @@ export function StudentDetail({
   const { t } = useTranslation();
   const { user } = useAuth();
   const { canDeletePaymentInstallments, isAdmin, canSeeFinance } = useUserRole();
-  // Same rule as the RLS on payments/payment_transactions: owner, admin or finance access.
-  const canDeletePayments = isAdmin || canSeeFinance;
+  // Same rule as delete_payment(): owner, admin, finance access or payment_delete_access.
+  const canDeletePayments = isAdmin || canSeeFinance || canDeletePaymentInstallments;
   const { activeIntakeId } = useActiveIntake();
   const { toast } = useToast();
   const [inviting, setInviting] = useState(false);
@@ -550,12 +551,13 @@ export function StudentDetail({
         variant: 'destructive',
       });
 
-    const { error: txError } = await supabase.from('payment_transactions').delete().eq('payment_id', paymentId);
-    if (txError) return failed();
-
-    const { data, error } = await supabase.from('payments').delete().eq('id', paymentId).select('id');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('delete_payment', { p_payment_id: paymentId });
     fetchPayments();
-    if (error || !data || data.length === 0) return failed();
+    const row = Array.isArray(data) ? data[0] : data;
+    if (error || !row) return failed();
+    const paths = ((row.receipt_urls ?? []) as string[]).map((u) => receiptPath(u)).filter((p): p is string => !!p);
+    if (paths.length > 0) await supabase.storage.from('payment-receipts').remove(paths);
     toast({ title: t('crmMsg.paymentDeleted', { defaultValue: 'Payment deleted' }) });
   };
 
