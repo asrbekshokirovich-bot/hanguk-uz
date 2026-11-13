@@ -23,6 +23,11 @@ abstract interface class AuthRepository {
   Future<void> verifyCode(String phone, String code);
 
   Future<void> signOut();
+
+  /// Deletes the signed-in account and everything it made (Google Play's
+  /// account-deletion rule): the edge function `ish-delete-account`, then a
+  /// local sign-out.
+  Future<void> deleteAccount();
 }
 
 /// Demo sign-in (no backend configured): no SMS is sent and any six digits
@@ -59,6 +64,9 @@ class DemoAuthRepository implements AuthRepository {
     _user = null;
     _changes.add(null);
   }
+
+  @override
+  Future<void> deleteAccount() => signOut();
 }
 
 /// The sign-in the apps use: the demo until a backend is configured.

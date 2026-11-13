@@ -26,6 +26,7 @@ const Install = lazy(() => import("./pages/Install"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const IshPrivacy = lazy(() => import("./pages/IshPrivacy"));
+const IshDeleteAccount = lazy(() => import("./pages/IshDeleteAccount"));
 const Support = lazy(() => import("./pages/Support"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
 const SurveyList = lazy(() => import("./pages/SurveyList"));
@@ -124,6 +125,8 @@ const App = () => (
                     <Route path="/terms" element={<Terms />} />
                     {/* Hanguk Ish apps: privacy policy linked from Google Play. */}
                     <Route path="/ish/privacy" element={<IshPrivacy />} />
+                    {/* Hanguk Ish: account deletion (Google Play Data safety link). */}
+                    <Route path="/ish/delete-account" element={<IshDeleteAccount />} />
                     {/* Support URL given to App Store Connect and Play (App
                         Review guideline 1.5, 2026-08-07). Must stay public. */}
                     <Route path="/support" element={<Support />} />

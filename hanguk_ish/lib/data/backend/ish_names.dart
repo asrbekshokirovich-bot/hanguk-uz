@@ -13,6 +13,10 @@ const ishBusinessesBucket = 'ish-businesses';
 /// The edge function that checks a 사업자등록번호 with 국세청 and files it (BA0).
 const ishBusinessRegisterFunction = 'ish-business-register';
 
+/// The edge function that deletes the caller's own account (A11 → Yordam →
+/// «Akkauntni o'chirish»; hanguk.uz/ish/delete-account).
+const ishDeleteAccountFunction = 'ish-delete-account';
+
 /// What a sign-up from these apps carries (user_metadata): hanguk.uz's
 /// sign-up leaves the account alone, and Hanguk Ish makes its profile.
 const ishSignUpData = {'app': 'hanguk_ish'};
