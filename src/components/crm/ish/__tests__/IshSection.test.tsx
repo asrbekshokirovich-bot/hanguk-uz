@@ -359,6 +359,25 @@ describe('CRM → Hanguk Ish', () => {
     );
   });
 
+  it('the link in the staff\'s Telegram message opens its tab (P57); anything else, the jobs', async () => {
+    window.history.pushState({}, '', '/crm/ish?tab=reports');
+    try {
+      const { client } = fakeClient(staffHandlers());
+      const first = renderWith(<IshSection client={client} />);
+      expect(await screen.findByTestId(`ish-report-${reports[0].id}`)).toBeInTheDocument();
+      first.unmount();
+      window.history.pushState({}, '', '/crm/ish?tab=appBusinesses');
+      const second = renderWith(<IshSection client={client} />);
+      expect(await screen.findByRole('tab', { name: 'Ilovadagi bizneslar', selected: true })).toBeInTheDocument();
+      second.unmount();
+      window.history.pushState({}, '', '/crm/ish?tab=nothing');
+      renderWith(<IshSection client={client} />);
+      expect(await screen.findByRole('tab', { name: 'Ishlar', selected: true })).toBeInTheDocument();
+    } finally {
+      window.history.pushState({}, '', '/');
+    }
+  });
+
   it('no complaints: said so, and no count on the tab', async () => {
     const { client } = fakeClient(staffHandlers({ staff_reports: () => [] }));
     renderWith(<IshSection client={client} />);

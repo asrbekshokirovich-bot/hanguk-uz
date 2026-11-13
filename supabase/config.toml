@@ -337,3 +337,8 @@ verify_jwt = false
 # shuning uchun shlyuz tekshiruvi o'chiq; funksiya isServiceRequest bilan tekshiradi.
 [functions.ish-translate]
 verify_jwt = false
+
+# 2026-11-13 (Hanguk Ish P57): xodimlarga Telegram xabari (yangi biznes, shikoyat).
+# Chaqiruvchi — baza (pg_net + vault'dagi sb_secret; pg_cron `ish-staff-alerts`).
+[functions.ish-staff-alerts]
+verify_jwt = false

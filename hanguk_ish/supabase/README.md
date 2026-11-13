@@ -28,6 +28,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_open_business.sql` | P50: BA0 «시작하기» — `open_business()` sajangnim biznesini darhol, raqamsiz va tekshiruvsiz (`verified`) ochadi; bitta akkauntga bitta biznes |
 | `migrations/…_ish_app_business_oversight.sql` | P52: tekshiruvsiz ochilgan bizneslar ustidan xodim nazorati — `staff_app_businesses()` ro'yxat, `staff_update_app_business()` haqiqiy nom va manzil, `staff_set_app_business_blocked()` to'xtatish (`rejected`: smenalar lentadan chiqadi, ariza berib bo'lmaydi) / qayta yoqish; `staff_reports()` / `staff_set_report_status()` — ishchilar shikoyatlari (A11) va ularning holati; ilovadan bitta biznes 24 soatda ko'pi bilan 30 smena (`TOO_MANY_REQUESTS`); xodim yozgan o'zbekcha nom koreyscha nom o'zgarganda yo'qolmaydi |
 | `migrations/…_ish_translations.sql` | P55: mashina tarjimasi — yozilgan xabar, smena va biznes `translation_queue` ga tushadi (matni o'zgarsa qaytadan), baza `ish-translate` ni chaqiradi (pg_net, vault'dagi `secret_key`; pg_cron `ish-translate` har daqiqa); `translation_claim` (har urinish keyingisini 1, 2, 4 … 60 daqiqaga suradi, 10 urinish), `translation_save` (asl matn o'zgarmagan bo'lsagina yozadi; xodim yozgan nom qoladi), `translation_fail` — faqat service role |
+| `migrations/…_ish_staff_alerts.sql` | P57: sajangnim ilovasida ochilgan biznes va ishchi shikoyati — `staff_alerts` ga, baza `ish-staff-alerts` ni chaqiradi (Telegram: hanguk.uz'ning ogohlantirish boti va chati); yetmagan xabar 1, 2, 4 … 60 daqiqada qayta (8 urinish, pg_cron `ish-staff-alerts`); xodim boshqaradigan biznes — xabarsiz. Faqat service role |
 | `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): telefon orqali kirish (P54), test raqamlar qat'iy kod bilan |
@@ -66,7 +67,7 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
    - `hanguk_ish/supabase/migrations/*.sql` (hammasi `ish` sxemasida);
    - repo ildizidagi `supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql`
      va `20261111180000_hanguk_ish_skip_anonymous.sql` (P49).
-   - Shular bilan pg_cron ishlari (4 ta, `ish-…`), Realtime (`ish.notifications`,
+   - Shular bilan pg_cron ishlari (5 ta, `ish-…`), Realtime (`ish.notifications`,
      `ish.messages`, `ish.applications`) va «ish-avatars» bucket ham o'rnatiladi.
 2. Dashboard → Project Settings → Data API → **Exposed schemas**: `ish` ni qo'shish
    (bo'lmasa API `ish` ga javob bermaydi).
@@ -101,6 +102,9 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
    `supabase-deploy.yml`), keyin `…_ish_translations.sql` migratsiyasi. Yangi
    sir kerak emas: Hanguk AI provayderlari kalitlari va vault'dagi `secret_key`
    (hanguk.uz'ning pg_cron ishlari ishlatadigan) bor.
+   Xodimlarga Telegram (P57): `ish-staff-alerts` joylanadi, keyin
+   `…_ish_staff_alerts.sql` (P55 dan keyin: `ish.ask_function` shunda).
+   Sirlar bor (`TELEGRAM_BOT_TOKEN`, `ALERT_TELEGRAM_CHAT_ID`).
 5. CI APK'lari shu bazaga ulanadi: `ish-check.yml` da hanguk.uz'ning manzili va
    publishable kaliti (ochiq, saytda ham bor). GitHub secrets `ISH_SUPABASE_URL`,
    `ISH_SUPABASE_PUBLISHABLE_KEY` berilsa — boshqa loyihaga.
@@ -110,7 +114,7 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
 7. Tekshiruv:
    - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar
      (nomi bo'yicha), hanguk.uz triggeri Hanguk Ish'ni o'tkazib yuborishi, RLS,
-     huquqlar, 4 ta pg_cron ishi, Realtime jadvallari, «ish-avatars» limitlari,
+     huquqlar, 5 ta pg_cron ishi, Realtime jadvallari, «ish-avatars» limitlari,
      eng kam ish haqi, indekslar. Hammasi «ok» bo'lishi kerak (CI'da lokal
      stack'da ham ishlaydi);
    - ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan
@@ -133,6 +137,7 @@ PGHOST=… PGPORT=… PGUSER=postgres bash tests/perf.sh
 | Funksiya | Kim chaqiradi | Nima qiladi |
 |---|---|---|
 | `ish-translate` (repo ildizida: `supabase/functions/ish-translate/`, `main` ga birlashganda `supabase-deploy.yml` joylaydi) | baza o'zi (pg_net: har yozuvdan keyin va pg_cron har daqiqa, navbatda biror narsa kutayotgan bo'lsa); faqat server kaliti, `verify_jwt = false` | navbatdagi qatorlarni oladi, Hanguk AI provayderlari bilan (`hanguk-ai-chat/llm.ts`, o'sha kalitlar) tarjima qiladi, javob shaklini tekshirib yozadi. Model javob bermasa — qatorlar keyingi urinishini kutadi |
+| `ish-staff-alerts` (repo ildizida, `supabase-deploy.yml` joylaydi) | baza o'zi (pg_net va pg_cron, `ish-translate` kabi); faqat server kaliti | xodimlarga Telegram: yangi ilova biznesi («Ilovadagi bizneslar» havolasi bilan), shikoyat (mavzu, ishchi, biznes, smena, matn; «Shikoyatlar» havolasi). `TELEGRAM_BOT_TOKEN` + `ALERT_TELEGRAM_CHAT_ID` (bor); `ISH_ALERT_CHAT_ID` berilsa — o'sha chatga |
 | `ish-business-register` | sajangnim ilovasi: raqamli, hali kutayotgan biznes (BA1 qayta so'raydi). P50 dan BA0 chaqirmaydi | 사업자등록번호 nazorat raqami → 국세청 holati: «계속사업자» darhol tasdiqlanadi (T8), «휴업자» kutadi, «폐업자» rad etiladi; kalit bo'lmasa — `pending` (odam tekshiradi). Xato kodlari: BIZ_NO_INVALID, BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED, TOO_MANY_REQUESTS |
 
 Sirlar (dashboard → Edge Functions → Secrets): `NTS_SERVICE_KEY` — data.go.kr «국세청_사업자등록정보 진위확인 및 상태조회 서비스», «Decoding» kalit.

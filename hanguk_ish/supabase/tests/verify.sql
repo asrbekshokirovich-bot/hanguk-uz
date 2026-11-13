@@ -67,15 +67,16 @@ where n.nspname = 'ish' and p.prosecdef
   and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%');
 
 -- The jobs (pg_cron): finished shifts closed, reminders, the evening digest,
--- translations retried (P55).
+-- translations (P55) and the staff's Telegram messages (P57) retried.
 select exists (select 1 from pg_extension where extname = 'pg_cron') as has_cron \gset
 \if :has_cron
-select case when count(*) = 4 then 'ok       the four pg_cron jobs are scheduled and active'
-            else 'MISSING  pg_cron jobs: ' || coalesce(string_agg(jobname, ', '), 'none') || ' (want 4)' end
+select case when count(*) = 5 then 'ok       the five pg_cron jobs are scheduled and active'
+            else 'MISSING  pg_cron jobs: ' || coalesce(string_agg(jobname, ', '), 'none') || ' (want 5)' end
 from cron.job
-where jobname in ('ish-close-finished-shifts', 'ish-shift-reminders', 'ish-nearby-digests', 'ish-translate') and active;
+where jobname in ('ish-close-finished-shifts', 'ish-shift-reminders', 'ish-nearby-digests', 'ish-translate',
+                  'ish-staff-alerts') and active;
 \else
-select 'MISSING  pg_cron is not installed: no reminders, no closing of finished shifts, no digest, no translation retries';
+select 'MISSING  pg_cron is not installed: no reminders, no closing of finished shifts, no digest, no retries';
 \endif
 
 -- Live updates (Realtime) for the screens that refresh by themselves.
