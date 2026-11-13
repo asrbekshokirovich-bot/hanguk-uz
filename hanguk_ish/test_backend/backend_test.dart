@@ -505,6 +505,39 @@ void main() {
       expect(events, isNotEmpty, reason: 'the invitation arrives while the app is open');
     });
 
+    test('live: a translation reaches the open chat (Realtime, P55)', () async {
+      final events = <void>[];
+      final subscription = SupabaseLiveUpdates(aziz).changes().listen(events.add);
+      addTearDown(subscription.cancel);
+      await _live(admin, aziz.auth.currentUser!.id, events);
+      final first = await admin
+          .from('messages')
+          .select('id')
+          .eq('application_id', azizNow)
+          .order('id', ascending: true)
+          .limit(1)
+          .single();
+      expect(
+        await admin.from('translation_queue').select('kind').eq('kind', 'message').eq('ref', '${first['id']}'),
+        isNotEmpty,
+        reason: 'the message waits for ish-translate',
+      );
+      // What ish-translate writes (translation_save).
+      await admin.from('messages').update({
+        'lang': 'uz',
+        'translations': {'ru': 'Спасибо, хороший был день', 'ko': '감사합니다, 좋은 하루였어요'},
+      }).eq('id', first['id'] as Object);
+      final deadline = DateTime.now().add(const Duration(seconds: 20));
+      while (events.isEmpty && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+      expect(events, isNotEmpty, reason: 'A10 reloads while it is open');
+      final translated = (await azizShifts.messages(azizNow)).singleWhere((m) => m.id == '${first['id']}');
+      expect(translated.body, 'Rahmat, yaxshi kun bo\'ldi');
+      expect(translated.lang, 'uz');
+      expect(translated.translations['ko'], '감사합니다, 좋은 하루였어요');
+    });
+
     test('live: a change to an application reaches its owner, not other workers', () async {
       final ownerEvents = <void>[];
       final strangerEvents = <void>[];

@@ -22,6 +22,15 @@ hamda funksiyalaridan ajratiladi (ildizdagi
 `20261112160000_hanguk_ish_phone_accounts.sql`). P49–P50 dagi anonim kirish
 olib tashlandi.
 
+Tarjima (P55): chat xabari, smena matnlari (nomi, vazifalar, kiyim, manzil)
+va biznes nomi/manzili avtomatik tarjima qilinadi — baza yozilganini
+navbatga qo'yadi (`ish.translation_queue`), edge funksiya `ish-translate`
+(repo ildizidagi `supabase/functions/`) Hanguk AI provayderlari bilan
+tarjima qiladi va `translations` / `name_i18n` ga yozadi. Xabar va smena —
+o'z tilidan boshqa 4 tilga (uz, ru, en, ko), biznes — uz, ru, en; xodim
+yozgan nom almashtirilmaydi. A10 tarjimani ochiq chatda darhol ko'rsatadi
+(Realtime: xabarning o'zgarishi). Yangi kalit kerak emas.
+
 ## Ishga tushirish
 
 ```sh
