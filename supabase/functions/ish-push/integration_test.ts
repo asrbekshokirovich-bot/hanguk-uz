@@ -45,7 +45,7 @@ Deno.test({
     must(
       await db.from("push_tokens").insert([
         { token: gone, user_id: worker.id, app: "worker", updated_at: new Date(Date.now() - 60_000).toISOString() },
-        { token: ok, user_id: worker.id, app: "worker" },
+        { token: ok, user_id: worker.id, app: "worker", updated_at: new Date().toISOString() },
       ]),
       "tokens",
     );
