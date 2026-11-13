@@ -2801,5 +2801,25 @@
         "type": "int"
       }
     }
+  },
+  "deleteAccount": "Akkauntni o'chirish",
+  "@deleteAccount": {
+    "description": "A11 → Yordam: akkauntni o'chirish (Google Play talabi)."
+  },
+  "deleteAccountTitle": "Akkauntni o'chirasizmi?",
+  "@deleteAccountTitle": {
+    "description": "Akkauntni o'chirishni tasdiqlash oynasi sarlavhasi."
+  },
+  "deleteAccountText": "Profilingiz, arizalaringiz, xabarlaringiz va baholaringiz butunlay o'chiriladi. Buni qaytarib bo'lmaydi.",
+  "@deleteAccountText": {
+    "description": "Tasdiqlash oynasi: nima o'chishi."
+  },
+  "deleteAccountConfirm": "Ha, o'chirish",
+  "@deleteAccountConfirm": {
+    "description": "Tasdiqlash tugmasi."
+  },
+  "deleteAccountDone": "Akkauntingiz o'chirildi.",
+  "@deleteAccountDone": {
+    "description": "Akkaunt o'chirilgandan keyingi xabar."
   }
 }

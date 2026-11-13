@@ -347,3 +347,10 @@ verify_jwt = false
 # Chaqiruvchi — baza (pg_net + vault'dagi sb_secret; pg_cron `ish-push`).
 [functions.ish-push]
 verify_jwt = false
+
+# 2026-11-13 (Hanguk Ish): foydalanuvchi o'z akkauntini o'chiradi (Google Play talabi).
+# Ilovalar va hanguk.uz/ish/delete-account foydalanuvchi tokeni bilan chaqiradi;
+# brauzer CORS preflight o'tishi uchun shlyuz tekshiruvi o'chiq — token
+# funksiya ichida auth.getUser bilan tekshiriladi.
+[functions.ish-delete-account]
+verify_jwt = false

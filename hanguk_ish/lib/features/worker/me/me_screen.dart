@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/worker_app.dart' show WorkerRoutes;
 
 import '../../../data/catalog/places.dart';
 import '../../../data/models/account.dart';
 import '../../../data/repositories/account_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/shift_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';
@@ -518,11 +522,11 @@ class _ReportSheetState extends State<_ReportSheet> {
   }
 }
 
-class _HelpSheet extends StatelessWidget {
+class _HelpSheet extends ConsumerWidget {
   const _HelpSheet();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = WorkerL10n.of(context);
     final items = [
       (l10n.helpShiftsQ, l10n.helpShiftsA),
@@ -540,7 +544,57 @@ class _HelpSheet extends StatelessWidget {
           const SizedBox(height: 16),
         ],
         HiButton(label: l10n.close, onPressed: () => Navigator.of(context).pop()),
+        const SizedBox(height: 8),
+        // Google Play's account-deletion rule: reachable from inside the app.
+        HiButton(
+          label: l10n.deleteAccount,
+          style: HiButtonStyle.text,
+          textColor: HiColors.redInk,
+          fontSize: 15,
+          height: 44,
+          onPressed: () => _deleteAccount(context, ref),
+        ),
       ],
     );
+  }
+
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final l10n = WorkerL10n.of(context);
+    final navigator = Navigator.of(context);
+    final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final sure = await showModalBottomSheet<bool>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color.fromRGBO(6, 13, 43, 0.74),
+      builder: (context) => _Sheet(
+        title: l10n.deleteAccountTitle,
+        children: [
+          HiText(l10n.deleteAccountText, style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted)),
+          const SizedBox(height: 20),
+          HiButton(
+            label: l10n.deleteAccountConfirm,
+            style: HiButtonStyle.danger,
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+          const SizedBox(height: 10),
+          HiButton(label: l10n.back, style: HiButtonStyle.outline, onPressed: () => Navigator.of(context).pop(false)),
+        ],
+      ),
+    );
+    if (sure != true) return;
+    try {
+      await ref.read(authRepositoryProvider).deleteAccount();
+      if (navigator.canPop()) navigator.pop();
+      messenger?.showSnackBar(SnackBar(content: Text(l10n.deleteAccountDone)));
+      router.go(WorkerRoutes.login);
+    } on Object catch (error) {
+      messenger?.showSnackBar(SnackBar(content: Text(switch (error) {
+        OfflineException() => l10n.errOffline,
+        _ => l10n.errorGeneric,
+      })));
+    }
   }
 }

@@ -547,5 +547,10 @@
   "bizErrOther": "다시 시도해 주세요",
   "bizLanguage": "언어",
   "bizAsOfTime": "{time} 기준",
-  "bizHeadcountValue": "{n}명"
+  "bizHeadcountValue": "{n}명",
+  "deleteAccount": "계정 삭제",
+  "deleteAccountTitle": "계정을 삭제할까요?",
+  "deleteAccountText": "프로필, 지원 내역, 메시지, 평가가 영구적으로 삭제됩니다. 되돌릴 수 없습니다.",
+  "deleteAccountConfirm": "네, 삭제할게요",
+  "deleteAccountDone": "계정이 삭제되었습니다."
 }

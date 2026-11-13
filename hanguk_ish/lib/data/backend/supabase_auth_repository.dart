@@ -4,6 +4,7 @@ import '../../core/format/phone.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/shift_repository.dart';
 import 'backend.dart';
+import 'ish_names.dart';
 
 /// [AuthRepository] on Supabase Auth: an SMS code to the phone, verified by
 /// the server; the session is kept by `supabase_flutter` between launches.
@@ -41,6 +42,23 @@ class SupabaseAuthRepository implements AuthRepository {
     if (before != null) await before();
     await authCall(() => _client.auth.signOut());
   }
+
+  @override
+  Future<void> deleteAccount() => backendCall(() async {
+        if (_client.auth.currentUser == null) throw const ShiftActionException('NOT_AUTHENTICATED');
+        try {
+          await _client.functions.invoke(ishDeleteAccountFunction, method: HttpMethod.post);
+        } on FunctionException catch (e) {
+          final details = e.details;
+          final code = details is Map ? details['error'] : null;
+          throw ShiftActionException(code is String && code.isNotEmpty ? code : 'UNKNOWN');
+        }
+        // The account is gone on the server (its push tokens with it): only the
+        // phone's own session is left to drop.
+        try {
+          await _client.auth.signOut(scope: SignOutScope.local);
+        } on Object catch (_) {}
+      });
 }
 
 /// Runs a Supabase Auth call and names its failures for the screens.

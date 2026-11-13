@@ -43,7 +43,7 @@ Kamera faqat ish joyidagi QR kodni o'qish (kelganini tasdiqlash) va profil rasmi
         title: '3. Kim bilan bo\'lishamiz',
         content: `• Ish beruvchi: siz ariza bergan yoki taklif olgan korxona ismingiz, rasmingiz, tillaringiz, TOPIK darajangiz, viza turingiz va ishonchlilik ko'rsatkichingizni ko'radi.
 • Ishchi: ish beruvchining korxona nomi, manzili va smena ma'lumotlarini ko'radi.
-• Xizmat ko'rsatuvchilar: Supabase (ma'lumotlar bazasi va fayllar, serverlar Koreya Respublikasi, Seulda), Twilio (SMS kod yuborish).
+• Xizmat ko'rsatuvchilar: Supabase (ma'lumotlar bazasi va fayllar, serverlar Koreya Respublikasi, Seulda), Twilio (SMS kod yuborish), sun'iy intellekt tarjima xizmatlari — Anthropic, Google Gemini, Groq (chat xabarlari va smena matnlarini boshqa tilga tarjima qilish uchun; tarjima uchun faqat shu matnlar yuboriladi).
 
 Ma'lumotlaringizni sotmaymiz va reklama uchun bermaymiz. Ilovada reklama yo'q.`,
       },
@@ -55,7 +55,7 @@ Ma'lumotlaringizni sotmaymiz va reklama uchun bermaymiz. Ilovada reklama yo'q.`,
       {
         title: '5. Akkaunt va ma\'lumotlarni o\'chirish',
         content: `Akkauntingizni va unga bog'liq ma'lumotlarni istalgan vaqtda o'chirishingiz mumkin:
-• Ilovada: Profil → Akkauntni o'chirish
+• Ilovada: Profil → Yordam → Akkauntni o'chirish
 • Veb sahifada: https://hanguk.uz/ish/delete-account
 
 O'chirilganda profilingiz, ishchi ma'lumotlaringiz, arizalaringiz, xabarlaringiz, baholaringiz va bildirishnomalaringiz o'chiriladi. Zaxira nusxalarda ular qisqa muddat qolishi mumkin.`,
@@ -101,7 +101,7 @@ The camera is used only to scan the QR code at the workplace (to confirm arrival
         title: '3. Who we share data with',
         content: `• Employers: a business you apply to or receive an offer from sees your name, photo, languages, TOPIK level, visa type and reliability score.
 • Workers: see the employer's business name, address and shift details.
-• Service providers: Supabase (database and file storage, servers in Seoul, Republic of Korea), Twilio (sending SMS codes).
+• Service providers: Supabase (database and file storage, servers in Seoul, Republic of Korea), Twilio (sending SMS codes), AI translation services — Anthropic, Google Gemini, Groq (to translate chat messages and shift texts into other languages; only those texts are sent for translation).
 
 We do not sell your data or share it for advertising. The apps contain no ads.`,
       },
@@ -113,7 +113,7 @@ We do not sell your data or share it for advertising. The apps contain no ads.`,
       {
         title: '5. Deleting your account and data',
         content: `You can delete your account and its data at any time:
-• In the app: Profile → Delete account
+• In the app: Profile → Help → Delete account
 • On the web: https://hanguk.uz/ish/delete-account
 
 Deletion removes your profile, worker details, applications, messages, ratings and notifications. Copies may remain in backups for a short period.`,
@@ -159,7 +159,7 @@ Deletion removes your profile, worker details, applications, messages, ratings a
         title: '3. Кому мы передаём данные',
         content: `• Работодателю: компания, в которую вы откликнулись или от которой получили предложение, видит ваше имя, фото, языки, уровень TOPIK, тип визы и показатель надёжности.
 • Работнику: видны название компании, адрес и данные смены.
-• Поставщикам услуг: Supabase (база данных и файлы, серверы в Сеуле, Республика Корея), Twilio (отправка SMS-кодов).
+• Поставщикам услуг: Supabase (база данных и файлы, серверы в Сеуле, Республика Корея), Twilio (отправка SMS-кодов), сервисы машинного перевода на основе ИИ — Anthropic, Google Gemini, Groq (для перевода сообщений чата и текстов смен; передаются только эти тексты).
 
 Мы не продаём ваши данные и не передаём их для рекламы. В приложениях нет рекламы.`,
       },
@@ -171,7 +171,7 @@ Deletion removes your profile, worker details, applications, messages, ratings a
       {
         title: '5. Удаление аккаунта и данных',
         content: `Вы можете удалить аккаунт и связанные с ним данные в любое время:
-• В приложении: Профиль → Удалить аккаунт
+• В приложении: Профиль → Помощь → Удалить аккаунт
 • На сайте: https://hanguk.uz/ish/delete-account
 
 При удалении стираются профиль, данные работника, заявки, сообщения, оценки и уведомления. Копии могут недолго оставаться в резервных копиях.`,
@@ -217,7 +217,7 @@ Deletion removes your profile, worker details, applications, messages, ratings a
         title: '3. 정보 제공 대상',
         content: `• 사업주: 지원하거나 제안을 받은 사업장은 이름, 사진, 사용 언어, TOPIK 등급, 비자 종류, 신뢰도 점수를 볼 수 있습니다.
 • 근로자: 사업장 이름, 주소 및 근무 정보를 볼 수 있습니다.
-• 서비스 제공업체: Supabase(데이터베이스 및 파일 저장, 서버 위치: 대한민국 서울), Twilio(SMS 인증번호 발송).
+• 서비스 제공업체: Supabase(데이터베이스 및 파일 저장, 서버 위치: 대한민국 서울), Twilio(SMS 인증번호 발송), AI 번역 서비스 — Anthropic, Google Gemini, Groq(채팅 메시지와 근무 내용을 다른 언어로 번역하기 위해 해당 텍스트만 전송).
 
 당사는 개인정보를 판매하거나 광고 목적으로 제공하지 않으며, 앱에는 광고가 없습니다.`,
       },
@@ -229,7 +229,7 @@ Deletion removes your profile, worker details, applications, messages, ratings a
       {
         title: '5. 계정 및 정보 삭제',
         content: `언제든지 계정과 관련 정보를 삭제할 수 있습니다:
-• 앱에서: 프로필 → 계정 삭제
+• 앱에서: 프로필 → 도움말 → 계정 삭제
 • 웹에서: https://hanguk.uz/ish/delete-account
 
 삭제 시 프로필, 근로자 정보, 지원 내역, 메시지, 평가 및 알림이 삭제됩니다. 백업에는 짧은 기간 남아 있을 수 있습니다.`,

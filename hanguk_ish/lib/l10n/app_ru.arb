@@ -547,5 +547,10 @@
   "bizErrOther": "Попробуйте ещё раз",
   "bizLanguage": "Язык",
   "bizAsOfTime": "на {time}",
-  "bizHeadcountValue": "{n} чел."
+  "bizHeadcountValue": "{n} чел.",
+  "deleteAccount": "Удалить аккаунт",
+  "deleteAccountTitle": "Удалить аккаунт?",
+  "deleteAccountText": "Ваш профиль, заявки, сообщения и оценки будут удалены навсегда. Это нельзя отменить.",
+  "deleteAccountConfirm": "Да, удалить",
+  "deleteAccountDone": "Ваш аккаунт удалён."
 }

@@ -547,5 +547,10 @@
   "bizErrOther": "Please try again",
   "bizLanguage": "Language",
   "bizAsOfTime": "as of {time}",
-  "bizHeadcountValue": "{n}"
+  "bizHeadcountValue": "{n}",
+  "deleteAccount": "Delete account",
+  "deleteAccountTitle": "Delete your account?",
+  "deleteAccountText": "Your profile, applications, messages and ratings will be deleted for good. This can't be undone.",
+  "deleteAccountConfirm": "Yes, delete",
+  "deleteAccountDone": "Your account has been deleted."
 }
