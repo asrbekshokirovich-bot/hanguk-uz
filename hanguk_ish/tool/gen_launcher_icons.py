@@ -1,54 +1,54 @@
-"""Draws the launcher icons of both apps (PIL, no other dependencies).
+"""Writes the launcher icons of both apps from Asrbek's logos (2026-11-14).
 
-The icon is the prototype's brand tile — white rounded square, 1.5 px ink
-outline, 4 px hard ink shadow, blue 한 in Noto Sans KR Black — on the app's
-field colour: navy for «Hanguk Ish», lime for «Hanguk Ish 사장님».
-Writes adaptive foregrounds (108 dp) and legacy square icons (48 dp) for
-every density into android/app/src/<flavor>/res.
+  tool/icons/worker.png   — «Hanguk Ish»: blue field, white 한 with the
+                            taegeuk in its ㅇ
+  tool/icons/employer.png — «Hanguk Ish 사장님»: red/blue taegeuk field,
+                            white 한
+
+The logo is full-bleed, so it is the whole adaptive icon: the 108 dp
+foreground is the logo at 84 dp in the middle, its edges stretched out to
+fill the rest — the launcher's mask shows the middle 72 dp, so 한 keeps the
+margins it has in the logo. The background colour (logo edge) is only seen
+by launchers that move the layers. Legacy icons (API 24–25) are the logo in a
+rounded square. Also writes the 512 px Play store icon to build/store/.
 
   python3 tool/gen_launcher_icons.py
 """
-from PIL import Image, ImageDraw, ImageFont
+import os
 
-FONT = 'assets/fonts/NotoSansKR-900.ttf'
-NAVY, INK, WHITE, BLUE, LIME = '#0A1440', '#0A1A34', '#FFFFFF', '#2447D6', '#CCFF00'
+import numpy as np
+
+from PIL import Image, ImageDraw
+
 DENSITIES = {'mdpi': 1, 'hdpi': 1.5, 'xhdpi': 2, 'xxhdpi': 3, 'xxxhdpi': 4}
-SS = 4  # supersampling
+APPS = [('main', 'tool/icons/worker.png'), ('employer', 'tool/icons/employer.png')]
 
 
-def tile(draw, cx, cy, size):
-    """Brand tile of [size] px centred at (cx, cy); proportions of the 72 px tile."""
-    k = size / 72
-    r = 22 * k
-    x0, y0 = cx - size / 2, cy - size / 2
-    sh = 4 * k
-    draw.rounded_rectangle([x0 + sh, y0 + sh, x0 + size + sh, y0 + size + sh], r, fill=INK)
-    draw.rounded_rectangle([x0, y0, x0 + size, y0 + size], r, fill=INK)
-    b = 1.5 * k
-    draw.rounded_rectangle([x0 + b, y0 + b, x0 + size - b, y0 + size - b], r - b, fill=WHITE)
-    font = ImageFont.truetype(FONT, int(40 * k))
-    draw.text((cx, cy), '한', font=font, fill=BLUE, anchor='mm')
+def padded(img, px, inner=84 / 108):
+    """[img] at inner*px in the middle of a px square, edges stretched outwards."""
+    size = round(px * inner)
+    a = np.asarray(img.convert('RGBA').resize((size, size), Image.LANCZOS))
+    before = (px - size) // 2
+    a = np.pad(a, ((before, px - size - before), (before, px - size - before), (0, 0)), mode='edge')
+    return Image.fromarray(a)
 
 
-def render(px, field, tile_frac, square):
-    big = px * SS
-    img = Image.new('RGBA', (big, big), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    if square:
-        d.rounded_rectangle([0, 0, big - 1, big - 1], big * 0.18, fill=field)
-    size = big * tile_frac
-    # Shift left/up by half the shadow so tile + shadow is centred.
-    tile(d, big / 2 - size * 2 / 72, big / 2 - size * 2 / 72, size)
-    return img.resize((px, px), Image.LANCZOS)
+def rounded(img, px):
+    out = img.convert('RGBA').resize((px, px), Image.LANCZOS)
+    mask = Image.new('L', (px * 4, px * 4), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, px * 4 - 1, px * 4 - 1], px * 4 * 0.18, fill=255)
+    out.putalpha(mask.resize((px, px), Image.LANCZOS))
+    return out
 
 
-for flavor, field in [('main', NAVY), ('employer', LIME)]:
+os.makedirs('build/store', exist_ok=True)
+for flavor, source in APPS:
+    logo = Image.open(source).convert('RGBA')
     for name, k in DENSITIES.items():
         out = f'android/app/src/{flavor}/res/mipmap-{name}'
-        import os
         os.makedirs(out, exist_ok=True)
-        # Adaptive foreground: 108 dp canvas, tile inside the 66 dp safe circle.
-        render(round(108 * k), field, 0.40, False).save(f'{out}/ic_launcher_foreground.png')
-        # Legacy icon (API 24–25): the whole 48 dp square.
-        render(round(48 * k), field, 0.62, True).save(f'{out}/ic_launcher.png')
+        padded(logo, round(108 * k)).save(f'{out}/ic_launcher_foreground.png')
+        rounded(logo, round(48 * k)).save(f'{out}/ic_launcher.png')
+    logo.convert('RGB').resize((512, 512), Image.LANCZOS).save(
+        f'build/store/icon-512-{"worker" if flavor == "main" else "employer"}.png')
 print('icons written')
