@@ -2,5 +2,5 @@
 <resources>
     <!-- Prototype background (#0A1440): no white flash between launch and the first frame. -->
     <color name="hi_navy">#0A1440</color>
-    <color name="ic_launcher_background">#0A1440</color>
+    <color name="ic_launcher_background">#24508F</color>
 </resources>
