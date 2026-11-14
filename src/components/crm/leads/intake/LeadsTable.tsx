@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Pencil, RotateCcw, Sparkles, X } from 'lucide-react';
+import { Archive, ArchiveRestore, Check, Pencil, RotateCcw, Sparkles, X } from 'lucide-react';
 import type { Lead } from '@/contexts/LeadsContext';
 import { cn } from '@/lib/utils';
 import {
@@ -41,6 +41,20 @@ interface LeadsTableProps {
    * shown as the list is worked through.
    */
   listKey?: string;
+  /**
+   * Row checkboxes for moving several leads at once (Lidlar arxivi,
+   * 2026-11-14). Left out, the table has no checkboxes.
+   */
+  selection?: {
+    selected: Set<string>;
+    onToggle: (id: string) => void;
+    /** Select (true) or clear (false) every lead drawn on the page. */
+    onToggleAll: (ids: string[], on: boolean) => void;
+  };
+  /** One-row archive action. Left out, no archive button. */
+  onArchive?: (lead: Lead) => void;
+  /** The rows are in the archive: the button restores instead of archiving. */
+  archived?: boolean;
 }
 
 /**
@@ -64,7 +78,7 @@ export const LEADS_PAGE = 120;
  * the actions, which used to sit off-screen to the right.
  */
 const GRID =
-  'grid-cols-[280px_140px_88px_76px_minmax(80px,1fr)_88px_92px_72px_36px_152px_96px_136px]';
+  'grid-cols-[280px_140px_88px_76px_minmax(80px,1fr)_88px_92px_72px_36px_152px_96px_176px]';
 
 /** Pinned cells take the row's own (opaque) background so the middle scrolls under them. */
 const PIN_LEFT = 'sticky left-0 z-[1] self-stretch bg-inherit pl-3';
@@ -110,16 +124,22 @@ export const LeadsTable = ({
   now,
   showCountdown = false,
   listKey = '',
+  selection,
+  onArchive,
+  archived = false,
 }: LeadsTableProps) => {
   const { t } = useTranslation();
   const relative = useRelativeDate(now);
   const [limit, setLimit] = useState(LEADS_PAGE);
   useEffect(() => setLimit(LEADS_PAGE), [listKey]);
   const shown = leads.length > limit ? leads.slice(0, limit) : leads;
+  const shownIds = shown.map((l) => l.id);
+  const allOn = !!selection && shownIds.length > 0 && shownIds.every((id) => selection.selected.has(id));
+  const checkboxClass = 'h-4 w-4 flex-none cursor-pointer accent-[hsl(var(--primary))]';
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
-      <div className="min-w-[1424px]">
+      <div className="min-w-[1464px]">
         <div
           className={cn(
             'grid items-center gap-x-2 border-b border-border bg-muted py-3',
@@ -127,7 +147,18 @@ export const LeadsTable = ({
             GRID,
           )}
         >
-          <div className={PIN_LEFT}>{t('leads.intake.columns.student')}</div>
+          <div className={cn(PIN_LEFT, 'flex items-center gap-2.5')}>
+            {selection && (
+              <input
+                type="checkbox"
+                className={checkboxClass}
+                checked={allOn}
+                onChange={(e) => selection.onToggleAll(shownIds, e.target.checked)}
+                aria-label={t('leads.intake.archive.selectAll')}
+              />
+            )}
+            {t('leads.intake.columns.student')}
+          </div>
           <div>{t('leads.intake.columns.phone')}</div>
           <div>{t('leads.intake.columns.channel')}</div>
           <div>{t('leads.intake.columns.city')}</div>
@@ -170,6 +201,15 @@ export const LeadsTable = ({
               />
 
               <div className={cn('pointer-events-none flex min-w-0 items-center gap-2.5', PIN_LEFT)}>
+                {selection && (
+                  <input
+                    type="checkbox"
+                    className={cn(checkboxClass, 'pointer-events-auto relative z-[2]')}
+                    checked={selection.selected.has(lead.id)}
+                    onChange={() => selection.onToggle(lead.id)}
+                    aria-label={`${t('leads.intake.archive.selectRow')}: ${lead.full_name || firstName}`}
+                  />
+                )}
                 <span
                   aria-hidden
                   className="grid h-8 w-8 flex-none place-items-center rounded-full bg-muted text-[11px] font-bold text-primary"
@@ -314,6 +354,18 @@ export const LeadsTable = ({
                 >
                   <Sparkles className="h-4 w-4" aria-hidden />
                 </button>
+                {onArchive && (
+                  <button
+                    type="button"
+                    onClick={() => onArchive(lead)}
+                    disabled={busy}
+                    aria-label={archived ? t('leads.intake.archive.restore') : t('leads.intake.archive.action')}
+                    title={archived ? t('leads.intake.archive.restore') : t('leads.intake.archive.action')}
+                    className={cn(actionClass, 'border-border text-muted-foreground hover:bg-muted')}
+                  >
+                    {archived ? <ArchiveRestore className="h-4 w-4" aria-hidden /> : <Archive className="h-4 w-4" aria-hidden />}
+                  </button>
+                )}
                 {outcome === 'active' && (
                   <>
                     <button

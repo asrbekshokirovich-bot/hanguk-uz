@@ -334,3 +334,38 @@ describe('LeadIntakeScreen', () => {
     expect(within(select).getAllByRole('option')).toHaveLength(14); // 13 cities + placeholder
   });
 });
+
+describe('LeadsTable — archive', () => {
+  it('has no checkboxes or archive button unless asked', () => {
+    render(table());
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Arxivga o‘tkazish' })).toBeNull();
+  });
+
+  it('ticks one row, ticks all, and archives a single row', () => {
+    const onToggle = vi.fn();
+    const onToggleAll = vi.fn();
+    const onArchive = vi.fn();
+    render(
+      table({
+        leads: [lead(), lead({ id: 'lead-2', full_name: 'Ali Valiyev' })],
+        selection: { selected: new Set(['lead-2']), onToggle, onToggleAll },
+        onArchive,
+      }),
+    );
+    const boxes = screen.getAllByRole('checkbox');
+    expect(boxes).toHaveLength(3);
+    expect(boxes[2]).toBeChecked();
+    fireEvent.click(boxes[1]);
+    expect(onToggle).toHaveBeenCalledWith('lead-1');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Hammasini belgilash' }));
+    expect(onToggleAll).toHaveBeenCalledWith(['lead-1', 'lead-2'], true);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Arxivga o‘tkazish' })[0]);
+    expect(onArchive).toHaveBeenCalledWith(expect.objectContaining({ id: 'lead-1' }));
+  });
+
+  it('in the archive the row button restores', () => {
+    render(table({ onArchive: vi.fn(), archived: true }));
+    expect(screen.getByRole('button', { name: 'Arxivdan qaytarish' })).toBeInTheDocument();
+  });
+});

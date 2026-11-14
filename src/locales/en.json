@@ -1202,6 +1202,19 @@
       "restore": {
         "action": "Restore"
       },
+      "archive": {
+        "tab": "Archive",
+        "action": "Move to archive",
+        "restore": "Restore from archive",
+        "selected": "{{count}} selected",
+        "clear": "Cancel",
+        "done": "{{count}} leads archived",
+        "restored": "{{count}} leads restored",
+        "failed": "Could not archive",
+        "selectAll": "Select all",
+        "selectRow": "Select",
+        "empty": "No leads in the archive"
+      },
       "needName": "Enter at least a first or last name",
       "savePartial_one": "{{count}} question unanswered — it saves anyway and stays marked incomplete in the list",
       "savePartial_other": "{{count}} questions unanswered — it saves anyway and stays marked incomplete in the list",
