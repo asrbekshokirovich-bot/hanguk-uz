@@ -6,6 +6,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/hooks/useLeads';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { LeadsTable } from '@/components/crm/leads/intake/LeadsTable';
 import { LeadIntakeScreen } from '@/components/crm/leads/intake/LeadIntakeScreen';
 import {
@@ -94,6 +97,12 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
   // Only leads from Kyrgyzstan (Madina's list; QA audit 2026-11-11).
   const [kgOnly, setKgOnly] = useState(false);
   const kgCount = useMemo(() => leads.filter(isKgLead).length, [leads]);
+  // Lidlar arxivi (2026-11-14): only on the Lidlar page; operators, admins and
+  // owners move leads in and out, one at a time or several ticked at once.
+  const { isCallOperator } = useUserRole();
+  const canArchive = view === 'all' && isCallOperator;
+  const [archiveView, setArchiveView] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
 
   // The search narrows the groups BEFORE they are counted, so the tab badges
   // answer "which list is this person in" rather than staying at their
@@ -102,6 +111,7 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
   const byOutcome = useMemo(() => {
     const groups: Record<LeadOutcome, Lead[]> = { active: [], converted: [], rejected: [] };
     for (const lead of leads) {
+      if (view === 'all' && lead.archived_at) continue;
       if (view === 'today' ? !isTodayLead(lead, now) : arrivedToday(lead, now)) continue;
       if (!matchesLeadQuery(lead, query)) continue;
       if (kgOnly && !isKgLead(lead)) continue;
@@ -151,7 +161,67 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
     [leads, query, kgOnly],
   );
 
-  const shown = view === 'new' ? newLeads : byOutcome[tab];
+  const archivedLeads = useMemo(
+    () =>
+      view !== 'all'
+        ? []
+        : leads
+            .filter((lead) => lead.archived_at && matchesLeadQuery(lead, query) && (!kgOnly || isKgLead(lead)))
+            .sort((a, b) => new Date(b.archived_at as string).getTime() - new Date(a.archived_at as string).getTime()),
+    [leads, query, kgOnly, view],
+  );
+
+  const shown = view === 'new' ? newLeads : archiveView ? archivedLeads : byOutcome[tab];
+
+  // A new list starts with nothing ticked.
+  useEffect(() => setSelected(new Set()), [view, tab, archiveView, query, kgOnly]);
+
+  const toggleOne = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleAll = (ids: string[], on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        if (on) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+
+  /** Into the archive (`archive` true) or back out of it. */
+  const setArchived = async (ids: string[], archive: boolean) => {
+    if (ids.length === 0) return;
+    setBusy(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.rpc as any)('set_leads_archived', {
+        p_ids: ids,
+        p_archived: archive,
+      });
+      if (error) throw error;
+      const count = Number(data ?? 0);
+      toast({
+        title: archive
+          ? t('leads.intake.archive.done', { count })
+          : t('leads.intake.archive.restored', { count }),
+      });
+      setSelected(new Set());
+      await refetch();
+    } catch (e) {
+      toast({
+        title: t('leads.intake.archive.failed'),
+        description: e instanceof Error ? e.message : String(e),
+        variant: 'destructive',
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const [statsOpen, setStatsOpen] = useState(false);
 
@@ -390,12 +460,15 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
             <button
               key={key}
               type="button"
-              aria-pressed={tab === key}
-              onClick={() => setTab(key)}
+              aria-pressed={!archiveView && tab === key}
+              onClick={() => {
+                setArchiveView(false);
+                setTab(key);
+              }}
               className={cn(
                 'min-h-10 rounded-full border px-4 text-[13px] font-semibold transition',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                tab === key
+                !archiveView && tab === key
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-input bg-background text-muted-foreground hover:bg-muted',
               )}
@@ -404,6 +477,23 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
               <span className="ml-1.5 tabular-nums opacity-80">{byOutcome[key].length}</span>
             </button>
           ))}
+          {view === 'all' && (
+            <button
+              type="button"
+              aria-pressed={archiveView}
+              onClick={() => setArchiveView(true)}
+              className={cn(
+                'min-h-10 rounded-full border px-4 text-[13px] font-semibold transition',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                archiveView
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-input bg-background text-muted-foreground hover:bg-muted',
+              )}
+            >
+              {t('leads.intake.archive.tab')}
+              <span className="ml-1.5 tabular-nums opacity-80">{archivedLeads.length}</span>
+            </button>
+          )}
           </div>
           )}
         </div>
@@ -419,7 +509,9 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
             <p className="text-sm text-muted-foreground">
               {query.trim()
                 ? t('leads.intake.noMatches', { query: query.trim() })
-                : t(
+                : archiveView
+                  ? t('leads.intake.archive.empty')
+                  : t(
                     `leads.intake.emptyBy.${
                       view === 'new' ? 'new' : view === 'today' && tab === 'active' ? 'today' : tab
                     }`,
@@ -427,6 +519,29 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
             </p>
           </div>
         ) : (
+          <>
+          {canArchive && selected.size > 0 && (
+            <div className="sticky top-0 z-20 mb-2 flex flex-wrap items-center gap-3 rounded-xl border border-primary/40 bg-card px-4 py-2.5 shadow-sm">
+              <span className="text-sm font-semibold">
+                {t('leads.intake.archive.selected', { count: selected.size })}
+              </span>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void setArchived([...selected], !archiveView)}
+                className="min-h-9 rounded-full bg-primary px-4 text-[13px] font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+              >
+                {archiveView ? t('leads.intake.archive.restore') : t('leads.intake.archive.action')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="min-h-9 rounded-full border border-input px-4 text-[13px] font-semibold text-muted-foreground transition hover:bg-muted"
+              >
+                {t('leads.intake.archive.clear')}
+              </button>
+            </div>
+          )}
           <LeadsTable
             leads={shown}
             onOpen={setEditing}
@@ -438,8 +553,12 @@ const LeadsContent = ({ view = 'all' }: { view?: 'all' | 'new' | 'today' }) => {
             busy={busy}
             now={now}
             showCountdown={view === 'new'}
-            listKey={`${view}|${tab}|${query.trim()}|${kgOnly}`}
+            listKey={`${view}|${tab}|${archiveView}|${query.trim()}|${kgOnly}`}
+            selection={canArchive ? { selected, onToggle: toggleOne, onToggleAll: toggleAll } : undefined}
+            onArchive={canArchive ? (lead) => void setArchived([lead.id], !archiveView) : undefined}
+            archived={archiveView}
           />
+          </>
         )}
       </div>
 

@@ -1249,6 +1249,19 @@
       "restore": {
         "action": "Qaytarish"
       },
+      "archive": {
+        "tab": "Arxiv",
+        "action": "Arxivga o‘tkazish",
+        "restore": "Arxivdan qaytarish",
+        "selected": "{{count}} ta belgilandi",
+        "clear": "Bekor qilish",
+        "done": "{{count}} ta lid arxivga o‘tkazildi",
+        "restored": "{{count}} ta lid arxivdan qaytarildi",
+        "failed": "Arxivga o‘tkazib bo‘lmadi",
+        "selectAll": "Hammasini belgilash",
+        "selectRow": "Belgilash",
+        "empty": "Arxivda lid yo‘q"
+      },
       "needName": "Kamida ism yoki familiyani yozing",
       "savePartial_one": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
       "savePartial_other": "{{count}} ta savol javobsiz — saqlansa ham bo‘ladi, ro‘yxatda “to‘liq emas” bo‘lib turadi",
