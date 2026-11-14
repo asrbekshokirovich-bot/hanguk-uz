@@ -2821,5 +2821,9 @@
   "deleteAccountDone": "Akkauntingiz o'chirildi.",
   "@deleteAccountDone": {
     "description": "Akkaunt o'chirilgandan keyingi xabar."
+  },
+  "bizDeleteAccountText": "Korxonangiz, uning smenalari, arizalar va xabarlar butunlay o'chiriladi. Buni qaytarib bo'lmaydi.",
+  "@bizDeleteAccountText": {
+    "description": "사장님 ilovasi: akkauntni o'chirish tasdig'i — nima o'chishi (korxona va smenalar ham, Asrbek qarori 2026-11-13)."
   }
 }
