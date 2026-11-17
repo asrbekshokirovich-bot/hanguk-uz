@@ -46,7 +46,7 @@ class MeScreen extends ConsumerWidget {
     final lang = language.code;
     final draft = ref.watch(workerProfileDraftProvider);
     final stats = ref.watch(workerStatsProvider).value;
-    final name = '${draft.firstName} ${draft.lastName}'.trim();
+    final name = '${draft.firstName.trim()} ${draft.lastName.trim()}'.trim();
     final initials = [draft.firstName, draft.lastName]
         .where((p) => p.trim().isNotEmpty)
         .map((p) => p.trim()[0].toUpperCase())
@@ -174,7 +174,8 @@ class MeScreen extends ConsumerWidget {
                       children: [
                         HiText(
                           stats?.ratingAverage == null ? '—' : formatRating(stats!.ratingAverage!, lang),
-                          style: hiStyle(28, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono),
+                          // Not the mono face: its comma is a full digit wide («4 , 9»).
+                          style: hiStyle(28, FontWeight.w800, color: HiColors.ink),
                         ),
                         const SizedBox(width: 6),
                         const HiIcon(HiIcons.star, size: 22, strokeWidth: 1.5, color: HiColors.ink, fill: HiColors.amber),
