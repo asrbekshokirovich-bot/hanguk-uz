@@ -198,6 +198,7 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => A01LoginScreen(
             onPhone: () => context.push(WorkerRoutes.phone),
+            onTerms: () => ref.read(linkOpenerProvider)(termsUri),
             onTestLogin: ishTestLogin
                 ? () async {
                     try {
