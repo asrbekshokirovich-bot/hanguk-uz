@@ -5,6 +5,7 @@ library;
 
 import '../../core/money/won.dart';
 import '../../core/time/kst.dart';
+import '../backend/backend.dart' show ishTestLogin;
 import '../models/account.dart';
 import '../models/business.dart';
 import '../models/my_shift.dart';
@@ -352,7 +353,8 @@ class DemoShiftRepository implements ShiftRepository {
     this.latency = Duration.zero,
     DateTime Function()? clock,
     this.strictTimes = false,
-    bool history = true,
+    // Test builds (ISH_TEST_LOGIN): a new account has no past shifts.
+    bool history = !ishTestLogin,
     bool offers = false,
   })  : _clock = clock ?? DateTime.now,
         _shifts = {for (final s in demoShifts(now ?? DateTime.now())) s.id: s} {
