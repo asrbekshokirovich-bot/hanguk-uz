@@ -198,6 +198,21 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => A01LoginScreen(
             onPhone: () => context.push(WorkerRoutes.phone),
+            onTestLogin: ishTestLogin
+                ? () async {
+                    try {
+                      await ref.read(authRepositoryProvider).signInAnonymously();
+                    } catch (error) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(SnackBar(content: Text('Test kirish bo\'lmadi: $error')));
+                      }
+                      return;
+                    }
+                    if (context.mounted) await continueAfterSignIn(context, ref);
+                  }
+                : null,
             // Telegram sign-in needs the bot (T2): with a backend it says
             // so; the demo continues to the profile as before.
             onTelegram: () {

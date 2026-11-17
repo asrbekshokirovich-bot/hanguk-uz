@@ -24,6 +24,9 @@ enabled = true
 site_url = "http://127.0.0.1:3000"
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
+# Test builds (ISH_TEST_LOGIN): "Test: anonim kirish" needs this. Local only;
+# production keeps anonymous sign-ins off (P54).
+enable_anonymous_sign_ins = true
 
 # Phone sign-in (both apps). Production uses an SMS provider configured in
 # the dashboard; locally and in CI these numbers get a fixed code.

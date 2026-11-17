@@ -143,6 +143,17 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
         path: EmployerRoutes.login,
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => Ba0LoginScreen(
+            onTestLogin: ishTestLogin
+                ? () async {
+                    try {
+                      await ref.read(authRepositoryProvider).signInAnonymously();
+                    } catch (error) {
+                      if (context.mounted) _say(context, Biz.error(error));
+                      return;
+                    }
+                    if (context.mounted) await continueOwnerAfterSignIn(context, ref);
+                  }
+                : null,
             onStart: (phone) async {
               // P54: the owner's phone and an SMS code (Twilio Verify); the
               // business opens at once, unchecked (P50).
