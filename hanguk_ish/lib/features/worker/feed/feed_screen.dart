@@ -51,11 +51,8 @@ class FeedScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: HiColors.navy,
       body: HiBackdrop(
-        watermark: '일',
-        watermarkSize: 168,
-        watermarkTop: 30,
-        watermarkRight: -22,
-        watermarkColor: HiColors.white08,
+        // No «일» watermark here: behind the header buttons only a cut-off
+        // fragment of it showed, like stray letters.
         child: offline ? _OfflineBody(actions: actions) : _FeedBody(feed: feed, actions: actions),
       ),
     );
