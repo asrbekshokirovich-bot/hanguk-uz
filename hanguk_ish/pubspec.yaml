@@ -35,6 +35,10 @@ dependencies:
   # The app language between launches (already in the build through
   # supabase_flutter's session storage).
   shared_preferences: ^2.3.0
+  # A04 «Xarita»: Kakao Maps (JavaScript SDK) in a WebView, as in the student
+  # app (hanguk_app). Without a WebView the screen draws the stylised map.
+  webview_flutter: ^4.13.0
+  webview_flutter_platform_interface: '>=2.10.0 <3.0.0'
   # Connection failures of the Supabase client (→ OfflineException).
   http: ^1.2.0
   # A03 / A04 with a backend: the phone's approximate position (shifts by

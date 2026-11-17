@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart' show WebViewPlatform;
 
 import '../../../core/money/won.dart';
 import '../../../core/time/clock.dart';
@@ -17,6 +18,7 @@ import '../feed/feed_controller.dart';
 import '../feed/feed_screen.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_widgets.dart';
+import 'kakao_map_view.dart';
 
 /// Screen position of the worker on the prototype's 390 × 844 map.
 const _userPoint = Offset(110, 400);
@@ -62,6 +64,11 @@ class WorkerMapScreen extends ConsumerStatefulWidget {
 class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
   String? _selectedBusiness;
 
+  /// Kakao Maps could not start (no WebView, no network, key refused): the
+  /// stylised map and its pins are drawn instead.
+  // No WebView implementation (widget tests, desktop): the stylised map at once.
+  bool _kakaoFailed = WebViewPlatform.instance == null;
+
   @override
   Widget build(BuildContext context) {
     final l10n = WorkerL10n.of(context);
@@ -86,6 +93,36 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
       backgroundColor: const Color(0xFF0E1A4C),
       body: Stack(
         children: [
+          if (!_kakaoFailed)
+            Positioned.fill(
+              child: KakaoMapView(
+                pins: [
+                  for (final pin in pins.values)
+                    KakaoPin(
+                      id: pin.first.business.id,
+                      lat: (pin.first.lat ?? pin.first.business.lat)!,
+                      lng: (pin.first.lng ?? pin.first.business.lng)!,
+                      label: Won.worker(pin.wage),
+                    ),
+                ],
+                selectedId: selectedId,
+                centerLat: area.lat ?? sinchonArea.lat!,
+                centerLng: area.lng ?? sinchonArea.lng!,
+                userLat: area.lat,
+                userLng: area.lng,
+                onPin: (id) {
+                  if (id == selectedId && pins.containsKey(id)) {
+                    widget.actions.openShift(pins[id]!.first);
+                  } else {
+                    setState(() => _selectedBusiness = id);
+                  }
+                },
+                onFailed: () {
+                  if (mounted) setState(() => _kakaoFailed = true);
+                },
+              ),
+            )
+          else ...[
           const Positioned.fill(child: CustomPaint(painter: _StylizedMapPainter())),
           // The worker.
           Positioned(
@@ -112,6 +149,7 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
           for (final entry in pins.entries.where((e) => e.key != selectedId))
             _placedPin(area, entry.value, selected: false, lang: lang, l10n: l10n),
           if (selectedId != null) _placedPin(area, pins[selectedId]!, selected: true, lang: lang, l10n: l10n),
+          ],
           // «Mening joylashuvim».
           Positioned(
             right: 18,
