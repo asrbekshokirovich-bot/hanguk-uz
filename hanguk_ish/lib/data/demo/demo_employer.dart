@@ -12,6 +12,7 @@ library;
 import '../../core/format/business_number.dart';
 import '../../core/money/won.dart';
 import '../../core/time/kst.dart';
+import '../backend/backend.dart' show ishTestLogin;
 import '../models/business.dart';
 import '../models/employer.dart';
 import '../models/my_shift.dart';
@@ -298,6 +299,8 @@ class DemoEmployerRepository implements EmployerRepository {
   DemoEmployerRepository({DateTime? now, DateTime Function()? clock, this.latency = Duration.zero})
       : _clock = clock ?? DateTime.now {
     final start = now ?? _clock();
+    // Test builds (ISH_TEST_LOGIN): a new business has no shifts, workers or news.
+    if (ishTestLogin) return;
     for (final s in demoEmployerShifts(start)) {
       _shifts[s.id] = s;
     }

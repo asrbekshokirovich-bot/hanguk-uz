@@ -357,8 +357,9 @@ class DemoShiftRepository implements ShiftRepository {
     bool history = !ishTestLogin,
     bool offers = false,
   })  : _clock = clock ?? DateTime.now,
-        _shifts = {for (final s in demoShifts(now ?? DateTime.now())) s.id: s} {
-    if (offers) {
+        // Test builds (ISH_TEST_LOGIN): a new account sees no shifts at all.
+        _shifts = {if (!ishTestLogin) for (final s in demoShifts(now ?? DateTime.now())) s.id: s} {
+    if (offers && !ishTestLogin) {
       final offered = demoOfferedShift(now ?? DateTime.now());
       _shifts[offered.id] = offered;
       _inviteOnly.add(offered.id);

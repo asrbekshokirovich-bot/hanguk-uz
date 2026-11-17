@@ -97,10 +97,12 @@ HiNotification demoOfferNotification(DateTime now) {
 /// comes first (the screen tests keep the prototype's four).
 class DemoAccountRepository implements WorkerAccountRepository {
   DemoAccountRepository({DateTime? now, bool offers = false})
-      : _notifications = [
-          if (offers) demoOfferNotification(now ?? DateTime.now()),
-          ...demoNotifications(now ?? DateTime.now()),
-        ];
+      : _notifications = ishTestLogin
+            ? []
+            : [
+                if (offers) demoOfferNotification(now ?? DateTime.now()),
+                ...demoNotifications(now ?? DateTime.now()),
+              ];
 
   List<HiNotification> _notifications;
   final List<(ReportSubject, String)> reports = [];
