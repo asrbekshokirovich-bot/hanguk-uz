@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart' show WebViewPlatform;
 
 /// The Kakao Maps JavaScript key (a *JS* key, bound to the allowed domain
 /// `https://hanguk.uz` in the Kakao console — the student app uses the same
@@ -19,11 +21,83 @@ class KakaoPin {
   final String label;
 }
 
-/// A04's real map: Kakao Maps in a WebView, with the shifts' price pins as
-/// overlays. A tap on a pin reports its id. When the map cannot start (no
-/// WebView, no network, the key is refused) [onFailed] is called once and the
+/// Where the Kakao map stands.
+enum KakaoMapStatus { loading, ready, failed }
+
+/// The one Kakao map of the app: its WebView starts as soon as the worker is
+/// signed in (the shell reads [kakaoMapHostProvider]), so the SDK and the first
+/// tiles are loaded — and cached by the WebView — before A04 is opened. The
+/// map tab then just shows the ready WebView.
+class KakaoMapHost {
+  KakaoMapHost() {
+    try {
+      if (WebViewPlatform.instance == null) throw StateError('no WebView');
+      controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(const Color(0xFF0E1A4C))
+        ..addJavaScriptChannel('Pin', onMessageReceived: (m) => onPin?.call(m.message))
+        ..addJavaScriptChannel('MapState', onMessageReceived: (m) {
+          if (m.message == 'ready') {
+            status.value = KakaoMapStatus.ready;
+            _flush();
+          } else {
+            status.value = KakaoMapStatus.failed;
+          }
+        })
+        ..setNavigationDelegate(NavigationDelegate(onWebResourceError: (e) {
+          if (e.isForMainFrame ?? false) status.value = KakaoMapStatus.failed;
+        }))
+        ..loadHtmlString(_html(), baseUrl: 'https://hanguk.uz');
+    } on Object {
+      // No WebView on this platform (tests, desktop): the stylised map.
+      status.value = KakaoMapStatus.failed;
+    }
+  }
+
+  WebViewController? controller;
+  final ValueNotifier<KakaoMapStatus> status = ValueNotifier(KakaoMapStatus.loading);
+
+  /// Set by the map screen that is showing the map.
+  ValueChanged<String>? onPin;
+
+  Map<String, Object?>? _wanted;
+
+  /// Shows [state] (center, user, pins, selection) on the map; kept until the
+  /// map is ready.
+  void show(Map<String, Object?> state) {
+    _wanted = state;
+    _flush();
+  }
+
+  void _flush() {
+    final c = controller;
+    final state = _wanted;
+    if (c == null || state == null || status.value != KakaoMapStatus.ready) return;
+    c.runJavaScript('window.setMapState(${jsonEncode(state)});');
+    // `recenter` applies once per request.
+    _wanted = {...state, 'recenter': false};
+  }
+
+  /// The WebView was just put on screen: the map takes its real size.
+  void relayout() {
+    if (status.value == KakaoMapStatus.ready) controller?.runJavaScript('if (map) map.relayout();');
+  }
+
+  void dispose() => status.dispose();
+}
+
+/// Reading this starts the map's WebView; the worker shell does it at once.
+final kakaoMapHostProvider = Provider<KakaoMapHost>((ref) {
+  final host = KakaoMapHost();
+  ref.onDispose(host.dispose);
+  return host;
+});
+
+/// A04's real map: the app's Kakao map with the shifts' price pins as
+/// overlays. While it loads, [placeholder] is shown. When it cannot start (no
+/// WebView, no network, the key is refused) [onFailed] is called and the
 /// screen falls back to the stylised map.
-class KakaoMapView extends StatefulWidget {
+class KakaoMapView extends ConsumerStatefulWidget {
   const KakaoMapView({
     super.key,
     required this.pins,
@@ -32,6 +106,7 @@ class KakaoMapView extends StatefulWidget {
     required this.centerLng,
     this.userLat,
     this.userLng,
+    required this.placeholder,
     required this.onPin,
     required this.onFailed,
   });
@@ -44,79 +119,73 @@ class KakaoMapView extends StatefulWidget {
   /// The worker's own position, when known.
   final double? userLat;
   final double? userLng;
+  final Widget placeholder;
   final ValueChanged<String> onPin;
   final VoidCallback onFailed;
 
   @override
-  State<KakaoMapView> createState() => _KakaoMapViewState();
+  ConsumerState<KakaoMapView> createState() => _KakaoMapViewState();
 }
 
-class _KakaoMapViewState extends State<KakaoMapView> {
-  WebViewController? _controller;
-  bool _ready = false;
-  bool _failed = false;
-  bool _recenter = true;
+class _KakaoMapViewState extends ConsumerState<KakaoMapView> {
+  late final KakaoMapHost _host;
+  double? _lastCenterLat;
+  double? _lastCenterLng;
 
   @override
   void initState() {
     super.initState();
-    try {
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setBackgroundColor(const Color(0xFF0E1A4C))
-        ..addJavaScriptChannel('Pin', onMessageReceived: (m) => widget.onPin(m.message))
-        ..addJavaScriptChannel('MapState', onMessageReceived: (m) {
-          if (m.message == 'ready') {
-            _ready = true;
-            _push();
-          } else {
-            _fail();
-          }
-        })
-        ..setNavigationDelegate(NavigationDelegate(onWebResourceError: (e) {
-          if (e.isForMainFrame ?? false) _fail();
-        }))
-        ..loadHtmlString(_html(), baseUrl: 'https://hanguk.uz');
-    } on Object {
-      // No WebView on this platform (tests, desktop): the stylised map.
-      WidgetsBinding.instance.addPostFrameCallback((_) => _fail());
-    }
+    _host = ref.read(kakaoMapHostProvider);
+    _host.status.addListener(_statusChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _statusChanged();
+      _host.relayout();
+    });
   }
 
-  void _fail() {
-    if (_failed) return;
-    _failed = true;
-    if (mounted) widget.onFailed();
+  void _statusChanged() {
+    if (!mounted) return;
+    if (_host.status.value == KakaoMapStatus.failed) widget.onFailed();
+    if (_host.status.value == KakaoMapStatus.ready) _host.relayout();
+    setState(() {});
   }
 
   @override
-  void didUpdateWidget(KakaoMapView old) {
-    super.didUpdateWidget(old);
-    if (old.centerLat != widget.centerLat || old.centerLng != widget.centerLng) _recenter = true;
-    _push();
+  void dispose() {
+    _host.status.removeListener(_statusChanged);
+    if (_host.onPin == widget.onPin) _host.onPin = null;
+    super.dispose();
   }
 
-  void _push() {
-    final controller = _controller;
-    if (controller == null || !_ready || _failed) return;
-    final state = {
+  void _show() {
+    final recenter = _lastCenterLat != widget.centerLat || _lastCenterLng != widget.centerLng;
+    _lastCenterLat = widget.centerLat;
+    _lastCenterLng = widget.centerLng;
+    _host.onPin = widget.onPin;
+    _host.show({
       'center': {'lat': widget.centerLat, 'lng': widget.centerLng},
-      'recenter': _recenter,
+      'recenter': recenter,
       'user': widget.userLat == null || widget.userLng == null ? null : {'lat': widget.userLat, 'lng': widget.userLng},
       'selected': widget.selectedId,
       'pins': [
         for (final p in widget.pins) {'id': p.id, 'lat': p.lat, 'lng': p.lng, 'label': p.label},
       ],
-    };
-    _recenter = false;
-    controller.runJavaScript('window.setMapState(${jsonEncode(state)});');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = _controller;
-    if (controller == null) return const SizedBox.shrink();
-    return WebViewWidget(controller: controller);
+    _show();
+    final controller = _host.controller;
+    if (controller == null) return widget.placeholder;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        WebViewWidget(controller: controller),
+        // Until the map is drawn, the stylised map stands in for it.
+        if (_host.status.value != KakaoMapStatus.ready) Positioned.fill(child: widget.placeholder),
+      ],
+    );
   }
 }
 
@@ -124,6 +193,9 @@ String _html() => '''
 <!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
+<link rel="preconnect" href="https://dapi.kakao.com">
+<link rel="preconnect" href="https://t1.daumcdn.net">
+<link rel="dns-prefetch" href="https://t1.daumcdn.net">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
   html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #0E1A4C; overflow: hidden; }
@@ -140,6 +212,7 @@ String _html() => '''
   var map = null, overlays = [], meOverlay = null, pending = null;
   function fail() { MapState.postMessage('failed'); }
   window.onerror = function () { fail(); };
+  window.addEventListener('resize', function () { if (map) map.relayout(); });
   var timer = setTimeout(fail, 10000);
   function build(state) {
     overlays.forEach(function (o) { o.setMap(null); });

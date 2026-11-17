@@ -16,6 +16,7 @@ import '../features/worker/feed/feed_screen.dart';
 import '../features/worker/load_error.dart';
 import '../features/worker/chat/chat_screen.dart';
 import '../features/worker/earnings/earnings_screen.dart';
+import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
 import '../features/worker/me/me_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
@@ -269,7 +270,14 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, shell) => WorkerShell(shell: shell),
+        builder: (context, state, shell) => Consumer(
+          builder: (context, ref, _) {
+            // The Kakao map loads in the background from the start, so the
+            // map tab opens at once (kakao_map_view.dart).
+            ref.read(kakaoMapHostProvider);
+            return WorkerShell(shell: shell);
+          },
+        ),
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(

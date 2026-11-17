@@ -110,6 +110,7 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
                 centerLng: area.lng ?? sinchonArea.lng!,
                 userLat: area.lat,
                 userLng: area.lng,
+                placeholder: const CustomPaint(painter: _StylizedMapPainter()),
                 onPin: (id) {
                   if (id == selectedId && pins.containsKey(id)) {
                     widget.actions.openShift(pins[id]!.first);
