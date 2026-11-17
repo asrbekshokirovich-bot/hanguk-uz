@@ -33,6 +33,10 @@ jobs:
     defaults:
       run:
         working-directory: hanguk_ish
+    env:
+      # Hanguk Ish'ning o'z Kakao JavaScript kaliti (secret ISH_KAKAO_JS_KEY).
+      # Bo'sh bo'lsa, ilova ichidagi standart kalit ishlatiladi.
+      KAKAO_JS_KEY: ${{ secrets.ISH_KAKAO_JS_KEY }}
     steps:
       - uses: actions/checkout@v5
 
@@ -61,13 +65,13 @@ jobs:
         run: >-
           flutter build apk --release --flavor worker -t lib/main_worker.dart
           --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
-          --dart-define=ISH_TEST_LOGIN=true
+          --dart-define=ISH_TEST_LOGIN=true ${KAKAO_JS_KEY:+--dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY}
 
       - name: Employer APK (demo)
         run: >-
           flutter build apk --release --flavor employer -t lib/main_employer.dart
           --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
-          --dart-define=ISH_TEST_LOGIN=true
+          --dart-define=ISH_TEST_LOGIN=true ${KAKAO_JS_KEY:+--dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY}
 
       - name: Publish APKs
         env:
