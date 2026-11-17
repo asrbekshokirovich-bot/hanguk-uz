@@ -1,0 +1,86 @@
+name: Hanguk Ish — test APK (demo, anonim kirish)
+
+# Telefonda sinash uchun: ikkala ilovaning DEMO APK'lari (baza yo'q, hech narsa
+# telefondan chiqmaydi) va "Test: anonim kirish" tugmasi bilan (ISH_TEST_LOGIN).
+# Natija: `hanguk-ish-ci` prerelease'ida <branch>-demo-worker-arm64.apk va
+# <branch>-demo-employer-arm64.apk. Faqat sideload (Play uchun emas).
+
+on:
+  push:
+    branches:
+      - 'claude/funny-einstein-epf1oz'
+    paths:
+      - 'hanguk_ish/**'
+      - '.github/workflows/ish-test-apk.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ish-test-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GH_REPO: ${{ github.repository }}
+  RELEASE_TAG: hanguk-ish-ci
+
+jobs:
+  apk:
+    name: Demo APKs (worker + employer, arm64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            hanguk_ish/android/*.gradle*
+            hanguk_ish/android/app/*.gradle*
+            hanguk_ish/android/gradle/wrapper/gradle-wrapper.properties
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Worker APK (demo)
+        run: >-
+          flutter build apk --release --flavor worker -t lib/main_worker.dart
+          --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
+          --dart-define=ISH_TEST_LOGIN=true
+
+      - name: Employer APK (demo)
+        run: >-
+          flutter build apk --release --flavor employer -t lib/main_employer.dart
+          --target-platform android-arm64 --split-per-abi --build-number=${{ github.run_number }}
+          --dart-define=ISH_TEST_LOGIN=true
+
+      - name: Publish APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          P="${GITHUB_REF_NAME//\//-}-demo"
+          out=build/app/outputs/flutter-apk
+          cp "$out/app-arm64-v8a-worker-release.apk" "$P-worker-arm64.apk"
+          cp "$out/app-arm64-v8a-employer-release.apk" "$P-employer-arm64.apk"
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+            gh release create "$RELEASE_TAG" --prerelease --title "Hanguk Ish CI" --notes "Hanguk Ish CI natijalari (sideload)." || true
+          for i in 1 2 3; do
+            gh release upload "$RELEASE_TAG" "$P-worker-arm64.apk" "$P-employer-arm64.apk" --clobber && break
+            sleep 5
+          done
