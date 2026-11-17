@@ -19,6 +19,7 @@ import '../feed/feed_screen.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_widgets.dart';
 import 'kakao_map_view.dart';
+import 'native_kakao_map.dart';
 
 /// Screen position of the worker on the prototype's 390 × 844 map.
 const _userPoint = Offset(110, 400);
@@ -69,6 +70,10 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
   // No WebView implementation (widget tests, desktop): the stylised map at once.
   bool _kakaoFailed = WebViewPlatform.instance == null;
 
+  /// The native Kakao map reported an error (key hash refused, …): the WebView
+  /// map takes over.
+  bool _nativeFailed = false;
+
   @override
   Widget build(BuildContext context) {
     final l10n = WorkerL10n.of(context);
@@ -93,7 +98,22 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
       backgroundColor: const Color(0xFF0E1A4C),
       body: Stack(
         children: [
-          if (!_kakaoFailed)
+          if (!_kakaoFailed && !_nativeFailed && kakaoNativeStarted)
+            Positioned.fill(
+              child: NativeKakaoMap(
+                pins: _kakaoPins(pins),
+                selectedId: selectedId,
+                centerLat: area.lat ?? sinchonArea.lat!,
+                centerLng: area.lng ?? sinchonArea.lng!,
+                userLat: area.lat,
+                userLng: area.lng,
+                onPin: (id) => _onKakaoPin(id, selectedId, pins),
+                onFailed: () {
+                  if (mounted) setState(() => _nativeFailed = true);
+                },
+              ),
+            )
+          else if (!_kakaoFailed)
             Positioned.fill(
               child: KakaoMapView(
                 pins: [
@@ -225,6 +245,25 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
         ],
       ),
     );
+  }
+
+  List<KakaoPin> _kakaoPins(Map<String, _Pin> pins) => [
+        for (final pin in pins.values)
+          KakaoPin(
+            id: pin.first.business.id,
+            lat: (pin.first.lat ?? pin.first.business.lat)!,
+            lng: (pin.first.lng ?? pin.first.business.lng)!,
+            label: Won.worker(pin.wage),
+          ),
+      ];
+
+  void _onKakaoPin(String id, String? selectedId, Map<String, _Pin> pins) {
+    if (!pins.containsKey(id)) return;
+    if (id == selectedId) {
+      widget.actions.openShift(pins[id]!.first);
+    } else {
+      setState(() => _selectedBusiness = id);
+    }
   }
 
   Widget _placedPin(FeedArea area, _Pin pin, {required bool selected, required String lang, required WorkerL10n l10n}) {

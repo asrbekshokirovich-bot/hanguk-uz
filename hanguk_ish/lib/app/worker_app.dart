@@ -18,6 +18,7 @@ import '../features/worker/chat/chat_screen.dart';
 import '../features/worker/earnings/earnings_screen.dart';
 import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
+import '../features/worker/map/native_kakao_map.dart' show kakaoNativeStarted;
 import '../features/worker/me/me_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
@@ -274,7 +275,7 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
           builder: (context, ref, _) {
             // The Kakao map loads in the background from the start, so the
             // map tab opens at once (kakao_map_view.dart).
-            ref.read(kakaoMapHostProvider);
+            if (!kakaoNativeStarted) ref.read(kakaoMapHostProvider);
             return WorkerShell(shell: shell);
           },
         ),
