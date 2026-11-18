@@ -545,6 +545,8 @@ void main() {
     await _shot(tester, 'a11-profile');
 
     // The language: on screen at once, and on the profile for the server.
+    // The free-time grid comes first on the profile: scroll down to it.
+    await tester.scrollUntilVisible(_text('Ilova tili'), 300);
     await _tap(tester, _text('Ilova tili'));
     await _until(tester, _text('Русский'));
     await _tap(tester, _text('Русский'));
@@ -755,7 +757,8 @@ void main() {
     await _tap(tester, _text("O'zbekcha"));
     await _tap(tester, _text('Koreyscha'));
     await _tap(tester, _text('3'));
-    await _tap(tester, find.byType(HiSelectField).at(1));
+    // The city or province (the university question is gone).
+    await _tap(tester, find.byType(HiSelectField).at(0));
     await _until(tester, find.byType(TextField));
     await _settle(tester);
     await tester.enterText(find.byType(TextField).last, 'Mapo');
@@ -766,6 +769,9 @@ void main() {
     await _settle(tester);
     await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
     await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
+    // After the profile: the location question, then the feed.
+    await _until(tester, _text('Joylashuvingizni yoqing'));
+    await _tap(tester, _text('Keyinroq'));
     await _until(tester, _text('Smenalar'));
     // The feed loaded (cards or none today: no more grey placeholders).
     for (var i = 0; i < 200 && find.byType(ShiftCardSkeleton).evaluate().isNotEmpty; i++) {
