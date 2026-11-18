@@ -278,7 +278,7 @@ class _StoreButton extends ConsumerWidget {
             const SizedBox(width: 10),
             Flexible(
               child: HiText(
-                b?.name ?? '',
+                b?.name ?? '–',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: hiStyle(16, FontWeight.w800),

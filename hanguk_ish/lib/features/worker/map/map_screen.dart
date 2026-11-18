@@ -79,7 +79,7 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
     final l10n = WorkerL10n.of(context);
     final lang = ref.watch(appLanguageProvider).code;
     final now = ref.watch(clockProvider)();
-    final area = ref.watch(feedAreaProvider).value ?? sinchonArea;
+    final area = ref.watch(feedAreaProvider).value ?? const FeedArea(place: seoulPlace);
     final feed = ref.watch(feedProvider);
     final shifts = feed.value ?? const <ShiftListing>[];
     final offline = !feed.isLoading && feed.hasError && feed.error is OfflineException;
@@ -103,8 +103,8 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
               child: NativeKakaoMap(
                 pins: _kakaoPins(pins),
                 selectedId: selectedId,
-                centerLat: area.lat ?? sinchonArea.lat!,
-                centerLng: area.lng ?? sinchonArea.lng!,
+                centerLat: area.lat ?? seoulCenterLat,
+                centerLng: area.lng ?? seoulCenterLng,
                 userLat: area.lat,
                 userLng: area.lng,
                 onPin: (id) => _onKakaoPin(id, selectedId, pins),
@@ -126,8 +126,8 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
                     ),
                 ],
                 selectedId: selectedId,
-                centerLat: area.lat ?? sinchonArea.lat!,
-                centerLng: area.lng ?? sinchonArea.lng!,
+                centerLat: area.lat ?? seoulCenterLat,
+                centerLng: area.lng ?? seoulCenterLng,
                 userLat: area.lat,
                 userLng: area.lng,
                 placeholder: const CustomPaint(painter: _StylizedMapPainter()),
@@ -144,8 +144,9 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
               ),
             )
           else ...[
-          const Positioned.fill(child: CustomPaint(painter: _StylizedMapPainter())),
-          // The worker.
+          Positioned.fill(child: CustomPaint(painter: _StylizedMapPainter(areaNames: area.place.code == sinchonArea.place.code))),
+          // The worker: only where the phone's position is known.
+          if (area.located)
           Positioned(
             left: _userPoint.dx - 14,
             top: _userPoint.dy - 14,
@@ -354,7 +355,11 @@ class _MapPin extends StatelessWidget {
 
 /// The prototype's map drawing: blocks, a river, roads and area names.
 class _StylizedMapPainter extends CustomPainter {
-  const _StylizedMapPainter();
+  /// The prototype's «SINCHON / HONGDAE / MAPO» are true only around Sinchon
+  /// (the demo's position); anywhere else they would name the wrong place.
+  const _StylizedMapPainter({this.areaNames = false});
+
+  final bool areaNames;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -393,6 +398,7 @@ class _StylizedMapPainter extends CustomPainter {
     ]) {
       canvas.drawLine(a, b, road);
     }
+    if (!areaNames) return;
     for (final (name, x, y) in const [('SINCHON', 290.0, 334.0), ('HONGDAE', 22.0, 424.0), ('MAPO', 284.0, 530.0)]) {
       final painter = TextPainter(
         text: TextSpan(
@@ -408,5 +414,5 @@ class _StylizedMapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_StylizedMapPainter oldDelegate) => false;
+  bool shouldRepaint(_StylizedMapPainter oldDelegate) => oldDelegate.areaNames != areaNames;
 }

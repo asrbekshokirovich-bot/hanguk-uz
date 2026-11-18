@@ -111,7 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       Semantics(
                         header: true,
                         child: HiText(
-                          app?.shift.business.nameWithArea(lang) ?? '',
+                          app?.shift.business.nameWithArea(lang) ?? '–',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: hiStyle(16, FontWeight.w800),
