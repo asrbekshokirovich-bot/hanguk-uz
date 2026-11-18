@@ -18,6 +18,8 @@ import '../features/employer/biz.dart';
 import '../features/employer/language.dart';
 import '../features/employer/login/ba0_code_screen.dart';
 import '../features/employer/login/ba0_login_screen.dart';
+import '../features/employer/login/ba0_profile_screen.dart';
+import '../features/employer/login/ba0_welcome_screen.dart';
 import '../features/employer/notifications/employer_notifications_screen.dart';
 import '../features/employer/providers.dart';
 import '../features/employer/report/ba5_report_screen.dart';
@@ -36,6 +38,12 @@ abstract final class EmployerRoutes {
 
   static const login = '/';
 
+  /// First launch: the language, before anything else.
+  static const welcome = '/welcome';
+
+  /// After the first sign-in: the business profile.
+  static const setup = '/setup';
+
   /// T2: the SMS code after BA0.
   static String code(String phone) => '/code?n=${Uri.encodeQueryComponent(phone)}';
 
@@ -52,9 +60,10 @@ abstract final class EmployerRoutes {
 
 /// Where the app opens: with a backend, the start gate (a saved session
 /// skips BA0); the demo starts at BA0. Tests open a screen directly.
-final employerInitialLocationProvider = Provider<String>(
-  (ref) => ref.watch(backendConfigProvider).isConfigured ? EmployerRoutes.start : EmployerRoutes.login,
-);
+final employerInitialLocationProvider = Provider<String>((ref) {
+  if (ref.watch(employerAskLanguageProvider)) return EmployerRoutes.welcome;
+  return ref.watch(backendConfigProvider).isConfigured ? EmployerRoutes.start : EmployerRoutes.login;
+});
 
 void _say(BuildContext context, String text) => (ScaffoldMessenger.of(context)..hideCurrentSnackBar())
     .showSnackBar(SnackBar(content: Text(text)));
@@ -67,9 +76,10 @@ Future<void> continueOwnerAfterSignIn(BuildContext context, WidgetRef ref) async
   final repo = ref.read(employerRepositoryProvider);
   try {
     final businesses = await repo.businesses();
-    if (businesses.isEmpty) await repo.openBusiness();
+    final business = businesses.isEmpty ? await repo.openBusiness() : businesses.first;
     ref.invalidate(businessesProvider);
-    if (context.mounted) context.go(EmployerRoutes.home);
+    // Still «사업장 XXXX»: the owner names it first.
+    if (context.mounted) context.go(business.name.startsWith('사업장 ') ? EmployerRoutes.setup : EmployerRoutes.home);
   } catch (error) {
     if (!context.mounted) return;
     context.go(EmployerRoutes.login);
@@ -139,6 +149,43 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: ref.watch(employerInitialLocationProvider),
     routes: [
+      GoRoute(
+        path: EmployerRoutes.welcome,
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => Ba0WelcomeScreen(
+            selected: ref.watch(employerLanguageProvider),
+            onSelect: (language) => ref.read(employerLanguageProvider.notifier).select(language),
+            onNext: () => context.go(
+              ref.read(backendConfigProvider).isConfigured ? EmployerRoutes.start : EmployerRoutes.login,
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: EmployerRoutes.setup,
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => Ba0ProfileScreen(
+            onSkip: () => context.go(EmployerRoutes.home),
+            onSave: (name, category, area, address) async {
+              try {
+                final business = (await ref.read(employerRepositoryProvider).businesses()).first;
+                await ref.read(employerRepositoryProvider).updateBusiness(
+                      business.id,
+                      name: name,
+                      category: category,
+                      area: area,
+                      address: address,
+                    );
+              } catch (error) {
+                if (context.mounted) _say(context, Biz.error(error));
+                return;
+              }
+              ref.invalidate(businessesProvider);
+              if (context.mounted) context.go(EmployerRoutes.home);
+            },
+          ),
+        ),
+      ),
       GoRoute(path: EmployerRoutes.start, builder: (context, state) => const _OwnerStartGate()),
       GoRoute(
         path: EmployerRoutes.login,

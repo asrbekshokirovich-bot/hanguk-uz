@@ -49,6 +49,10 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
     overrides.add(employerDefaultLanguageProvider.overrideWithValue(
       employerLanguageFor(WidgetsBinding.instance.platformDispatcher.locales),
     ));
+    // First launch: the owner chooses the language before anything else.
+    overrides.add(employerAskLanguageProvider.overrideWithValue(
+      prefs == null || PrefsLanguageStore(prefs).load() == null,
+    ));
   }
   if (backend.isConfigured) {
     await Supabase.initialize(

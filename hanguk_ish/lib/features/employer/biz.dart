@@ -29,6 +29,48 @@ abstract final class Biz {
     _lang = language.code;
   }
 
+
+  /// The business-profile screen's texts (first sign-in), in the four languages.
+  static const _profileTexts = <String, Map<String, String>>{
+    'title': {'ko': '사업장 정보', 'uz': 'Biznes profili', 'ru': 'Профиль заведения', 'en': 'Business profile'},
+    'hint': {
+      'ko': '근로자에게 보이는 정보예요.',
+      'uz': 'Ish oluvchilar shuni ko\'radi.',
+      'ru': 'Это видят работники.',
+      'en': 'Workers see this.',
+    },
+    'namePlaceholder': {'ko': '달빛카페 신촌점', 'uz': 'Dalbit Kafe', 'ru': 'Dalbit Kafe', 'en': 'Dalbit Cafe'},
+    'name': {'ko': '사업장 이름', 'uz': 'Biznes nomi', 'ru': 'Название', 'en': 'Business name'},
+    'kind': {'ko': '업종', 'uz': 'Soha', 'ru': 'Сфера', 'en': 'Kind of work'},
+    'area': {'ko': '동네 (예: 신촌)', 'uz': 'Hudud (masalan: Sinchon)', 'ru': 'Район (напр. Sinchon)', 'en': 'Area (e.g. Sinchon)'},
+    'address': {'ko': '주소', 'uz': 'Manzil', 'ru': 'Адрес', 'en': 'Address'},
+    'save': {'ko': '저장하고 시작', 'uz': 'Saqlash va boshlash', 'ru': 'Сохранить и начать', 'en': 'Save and start'},
+    'later': {'ko': '나중에', 'uz': 'Keyinroq', 'ru': 'Позже', 'en': 'Later'},
+    'needName': {
+      'ko': '사업장 이름을 입력해 주세요.',
+      'uz': 'Biznes nomini kiriting.',
+      'ru': 'Введите название.',
+      'en': 'Enter the business name.',
+    },
+    'cafe': {'ko': '카페', 'uz': 'Kafe', 'ru': 'Кафе', 'en': 'Cafe'},
+    'restaurant': {'ko': '식당', 'uz': 'Restoran', 'ru': 'Ресторан', 'en': 'Restaurant'},
+    'retail': {'ko': '매장·편의점', 'uz': 'Do\'kon', 'ru': 'Магазин', 'en': 'Retail'},
+    'logistics': {'ko': '물류', 'uz': 'Logistika', 'ru': 'Логистика', 'en': 'Logistics'},
+    'event': {'ko': '행사', 'uz': 'Tadbir', 'ru': 'Мероприятие', 'en': 'Events'},
+    'office': {'ko': '사무', 'uz': 'Ofis', 'ru': 'Офис', 'en': 'Office'},
+    'other': {'ko': '기타', 'uz': 'Boshqa', 'ru': 'Другое', 'en': 'Other'},
+  };
+
+
+  static String profileText(String key) => _profileTexts[key]![_lang] ?? _profileTexts[key]!['en']!;
+
+  /// The first-launch language screen: the title names the choice in every
+  /// language, the button speaks the chosen one.
+  static String get welcomeTitle => '언어 · Til · Язык · Language';
+
+  static String welcomeNext(String code) =>
+      const {'ko': '다음', 'uz': 'Davom etish', 'ru': 'Далее', 'en': 'Continue'}[code] ?? 'Continue';
+
   static const phonePlaceholder = '010-0000-0000';
 
   static String get ownerBadge => _l.bizOwnerBadge;

@@ -16,6 +16,16 @@ abstract interface class EmployerRepository {
   /// again gives the same business.
   Future<Business> openBusiness();
 
+  /// The owner's own profile of the business (`update_my_business`): the
+  /// name workers read, the kind of work, the neighbourhood and the address.
+  Future<Business> updateBusiness(
+    String businessId, {
+    required String name,
+    required BusinessCategory category,
+    String area = '',
+    String address = '',
+  });
+
   /// A 사업자등록번호 checked with 국세청 (`ish-business-register`): BA1 asks
   /// again for a business still waiting. Codes: BIZ_NO_INVALID,
   /// BIZ_NO_UNKNOWN, BIZ_NO_TAKEN, BUSINESS_CLOSED.

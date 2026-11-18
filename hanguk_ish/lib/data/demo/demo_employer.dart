@@ -339,13 +339,43 @@ class DemoEmployerRepository implements EmployerRepository {
   @override
   Future<List<Business>> businesses() async {
     await _wait();
-    return const [demoDalbit];
+    return [_profile ?? _fresh ?? demoDalbit];
   }
 
   @override
   Future<Business> openBusiness() async {
     await _wait();
-    return demoDalbit;
+    return _profile ?? _fresh ?? demoDalbit;
+  }
+
+  /// Test builds: a new owner's business has no real name yet, as with a
+  /// backend («사업장 XXXX»), so the profile screen asks for one.
+  Business? get _fresh => ishTestLogin
+      ? Business(id: demoDalbit.id, name: '사업장 DEMO', category: BusinessCategory.other)
+      : null;
+
+  Business? _profile;
+
+  @override
+  Future<Business> updateBusiness(
+    String businessId, {
+    required String name,
+    required BusinessCategory category,
+    String area = '',
+    String address = '',
+  }) async {
+    await _wait();
+    final base = _profile ?? _fresh ?? demoDalbit;
+    return _profile = Business(
+      id: base.id,
+      name: name,
+      names: {'uz': name, 'ru': name, 'en': name, 'ko': name},
+      area: area,
+      category: category,
+      address: address,
+      lat: base.lat,
+      lng: base.lng,
+    );
   }
 
   @override
