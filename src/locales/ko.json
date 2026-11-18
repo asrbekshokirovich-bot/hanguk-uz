@@ -2754,7 +2754,8 @@
       "employers": "사업장",
       "appBusinesses": "앱 사업장",
       "reports": "신고",
-      "staff": "직원"
+      "staff": "직원",
+      "monthly": "월급 일자리"
     },
     "board": {
       "newJob": "새 일자리",
@@ -3010,6 +3011,52 @@
       "removeText": "CRM의 Hanguk Ish 섹션이 이 사람에게 닫혀요. 이 사람이 추가한 사업장과 일자리는 그대로 남아요.",
       "removed": "목록에서 뺐어요",
       "noName": "이름 없음"
+    },
+    "monthly": {
+      "intro": "월급으로 지급되는 일자리(카페, 창고 등)예요. 앱의 '월급 일자리'에 보이고, 근로자가 '관심 있어요'를 누르면 이름과 전화번호가 여기에 나타나요. 양쪽에 연락해 주세요.",
+      "new": "새 월급 일자리",
+      "edit": "월급 일자리 수정",
+      "empty": "아직 월급 일자리가 없어요. '새 월급 일자리'를 눌러 주세요.",
+      "job": "일자리",
+      "pay": "월급",
+      "schedule": "근무 일정",
+      "interested": "관심",
+      "status": "상태",
+      "daysHours": "주 {{days}}일 · 하루 {{hours}}시간",
+      "workTimes": {
+        "day": "주간",
+        "night": "야간",
+        "any": "무관"
+      },
+      "statuses": {
+        "open": "모집 중",
+        "closed": "마감"
+      },
+      "close": "마감",
+      "reopen": "다시 열기",
+      "delete": "삭제",
+      "deleteAsk": "'{{title}}'을(를) 삭제할까요? 관심 표시도 함께 삭제돼요.",
+      "deleted": "월급 일자리를 삭제했어요",
+      "titleKo": "제목 (한국어)",
+      "companyKo": "회사 (한국어)",
+      "wage": "월급 (₩)",
+      "wageHint": "원 단위 정수, 예: 2300000",
+      "days": "주당 근무일",
+      "hours": "하루 근무 시간",
+      "category": "분야",
+      "notSaid": "미지정",
+      "workTime": "근무 시간대",
+      "area": "지역",
+      "point": "위치 (선택)",
+      "pointHint": "지도에서 복사: 37.5560, 126.9230. 거리 필터용.",
+      "address": "주소",
+      "descriptionKo": "설명 (한국어)",
+      "translations": "번역 (선택)",
+      "translationsHint": "비워 두면 앱에 한국어가 보여요.",
+      "titleShort": "제목",
+      "companyShort": "회사",
+      "descriptionShort": "설명",
+      "interestedIn": "'{{title}}' 관심자"
     }
   },
   "calendarPage": {

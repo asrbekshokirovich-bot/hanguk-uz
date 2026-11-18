@@ -3855,7 +3855,8 @@
       "employers": "Ish beruvchilar",
       "appBusinesses": "Ilovadagi bizneslar",
       "reports": "Shikoyatlar",
-      "staff": "Xodimlar"
+      "staff": "Xodimlar",
+      "monthly": "Oylik ishlar"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -4111,6 +4112,52 @@
       "removeText": "CRM'dagi Hanguk Ish bo'limi unga yopiladi; u kiritgan ish beruvchilar va ishlar qoladi.",
       "removed": "Olib tashlandi",
       "noName": "Ismi kiritilmagan"
+    },
+    "monthly": {
+      "intro": "Oyiga maosh to'lanadigan ishlar (kafe, ombor va h.k.). Ilovada ishchilarga \"Oylik ishlar\" da ko'rinadi; ishchi \"Qiziqaman\" bossa, shu yerda ismi va telefoni chiqadi — ikkala tomonga qo'ng'iroq qilasiz.",
+      "new": "Yangi oylik ish",
+      "edit": "Oylik ishni tahrirlash",
+      "empty": "Hozircha oylik ish yo'q. \"Yangi oylik ish\" tugmasini bosing.",
+      "job": "Ish",
+      "pay": "Oylik maosh",
+      "schedule": "Jadval",
+      "interested": "Qiziqqanlar",
+      "status": "Holati",
+      "daysHours": "Haftasiga {{days}} kun · kuniga {{hours}} soat",
+      "workTimes": {
+        "day": "Kunduzgi",
+        "night": "Kechgi",
+        "any": "Farqi yo'q"
+      },
+      "statuses": {
+        "open": "Ochiq",
+        "closed": "Yopiq"
+      },
+      "close": "Yopish",
+      "reopen": "Qayta ochish",
+      "delete": "O'chirish",
+      "deleteAsk": "\"{{title}}\" ni o'chirasizmi? Qiziqish bildirganlar ham o'chadi.",
+      "deleted": "Oylik ish o'chirildi",
+      "titleKo": "Nomi (koreyscha)",
+      "companyKo": "Kompaniya (koreyscha)",
+      "wage": "Oylik maosh (₩)",
+      "wageHint": "Butun von, masalan 2300000",
+      "days": "Haftasiga necha kun",
+      "hours": "Kuniga necha soat",
+      "category": "Soha",
+      "notSaid": "Ko'rsatilmagan",
+      "workTime": "Ish vaqti",
+      "area": "Hudud",
+      "point": "Joylashuv (ixtiyoriy)",
+      "pointHint": "Xaritadan nusxa: 37.5560, 126.9230. Masofa filtri uchun.",
+      "address": "Manzil",
+      "descriptionKo": "Tavsif (koreyscha)",
+      "translations": "Tarjimalar (ixtiyoriy)",
+      "translationsHint": "Bo'sh qoldirilsa, ilovada koreyscha matn ko'rinadi.",
+      "titleShort": "nom",
+      "companyShort": "kompaniya",
+      "descriptionShort": "tavsif",
+      "interestedIn": "\"{{title}}\" ga qiziqqanlar"
     }
   },
   "calendarPage": {

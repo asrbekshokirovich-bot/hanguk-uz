@@ -13,6 +13,7 @@ import { IshAppBusinesses } from './IshAppBusinesses';
 import { IshBoard } from './IshBoard';
 import { IshEmployers } from './IshEmployers';
 import { IshJobDetail } from './IshJobDetail';
+import { IshMonthly } from './IshMonthly';
 import { IshReports } from './IshReports';
 import { IshStaff } from './IshStaff';
 
@@ -92,7 +93,7 @@ function IshStaffGate({ client, session }: { client: SupabaseClient; session: Se
   );
 }
 
-const TABS = ['jobs', 'employers', 'appBusinesses', 'reports', 'staff'] as const;
+const TABS = ['jobs', 'monthly', 'employers', 'appBusinesses', 'reports', 'staff'] as const;
 
 /** «/crm/ish?tab=reports»: a Hanguk Ish message to the staff (P57) opens its tab. */
 function initialTab(): string {
@@ -126,6 +127,7 @@ function IshWorkspace({ account }: { account: string }) {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="h-auto flex-wrap">
             <TabsTrigger value="jobs">{t('ish.tabs.jobs')}</TabsTrigger>
+            <TabsTrigger value="monthly">{t('ish.tabs.monthly')}</TabsTrigger>
             <TabsTrigger value="employers">{t('ish.tabs.employers')}</TabsTrigger>
             <TabsTrigger value="appBusinesses">{t('ish.tabs.appBusinesses')}</TabsTrigger>
             <TabsTrigger value="reports" className="gap-1.5">
@@ -140,6 +142,9 @@ function IshWorkspace({ account }: { account: string }) {
           </TabsList>
           <TabsContent value="jobs" className="mt-4">
             <IshBoard onOpen={setJobId} />
+          </TabsContent>
+          <TabsContent value="monthly" className="mt-4">
+            <IshMonthly />
           </TabsContent>
           <TabsContent value="employers" className="mt-4">
             <IshEmployers />

@@ -10,6 +10,9 @@ import type {
   IshJobInput,
   IshJobPage,
   IshMessage,
+  IshMonthlyInterest,
+  IshMonthlyJob,
+  IshMonthlyJobInput,
   IshReport,
   IshStaffPeople,
   IshStaffRole,
@@ -241,6 +244,53 @@ export function ishApi(client: SupabaseClient) {
         .is('read_at', null);
       if (error) throw new IshError(ishErrorCode(error), error.message);
     },
+
+    /** Monthly jobs, newest first (the staff see closed ones too). */
+    monthlyJobs: async (): Promise<IshMonthlyJob[]> => {
+      const { data, error } = await db.from('monthly_jobs').select('*').order('created_at', { ascending: false }).limit(500);
+      if (error) throw new IshError(ishErrorCode(error), error.message);
+      return (data ?? []) as IshMonthlyJob[];
+    },
+
+    /** A new monthly job, or [j.id] changed. */
+    saveMonthlyJob: async (j: IshMonthlyJobInput): Promise<string> => {
+      const row = {
+        title: j.title.trim(),
+        company: j.company.trim(),
+        area: j.area.trim(),
+        address: j.address.trim(),
+        lat: j.lat,
+        lng: j.lng,
+        monthly_wage: j.monthlyWage,
+        days_per_week: j.daysPerWeek,
+        hours_per_day: j.hoursPerDay,
+        description: j.description.trim(),
+        category: j.category,
+        work_time: j.workTime,
+        translations: j.translations,
+      };
+      const query = j.id
+        ? db.from('monthly_jobs').update(row).eq('id', j.id)
+        : db.from('monthly_jobs').insert(row);
+      const { data, error } = await query.select('id').single();
+      if (error) throw new IshError(ishErrorCode(error), error.message);
+      return (data as { id: string }).id;
+    },
+
+    /** Closes a monthly job (workers stop seeing it) or opens it again. */
+    setMonthlyJobStatus: async (id: string, status: 'open' | 'closed'): Promise<void> => {
+      const { error } = await db.from('monthly_jobs').update({ status }).eq('id', id);
+      if (error) throw new IshError(ishErrorCode(error), error.message);
+    },
+
+    deleteMonthlyJob: async (id: string): Promise<void> => {
+      const { error } = await db.from('monthly_jobs').delete().eq('id', id);
+      if (error) throw new IshError(ishErrorCode(error), error.message);
+    },
+
+    /** Who said «Qiziqaman» (all jobs, or one), with their phones. */
+    monthlyInterest: async (jobId?: string) =>
+      (await rpc<IshMonthlyInterest[] | null>('staff_monthly_interest', { p_job: jobId ?? null })) ?? [],
 
     sendMessage: async (applicationId: string, body: string): Promise<IshMessage> => {
       const { data, error } = await db
