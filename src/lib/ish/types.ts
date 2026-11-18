@@ -259,3 +259,52 @@ export interface IshStaffPeople {
   staff: IshStaffMember[];
   candidates: IshStaffCandidate[];
 }
+
+/** A job paid by the month (`ish.monthly_jobs`), as the staff keep it. */
+export interface IshMonthlyJob {
+  id: string;
+  title: string;
+  company: string;
+  area: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  monthly_wage: number;
+  days_per_week: number | null;
+  hours_per_day: number | null;
+  description: string;
+  /** {"uz": {"title", "company", "description", "area"}, "ru": …} */
+  translations: Record<string, Partial<Record<'title' | 'company' | 'description' | 'area', string>>>;
+  status: 'open' | 'closed';
+  category: string | null;
+  work_time: 'day' | 'night' | null;
+  created_at: string;
+}
+
+/** What the staff type for a monthly job. */
+export interface IshMonthlyJobInput {
+  id: string | null;
+  title: string;
+  company: string;
+  area: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  monthlyWage: number;
+  daysPerWeek: number | null;
+  hoursPerDay: number | null;
+  description: string;
+  category: string | null;
+  workTime: 'day' | 'night' | null;
+  translations: IshMonthlyJob['translations'];
+}
+
+/** `staff_monthly_interest`: a worker who said «Qiziqaman». */
+export interface IshMonthlyInterest {
+  job_id: string;
+  worker_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  created_at: string;
+}

@@ -3795,7 +3795,8 @@
       "employers": "Employers",
       "appBusinesses": "App businesses",
       "reports": "Complaints",
-      "staff": "Staff"
+      "staff": "Staff",
+      "monthly": "Monthly jobs"
     },
     "board": {
       "newJob": "New job",
@@ -4054,6 +4055,52 @@
       "removeText": "the Hanguk Ish section of the CRM closes for them; the employers and jobs they added stay.",
       "removed": "Removed",
       "noName": "No name"
+    },
+    "monthly": {
+      "intro": "Jobs paid by the month (a café hire, a warehouse job…). Workers see them under “Monthly jobs” in the app; when one taps “I'm interested”, their name and phone show here — you call both sides.",
+      "new": "New monthly job",
+      "edit": "Edit monthly job",
+      "empty": "No monthly jobs yet. Press “New monthly job”.",
+      "job": "Job",
+      "pay": "Monthly pay",
+      "schedule": "Schedule",
+      "interested": "Interested",
+      "status": "Status",
+      "daysHours": "{{days}} days a week · {{hours}} h a day",
+      "workTimes": {
+        "day": "Daytime",
+        "night": "Evening and night",
+        "any": "Either"
+      },
+      "statuses": {
+        "open": "Open",
+        "closed": "Closed"
+      },
+      "close": "Close",
+      "reopen": "Reopen",
+      "delete": "Delete",
+      "deleteAsk": "Delete “{{title}}”? Those who were interested are removed too.",
+      "deleted": "Monthly job deleted",
+      "titleKo": "Title (Korean)",
+      "companyKo": "Company (Korean)",
+      "wage": "Monthly pay (₩)",
+      "wageHint": "Whole won, e.g. 2300000",
+      "days": "Days a week",
+      "hours": "Hours a day",
+      "category": "Field",
+      "notSaid": "Not said",
+      "workTime": "Working hours",
+      "area": "Area",
+      "point": "Point (optional)",
+      "pointHint": "Copy from a map: 37.5560, 126.9230. For the distance filter.",
+      "address": "Address",
+      "descriptionKo": "Description (Korean)",
+      "translations": "Translations (optional)",
+      "translationsHint": "Left empty, the app shows the Korean text.",
+      "titleShort": "title",
+      "companyShort": "company",
+      "descriptionShort": "description",
+      "interestedIn": "Interested in “{{title}}”"
     }
   },
   "calendarPage": {

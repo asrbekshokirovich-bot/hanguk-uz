@@ -18,7 +18,7 @@ select tests.eq(
     'set_shift_paid', 'shift_details', 'shift_feed', 'shift_qr',
     -- The staff's (hanguk.uz): each starts with require_staff(); the staff list
     -- (P58) with require_staff_admin().
-    'staff_add', 'staff_app_businesses', 'staff_board', 'staff_businesses', 'staff_candidates', 'staff_mark_attendance',
+    'staff_add', 'staff_app_businesses', 'staff_board', 'staff_businesses', 'staff_candidates', 'staff_mark_attendance', 'staff_monthly_interest',
     'staff_people', 'staff_remove', 'staff_reports', 'staff_save_business', 'staff_save_shift', 'staff_send_offers',
     'staff_set_app_business_blocked', 'staff_set_report_status', 'staff_set_role', 'staff_shift',
     'staff_update_app_business',
