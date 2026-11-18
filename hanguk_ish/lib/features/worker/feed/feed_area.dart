@@ -98,7 +98,7 @@ class DeviceLocationService implements LocationService {
 /// «Seul» when none.
 Place areaPlace(String? district) {
   if (district == null || district.trim().isEmpty) return seoulPlace;
-  for (final place in seoulDistricts) {
+  for (final place in workAreas) {
     if (place.code == district) return place;
   }
   final text = district.trim();

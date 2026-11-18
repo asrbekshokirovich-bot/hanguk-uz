@@ -23,6 +23,7 @@ import '../features/worker/me/me_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
+import '../features/worker/onboarding/location_screen.dart';
 import '../features/worker/onboarding/phone_screens.dart';
 import '../features/worker/profile/profile_screens.dart';
 import '../features/worker/profile/worker_profile_draft.dart';
@@ -50,6 +51,7 @@ abstract final class WorkerRoutes {
   static const profileName = '/profile/name';
   static const profileLanguages = '/profile/languages';
   static const profileSchedule = '/profile/schedule';
+  static const profileLocation = '/profile/location';
 
   /// The tabs.
   static const feed = '/feed';
@@ -267,8 +269,12 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         path: WorkerRoutes.profileSchedule,
         builder: (context, state) => ProfileScheduleScreen(
           onBack: () => context.pop(),
-          onDone: () => context.go(WorkerRoutes.home),
+          onDone: () => context.go(WorkerRoutes.profileLocation),
         ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.profileLocation,
+        builder: (context, state) => LocationPermissionScreen(onContinue: () => context.go(WorkerRoutes.home)),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => Consumer(

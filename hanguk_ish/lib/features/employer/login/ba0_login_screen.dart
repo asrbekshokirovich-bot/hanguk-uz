@@ -92,7 +92,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const HiBrandTile(),
+                const HiBrandTile(employer: true),
                 const SizedBox(height: 20),
                 // One line as in the prototype; a longer badge
                 // («Для работодателя») goes under the name on a narrow
@@ -183,10 +183,11 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                   ),
                 ],
                 const SizedBox(height: 14),
+                // The whole sentence is the link, underlined to its end.
                 HiLinkSentence(
-                  prefix: Biz.termsPrefix,
-                  link: Biz.termsLink,
-                  suffix: Biz.termsSuffix,
+                  prefix: '',
+                  link: '${Biz.termsPrefix}${Biz.termsLink}${Biz.termsSuffix}',
+                  suffix: '',
                   style: hiStyle(
                     14,
                     FontWeight.w400,

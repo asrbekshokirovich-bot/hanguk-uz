@@ -240,7 +240,7 @@ class _ProfileNameScreenState extends ConsumerState<ProfileNameScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// A02 · 2/3 — languages, TOPIK, university, district
+// A02 · 2/3 — languages, TOPIK, city or province
 // ---------------------------------------------------------------------------
 
 /// Names of the spoken-language codes in the current UI language.
@@ -291,10 +291,7 @@ class ProfileLanguagesScreen extends ConsumerWidget {
     final draft = ref.watch(workerProfileDraftProvider);
     final controller = ref.read(workerProfileDraftProvider.notifier);
     final lang = ref.watch(appLanguageProvider).code;
-    final university = draft.university == notAStudentCode
-        ? l10n.notAStudent
-        : placeName(seoulUniversities, draft.university, lang);
-    final district = placeName(seoulDistricts, draft.district, lang);
+    final district = placeName(workAreas, draft.district, lang);
     return _ProfileStepFrame(
       step: 2,
       onBack: onBack,
@@ -355,23 +352,6 @@ class ProfileLanguagesScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              HiFieldLabel(l10n.university),
-              const SizedBox(height: 8),
-              HiSelectField(
-                icon: HiIcons.graduationCap,
-                value: university.isEmpty ? null : university,
-                placeholder: l10n.choose,
-                onTap: () => _pick(
-                  context,
-                  title: l10n.university,
-                  places: seoulUniversities,
-                  current: draft.university,
-                  languageCode: lang,
-                  onPicked: controller.setUniversity,
-                  extra: [HiPickerOption(notAStudentCode, l10n.notAStudent)],
-                ),
-              ),
-              const SizedBox(height: 14),
               HiFieldLabel(l10n.district),
               const SizedBox(height: 8),
               HiSelectField(
@@ -381,7 +361,7 @@ class ProfileLanguagesScreen extends ConsumerWidget {
                 onTap: () => _pick(
                   context,
                   title: l10n.district,
-                  places: seoulDistricts,
+                  places: workAreas,
                   current: draft.district,
                   languageCode: lang,
                   onPicked: controller.setDistrict,
@@ -396,7 +376,7 @@ class ProfileLanguagesScreen extends ConsumerWidget {
 }
 
 // ---------------------------------------------------------------------------
-// A02 · 3/3 — weekly availability and visa
+// A02 · 3/3 — weekly availability
 // ---------------------------------------------------------------------------
 
 class ProfileScheduleScreen extends ConsumerStatefulWidget {
@@ -433,7 +413,6 @@ class _ProfileScheduleScreenState extends ConsumerState<ProfileScheduleScreen> {
     final l10n = WorkerL10n.of(context);
     final draft = ref.watch(workerProfileDraftProvider);
     final controller = ref.read(workerProfileDraftProvider.notifier);
-    final visaLabels = {'D-2': 'D-2', 'D-4': 'D-4', 'other': l10n.visaOther};
     return _ProfileStepFrame(
       step: 3,
       onBack: widget.onBack,
@@ -463,35 +442,6 @@ class _ProfileScheduleScreenState extends ConsumerState<ProfileScheduleScreen> {
             slotRanges: const ['06–12', '12–18', '18–24', '00–06'],
             isOn: draft.isAvailable,
             onToggle: controller.toggleSlot,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 20, 22, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _SectionTitle(l10n.visaType),
-                  const SizedBox(width: 8),
-                  HiTag(l10n.optional),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  for (final visa in WorkerProfileDraft.visas) ...[
-                    if (visa != WorkerProfileDraft.visas.first) const SizedBox(width: 8),
-                    HiChoiceChip(
-                      label: visaLabels[visa]!,
-                      selected: draft.visa == visa,
-                      horizontalPadding: 16,
-                      onTap: () => controller.toggleVisa(visa),
-                    ),
-                  ],
-                ],
-              ),
-            ],
           ),
         ),
       ],

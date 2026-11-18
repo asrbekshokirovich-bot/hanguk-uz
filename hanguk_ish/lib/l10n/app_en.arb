@@ -32,7 +32,7 @@
   "topikMin": "0 — no certificate",
   "topikMax": "6 — highest",
   "university": "University",
-  "district": "District",
+  "district": "City or province",
   "choose": "Choose",
   "search": "Search",
   "notAStudent": "I'm not a student",
@@ -553,5 +553,9 @@
   "deleteAccountText": "Your profile, applications, messages and ratings will be deleted for good. This can't be undone.",
   "deleteAccountConfirm": "Yes, delete",
   "deleteAccountDone": "Your account has been deleted.",
-  "bizDeleteAccountText": "Your business, its shifts, applications and messages will be deleted for good. This can't be undone."
+  "bizDeleteAccountText": "Your business, its shifts, applications and messages will be deleted for good. This can't be undone.",
+  "locationTitle": "Turn on your location",
+  "locationSubtitle": "We need your location to show shifts nearby and how far they are. Employers never see your exact address.",
+  "locationAllow": "Allow location",
+  "locationLater": "Later"
 }

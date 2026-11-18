@@ -123,7 +123,7 @@ class _OwnerStartGateState extends ConsumerState<_OwnerStartGate> {
         glow: HiGlow.entry,
         child: Center(
           child: error == null
-              ? const HiBrandTile()
+              ? const HiBrandTile(employer: true)
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: EmployerLoadError(error: error, onRetry: _continue),

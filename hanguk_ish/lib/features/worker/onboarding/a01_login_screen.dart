@@ -260,10 +260,11 @@ class _TermsRow extends StatelessWidget {
               HiCheckbox(value: agreed),
               const SizedBox(width: 12),
               Expanded(
+                // The whole sentence is the link, underlined to its end.
                 child: HiLinkSentence(
-                  prefix: prefix,
-                  link: link,
-                  suffix: suffix,
+                  prefix: '',
+                  link: '$prefix$link$suffix',
+                  suffix: '',
                   style: base,
                   linkStyle: linkStyle,
                   onLink: onLink ?? () {},

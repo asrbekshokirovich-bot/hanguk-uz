@@ -141,7 +141,7 @@
   "@university": {
     "description": "A02-2: universitet maydoni."
   },
-  "district": "Tuman",
+  "district": "Shahar yoki viloyat",
   "@district": {
     "description": "A02-2: tuman maydoni."
   },
@@ -2825,5 +2825,21 @@
   "bizDeleteAccountText": "Korxonangiz, uning smenalari, arizalar va xabarlar butunlay o'chiriladi. Buni qaytarib bo'lmaydi.",
   "@bizDeleteAccountText": {
     "description": "사장님 ilovasi: akkauntni o'chirish tasdig'i — nima o'chishi (korxona va smenalar ham, Asrbek qarori 2026-11-13)."
+  },
+  "locationTitle": "Joylashuvingizni yoqing",
+  "@locationTitle": {
+    "description": "Joylashuv so'rovi ekrani: sarlavha."
+  },
+  "locationSubtitle": "Yaqin atrofdagi smenalarni va ularga qancha masofa borligini ko'rsatish uchun joylashuvingiz kerak. Aniq manzilingiz ish beruvchilarga ko'rsatilmaydi.",
+  "@locationSubtitle": {
+    "description": "Joylashuv so'rovi ekrani: izoh."
+  },
+  "locationAllow": "Joylashuvga ruxsat berish",
+  "@locationAllow": {
+    "description": "Joylashuv so'rovi ekrani: ruxsat tugmasi."
+  },
+  "locationLater": "Keyinroq",
+  "@locationLater": {
+    "description": "Joylashuv so'rovi ekrani: o'tkazib yuborish."
   }
 }
