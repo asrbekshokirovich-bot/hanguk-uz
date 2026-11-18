@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/monthly_job.dart';
 import '../../../data/repositories/monthly_job_repository.dart';
+import '../../../data/repositories/shift_repository.dart' show OfflineException;
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';
 import '../../../design/tokens.dart';

@@ -18,7 +18,7 @@ const demoMonthlyJobs = <MonthlyJob>[
         'title': 'Kafe baristasi (doimiy)',
         'company': 'Dalbit Kafe · Sinchon',
         'area': 'Mapo-gu, Seul',
-        'description': "Haftasiga 5 kun, kuniga 8 soat. Ichimliklar tayyorlash va do'konni yuritish. Ijtimoiy sug'urta, ovqat beriladi.",
+        'description': 'Haftasiga 5 kun, kuniga 8 soat. Ichimliklar tayyorlash va do\'konni yuritish. Ijtimoiy sug\'urta, ovqat beriladi.',
       },
       'ru': {
         'title': 'Бариста в кафе (постоянно)',
@@ -49,7 +49,7 @@ const demoMonthlyJobs = <MonthlyJob>[
         'title': 'Logistika markazi: yuk ortish va tushirish',
         'company': 'Sangam Logistika',
         'area': 'Mapo-gu, Seul',
-        'description': "Haftasiga 5 kun, kunduzgi smena. Yuk ortish-tushirish va saralash. Yotoqxona berilishi mumkin.",
+        'description': 'Haftasiga 5 kun, kunduzgi smena. Yuk ortish-tushirish va saralash. Yotoqxona berilishi mumkin.',
       },
       'ru': {
         'title': 'Логистический центр: погрузка и разгрузка',
@@ -80,7 +80,7 @@ const demoMonthlyJobs = <MonthlyJob>[
         'title': 'Restoran zalida xizmat',
         'company': 'Ttukbaegi Sikdang',
         'area': 'Mapo-gu, Seul',
-        'description': "Haftasiga 6 kun, kuniga 7 soat (asosan kechqurun). Xizmat va tozalash. Ovqat beriladi.",
+        'description': 'Haftasiga 6 kun, kuniga 7 soat (asosan kechqurun). Xizmat va tozalash. Ovqat beriladi.',
       },
       'ru': {
         'title': 'Официант в ресторане',

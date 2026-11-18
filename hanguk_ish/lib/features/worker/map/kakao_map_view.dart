@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart' show WebViewPlatform;
 
 /// The Kakao Maps JavaScript key (a *JS* key, bound to the allowed domain
 /// `https://hanguk.uz` in the Kakao console — the student app uses the same
