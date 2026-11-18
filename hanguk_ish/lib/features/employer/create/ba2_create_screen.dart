@@ -838,16 +838,23 @@ class _WageField extends StatelessWidget {
             child: Semantics(
               label: Biz.wage,
               textField: true,
-              child: TextField(
-                controller: controller,
-                style: text,
-                strutStyle: hiStrut(text),
-                cursorColor: HiColors.ink,
-                keyboardType: TextInputType.number,
-                inputFormatters: [ThousandsFormatter()],
-                onChanged: (_) => onChanged(),
-                maxLines: 1,
-                decoration: const InputDecoration.collapsed(hintText: null),
+              // Fills the field's height: the whole box is the tap target
+              // (a bare line of text would be 31 px, under the 40 px minimum).
+              child: SizedBox(
+                height: double.infinity,
+                child: TextField(
+                  controller: controller,
+                  style: text,
+                  strutStyle: hiStrut(text),
+                  cursorColor: HiColors.ink,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [ThousandsFormatter()],
+                  onChanged: (_) => onChanged(),
+                  expands: true,
+                  maxLines: null,
+                  textAlignVertical: TextAlignVertical.center,
+                  decoration: const InputDecoration.collapsed(hintText: null),
+                ),
               ),
             ),
           ),

@@ -13,6 +13,7 @@ import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/auth.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/design/widgets/controls.dart' show HiCheckbox;
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
 
@@ -238,6 +239,8 @@ void main() {
       ]);
       addTearDown(container.dispose);
       await tester.pumpWidget(appHarness(container));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(HiCheckbox)); // the terms box starts unticked
       await tester.pumpAndSettle();
       await tester.tap(find.text('Telegram bilan'));
       await tester.pumpAndSettle();
