@@ -355,9 +355,11 @@ class _MyShiftCard extends ConsumerWidget {
       case ApplicationStatus.completed:
         return (
           _Pill.big(icon: HiIcons.check, text: l10n.statusDone, background: HiColors.surface, foreground: HiColors.ink),
-          app.isPaid
-              ? _Pill.status(text: l10n.paymentPaid, background: HiColors.greenSoft, dot: HiColors.green)
-              : _Pill.status(text: l10n.paymentPending, background: HiColors.amberSoft, dot: HiColors.amber),
+          app.paidLess
+              ? _Pill.status(text: l10n.paymentLess, background: HiColors.amberSoft, dot: HiColors.amber)
+              : app.isPaid
+                  ? _Pill.status(text: l10n.paymentPaid, background: HiColors.greenSoft, dot: HiColors.green)
+                  : _Pill.status(text: l10n.paymentPending, background: HiColors.amberSoft, dot: HiColors.amber),
         );
       case ApplicationStatus.noShow:
         return (
