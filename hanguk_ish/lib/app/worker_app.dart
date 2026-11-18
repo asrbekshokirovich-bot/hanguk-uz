@@ -12,6 +12,7 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import '../design/widgets/backdrop.dart';
 import '../design/widgets/brand.dart';
+import '../features/worker/feed/feed_controller.dart';
 import '../features/worker/feed/feed_screen.dart';
 import '../features/worker/load_error.dart';
 import '../features/worker/chat/chat_screen.dart';
@@ -20,7 +21,6 @@ import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
 import '../features/worker/map/native_kakao_map.dart' show kakaoNativeStarted;
 import '../features/worker/me/me_screen.dart';
-import '../features/worker/monthly/monthly_jobs_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
@@ -63,9 +63,6 @@ abstract final class WorkerRoutes {
   static const me = '/me';
 
   static const notifications = '/notifications';
-
-  /// «Oylik ishlar»: jobs paid by the month.
-  static const monthly = '/monthly';
 
   /// Where the app opens once signed in.
   static const home = feed;
@@ -110,7 +107,10 @@ FeedActions _feedActions(BuildContext context) => FeedActions(
       openShift: (shift) => context.push(WorkerRoutes.shift(shift.id)),
       takeShift: (shift) => takeShift(context, shift),
       openFeed: () => context.go(WorkerRoutes.feed),
-      openMonthly: () => context.push(WorkerRoutes.monthly),
+      openMonthly: () {
+        ProviderScope.containerOf(context).read(feedModeProvider.notifier).set(FeedMode.monthly);
+        context.go(WorkerRoutes.feed);
+      },
       openNotifications: () => context.push(WorkerRoutes.notifications),
     );
 
@@ -395,12 +395,6 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ChatScreen(
           applicationId: state.pathParameters['app']!,
           onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
-        ),
-      ),
-      GoRoute(
-        path: WorkerRoutes.monthly,
-        builder: (context, state) => MonthlyJobsScreen(
-          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
         ),
       ),
       GoRoute(

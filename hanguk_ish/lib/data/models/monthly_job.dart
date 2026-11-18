@@ -12,6 +12,10 @@ class MonthlyJob {
     required this.company,
     this.area = '',
     this.address = '',
+    this.lat,
+    this.lng,
+    this.category,
+    this.workTime,
     required this.monthlyWage,
     this.daysPerWeek,
     this.hoursPerDay,
@@ -27,6 +31,14 @@ class MonthlyJob {
   final String company;
   final String area;
   final String address;
+  final double? lat;
+  final double? lng;
+
+  /// A `BusinessCategory` name (cafe, restaurant, …), for the feed's «Soha».
+  final String? category;
+
+  /// 'day' or 'night' (the feed's «Vaqt»); null = either.
+  final String? workTime;
 
   /// Whole won a month.
   final int monthlyWage;
@@ -59,6 +71,10 @@ class MonthlyJob {
         company: company,
         area: area,
         address: address,
+        lat: lat,
+        lng: lng,
+        category: category,
+        workTime: workTime,
         monthlyWage: monthlyWage,
         daysPerWeek: daysPerWeek,
         hoursPerDay: hoursPerDay,

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,99 +7,74 @@ import '../../../data/models/monthly_job.dart';
 import '../../../data/repositories/monthly_job_repository.dart';
 import '../../../data/repositories/shift_repository.dart' show OfflineException;
 import '../../../design/icons.dart';
-import '../../../design/insets.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
-import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
-import '../../../design/widgets/forms.dart' show HiTopBar;
-import '../../../design/widgets/navigation.dart' show HiStatusMessage;
 import '../../../l10n/gen/worker_l10n.dart';
-import '../load_error.dart';
-import '../settings/app_language.dart';
+import '../feed/feed_area.dart';
+import '../feed/feed_controller.dart';
 
-/// The open monthly jobs. Reloaded by pull-to-refresh and by [ref.invalidate].
+/// The open monthly jobs, as the server has them. Reloaded by pull-to-refresh
+/// and by [ref.invalidate].
 final monthlyJobsProvider = FutureProvider.autoDispose<List<MonthlyJob>>(
   (ref) => ref.watch(monthlyJobRepositoryProvider).list(),
   retry: (count, error) => null,
 );
 
-/// «Oylik ishlar»: jobs paid by the month. No day tabs — a monthly job has no
-/// day — only the pay, the days a week and the place, and «Qiziqaman».
-class MonthlyJobsScreen extends ConsumerWidget {
-  const MonthlyJobsScreen({super.key, required this.onBack});
+/// The monthly jobs the feed's filters let through (the same chips as the
+/// day shifts: pay, distance, field, time of day).
+final visibleMonthlyJobsProvider = Provider.autoDispose<AsyncValue<List<MonthlyJob>>>((ref) {
+  final filter = ref.watch(feedFilterProvider);
+  final area = ref.watch(feedAreaProvider).value;
+  return ref.watch(monthlyJobsProvider).whenData(
+        (jobs) => [for (final j in jobs) if (monthlyJobMatches(j, filter, area)) j],
+      );
+});
 
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = WorkerL10n.of(context);
-    final lang = ref.watch(appLanguageProvider).code;
-    final jobs = ref.watch(monthlyJobsProvider);
-    final Widget body = jobs.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: HiColors.lime)),
-      error: (error, _) => WorkerLoadError(error: error, onRetry: () => ref.invalidate(monthlyJobsProvider)),
-      data: (list) => list.isEmpty
-          ? HiStatusMessage(
-              icon: HiIcons.briefcase,
-              title: l10n.monthlyJobsEmpty,
-              text: l10n.monthlyJobsEmptyText,
-              textMaxWidth: 300,
-            )
-          : RefreshIndicator(
-              color: HiColors.ink,
-              onRefresh: () async => refreshOrSay(context, ref.refresh(monthlyJobsProvider.future)),
-              child: ListView.separated(
-                padding: EdgeInsets.fromLTRB(18, 8, 22, HiInsets.bottom(context, 24)),
-                itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 14),
-                itemBuilder: (context, i) => _MonthlyJobCard(job: list[i], lang: lang),
-              ),
-            ),
-    );
-    return Scaffold(
-      backgroundColor: HiColors.navy,
-      body: HiBackdrop(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(18, HiInsets.top(context, 56), 22, 0),
-              child: HiTopBar(title: l10n.monthlyJobsTitle, onBack: onBack),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 22, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: HiText(l10n.monthlyJobsTitle, style: hiStyle(28, FontWeight.w800, height: 1.15, letterSpacingEm: -0.02)),
-                  ),
-                  const SizedBox(height: 6),
-                  HiText(l10n.monthlyJobsSubtitle, style: hiStyle(14, FontWeight.w500, height: 1.4, color: HiColors.textSoft)),
-                ],
-              ),
-            ),
-            Expanded(child: body),
-          ],
-        ),
-      ),
-    );
+/// Whether [job] passes [filter]. A job that does not say where it is, or when
+/// (day or night), is not shut out by a distance or time filter; a field
+/// filter needs the job's field.
+bool monthlyJobMatches(MonthlyJob job, FeedFilter filter, FeedArea? area) {
+  final minWage = filter.monthlyMinWage;
+  if (minWage != null && job.monthlyWage < minWage) return false;
+  if (filter.categories.isNotEmpty && !filter.categories.any((c) => c.name == job.category)) return false;
+  if (filter.dayParts.isNotEmpty && job.workTime != null) {
+    final day = filter.dayParts.contains(0) || filter.dayParts.contains(1);
+    final night = filter.dayParts.contains(2) || filter.dayParts.contains(3);
+    if (job.workTime == 'day' && !day) return false;
+    if (job.workTime == 'night' && !night) return false;
   }
+  final radius = filter.radiusKm;
+  final lat = area?.lat;
+  final lng = area?.lng;
+  if (radius != null && lat != null && lng != null && job.lat != null && job.lng != null) {
+    if (_distanceKm(lat, lng, job.lat!, job.lng!) > radius) return false;
+  }
+  return true;
 }
 
-class _MonthlyJobCard extends ConsumerStatefulWidget {
-  const _MonthlyJobCard({required this.job, required this.lang});
+double _distanceKm(double lat1, double lng1, double lat2, double lng2) {
+  const r = 6371.0;
+  double rad(double d) => d * math.pi / 180;
+  final dLat = rad(lat2 - lat1);
+  final dLng = rad(lng2 - lng1);
+  final a = math.pow(math.sin(dLat / 2), 2) + math.cos(rad(lat1)) * math.cos(rad(lat2)) * math.pow(math.sin(dLng / 2), 2);
+  return 2 * r * math.asin(math.sqrt(a));
+}
+
+/// One monthly job: title, company, monthly pay, days a week, place, and
+/// «Qiziqaman» (the staff then call both sides).
+class MonthlyJobCard extends ConsumerStatefulWidget {
+  const MonthlyJobCard({super.key, required this.job, required this.lang});
 
   final MonthlyJob job;
   final String lang;
 
   @override
-  ConsumerState<_MonthlyJobCard> createState() => _MonthlyJobCardState();
+  ConsumerState<MonthlyJobCard> createState() => _MonthlyJobCardState();
 }
 
-class _MonthlyJobCardState extends ConsumerState<_MonthlyJobCard> {
+class _MonthlyJobCardState extends ConsumerState<MonthlyJobCard> {
   bool _busy = false;
 
   Future<void> _toggle(bool apply) async {
