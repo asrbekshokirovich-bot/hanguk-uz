@@ -76,6 +76,7 @@ void main() {
       addTearDown(container.dispose);
       await tester.pumpWidget(appHarness(container));
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Ilova tili'), 300);
       await tester.tap(find.text('Ilova tili'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Русский'));
