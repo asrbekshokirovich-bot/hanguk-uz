@@ -9,7 +9,6 @@ import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_controller.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_screen.dart';
 import 'package:hanguk_ish/features/worker/map/map_screen.dart';
-import 'package:hanguk_ish/features/worker/monthly/monthly_jobs_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_detail_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
 
@@ -171,7 +170,8 @@ void main() {
     expect(find.text('Yuk saralash'), findsOneWidget);
   });
 
-  testWidgets('bottom menu; the header opens the monthly jobs (no day tabs) and back', (tester) async {
+  testWidgets('bottom menu; the header pill turns A03 into monthly jobs (no day tabs, same filters) and back',
+      (tester) async {
     await start(tester);
     await tester.tap(find.text('Xarita').last);
     await tester.pumpAndSettle();
@@ -185,20 +185,36 @@ void main() {
     expect(find.text('Bugun'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('Oylik ishlar'));
     await tester.pumpAndSettle();
-    expect(find.byType(MonthlyJobsScreen), findsOneWidget);
+    // The same screen, now the monthly jobs: no day tabs, the filters stay.
+    expect(find.byType(FeedScreen), findsOneWidget);
     expect(find.text('Bugun'), findsNothing, reason: 'a monthly job has no day');
     expect(find.text('Ertaga'), findsNothing);
+    expect(find.text('Hafta oxiri'), findsNothing);
+    for (final chip in ['Maosh', 'Masofa', 'Soha', 'Vaqt']) {
+      expect(find.textContaining(chip), findsOneWidget, reason: chip);
+    }
     expect(find.text('Kafe baristasi (doimiy)'), findsOneWidget);
     expect(find.text(Won.worker(2300000)), findsOneWidget);
+
+    // The pay filter counts monthly pay: 2 600 000+ keeps only the logistics job.
+    await tester.tap(find.text('Maosh'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('${Won.worker(2600000)}+'));
+    await tester.pumpAndSettle();
+    expect(find.text('Kafe baristasi (doimiy)'), findsNothing);
+    expect(find.text('Logistika markazi: yuk ortish va tushirish'), findsOneWidget);
+
     await tester.tap(find.text('Qiziqaman').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('Qiziqish bildirildi'), findsOneWidget);
     await tester.tap(find.text('Bekor qilish'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Qiziqish bildirildi'), findsNothing);
-    await tester.tap(find.byType(HiBackButton));
+
+    // Back to the day shifts with the same pill.
+    await tester.tap(find.bySemanticsLabel('Smenalar').first);
     await tester.pumpAndSettle();
-    expect(find.byType(FeedScreen), findsOneWidget);
+    expect(find.text('Bugun'), findsOneWidget);
   });
 
   testWidgets('the detail page of a full or taken shift cannot be taken again', (tester) async {

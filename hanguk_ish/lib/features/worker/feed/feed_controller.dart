@@ -11,12 +11,26 @@ import 'feed_area.dart';
 /// The three day tabs of A03 / A04.
 enum FeedDay { today, tomorrow, weekend }
 
+/// What A03 lists: one-day shifts, or jobs paid by the month (the header
+/// button switches; the monthly list has no day tabs, the filters stay).
+enum FeedMode { daily, monthly }
+
+final feedModeProvider = NotifierProvider<FeedModeController, FeedMode>(FeedModeController.new);
+
+class FeedModeController extends Notifier<FeedMode> {
+  @override
+  FeedMode build() => FeedMode.daily;
+
+  void set(FeedMode mode) => state = mode;
+}
+
 /// Filters of the feed and the map (shared, so switching views keeps them).
 @immutable
 class FeedFilter {
   const FeedFilter({
     this.day = FeedDay.today,
     this.minWage,
+    this.monthlyMinWage,
     this.radiusKm = 3,
     this.categories = const {},
     this.dayParts = const {},
@@ -27,6 +41,9 @@ class FeedFilter {
   /// Only shifts paying at least this per hour; null = any.
   final int? minWage;
 
+  /// Monthly jobs: at least this much a month; null = any.
+  final int? monthlyMinWage;
+
   /// Within this many km of the worker; null = any distance. The prototype
   /// opens with 3 km.
   final int? radiusKm;
@@ -36,12 +53,15 @@ class FeedFilter {
   final Set<int> dayParts;
 
   static const wageOptions = [11000, 12000, 13000];
+  static const monthlyWageOptions = [2000000, 2300000, 2600000, 3000000];
   static const radiusOptions = [1, 3, 5, 10];
 
   FeedFilter copyWith({
     FeedDay? day,
     int? minWage,
     bool clearMinWage = false,
+    int? monthlyMinWage,
+    bool clearMonthlyMinWage = false,
     int? radiusKm,
     bool clearRadius = false,
     Set<BusinessCategory>? categories,
@@ -50,6 +70,7 @@ class FeedFilter {
       FeedFilter(
         day: day ?? this.day,
         minWage: clearMinWage ? null : (minWage ?? this.minWage),
+        monthlyMinWage: clearMonthlyMinWage ? null : (monthlyMinWage ?? this.monthlyMinWage),
         radiusKm: clearRadius ? null : (radiusKm ?? this.radiusKm),
         categories: categories ?? this.categories,
         dayParts: dayParts ?? this.dayParts,
@@ -85,6 +106,9 @@ class FeedFilterController extends Notifier<FeedFilter> {
 
   void setMinWage(int? wage) =>
       state = wage == null ? state.copyWith(clearMinWage: true) : state.copyWith(minWage: wage);
+
+  void setMonthlyMinWage(int? wage) =>
+      state = wage == null ? state.copyWith(clearMonthlyMinWage: true) : state.copyWith(monthlyMinWage: wage);
 
   void setRadius(int? km) => state = km == null ? state.copyWith(clearRadius: true) : state.copyWith(radiusKm: km);
 

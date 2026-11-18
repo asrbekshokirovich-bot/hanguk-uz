@@ -15,6 +15,8 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../load_error.dart';
+import '../monthly/monthly_jobs.dart';
 import '../notifications/unread.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_widgets.dart';
@@ -46,6 +48,14 @@ class FeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // «Oylik ishlar»: the same screen with jobs paid by the month — no day
+    // tabs, the same filters.
+    if (ref.watch(feedModeProvider) == FeedMode.monthly) {
+      return Scaffold(
+        backgroundColor: HiColors.navy,
+        body: HiBackdrop(child: _MonthlyBody(actions: actions)),
+      );
+    }
     final feed = ref.watch(feedProvider);
     final offline = !feed.isLoading && feed.hasError && feed.error is OfflineException;
     return Scaffold(
@@ -55,6 +65,53 @@ class FeedScreen extends ConsumerWidget {
         // fragment of it showed, like stray letters.
         child: offline ? _OfflineBody(actions: actions) : _FeedBody(feed: feed, actions: actions),
       ),
+    );
+  }
+}
+
+/// A03 in «Oylik ishlar» mode: the monthly jobs the filters let through.
+class _MonthlyBody extends ConsumerWidget {
+  const _MonthlyBody({required this.actions});
+
+  final FeedActions actions;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = WorkerL10n.of(context);
+    final lang = ref.watch(appLanguageProvider).code;
+    final jobs = ref.watch(visibleMonthlyJobsProvider);
+    final Widget body = jobs.when(
+      loading: () => const Center(child: CircularProgressIndicator(color: HiColors.lime)),
+      error: (error, _) => WorkerLoadError(error: error, onRetry: () => ref.invalidate(monthlyJobsProvider)),
+      data: (list) => list.isEmpty
+          ? HiStatusMessage(
+              icon: HiIcons.briefcase,
+              title: l10n.monthlyJobsEmpty,
+              text: l10n.monthlyJobsEmptyText,
+              textMaxWidth: 300,
+              action: l10n.emptyAction,
+              actionIcon: HiIcons.slidersHorizontal,
+              onAction: () => showFeedFilters(context, ref),
+            )
+          : RefreshIndicator(
+              color: HiColors.ink,
+              backgroundColor: HiColors.lime,
+              onRefresh: () async => refreshOrSay(context, ref.refresh(monthlyJobsProvider.future)),
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(18, 0, 22, 24),
+                itemCount: list.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 16),
+                itemBuilder: (context, i) => MonthlyJobCard(job: list[i], lang: lang),
+              ),
+            ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FeedHeader(title: l10n.monthlyJobsTitle, onNotifications: actions.openNotifications),
+        const SizedBox(height: 6),
+        Expanded(child: body),
+      ],
     );
   }
 }
@@ -107,7 +164,6 @@ class _FeedBody extends ConsumerWidget {
       children: [
         FeedHeader(
           title: l10n.feedTitle,
-          onMonthly: actions.openMonthly,
           onNotifications: actions.openNotifications,
           count: skeleton || failed ? null : shifts.length,
         ),
@@ -123,7 +179,7 @@ class FeedHeader extends ConsumerWidget {
   const FeedHeader({
     super.key,
     required this.title,
-    required this.onMonthly,
+    this.onMonthly,
     required this.onNotifications,
     this.count,
     this.showLocation = true,
@@ -132,8 +188,9 @@ class FeedHeader extends ConsumerWidget {
   });
 
   final String title;
-  /// «Oylik ishlar»: the jobs paid by the month (their own screen, no days).
-  final VoidCallback onMonthly;
+  /// The header pill: on the map it goes to the monthly jobs; on A03 (null)
+  /// it switches the list between day shifts and monthly jobs.
+  final VoidCallback? onMonthly;
   final VoidCallback onNotifications;
 
   /// «· 12 ta smena»; null while loading.
@@ -155,6 +212,10 @@ class FeedHeader extends ConsumerWidget {
     final area = ref.watch(feedAreaProvider).value;
     final unread = ref.watch(unreadNotificationsProvider);
     final shownCount = count;
+    // On A03 the pill switches the list; on the map (it has onMonthly) the map
+    // stays a day view.
+    final mode = ref.watch(feedModeProvider);
+    final monthly = onMonthly == null && mode == FeedMode.monthly;
     return Padding(
       padding: EdgeInsets.only(top: HiInsets.top(context, 56)),
       child: Column(
@@ -176,7 +237,12 @@ class FeedHeader extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _MonthlyButton(label: l10n.monthlyJobsShort, onTap: onMonthly),
+                _MonthlyButton(
+                  label: monthly ? l10n.feedTitle : l10n.monthlyJobsShort,
+                  icon: monthly ? HiIcons.briefcase : HiIcons.calendarCheck,
+                  onTap: onMonthly ??
+                      () => ref.read(feedModeProvider.notifier).set(monthly ? FeedMode.daily : FeedMode.monthly),
+                ),
                 const SizedBox(width: 8),
                 HiGlassIconButton(
                   icon: HiIcons.bell,
@@ -208,15 +274,17 @@ class FeedHeader extends ConsumerWidget {
               child: OfflineBar(),
             ),
           ],
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: HiSegmentedTabs(
-              labels: [l10n.dayToday, l10n.dayTomorrow, l10n.dayWeekend],
-              current: filter.day.index,
-              onSelect: (i) => controller.setDay(FeedDay.values[i]),
+          if (!monthly) ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: HiSegmentedTabs(
+                labels: [l10n.dayToday, l10n.dayTomorrow, l10n.dayWeekend],
+                current: filter.day.index,
+                onSelect: (i) => controller.setDay(FeedDay.values[i]),
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -230,10 +298,10 @@ class FeedHeader extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 HiFilterChip(
-                  label: filter.minWage == null
+                  label: (monthly ? filter.monthlyMinWage : filter.minWage) == null
                       ? l10n.filterPay
-                      : l10n.filterPayValue(Won.worker(filter.minWage!)),
-                  active: filter.minWage != null,
+                      : l10n.filterPayValue(Won.worker((monthly ? filter.monthlyMinWage : filter.minWage)!)),
+                  active: (monthly ? filter.monthlyMinWage : filter.minWage) != null,
                   background: chipBackground,
                   onTap: () => _pickWage(context, ref),
                 ),
@@ -267,11 +335,12 @@ class FeedHeader extends ConsumerWidget {
   }
 }
 
-/// The header pill that opens the monthly jobs.
+/// The header pill: «Oylik ishlar» (to the monthly jobs) / «Smenalar» (back).
 class _MonthlyButton extends StatelessWidget {
-  const _MonthlyButton({required this.label, required this.onTap});
+  const _MonthlyButton({required this.label, required this.icon, required this.onTap});
 
   final String label;
+  final HiIconData icon;
   final VoidCallback onTap;
 
   @override
@@ -290,7 +359,7 @@ class _MonthlyButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const HiIcon(HiIcons.calendarCheck, size: 18, strokeWidth: 2, color: HiColors.white),
+            HiIcon(icon, size: 18, strokeWidth: 2, color: HiColors.white),
             const SizedBox(width: 8),
             Flexible(
               child: HiText(
@@ -527,7 +596,9 @@ class _OfflineBody extends ConsumerWidget {
 
 Future<void> _pickWage(BuildContext context, WidgetRef ref) async {
   final l10n = WorkerL10n.of(context);
-  final current = ref.read(feedFilterProvider).minWage;
+  final monthly = ref.read(feedModeProvider) == FeedMode.monthly;
+  final filter = ref.read(feedFilterProvider);
+  final current = monthly ? filter.monthlyMinWage : filter.minWage;
   final value = await showHiPicker(
     context,
     title: l10n.filterPay,
@@ -536,12 +607,14 @@ Future<void> _pickWage(BuildContext context, WidgetRef ref) async {
     selected: '${current ?? 0}',
     options: [
       HiPickerOption('0', l10n.filterAny),
-      for (final w in FeedFilter.wageOptions) HiPickerOption('$w', '${Won.worker(w)}+'),
+      for (final w in monthly ? FeedFilter.monthlyWageOptions : FeedFilter.wageOptions)
+        HiPickerOption('$w', '${Won.worker(w)}+'),
     ],
   );
   if (value == null) return;
   final wage = int.parse(value);
-  ref.read(feedFilterProvider.notifier).setMinWage(wage == 0 ? null : wage);
+  final controller = ref.read(feedFilterProvider.notifier);
+  monthly ? controller.setMonthlyMinWage(wage == 0 ? null : wage) : controller.setMinWage(wage == 0 ? null : wage);
 }
 
 Future<void> _pickRadius(BuildContext context, WidgetRef ref) async {
