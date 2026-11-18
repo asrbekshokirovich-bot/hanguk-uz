@@ -32,6 +32,7 @@ class NotificationActions {
     required this.feed,
     required this.chat,
     required this.earnings,
+    this.confirmPay,
   });
 
   final void Function(HiNotification n) directions;
@@ -40,6 +41,9 @@ class NotificationActions {
   final VoidCallback feed;
   final void Function(String applicationId) chat;
   final VoidCallback earnings;
+
+  /// «Maosh to'landimi?» for a finished shift (opens the payment sheet).
+  final void Function(HiNotification n)? confirmPay;
 }
 
 /// A12 «Bildirishnomalar». Unread ones keep the unread look while the screen
@@ -255,11 +259,10 @@ class _NotificationCard extends StatelessWidget {
           if ((n.note ?? '').trim().isNotEmpty) l10n.offerNote(n.note!.trim()),
         ].join('\n'),
       // «Dalbit Kafe: 10-noyabr smenasi yakunlandi. Hisoblangan maosh: 52 500 ₩.»
-      NotificationKind.finished => l10n.notifFinishedText(
-          business,
-          day,
-          Won.worker(n.amount ?? 0),
-        ),
+      NotificationKind.finished => [
+          l10n.notifFinishedText(business, day, Won.worker(n.amount ?? 0)),
+          if (n.receivedAmount != null) l10n.payReceivedLine(Won.worker(n.receivedAmount!)),
+        ].join('\n'),
     });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);
 
@@ -287,7 +290,11 @@ class _NotificationCard extends StatelessWidget {
           ? null
           : _LinkAction(label: l10n.view, fresh: fresh, onTap: () => actions.shift(n.shiftId!)),
       // The pay and the work of the day: the earnings list.
-      NotificationKind.finished => _LinkAction(label: l10n.view, fresh: fresh, onTap: actions.earnings),
+      // «Maosh to'landimi?»: say what was paid (or change what was said).
+      NotificationKind.finished => _LimeAction(
+          label: n.receivedAmount == null ? l10n.payAskAction : l10n.payChange,
+          onTap: () => (actions.confirmPay ?? (_) => actions.earnings())(n),
+        ),
     };
 
     return Semantics(

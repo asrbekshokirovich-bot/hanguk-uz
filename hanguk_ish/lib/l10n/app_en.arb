@@ -573,5 +573,17 @@
   "monthlyInterested": "I'm interested",
   "monthlyInterestSent": "Interest sent",
   "monthlyInterestNote": "A Hanguk staff member will contact you.",
-  "monthlyWithdraw": "Withdraw"
+  "monthlyWithdraw": "Withdraw",
+  "payAskTitle": "Were you paid?",
+  "payAskExpected": "Calculated pay: {amount}",
+  "payAskFull": "Paid in full",
+  "payAskLess": "Paid less",
+  "payAskAmountLabel": "How much did you get? (₩)",
+  "payAskSave": "Save",
+  "payAskTooMuch": "The amount cannot be more than the calculated pay. If you got it all, tap \"Paid in full\".",
+  "payAskSaved": "Added to your earnings",
+  "payAskAction": "Confirm pay",
+  "payReceivedLine": "You received {amount}",
+  "payChange": "Change",
+  "paymentLess": "Paid less"
 }

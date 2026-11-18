@@ -573,5 +573,17 @@
   "monthlyInterested": "관심 있어요",
   "monthlyInterestSent": "관심을 보냈어요",
   "monthlyInterestNote": "Hanguk 담당자가 연락드려요.",
-  "monthlyWithdraw": "취소"
+  "monthlyWithdraw": "취소",
+  "payAskTitle": "급여를 받으셨나요?",
+  "payAskExpected": "정산 금액: {amount}",
+  "payAskFull": "전액 받았어요",
+  "payAskLess": "덜 받았어요",
+  "payAskAmountLabel": "받은 금액 (₩)",
+  "payAskSave": "저장",
+  "payAskTooMuch": "정산 금액보다 클 수 없어요. 전액 받으셨다면 '전액 받았어요'를 눌러 주세요.",
+  "payAskSaved": "수입에 반영했어요",
+  "payAskAction": "급여 확인",
+  "payReceivedLine": "받은 금액 {amount}",
+  "payChange": "변경",
+  "paymentLess": "덜 받음"
 }

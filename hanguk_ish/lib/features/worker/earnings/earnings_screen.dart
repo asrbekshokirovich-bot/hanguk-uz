@@ -55,7 +55,9 @@ class EarningsScreen extends ConsumerWidget {
         .toList()
       ..sort((a, b) => b.shift.startsAt.compareTo(a.shift.startsAt));
     final total = done.fold<int>(0, (sum, a) => sum + a.pay);
-    final paid = done.where((a) => a.isPaid).fold<int>(0, (sum, a) => sum + a.pay);
+    // What the worker has in hand: the amount they said they received, or the
+    // pay when the business marked it paid.
+    final paid = done.fold<int>(0, (sum, a) => sum + a.received);
     final minutes = done.fold<int>(0, (sum, a) => sum + (a.workedMinutes ?? a.shift.plannedMinutes));
     final monthInstant = Kst.instantOf(month.year, month.month, 15);
 
@@ -336,13 +338,13 @@ class _EarningRow extends StatelessWidget {
                   height: 24,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
-                    color: app.isPaid ? HiColors.greenSoft : HiColors.amberSoft,
+                    color: app.isPaid && !app.paidLess ? HiColors.greenSoft : HiColors.amberSoft,
                     borderRadius: BorderRadius.circular(HiRadii.pill),
                   ),
                   alignment: Alignment.center,
                   child: HiText(
-                    app.isPaid ? l10n.paymentPaid : l10n.paymentPending,
-                    style: hiStyle(12, FontWeight.w800, color: app.isPaid ? HiColors.greenInk : HiColors.ink),
+                    app.paidLess ? l10n.paymentLess : (app.isPaid ? l10n.paymentPaid : l10n.paymentPending),
+                    style: hiStyle(12, FontWeight.w800, color: app.isPaid && !app.paidLess ? HiColors.greenInk : HiColors.ink),
                   ),
                 ),
               ],

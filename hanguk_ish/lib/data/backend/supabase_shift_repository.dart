@@ -117,6 +117,15 @@ class SupabaseShiftRepository implements ShiftRepository {
       });
 
   @override
+  Future<MyShift> confirmPayment(String applicationId, int amount) => backendCall(() async {
+        if (amount < 0) throw const ShiftActionException('INVALID');
+        await _client.rpc('confirm_payment', params: {'p_application': applicationId, 'p_amount': amount});
+        final fresh = await _myShiftOrNull(applicationId);
+        if (fresh == null) throw const ShiftActionException('NOT_FOUND');
+        return fresh;
+      });
+
+  @override
   Future<List<ChatMessage>> messages(String applicationId) => backendCall(() async {
         final me = _me;
         final rows = await _client

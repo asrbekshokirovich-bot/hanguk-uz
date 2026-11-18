@@ -94,6 +94,11 @@ abstract interface class ShiftRepository {
   /// A08 → `rate_business`.
   Future<void> rateBusiness(String applicationId, int stars, Set<RatingTag> tags);
 
+  /// After the shift: «belgilangan pul berildimi yoki kamroqmi?» — the
+  /// worker says what they received (whole won) → `confirm_payment`. A9
+  /// counts it as paid at once; less than the pay tells the staff.
+  Future<MyShift> confirmPayment(String applicationId, int amount);
+
   /// A10: the chat of one application, oldest first.
   Future<List<ChatMessage>> messages(String applicationId);
 

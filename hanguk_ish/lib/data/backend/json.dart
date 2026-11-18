@@ -168,6 +168,8 @@ MyShift myShiftFromJson(Json json, {PublicUrl publicUrl = _noUrl}) => MyShift(
       workedMinutes: _intOrNull(json['worked_minutes']),
       payAmount: _intOrNull(json['pay_amount']),
       paidAt: _date(json['paid_at']),
+      receivedAmount: _intOrNull(json['received_amount']),
+      receivedAt: _date(json['received_at']),
       cancelledAt: _date(json['cancelled_at']),
       lateCancel: _bool(json['late_cancel']),
       myStars: _intOrNull(json['my_stars']),
@@ -255,6 +257,7 @@ HiNotification? hiNotificationFromJson(Json json) {
     wage: digest ? _intOrNull(data['wage_min']) : _intOrNull(shift['hourly_wage']),
     wageMax: digest ? _intOrNull(data['wage_max']) : null,
     amount: _intOrNull(application['pay_amount']),
+    receivedAmount: _intOrNull(application['received_amount']),
     distanceKm: _double(data['distance_km']),
     count: _intOrNull(data['count']),
     areaNames: {
