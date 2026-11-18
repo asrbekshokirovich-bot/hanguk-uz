@@ -45,5 +45,9 @@ delete from ish.monthly_applications where job_id = '70000000-0000-0000-0000-000
 select tests.as_admin();
 select tests.eq((select count(*)::int from ish.monthly_applications), 0, 'withdrawn');
 
+-- The public page (signed out): the open jobs, read only; no interest rows.
 select tests.as_anon();
-select tests.throws($$select * from ish.monthly_jobs$$, 'permission denied', 'nothing for the signed-out');
+select tests.eq((select count(*)::int from ish.monthly_jobs), 1, 'the signed-out see the open job only');
+select tests.throws($$insert into ish.monthly_jobs (title, company, monthly_wage) values ('x', 'y', 1)$$,
+                    'permission denied', 'and cannot post');
+select tests.throws($$select * from ish.monthly_applications$$, 'permission denied', 'nor read who is interested');
