@@ -54,21 +54,22 @@ void main() {
     }
   });
 
-  testWidgets('sign-in buttons work only while the terms box is ticked', (tester) async {
+  testWidgets('the terms box starts unticked: sign-in buttons work only once it is ticked', (tester) async {
     await pumpApp(tester);
-    expect(button(tester, 'Telefon raqam bilan').onPressed, isNotNull);
-    expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isTrue);
-
-    await tester.tap(find.byType(HiCheckbox));
-    await tester.pumpAndSettle();
-    expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isFalse);
+    expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isFalse, reason: 'consent is never pre-ticked');
     expect(button(tester, 'Telefon raqam bilan').onPressed, isNull);
     expect(button(tester, 'Telegram bilan').onPressed, isNull);
 
     await tester.tap(find.byType(HiCheckbox));
     await tester.pumpAndSettle();
+    expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isTrue);
     expect(button(tester, 'Telefon raqam bilan').onPressed, isNotNull);
     expect(button(tester, 'Telegram bilan').onPressed, isNotNull);
+
+    await tester.tap(find.byType(HiCheckbox));
+    await tester.pumpAndSettle();
+    expect(tester.widget<HiCheckbox>(find.byType(HiCheckbox)).value, isFalse);
+    expect(button(tester, 'Telefon raqam bilan').onPressed, isNull);
   });
 
   for (final phone in [TestPhone.android, TestPhone.small]) {

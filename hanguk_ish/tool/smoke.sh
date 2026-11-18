@@ -107,7 +107,9 @@ worker() {
   esac
   # A01 «Telefon raqam bilan» (P54): T1 opens — no network needed, the
   # same in the demo and with the backend.
-  if ui wait 'Telefon raqam bilan' 90 && ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz' 40; then
+  # The terms box starts unticked: tick it (its box is the row's left end).
+  if ui wait 'Telefon raqam bilan' 90 && ui tapleft 'Foydalanish shartlariga roziman' 30 &&
+    ui tapto 'Telefon raqam bilan' 'Telefon raqamingiz' 40; then
     echo "$name: A01 → «Telefon raqam bilan» → T1"
   else
     echo "::error::$name: A01 «Telefon raqam bilan» did not answer"
@@ -191,7 +193,8 @@ walk_worker() {
   launch "$apk" "$pkg" "$name" || return
   # Sinchon, Seoul: the demo shifts are around it.
   adb emu geo fix 126.9368 37.5559 >/dev/null 2>&1 || true
-  step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
+  step 'A01: terms box' ui tapleft 'Foydalanish shartlariga roziman' 30 &&
+    step 'A01 → T1' ui tap 'Telefon raqam bilan' 90 &&
     step 'T1: number' ui field 0 01012345678 &&
     ui hidekb &&
     step 'T1 → T2' ui tap '=Kod olish' &&

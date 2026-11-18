@@ -34,6 +34,7 @@ import 'package:hanguk_ish/data/repositories/employer_repository.dart';
 import 'package:hanguk_ish/data/repositories/live_updates.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/design/widgets/controls.dart' show HiCheckbox;
 import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
 import 'package:hanguk_ish/features/employer/biz.dart';
@@ -736,6 +737,7 @@ void main() {
     )));
     // Signed out: the start gate opens A01.
     await _until(tester, _text('Telefon raqam bilan'));
+    await _tap(tester, find.byType(HiCheckbox)); // the terms box starts unticked
     await _tap(tester, _text('Telefon raqam bilan'));
     await _until(tester, _text('Telefon raqamingiz'));
     await _settle(tester);

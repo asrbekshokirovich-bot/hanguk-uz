@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
+import 'package:hanguk_ish/design/widgets/controls.dart' show HiCheckbox;
 import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/features/worker/profile/profile_screens.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
@@ -40,7 +41,9 @@ void main() {
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const WorkerApp()));
     await tester.pumpAndSettle();
 
-    // A01 → T1 → T2 (demo: any six digits)
+    // A01 → T1 → T2 (demo: any six digits); the terms box is ticked first
+    await tester.tap(find.byType(HiCheckbox));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Telefon raqam bilan'));
     await tester.pumpAndSettle();
     expect(find.text('Telefon raqamingiz'), findsOneWidget);
