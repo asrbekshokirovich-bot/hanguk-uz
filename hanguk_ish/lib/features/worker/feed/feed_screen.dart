@@ -260,7 +260,7 @@ class FeedHeader extends ConsumerWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: _LocationButton(
-                  place: area?.place.name(lang) ?? '',
+                  place: area?.place.name(lang) ?? '–',
                   count: shownCount == null ? null : l10n.shiftCount(shownCount),
                   onTap: () => ref.invalidate(feedAreaProvider),
                 ),

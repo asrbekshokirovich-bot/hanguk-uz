@@ -253,7 +253,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                       padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
                       child: _QrCard(
                         shift: shift,
-                        business: business?.name ?? '',
+                        business: business?.name ?? '–',
                         qr: ref.watch(shiftQrProvider(shift.id)),
                         onShare: (payload) => _shareQr(shift, payload, business?.name ?? ''),
                         onRetry: () => ref.invalidate(shiftQrProvider(shift.id)),

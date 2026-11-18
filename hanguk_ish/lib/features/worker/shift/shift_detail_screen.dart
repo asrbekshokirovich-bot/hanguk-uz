@@ -217,11 +217,6 @@ class _Detail extends ConsumerWidget {
                                 ],
                               ],
                             ),
-                            Semantics(
-                              image: true,
-                              label: l10n.workplaceOnMap,
-                              child: const _MiniMap(),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 14),
@@ -770,92 +765,4 @@ class _AboutCard extends StatelessWidget {
       ],
     );
   }
-}
-
-/// The small map of the address card with the blue location pin.
-class _MiniMap extends StatelessWidget {
-  const _MiniMap();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        color: HiColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.fromBorderSide(HiBorders.ink),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          const CustomPaint(painter: _MiniMapPainter()),
-          Center(
-            child: Transform.translate(
-              offset: const Offset(0, -13),
-              child: Transform.rotate(
-                angle: -math.pi / 4,
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: const BoxDecoration(
-                    color: HiColors.blue,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(17),
-                      topRight: Radius.circular(17),
-                      bottomRight: Radius.circular(17),
-                      bottomLeft: Radius.circular(4),
-                    ),
-                    border: Border.fromBorderSide(HiBorders.ink),
-                    boxShadow: [BoxShadow(color: HiColors.ink, offset: Offset(3, 3))],
-                  ),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(color: HiColors.white, shape: BoxShape.circle),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The prototype's 315 × 120 street sketch, scaled to cover the box.
-class _MiniMapPainter extends CustomPainter {
-  const _MiniMapPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final scale = math.max(size.width / 315, size.height / 120);
-    canvas
-      ..save()
-      ..translate((size.width - 315 * scale) / 2, (size.height - 120 * scale) / 2)
-      ..scale(scale);
-    canvas.drawRRect(
-      RRect.fromLTRBR(240, 74, 320, 124, const Radius.circular(10)),
-      Paint()..color = const Color(0xFFD2DDF0),
-    );
-    final road = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..color = HiColors.white;
-    for (final (a, b, w) in const [
-      (Offset(-10, 84), Offset(325, 52), 12.0),
-      (Offset(120, -10), Offset(150, 130), 12.0),
-      (Offset(-10, 22), Offset(325, 4), 6.0),
-      (Offset(225, -10), Offset(242, 130), 6.0),
-      (Offset(40, -10), Offset(58, 130), 6.0),
-    ]) {
-      canvas.drawLine(a, b, road..strokeWidth = w);
-    }
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_MiniMapPainter oldDelegate) => false;
 }
