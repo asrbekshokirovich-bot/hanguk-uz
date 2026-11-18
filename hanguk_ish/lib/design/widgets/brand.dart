@@ -3,9 +3,12 @@ import 'package:flutter/widgets.dart';
 import '../tokens.dart';
 import '../typography.dart';
 
-/// The 72×72 white tile with a blue 한 (entry screens).
+/// The 72×72 app logo of the entry screens: the worker app's blue 한 with the
+/// taegeuk, or the employer app's (the launcher icons, `tool/icons/`).
 class HiBrandTile extends StatelessWidget {
-  const HiBrandTile({super.key});
+  const HiBrandTile({super.key, this.employer = false});
+
+  final bool employer;
 
   @override
   Widget build(BuildContext context) {
@@ -14,21 +17,17 @@ class HiBrandTile extends StatelessWidget {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-          color: HiColors.white,
           borderRadius: BorderRadius.circular(HiRadii.card),
           border: Border.fromBorderSide(HiBorders.ink),
           boxShadow: HiShadows.hard,
         ),
-        alignment: Alignment.center,
-        child: HiText(
-          '한',
-          textScaler: TextScaler.noScaling,
-          style: hiStyle(
-            40,
-            FontWeight.w900,
-            color: HiColors.blue,
-            family: HiFamily.korean,
-          ),
+        clipBehavior: Clip.antiAlias,
+        child: Image.asset(
+          employer ? 'assets/images/logo_employer.png' : 'assets/images/logo_worker.png',
+          width: 72,
+          height: 72,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.high,
         ),
       ),
     );

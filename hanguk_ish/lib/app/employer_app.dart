@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/format/phone.dart';
+import '../core/links/directions.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
@@ -122,7 +123,7 @@ class _OwnerStartGateState extends ConsumerState<_OwnerStartGate> {
         glow: HiGlow.entry,
         child: Center(
           child: error == null
-              ? const HiBrandTile()
+              ? const HiBrandTile(employer: true)
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: EmployerLoadError(error: error, onRetry: _continue),
@@ -143,6 +144,18 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
         path: EmployerRoutes.login,
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => Ba0LoginScreen(
+            onTerms: () => ref.read(linkOpenerProvider)(termsUri),
+            onTestLogin: ishTestLogin
+                ? () async {
+                    try {
+                      await ref.read(authRepositoryProvider).signInAnonymously();
+                    } catch (error) {
+                      if (context.mounted) _say(context, Biz.error(error));
+                      return;
+                    }
+                    if (context.mounted) await continueOwnerAfterSignIn(context, ref);
+                  }
+                : null,
             onStart: (phone) async {
               // P54: the owner's phone and an SMS code (Twilio Verify); the
               // business opens at once, unchecked (P50).

@@ -3,6 +3,7 @@
 library;
 
 import '../../core/time/kst.dart';
+import '../backend/backend.dart' show ishTestLogin;
 import '../models/account.dart';
 import '../repositories/account_repository.dart';
 import 'demo_shifts.dart' show demoOfferNote;
@@ -10,6 +11,10 @@ import 'demo_shifts.dart' show demoOfferNote;
 /// The prototype's A11 numbers: 24 shifts, 21 ratings averaging 4.9,
 /// reliability 98.
 const demoStats = WorkerStats(completedShifts: 24, ratingCount: 21, ratingAverage: 4.9, reliability: 98);
+
+/// A new account's numbers (test builds, `ISH_TEST_LOGIN`): nothing worked or
+/// rated yet, reliability at its start value of 100 (T5).
+const freshStats = WorkerStats(completedShifts: 0, ratingCount: 0, reliability: 100);
 
 const _dalbitNames = {'uz': 'Dalbit Kafe · Sinchon', 'ru': 'Dalbit Kafe · Синчхон', 'en': 'Dalbit Cafe · Sinchon', 'ko': '달빛카페 · 신촌'};
 const _bomMartNames = {'uz': 'Bom Mart · Hongdae', 'ru': 'Bom Mart · Хондэ', 'en': 'Bom Mart · Hongdae', 'ko': '봄마트 · 홍대'};
@@ -92,16 +97,18 @@ HiNotification demoOfferNotification(DateTime now) {
 /// comes first (the screen tests keep the prototype's four).
 class DemoAccountRepository implements WorkerAccountRepository {
   DemoAccountRepository({DateTime? now, bool offers = false})
-      : _notifications = [
-          if (offers) demoOfferNotification(now ?? DateTime.now()),
-          ...demoNotifications(now ?? DateTime.now()),
-        ];
+      : _notifications = ishTestLogin
+            ? []
+            : [
+                if (offers) demoOfferNotification(now ?? DateTime.now()),
+                ...demoNotifications(now ?? DateTime.now()),
+              ];
 
   List<HiNotification> _notifications;
   final List<(ReportSubject, String)> reports = [];
 
   @override
-  Future<WorkerStats> stats() async => demoStats;
+  Future<WorkerStats> stats() async => ishTestLogin ? freshStats : demoStats;
 
   @override
   Future<List<HiNotification>> notifications() async => List.unmodifiable(_notifications);

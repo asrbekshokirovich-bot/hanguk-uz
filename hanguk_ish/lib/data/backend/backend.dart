@@ -48,6 +48,12 @@ class BackendConfig {
   }
 }
 
+/// Test builds only (`--dart-define=ISH_TEST_LOGIN=true`): A01 and BA0 get a
+/// «Test: anonim kirish» button (no phone, no SMS). The database must allow
+/// anonymous sign-ins (local stack / a test project) — production keeps them
+/// off (P54), so the button fails there with an error message.
+const ishTestLogin = bool.fromEnvironment('ISH_TEST_LOGIN');
+
 /// Every API call goes to the schema `ish` of hanguk.uz's project (P48).
 const ishPostgrestOptions = PostgrestClientOptions(schema: ishSchema);
 

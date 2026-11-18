@@ -24,7 +24,7 @@ class WorkerShell extends StatelessWidget {
         items: [
           HiNavItem(icon: HiIcons.briefcase, label: l10n.navShifts),
           HiNavItem(icon: HiIcons.map, label: l10n.navMap),
-          HiNavItem(icon: HiIcons.calendarCheck, label: l10n.navMyShifts, wide: true),
+          HiNavItem(icon: HiIcons.calendarCheck, label: l10n.navMyShifts, wide: true, raised: true),
           HiNavItem(icon: HiIcons.wallet, label: l10n.navEarnings),
           HiNavItem(icon: HiIcons.user, label: l10n.navProfile),
         ],

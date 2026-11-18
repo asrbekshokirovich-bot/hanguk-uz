@@ -18,6 +18,7 @@ import '../data/repositories/push_service.dart';
 import '../data/repositories/shift_repository.dart';
 import '../design/theme.dart';
 import '../features/employer/language.dart';
+import '../features/worker/map/native_kakao_map.dart';
 import '../features/worker/settings/app_language.dart';
 import 'flavor.dart';
 import 'language_store.dart';
@@ -72,5 +73,7 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
       ]);
     }
   }
+  // A04's native Kakao map (when the build has the Native app key).
+  if (flavor == Flavor.worker) await initKakaoNativeMap();
   runApp(ProviderScope(overrides: overrides, child: app));
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,11 +17,13 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
+import '../../../design/widgets/forms.dart' show HiScheduleGrid;
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../profile/profile_screens.dart';
 import '../profile/worker_profile_draft.dart';
+import '../profile/worker_profile_repository.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_detail_screen.dart';
 
@@ -35,6 +39,69 @@ String shortDistrict(String name, String lang) {
   return name.split(',').first.trim();
 }
 
+/// The weekly free-time grid of A02 3/3, editable here; a change is saved a
+/// moment after the last tap (it decides which shifts are offered).
+class _ScheduleSection extends ConsumerStatefulWidget {
+  const _ScheduleSection();
+
+  @override
+  ConsumerState<_ScheduleSection> createState() => _ScheduleSectionState();
+}
+
+class _ScheduleSectionState extends ConsumerState<_ScheduleSection> {
+  Timer? _saveTimer;
+
+  @override
+  void dispose() {
+    _saveTimer?.cancel();
+    super.dispose();
+  }
+
+  void _toggle(int day, int slot) {
+    ref.read(workerProfileDraftProvider.notifier).toggleSlot(day, slot);
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 900), () async {
+      final repo = ref.read(workerProfileRepositoryProvider);
+      final draft = ref.read(workerProfileDraftProvider);
+      try {
+        await repo.save(draft);
+      } on Object {
+        if (!mounted) return;
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(WorkerL10n.of(context).errorGeneric)));
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = WorkerL10n.of(context);
+    final draft = ref.watch(workerProfileDraftProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Semantics(header: true, child: HiText(l10n.profileScheduleTitle, style: hiStyle(18, FontWeight.w800))),
+        const SizedBox(height: 4),
+        HiText(l10n.profileScheduleSubtitle, style: hiStyle(14, FontWeight.w500, height: 1.4, color: HiColors.textSoft)),
+        const SizedBox(height: 12),
+        HiScheduleGrid(
+          dayLabels: [
+            l10n.dayShortMon, l10n.dayShortTue, l10n.dayShortWed, l10n.dayShortThu,
+            l10n.dayShortFri, l10n.dayShortSat, l10n.dayShortSun,
+          ],
+          dayNames: [
+            l10n.dayMon, l10n.dayTue, l10n.dayWed, l10n.dayThu,
+            l10n.dayFri, l10n.daySat, l10n.daySun,
+          ],
+          slotLabels: [l10n.slotMorning, l10n.slotDay, l10n.slotEvening, l10n.slotNight],
+          slotRanges: const ['06–12', '12–18', '18–24', '00–06'],
+          isOn: draft.isAvailable,
+          onToggle: _toggle,
+        ),
+      ],
+    );
+  }
+}
+
 /// A11 «Profil».
 class MeScreen extends ConsumerWidget {
   const MeScreen({super.key});
@@ -46,15 +113,13 @@ class MeScreen extends ConsumerWidget {
     final lang = language.code;
     final draft = ref.watch(workerProfileDraftProvider);
     final stats = ref.watch(workerStatsProvider).value;
-    final name = '${draft.firstName} ${draft.lastName}'.trim();
+    final name = '${draft.firstName.trim()} ${draft.lastName.trim()}'.trim();
     final initials = [draft.firstName, draft.lastName]
         .where((p) => p.trim().isNotEmpty)
         .map((p) => p.trim()[0].toUpperCase())
         .join();
     final place = [
-      if (draft.university != null && draft.university != notAStudentCode)
-        placeName(seoulUniversities, draft.university, lang),
-      if (draft.district != null) shortDistrict(placeName(seoulDistricts, draft.district, lang), lang),
+      if (draft.district != null) shortDistrict(placeName(workAreas, draft.district, lang), lang),
     ].where((s) => s.isNotEmpty).join(' · ');
     final spoken = [for (final code in WorkerProfileDraft.languageCodes) if (draft.languages.contains(code)) code];
     final photo = draft.photoPath;
@@ -174,7 +239,8 @@ class MeScreen extends ConsumerWidget {
                       children: [
                         HiText(
                           stats?.ratingAverage == null ? '—' : formatRating(stats!.ratingAverage!, lang),
-                          style: hiStyle(28, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono),
+                          // Not the mono face: its comma is a full digit wide («4 , 9»).
+                          style: hiStyle(28, FontWeight.w800, color: HiColors.ink),
                         ),
                         const SizedBox(width: 6),
                         const HiIcon(HiIcons.star, size: 22, strokeWidth: 1.5, color: HiColors.ink, fill: HiColors.amber),
@@ -184,7 +250,9 @@ class MeScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 22),
+            const _ScheduleSection(),
+            const SizedBox(height: 22),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

@@ -93,6 +93,7 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName(if (uploadKey.isEmpty) "debug" else "upload")
+            proguardFiles("proguard-rules.pro")
         }
     }
 }

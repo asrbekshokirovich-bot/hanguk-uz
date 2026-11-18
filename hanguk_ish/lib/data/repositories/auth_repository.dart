@@ -22,6 +22,9 @@ abstract interface class AuthRepository {
   /// Signs in with the code sent to [phone].
   Future<void> verifyCode(String phone, String code);
 
+  /// Test builds (`ISH_TEST_LOGIN`): signs in without a phone or a code.
+  Future<void> signInAnonymously();
+
   Future<void> signOut();
 
   /// Deletes the signed-in account and everything it made (Google Play's
@@ -55,6 +58,12 @@ class DemoAuthRepository implements AuthRepository {
   Future<void> verifyCode(String phone, String code) async {
     if (KoreanPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
     if (!RegExp(r'^\d{6}$').hasMatch(code.trim())) throw const ShiftActionException('CODE_INVALID');
+    _user = demoUser;
+    _changes.add(_user);
+  }
+
+  @override
+  Future<void> signInAnonymously() async {
     _user = demoUser;
     _changes.add(_user);
   }

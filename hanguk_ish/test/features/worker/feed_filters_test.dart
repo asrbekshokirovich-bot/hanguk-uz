@@ -91,12 +91,13 @@ void main() {
   testWidgets('«Vaqt»: the evening, and the evening at cafés', (tester) async {
     final container = await start(tester);
     await chip(tester, 'Vaqt');
-    for (final label in ['Ertalab 06–12', 'Kunduzi 12–18', 'Kechqurun 18–24', 'Tunda 00–06']) {
+    // Two choices only: daytime and night (evening and night shifts).
+    for (final label in ['Kunduzgi 06–18', 'Kechgi 18–06']) {
       expect(sheet(label), findsOneWidget, reason: label);
     }
-    await inSheet(tester, 'Kechqurun 18–24');
+    await inSheet(tester, 'Kechgi 18–06');
     await inSheet(tester, "Qo'llash");
-    expect(container.read(feedFilterProvider).dayParts, {2});
+    expect(container.read(feedFilterProvider).dayParts, {2, 3});
     // 18:00 Sangam, 19:00 Bom Mart, 20:00 Yeonnam, 21:00 Nanum and Sangam.
     expect(find.text('· 5 ta smena'), findsOneWidget);
 
@@ -126,12 +127,10 @@ void main() {
 
     await openAll();
     await inSheet(tester, 'Vaqt');
-    await inSheet(tester, 'Ertalab 06–12');
+    await inSheet(tester, 'Kunduzgi 06–18');
     await inSheet(tester, "Qo'llash");
-    expect(container.read(feedFilterProvider).dayParts, {0});
-    // Nothing starts before noon today: the empty state offers the filters.
-    expect(find.text("Yaqin atrofda smena yo'q"), findsOneWidget);
-    await tester.tap(find.text("Filtrni o'zgartirish"));
+    expect(container.read(feedFilterProvider).dayParts, {0, 1});
+    await tester.tap(find.byType(HiFilterAllButton));
     await tester.pumpAndSettle();
     expect(sheet('Soha'), findsOneWidget);
 
@@ -139,7 +138,7 @@ void main() {
     await tester.tapAt(const Offset(20, 60));
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsNothing);
-    expect(container.read(feedFilterProvider).dayParts, {0});
+    expect(container.read(feedFilterProvider).dayParts, {0, 1});
   });
 
   testWidgets('a server error (not the connection) says so; «Qayta urinish» loads the feed', (tester) async {

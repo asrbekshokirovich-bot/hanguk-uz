@@ -102,15 +102,18 @@ void main() {
 
     expect(find.text('Aziz Karimov'), findsOneWidget);
     expect(find.text('AK'), findsOneWidget);
-    expect(find.text('Sogang universiteti · Mapo-gu'), findsOneWidget);
+    expect(find.text('Mapo-gu'), findsOneWidget);
     expect(find.text('98'), findsOneWidget);
     expect(find.text('24'), findsOneWidget);
     expect(find.text('Baholar · 21 ta'), findsOneWidget);
     expect(find.text('4,9'), findsOneWidget);
+    // The free-time grid comes before the languages: scroll down to them.
+    await tester.scrollUntilVisible(find.text("O'zbekcha · ona tili"), 300);
     expect(find.text("O'zbekcha · ona tili"), findsOneWidget);
     expect(find.text('Koreyscha · TOPIK 4'), findsOneWidget);
 
     // Report.
+    await tester.scrollUntilVisible(find.text('Shikoyat qilish'), 300);
     await tester.tap(find.text('Shikoyat qilish'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Maosh'));
@@ -126,6 +129,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Help.
+    await tester.scrollUntilVisible(find.text('Yordam'), 300);
     await tester.tap(find.text('Yordam'));
     await tester.pumpAndSettle();
     expect(find.text("Maoshni kim to'laydi?"), findsOneWidget);
@@ -133,6 +137,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // App language → Русский.
+    await tester.scrollUntilVisible(find.text('Ilova tili'), 300);
     await tester.tap(find.text('Ilova tili'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Русский'));

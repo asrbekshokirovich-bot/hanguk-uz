@@ -16,10 +16,13 @@ import '../settings/app_language.dart';
 
 /// A01 «Kirish»: app language, terms consent, sign-in method.
 class A01LoginScreen extends ConsumerStatefulWidget {
-  const A01LoginScreen({super.key, this.onPhone, this.onTelegram, this.onTerms});
+  const A01LoginScreen({super.key, this.onPhone, this.onTelegram, this.onTerms, this.onTestLogin});
 
   /// "Telefon raqam bilan". Wired to the phone sign-in flow in P2.
   final VoidCallback? onPhone;
+
+  /// Test builds only: «Test: anonim kirish».
+  final VoidCallback? onTestLogin;
 
   /// "Telegram bilan". Wired to the Telegram sign-in flow in P2.
   final VoidCallback? onTelegram;
@@ -97,6 +100,14 @@ class _A01LoginScreenState extends ConsumerState<A01LoginScreen> {
                   iconStroke: 2,
                   onPressed: canContinue ? (widget.onTelegram ?? () {}) : null,
                 ),
+                if (widget.onTestLogin != null) ...[
+                  const SizedBox(height: 12),
+                  HiButton(
+                    label: 'Test: anonim kirish',
+                    style: HiButtonStyle.ghost,
+                    onPressed: widget.onTestLogin,
+                  ),
+                ],
               ],
             ),
           ),
@@ -249,10 +260,11 @@ class _TermsRow extends StatelessWidget {
               HiCheckbox(value: agreed),
               const SizedBox(width: 12),
               Expanded(
+                // The whole sentence is the link, underlined to its end.
                 child: HiLinkSentence(
-                  prefix: prefix,
-                  link: link,
-                  suffix: suffix,
+                  prefix: '',
+                  link: '$prefix$link$suffix',
+                  suffix: '',
                   style: base,
                   linkStyle: linkStyle,
                   onLink: onLink ?? () {},

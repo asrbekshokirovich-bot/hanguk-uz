@@ -74,42 +74,35 @@ void main() {
 
     // A02 2/3
     expect(find.text('Profil · 2 / 3'), findsOneWidget);
-    expect(action(tester, 'Davom etish').onPressed, isNull, reason: 'a language and a district are required');
+    expect(action(tester, 'Davom etish').onPressed, isNull, reason: 'a language and a city or province are required');
     await tester.tap(find.text("O'zbekcha"));
     await tester.tap(find.text('Koreyscha'));
     await tester.tap(find.text('4'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(HiSelectField).at(1));
+    await tester.tap(find.byType(HiSelectField).at(0));
     await tester.pumpAndSettle();
-    // The list is long; search narrows it.
+    // The list is long (all of Korea's regions and Seoul's districts); search narrows it.
     await tester.enterText(find.byType(TextField).last, 'Mapo');
     await tester.pumpAndSettle();
     await tester.tap(find.text('Mapo-gu, Seul'));
     await tester.pumpAndSettle();
     expect(find.text('Mapo-gu, Seul'), findsOneWidget);
-    // University: typed text not in the list can be chosen too.
-    await tester.tap(find.byType(HiSelectField).at(0));
-    await tester.pumpAndSettle();
-    // What can be typed stays within what the profile keeps (80 characters).
-    await tester.enterText(find.byType(TextField).last, 'Seoul National University ' * 4);
-    await tester.pumpAndSettle();
-    expect(tester.widget<TextField>(find.byType(TextField).last).controller!.text, hasLength(80));
-    await tester.enterText(find.byType(TextField).last, 'Busan University');
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('«Busan University» ni tanlash'));
-    await tester.pumpAndSettle();
-    expect(find.text('Busan University'), findsOneWidget);
     await tester.tap(find.text('Davom etish'));
     await tester.pumpAndSettle();
 
     // A02 3/3
     expect(find.text('Profil · 3 / 3'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('Shanba, Ertalab'));
-    await tester.tap(find.text('D-4'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Saqlash va boshlash'));
     await tester.tap(find.text('Saqlash va boshlash'));
     await tester.pumpAndSettle();
+
+    // After the profile: the location question, then the feed.
+    expect(find.text('Joylashuvingizni yoqing'), findsOneWidget);
+    await tester.tap(find.text('Keyinroq'));
+    await tester.pumpAndSettle();
+    expect(find.text('Joylashuvingizni yoqing'), findsNothing);
 
     final saved = await repo.load();
     expect(saved, isNotNull);
@@ -118,10 +111,8 @@ void main() {
     expect(saved.languages, {'uz', 'ko'});
     expect(saved.topik, 4);
     expect(saved.district, 'mapo');
-    expect(saved.university, 'Busan University');
     expect(saved.isAvailable(5, 0), isTrue);
     expect(saved.availability, WorkerProfileDraft.bit(5, 0));
-    expect(saved.visa, 'D-4');
     expect(find.text('Profil · 3 / 3'), findsNothing, reason: 'moved on to the home screen');
   });
 

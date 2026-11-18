@@ -27,3 +27,6 @@ typedef LinkOpener = Future<bool> Function(Uri uri);
 final linkOpenerProvider = Provider<LinkOpener>(
   (ref) => (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
 );
+
+/// A01 / BA0 «Foydalanish shartlari»: hanguk.uz's terms page.
+final termsUri = Uri.parse('https://hanguk.uz/terms');

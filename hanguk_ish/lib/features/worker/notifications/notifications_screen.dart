@@ -208,6 +208,7 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.newShift => (HiIcons.briefcase, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.nearbyShifts => (HiIcons.mapPin, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.jobOffer => (HiIcons.send, HiColors.lime, HiColors.onLime, 2.0),
+      NotificationKind.finished => (HiIcons.check, HiColors.lime, HiColors.onLime, 2.6),
     };
     final title = switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderTitle(HiDates.countdown(n.minutesBefore ?? 0, lang)),
@@ -220,6 +221,7 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.newShift => l10n.notifNewShiftTitle,
       NotificationKind.nearbyShifts => l10n.notifNearbyTitle(n.areaName(lang), n.count ?? 0),
       NotificationKind.jobOffer => l10n.notifOfferTitle,
+      NotificationKind.finished => l10n.notifFinishedTitle,
     };
     final day = n.startsAt == null ? '' : HiDates.weekdayAndDate(n.startsAt!, lang);
     // «12 000 ₩/soat» stays together, as in the prototype.
@@ -252,6 +254,12 @@ class _NotificationCard extends StatelessWidget {
           ),
           if ((n.note ?? '').trim().isNotEmpty) l10n.offerNote(n.note!.trim()),
         ].join('\n'),
+      // «Dalbit Kafe: 10-noyabr smenasi yakunlandi. Hisoblangan maosh: 52 500 ₩.»
+      NotificationKind.finished => l10n.notifFinishedText(
+          business,
+          day,
+          Won.worker(n.amount ?? 0),
+        ),
     });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);
 
@@ -278,6 +286,8 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.jobOffer => n.shiftId == null
           ? null
           : _LinkAction(label: l10n.view, fresh: fresh, onTap: () => actions.shift(n.shiftId!)),
+      // The pay and the work of the day: the earnings list.
+      NotificationKind.finished => _LinkAction(label: l10n.view, fresh: fresh, onTap: actions.earnings),
     };
 
     return Semantics(

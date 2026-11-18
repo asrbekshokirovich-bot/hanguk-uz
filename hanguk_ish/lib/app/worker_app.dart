@@ -16,11 +16,15 @@ import '../features/worker/feed/feed_screen.dart';
 import '../features/worker/load_error.dart';
 import '../features/worker/chat/chat_screen.dart';
 import '../features/worker/earnings/earnings_screen.dart';
+import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
+import '../features/worker/map/native_kakao_map.dart' show kakaoNativeStarted;
 import '../features/worker/me/me_screen.dart';
+import '../features/worker/monthly/monthly_jobs_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
+import '../features/worker/onboarding/location_screen.dart';
 import '../features/worker/onboarding/phone_screens.dart';
 import '../features/worker/profile/profile_screens.dart';
 import '../features/worker/profile/worker_profile_draft.dart';
@@ -48,6 +52,7 @@ abstract final class WorkerRoutes {
   static const profileName = '/profile/name';
   static const profileLanguages = '/profile/languages';
   static const profileSchedule = '/profile/schedule';
+  static const profileLocation = '/profile/location';
 
   /// The tabs.
   static const feed = '/feed';
@@ -57,6 +62,9 @@ abstract final class WorkerRoutes {
   static const me = '/me';
 
   static const notifications = '/notifications';
+
+  /// «Oylik ishlar»: jobs paid by the month.
+  static const monthly = '/monthly';
 
   /// Where the app opens once signed in.
   static const home = feed;
@@ -101,7 +109,7 @@ FeedActions _feedActions(BuildContext context) => FeedActions(
       openShift: (shift) => context.push(WorkerRoutes.shift(shift.id)),
       takeShift: (shift) => takeShift(context, shift),
       openFeed: () => context.go(WorkerRoutes.feed),
-      openMap: () => context.go(WorkerRoutes.map),
+      openMonthly: () => context.push(WorkerRoutes.monthly),
       openNotifications: () => context.push(WorkerRoutes.notifications),
     );
 
@@ -198,6 +206,22 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => A01LoginScreen(
             onPhone: () => context.push(WorkerRoutes.phone),
+            onTerms: () => ref.read(linkOpenerProvider)(termsUri),
+            onTestLogin: ishTestLogin
+                ? () async {
+                    try {
+                      await ref.read(authRepositoryProvider).signInAnonymously();
+                    } catch (error) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(SnackBar(content: Text('Test kirish bo\'lmadi: $error')));
+                      }
+                      return;
+                    }
+                    if (context.mounted) await continueAfterSignIn(context, ref);
+                  }
+                : null,
             // Telegram sign-in needs the bot (T2): with a backend it says
             // so; the demo continues to the profile as before.
             onTelegram: () {
@@ -249,11 +273,22 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         path: WorkerRoutes.profileSchedule,
         builder: (context, state) => ProfileScheduleScreen(
           onBack: () => context.pop(),
-          onDone: () => context.go(WorkerRoutes.home),
+          onDone: () => context.go(WorkerRoutes.profileLocation),
         ),
       ),
+      GoRoute(
+        path: WorkerRoutes.profileLocation,
+        builder: (context, state) => LocationPermissionScreen(onContinue: () => context.go(WorkerRoutes.home)),
+      ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, shell) => WorkerShell(shell: shell),
+        builder: (context, state, shell) => Consumer(
+          builder: (context, ref, _) {
+            // The Kakao map loads in the background from the start, so the
+            // map tab opens at once (kakao_map_view.dart).
+            if (!kakaoNativeStarted) ref.read(kakaoMapHostProvider);
+            return WorkerShell(shell: shell);
+          },
+        ),
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(
@@ -359,6 +394,12 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ChatScreen(
           applicationId: state.pathParameters['app']!,
           onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.monthly,
+        builder: (context, state) => MonthlyJobsScreen(
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
         ),
       ),
       GoRoute(

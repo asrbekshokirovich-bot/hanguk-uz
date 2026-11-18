@@ -31,6 +31,7 @@ void main() {
     await tester.pumpWidget(appHarness(container));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Yordam'), 300);
     await tester.tap(find.text('Yordam'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text("Akkauntni o'chirish"));

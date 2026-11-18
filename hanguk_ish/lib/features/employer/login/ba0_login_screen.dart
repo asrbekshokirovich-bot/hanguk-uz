@@ -17,10 +17,13 @@ import '../language.dart';
 /// (P54, Twilio Verify) and the business opens at once after it. No
 /// 사업자등록번호 (P50, Asrbek).
 class Ba0LoginScreen extends StatefulWidget {
-  const Ba0LoginScreen({super.key, this.onStart, this.onTerms});
+  const Ba0LoginScreen({super.key, this.onStart, this.onTerms, this.onTestLogin});
 
   /// "시작하기" with the formatted phone; the button waits while it runs.
   final Future<void> Function(String phone)? onStart;
+
+  /// Test builds only: «Test: anonim kirish».
+  final Future<void> Function()? onTestLogin;
 
   /// The "이용약관" link.
   final VoidCallback? onTerms;
@@ -89,7 +92,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const HiBrandTile(),
+                const HiBrandTile(employer: true),
                 const SizedBox(height: 20),
                 // One line as in the prototype; a longer badge
                 // («Для работодателя») goes under the name on a narrow
@@ -171,11 +174,20 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                   fontSize: 18,
                   onPressed: _starting ? null : _start,
                 ),
+                if (widget.onTestLogin != null) ...[
+                  const SizedBox(height: 10),
+                  HiButton(
+                    label: 'Test: anonim kirish',
+                    style: HiButtonStyle.ghost,
+                    onPressed: () => widget.onTestLogin!(),
+                  ),
+                ],
                 const SizedBox(height: 14),
+                // The whole sentence is the link, underlined to its end.
                 HiLinkSentence(
-                  prefix: Biz.termsPrefix,
-                  link: Biz.termsLink,
-                  suffix: Biz.termsSuffix,
+                  prefix: '',
+                  link: '${Biz.termsPrefix}${Biz.termsLink}${Biz.termsSuffix}',
+                  suffix: '',
                   style: hiStyle(
                     14,
                     FontWeight.w400,

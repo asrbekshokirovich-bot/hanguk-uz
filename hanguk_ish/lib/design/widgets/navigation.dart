@@ -9,16 +9,21 @@ import 'pressable.dart';
 
 /// One destination of [HiBottomNav].
 class HiNavItem {
-  const HiNavItem({required this.icon, required this.label, this.wide = false});
+  const HiNavItem({required this.icon, required this.label, this.wide = false, this.raised = false});
 
   final HiIconData icon;
   final String label;
 
   /// Takes a double-width column («Mening smenalarim»).
   final bool wide;
+
+  /// Stands out: a lime circle with a hard shadow instead of the pill
+  /// (the employer app's «+» in the middle). Same height as the other items.
+  final bool raised;
 }
 
-/// The worker app's bottom menu: dark bar, lime pill behind the current icon.
+/// The worker app's bottom menu: dark bar, lime pill behind the current icon;
+/// an item marked [HiNavItem.raised] is a lime circle that stands out.
 class HiBottomNav extends StatelessWidget {
   const HiBottomNav({
     super.key,
@@ -44,13 +49,65 @@ class HiBottomNav extends StatelessWidget {
           for (var i = 0; i < items.length; i++)
             Expanded(
               flex: items[i].wide ? 2 : 1,
-              child: _NavButton(
-                item: items[i],
-                selected: i == current,
-                onTap: () => onSelect(i),
-              ),
+              child: items[i].raised
+                  ? _RaisedNavButton(item: items[i], selected: i == current, onTap: () => onSelect(i))
+                  : _NavButton(
+                      item: items[i],
+                      selected: i == current,
+                      onTap: () => onSelect(i),
+                    ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// A lime circle with a hard shadow and the label under it. The column is
+/// 57 px high like the others, so the bar does not grow.
+class _RaisedNavButton extends StatelessWidget {
+  const _RaisedNavButton({required this.item, required this.selected, required this.onTap});
+
+  final HiNavItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      selected: selected,
+      builder: (context, pressed) => ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 57),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Transform.translate(
+              offset: pressed ? const Offset(1, 1) : Offset.zero,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: HiColors.lime,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: selected ? HiColors.white : HiColors.ink, width: selected ? 2.5 : 1.5),
+                  boxShadow: [BoxShadow(color: HiColors.ink, offset: pressed ? const Offset(1, 1) : const Offset(2, 2))],
+                ),
+                alignment: Alignment.center,
+                child: HiIcon(item.icon, size: 21, strokeWidth: 2.4, color: HiColors.onLime),
+              ),
+            ),
+            const SizedBox(height: 3),
+            HiText(
+              item.label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.visible,
+              style: hiStyle(12, FontWeight.w800, color: selected ? HiColors.lime : HiColors.white),
+            ),
+          ],
+        ),
       ),
     );
   }

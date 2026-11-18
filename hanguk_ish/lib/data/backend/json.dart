@@ -8,6 +8,7 @@ library;
 import '../models/account.dart';
 import '../models/business.dart';
 import '../models/employer.dart';
+import '../models/monthly_job.dart';
 import '../models/my_shift.dart';
 import '../models/shift.dart';
 import '../../features/worker/feed/feed_area.dart' show areaPlace;
@@ -206,6 +207,7 @@ const workerNotificationKinds = [
   'chat_message',
   'payment_marked',
   'job_offer',
+  'shift_finished',
 ];
 
 /// `notification_card` → an A12 entry; null for kinds the worker app does not
@@ -225,6 +227,7 @@ HiNotification? hiNotificationFromJson(Json json) {
     'new_shift_match' || 'request_again' => NotificationKind.newShift,
     'nearby_digest' => NotificationKind.nearbyShifts,
     'job_offer' => NotificationKind.jobOffer,
+    'shift_finished' => NotificationKind.finished,
     _ => null,
   };
   if (kind == null) return null;
@@ -417,5 +420,26 @@ EmployerNotification? employerNotificationFromJson(Json json) {
     workerName: '${_str(worker['first_name'])} ${_str(worker['last_name'])}'.trim(),
     read: json['read_at'] != null,
     autoConfirmed: _bool(data['auto_confirmed']),
+  );
+}
+
+/// One row of `monthly_jobs` → the worker app's [MonthlyJob].
+MonthlyJob monthlyJobFromJson(Json json, {bool applied = false}) {
+  final translations = <String, Map<String, String>>{};
+  for (final e in _obj(json['translations']).entries) {
+    translations[e.key] = _texts(e.value);
+  }
+  return MonthlyJob(
+    id: _str(json['id']),
+    title: _str(json['title']),
+    company: _str(json['company']),
+    area: _str(json['area']),
+    address: _str(json['address']),
+    monthlyWage: _int(json['monthly_wage']),
+    daysPerWeek: _intOrNull(json['days_per_week']),
+    hoursPerDay: _intOrNull(json['hours_per_day']),
+    description: _str(json['description']),
+    translations: translations,
+    applied: applied,
   );
 }

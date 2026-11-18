@@ -37,6 +37,9 @@ class SupabaseAuthRepository implements AuthRepository {
       });
 
   @override
+  Future<void> signInAnonymously() => authCall(() => _client.auth.signInAnonymously(data: ishSignUpData));
+
+  @override
   Future<void> signOut() async {
     final before = _beforeSignOut;
     if (before != null) await before();

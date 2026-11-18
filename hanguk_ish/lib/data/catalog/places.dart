@@ -90,6 +90,33 @@ const seoulDistricts = <Place>[
   Place('jungnang', uz: 'Jungnang-gu, Seul', ru: 'Чуннан-гу, Сеул', en: 'Jungnang-gu, Seoul', ko: '서울 중랑구'),
 ];
 
+/// The 17 first-level regions of Korea (the special city, metropolitan cities,
+/// the special self-governing city and the provinces), shown with Seoul's
+/// districts in the work-area picker (A02).
+const koreaRegions = <Place>[
+  Place('seoul', uz: 'Seul', ru: 'Сеул', en: 'Seoul', ko: '서울'),
+  Place('busan', uz: 'Busan', ru: 'Пусан', en: 'Busan', ko: '부산'),
+  Place('daegu', uz: 'Daegu', ru: 'Тэгу', en: 'Daegu', ko: '대구'),
+  Place('incheon', uz: 'Incheon', ru: 'Инчхон', en: 'Incheon', ko: '인천'),
+  Place('gwangju', uz: 'Gwangju', ru: 'Кванджу', en: 'Gwangju', ko: '광주'),
+  Place('daejeon', uz: 'Daejeon', ru: 'Тэджон', en: 'Daejeon', ko: '대전'),
+  Place('ulsan', uz: 'Ulsan', ru: 'Ульсан', en: 'Ulsan', ko: '울산'),
+  Place('sejong', uz: 'Sejong', ru: 'Седжон', en: 'Sejong', ko: '세종'),
+  Place('gyeonggi', uz: 'Gyeonggi viloyati', ru: 'Кёнгидо', en: 'Gyeonggi Province', ko: '경기도'),
+  Place('gangwon', uz: 'Gangwon viloyati', ru: 'Канвондо', en: 'Gangwon Province', ko: '강원도'),
+  Place('chungbuk', uz: 'Shimoliy Chungcheong viloyati', ru: 'Северная Чхунчхон', en: 'North Chungcheong Province', ko: '충청북도'),
+  Place('chungnam', uz: 'Janubiy Chungcheong viloyati', ru: 'Южная Чхунчхон', en: 'South Chungcheong Province', ko: '충청남도'),
+  Place('jeonbuk', uz: 'Shimoliy Jeolla viloyati', ru: 'Северная Чолла', en: 'North Jeolla Province', ko: '전라북도'),
+  Place('jeonnam', uz: 'Janubiy Jeolla viloyati', ru: 'Южная Чолла', en: 'South Jeolla Province', ko: '전라남도'),
+  Place('gyeongbuk', uz: 'Shimoliy Gyeongsang viloyati', ru: 'Северная Кёнсан', en: 'North Gyeongsang Province', ko: '경상북도'),
+  Place('gyeongnam', uz: 'Janubiy Gyeongsang viloyati', ru: 'Южная Кёнсан', en: 'South Gyeongsang Province', ko: '경상남도'),
+  Place('jeju', uz: 'Jeju', ru: 'Чеджу', en: 'Jeju', ko: '제주'),
+];
+
+/// Everything the work-area picker offers: all of Korea's regions, then the
+/// districts of Seoul.
+const workAreas = <Place>[...koreaRegions, ...seoulDistricts];
+
 /// The name to show for a stored [code] (or free text a worker typed).
 String placeName(List<Place> list, String? code, String languageCode) {
   if (code == null || code.isEmpty) return '';

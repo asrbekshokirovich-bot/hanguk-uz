@@ -37,6 +37,10 @@ enum NotificationKind {
 
   /// Hanguk's staff offered the worker a job (hanguk.uz, P39).
   jobOffer,
+
+  /// The worker's shift is over (checked out): how long, how much, and to rate
+  /// the business.
+  finished,
 }
 
 /// One entry of A12, with the values its sentence is built from (so it reads
