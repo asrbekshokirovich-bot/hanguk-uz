@@ -1,12 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
 
 import '../../helpers/fonts.dart';
 import '../../helpers/phone.dart';
 import '../../helpers/worker_harness.dart';
-import 'package:hanguk_ish/app/worker_app.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The free-time grid is on the profile too (below the numbers, above the
 /// languages), and a change is saved a moment after the last tap.
