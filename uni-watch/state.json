@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-17T22:56:27+00:00",
+ "last_run": "2026-11-18T11:39:44+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -438,6 +438,7 @@
   ],
   "https://go.pusan.ac.kr/": [],
   "https://go.sangji.ac.kr/kor/index.do": [
+   "3b4464454693fc5c",
    "e2cd6ac578ad44f3",
    "911dc4c9fc7fe530",
    "8ac8d02271540e93",
@@ -985,6 +986,7 @@
    "f27caa400eab2c63",
    "d42ddd388765ba18"
   ],
+  "https://ipsi.mokpo.ac.kr/": [],
   "https://ipsi.nambu.ac.kr/": [
    "7c0efdd3354aed67",
    "0d49d6112e436701",
@@ -1023,6 +1025,7 @@
    "37880b549e81e422"
   ],
   "https://ipsi.shinhan.ac.kr/": [
+   "8746296e67b03be3",
    "b33f7838f192a919",
    "db9896cb1c6c6615",
    "a2d579da2013b0c4",
@@ -1415,6 +1418,7 @@
   "https://www.msu.ac.kr/": [],
   "https://www.mtu.ac.kr/kor/CMS/Contents/Contents.do?mCode=MN147": [],
   "https://www.nsu.ac.kr/": [
+   "dcd95a3b8f24bc48",
    "6faaffc5d47a11e3"
   ],
   "https://www.ok.ac.kr/ipsi/index.do": [
