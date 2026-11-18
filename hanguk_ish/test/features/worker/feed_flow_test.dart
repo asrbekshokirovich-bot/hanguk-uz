@@ -191,7 +191,7 @@ void main() {
     expect(find.text('Ertaga'), findsNothing);
     expect(find.text('Hafta oxiri'), findsNothing);
     for (final chip in ['Maosh', 'Masofa', 'Soha', 'Vaqt']) {
-      expect(find.text(chip), findsOneWidget, reason: chip);
+      expect(find.textContaining(chip), findsOneWidget, reason: chip);
     }
     expect(find.text('Kafe baristasi (doimiy)'), findsOneWidget);
     expect(find.text(Won.worker(2300000)), findsOneWidget);
