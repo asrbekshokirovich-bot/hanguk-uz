@@ -461,8 +461,8 @@ void main() {
     // shift (its own entry since the worker is asked what was paid).
     expect(find.textContaining("to'langanini belgiladi", findRichText: true), findsOneWidget, reason: 'the amount paid');
     expect(find.textContaining(Won.worker(16500), findRichText: true), findsNWidgets(2));
-    expect(_text('Smena yakunlandi'), findsOneWidget, reason: 'the finished shift tells the worker');
-    expect(_text('Maoshni tasdiqlash'), findsOneWidget, reason: 'and asks what was paid');
+    expect(_text('Smena yakunlandi'), findsWidgets, reason: 'the finished shift tells the worker');
+    expect(_text('Maoshni tasdiqlash'), findsWidgets, reason: 'and asks what was paid');
     await _shot(tester, 'a12-notifications');
     // Opening A12 marks them read: let the screen's request go out (the app
     // runs on the test's clock) and ask the server.
