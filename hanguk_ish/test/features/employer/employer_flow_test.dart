@@ -186,7 +186,7 @@ void main() {
     await tester.tap(find.text('근무 올리기').last);
     await tester.pumpAndSettle();
     expect(find.text('템플릿'), findsOneWidget);
-    expect(find.text('주문 접수 · 음료 보조 · 홀 정리'), findsOneWidget);
+    expect(find.text('–'), findsNWidgets(3), reason: 'duties, dress and address are empty: a dash');
     expect(find.text('14:00'), findsOneWidget);
     expect(find.text('19:00'), findsOneWidget);
     expect(find.text('5시간'), findsOneWidget);
