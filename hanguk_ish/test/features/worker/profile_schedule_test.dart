@@ -28,6 +28,8 @@ void main() {
     expect(grid, greaterThan(numbers), reason: 'under reliability, completed shifts and ratings');
 
     await tester.scrollUntilVisible(find.bySemanticsLabel('Yakshanba, Tunda'), 200);
+    await tester.ensureVisible(find.bySemanticsLabel('Yakshanba, Tunda'));
+    await tester.pumpAndSettle();
     final before = container.read(workerProfileDraftProvider).isAvailable(6, 3);
     await tester.tap(find.bySemanticsLabel('Yakshanba, Tunda'));
     await tester.pump(const Duration(seconds: 2));
