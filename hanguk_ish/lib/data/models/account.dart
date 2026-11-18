@@ -62,6 +62,7 @@ class HiNotification {
     this.wage,
     this.wageMax,
     this.amount,
+    this.receivedAmount,
     this.distanceKm,
     this.count,
     this.areaNames = const {},
@@ -89,6 +90,9 @@ class HiNotification {
   final int? wage;
   final int? wageMax;
   final int? amount;
+
+  /// [NotificationKind.finished]: what the worker said they received, once.
+  final int? receivedAmount;
   final double? distanceKm;
   final int? count;
 
@@ -122,6 +126,7 @@ class HiNotification {
         wage: wage,
         wageMax: wageMax,
         amount: amount,
+        receivedAmount: receivedAmount,
         distanceKm: distanceKm,
         count: count,
         areaNames: areaNames,

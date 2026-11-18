@@ -33,6 +33,7 @@ import '../features/worker/settings/app_language.dart';
 import '../features/worker/shell/worker_shell.dart';
 import '../features/worker/shift/shift_detail_screen.dart';
 import '../features/worker/shift/take_shift.dart';
+import '../features/worker/work/payment_confirm.dart';
 import '../features/worker/work/work_screens.dart';
 import '../l10n/gen/worker_l10n.dart';
 import 'push_opens.dart';
@@ -419,6 +420,11 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
               feed: () => context.go(WorkerRoutes.feed),
               chat: (app) => context.push(WorkerRoutes.chat(app)),
               earnings: () => context.go(WorkerRoutes.earnings),
+              confirmPay: (n) {
+                final application = n.applicationId;
+                if (application == null) return;
+                showPaymentSheet(context, ref, applicationId: application, pay: n.amount ?? 0, received: n.receivedAmount);
+              },
             ),
           ),
         ),

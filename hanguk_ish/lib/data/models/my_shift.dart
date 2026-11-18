@@ -39,6 +39,8 @@ class MyShift {
     this.workedMinutes,
     this.payAmount,
     this.paidAt,
+    this.receivedAmount,
+    this.receivedAt,
     this.cancelledAt,
     this.lateCancel = false,
     this.myStars,
@@ -62,6 +64,11 @@ class MyShift {
   /// When the business marked the pay as given.
   final DateTime? paidAt;
 
+  /// What the worker says they were paid, and when they said it (the answer
+  /// to «belgilangan pul berildimi yoki kamroqmi?» after the shift).
+  final int? receivedAmount;
+  final DateTime? receivedAt;
+
   final DateTime? cancelledAt;
 
   /// Cancelled with less than 24 hours to go.
@@ -83,7 +90,18 @@ class MyShift {
   /// «Bekor qilingan»: cancelled by the worker or turned down.
   bool get isCancelled => status == ApplicationStatus.cancelled || status == ApplicationStatus.rejected;
 
-  bool get isPaid => paidAt != null;
+  /// Paid: the business marked it, or the worker said what they received.
+  bool get isPaid => paidAt != null || receivedAt != null;
+
+  /// What is in the worker's hands: what they said they received, else the
+  /// pay when the business marked it paid, else nothing yet.
+  int get received => receivedAmount ?? (paidAt != null ? pay : 0);
+
+  /// The worker said they received less than the shift came to.
+  bool get paidLess => receivedAmount != null && receivedAmount! < pay;
+
+  /// A finished shift the worker has not answered about yet.
+  bool get awaitsPaymentAnswer => status == ApplicationStatus.completed && receivedAt == null;
 
   /// Pay for the finished shift, or the planned pay before it.
   int get pay => payAmount ?? shift.totalPay;
@@ -96,6 +114,8 @@ class MyShift {
     int? workedMinutes,
     int? payAmount,
     DateTime? paidAt,
+    int? receivedAmount,
+    DateTime? receivedAt,
     DateTime? cancelledAt,
     bool? lateCancel,
     int? myStars,
@@ -112,6 +132,8 @@ class MyShift {
         workedMinutes: workedMinutes ?? this.workedMinutes,
         payAmount: payAmount ?? this.payAmount,
         paidAt: paidAt ?? this.paidAt,
+        receivedAmount: receivedAmount ?? this.receivedAmount,
+        receivedAt: receivedAt ?? this.receivedAt,
         cancelledAt: cancelledAt ?? this.cancelledAt,
         lateCancel: lateCancel ?? this.lateCancel,
         myStars: myStars ?? this.myStars,

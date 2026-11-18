@@ -2929,5 +2929,63 @@
   "monthlyWithdraw": "Bekor qilish",
   "@monthlyWithdraw": {
     "description": "Oylik ish: qiziqishni qaytarib olish."
+  },
+  "payAskTitle": "Maosh to'landimi?",
+  "@payAskTitle": {
+    "description": "To'lovni tasdiqlash oynasi: sarlavha."
+  },
+  "payAskExpected": "Hisoblangan maosh: {amount}",
+  "@payAskExpected": {
+    "description": "To'lovni tasdiqlash: hisoblangan summa.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "payAskFull": "To'liq oldim",
+  "@payAskFull": {
+    "description": "To'lovni tasdiqlash: to'liq oldim."
+  },
+  "payAskLess": "Kamroq oldim",
+  "@payAskLess": {
+    "description": "To'lovni tasdiqlash: kamroq oldim."
+  },
+  "payAskAmountLabel": "Qancha oldingiz? (₩)",
+  "@payAskAmountLabel": {
+    "description": "To'lovni tasdiqlash: summa maydoni."
+  },
+  "payAskSave": "Saqlash",
+  "@payAskSave": {
+    "description": "To'lovni tasdiqlash: saqlash."
+  },
+  "payAskTooMuch": "Summa hisoblangan maoshdan ko'p bo'lmasin. Ko'p olgan bo'lsangiz, \"To'liq oldim\" ni bosing.",
+  "@payAskTooMuch": {
+    "description": "To'lovni tasdiqlash: summa hisoblangandan ko'p."
+  },
+  "payAskSaved": "Maosh daromadingizga qo'shildi",
+  "@payAskSaved": {
+    "description": "To'lov saqlandi xabari."
+  },
+  "payAskAction": "Maoshni tasdiqlash",
+  "@payAskAction": {
+    "description": "A12: smena yakunlandi, maoshni tasdiqlash havolasi."
+  },
+  "payReceivedLine": "Siz {amount} oldingiz",
+  "@payReceivedLine": {
+    "description": "A12 / A07: ishchi qancha olganini aytdi.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "payChange": "O'zgartirish",
+  "@payChange": {
+    "description": "A12 / A07: aytilgan summani o'zgartirish."
+  },
+  "paymentLess": "Kam to'langan",
+  "@paymentLess": {
+    "description": "A09 / A07: kam to'langan belgi."
   }
 }

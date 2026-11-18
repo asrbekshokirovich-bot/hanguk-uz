@@ -573,5 +573,17 @@
   "monthlyInterested": "Мне интересно",
   "monthlyInterestSent": "Интерес отправлен",
   "monthlyInterestNote": "Сотрудник Hanguk свяжется с вами.",
-  "monthlyWithdraw": "Отменить"
+  "monthlyWithdraw": "Отменить",
+  "payAskTitle": "Вам заплатили?",
+  "payAskExpected": "Начислено: {amount}",
+  "payAskFull": "Получил(а) полностью",
+  "payAskLess": "Получил(а) меньше",
+  "payAskAmountLabel": "Сколько вы получили? (₩)",
+  "payAskSave": "Сохранить",
+  "payAskTooMuch": "Сумма не должна быть больше начисленной. Если получили всё — нажмите «Получил(а) полностью».",
+  "payAskSaved": "Оплата добавлена в доход",
+  "payAskAction": "Подтвердить оплату",
+  "payReceivedLine": "Вы получили {amount}",
+  "payChange": "Изменить",
+  "paymentLess": "Заплатили меньше"
 }

@@ -29,6 +29,7 @@ import '../my_shifts/my_shifts_screen.dart';
 import '../profile/worker_profile_draft.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_widgets.dart';
+import 'payment_confirm.dart';
 import 'qr_scanner.dart';
 
 /// Ticks every second while a timer is on screen (A07).
@@ -738,7 +739,7 @@ class ShiftResultScreen extends ConsumerWidget {
   }
 }
 
-class _ResultCard extends StatelessWidget {
+class _ResultCard extends ConsumerWidget {
   const _ResultCard({required this.app, required this.lang, required this.now});
 
   final MyShift app;
@@ -746,7 +747,7 @@ class _ResultCard extends StatelessWidget {
   final DateTime now;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = WorkerL10n.of(context);
     final shift = app.shift;
     final b = shift.business;
@@ -839,15 +840,35 @@ class _ResultCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       HiText(
-                        app.isPaid ? l10n.paymentPaid : l10n.paymentPending,
+                        app.paidLess ? l10n.paymentLess : (app.isPaid ? l10n.paymentPaid : l10n.paymentPending),
                         style: hiStyle(13, FontWeight.w800, color: HiColors.ink),
                       ),
                     ],
                   ),
                 ),
-                HiText(l10n.employerPays, style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted)),
+                HiText(
+                  app.receivedAmount != null ? l10n.payReceivedLine(Won.worker(app.receivedAmount!)) : l10n.employerPays,
+                  style: hiStyle(14, FontWeight.w600, color: HiColors.inkMuted),
+                ),
               ],
             ),
+            // «Maosh to'landimi?»: say what was paid; it goes to A09 at once.
+            if (app.status == ApplicationStatus.completed) ...[
+              const SizedBox(height: 14),
+              HiButton(
+                label: app.receivedAmount == null ? l10n.payAskAction : l10n.payChange,
+                style: app.receivedAmount == null ? HiButtonStyle.ink : HiButtonStyle.outline,
+                height: 48,
+                fontSize: 16,
+                onPressed: () => showPaymentSheet(
+                  context,
+                  ref,
+                  applicationId: app.applicationId,
+                  pay: app.pay,
+                  received: app.receivedAmount,
+                ),
+              ),
+            ],
           ],
         ),
       ),

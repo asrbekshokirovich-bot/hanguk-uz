@@ -563,6 +563,18 @@ class DemoShiftRepository implements ShiftRepository {
   }
 
   @override
+  Future<MyShift> confirmPayment(String applicationId, int amount) async {
+    await _wait();
+    final app = _apps[applicationId];
+    if (app == null) throw const ShiftActionException('NOT_FOUND');
+    if (app.status != ApplicationStatus.completed) throw const ShiftActionException('NOT_COMPLETED');
+    if (amount < 0) throw const ShiftActionException('INVALID');
+    final updated = app.copyWith(receivedAmount: amount, receivedAt: _clock());
+    _store(updated);
+    return _fresh(updated);
+  }
+
+  @override
   Future<List<ChatMessage>> messages(String applicationId) async {
     await _wait();
     final app = _apps[applicationId];
