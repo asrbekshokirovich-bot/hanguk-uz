@@ -11,7 +11,6 @@ import '../../../design/typography.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/forms.dart';
 import '../../../l10n/gen/worker_l10n.dart';
-import '../earnings/earnings_screen.dart' show earningsMonthProvider;
 import '../my_shifts/my_shifts_providers.dart';
 import '../notifications/unread.dart' show notificationsProvider;
 
@@ -33,8 +32,8 @@ Future<bool> showPaymentSheet(
   );
   if (saved != true) return false;
   ref.invalidate(myShiftsProvider);
+  ref.invalidate(myShiftProvider(applicationId));
   ref.invalidate(notificationsProvider);
-  ref.invalidate(earningsMonthProvider);
   if (context.mounted) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
