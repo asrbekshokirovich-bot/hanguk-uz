@@ -108,7 +108,7 @@ describe('hanguk.uz/ish — the public monthly jobs', () => {
     const fake = fakeClient(jobs);
     open(fake.client, 'ko');
     expect(await screen.findByText('한국 월급 일자리')).toBeTruthy();
-    expect(screen.getAllByRole('button', { name: '관심 있어요' }).length).toBe(2);
+    expect((await screen.findAllByRole('button', { name: '관심 있어요' })).length).toBe(2);
   });
 
   it('the search narrows the list', async () => {
@@ -128,7 +128,7 @@ describe('hanguk.uz/ish — the public monthly jobs', () => {
     const card = await screen.findByTestId('ish-job-j1');
     fireEvent.click(within(card).getByRole('button', { name: 'Qiziqaman' }));
     fireEvent.change(await screen.findByLabelText('Ism va familiya'), { target: { value: 'Aziz Karimov' } });
-    fireEvent.change(screen.getByLabelText(/Telefon raqam/), { target: { value: '010-1234-5678' } });
+    fireEvent.change(screen.getByLabelText('Telefon raqam (010-0000-0000)'), { target: { value: '010-1234-5678' } });
     fireEvent.click(screen.getByRole('button', { name: 'Kod yuborish' }));
     await waitFor(() => expect(fake.auth.signInWithOtp).toHaveBeenCalledWith({ phone: '+821012345678', options: { data: { app: 'hanguk_ish' } } }));
     fireEvent.change(await screen.findByLabelText(/SMS kod/), { target: { value: '123456' } });
@@ -142,7 +142,7 @@ describe('hanguk.uz/ish — the public monthly jobs', () => {
     const fake = fakeClient(jobs);
     open(fake.client);
     fireEvent.click(within(await screen.findByTestId('ish-job-j1')).getByRole('button', { name: 'Qiziqaman' }));
-    fireEvent.change(await screen.findByLabelText(/Telefon raqam/), { target: { value: '123' } });
+    fireEvent.change(await screen.findByLabelText('Telefon raqam (010-0000-0000)'), { target: { value: '123' } });
     fireEvent.click(screen.getByRole('button', { name: 'Kod yuborish' }));
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(fake.auth.signInWithOtp).not.toHaveBeenCalled();
