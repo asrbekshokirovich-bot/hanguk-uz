@@ -31,13 +31,9 @@ jobs:
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H 'Content-Type: application/json' --data-binary @body.json | head -c 3000
             echo
           }
-          q tables "select c.relname, c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='ish' and c.relname like 'monthly%' order by 1"
-          q policies "select tablename, policyname, cmd from pg_policies where schemaname='ish' and tablename like 'monthly%' order by 1,2"
-          q grants "select table_name, grantee, string_agg(privilege_type, ',' order by privilege_type) from information_schema.role_table_grants where table_schema='ish' and table_name like 'monthly%' and grantee in ('anon','authenticated') group by 1,2 order by 1,2"
-          q trigger "select tgname, tgenabled from pg_trigger where tgname='applications_notify_finished' and not tgisinternal"
-          q constraint "select pg_get_constraintdef(oid) like '%shift_finished%' as has_kind from pg_constraint where conname='notifications_kind_check' and conrelid='ish.notifications'::regclass"
-          q push_app "select ish.push_app('shift_finished', '{}'::jsonb) as app"
-          q counts "select (select count(*) from ish.monthly_jobs) as jobs, (select count(*) from ish.monthly_applications) as applications, (select count(*) from ish.notifications where kind='shift_finished') as finished_notices"
+          # Everything below is rolled back: the block always ends in an error.
+          q trigger_test "do \$\$ declare a ish.applications; n int; begin select * into a from ish.applications where status in ('confirmed','checked_in','pending') order by created_at desc limit 1; if a.id is null then raise exception 'NO_ROW_TO_TEST'; end if; update ish.applications set status='completed' where id=a.id; select count(*) into n from ish.notifications where kind='shift_finished' and data->>'application_id' = a.id::text; raise exception 'TRIGGER_TEST status_was=% notices_created=% (rolled back)', a.status, n; end \$\$"
+          q after_rollback "select count(*) as finished_notices from ish.notifications where kind='shift_finished'"
           echo "### REST (anon, schema ish): the table must be visible to the API"
           curl -sS -w '\nHTTP %{http_code}\n' "https://lysjdtyanhdfphqyijsr.supabase.co/rest/v1/monthly_jobs?select=id&limit=1" \
             -H "apikey: sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3" -H "Accept-Profile: ish" | head -c 600
