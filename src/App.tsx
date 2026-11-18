@@ -26,6 +26,7 @@ const Install = lazy(() => import("./pages/Install"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const IshPrivacy = lazy(() => import("./pages/IshPrivacy"));
+const IshJobs = lazy(() => import("./pages/IshJobs"));
 const IshDeleteAccount = lazy(() => import("./pages/IshDeleteAccount"));
 const Support = lazy(() => import("./pages/Support"));
 const StudentPortal = lazy(() => import("./pages/StudentPortal"));
@@ -123,6 +124,8 @@ const App = () => (
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/privacy-policy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
+                    {/* Hanguk Ish: the public page of the open monthly jobs. */}
+                    <Route path="/ish" element={<IshJobs />} />
                     {/* Hanguk Ish apps: privacy policy linked from Google Play. */}
                     <Route path="/ish/privacy" element={<IshPrivacy />} />
                     {/* Hanguk Ish: account deletion (Google Play Data safety link). */}

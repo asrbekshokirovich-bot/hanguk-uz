@@ -40,8 +40,8 @@ select tests.eq(
   (select coalesce(array_agg(distinct table_name::text), '{}')
    from information_schema.role_table_grants
    where table_schema = 'ish' and grantee = 'anon'),
-  '{}'::text[],
-  'the signed-out have no rights on any table');
+  array['monthly_jobs']::text[],
+  'the signed-out have no rights on any table but the open monthly jobs (the public page, read only)');
 
 -- register_business files a business for anyone with any 국세청 answer: only
 -- the business-register function (service role) may call it.
