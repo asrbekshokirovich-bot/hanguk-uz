@@ -23,6 +23,14 @@ on:
         description: 'File names in supabase/migrations, space-separated, in the order to apply'
         required: true
         type: string
+      dir:
+        description: 'Folder of the files (on main)'
+        required: false
+        default: 'supabase/migrations'
+        type: choice
+        options:
+          - supabase/migrations
+          - hanguk_ish/supabase/migrations
 
 concurrency:
   group: supabase-apply-migrations
@@ -45,13 +53,14 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           FILES: ${{ inputs.files }}
+          DIR: ${{ inputs.dir }}
         run: |
           set -euo pipefail
           api="https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_ID/database/migrations"
 
           # Every name must be a migration file on main before anything runs.
           for f in $FILES; do
-            if ! [[ "$f" =~ ^[0-9]{14}_[a-z0-9_]+\.sql$ ]] || [ ! -f "supabase/migrations/$f" ]; then
+            if ! [[ "$f" =~ ^[0-9]{14}_[a-z0-9_]+\.sql$ ]] || [ ! -f "$DIR/$f" ]; then
               echo "::error title=Not a migration on main::$f"
               exit 1
             fi
@@ -60,7 +69,7 @@ jobs:
           for f in $FILES; do
             name="${f#*_}"
             name="${name%.sql}"
-            jq -n --rawfile query "supabase/migrations/$f" --arg name "$name" \
+            jq -n --rawfile query "$DIR/$f" --arg name "$name" \
               '{query: $query, name: $name}' > body.json
             code=$(curl -sS -o out.json -w '%{http_code}' -X POST "$api" \
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
