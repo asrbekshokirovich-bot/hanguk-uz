@@ -7,6 +7,7 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/brand.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../worker/settings/app_language.dart';
+import '../biz.dart';
 
 /// The first screen of a first launch: the owner chooses the app's language
 /// before anything else. Every language is shown in its own name, so the
@@ -17,8 +18,6 @@ class Ba0WelcomeScreen extends StatelessWidget {
   final AppLanguage selected;
   final ValueChanged<AppLanguage> onSelect;
   final VoidCallback onNext;
-
-  static const _next = {'ko': '다음', 'uz': 'Davom etish', 'ru': 'Далее', 'en': 'Continue'};
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +37,7 @@ class Ba0WelcomeScreen extends StatelessWidget {
               Semantics(
                 header: true,
                 child: HiText(
-                  '언어 · Til · Язык · Language',
+                  Biz.welcomeTitle,
                   style: hiStyle(22, FontWeight.w800, height: 1.3, color: HiColors.white),
                 ),
               ),
@@ -52,7 +51,7 @@ class Ba0WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 10),
               ],
               const Spacer(),
-              HiButton(label: _next[selected.code]!, height: 56, fontSize: 18, onPressed: onNext),
+              HiButton(label: Biz.welcomeNext(selected.code), height: 56, fontSize: 18, onPressed: onNext),
             ],
           ),
         ),

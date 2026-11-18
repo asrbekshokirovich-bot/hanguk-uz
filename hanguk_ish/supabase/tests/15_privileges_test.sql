@@ -22,8 +22,7 @@ select tests.eq(
     'staff_people', 'staff_remove', 'staff_reports', 'staff_save_business', 'staff_save_shift', 'staff_send_offers',
     'staff_set_app_business_blocked', 'staff_set_report_status', 'staff_set_role', 'staff_shift',
     'staff_update_app_business',
-    'update_my_business',
-    'toggle_favorite', 'worker_earnings', 'worker_stats'
+    'toggle_favorite', 'update_my_business', 'worker_earnings', 'worker_stats'
   ]::text[],
   'the owner-rights functions open to signed-in people are the reviewed ones');
 

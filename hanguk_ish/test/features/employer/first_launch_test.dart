@@ -28,7 +28,7 @@ void main() {
     await tester.tap(find.text('Davom etish'));
     await tester.pumpAndSettle();
     // BA0, now in the chosen language.
-    expect(find.text('Boshlash'), findsNothing); // not the welcome screen any more
+    expect(find.text('Davom etish'), findsNothing); // not the welcome screen any more
     expect(find.byType(TextField), findsOneWidget);
   });
 
