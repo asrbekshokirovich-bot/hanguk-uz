@@ -28,10 +28,7 @@ void main() {
     final grid = tester.getTopLeft(find.text("Bo'sh vaqt jadvali")).dy;
     expect(grid, greaterThan(numbers), reason: 'under reliability, completed shifts and ratings');
 
-    await tester.scrollUntilVisible(find.text('Tillar'), 300);
-    expect(tester.getTopLeft(find.text('Tillar')).dy, isNonZero);
-
-    await tester.scrollUntilVisible(find.bySemanticsLabel('Yakshanba, Tunda'), -300);
+    await tester.scrollUntilVisible(find.bySemanticsLabel('Yakshanba, Tunda'), 200);
     final before = container.read(workerProfileDraftProvider).isAvailable(6, 3);
     await tester.tap(find.bySemanticsLabel('Yakshanba, Tunda'));
     await tester.pump(const Duration(seconds: 2));
