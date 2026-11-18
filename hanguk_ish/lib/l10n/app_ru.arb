@@ -557,5 +557,21 @@
   "locationTitle": "Включите геолокацию",
   "locationSubtitle": "Геолокация нужна, чтобы показывать смены рядом и расстояние до них. Ваш точный адрес работодателям не виден.",
   "locationAllow": "Разрешить геолокацию",
-  "locationLater": "Позже"
+  "locationLater": "Позже",
+  "notifFinishedTitle": "Смена завершена",
+  "notifFinishedText": "{business}: смена {day} завершена. Начислено: {amount}.",
+  "timeDaytime": "Дневные",
+  "timeNighttime": "Вечерние и ночные",
+  "monthlyJobsShort": "Работа на месяц",
+  "monthlyJobsTitle": "Работа на месяц",
+  "monthlyJobsSubtitle": "Постоянная работа: оплата в месяц, без отдельных смен.",
+  "monthlyJobsEmpty": "Пока нет работы на месяц",
+  "monthlyJobsEmptyText": "Когда появится новая работа, она будет здесь.",
+  "monthlyPerMonth": "/ мес.",
+  "monthlyDaysHours": "{days} дн. в неделю · {hours} ч в день",
+  "monthlyDaysOnly": "{days} дн. в неделю",
+  "monthlyInterested": "Мне интересно",
+  "monthlyInterestSent": "Интерес отправлен",
+  "monthlyInterestNote": "Сотрудник Hanguk свяжется с вами.",
+  "monthlyWithdraw": "Отменить"
 }

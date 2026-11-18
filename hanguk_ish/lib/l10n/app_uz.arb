@@ -2841,5 +2841,93 @@
   "locationLater": "Keyinroq",
   "@locationLater": {
     "description": "Joylashuv so'rovi ekrani: o'tkazib yuborish."
+  },
+  "notifFinishedTitle": "Smena yakunlandi",
+  "@notifFinishedTitle": {
+    "description": "A12: smena yakunlandi, sarlavha."
+  },
+  "notifFinishedText": "{business}: {day} smenasi yakunlandi. Hisoblangan maosh: {amount}.",
+  "@notifFinishedText": {
+    "description": "A12: smena yakunlandi, matn.",
+    "placeholders": {
+      "business": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "timeDaytime": "Kunduzgi",
+  "@timeDaytime": {
+    "description": "Filtr: kunduzgi ishlar (06–18)."
+  },
+  "timeNighttime": "Kechgi",
+  "@timeNighttime": {
+    "description": "Filtr: kechgi ishlar (18–06)."
+  },
+  "monthlyJobsShort": "Oylik ishlar",
+  "@monthlyJobsShort": {
+    "description": "A03 sarlavhasidagi tugma: oylik ishlarga o'tish."
+  },
+  "monthlyJobsTitle": "Oylik ishlar",
+  "@monthlyJobsTitle": {
+    "description": "Oylik ishlar ekrani sarlavhasi."
+  },
+  "monthlyJobsSubtitle": "Doimiy ishlar: oyiga maosh, kunlik smenalarsiz.",
+  "@monthlyJobsSubtitle": {
+    "description": "Oylik ishlar ekrani: izoh."
+  },
+  "monthlyJobsEmpty": "Hozircha oylik ishlar yo'q",
+  "@monthlyJobsEmpty": {
+    "description": "Oylik ishlar yo'q."
+  },
+  "monthlyJobsEmptyText": "Yangi ish qo'shilsa, shu yerda ko'rinadi.",
+  "@monthlyJobsEmptyText": {
+    "description": "Oylik ishlar yo'q: izoh."
+  },
+  "monthlyPerMonth": "/ oy",
+  "@monthlyPerMonth": {
+    "description": "Oylik maosh yozuvi: «/ oy»."
+  },
+  "monthlyDaysHours": "Haftasiga {days} kun · kuniga {hours} soat",
+  "@monthlyDaysHours": {
+    "description": "Haftasiga necha kun, kuniga necha soat.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyDaysOnly": "Haftasiga {days} kun",
+  "@monthlyDaysOnly": {
+    "description": "Faqat haftasiga necha kun.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyInterested": "Qiziqaman",
+  "@monthlyInterested": {
+    "description": "Oylik ish: qiziqish tugmasi."
+  },
+  "monthlyInterestSent": "Qiziqish bildirildi",
+  "@monthlyInterestSent": {
+    "description": "Oylik ish: qiziqish bildirildi."
+  },
+  "monthlyInterestNote": "Hanguk xodimi siz bilan bog'lanadi.",
+  "@monthlyInterestNote": {
+    "description": "Oylik ish: xodim bog'lanadi."
+  },
+  "monthlyWithdraw": "Bekor qilish",
+  "@monthlyWithdraw": {
+    "description": "Oylik ish: qiziqishni qaytarib olish."
   }
 }

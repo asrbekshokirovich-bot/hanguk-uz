@@ -20,6 +20,7 @@ import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
 import '../features/worker/map/native_kakao_map.dart' show kakaoNativeStarted;
 import '../features/worker/me/me_screen.dart';
+import '../features/worker/monthly/monthly_jobs_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
@@ -61,6 +62,9 @@ abstract final class WorkerRoutes {
   static const me = '/me';
 
   static const notifications = '/notifications';
+
+  /// «Oylik ishlar»: jobs paid by the month.
+  static const monthly = '/monthly';
 
   /// Where the app opens once signed in.
   static const home = feed;
@@ -105,7 +109,7 @@ FeedActions _feedActions(BuildContext context) => FeedActions(
       openShift: (shift) => context.push(WorkerRoutes.shift(shift.id)),
       takeShift: (shift) => takeShift(context, shift),
       openFeed: () => context.go(WorkerRoutes.feed),
-      openMap: () => context.go(WorkerRoutes.map),
+      openMonthly: () => context.push(WorkerRoutes.monthly),
       openNotifications: () => context.push(WorkerRoutes.notifications),
     );
 
@@ -390,6 +394,12 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ChatScreen(
           applicationId: state.pathParameters['app']!,
           onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.monthly,
+        builder: (context, state) => MonthlyJobsScreen(
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
         ),
       ),
       GoRoute(

@@ -9,6 +9,7 @@ import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_controller.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_screen.dart';
 import 'package:hanguk_ish/features/worker/map/map_screen.dart';
+import 'package:hanguk_ish/features/worker/monthly/monthly_jobs_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_detail_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
 
@@ -170,18 +171,32 @@ void main() {
     expect(find.text('Yuk saralash'), findsOneWidget);
   });
 
-  testWidgets('bottom menu and list / map switch', (tester) async {
+  testWidgets('bottom menu; the header opens the monthly jobs (no day tabs) and back', (tester) async {
     await start(tester);
     await tester.tap(find.text('Xarita').last);
     await tester.pumpAndSettle();
     expect(find.byType(WorkerMapScreen), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel("Ro'yxat"));
+    await tester.tap(find.text('Smenalar').last);
     await tester.pumpAndSettle();
     expect(find.byType(FeedScreen), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('Xarita').first);
+
+    // The header pill replaces the list / map switch.
+    expect(find.bySemanticsLabel("Ro'yxat"), findsNothing);
+    expect(find.text('Bugun'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Oylik ishlar'));
     await tester.pumpAndSettle();
-    expect(find.byType(WorkerMapScreen), findsOneWidget);
-    await tester.tap(find.text('Smenalar').last);
+    expect(find.byType(MonthlyJobsScreen), findsOneWidget);
+    expect(find.text('Bugun'), findsNothing, reason: 'a monthly job has no day');
+    expect(find.text('Ertaga'), findsNothing);
+    expect(find.text('Kafe baristasi (doimiy)'), findsOneWidget);
+    expect(find.text(Won.worker(2300000)), findsOneWidget);
+    await tester.tap(find.text('Qiziqaman').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Qiziqish bildirildi'), findsOneWidget);
+    await tester.tap(find.text('Bekor qilish'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Qiziqish bildirildi'), findsNothing);
+    await tester.tap(find.byType(HiBackButton));
     await tester.pumpAndSettle();
     expect(find.byType(FeedScreen), findsOneWidget);
   });

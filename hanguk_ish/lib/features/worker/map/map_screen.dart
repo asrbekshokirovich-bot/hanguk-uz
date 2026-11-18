@@ -213,9 +213,7 @@ class _WorkerMapScreenState extends ConsumerState<WorkerMapScreen> {
                 padding: const EdgeInsets.only(bottom: 22),
                 child: FeedHeader(
                   title: l10n.mapTitle,
-                  mapSelected: true,
-                  onList: widget.actions.openFeed,
-                  onMap: () {},
+                  onMonthly: widget.actions.openMonthly,
                   onNotifications: widget.actions.openNotifications,
                   showLocation: false,
                   chipBackground: HiColors.navy,

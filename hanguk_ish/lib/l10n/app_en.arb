@@ -557,5 +557,21 @@
   "locationTitle": "Turn on your location",
   "locationSubtitle": "We need your location to show shifts nearby and how far they are. Employers never see your exact address.",
   "locationAllow": "Allow location",
-  "locationLater": "Later"
+  "locationLater": "Later",
+  "notifFinishedTitle": "Shift finished",
+  "notifFinishedText": "{business}: your shift on {day} is over. Earned: {amount}.",
+  "timeDaytime": "Daytime",
+  "timeNighttime": "Evening and night",
+  "monthlyJobsShort": "Monthly jobs",
+  "monthlyJobsTitle": "Monthly jobs",
+  "monthlyJobsSubtitle": "Long-term jobs paid by the month, not by the shift.",
+  "monthlyJobsEmpty": "No monthly jobs yet",
+  "monthlyJobsEmptyText": "New jobs will show up here.",
+  "monthlyPerMonth": "/ month",
+  "monthlyDaysHours": "{days} days a week · {hours} h a day",
+  "monthlyDaysOnly": "{days} days a week",
+  "monthlyInterested": "I'm interested",
+  "monthlyInterestSent": "Interest sent",
+  "monthlyInterestNote": "A Hanguk staff member will contact you.",
+  "monthlyWithdraw": "Withdraw"
 }

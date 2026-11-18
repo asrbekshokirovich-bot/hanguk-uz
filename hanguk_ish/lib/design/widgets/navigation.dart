@@ -9,16 +9,24 @@ import 'pressable.dart';
 
 /// One destination of [HiBottomNav].
 class HiNavItem {
-  const HiNavItem({required this.icon, required this.label, this.wide = false});
+  const HiNavItem({required this.icon, required this.label, this.wide = false, this.raised = false});
 
   final HiIconData icon;
   final String label;
 
   /// Takes a double-width column («Mening smenalarim»).
   final bool wide;
+
+  /// Stands out: a lime circle rises above the bar, its label stays in the bar
+  /// (the employer app's «+» in the middle).
+  final bool raised;
 }
 
-/// The worker app's bottom menu: dark bar, lime pill behind the current icon.
+/// How far the raised circle stands above the bar.
+const double _navRise = 22;
+
+/// The worker app's bottom menu: dark bar, lime pill behind the current icon;
+/// an item marked [HiNavItem.raised] is a lime circle above the bar.
 class HiBottomNav extends StatelessWidget {
   const HiBottomNav({
     super.key,
@@ -33,7 +41,9 @@ class HiBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final raisedIndex = items.indexWhere((i) => i.raised);
+    final rise = raisedIndex < 0 ? 0.0 : _navRise;
+    final bar = Container(
       decoration: const BoxDecoration(
         color: Color(0xFF060D2B),
         border: Border(top: BorderSide(color: HiColors.white10)),
@@ -44,13 +54,105 @@ class HiBottomNav extends StatelessWidget {
           for (var i = 0; i < items.length; i++)
             Expanded(
               flex: items[i].wide ? 2 : 1,
-              child: _NavButton(
-                item: items[i],
-                selected: i == current,
-                onTap: () => onSelect(i),
-              ),
+              child: items[i].raised
+                  ? _RaisedLabel(item: items[i], selected: i == current, onTap: () => onSelect(i))
+                  : _NavButton(
+                      item: items[i],
+                      selected: i == current,
+                      onTap: () => onSelect(i),
+                    ),
             ),
         ],
+      ),
+    );
+    if (raisedIndex < 0) return bar;
+    // The circle sits over the column of the raised item: it must be the
+    // middle one (the columns are symmetric around it).
+    final item = items[raisedIndex];
+    final before = items.take(raisedIndex).fold<int>(0, (n, i) => n + (i.wide ? 2 : 1));
+    final after = items.skip(raisedIndex + 1).fold<int>(0, (n, i) => n + (i.wide ? 2 : 1));
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Padding(padding: EdgeInsets.only(top: rise), child: bar),
+        Positioned(
+          top: 0,
+          left: 6,
+          right: 6,
+          child: Row(
+            children: [
+              if (before > 0) Spacer(flex: before),
+              Expanded(
+                flex: item.wide ? 2 : 1,
+                child: Center(
+                  child: HiPressable(
+                    onTap: () => onSelect(raisedIndex),
+                    selected: raisedIndex == current,
+                    semanticsLabel: item.label,
+                    builder: (context, pressed) => Transform.translate(
+                      offset: pressed ? const Offset(2, 2) : Offset.zero,
+                      child: Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: HiColors.lime,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: raisedIndex == current ? HiColors.white : HiColors.ink, width: raisedIndex == current ? 2.5 : 1.5),
+                          boxShadow: [
+                            BoxShadow(color: HiColors.ink, offset: pressed ? const Offset(1, 1) : const Offset(3, 3)),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: HiIcon(item.icon, size: 26, strokeWidth: 2.4, color: HiColors.onLime),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (after > 0) Spacer(flex: after),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The label under the raised circle (the circle itself is drawn above the bar).
+class _RaisedLabel extends StatelessWidget {
+  const _RaisedLabel({required this.item, required this.selected, required this.onTap});
+
+  final HiNavItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      selected: selected,
+      builder: (context, pressed) => ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 57),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Room for the lower half of the circle.
+            const SizedBox(height: 30),
+            const SizedBox(height: 4),
+            HiText(
+              item.label,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.visible,
+              style: hiStyle(
+                12,
+                FontWeight.w800,
+                color: selected ? HiColors.lime : HiColors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

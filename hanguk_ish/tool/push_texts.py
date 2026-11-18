@@ -24,7 +24,7 @@ KEYS = [
     # A12 (worker app): the titles; the line under each is the business.
     "notifReminderTitle", "notifConfirmedTitle", "notifRejectedTitle", "notifTimeChangedTitle",
     "notifCancelledTitle", "notifPaidTitle", "notifMessageTitle", "notifNewShiftTitle", "notifOfferTitle",
-    "notifNearbyTitle",
+    "notifNearbyTitle", "notifFinishedTitle",
     # 알림 (사장님 app): title and line.
     "bizNotifNewApplicant", "bizNotifNewApplicantText", "bizNotifAutoConfirmed", "bizNotifAutoConfirmedText",
     "bizNotifCancelled", "bizNotifCancelledText", "bizNotifNoShow", "bizNotifNoShowText",

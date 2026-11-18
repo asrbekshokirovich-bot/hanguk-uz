@@ -243,6 +243,8 @@ export function pushText(card: Record<string, any>, readerLang: string): PushTex
         return icu(s.notifNearbyTitle, { area: areaName(data, l), n: int(data.count) ?? 0 }, l);
       case "job_offer":
         return s.notifOfferTitle;
+      case "shift_finished":
+        return s.notifFinishedTitle;
       default:
         return null;
     }

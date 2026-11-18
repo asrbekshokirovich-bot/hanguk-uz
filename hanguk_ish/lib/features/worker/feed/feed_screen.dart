@@ -27,14 +27,14 @@ class FeedActions {
     required this.openShift,
     required this.takeShift,
     required this.openFeed,
-    required this.openMap,
+    required this.openMonthly,
     required this.openNotifications,
   });
 
   final void Function(ShiftListing shift) openShift;
   final void Function(ShiftListing shift) takeShift;
   final VoidCallback openFeed;
-  final VoidCallback openMap;
+  final VoidCallback openMonthly;
   final VoidCallback openNotifications;
 }
 
@@ -107,9 +107,7 @@ class _FeedBody extends ConsumerWidget {
       children: [
         FeedHeader(
           title: l10n.feedTitle,
-          mapSelected: false,
-          onList: () {},
-          onMap: actions.openMap,
+          onMonthly: actions.openMonthly,
           onNotifications: actions.openNotifications,
           count: skeleton || failed ? null : shifts.length,
         ),
@@ -125,9 +123,7 @@ class FeedHeader extends ConsumerWidget {
   const FeedHeader({
     super.key,
     required this.title,
-    required this.mapSelected,
-    required this.onList,
-    required this.onMap,
+    required this.onMonthly,
     required this.onNotifications,
     this.count,
     this.showLocation = true,
@@ -136,9 +132,8 @@ class FeedHeader extends ConsumerWidget {
   });
 
   final String title;
-  final bool mapSelected;
-  final VoidCallback onList;
-  final VoidCallback onMap;
+  /// «Oylik ishlar»: the jobs paid by the month (their own screen, no days).
+  final VoidCallback onMonthly;
   final VoidCallback onNotifications;
 
   /// «· 12 ta smena»; null while loading.
@@ -181,13 +176,7 @@ class FeedHeader extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                HiViewToggle(
-                  mapSelected: mapSelected,
-                  onList: onList,
-                  onMap: onMap,
-                  listLabel: l10n.viewList,
-                  mapLabel: l10n.viewMap,
-                ),
+                _MonthlyButton(label: l10n.monthlyJobsShort, onTap: onMonthly),
                 const SizedBox(width: 8),
                 HiGlassIconButton(
                   icon: HiIcons.bell,
@@ -273,6 +262,46 @@ class FeedHeader extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The header pill that opens the monthly jobs.
+class _MonthlyButton extends StatelessWidget {
+  const _MonthlyButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      semanticsLabel: label,
+      builder: (context, pressed) => Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: pressed ? HiColors.white18 : HiColors.white12,
+          borderRadius: BorderRadius.circular(HiRadii.pill),
+          border: Border.all(color: HiColors.white20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const HiIcon(HiIcons.calendarCheck, size: 18, strokeWidth: 2, color: HiColors.white),
+            const SizedBox(width: 8),
+            Flexible(
+              child: HiText(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: hiStyle(14, FontWeight.w700, color: HiColors.white),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -554,22 +583,27 @@ Future<void> _pickCategories(BuildContext context, WidgetRef ref) async {
 Future<void> _pickDayParts(BuildContext context, WidgetRef ref) async {
   final l10n = WorkerL10n.of(context);
   final current = ref.read(feedFilterProvider).dayParts;
-  final labels = [
-    '${l10n.slotMorning} 06–12',
-    '${l10n.slotDay} 12–18',
-    '${l10n.slotEvening} 18–24',
-    '${l10n.slotNight} 00–06',
-  ];
+  // Two choices: daytime (06–18: morning and afternoon) and night (18–06:
+  // evening and night); the filter keeps the four 6-hour parts.
   final value = await showHiMultiPicker(
     context,
     title: l10n.filterTime,
     apply: l10n.filterApply,
     reset: l10n.filterReset,
-    selected: {for (final p in current) '$p'},
-    options: [for (var i = 0; i < 4; i++) HiPickerOption('$i', labels[i])],
+    selected: {
+      if (current.contains(0) || current.contains(1)) 'day',
+      if (current.contains(2) || current.contains(3)) 'night',
+    },
+    options: [
+      HiPickerOption('day', '${l10n.timeDaytime} 06–18'),
+      HiPickerOption('night', '${l10n.timeNighttime} 18–06'),
+    ],
   );
   if (value == null) return;
-  ref.read(feedFilterProvider.notifier).setDayParts({for (final v in value) int.parse(v)});
+  ref.read(feedFilterProvider.notifier).setDayParts({
+    if (value.contains('day')) ...const [0, 1],
+    if (value.contains('night')) ...const [2, 3],
+  });
 }
 
 /// «Barcha filtrlar»: the four filters one after another.

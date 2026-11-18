@@ -557,5 +557,21 @@
   "locationTitle": "위치를 켜 주세요",
   "locationSubtitle": "가까운 근무와 거리를 보여 드리려면 위치가 필요해요. 정확한 주소는 사장님께 보이지 않아요.",
   "locationAllow": "위치 허용",
-  "locationLater": "나중에"
+  "locationLater": "나중에",
+  "notifFinishedTitle": "근무가 끝났어요",
+  "notifFinishedText": "{business}: {day} 근무가 끝났어요. 정산 금액: {amount}",
+  "timeDaytime": "주간",
+  "timeNighttime": "야간",
+  "monthlyJobsShort": "월급 일자리",
+  "monthlyJobsTitle": "월급 일자리",
+  "monthlyJobsSubtitle": "월급을 받는 장기 일자리예요. 일일 근무가 아니에요.",
+  "monthlyJobsEmpty": "아직 월급 일자리가 없어요",
+  "monthlyJobsEmptyText": "새 일자리가 생기면 여기에 보여요.",
+  "monthlyPerMonth": "/ 월",
+  "monthlyDaysHours": "주 {days}일 · 하루 {hours}시간",
+  "monthlyDaysOnly": "주 {days}일",
+  "monthlyInterested": "관심 있어요",
+  "monthlyInterestSent": "관심을 보냈어요",
+  "monthlyInterestNote": "Hanguk 담당자가 연락드려요.",
+  "monthlyWithdraw": "취소"
 }
