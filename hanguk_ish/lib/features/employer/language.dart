@@ -19,6 +19,10 @@ import 'biz.dart';
 /// `bootstrap`).
 final employerDefaultLanguageProvider = Provider<AppLanguage>((ref) => AppLanguage.ko);
 
+/// True on a launch where the owner has never chosen a language: the app
+/// asks first (set at start, `bootstrap`; tests leave it off).
+final employerAskLanguageProvider = Provider<bool>((ref) => false);
+
 /// The phone's language if the app speaks it, else Korean.
 AppLanguage employerLanguageFor(Iterable<Locale> deviceLocales) {
   for (final locale in deviceLocales) {
