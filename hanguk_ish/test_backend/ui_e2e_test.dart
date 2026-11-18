@@ -457,7 +457,12 @@ void main() {
     await _until(tester, _text('Bildirishnomalar'));
     await _until(tester, _text('Smena tasdiqlandi'));
     expect(_text("Maosh to'landi"), findsWidgets);
-    expect(find.textContaining(Won.worker(16500), findRichText: true), findsOneWidget, reason: 'the amount paid');
+    // The pay is in two entries: the business marked it paid, and the finished
+    // shift (its own entry since the worker is asked what was paid).
+    expect(find.textContaining("to'langanini belgiladi", findRichText: true), findsOneWidget, reason: 'the amount paid');
+    expect(find.textContaining(Won.worker(16500), findRichText: true), findsNWidgets(2));
+    expect(_text('Smena yakunlandi'), findsOneWidget, reason: 'the finished shift tells the worker');
+    expect(_text('Maoshni tasdiqlash'), findsOneWidget, reason: 'and asks what was paid');
     await _shot(tester, 'a12-notifications');
     // Opening A12 marks them read: let the screen's request go out (the app
     // runs on the test's clock) and ask the server.
