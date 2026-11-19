@@ -167,7 +167,7 @@ class ChatMessage {
 enum ReportSubject { employer, payment, safety, other }
 
 /// Why coins moved (database `coin_ledger.reason`).
-enum CoinReason { staff, apply, refund }
+enum CoinReason { staff, unlock, topup, bonus }
 
 /// One move of the worker's coins (A11 «Tarix»).
 @immutable
@@ -192,21 +192,16 @@ class CoinMove {
   /// The staff's note (staff moves).
   final String note;
 
-  /// The shift of an application or a refund.
+  /// The job that was opened.
   final String? shiftTitle;
 }
 
-/// The worker's coins (`my_coins`): what applying costs and the last moves.
-/// Only Hanguk's staff add coins; the app holds no money.
+/// The worker's puyl (`my_coins`): the balance and the last moves. Spent to
+/// open a job's phone and address; the app holds no money, only this count.
 @immutable
 class CoinWallet {
-  const CoinWallet({required this.balance, required this.cost, this.history = const []});
+  const CoinWallet({required this.balance, this.history = const []});
 
   final int balance;
-
-  /// Coins one application costs (a job Hanguk offered is free).
-  final int cost;
   final List<CoinMove> history;
-
-  bool get canApply => balance >= cost;
 }

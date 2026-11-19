@@ -3857,7 +3857,7 @@
       "reports": "Shikoyatlar",
       "staff": "Xodimlar",
       "monthly": "Oylik ishlar",
-      "coins": "Coinlar"
+      "coins": "Puyl"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -4035,7 +4035,7 @@
       "OFFLINE": "Internet aloqasi yo'q.",
       "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring.",
       "SELF": "O'zingizning rolingizni o'zgartira yoki o'zingizni olib tashlay olmaysiz — buni boshqa admin qiladi.",
-      "NO_COINS": "Ishchida buncha coin yo'q"
+      "NO_COINS": "Ishchida buncha puyl yo'q"
     },
     "appBusinesses": {
       "intro": "사장님 ilovasida ochilgan bizneslar. Ular tekshiruvsiz, darhol ochiladi — shubhali bo'lsa, to'xtating: smenalari ishchilarga ko'rinmaydi va ariza berib bo'lmaydi.",
@@ -4162,7 +4162,7 @@
       "interestedIn": "\"{{title}}\" ga qiziqqanlar"
     },
     "coins": {
-      "intro": "Ishchi smenaga ariza berganda 1 coin sarflaydi; coin'ni faqat siz qo'shasiz (ishchi Hanguk'ga to'lagandan keyin). Rad etilgan yoki bekor qilingan arizaning coin'i o'zi qaytadi.",
+      "intro": "Ishchi ish telefon raqami va manzilini ochganda puyl sarflaydi (ish narxiga qarab 7–20 P). Puylni bu yerda qo'shasiz (ishchi Hanguk'ga to'lagandan keyin). Sarflangan puyl qaytmaydi.",
       "search": "Ism yoki telefon",
       "empty": "Ishchi topilmadi",
       "worker": "Ishchi",
@@ -4173,11 +4173,12 @@
       "note": "Izoh (masalan: naqd 30 000 won)",
       "add": "Qo'shish",
       "take": "Olish",
-      "done": "Balans: {{balance}} coin",
+      "done": "Balans: {{balance}} P",
       "reasons": {
         "staff": "Xodim",
-        "apply": "Ariza",
-        "refund": "Qaytdi"
+        "unlock": "Ish ochildi",
+        "topup": "To'ldirildi",
+        "bonus": "Bonus"
       }
     }
   },

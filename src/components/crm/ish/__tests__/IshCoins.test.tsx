@@ -25,7 +25,7 @@ const aziz: IshCoinWorker = {
   last_name: 'Karimov',
   phone: '+821012345678',
   balance: 2,
-  history: [{ delta: -1, balance: 2, reason: 'apply', note: '', created_at: '2026-11-19T02:00:00Z' }],
+  history: [{ delta: -1, balance: 2, reason: 'unlock', note: '', created_at: '2026-11-19T02:00:00Z' }],
 };
 
 function renderCoins(api: Partial<IshApi>) {
@@ -47,7 +47,7 @@ describe('CRM → Hanguk Ish → «Coinlar»', () => {
     expect(within(card).getByText('Aziz Karimov')).toBeTruthy();
     expect(within(card).getByText('+821012345678')).toBeTruthy();
     expect(within(card).getByLabelText('Balans').textContent).toContain('2');
-    expect(within(card).getByText(/Ariza/)).toBeTruthy();
+    expect(within(card).getByText(/Ish ochildi/)).toBeTruthy();
   });
 
   it('searches by what was typed', async () => {

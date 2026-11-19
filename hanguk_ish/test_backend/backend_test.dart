@@ -110,8 +110,6 @@ void main() {
   setUpAll(() async {
     if (_skip != null) return;
     admin = _client(_serviceKey);
-    // Coins (2026-11-20): these flows apply without them (53_coins_test covers coins).
-    await admin.from('coin_settings').update({'apply_cost': 0}).eq('id', true);
     aziz = await _signIn('+821000000001');
     malika = await _signIn('+821000000002');
     owner = await _signIn('+821000000011');

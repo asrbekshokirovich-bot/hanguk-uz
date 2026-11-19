@@ -81,7 +81,3 @@ insert into ish.applications (id, shift_id, worker_id, status, decided_at, check
   ('30000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000005',
    '00000000-0000-0000-0000-0000000000a2', 'checked_in', now() - interval '1 day',
    now() - interval '2 hours 58 minutes', 2);
-
--- Coins (2026-11-20): the other tests apply without them; 53_coins_test sets
--- the price back to its 1 coin.
-update ish.coin_settings set apply_cost = 0;

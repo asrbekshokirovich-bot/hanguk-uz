@@ -3797,7 +3797,7 @@
       "reports": "Complaints",
       "staff": "Staff",
       "monthly": "Monthly jobs",
-      "coins": "Coins"
+      "coins": "Puyl"
     },
     "board": {
       "newJob": "New job",
@@ -3978,7 +3978,7 @@
       "OFFLINE": "No internet connection.",
       "UNKNOWN": "Something went wrong. Please try again.",
       "SELF": "You cannot change your own role or remove yourself — another admin does that.",
-      "NO_COINS": "The worker does not have that many coins"
+      "NO_COINS": "The worker does not have that much puyl"
     },
     "appBusinesses": {
       "intro": "Businesses opened in the 사장님 app. They open at once, without a check — if one looks suspicious, suspend it: workers won't see its shifts and nobody can apply.",
@@ -4105,7 +4105,7 @@
       "interestedIn": "Interested in “{{title}}”"
     },
     "coins": {
-      "intro": "Applying for a shift costs the worker 1 coin; only you add coins (after the worker pays Hanguk). A turned-down or cancelled application gets its coin back by itself.",
+      "intro": "A worker spends puyl to open a job's phone and address (7–20 P by what it pays). You add puyl here (after the worker pays Hanguk). Spent puyl does not come back.",
       "search": "Name or phone",
       "empty": "No worker found",
       "worker": "Worker",
@@ -4116,11 +4116,12 @@
       "note": "Note (e.g. cash 30,000 won)",
       "add": "Add",
       "take": "Take back",
-      "done": "Balance: {{balance}} coins",
+      "done": "Balance: {{balance}} P",
       "reasons": {
         "staff": "Staff",
-        "apply": "Applied",
-        "refund": "Refund"
+        "unlock": "Job opened",
+        "topup": "Top-up",
+        "bonus": "Bonus"
       }
     }
   },

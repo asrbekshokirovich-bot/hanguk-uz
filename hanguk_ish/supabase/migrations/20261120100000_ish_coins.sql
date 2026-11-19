@@ -1,24 +1,10 @@
--- Hanguk Ish — coins for applying (2026-11-20).
+-- Hanguk Ish — puyl, the worker's points (2026-11-20; the «10-qadam» design).
 --
--- A worker pays coins to apply for a shift (the price is ish.coin_settings,
--- 1 coin to start). Only Hanguk's staff add coins (the CRM: the worker pays
--- Hanguk outside the app) — the app holds no money, only this count.
---
--- Fair to the worker, as workers in Korea would expect:
---   · a job Hanguk's staff offered them is free;
---   · the coin comes back when the business turns the application down, when
---     the shift is cancelled or the application runs out (all: rejected);
---   · when the worker cancels, it comes back while the application still
---     waits, or more than 24 hours before the start; a late cancel of a
---     confirmed place keeps it (as the −5 reliability does), a no-show too.
--- Every move is a row of the ledger the worker sees in A11 (and the staff).
-
-create table ish.coin_settings (
-  id boolean primary key default true check (id),
-  apply_cost int not null default 1 check (apply_cost between 0 and 100),
-  updated_at timestamptz not null default now()
-);
-insert into ish.coin_settings default values;
+-- A worker spends puyl (P) to open the phone and the exact address of a job
+-- Hanguk's staff offered them; the job is then theirs (…_ish_puyl_offers.sql).
+-- Puyl comes from a card payment in the app (to come), or from the staff (the
+-- CRM «Coinlar»). Spent puyl does not come back. The app holds no money,
+-- only this count; every move is a row of the ledger the worker sees.
 
 create table ish.coin_wallets (
   worker_id uuid primary key references ish.profiles (id) on delete cascade,
@@ -34,7 +20,7 @@ create table ish.coin_ledger (
   delta int not null check (delta <> 0),
   -- The balance after this move.
   balance int not null check (balance >= 0),
-  reason text not null check (reason in ('staff', 'apply', 'refund')),
+  reason text not null check (reason in ('staff', 'unlock', 'topup', 'bonus')),
   application_id uuid references ish.applications (id) on delete set null,
   staff_id uuid references ish.profiles (id) on delete set null,
   note text not null default '' check (char_length(note) <= 300),
@@ -42,21 +28,19 @@ create table ish.coin_ledger (
 );
 create index coin_ledger_worker_idx on ish.coin_ledger (worker_id, seq desc);
 
-comment on table ish.coin_wallets is 'Coins of a worker (A11). Changed only through ish.coin_move: applying, refunds, the staff.';
+comment on table ish.coin_wallets is 'Puyl of a worker (Profil). Changed only through ish.coin_move: opening a job, top-ups, the staff.';
 comment on table ish.coin_ledger is 'Every coin move, with the balance after it: what A11 «Tarix» and the CRM show.';
 
--- What the application cost (0: free or before coins); a refund sets it to 0.
+-- What opening the job cost (0: not opened with puyl).
 alter table ish.applications
   add column coins_paid smallint not null default 0 check (coins_paid >= 0);
 
-alter table ish.coin_settings enable row level security;
 alter table ish.coin_wallets enable row level security;
 alter table ish.coin_ledger enable row level security;
-create policy coin_settings_read on ish.coin_settings for select to authenticated using (true);
 create policy coin_wallets_own on ish.coin_wallets for select to authenticated using (worker_id = auth.uid());
 create policy coin_ledger_own on ish.coin_ledger for select to authenticated using (worker_id = auth.uid());
-revoke all on ish.coin_settings, ish.coin_wallets, ish.coin_ledger from public, anon, authenticated;
-grant select on ish.coin_settings, ish.coin_wallets, ish.coin_ledger to authenticated;
+revoke all on ish.coin_wallets, ish.coin_ledger from public, anon, authenticated;
+grant select on ish.coin_wallets, ish.coin_ledger to authenticated;
 
 -- The one way coins move: the wallet and its ledger row together. A move
 -- that would go below zero: NO_COINS.
@@ -84,122 +68,7 @@ end
 $$;
 revoke execute on function ish.coin_move(uuid, int, text, uuid, uuid, text) from public, anon, authenticated;
 
-create or replace function ish.apply_to_shift(p_shift uuid)
-returns ish.applications
-language plpgsql
-security definer
-set search_path = ish
-as $$
-declare
-  v_uid uuid := ish.require_uid();
-  v_shift ish.shifts;
-  v_app ish.applications;
-  v_cost int;
-begin
-  -- Until this transaction ends, the same worker's next request waits here,
-  -- and then sees this one's application in the checks below.
-  perform pg_advisory_xact_lock(hashtextextended('ish.apply:' || v_uid::text, 0));
-
-  if not exists (
-    select 1 from ish.worker_profiles where user_id = v_uid and onboarded_at is not null
-  ) then
-    raise exception 'PROFILE_INCOMPLETE';
-  end if;
-
-  select * into v_shift from ish.shifts where id = p_shift for update;
-  if not found or v_shift.status <> 'open' or not exists (
-    select 1 from ish.businesses b where b.id = v_shift.business_id and b.status = 'verified'
-  ) or (v_shift.invite_only and not exists (
-    select 1 from ish.job_offers o where o.shift_id = p_shift and o.worker_id = v_uid
-  )) then
-    raise exception 'SHIFT_CLOSED';
-  end if;
-  if v_shift.starts_at <= now() then
-    raise exception 'SHIFT_STARTED';
-  end if;
-  if exists (
-    select 1 from ish.business_members m
-    where m.business_id = v_shift.business_id and m.user_id = v_uid
-  ) then
-    raise exception 'OWN_SHIFT';
-  end if;
-  if exists (
-    select 1 from ish.applications
-    where shift_id = p_shift and worker_id = v_uid and status not in ('cancelled', 'rejected')
-  ) then
-    raise exception 'ALREADY_APPLIED';
-  end if;
-  if exists (
-    select 1
-    from ish.applications a
-    join ish.shifts s on s.id = a.shift_id
-    where a.worker_id = v_uid
-      and a.status in ('pending', 'confirmed', 'checked_in')
-      and tstzrange(s.starts_at, s.ends_at) && tstzrange(v_shift.starts_at, v_shift.ends_at)
-  ) then
-    raise exception 'TIME_CONFLICT';
-  end if;
-  if ish.confirmed_count(p_shift) >= v_shift.slots then
-    raise exception 'SHIFT_FULL';
-  end if;
-
-  -- Coins (2026-11-20): an application costs the set price; a job Hanguk's
-  -- staff offered this worker is free. Too few coins: NO_COINS, nothing done.
-  select coalesce(max(apply_cost), 0) into v_cost from ish.coin_settings;
-  if exists (select 1 from ish.job_offers o where o.shift_id = p_shift and o.worker_id = v_uid) then
-    v_cost := 0;
-  end if;
-
-  insert into ish.applications (shift_id, worker_id, status, decided_at, coins_paid)
-  values (
-    p_shift, v_uid,
-    case when v_shift.auto_confirm then 'confirmed' else 'pending' end::ish.application_status,
-    case when v_shift.auto_confirm then now() end,
-    v_cost
-  )
-  returning * into v_app;
-  if v_cost > 0 then
-    perform ish.coin_move(v_uid, -v_cost, 'apply', v_app.id, null, '');
-  end if;
-
-  update ish.job_offers set status = 'applied', responded_at = now()
-  where shift_id = p_shift and worker_id = v_uid;
-
-  perform ish.notify_business(p_shift, 'new_applicant',
-    jsonb_build_object('application_id', v_app.id, 'worker_id', v_uid,
-                       'auto_confirmed', v_shift.auto_confirm));
-  if v_shift.auto_confirm then
-    perform ish.release_waiting_if_full(p_shift);
-  end if;
-  return v_app;
-end
-$$;
-
--- The coin comes back (see the top of this file).
-create function ish.applications_coin_refund()
-returns trigger
-language plpgsql
-security definer
-set search_path = ish
-as $$
-begin
-  if new.status = 'rejected'
-     or (new.status = 'cancelled'
-         and (old.status = 'pending'
-              or (select s.starts_at from ish.shifts s where s.id = new.shift_id) > now() + interval '24 hours')) then
-    perform ish.coin_move(new.worker_id, old.coins_paid, 'refund', new.id, null, '');
-    new.coins_paid := 0;
-  end if;
-  return new;
-end
-$$;
-revoke execute on function ish.applications_coin_refund() from public, anon, authenticated;
-
-create trigger applications_coin_refund before update of status on ish.applications
-  for each row when (old.status is distinct from new.status and old.coins_paid > 0)
-  execute function ish.applications_coin_refund();
-
--- A11: the balance, the price of an application and the last moves.
+-- Profil: the balance and the last moves.
 create function ish.my_coins(p_limit int default 30)
 returns jsonb
 language plpgsql
@@ -212,7 +81,6 @@ declare
 begin
   return jsonb_build_object(
     'balance', coalesce((select balance from ish.coin_wallets where worker_id = v_uid), 0),
-    'cost', coalesce((select apply_cost from ish.coin_settings), 0),
     'history', coalesce((
       select jsonb_agg(jsonb_build_object(
                'delta', l.delta, 'balance', l.balance, 'reason', l.reason, 'note', l.note,

@@ -1476,6 +1476,10 @@
   "@notifOfferTitle": {
     "description": "A12 va A05: Hanguk xodimi ishchiga ish taklif qildi (P39)."
   },
+  "notifOfferEndingTitle": "Taklif tugashiga 5 daqiqa qoldi",
+  "@notifOfferEndingTitle": {
+    "description": "Push: shaxsiy taklif 30 daqiqasining oxirgi 5 daqiqasi."
+  },
   "notifOfferText": "{business} · {day}, {range} · {wage}/soat",
   "@notifOfferText": {
     "description": "A12: taklif qilingan ish.",
@@ -2988,29 +2992,24 @@
   "@paymentLess": {
     "description": "A09 / A07: kam to'langan belgi."
   },
-  "coinsTitle": "Coinlar",
+  "coinsTitle": "Puyl balansi",
   "@coinsTitle": {
     "description": "A11: coin kartasi sarlavhasi."
   },
-  "coinsBalance": "{n} coin",
+  "coinsBalance": "{n} P",
   "@coinsBalance": {
-    "description": "Coin soni.",
+    "description": "Puyl soni.",
     "placeholders": {
       "n": {
         "type": "int"
       }
     }
   },
-  "coinsRule": "Har bir arizaga {cost} coin. Ariza rad etilsa, ish beruvchi smenani bekor qilsa yoki 24 soatdan oldin o'zingiz bekor qilsangiz, coin qaytadi. Hanguk taklif qilgan ishlar bepul.",
+  "coinsRule": "Ishning telefon raqami va aniq manzilini ochish uchun puyl sarflanadi — ish narxiga qarab 7–20 P. Ochilgan ish sizga biriktiriladi. Sarflangan puyl qaytmaydi.",
   "@coinsRule": {
-    "description": "A11: coin qoidasi.",
-    "placeholders": {
-      "cost": {
-        "type": "int"
-      }
-    }
+    "description": "Profil: puyl qoidasi."
   },
-  "coinsHowToGet": "Coin'ni faqat Hanguk xodimlari qo'shadi. Coin olish uchun ularga yozing — telefon raqamingiz bo'yicha topishadi.",
+  "coinsHowToGet": "Puylni Hanguk xodimlari qo'shadi; ilovada karta bilan to'ldirish tez orada.",
   "@coinsHowToGet": {
     "description": "A11: coin qanday olinadi."
   },
@@ -3030,7 +3029,7 @@
   "@coinStaffTaken": {
     "description": "Coin tarixi: xodim oldi."
   },
-  "coinApplied": "Ariza: {title}",
+  "coinApplied": "Ochildi: {title}",
   "@coinApplied": {
     "description": "Coin tarixi: ariza.",
     "placeholders": {
@@ -3039,33 +3038,16 @@
       }
     }
   },
-  "coinRefunded": "Qaytdi: {title}",
-  "@coinRefunded": {
-    "description": "Coin tarixi: qaytarildi.",
-    "placeholders": {
-      "title": {
-        "type": "String"
-      }
-    }
-  },
-  "coinCostLine": "Ariza narxi: {cost} coin · Sizda: {balance} coin",
-  "@coinCostLine": {
-    "description": "A05: ariza narxi va balans.",
-    "placeholders": {
-      "cost": {
-        "type": "int"
-      },
-      "balance": {
-        "type": "int"
-      }
-    }
-  },
-  "coinOfferFree": "Hanguk taklif qilgan ish — ariza bepul",
-  "@coinOfferFree": {
-    "description": "A05: taklif qilingan ish bepul."
-  },
-  "errNoCoins": "Coin yetarli emas. Coin olish uchun Hanguk xodimlariga yozing.",
+  "errNoCoins": "Puyl yetmaydi. Balansni to'ldiring.",
   "@errNoCoins": {
     "description": "Xato: coin yetarli emas."
+  },
+  "coinTopup": "To'ldirildi",
+  "coinBonus": "Oylik bonus",
+  "@coinTopup": {
+    "description": "Coin tarixi: karta bilan to'ldirildi."
+  },
+  "@coinBonus": {
+    "description": "Coin tarixi: oylik bonus."
   }
 }

@@ -11,8 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ishErrorText, ishKeys, useIshApi } from './context';
 
 /**
- * «Coinlar»: a worker pays Hanguk outside the app, the staff add the coins
- * here; applying for a shift costs them (the database refunds what is fair).
+ * «Puyl»: a worker pays Hanguk outside the app, the staff add the puyl here;
+ * opening a job's phone and address spends it (never refunded).
  * Find the worker by name or phone, see the balance and the last moves.
  */
 export function IshCoins() {

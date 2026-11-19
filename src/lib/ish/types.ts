@@ -309,11 +309,11 @@ export interface IshMonthlyInterest {
   created_at: string;
 }
 
-/** A move of a worker's coins (`coin_ledger`): staff, apply, refund. */
+/** A move of a worker's puyl (`coin_ledger`): staff, unlock, topup, bonus. */
 export interface IshCoinMove {
   delta: number;
   balance: number;
-  reason: 'staff' | 'apply' | 'refund';
+  reason: 'staff' | 'unlock' | 'topup' | 'bonus';
   note: string;
   created_at: string;
 }

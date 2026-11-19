@@ -15,7 +15,6 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../l10n/gen/worker_l10n.dart';
-import '../coins/coins.dart';
 import '../feed/feed_controller.dart';
 import '../my_shifts/my_shifts_providers.dart';
 import '../settings/app_language.dart';
@@ -95,7 +94,6 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
     ref
       ..invalidate(feedProvider)
       ..invalidate(myShiftsProvider)
-      ..invalidate(coinsProvider)
       ..invalidate(shiftDetailProvider(widget.shift.id));
     if (mounted) navigator.pop(outcome);
   }
@@ -110,11 +108,6 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
     final untilStart = Kst.minutesBetween(now, shift.startsAt);
     final detail = hiStyle(15, FontWeight.w600, color: HiColors.ink);
     final money = hiStyle(15, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono);
-    // Coins: a job Hanguk offered is free; without enough, the button waits
-    // (a wallet that did not load lets the server decide).
-    final wallet = ref.watch(coinsProvider).value;
-    final free = shift.offer != null;
-    final short = !free && wallet != null && !wallet.canApply;
     return Semantics(
       scopesRoute: true,
       namesRoute: true,
@@ -238,39 +231,8 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: short ? HiColors.amberSoft : HiColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: HiIcon(short ? HiIcons.triangleAlert : HiIcons.wallet,
-                          size: 20, strokeWidth: 2, color: HiColors.ink),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: HiText(
-                        free
-                            ? l10n.coinOfferFree
-                            : short
-                                ? l10n.errNoCoins
-                                : wallet == null
-                                    ? l10n.coinsRule(1)
-                                    : l10n.coinCostLine(wallet.cost, wallet.balance),
-                        style: hiStyle(15, FontWeight.w600, height: 1.45, color: HiColors.ink),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 16),
-              HiButton(label: l10n.confirm, onPressed: _busy || short ? null : _confirm),
+              HiButton(label: l10n.confirm, onPressed: _busy ? null : _confirm),
               const SizedBox(height: 8),
               HiButton(
                 label: l10n.back,

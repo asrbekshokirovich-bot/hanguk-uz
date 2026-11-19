@@ -27,7 +27,7 @@ void main() {
     // The coins card comes between: the grid is below the first screen.
     await tester.scrollUntilVisible(find.text("Bo'sh vaqt jadvali"), 200);
     final grid = tester.getTopLeft(find.text("Bo'sh vaqt jadvali")).dy;
-    final coins = tester.getTopLeft(find.text('Coinlar')).dy;
+    final coins = tester.getTopLeft(find.text('Puyl balansi')).dy;
     expect(grid, greaterThan(coins), reason: 'under reliability, completed shifts, ratings and the coins');
     expect(numbers, greaterThan(0));
 

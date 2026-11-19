@@ -113,7 +113,6 @@ class DemoAccountRepository implements WorkerAccountRepository {
   /// The demo's coins: five from Hanguk's staff (demo data, no backend).
   CoinWallet wallet = CoinWallet(
     balance: 5,
-    cost: 1,
     history: [
       CoinMove(
         delta: 5,

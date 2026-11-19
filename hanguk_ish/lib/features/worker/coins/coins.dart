@@ -9,7 +9,7 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 
-/// The worker's coins: applying costs them, only Hanguk's staff add them.
+/// The worker's puyl: spent to open a job's phone and address.
 final coinsProvider = FutureProvider.autoDispose<CoinWallet>(
   (ref) => ref.watch(accountRepositoryProvider).coins(),
   retry: (count, error) => null,
@@ -17,8 +17,9 @@ final coinsProvider = FutureProvider.autoDispose<CoinWallet>(
 
 /// One line of the history: what moved the coins.
 String coinMoveText(WorkerL10n l10n, CoinMove move) => switch (move.reason) {
-      CoinReason.apply => l10n.coinApplied(move.shiftTitle ?? '–'),
-      CoinReason.refund => l10n.coinRefunded(move.shiftTitle ?? '–'),
+      CoinReason.unlock => l10n.coinApplied(move.shiftTitle ?? '–'),
+      CoinReason.topup => l10n.coinTopup,
+      CoinReason.bonus => l10n.coinBonus,
       CoinReason.staff => move.delta > 0 ? l10n.coinStaffAdded : l10n.coinStaffTaken,
     };
 
@@ -72,7 +73,7 @@ class CoinCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            HiText(l10n.coinsRule(wallet?.cost ?? 1), style: muted),
+            HiText(l10n.coinsRule, style: muted),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

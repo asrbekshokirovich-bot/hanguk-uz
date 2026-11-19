@@ -73,11 +73,11 @@ where n.nspname = 'ish' and p.prosecdef
 -- translations (P55), the staff's Telegram messages (P57) and pushes (P56) retried.
 select exists (select 1 from pg_extension where extname = 'pg_cron') as has_cron \gset
 \if :has_cron
-select case when count(*) = 6 then 'ok       the six pg_cron jobs are scheduled and active'
-            else 'MISSING  pg_cron jobs: ' || coalesce(string_agg(jobname, ', '), 'none') || ' (want 6)' end
+select case when count(*) = 7 then 'ok       the seven pg_cron jobs are scheduled and active'
+            else 'MISSING  pg_cron jobs: ' || coalesce(string_agg(jobname, ', '), 'none') || ' (want 7)' end
 from cron.job
 where jobname in ('ish-close-finished-shifts', 'ish-shift-reminders', 'ish-nearby-digests', 'ish-translate',
-                  'ish-staff-alerts', 'ish-push') and active;
+                  'ish-staff-alerts', 'ish-push', 'ish-offers') and active;
 \else
 select 'MISSING  pg_cron is not installed: no reminders, no closing of finished shifts, no digest, no retries';
 \endif

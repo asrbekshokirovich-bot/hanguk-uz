@@ -453,7 +453,6 @@ MonthlyJob monthlyJobFromJson(Json json, {bool applied = false}) {
 
 CoinWallet coinWalletFromJson(Json json) => CoinWallet(
       balance: _int(json['balance']),
-      cost: _int(json['cost']),
       history: [
         for (final row in (json['history'] as List? ?? const []))
           if (row is Json)
@@ -461,8 +460,9 @@ CoinWallet coinWalletFromJson(Json json) => CoinWallet(
               delta: _int(row['delta']),
               balance: _int(row['balance']),
               reason: switch (row['reason']) {
-                'apply' => CoinReason.apply,
-                'refund' => CoinReason.refund,
+                'unlock' => CoinReason.unlock,
+                'topup' => CoinReason.topup,
+                'bonus' => CoinReason.bonus,
                 _ => CoinReason.staff,
               },
               createdAt: _dateOr(row['created_at'], DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),
