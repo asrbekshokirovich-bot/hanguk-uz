@@ -84,14 +84,16 @@ final demoWorkers = <WorkerCard>[
 
 WorkerCard demoWorker(String id) => demoWorkers.firstWhere((w) => w.id == id);
 
-/// BA2 템플릿.
+/// BA2 템플릿. Only the name, times, wage and headcount are filled in; the
+/// duties, dress and address stay empty (the form shows «–»), so the demo
+/// does not pass invented content off as the business's own.
 const demoTemplates = [
   ShiftTemplate(
     id: 'demo-tpl-hall',
     title: '홀·카운터 보조',
-    duties: '주문 접수 · 음료 보조 · 홀 정리',
-    dress: '검은색 바지, 운동화 (앞치마 제공)',
-    address: '마포구 신촌로12길 15, 2층',
+    duties: '',
+    dress: '',
+    address: '',
     startMinute: 14 * 60,
     endMinute: 19 * 60,
     hourlyWage: 10500,
@@ -100,9 +102,9 @@ const demoTemplates = [
   ShiftTemplate(
     id: 'demo-tpl-open',
     title: '오픈 바리스타 보조',
-    duties: '오픈 준비 · 음료 제조 보조 · 매장 청소',
-    dress: '검은색 바지, 운동화 (앞치마 제공)',
-    address: '마포구 신촌로12길 15, 2층',
+    duties: '',
+    dress: '',
+    address: '',
     startMinute: 9 * 60,
     endMinute: 14 * 60,
     hourlyWage: 10500,
@@ -111,9 +113,9 @@ const demoTemplates = [
   ShiftTemplate(
     id: 'demo-tpl-close',
     title: '마감 정리 보조',
-    duties: '설거지 · 홀 정리 · 마감 청소',
-    dress: '검은색 바지, 운동화 (앞치마 제공)',
-    address: '마포구 신촌로12길 15, 2층',
+    duties: '',
+    dress: '',
+    address: '',
     startMinute: 18 * 60,
     endMinute: 22 * 60,
     hourlyWage: 11000,

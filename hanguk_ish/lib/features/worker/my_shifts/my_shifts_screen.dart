@@ -355,9 +355,11 @@ class _MyShiftCard extends ConsumerWidget {
       case ApplicationStatus.completed:
         return (
           _Pill.big(icon: HiIcons.check, text: l10n.statusDone, background: HiColors.surface, foreground: HiColors.ink),
-          app.isPaid
-              ? _Pill.status(text: l10n.paymentPaid, background: HiColors.greenSoft, dot: HiColors.green)
-              : _Pill.status(text: l10n.paymentPending, background: HiColors.amberSoft, dot: HiColors.amber),
+          app.paidLess
+              ? _Pill.status(text: l10n.paymentLess, background: HiColors.amberSoft, dot: HiColors.amber)
+              : app.isPaid
+                  ? _Pill.status(text: l10n.paymentPaid, background: HiColors.greenSoft, dot: HiColors.green)
+                  : _Pill.status(text: l10n.paymentPending, background: HiColors.amberSoft, dot: HiColors.amber),
         );
       case ApplicationStatus.noShow:
         return (
@@ -380,6 +382,9 @@ class _MyShiftCard extends ConsumerWidget {
   Future<void> _cancel(BuildContext context, WidgetRef ref) async {
     final l10n = WorkerL10n.of(context);
     final messenger = ScaffoldMessenger.maybeOf(context);
+    // The card may leave the list while the request runs (live updates), and
+    // its `ref` is gone then: the container outlives it.
+    final container = ProviderScope.containerOf(context);
     final now = ref.read(clockProvider)();
     final late = app.status == ApplicationStatus.confirmed &&
         app.shift.startsAt.difference(now) < const Duration(hours: 24);
@@ -396,12 +401,12 @@ class _MyShiftCard extends ConsumerWidget {
     );
     if (sure != true) return;
     try {
-      await ref.read(shiftRepositoryProvider).cancelApplication(app.applicationId);
+      await container.read(shiftRepositoryProvider).cancelApplication(app.applicationId);
       messenger?.showSnackBar(SnackBar(content: Text(l10n.cancelDone)));
     } on Object catch (error) {
       messenger?.showSnackBar(SnackBar(content: Text(myShiftError(l10n, error))));
     }
-    ref
+    container
       ..invalidate(myShiftsProvider)
       ..invalidate(feedProvider)
       ..invalidate(shiftDetailProvider(app.shift.id));

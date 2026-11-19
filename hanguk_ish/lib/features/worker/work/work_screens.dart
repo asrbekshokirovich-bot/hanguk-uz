@@ -827,7 +827,7 @@ class _ResultCard extends ConsumerWidget {
                   height: 30,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: app.isPaid ? HiColors.greenSoft : HiColors.amberSoft,
+                    color: app.isPaid && !app.paidLess ? HiColors.greenSoft : HiColors.amberSoft,
                     borderRadius: BorderRadius.circular(HiRadii.pill),
                   ),
                   child: Row(
@@ -836,7 +836,10 @@ class _ResultCard extends ConsumerWidget {
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: BoxDecoration(color: app.isPaid ? HiColors.green : HiColors.amber, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: app.isPaid && !app.paidLess ? HiColors.green : HiColors.amber,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       HiText(

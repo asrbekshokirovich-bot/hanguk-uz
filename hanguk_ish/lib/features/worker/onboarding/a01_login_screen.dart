@@ -35,8 +35,9 @@ class A01LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _A01LoginScreenState extends ConsumerState<A01LoginScreen> {
-  // The prototype shows the box ticked.
-  bool _agreed = true;
+  // Consent is given by ticking the box, never ticked for the worker (the
+  // prototype showed it ticked; the sign-in buttons wait for the tick).
+  bool _agreed = false;
 
   @override
   Widget build(BuildContext context) {

@@ -236,7 +236,7 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.expired => l10n.notifExpiredText(business, day, range),
       NotificationKind.timeChanged => l10n.notifTimeChangedText(business, day, range),
       NotificationKind.cancelled => l10n.notifCancelledText(business, day, range),
-      NotificationKind.paid => l10n.notifPaidText(business, day, Won.worker(n.amount ?? 0)),
+      NotificationKind.paid => l10n.notifPaidText(business, day, _money(n.amount)),
       NotificationKind.message => business,
       // With no distance (a business with no point yet, or no saved
       // position) the line ends at the wage, not in « · ».
@@ -244,7 +244,7 @@ class _NotificationCard extends StatelessWidget {
           business,
           n.startsAt == null ? '' : HiDates.weekdayInSentence(n.startsAt!, lang),
           range,
-          Won.worker(n.wage ?? 0),
+          _money(n.wage),
           n.distanceKm == null ? '' : formatKm(n.distanceKm!, lang),
         )),
       NotificationKind.nearbyShifts => l10n.notifNearbyText(_categories(l10n), _wageRange()),
@@ -254,13 +254,13 @@ class _NotificationCard extends StatelessWidget {
             business,
             n.startsAt == null ? '' : HiDates.weekdayInSentence(n.startsAt!, lang),
             range,
-            Won.worker(n.wage ?? 0),
+            _money(n.wage),
           ),
           if ((n.note ?? '').trim().isNotEmpty) l10n.offerNote(n.note!.trim()),
         ].join('\n'),
       // «Dalbit Kafe: 10-noyabr smenasi yakunlandi. Hisoblangan maosh: 52 500 ₩.»
       NotificationKind.finished => [
-          l10n.notifFinishedText(business, day, Won.worker(n.amount ?? 0)),
+          l10n.notifFinishedText(business, day, _money(n.amount)),
           if (n.receivedAmount != null) l10n.payReceivedLine(Won.worker(n.receivedAmount!)),
         ].join('\n'),
     });
@@ -370,9 +370,13 @@ class _NotificationCard extends StatelessWidget {
     return l10n.andJoin(names.sublist(0, names.length - 1).join(', '), rest);
   }
 
+  /// An amount the server did not send is a dash, never an invented «0 ₩».
+  static String _money(int? won) => won == null ? '–' : Won.worker(won);
+
   String _wageRange() {
-    final low = n.wage ?? 0;
+    final low = n.wage;
     final high = n.wageMax;
+    if (low == null) return '–';
     if (high == null || high == low) return Won.worker(low);
     return '${Won.workerDigits(low)}–${Won.worker(high)}';
   }

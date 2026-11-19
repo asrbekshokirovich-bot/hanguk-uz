@@ -38,7 +38,11 @@ InlineSpan amountSpan(int amount, TextStyle number, TextStyle unit, double gap) 
 /// The report as a CSV file (UTF-8 with a byte order mark, so Excel reads
 /// the Korean).
 String reportCsv(BusinessReport report) {
-  String cell(String v) => v.contains(',') || v.contains('"') ? '"${v.replaceAll('"', '""')}"' : v;
+  String cell(String raw) {
+    // A title starting with = + - @ would run as a formula in Excel.
+    final v = RegExp(r'^[=+\-@\t\r]').hasMatch(raw) ? "'$raw" : raw;
+    return v.contains(',') || v.contains('"') ? '"${v.replaceAll('"', '""')}"' : v;
+  }
   final lines = [
     Biz.csvHeader,
     for (final r in report.rows)

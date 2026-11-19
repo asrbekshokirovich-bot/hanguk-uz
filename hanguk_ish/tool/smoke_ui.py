@@ -11,6 +11,8 @@
                                           node, swiping until that edge is on screen
   smoke_ui.py tapx TEXT DP                taps DP left of the screen's right edge,
                                           level with TEXT's node
+  smoke_ui.py tapleft TEXT DP             taps DP from the screen's left edge, level
+                                          with TEXT's node (A01's terms box)
   smoke_ui.py scrollto TEXT [swipes]      swipes up until TEXT is on screen
   smoke_ui.py field N VALUE [seconds]     taps the Nth text field, types VALUE
   smoke_ui.py type VALUE                  types into the focused field
@@ -229,6 +231,14 @@ def main():
         x = int(width - dp * density())
         tap_at(x, node['y'])
         print(f"tapped {dp:g} dp from the right, level with {node['words']!r} @ {x},{node['y']}")
+    elif command == 'tapleft':
+        # A box at the start of a row whose words Flutter merged into the row's
+        # node (A01's terms box: the row's middle is the link, not the box).
+        text, dp = args[0], float(args[1])
+        node = find(text, 30)
+        x = int(dp * density())
+        tap_at(x, node['y'])
+        print(f"tapped {dp:g} dp from the left, level with {node['words']!r} @ {x},{node['y']}")
     elif command == 'tapbelow':
         # The first TEXT under ANCHOR (a field under its label).
         anchor_text, text = args[0], args[1]

@@ -28,6 +28,11 @@ const sinchonArea = FeedArea(
   lng: 126.9368,
 );
 
+/// Where the map opens while the phone's position is unknown: the middle of
+/// Seoul, drawn without a «you are here» dot.
+const seoulCenterLat = 37.5665;
+const seoulCenterLng = 126.9780;
+
 /// The name of the area when the worker gave no district.
 const seoulPlace = Place('seoul', uz: 'Seul', ru: 'Сеул', en: 'Seoul', ko: '서울');
 

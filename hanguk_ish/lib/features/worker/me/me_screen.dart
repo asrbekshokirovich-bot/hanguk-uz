@@ -53,7 +53,13 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> {
 
   @override
   void dispose() {
-    _saveTimer?.cancel();
+    // Leaving within the delay must not drop the last tap: save it now.
+    if (_saveTimer?.isActive ?? false) {
+      _saveTimer!.cancel();
+      final repo = ref.read(workerProfileRepositoryProvider);
+      final draft = ref.read(workerProfileDraftProvider);
+      repo.save(draft).catchError((Object _) {});
+    }
     super.dispose();
   }
 
