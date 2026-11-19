@@ -93,9 +93,9 @@ select pg_temp.ms('CRM staff_candidates, 10 km, 100',
 select pg_temp.ms('CRM staff_candidates, no radius, 500',
   $$select ish.staff_candidates(current_setting('perf.job')::uuid, null, 500)$$,
   '00000000-0000-0000-0002-0000000001f4', 300);
-select pg_temp.ms('CRM staff_send_offers (50 workers)',
+select pg_temp.ms('CRM staff_send_offers (4 workers, the most at once)',
   $$select ish.staff_send_offers(current_setting('perf.job')::uuid,
-      (select array_agg(('00000000-0000-0000-0001-' || lpad(to_hex(i), 12, '0'))::uuid) from generate_series(100, 149) i))$$,
+      (select array_agg(('00000000-0000-0000-0001-' || lpad(to_hex(i), 12, '0'))::uuid) from generate_series(100, 103) i))$$,
   '00000000-0000-0000-0002-0000000001f4', 100, 1);
 select pg_temp.ms('CRM staff_board, 15 days',
   $$select ish.staff_board(now(), now() + interval '15 days')$$,

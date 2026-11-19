@@ -383,3 +383,78 @@ revoke execute on function ish.offers_tick() from public, anon, authenticated;
 grant execute on function ish.job_pay(ish.shifts), ish.unlock_price(int), ish.mask_address(text) to authenticated;
 grant execute on function ish.staff_job_details(uuid, int, boolean), ish.my_offers(), ish.unlock_offer(uuid),
   ish.my_jobs(), ish.set_job_step(uuid, int), ish.rate_job(uuid, int) to authenticated;
+
+-- CRM: the job page also shows what it pays in all, its price in puyl, when
+-- the employer was last called, and each offer's end and the worker's puyl.
+create or replace function ish.staff_shift(p_shift uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ish
+as $$
+begin
+  perform ish.require_staff();
+  if not exists (select 1 from ish.shifts where id = p_shift) then
+    raise exception 'NOT_FOUND';
+  end if;
+  return (
+    select ish.shift_card(s.id) || jsonb_build_object(
+      'invite_only', s.invite_only,
+      'managed', b.managed_by_staff,
+      'business_id', b.id,
+      'total_pay', s.total_pay,
+      'job_pay', ish.job_pay(s),
+      'unlock_price', ish.unlock_price(ish.job_pay(s)),
+      'checked_at', s.checked_at,
+      'contact', (select jsonb_build_object('contact_name', c.contact_name, 'phone', c.phone,
+                                            'telegram', c.telegram, 'source', c.source, 'notes', c.notes)
+                  from ish.business_contacts c where c.business_id = b.id),
+      'notes', (select jsonb_build_object('source', n.source, 'notes', n.notes)
+                from ish.shift_notes n where n.shift_id = s.id),
+      'offers', coalesce((
+        select jsonb_agg(jsonb_build_object(
+                 'id', o.id,
+                 'status', case when o.status = 'sent' and o.expires_at <= now() then 'expired' else o.status end,
+                 'note', o.note, 'created_at', o.created_at, 'expires_at', o.expires_at,
+                 'responded_at', o.responded_at,
+                 'worker', ish.staff_worker_card(o.worker_id))
+               order by o.created_at, o.id)
+        from ish.job_offers o where o.shift_id = s.id), '[]'::jsonb),
+      'applications', coalesce((
+        select jsonb_agg(jsonb_build_object(
+                 'id', a.id, 'status', a.status, 'created_at', a.created_at, 'decided_at', a.decided_at,
+                 'check_in_at', a.check_in_at, 'check_out_at', a.check_out_at,
+                 'worked_minutes', a.worked_minutes, 'pay_amount', a.pay_amount, 'paid_at', a.paid_at,
+                 'coins_paid', a.coins_paid, 'worker_step', a.worker_step,
+                 'worker', ish.staff_worker_card(a.worker_id))
+               order by a.created_at, a.id)
+        from ish.applications a where a.shift_id = s.id), '[]'::jsonb))
+    from ish.shifts s join ish.businesses b on b.id = s.business_id
+    where s.id = p_shift
+  );
+end
+$$;
+
+-- A worker as the CRM shows them, with their puyl now.
+create or replace function ish.staff_worker_card(p_worker uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ish
+as $$
+  select jsonb_build_object(
+    'id', p.id, 'first_name', p.first_name, 'last_name', p.last_name, 'phone', p.phone,
+    'avatar_path', p.avatar_path, 'language', p.language,
+    'languages', w.languages, 'topik', w.topik, 'university', w.university, 'district', w.district,
+    'visa', w.visa, 'reliability', w.reliability, 'onboarded', w.onboarded_at is not null,
+    'completed', (select count(*) from ish.applications a
+                  where a.worker_id = p.id and a.status = 'completed'),
+    'no_shows', (select count(*) from ish.applications a
+                 where a.worker_id = p.id and a.status = 'no_show'),
+    'coins', coalesce((select c.balance from ish.coin_wallets c where c.worker_id = p.id), 0))
+  from ish.profiles p
+  left join ish.worker_profiles w on w.user_id = p.id
+  where p.id = p_worker
+$$;

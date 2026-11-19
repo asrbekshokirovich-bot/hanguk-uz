@@ -100,3 +100,16 @@ select tests.throws($$select ish.unlock_offer('20000000-0000-0000-0000-000000000
 -- Not offered: nothing to open.
 select tests.as_user('00000000-0000-0000-0000-0000000000a2');
 select tests.throws($$select ish.unlock_offer('20000000-0000-0000-0000-000000000001')$$, 'NOT_FOUND', 'not offered');
+
+-- CRM: the job page shows the pay, the price, the call, each offer's end and
+-- the worker's puyl.
+select tests.as_user('00000000-0000-0000-0000-0000000000f1');
+select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000002') ->> 'job_pay')::int, 60000, 'job pay');
+select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000002') ->> 'unlock_price')::int, 10, 'price');
+select tests.eq(ish.staff_shift('20000000-0000-0000-0000-000000000002') ? 'checked_at', true, 'checked');
+select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000006') -> 'offers' -> 0 ->> 'status'), 'expired',
+                'offer ended');
+select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000006') -> 'offers' -> 0) ? 'expires_at', true,
+                'offer end time');
+select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000002') -> 'applications' -> 0 -> 'worker' ->> 'coins')::int,
+                5, 'worker puyl');
