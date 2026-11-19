@@ -52,6 +52,11 @@ abstract interface class EmployerRepository {
   /// BA2 «수정» of a template.
   Future<ShiftTemplate> saveTemplate(String businessId, ShiftTemplate template);
 
+  /// BA2 «O'rtacha» → `market_wage`: the average hourly wage of the shifts
+  /// posted lately around this business (its district, else all), or null
+  /// when there are too few to say.
+  Future<int?> marketWage(String businessId);
+
   /// The legal minimum hourly wage at [at] → `minimum_wages`.
   Future<int> minimumWage(DateTime at);
 

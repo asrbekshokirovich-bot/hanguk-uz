@@ -130,6 +130,8 @@ void main() {
       'BA3': EmployerRoutes.shift('demo-es-close'),
       'BA4': EmployerRoutes.workers,
       'BA5': EmployerRoutes.report,
+      'BA6': EmployerRoutes.profile,
+      'BA6 edit': EmployerRoutes.profileEdit,
       'bell': EmployerRoutes.notifications,
     };
     for (final MapEntry(key: name, value: location) in screens.entries) {

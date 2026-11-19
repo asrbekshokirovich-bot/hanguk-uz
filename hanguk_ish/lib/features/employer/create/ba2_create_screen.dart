@@ -13,7 +13,6 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
-import '../../../design/widgets/controls.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
@@ -98,6 +97,24 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     return (_startsAt, _endsAt);
   }
   int get _wageValue => int.tryParse(_wage.text.replaceAll(',', '')) ?? 0;
+
+  /// The quick hours: opening, lunch, daytime, closing (start, end, name key).
+  static const _presets = [
+    (8 * 60, 13 * 60, 'slotOpen'),
+    (11 * 60, 15 * 60, 'slotLunch'),
+    (14 * 60, 19 * 60, 'slotDay'),
+    (18 * 60, 23 * 60, 'slotClose'),
+  ];
+
+  void _applyPreset(int start, int end) {
+    if (_timeLocked) return _locked();
+    setState(() {
+      _start = start;
+      _end = end;
+    });
+  }
+
+  void _setWage(int value) => setState(() => _wage.text = ThousandsFormatter.format('${value < 0 ? 0 : value}'));
 
   void _useTemplate(ShiftTemplate t, DateTime now) {
     _templateId = t.id;
@@ -206,6 +223,11 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
       _dress = dress;
       _address = address;
     });
+    await _saveTemplateIfAny();
+  }
+
+  /// The form's texts go back into the template they came from (new shifts only).
+  Future<void> _saveTemplateIfAny() async {
     final templateId = _templateId;
     if (_editing != null || templateId == null) return;
     final templates = ref.read(templatesProvider).value ?? const [];
@@ -234,6 +256,41 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
       // The form keeps the new texts; only the template stays as it was.
       (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
     }
+  }
+
+  /// «Shablon [O'zgartirish ›]»: another template, or the content of this one.
+  Future<void> _pickTemplate(List<ShiftTemplate> templates, DateTime now) async {
+    if (_editing != null || templates.isEmpty) return _editContent();
+    final picked = await showHiPicker(
+      context,
+      title: Biz.template,
+      searchHint: '',
+      searchable: false,
+      selected: _templateId,
+      options: [for (final t in templates) HiPickerOption(t.id, t.title)],
+      action: HiPickerAction(_editValue, Biz.editTemplate),
+    );
+    if (picked == null || !mounted) return;
+    if (picked == _editValue) return _editContent();
+    final template = templates.where((t) => t.id == picked).firstOrNull;
+    if (template != null) setState(() => _useTemplate(template, now));
+  }
+
+  static const _editValue = '__edit__';
+
+  /// «Manzil [O'zgartirish]»: the street address of this shift.
+  Future<void> _editAddress() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color(0x99040716),
+      builder: (context) => _AddressSheet(address: _address),
+    );
+    if (result == null || !mounted) return;
+    setState(() => _address = result);
+    await _saveTemplateIfAny();
   }
 
   /// [minimum] is null while it is not known; the database checks it anyway.
@@ -384,15 +441,34 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     // Unknown (not loaded, or no row for the year) shows no hint.
     final minimumValue = ref.watch(minimumWageProvider(_day.year)).value;
     final minimum = minimumValue != null && minimumValue > 0 ? minimumValue : null;
-    final wageOk = minimum == null || _wageValue >= minimum;
+    // What shifts around here pay (null: too few to say — dashes).
+    final market = ref.watch(marketWageProvider).value;
     final today = _todayDate(now);
     final dayIndex = _day.difference(today).inDays;
-    final labelStyle = hiStyle(15, FontWeight.w700, color: HiColors.textSoft);
     final cost = _slots * Pay.forMinutes(_wageValue, _minutes);
     final isEdit = _editing != null;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
-    // The pinned bar: 12 + line + 10 + 56 + bottom padding + 1 px border.
-    final barHeight = 12 + hiCssLineHeight(labelStyle) + 10 + 56 + bottomPad + 1;
+    // The pinned bar: 12 + the cost line + 10 + 56 + bottom padding + 1 px border.
+    final barHeight = 12 + 34 + 10 + 56 + bottomPad + 1;
+    const side = EdgeInsets.fromLTRB(18, 0, 22, 0);
+    final label = hiStyle(14, FontWeight.w700, color: HiColors.textSoft);
+
+    DateTime dayAt(int i) => Kst.instantOf(today.year, today.month, today.day + i, 12);
+    String dayWord(int i) => switch (i) {
+          0 => Biz.today,
+          1 => Biz.tomorrow,
+          _ => Biz.weekdayShort(dayAt(i)),
+        };
+
+    Widget section(String text, {Widget? trailing}) => Padding(
+          padding: side,
+          child: Row(
+            children: [
+              Expanded(child: HiText(text, style: label)),
+              ?trailing,
+            ],
+          ),
+        );
 
     return Stack(
       children: [
@@ -430,171 +506,135 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              if (!isEdit && templates.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  child: HiText(Biz.template, style: labelStyle),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 44,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    itemCount: templates.length,
-                    separatorBuilder: (context, i) => const SizedBox(width: 8),
-                    itemBuilder: (context, i) => HiToggleChip(
-                      label: templates[i].title,
-                      selected: templates[i].id == _templateId,
-                      onTap: () => setState(() => _useTemplate(templates[i], now)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: _ContentCard(
-                  heading: isEdit || _templateId == null ? Biz.shiftContent : Biz.templateContent,
-                  title: isEdit || _templateId == null ? _title : null,
+                padding: side,
+                child: _TemplateCard(
+                  heading: isEdit || _templateId == null ? Biz.shiftContent : Biz.template,
+                  title: _title,
                   duties: _duties,
                   dress: _dress,
-                  address: _address,
-                  onEdit: _editContent,
+                  onChange: () => _pickTemplate(templates, now),
                 ),
               ),
               const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: HiText(Biz.date, style: labelStyle),
+                padding: side,
+                child: _AddressCard(address: _address, onChange: _editAddress),
               ),
-              const SizedBox(height: 8),
-              Opacity(
-                opacity: _timeLocked ? 0.55 : 1,
-                // `overflow:hidden` at 44 px, as in the prototype: the chosen
-                // chip's shadow shows on the right only.
-                child: SizedBox(
-                  height: 44,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    children: [
-                      for (var i = 0; i < 3; i++) ...[
-                        _DayChip(
-                          word: switch (i) {
-                            0 => Biz.today,
-                            1 => Biz.tomorrow,
-                            _ => Biz.weekdayShort(Kst.instantOf(today.year, today.month, today.day + i, 12)),
-                          },
-                          date: Biz.dotDate(Kst.instantOf(today.year, today.month, today.day + i, 12)),
-                          selected: dayIndex == i,
-                          onTap: () {
-                            if (_timeLocked) return _locked();
-                            setState(() => _day = today.add(Duration(days: i)));
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      _DayChip(
-                        icon: HiIcons.calendar,
-                        word: dayIndex > 2 ? Biz.weekdayShort(_startsAt) : Biz.otherDay,
-                        date: dayIndex > 2 ? Biz.dotDate(_startsAt) : null,
-                        selected: dayIndex > 2,
-                        onTap: () => _pickOtherDay(now),
+              const SizedBox(height: 14),
+              section(
+                Biz.date,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (dayIndex > 6)
+                      HiText(Biz.dotDate(_startsAt), style: hiStyle(14, FontWeight.w800, family: HiFamily.mono)),
+                    HiPressable(
+                      onTap: () => _pickOtherDay(now),
+                      semanticsLabel: Biz.otherDay,
+                      builder: (context, pressed) => Container(
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.centerRight,
+                        child: const HiIcon(HiIcons.calendar, size: 18, strokeWidth: 2, color: HiColors.textSoft),
                       ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: side,
+                child: Opacity(
+                  opacity: _timeLocked ? 0.55 : 1,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < 7; i++) ...[
+                        if (i > 0) const SizedBox(width: 5),
+                        Expanded(
+                          child: _DayTile(
+                            word: dayWord(i),
+                            number: '${Kst.wallClock(dayAt(i)).day}',
+                            label: '${dayWord(i)} ${Biz.dotDate(dayAt(i))}',
+                            selected: dayIndex == i,
+                            onTap: () {
+                              if (_timeLocked) return _locked();
+                              setState(() => _day = today.add(Duration(days: i)));
+                            },
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    HiText(Biz.time, style: labelStyle),
-                    const SizedBox(height: 8),
-                    Opacity(
-                      opacity: _timeLocked ? 0.55 : 1,
-                      child: Row(
-                        children: [
-                          _TimeBox(minute: _start, label: Biz.startTime, onTap: () => _pickTime(start: true)),
-                          const SizedBox(width: 10),
-                          HiText('~', style: hiStyle(17, FontWeight.w700, color: HiColors.textMuted)),
-                          const SizedBox(width: 10),
-                          _TimeBox(minute: _end, label: Biz.endTime, onTap: () => _pickTime(start: false)),
-                          const Spacer(),
-                          HiText(Biz.duration(_minutes), style: hiStyle(15, FontWeight.w700, color: HiColors.textSoft)),
-                        ],
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 14),
+              section(
+                Biz.time,
+                trailing: _TimeRange(
+                  start: _start,
+                  end: _end,
+                  minutes: _minutes,
+                  onStart: () => _pickTime(start: true),
+                  onEnd: () => _pickTime(start: false),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          HiText(Biz.wage, style: labelStyle),
-                          const SizedBox(height: 8),
-                          _WageField(controller: _wage, onChanged: () => setState(() {})),
-                          if (minimum != null) ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                HiIcon(wageOk ? HiIcons.check : HiIcons.x,
-                                    size: 14, strokeWidth: 3, color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
-                                const SizedBox(width: 5),
-                                Flexible(
-                                  child: HiText(
-                                    wageOk ? Biz.minimumWageOk(minimum) : Biz.minimumWageLow(minimum),
-                                    style: hiStyle(13, FontWeight.w700,
-                                        color: wageOk ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          HiText(Biz.headcount, style: labelStyle),
-                          const SizedBox(height: 8),
-                          _Stepper(
-                            value: _slots,
-                            // Relative to the current value, so two quick taps count twice.
-                            onStep: (delta) {
-                              final min = _editing == null || _editing!.confirmed < 1 ? 1 : _editing!.confirmed;
-                              final next = _slots + delta;
-                              if (next < min) {
-                                (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(
-                                    SnackBar(content: Text(Biz.slotsLocked(_editing?.confirmed ?? 0))));
-                                return;
-                              }
-                              if (next > _Stepper.max) return;
-                              setState(() => _slots = next);
-                            },
+                padding: side,
+                child: Opacity(
+                  opacity: _timeLocked ? 0.55 : 1,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < _presets.length; i++) ...[
+                        if (i > 0) const SizedBox(width: 8),
+                        Expanded(
+                          child: _PresetTile(
+                            name: Biz.createText(_presets[i].$3),
+                            range: '${_presets[i].$1 ~/ 60}–${_presets[i].$2 ~/ 60}',
+                            selected: _start == _presets[i].$1 && _end == _presets[i].$2,
+                            onTap: () => _applyPreset(_presets[i].$1, _presets[i].$2),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Padding(
+                padding: side,
+                child: _WagePanel(
+                  controller: _wage,
+                  wage: _wageValue,
+                  minimum: minimum,
+                  market: market,
+                  onChanged: () => setState(() {}),
+                  onSet: _setWage,
                 ),
               ),
               const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
+                padding: side,
+                child: _HeadcountPanel(
+                  value: _slots,
+                  // Relative to the current value, so two quick taps count twice.
+                  onStep: (delta) {
+                    final min = _editing == null || _editing!.confirmed < 1 ? 1 : _editing!.confirmed;
+                    final next = _slots + delta;
+                    if (next < min) {
+                      (ScaffoldMessenger.of(context)..hideCurrentSnackBar())
+                          .showSnackBar(SnackBar(content: Text(Biz.slotsLocked(_editing?.confirmed ?? 0))));
+                      return;
+                    }
+                    if (next > _Stepper.max) return;
+                    setState(() => _slots = next);
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: side,
                 child: _AutoConfirm(value: _auto, onChanged: (v) => setState(() => _auto = v)),
               ),
             ],
@@ -613,19 +653,26 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                HiRichText(
-                  TextSpan(
-                    text: Biz.costLead(_slots, _minutes),
+                SizedBox(
+                  height: 34,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      TextSpan(
-                        text: Biz.money(cost),
-                        style: hiStyle(15, FontWeight.w700, family: HiFamily.mono),
+                      Expanded(
+                        child: HiText(
+                          '${Biz.headcountValue(_slots)} × ${Biz.duration(_minutes)} × ${Won.employerDigits(_wageValue)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: hiStyle(14, FontWeight.w600, color: HiColors.textMuted),
+                        ),
                       ),
+                      const SizedBox(width: 10),
+                      HiText(Won.employerDigits(cost), style: hiStyle(26, FontWeight.w800, family: HiFamily.mono)),
+                      const SizedBox(width: 6),
+                      HiText(Biz.won, style: hiStyle(13, FontWeight.w700, color: HiColors.textMuted)),
                     ],
                   ),
-                  style: labelStyle,
-                  also: [hiStyle(15, FontWeight.w700, family: HiFamily.mono)],
-                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
                 HiButton(
@@ -643,86 +690,53 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
   }
 }
 
-/// «템플릿 내용 [수정]» with 업무 / 복장 / 주소.
-class _ContentCard extends StatelessWidget {
-  const _ContentCard({
+/// A dark card of the form: the faint fill and hairline of the prototype.
+BoxDecoration _darkCard({double radius = 20}) => BoxDecoration(
+      color: HiColors.white06,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: HiColors.white10),
+    );
+
+/// «Shablon [O'zgartirish ›]»: the name, the duties and the dress.
+class _TemplateCard extends StatelessWidget {
+  const _TemplateCard({
     required this.heading,
     required this.title,
     required this.duties,
     required this.dress,
-    required this.address,
-    required this.onEdit,
+    required this.onChange,
   });
 
   final String heading;
-
-  /// Shown as a row when there is no template chip carrying the name.
-  final String? title;
+  final String title;
   final String duties;
   final String dress;
-  final String address;
-  final VoidCallback onEdit;
+  final VoidCallback onChange;
 
   @override
   Widget build(BuildContext context) {
-    final label = hiStyle(15, FontWeight.w800, height: 1.45, color: HiColors.inkMuted);
-    final value = hiStyle(15, FontWeight.w600, height: 1.45, color: HiColors.ink);
-    final name = title;
-    // The prototype's 34 px for «업무 복장 주소»; a longer language's labels
-    // («Vazifalar», «Одежда») get the room they need.
-    final scaler = MediaQuery.textScalerOf(context);
-    var labelWidth = 34.0;
-    for (final text in [if (name != null) Biz.shiftName, Biz.duties, Biz.dress, Biz.address]) {
-      final painter = TextPainter(text: TextSpan(text: text, style: label), textDirection: TextDirection.ltr, textScaler: scaler)
-        ..layout();
-      if (painter.width > labelWidth) labelWidth = painter.width.ceilToDouble();
-      painter.dispose();
-    }
-    Widget row(String name, String text) => Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(width: labelWidth, child: HiText(name, softWrap: false, overflow: TextOverflow.visible, style: label)),
-              const SizedBox(width: 10),
-              Expanded(child: HiText(text.isEmpty ? '–' : text, style: value)),
-            ],
-          ),
-        );
+    String dash(String text) => text.trim().isEmpty ? '–' : text;
     return Semantics(
       container: true,
       label: heading,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
-        decoration: BoxDecoration(
-          color: HiColors.white,
-          borderRadius: BorderRadius.circular(HiRadii.card),
-          border: const Border.fromBorderSide(HiBorders.ink),
-          boxShadow: HiShadows.hard,
-        ),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
+        decoration: _darkCard(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Expanded(child: HiText(heading, style: hiStyle(14, FontWeight.w800, color: HiColors.inkMuted))),
-                HiPressable(
-                  onTap: onEdit,
-                  builder: (context, pressed) => Container(
-                    constraints: const BoxConstraints(minWidth: 44),
-                    height: 44,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    alignment: Alignment.center,
-                    child: HiText(Biz.edit,
-                        style: hiStyle(15, FontWeight.w800, color: pressed ? HiColors.blueDeep : HiColors.blue)),
-                  ),
-                ),
+                Expanded(child: HiText(heading, style: hiStyle(13, FontWeight.w700, color: HiColors.textMuted))),
+                _ChangeLink(label: '${Biz.createText('change')} ›', onTap: onChange),
               ],
             ),
-            if (name != null) row(Biz.shiftName, name),
-            row(Biz.duties, duties),
-            row(Biz.dress, dress),
-            row(Biz.address, address),
+            HiText(dash(title), style: hiStyle(18, FontWeight.w800)),
+            const SizedBox(height: 6),
+            HiText(dash(duties), style: hiStyle(14, FontWeight.w600, height: 1.4, color: HiColors.textSoft)),
+            const SizedBox(height: 4),
+            HiText('${Biz.dress}: ${dash(dress)}',
+                style: hiStyle(13, FontWeight.w600, height: 1.4, color: HiColors.textMuted)),
           ],
         ),
       ),
@@ -730,49 +744,34 @@ class _ContentCard extends StatelessWidget {
   }
 }
 
-/// «오늘 11.10»: a date choice; white with a hard shadow when chosen.
-class _DayChip extends StatelessWidget {
-  const _DayChip({required this.word, required this.date, required this.selected, required this.onTap, this.icon});
+/// «Manzil [O'zgartirish]».
+class _AddressCard extends StatelessWidget {
+  const _AddressCard({required this.address, required this.onChange});
 
-  final String word;
-  final String? date;
-  final bool selected;
-  final VoidCallback onTap;
-  final HiIconData? icon;
+  final String address;
+  final VoidCallback onChange;
 
   @override
   Widget build(BuildContext context) {
-    final fg = selected ? HiColors.ink : HiColors.white;
-    final style = hiStyle(15, selected ? FontWeight.w800 : FontWeight.w700, color: fg);
-    final mono = style.copyWith(fontFamily: HiFamily.mono.family, fontFamilyFallback: HiFamily.mono.fallback);
-    final d = date;
-    final glyph = icon;
-    return HiPressable(
-      onTap: onTap,
-      selected: selected,
-      builder: (context, pressed) => Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: selected ? HiColors.white : (pressed ? HiColors.white12 : HiColors.white06),
-          borderRadius: BorderRadius.circular(HiRadii.button),
-          border: selected ? const Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white18),
-          boxShadow: selected ? HiShadows.hardSmall : null,
-        ),
+    return Semantics(
+      container: true,
+      label: Biz.address,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 6, 10),
+        decoration: _darkCard(radius: 18),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            if (glyph != null && !selected) ...[
-              HiIcon(glyph, size: 16, strokeWidth: 2, color: fg),
-              const SizedBox(width: 6),
-            ],
-            d == null
-                ? HiText(word, style: style)
-                : HiRichText(
-                    TextSpan(text: '$word ', children: [TextSpan(text: d, style: mono)]),
-                    style: style,
-                    also: [mono],
-                  ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HiText(Biz.address, style: hiStyle(13, FontWeight.w700, color: HiColors.textMuted)),
+                  const SizedBox(height: 2),
+                  HiText(address.trim().isEmpty ? '–' : address, style: hiStyle(15, FontWeight.w800)),
+                ],
+              ),
+            ),
+            _ChangeLink(label: Biz.createText('change'), onTap: onChange),
           ],
         ),
       ),
@@ -780,86 +779,483 @@ class _DayChip extends StatelessWidget {
   }
 }
 
-/// «14:00» in a white box; opens the time list.
-class _TimeBox extends StatelessWidget {
-  const _TimeBox({required this.minute, required this.label, required this.onTap});
+/// The lime «O'zgartirish ›» link, a 44 px target.
+class _ChangeLink extends StatelessWidget {
+  const _ChangeLink({required this.label, required this.onTap});
 
-  final int minute;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final text = '${(minute ~/ 60).toString().padLeft(2, '0')}:${(minute % 60).toString().padLeft(2, '0')}';
     return HiPressable(
       onTap: onTap,
-      semanticsLabel: '$label $text',
+      semanticsLabel: label,
       builder: (context, pressed) => Container(
-        width: 104,
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: pressed ? HiColors.surface : HiColors.white,
-          borderRadius: BorderRadius.circular(HiRadii.field),
-          border: const Border.fromBorderSide(HiBorders.ink),
-          boxShadow: HiShadows.hard,
-        ),
-        alignment: Alignment.centerLeft,
-        child: HiText(text, style: hiStyle(18, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono)),
+        constraints: const BoxConstraints(minWidth: 44),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        alignment: Alignment.center,
+        child: HiText(label, style: hiStyle(14, FontWeight.w800, color: pressed ? const Color(0xFFB8E600) : HiColors.lime)),
       ),
     );
   }
 }
 
-/// «10,500 원»: the hourly wage, typed with thousands separators.
-class _WageField extends StatelessWidget {
-  const _WageField({required this.controller, required this.onChanged});
+/// One of the seven days: the word over the number; white when chosen.
+class _DayTile extends StatelessWidget {
+  const _DayTile({
+    required this.word,
+    required this.number,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
-  final TextEditingController controller;
-  final VoidCallback onChanged;
+  final String word;
+  final String number;
+
+  /// «목 11.12» for screen readers.
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final text = hiStyle(18, FontWeight.w800, color: HiColors.ink, family: HiFamily.mono);
-    return Container(
-      height: 52,
-      // «원» sits `right:14px` from the field's outer edge (the 1 px border
-      // included), the text 14 px inside the border.
-      padding: const EdgeInsets.only(left: 14, right: 13),
-      decoration: BoxDecoration(
-        color: HiColors.white,
-        borderRadius: BorderRadius.circular(HiRadii.field),
-        border: const Border.fromBorderSide(HiBorders.ink),
-        boxShadow: HiShadows.hard,
+    final fg = selected ? HiColors.ink : HiColors.white;
+    return HiPressable(
+      onTap: onTap,
+      selected: selected,
+      semanticsLabel: label,
+      builder: (context, pressed) => Container(
+        height: 62,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: selected ? HiColors.surface : (pressed ? HiColors.white12 : HiColors.white06),
+          borderRadius: BorderRadius.circular(14),
+          border: selected ? const Border.fromBorderSide(HiBorders.ink) : Border.all(color: HiColors.white10),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: HiText(word, maxLines: 1, softWrap: false, style: hiStyle(11, FontWeight.w700, color: fg)),
+            ),
+            const SizedBox(height: 2),
+            HiText(number, style: hiStyle(18, FontWeight.w800, color: fg, family: HiFamily.mono)),
+          ],
+        ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              label: Biz.wage,
-              textField: true,
-              // Fills the field's height: the whole box is the tap target
-              // (a bare line of text would be 31 px, under the 40 px minimum).
-              child: SizedBox(
-                height: double.infinity,
-                child: TextField(
-                  controller: controller,
-                  style: text,
-                  strutStyle: hiStrut(text),
-                  cursorColor: HiColors.ink,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [ThousandsFormatter()],
-                  onChanged: (_) => onChanged(),
-                  expands: true,
-                  maxLines: null,
-                  textAlignVertical: TextAlignVertical.center,
-                  decoration: const InputDecoration.collapsed(hintText: null),
-                ),
+    );
+  }
+}
+
+/// «14:00–19:00 · 5 soat»: each time opens its list.
+class _TimeRange extends StatelessWidget {
+  const _TimeRange({
+    required this.start,
+    required this.end,
+    required this.minutes,
+    required this.onStart,
+    required this.onEnd,
+  });
+
+  final int start;
+  final int end;
+  final int minutes;
+  final VoidCallback onStart;
+  final VoidCallback onEnd;
+
+  static String _hm(int m) => '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) {
+    final style = hiStyle(14, FontWeight.w800, family: HiFamily.mono);
+    Widget time(String text, String semantic, VoidCallback onTap) => HiPressable(
+          onTap: onTap,
+          semanticsLabel: semantic,
+          builder: (context, pressed) => Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            alignment: Alignment.center,
+            child: HiText(text, style: style.copyWith(color: pressed ? HiColors.textSoft : HiColors.white)),
+          ),
+        );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        time(_hm(start), '${Biz.startTime} ${_hm(start)}', onStart),
+        HiText('–', style: style),
+        time(_hm(end), '${Biz.endTime} ${_hm(end)}', onEnd),
+        const SizedBox(width: 4),
+        HiText('·', style: style),
+        const SizedBox(width: 6),
+        HiText(Biz.duration(minutes), style: hiStyle(14, FontWeight.w800)),
+      ],
+    );
+  }
+}
+
+/// «Ochish 8–13»: a quick choice of the shift's hours; lime when chosen.
+class _PresetTile extends StatelessWidget {
+  const _PresetTile({required this.name, required this.range, required this.selected, required this.onTap});
+
+  final String name;
+  final String range;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      selected: selected,
+      semanticsLabel: '$name $range',
+      builder: (context, pressed) => Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: selected ? HiColors.lime : (pressed ? HiColors.white12 : HiColors.white06),
+          borderRadius: BorderRadius.circular(14),
+          border: selected ? null : Border.all(color: HiColors.white10),
+        ),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: HiText(
+                name,
+                maxLines: 1,
+                softWrap: false,
+                style: hiStyle(14, FontWeight.w800, color: selected ? HiColors.onLime : HiColors.white),
               ),
             ),
+            HiText(
+              range,
+              style: hiStyle(12, FontWeight.w700,
+                  color: selected ? const Color(0xFF5B6B00) : HiColors.textMuted, family: HiFamily.mono),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «Soatlik maosh»: the wage, big, with − / +, a slider marking the legal
+/// minimum and the average, the four quick amounts and what the wage means.
+class _WagePanel extends StatelessWidget {
+  const _WagePanel({
+    required this.controller,
+    required this.wage,
+    required this.minimum,
+    required this.market,
+    required this.onChanged,
+    required this.onSet,
+  });
+
+  final TextEditingController controller;
+  final int wage;
+
+  /// The legal minimum (null while unknown) and the average (null: too few
+  /// shifts to say).
+  final int? minimum;
+  final int? market;
+  final VoidCallback onChanged;
+  final ValueChanged<int> onSet;
+
+  static const step = 100;
+
+  @override
+  Widget build(BuildContext context) {
+    final avg = market;
+    final low = minimum != null && wage < minimum!;
+    final above = avg != null && wage >= avg;
+    const green = Color(0xFF86EFAC);
+    const red = Color(0xFFFCA5A5);
+    const amber = Color(0xFFFCD34D);
+    final base = minimum ?? (wage ~/ 1000) * 1000;
+    final lo = (base ~/ 1000) * 1000;
+    var hi = lo + 4000;
+    if (avg != null && avg + 2000 > hi) hi = ((avg + 2000 + 999) ~/ 1000) * 1000;
+
+    Widget quick(String name, int? value) {
+      final chosen = value != null && value == wage;
+      return Expanded(
+        child: HiPressable(
+          onTap: value == null ? null : () => onSet(value),
+          selected: chosen,
+          semanticsLabel: value == null ? name : '$name ${Won.employerDigits(value)}',
+          builder: (context, pressed) => Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              color: pressed ? HiColors.white08 : (chosen ? HiColors.white06 : null),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: chosen ? HiColors.white : HiColors.white14, width: chosen ? 1.5 : 1),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HiText(
+                  value == null ? '–' : Won.employerDigits(value),
+                  style: hiStyle(13, FontWeight.w800, family: HiFamily.mono),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: HiText(name, maxLines: 1, softWrap: false, style: hiStyle(11, FontWeight.w700, color: HiColors.textSoft)),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 6),
-          HiText(Biz.won, style: hiStyle(15, FontWeight.w700, color: HiColors.inkMuted)),
+        ),
+      );
+    }
+
+    final String hint;
+    final Color hintColor;
+    if (low) {
+      hint = Biz.minimumWageLow(minimum!);
+      hintColor = red;
+    } else if (avg == null) {
+      hint = minimum == null ? '' : Biz.minimumWageOk(minimum!);
+      hintColor = green;
+    } else if (above) {
+      hint = Biz.createText('hintAbove');
+      hintColor = green;
+    } else {
+      hint = Biz.hintBelow(Won.employerDigits(avg - wage));
+      hintColor = amber;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _darkCard(radius: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: HiText(Biz.wage, style: hiStyle(14, FontWeight.w700, color: HiColors.textSoft))),
+              if (avg != null)
+                Container(
+                  height: 28,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: above ? HiColors.greenSoft : HiColors.amberSoft,
+                    borderRadius: BorderRadius.circular(HiRadii.pill),
+                  ),
+                  child: HiText(
+                    Biz.createText(above ? 'attractive' : 'usual'),
+                    style: hiStyle(12, FontWeight.w800, color: HiColors.ink),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _SquareButton(
+                  icon: HiIcons.minus, label: '${Biz.wage} −', lime: false, onTap: () => onSet(wage - step)),
+              Expanded(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 48,
+                      child: Semantics(
+                        label: Biz.wage,
+                        textField: true,
+                        child: TextField(
+                          controller: controller,
+                          textAlign: TextAlign.center,
+                          style: hiStyle(36, FontWeight.w800, family: HiFamily.mono),
+                          strutStyle: hiStrut(hiStyle(36, FontWeight.w800, family: HiFamily.mono)),
+                          cursorColor: HiColors.lime,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [ThousandsFormatter()],
+                          onChanged: (_) => onChanged(),
+                          expands: true,
+                          maxLines: null,
+                          textAlignVertical: TextAlignVertical.center,
+                          decoration: const InputDecoration.collapsed(hintText: null),
+                        ),
+                      ),
+                    ),
+                    HiText(Biz.createText('perHour'), style: hiStyle(13, FontWeight.w600, color: HiColors.textMuted)),
+                  ],
+                ),
+              ),
+              _SquareButton(icon: HiIcons.plus, label: '${Biz.wage} +', lime: true, onTap: () => onSet(wage + step)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _WageSlider(value: wage, min: lo, max: hi, floor: minimum, average: avg, onChanged: onSet),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              quick(Biz.createText('minimum'), minimum),
+              const SizedBox(width: 8),
+              quick(Biz.createText('average'), avg),
+              const SizedBox(width: 8),
+              quick(Biz.createText('fast'), avg == null ? null : avg + 800),
+              const SizedBox(width: 8),
+              quick(Biz.createText('urgent'), avg == null ? null : avg + 1800),
+            ],
+          ),
+          if (hint.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              liveRegion: true,
+              child: HiText(hint, style: hiStyle(14, FontWeight.w700, height: 1.35, color: hintColor)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The 52 px − / + of the wage: dark, or lime for «+».
+class _SquareButton extends StatelessWidget {
+  const _SquareButton({required this.icon, required this.label, required this.lime, required this.onTap});
+
+  final HiIconData icon;
+  final String label;
+  final bool lime;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      semanticsLabel: label,
+      builder: (context, pressed) => Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: lime ? (pressed ? const Color(0xFFB8E600) : HiColors.lime) : (pressed ? HiColors.white16 : HiColors.white12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.center,
+        child: HiIcon(icon, size: 22, strokeWidth: 3, color: lime ? HiColors.onLime : HiColors.white),
+      ),
+    );
+  }
+}
+
+/// The wage slider: a lime fill up to the white thumb, an orange mark at the
+/// legal minimum and a grey one at the average. Drag or tap; it moves in
+/// 100 won; arrows (screen readers) move it by 100.
+class _WageSlider extends StatelessWidget {
+  const _WageSlider({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.floor,
+    required this.average,
+    required this.onChanged,
+  });
+
+  final int value;
+  final int min;
+  final int max;
+  final int? floor;
+  final int? average;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      slider: true,
+      label: Biz.wage,
+      value: Won.employerDigits(value),
+      increasedValue: Won.employerDigits(value + 100),
+      decreasedValue: Won.employerDigits(value - 100),
+      onIncrease: () => onChanged(value + 100),
+      onDecrease: () => onChanged(value - 100),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          void at(double dx) {
+            const pad = 10.0;
+            final t = ((dx - pad) / (box.maxWidth - 2 * pad)).clamp(0.0, 1.0);
+            onChanged(((min + t * (max - min)) / 100).round() * 100);
+          }
+
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (d) => at(d.localPosition.dx),
+            onHorizontalDragUpdate: (d) => at(d.localPosition.dx),
+            child: SizedBox(
+              height: 44,
+              width: double.infinity,
+              child: CustomPaint(painter: _WageSliderPainter(value, min, max, floor, average)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _WageSliderPainter extends CustomPainter {
+  _WageSliderPainter(this.value, this.min, this.max, this.floor, this.average);
+
+  final int value;
+  final int min;
+  final int max;
+  final int? floor;
+  final int? average;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const pad = 10.0;
+    final y = size.height / 2;
+    double x(int v) => pad + ((v - min) / (max - min)).clamp(0.0, 1.0) * (size.width - 2 * pad);
+    final track = RRect.fromLTRBR(0, y - 4, size.width, y + 4, const Radius.circular(4));
+    canvas.drawRRect(track, Paint()..color = const Color(0x660A1240));
+    final thumb = x(value);
+    canvas.drawRRect(RRect.fromLTRBR(0, y - 4, thumb, y + 4, const Radius.circular(4)), Paint()..color = HiColors.lime);
+    void tick(int? v, Color color) {
+      if (v == null || v < min || v > max) return;
+      canvas.drawRRect(
+        RRect.fromLTRBR(x(v) - 1.25, y - 8, x(v) + 1.25, y + 8, const Radius.circular(1)),
+        Paint()..color = color,
+      );
+    }
+
+    tick(floor, const Color(0xFFFB923C));
+    tick(average, HiColors.white45);
+    canvas.drawCircle(Offset(thumb, y), 12, Paint()..color = const Color(0x33FFFFFF));
+    canvas.drawCircle(Offset(thumb, y), 9, Paint()..color = HiColors.surface);
+  }
+
+  @override
+  bool shouldRepaint(_WageSliderPainter old) =>
+      old.value != value || old.min != min || old.max != max || old.floor != floor || old.average != average;
+}
+
+/// «Kishi soni  − 3 kishi +».
+class _HeadcountPanel extends StatelessWidget {
+  const _HeadcountPanel({required this.value, required this.onStep});
+
+  final int value;
+  final ValueChanged<int> onStep;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: _darkCard(radius: 18),
+      child: Row(
+        children: [
+          Expanded(child: HiText(Biz.headcount, style: hiStyle(16, FontWeight.w800))),
+          _Stepper(value: value, onStep: onStep),
         ],
       ),
     );
@@ -884,41 +1280,30 @@ class _Stepper extends StatelessWidget {
           semanticsLabel: label,
           builder: (context, pressed) => Container(
             width: 44,
-            height: 52,
+            height: 44,
             decoration: BoxDecoration(
-              color: pressed ? HiColors.white16 : HiColors.white08,
-              borderRadius: BorderRadius.circular(HiRadii.button),
-              border: Border.all(color: HiColors.white20),
+              color: pressed ? HiColors.white16 : HiColors.white10,
+              borderRadius: BorderRadius.circular(14),
             ),
             alignment: Alignment.center,
             child: HiIcon(icon, size: 18, strokeWidth: 2.6, color: HiColors.white),
           ),
         );
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         button(HiIcons.minus, Biz.fewer, () => onStep(-1)),
-        const SizedBox(width: 6),
-        Expanded(
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 64),
           child: Semantics(
             liveRegion: true,
-            child: Container(
-              height: 52,
-              decoration: BoxDecoration(
-                color: HiColors.white,
-                borderRadius: BorderRadius.circular(HiRadii.button),
-                border: const Border.fromBorderSide(HiBorders.ink),
-              ),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: HiText(Biz.headcountValue(value), maxLines: 1, softWrap: false,
-                    style: hiStyle(18, FontWeight.w800, color: HiColors.ink)),
-              ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: HiText(Biz.headcountValue(value),
+                  maxLines: 1, softWrap: false, textAlign: TextAlign.center, style: hiStyle(17, FontWeight.w800)),
             ),
           ),
         ),
-        const SizedBox(width: 6),
         button(HiIcons.plus, Biz.more, value < max ? () => onStep(1) : null),
       ],
     );
@@ -1114,6 +1499,89 @@ class _ContentSheetState extends State<_ContentSheet> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Edits the shift's address.
+class _AddressSheet extends StatefulWidget {
+  const _AddressSheet({required this.address});
+
+  final String address;
+
+  @override
+  State<_AddressSheet> createState() => _AddressSheetState();
+}
+
+class _AddressSheetState extends State<_AddressSheet> {
+  late final TextEditingController _text = TextEditingController(text: widget.address);
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(20, 24, 20, HiInsets.bottom(context, 24)),
+        decoration: const BoxDecoration(
+          color: HiColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: HiBorders.ink),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Semantics(header: true, child: HiText(Biz.address, style: hiStyle(22, FontWeight.w800, color: HiColors.ink))),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: HiColors.white,
+                borderRadius: BorderRadius.circular(HiRadii.field),
+                border: const Border.fromBorderSide(HiBorders.ink),
+              ),
+              child: TextField(
+                controller: _text,
+                maxLength: 200,
+                style: hiStyle(16, FontWeight.w600, color: HiColors.ink),
+                cursorColor: HiColors.ink,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => Navigator.of(context).pop(_text.text.trim()),
+                decoration: const InputDecoration.collapsed(hintText: null),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: HiButton(
+                    label: Biz.cancel,
+                    style: HiButtonStyle.outline,
+                    height: 52,
+                    fontSize: 16,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: HiButton(
+                    label: Biz.save,
+                    height: 52,
+                    fontSize: 16,
+                    onPressed: () => Navigator.of(context).pop(_text.text.trim()),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

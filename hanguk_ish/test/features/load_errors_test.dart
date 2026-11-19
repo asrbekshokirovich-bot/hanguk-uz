@@ -307,7 +307,7 @@ void main() {
       final repo = OfflineEmployer()..offline.add('templates');
       await open(tester, repo, location: EmployerRoutes.create);
       expect(find.text('마포구 신촌로12길 15, 2층'), findsOneWidget);
-      expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
+      expect(find.bySemanticsLabel('최저 10,320'), findsOneWidget);
     });
 
     testWidgets('BA2 for a shift that did not load: the close button and 다시 시도', (tester) async {

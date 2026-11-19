@@ -576,6 +576,13 @@ class DemoEmployerRepository implements EmployerRepository {
     invitations.add((shiftId, workerId));
   }
 
+  /// The demo's district average (the prototype's 11 200 won).
+  @override
+  Future<int?> marketWage(String businessId) async {
+    await _wait();
+    return 11200;
+  }
+
   @override
   Future<void> reportWorker(String applicationId, String reason, String text) async {
     await _wait();

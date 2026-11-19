@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../design/tokens.dart';
 import '../widgets.dart';
 
-/// The employer app's three tabs (홈, 근무자, 리포트) with the bottom menu;
+/// The employer app's four tabs (홈, 근무자, 리포트, 프로필) with the bottom menu;
 /// the lime button in the middle opens «근무 올리기» (BA2).
 class EmployerShell extends StatelessWidget {
   const EmployerShell({super.key, required this.shell, required this.onCreate});

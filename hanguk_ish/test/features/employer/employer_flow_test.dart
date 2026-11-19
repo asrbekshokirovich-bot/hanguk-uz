@@ -165,19 +165,19 @@ void main() {
     expect(file.text, '달빛카페 신촌점 · 마감 정리 보조 · 11월 10일 18:00–22:00 출퇴근 QR');
   });
 
-  testWidgets('BA2: another day of the same year keeps the minimum — asked once, the hint stays', (tester) async {
+  testWidgets('BA2: another day of the same year keeps the minimum — asked once, the chip stays', (tester) async {
     usePhone(tester);
     final repo = CountingMinimum();
     final container = employerContainer(location: EmployerRoutes.create, repository: repo);
     addTearDown(container.dispose);
     await tester.pumpWidget(employerHarness(container));
     await tester.pumpAndSettle();
-    expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
-    await tester.tap(find.text('목 11.12', findRichText: true));
+    expect(find.bySemanticsLabel('최저 10,320'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('목 11.12'));
     await tester.pump();
-    expect(find.text('최저시급 10,320원 이상'), findsOneWidget, reason: 'it does not blink while asked again');
+    expect(find.bySemanticsLabel('최저 10,320'), findsOneWidget, reason: 'it does not blink while asked again');
     await tester.pumpAndSettle();
-    expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
+    expect(find.bySemanticsLabel('최저 10,320'), findsOneWidget);
     expect(repo.asked, [2026]);
   });
 
@@ -212,20 +212,40 @@ void main() {
     await tester.tap(find.text('근무 올리기').last);
     await tester.pumpAndSettle();
     expect(find.text('템플릿'), findsOneWidget);
-    expect(find.text('–'), findsNWidgets(3), reason: 'duties, dress and address are empty: a dash');
+    expect(find.text('홀·카운터 보조'), findsOneWidget);
+    expect(find.text('–'), findsNWidgets(3), reason: 'duties and address are empty (a dash each); the third is the times\' dash');
+    expect(find.text('복장: –'), findsOneWidget);
     expect(find.text('14:00'), findsOneWidget);
     expect(find.text('19:00'), findsOneWidget);
     expect(find.text('5시간'), findsOneWidget);
     expect(find.text('3명'), findsOneWidget);
-    expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
-    expect(find.text('3명 · 5시간 · 예상 인건비 157,500원', findRichText: true), findsOneWidget);
+    // The wage panel: the minimum and the average, and 700 won under it.
+    expect(find.text('10,320'), findsOneWidget);
+    expect(find.text('11,200'), findsOneWidget);
+    expect(find.text('12,000'), findsOneWidget);
+    expect(find.text('13,000'), findsOneWidget);
+    expect(find.text('보통'), findsOneWidget);
+    expect(find.text('지역 평균보다 700원 낮아요 — 근로자를 구하는 데 더 걸릴 수 있어요'), findsOneWidget);
+    expect(find.text('3명 × 5시간 × 10,500'), findsOneWidget);
+    expect(find.text('157,500'), findsOneWidget);
+
+    // The average button sets the wage: above the average, the note and the badge change.
+    await tester.tap(find.bySemanticsLabel('평균 11,200'));
+    await tester.pumpAndSettle();
+    expect(find.text('매력적'), findsOneWidget);
+    expect(find.text('평균보다 높아요 — 지원자가 더 빨리 모여요'), findsOneWidget);
+    expect(find.text('3명 × 5시간 × 11,200'), findsOneWidget);
+    expect(find.text('168,000'), findsOneWidget);
 
     // Another template fills the form with its own times and wage.
+    await tester.tap(find.bySemanticsLabel('변경 ›'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('마감 정리 보조'));
     await tester.pumpAndSettle();
     expect(find.text('18:00'), findsOneWidget);
     expect(find.text('4명'), findsOneWidget);
-    expect(find.text('4명 · 4시간 · 예상 인건비 176,000원', findRichText: true), findsOneWidget);
+    expect(find.text('4명 × 4시간 × 11,000'), findsOneWidget);
+    expect(find.text('176,000'), findsOneWidget);
 
     // A wage under the legal minimum is flagged and refused.
     await tester.enterText(find.byType(TextField), '9900');
@@ -243,7 +263,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('인원 줄이기'));
     await tester.pumpAndSettle();
     expect(find.text('3명'), findsOneWidget);
-    await tester.tap(find.text('목 11.12', findRichText: true));
+    await tester.tap(find.bySemanticsLabel('목 11.12'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('근무 올리기').last);
     await tester.pumpAndSettle();
@@ -257,6 +277,29 @@ void main() {
     expect(Kst.hm(posted.startsAt), '18:00');
   });
 
+  testWidgets('BA2: the quick hours, and the slider moves the wage', (tester) async {
+    usePhone(tester);
+    await open(tester, location: EmployerRoutes.create);
+    await tester.tap(find.bySemanticsLabel('오픈 8–13'));
+    await tester.pumpAndSettle();
+    expect(find.text('08:00'), findsOneWidget);
+    expect(find.text('13:00'), findsOneWidget);
+    expect(find.text('3명 × 5시간 × 10,500'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('마감 18–23'));
+    await tester.pumpAndSettle();
+    expect(find.text('18:00'), findsOneWidget);
+    expect(find.text('23:00'), findsOneWidget);
+
+    // «+» and «−» move the wage by 100 won.
+    await tester.tap(find.bySemanticsLabel('시급 +'));
+    await tester.pumpAndSettle();
+    expect(find.text('10,600'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('시급 −'));
+    await tester.tap(find.bySemanticsLabel('시급 −'));
+    await tester.pumpAndSettle();
+    expect(find.text('10,400'), findsOneWidget);
+  });
+
   testWidgets('BA2: start and end times from the lists', (tester) async {
     usePhone(tester);
     await open(tester, location: EmployerRoutes.create);
@@ -267,20 +310,34 @@ void main() {
     await tester.tap(find.text('21:30'));
     await tester.pumpAndSettle();
     expect(find.text('7시간 30분'), findsOneWidget);
-    expect(find.text('3명 · 7시간 30분 · 예상 인건비 236,250원', findRichText: true), findsOneWidget);
+    expect(find.text('3명 × 7시간 30분 × 10,500'), findsOneWidget);
+    expect(find.text('236,250'), findsOneWidget);
   });
 
   testWidgets('BA2: editing the template content', (tester) async {
     usePhone(tester);
     await open(tester, location: EmployerRoutes.create);
-    await tester.tap(find.text('수정'));
+    await tester.tap(find.bySemanticsLabel('변경 ›'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('템플릿 수정'));
     await tester.pumpAndSettle();
     expect(find.text('템플릿 수정'), findsOneWidget);
     await tester.enterText(find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(2), '흰 셔츠, 검은 바지');
     await tester.tap(find.text('저장하기'));
     await tester.pumpAndSettle();
-    expect(find.text('흰 셔츠, 검은 바지'), findsOneWidget);
+    expect(find.text('복장: 흰 셔츠, 검은 바지'), findsOneWidget);
     expect(find.text('템플릿을 저장했어요'), findsOneWidget);
+  });
+
+  testWidgets('BA2: the address of the shift is changed on its own card', (tester) async {
+    usePhone(tester);
+    await open(tester, location: EmployerRoutes.create);
+    await tester.tap(find.bySemanticsLabel('변경'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)), '마포구 와우산로 94');
+    await tester.tap(find.text('저장하기'));
+    await tester.pumpAndSettle();
+    expect(find.text('마포구 와우산로 94'), findsOneWidget);
   });
 
   testWidgets('BA3 수정: the form opens with the shift; places cannot drop below the crew', (tester) async {
@@ -333,7 +390,8 @@ void main() {
     addTearDown(container.dispose);
     await tester.pumpWidget(employerHarness(container));
     await tester.pumpAndSettle();
-    await tapText(tester, '수정');
+    await tester.tap(find.bySemanticsLabel('변경 ›'));
+    await tester.pumpAndSettle();
     await tester.enterText(
         find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), '초 단위 근무 2');
     await tester.tap(find.descendant(of: find.byType(BottomSheet), matching: find.text('저장하기')));

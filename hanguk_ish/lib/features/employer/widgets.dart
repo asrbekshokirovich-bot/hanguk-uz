@@ -10,7 +10,7 @@ import '../../design/widgets/pressable.dart';
 import 'biz.dart';
 
 /// The employer app's bottom menu: 홈, 근무자, a raised lime «근무 올리기»
-/// button, 리포트.
+/// button, 리포트, 프로필.
 ///
 /// Prototype: `height:88px; padding:6px 6px 22px; border-top:1px`, a grid
 /// row of 59 px; the lime circle (52 px, `margin-top:-26px`) rises 7.4 px
@@ -19,7 +19,7 @@ import 'biz.dart';
 class EmployerNav extends StatelessWidget {
   const EmployerNav({super.key, required this.current, required this.onSelect, required this.onCreate});
 
-  /// 0 = 홈, 1 = 근무자, 2 = 리포트.
+  /// 0 = 홈, 1 = 근무자, 2 = 리포트, 3 = 프로필.
   final int current;
   final ValueChanged<int> onSelect;
   final VoidCallback onCreate;
@@ -60,6 +60,7 @@ class EmployerNav extends StatelessWidget {
                     Expanded(child: _Tab(icon: HiIcons.users, label: Biz.navWorkers, selected: current == 1, onTap: () => onSelect(1))),
                     Expanded(child: _CreateLabel(onTap: onCreate)),
                     Expanded(child: _Tab(icon: HiIcons.chartColumn, label: Biz.navReport, selected: current == 2, onTap: () => onSelect(2))),
+                    Expanded(child: _Tab(icon: HiIcons.user, label: Biz.ownerText('nav'), selected: current == 3, onTap: () => onSelect(3))),
                   ],
                 ),
               ),
@@ -100,6 +101,7 @@ class EmployerNav extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  const Spacer(),
                 ],
               ),
             ),
@@ -136,13 +138,17 @@ class _Tab extends StatelessWidget {
             child: HiIcon(icon, size: 20, strokeWidth: 2, color: selected ? HiColors.white : HiColors.textMuted),
           ),
           const SizedBox(height: 4),
-          HiText(
-            label,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.visible,
-            style: hiStyle(12, selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? HiColors.white : HiColors.textMuted),
+          // Five columns: a long word shrinks to its column instead of
+          // running into the next one.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: HiText(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              style: hiStyle(12, selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected ? HiColors.white : HiColors.textMuted),
+            ),
           ),
         ],
       ),
@@ -167,12 +173,14 @@ class _CreateLabel extends StatelessWidget {
         children: [
           // 52 px circle with margin-top:-26px takes 26 px of the column.
           const SizedBox(height: 26 + 4),
-          HiText(
-            Biz.navCreate,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.visible,
-            style: hiStyle(12, FontWeight.w800, color: HiColors.white),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: HiText(
+              Biz.navCreate,
+              maxLines: 1,
+              softWrap: false,
+              style: hiStyle(12, FontWeight.w800, color: HiColors.white),
+            ),
           ),
         ],
       ),

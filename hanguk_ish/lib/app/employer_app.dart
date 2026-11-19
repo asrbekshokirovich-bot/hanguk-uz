@@ -19,6 +19,7 @@ import '../features/employer/language.dart';
 import '../features/employer/login/ba0_code_screen.dart';
 import '../features/employer/login/ba0_login_screen.dart';
 import '../features/employer/login/ba0_profile_screen.dart';
+import '../features/employer/profile/ba6_profile_screen.dart';
 import '../features/employer/login/ba0_welcome_screen.dart';
 import '../features/employer/notifications/employer_notifications_screen.dart';
 import '../features/employer/providers.dart';
@@ -50,6 +51,8 @@ abstract final class EmployerRoutes {
   static const home = '/home';
   static const workers = '/workers';
   static const report = '/report';
+  static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
   static const create = '/create';
   static const notifications = '/notifications';
 
@@ -269,7 +272,53 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
               builder: (context, state) => const Ba5ReportScreen(),
             ),
           ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: EmployerRoutes.profile,
+              builder: (context, state) => Consumer(
+                builder: (context, ref, _) => Ba6ProfileScreen(
+                  onEdit: (business) => context.push(EmployerRoutes.profileEdit),
+                  onWorkers: () {
+                    ref.read(workersTabProvider.notifier).select(0);
+                    context.go(EmployerRoutes.workers);
+                  },
+                ),
+              ),
+            ),
+          ]),
         ],
+      ),
+      GoRoute(
+        path: EmployerRoutes.profileEdit,
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) {
+            final business = ref.watch(currentBusinessProvider).value;
+            return Ba0ProfileScreen(
+              initial: business,
+              onSkip: () => context.canPop() ? context.pop() : context.go(EmployerRoutes.profile),
+              onSave: (name, category, area, address) async {
+                if (business == null) return;
+                try {
+                  await ref.read(employerRepositoryProvider).updateBusiness(
+                        business.id,
+                        name: name,
+                        category: category,
+                        area: area,
+                        address: address,
+                      );
+                } catch (error) {
+                  if (context.mounted) _say(context, Biz.error(error));
+                  return;
+                }
+                ref.invalidate(businessesProvider);
+                if (context.mounted) {
+                  _say(context, Biz.ownerText('saved'));
+                  context.canPop() ? context.pop() : context.go(EmployerRoutes.profile);
+                }
+              },
+            );
+          },
+        ),
       ),
       GoRoute(
         path: EmployerRoutes.create,

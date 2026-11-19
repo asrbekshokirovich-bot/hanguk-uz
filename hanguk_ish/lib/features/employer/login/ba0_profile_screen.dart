@@ -13,13 +13,17 @@ import '../biz.dart';
 /// the kind of work, the neighbourhood and the address are what workers read
 /// on every shift; the business opens as «사업장 XXXX» until this is saved.
 class Ba0ProfileScreen extends StatefulWidget {
-  const Ba0ProfileScreen({super.key, required this.onSave, this.onSkip});
+  const Ba0ProfileScreen({super.key, required this.onSave, this.onSkip, this.initial});
 
   /// «Saqlash»; the button waits while it runs.
   final Future<void> Function(String name, BusinessCategory category, String area, String address) onSave;
 
-  /// «Keyinroq»: fill it in later.
+  /// «Keyinroq»: fill it in later (or, when editing, «Bekor qilish»).
   final VoidCallback? onSkip;
+
+  /// The business being edited from the profile tab; null at the first
+  /// sign-in, when the form starts empty.
+  final Business? initial;
 
   static String text(String key) => Biz.profileText(key);
 
@@ -28,10 +32,10 @@ class Ba0ProfileScreen extends StatefulWidget {
 }
 
 class _Ba0ProfileScreenState extends State<Ba0ProfileScreen> {
-  final _name = TextEditingController();
-  final _area = TextEditingController();
-  final _address = TextEditingController();
-  BusinessCategory _category = BusinessCategory.cafe;
+  late final _name = TextEditingController(text: widget.initial?.name ?? '');
+  late final _area = TextEditingController(text: widget.initial?.area ?? '');
+  late final _address = TextEditingController(text: widget.initial?.address ?? '');
+  late BusinessCategory _category = widget.initial?.category ?? BusinessCategory.cafe;
   bool _saving = false;
 
   @override
@@ -98,10 +102,17 @@ class _Ba0ProfileScreenState extends State<Ba0ProfileScreen> {
                 onSubmitted: (_) => _save(),
               ),
               const SizedBox(height: 28),
-              HiButton(label: t('save'), height: 56, fontSize: 18, onPressed: _saving ? null : _save),
+              HiButton(
+                  label: widget.initial == null ? t('save') : Biz.save,
+                  height: 56,
+                  fontSize: 18,
+                  onPressed: _saving ? null : _save),
               if (widget.onSkip != null) ...[
                 const SizedBox(height: 8),
-                HiButton(label: t('later'), style: HiButtonStyle.ghost, onPressed: widget.onSkip),
+                HiButton(
+                    label: widget.initial == null ? t('later') : Biz.cancel,
+                    style: HiButtonStyle.ghost,
+                    onPressed: widget.onSkip),
               ],
             ],
           ),
