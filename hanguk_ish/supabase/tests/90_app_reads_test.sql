@@ -4,6 +4,9 @@
 
 -- biz1 as the worker screens show it.
 select tests.as_admin();
+-- The fixtures' shifts told the workers of Mapo-gu (no position yet): this file
+-- counts the bell's own kinds, so those start clean.
+delete from ish.notifications where kind = 'new_shift_match';
 update ish.businesses
 set area = '신촌', address = '마포구 신촌로12길 15', address_detail = '2층',
     name_i18n = '{"uz": "Dalbit Kafe", "en": "Dalbit Cafe"}',

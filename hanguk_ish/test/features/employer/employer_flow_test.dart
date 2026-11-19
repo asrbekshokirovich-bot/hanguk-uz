@@ -6,6 +6,7 @@ import 'package:hanguk_ish/data/demo/demo_employer.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/employer.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
+import 'package:hanguk_ish/design/widgets/buttons.dart' show HiButton;
 
 import '../../helpers/employer_harness.dart';
 import '../../helpers/fonts.dart';
@@ -178,6 +179,31 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('최저시급 10,320원 이상'), findsOneWidget);
     expect(repo.asked, [2026]);
+  });
+
+  testWidgets('BA3 신고: the owner reports a worker of the shift; a text is needed', (tester) async {
+    usePhone(tester);
+    final repo = await open(tester);
+    await tapText(tester, '지원자 확인하기');
+    final flag = find.bySemanticsLabel(RegExp('^신고: ')).first;
+    await tester.ensureVisible(flag);
+    await tester.pumpAndSettle();
+    await tester.tap(flag);
+    await tester.pumpAndSettle();
+    expect(find.text('근로자 신고'), findsOneWidget);
+    expect(tester.widget<HiButton>(find.widgetWithText(HiButton, '보내기')).onPressed, isNull,
+        reason: 'a kind of trouble and a text first');
+
+    await tester.tap(find.text('출근하지 않음'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '  연락도 없이 오지 않았어요  ');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(HiButton, '보내기'));
+    await tester.pumpAndSettle();
+    expect(find.text('신고를 보냈어요.'), findsOneWidget);
+    expect(repo.workerReports.length, 1);
+    expect(repo.workerReports.single.$2, 'no_show');
+    expect(repo.workerReports.single.$3, '연락도 없이 오지 않았어요', reason: 'trimmed');
   });
 
   testWidgets('BA2: post a shift from a template; it shows on the home', (tester) async {

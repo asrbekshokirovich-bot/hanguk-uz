@@ -325,6 +325,9 @@ class DemoEmployerRepository implements EmployerRepository {
   /// Invitations sent with «다시 요청»: (shift, worker).
   final List<(String, String)> invitations = [];
 
+  /// The reports of workers sent so far: (application, reason, text).
+  final List<(String, String, String)> workerReports = [];
+
   /// The token in the demo's QR codes.
   static const qrToken = 'demo';
 
@@ -571,6 +574,17 @@ class DemoEmployerRepository implements EmployerRepository {
     final worker = _workers[workerId];
     if (worker == null || worker.timesHere == 0) throw const ShiftActionException('NOT_FOUND');
     invitations.add((shiftId, workerId));
+  }
+
+  @override
+  Future<void> reportWorker(String applicationId, String reason, String text) async {
+    await _wait();
+    if (!const {'no_show', 'behaviour', 'other'}.contains(reason) || text.trim().isEmpty) {
+      throw const ShiftActionException('INVALID');
+    }
+    final known = _shifts.values.any((s) => s.applicants.any((a) => a.applicationId == applicationId));
+    if (!known) throw const ShiftActionException('NOT_FOUND');
+    workerReports.add((applicationId, reason, text.trim()));
   }
 
   @override

@@ -1,10 +1,12 @@
 -- New shifts reach the workers near them who are free then; the evening
 -- digest of shifts nearby.
 
--- a1 lives by Sinchon (biz1), free any time; a2 is in Gangnam (≈ 9 km).
+-- a1 lives by Sinchon (biz1), free any time; a2 is in Gangnam (≈ 10.3 km: beyond the 10 km).
 select tests.as_admin();
 update ish.worker_profiles set lat = 37.5560, lng = 126.9370 where user_id = '00000000-0000-0000-0000-0000000000a1';
 update ish.worker_profiles set lat = 37.4979, lng = 127.0276 where user_id = '00000000-0000-0000-0000-0000000000a2';
+-- (Before they had a position the fixtures' shifts told them by district.)
+delete from ish.notifications where kind = 'new_shift_match';
 
 -- The A02 availability bit: Monday 06–12 is 0, Sunday 00–06 is 27.
 select tests.eq(ish.availability_bit('2026-11-16 07:00+09'), 0, 'Monday morning');
@@ -55,6 +57,43 @@ update ish.businesses set lat = 37.5559, lng = 126.9368 where id = '10000000-000
 insert into ish.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
 values ('10000000-0000-0000-0000-000000000002', '주방', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 1);
 select tests.eq((select count(*)::int from ish.notifications where kind = 'new_shift_match'), 0, 'unverified: nobody');
+
+-- 7 km away: beyond the old 5 km, inside the 10 km — told, with the distance.
+select tests.as_admin();
+delete from ish.notifications where kind = 'new_shift_match';
+update ish.worker_profiles set lat = 37.5559 + 7.0 / 111.195, lng = 126.9368 where user_id = '00000000-0000-0000-0000-0000000000a2';
+select tests.as_user('00000000-0000-0000-0000-0000000000b1');
+insert into ish.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
+values ('10000000-0000-0000-0000-000000000001', '조금 먼 곳', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 1);
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+select tests.eq((select count(*)::int from ish.notifications where kind = 'new_shift_match'), 1, 'a2 at 7 km: told');
+select tests.ok((select (data ->> 'distance_km')::numeric between 6.9 and 7.1 from ish.notifications where kind = 'new_shift_match'),
+                'with the distance');
+
+-- No saved position: told when the A02 district is the business's (Mapo-gu), with no distance.
+select tests.as_admin();
+delete from ish.notifications where kind = 'new_shift_match';
+update ish.worker_profiles set lat = null, lng = null where user_id = '00000000-0000-0000-0000-0000000000a2';
+select tests.as_user('00000000-0000-0000-0000-0000000000b1');
+insert into ish.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
+values ('10000000-0000-0000-0000-000000000001', '동네', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 1);
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+select tests.eq((select count(*)::int from ish.notifications where kind = 'new_shift_match'), 1, 'no position, same district: told');
+select tests.ok((select not (data ? 'distance_km') from ish.notifications where kind = 'new_shift_match'),
+                'and no distance in it');
+
+-- ...but not another district.
+select tests.as_admin();
+delete from ish.notifications where kind = 'new_shift_match';
+update ish.worker_profiles set district = 'Gangnam-gu' where user_id = '00000000-0000-0000-0000-0000000000a2';
+select tests.as_user('00000000-0000-0000-0000-0000000000b1');
+insert into ish.shifts (business_id, title, starts_at, ends_at, hourly_wage, slots)
+values ('10000000-0000-0000-0000-000000000001', '다른 동네', now() + interval '1 day', now() + interval '1 day 4 hours', 10800, 1);
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+select tests.eq((select count(*)::int from ish.notifications where kind = 'new_shift_match'), 0, 'no position, other district: not');
+select tests.as_admin();
+update ish.worker_profiles set district = 'Mapo-gu' where user_id = '00000000-0000-0000-0000-0000000000a2';
+update ish.worker_profiles set lat = 37.4979, lng = 127.0276 where user_id = '00000000-0000-0000-0000-0000000000a2';
 
 -- The evening digest: a1 has open shifts within 3 km over the next two days.
 select tests.eq(ish.queue_nearby_digests(), 1, 'a1 only (a2 is far, a3 has no position)');
