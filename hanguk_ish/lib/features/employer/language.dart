@@ -53,6 +53,9 @@ class EmployerLanguageController extends Notifier<AppLanguage> {
 
 const _deleteAccountValue = '__delete_account__';
 
+/// «계정 삭제»: asked first, then the account is gone and the app goes to BA0.
+Future<void> deleteEmployerAccount(BuildContext context, WidgetRef ref) => _deleteAccount(context, ref);
+
 /// The language list (the worker app's A11 sheet); the choice applies at once.
 /// Signed in, «계정 삭제» sits under it (Google Play's account-deletion rule;
 /// Asrbek, 2026-11-13: the app has no settings screen, so here).

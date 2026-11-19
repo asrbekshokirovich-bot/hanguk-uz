@@ -97,6 +97,13 @@ final minimumWageProvider = FutureProvider.autoDispose.family<int, int>(
   retry: (count, error) => null,
 );
 
+/// BA2: what shifts around the current business pay on average (null: too
+/// few shifts to say — the form shows dashes).
+final marketWageProvider = FutureProvider.autoDispose<int?>((ref) async {
+  final business = await ref.watch(currentBusinessProvider.future);
+  return ref.watch(employerRepositoryProvider).marketWage(business.id);
+}, retry: (count, error) => null);
+
 /// BA4: the people who have worked at the current business.
 final businessWorkersProvider = FutureProvider.autoDispose<List<WorkerCard>>((ref) async {
   final business = await ref.watch(currentBusinessProvider.future);

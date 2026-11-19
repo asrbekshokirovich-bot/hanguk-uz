@@ -92,6 +92,101 @@ abstract final class Biz {
 
   static String reportText(String key) => _reportTexts[key]![_lang] ?? _reportTexts[key]!['en']!;
 
+  /// The shift form's texts (BA2), in the four languages.
+  static const _createTexts = <String, Map<String, String>>{
+    'change': {'ko': '변경', 'uz': 'O\'zgartirish', 'ru': 'Изменить', 'en': 'Change'},
+    'slotOpen': {'ko': '오픈', 'uz': 'Ochish', 'ru': 'Открытие', 'en': 'Opening'},
+    'slotLunch': {'ko': '점심', 'uz': 'Tushlik', 'ru': 'Обед', 'en': 'Lunch'},
+    'slotDay': {'ko': '낮', 'uz': 'Kunduz', 'ru': 'День', 'en': 'Daytime'},
+    'slotClose': {'ko': '마감', 'uz': 'Yopish', 'ru': 'Закрытие', 'en': 'Closing'},
+    'perHour': {'ko': '원 / 시간', 'uz': 'won / soat', 'ru': 'вон / час', 'en': 'won / hour'},
+    'minimum': {'ko': '최저', 'uz': 'Eng kam', 'ru': 'Минимум', 'en': 'Minimum'},
+    'average': {'ko': '평균', 'uz': 'O\'rtacha', 'ru': 'Средняя', 'en': 'Average'},
+    'fast': {'ko': '빠른 모집', 'uz': 'Tez', 'ru': 'Быстро', 'en': 'Fast'},
+    'urgent': {'ko': '긴급', 'uz': 'Shoshilinch', 'ru': 'Срочно', 'en': 'Urgent'},
+    'attractive': {'ko': '매력적', 'uz': 'Jozibador', 'ru': 'Выгодно', 'en': 'Attractive'},
+    'usual': {'ko': '보통', 'uz': 'Odatiy', 'ru': 'Обычная', 'en': 'Usual'},
+    'hintAbove': {
+      'ko': '평균보다 높아요 — 지원자가 더 빨리 모여요',
+      'uz': 'O\'rtachadan yuqori — ishchilar tezroq ariza beradi',
+      'ru': 'Выше средней — работники откликаются быстрее',
+      'en': 'Above average — workers apply faster',
+    },
+    'hintBelow': {
+      'ko': '지역 평균보다 {n}원 낮아요 — 근로자를 구하는 데 더 걸릴 수 있어요',
+      'uz': 'Hududdagi o\'rtachadan {n} won past — ishchi topish sekinroq bo\'lishi mumkin',
+      'ru': 'Ниже средней по району на {n} вон — найти работника может быть дольше',
+      'en': '{n} won below the area average — it may take longer to find a worker',
+    },
+  };
+
+  static String createText(String key) => _createTexts[key]![_lang] ?? _createTexts[key]!['en']!;
+
+  static String hintBelow(String amount) => createText('hintBelow').replaceAll('{n}', amount);
+
+  /// The owner's own profile (BA6), in the four languages.
+  static const _ownerTexts = <String, Map<String, String>>{
+    'nav': {'ko': '프로필', 'uz': 'Profil', 'ru': 'Профиль', 'en': 'Profile'},
+    'verified': {'ko': '확인됨', 'uz': 'Tasdiqlangan', 'ru': 'Подтверждено', 'en': 'Verified'},
+    'pending': {'ko': '확인 중', 'uz': 'Tekshiruvda', 'ru': 'На проверке', 'en': 'In review'},
+    'rejected': {'ko': '중지됨', 'uz': 'To\'xtatilgan', 'ru': 'Приостановлено', 'en': 'Suspended'},
+    'rating': {'ko': '근로자 평가', 'uz': 'Ishchilar bahosi', 'ru': 'Оценка работников', 'en': 'Workers\' rating'},
+    'done': {'ko': '완료한 근무', 'uz': 'Bajarilgan smena', 'ru': 'Завершено смен', 'en': 'Shifts done'},
+    'month': {'ko': '이번 달', 'uz': 'Shu oy', 'ru': 'Этот месяц', 'en': 'This month'},
+    'statShifts': {'ko': '근무', 'uz': 'Smena', 'ru': 'Смены', 'en': 'Shifts'},
+    'statPeople': {'ko': '근로자', 'uz': 'Ishchi', 'ru': 'Работники', 'en': 'Workers'},
+    'statPaid': {'ko': '인건비', 'uz': 'Xarajat', 'ru': 'Расходы', 'en': 'Spent'},
+    'edit': {
+      'ko': '사업장 정보 수정',
+      'uz': 'Biznes ma\'lumotlarini tahrirlash',
+      'ru': 'Изменить данные заведения',
+      'en': 'Edit business details',
+    },
+    'favorites': {'ko': '단골 근로자', 'uz': 'Sevimli ishchilar', 'ru': 'Избранные работники', 'en': 'Favourite workers'},
+    'help': {'ko': '도움말', 'uz': 'Yordam', 'ru': 'Помощь', 'en': 'Help'},
+    'q1': {
+      'ko': '근무는 어떻게 올리나요?',
+      'uz': 'Smena qanday qo\'yiladi?',
+      'ru': 'Как разместить смену?',
+      'en': 'How do I post a shift?',
+    },
+    'a1': {
+      'ko': '아래 가운데 + 버튼에서 템플릿, 날짜, 시간, 시급, 인원을 고르면 근로자 목록에 올라가요.',
+      'uz': 'Pastdagi o\'rtadagi + tugmasida shablon, kun, vaqt, maosh va kishi sonini tanlang: smena ishchilar ro\'yxatiga chiqadi.',
+      'ru': 'Нажмите + внизу, выберите шаблон, день, время, ставку и число людей: смена появится у работников.',
+      'en': 'Tap + below, pick the template, day, hours, wage and headcount: the shift shows up for workers.',
+    },
+    'q2': {
+      'ko': '근로자가 왔는지 어떻게 아나요?',
+      'uz': 'Ishchi kelganini qanday bilaman?',
+      'ru': 'Как узнать, что работник пришёл?',
+      'en': 'How do I know a worker came?',
+    },
+    'a2': {
+      'ko': '근무 화면의 출퇴근 QR을 인쇄하거나 공유하세요. 근로자가 출근·퇴근할 때 스캔하고, 현황은 같은 화면에 보여요.',
+      'uz': 'Smena sahifasidagi QR kodni chop eting yoki yuboring: ishchi kirish va chiqishda skanerlaydi, davomat shu sahifada ko\'rinadi.',
+      'ru': 'Распечатайте или отправьте QR-код на странице смены: работник сканирует его при приходе и уходе, отметки видны там же.',
+      'en': 'Print or share the QR code on the shift page: the worker scans it in and out, and attendance shows on the same page.',
+    },
+    'q3': {
+      'ko': '근로자에게 문제가 있으면요?',
+      'uz': 'Ishchi bilan muammo bo\'lsa?',
+      'ru': 'Если есть проблема с работником?',
+      'en': 'What if a worker causes trouble?',
+    },
+    'a3': {
+      'ko': '근무 화면의 출퇴근 현황에서 근로자 옆 깃발 버튼을 눌러 Hanguk Ish 직원에게 알리세요.',
+      'uz': 'Smena sahifasida davomat qatoridagi bayroqcha orqali Hanguk Ish xodimlariga yozing.',
+      'ru': 'На странице смены нажмите флажок рядом с работником и напишите сотрудникам Hanguk Ish.',
+      'en': 'On the shift page tap the flag beside the worker to tell Hanguk Ish\'s staff.',
+    },
+    'signOut': {'ko': '로그아웃', 'uz': 'Chiqish', 'ru': 'Выйти', 'en': 'Sign out'},
+    'signOutTitle': {'ko': '로그아웃할까요?', 'uz': 'Chiqasizmi?', 'ru': 'Выйти из аккаунта?', 'en': 'Sign out?'},
+    'saved': {'ko': '저장했어요.', 'uz': 'Saqlandi.', 'ru': 'Сохранено.', 'en': 'Saved.'},
+  };
+
+  static String ownerText(String key) => _ownerTexts[key]![_lang] ?? _ownerTexts[key]!['en']!;
+
   static String profileText(String key) => _profileTexts[key]![_lang] ?? _profileTexts[key]!['en']!;
 
   /// The first-launch language screen: the title names the choice in every

@@ -192,6 +192,12 @@ class SupabaseEmployerRepository implements EmployerRepository {
       });
 
   @override
+  Future<int?> marketWage(String businessId) => backendCall(() async {
+        final value = await _client.rpc('market_wage', params: {'p_business': businessId});
+        return (value as num?)?.toInt();
+      });
+
+  @override
   Future<void> reportWorker(String applicationId, String reason, String text) => backendCall(() async {
         await _client.rpc('report_worker', params: {'p_application': applicationId, 'p_reason': reason, 'p_body': text});
       });
