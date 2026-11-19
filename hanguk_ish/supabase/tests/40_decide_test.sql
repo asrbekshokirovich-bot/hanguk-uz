@@ -68,7 +68,8 @@ select tests.eq((select status::text from ish.applications
                  where shift_id = '20000000-0000-0000-0000-000000000003'), 'rejected',
                 'its workers are released');
 select tests.eq((select data->>'reason' from ish.notifications
-                 where user_id = '00000000-0000-0000-0000-0000000000a1' and data->>'shift_id' = '20000000-0000-0000-0000-000000000003'),
+                 where user_id = '00000000-0000-0000-0000-0000000000a1' and data->>'shift_id' = '20000000-0000-0000-0000-000000000003'
+                   and kind <> 'new_shift_match'),
                 'shift_cancelled', 'and told why');
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 select tests.throws($$select ish.cancel_shift('20000000-0000-0000-0000-000000000005')$$,

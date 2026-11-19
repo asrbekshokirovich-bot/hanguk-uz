@@ -72,6 +72,11 @@ abstract interface class EmployerRepository {
   /// BA4 «다시 요청» → `request_again`: invites a worker to a shift.
   Future<void> requestAgain(String shiftId, String workerId);
 
+  /// BA3 «신고» → `report_worker`: the owner reports a worker of one of their
+  /// shifts to Hanguk's staff. [reason] is 'no_show', 'behaviour' or 'other';
+  /// [text] says what happened. Codes: NOT_FOUND, INVALID, TOO_MANY_REQUESTS.
+  Future<void> reportWorker(String applicationId, String reason, String text);
+
   /// BA5: completed work of [businessId] between two Korean dates
   /// (inclusive) → `business_report`.
   Future<BusinessReport> report(String businessId, DateTime from, DateTime to);

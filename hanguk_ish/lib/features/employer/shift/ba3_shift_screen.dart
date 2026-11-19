@@ -86,6 +86,26 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
     }
   }
 
+  /// «신고»: the owner tells Hanguk's staff what a worker of this shift did.
+  Future<void> _report(ShiftApplicant applicant) async {
+    final result = await showModalBottomSheet<(String, String)>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: const Color.fromRGBO(6, 13, 43, 0.74),
+      builder: (context) => _ReportWorkerSheet(workerName: applicant.worker.fullName),
+    );
+    if (result == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(employerRepositoryProvider).reportWorker(applicant.applicationId, result.$1, result.$2);
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.reportText('sent'))));
+    } on Object catch (error) {
+      (messenger..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(Biz.error(error))));
+    }
+  }
+
   Future<void> _shareQr(EmployerShift shift, String payload, String business) async {
     final messenger = ScaffoldMessenger.of(context);
     final when = '${Biz.monthDay(shift.startsAt)} ${Kst.hm(shift.startsAt)}–${Kst.hm(shift.endsAt)}';
@@ -243,7 +263,7 @@ class _Ba3ShiftScreenState extends ConsumerState<Ba3ShiftScreen> {
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(18, 0, 22, 0),
-                    child: _AttendanceList(shift: shift, now: now),
+                    child: _AttendanceList(shift: shift, now: now, onReport: (a) => _report(a)),
                   ),
                   if (!shift.cancelled) ...[
                     const SizedBox(height: 24),
@@ -411,10 +431,11 @@ class _ApplicantCard extends StatelessWidget {
 
 /// 출퇴근 현황: everyone holding a place and where they are.
 class _AttendanceList extends StatelessWidget {
-  const _AttendanceList({required this.shift, required this.now});
+  const _AttendanceList({required this.shift, required this.now, required this.onReport});
 
   final EmployerShift shift;
   final DateTime now;
+  final void Function(ShiftApplicant applicant) onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +464,7 @@ class _AttendanceList extends StatelessWidget {
                           ? const Border(bottom: BorderSide(color: HiColors.surface, width: HiBorders.width))
                           : null,
                     ),
-                    child: _AttendanceRow(applicant: a, shift: shift, now: now),
+                    child: _AttendanceRow(applicant: a, shift: shift, now: now, onReport: () => onReport(a)),
                   ),
               ],
             ),
@@ -452,11 +473,12 @@ class _AttendanceList extends StatelessWidget {
 }
 
 class _AttendanceRow extends StatelessWidget {
-  const _AttendanceRow({required this.applicant, required this.shift, required this.now});
+  const _AttendanceRow({required this.applicant, required this.shift, required this.now, required this.onReport});
 
   final ShiftApplicant applicant;
   final EmployerShift shift;
   final DateTime now;
+  final VoidCallback onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -504,6 +526,21 @@ class _AttendanceRow extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         chip,
+        // «신고»: a 44 px target for a small flag.
+        HiPressable(
+          onTap: onReport,
+          semanticsLabel: '${Biz.reportText('action')}: ${a.worker.fullName}',
+          builder: (context, pressed) => Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: pressed ? HiColors.surface : null,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const HiIcon(HiIcons.flag, size: 18, strokeWidth: 2, color: HiColors.inkMuted),
+          ),
+        ),
       ],
     );
   }
@@ -577,6 +614,130 @@ class _QrCard extends StatelessWidget {
             onPressed: failed ? onRetry : (data == null ? null : () => onShare(data)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// «근로자 신고»: what kind of trouble, and a few words. Pops (reason, text).
+class _ReportWorkerSheet extends StatefulWidget {
+  const _ReportWorkerSheet({required this.workerName});
+
+  final String workerName;
+
+  @override
+  State<_ReportWorkerSheet> createState() => _ReportWorkerSheetState();
+}
+
+class _ReportWorkerSheetState extends State<_ReportWorkerSheet> {
+  static const _reasons = ['no_show', 'behaviour', 'other'];
+
+  final _text = TextEditingController();
+  String? _reason;
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final ready = _reason != null && _text.text.trim().isNotEmpty;
+    return Padding(
+      padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: media.size.height * 0.88),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(20, 24, 20, HiInsets.bottom(context, 24)),
+          decoration: const BoxDecoration(
+            color: HiColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(top: HiBorders.ink),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Semantics(
+                  header: true,
+                  child: HiText(Biz.reportText('title'), style: hiStyle(22, FontWeight.w800, color: HiColors.ink)),
+                ),
+                const SizedBox(height: 4),
+                HiText(widget.workerName, style: hiStyle(16, FontWeight.w700, color: HiColors.inkMuted)),
+                const SizedBox(height: 8),
+                HiText(Biz.reportText('hint'), style: hiStyle(15, FontWeight.w500, color: HiColors.inkMuted)),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final reason in _reasons)
+                      HiPressable(
+                        onTap: () => setState(() => _reason = reason),
+                        selected: _reason == reason,
+                        builder: (context, pressed) => Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: _reason == reason ? HiColors.ink : (pressed ? HiColors.surface : HiColors.white),
+                            borderRadius: BorderRadius.circular(HiRadii.pill),
+                            border: const Border.fromBorderSide(HiBorders.ink),
+                          ),
+                          child: HiText(
+                            Biz.reportText(reason),
+                            style: hiStyle(15, FontWeight.w800,
+                                color: _reason == reason ? HiColors.white : HiColors.ink),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: HiColors.white,
+                    borderRadius: BorderRadius.circular(HiRadii.field),
+                    border: const Border.fromBorderSide(HiBorders.ink),
+                  ),
+                  child: TextField(
+                    controller: _text,
+                    minLines: 3,
+                    maxLines: 6,
+                    maxLength: 1500,
+                    style: hiStyle(16, FontWeight.w500, color: HiColors.ink),
+                    cursorColor: HiColors.ink,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration.collapsed(
+                      hintText: Biz.reportText('placeholder'),
+                      hintStyle: hiStyle(16, FontWeight.w500, color: HiColors.inkMuted),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                HiButton(
+                  label: Biz.reportText('send'),
+                  height: 52,
+                  fontSize: 17,
+                  onPressed: ready ? () => Navigator.of(context).pop((_reason!, _text.text.trim())) : null,
+                ),
+                const SizedBox(height: 8),
+                HiButton(
+                  label: Biz.close,
+                  style: HiButtonStyle.text,
+                  textColor: HiColors.ink,
+                  height: 48,
+                  fontSize: 16,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

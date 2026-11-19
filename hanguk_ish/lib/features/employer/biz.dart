@@ -62,6 +62,36 @@ abstract final class Biz {
   };
 
 
+  /// Reporting a worker (BA3), in the four languages.
+  static const _reportTexts = <String, Map<String, String>>{
+    'action': {'ko': '신고', 'uz': 'Shikoyat', 'ru': 'Жалоба', 'en': 'Report'},
+    'title': {'ko': '근로자 신고', 'uz': 'Ishchi ustidan shikoyat', 'ru': 'Жалоба на работника', 'en': 'Report a worker'},
+    'hint': {
+      'ko': 'Hanguk Ish 직원이 확인하고 연락드려요.',
+      'uz': 'Hanguk xodimlari ko\'rib chiqadi va siz bilan bog\'lanadi.',
+      'ru': 'Сотрудники Hanguk рассмотрят и свяжутся с вами.',
+      'en': 'Hanguk\'s staff will look into it and get in touch.',
+    },
+    'no_show': {'ko': '출근하지 않음', 'uz': 'Kelmadi', 'ru': 'Не пришёл', 'en': 'Did not come'},
+    'behaviour': {'ko': '태도 문제', 'uz': 'Xulq-atvor', 'ru': 'Поведение', 'en': 'Behaviour'},
+    'other': {'ko': '기타', 'uz': 'Boshqa', 'ru': 'Другое', 'en': 'Other'},
+    'placeholder': {
+      'ko': '무슨 일이 있었나요?',
+      'uz': 'Nima bo\'ldi?',
+      'ru': 'Что произошло?',
+      'en': 'What happened?',
+    },
+    'send': {'ko': '보내기', 'uz': 'Yuborish', 'ru': 'Отправить', 'en': 'Send'},
+    'sent': {
+      'ko': '신고를 보냈어요.',
+      'uz': 'Shikoyat yuborildi.',
+      'ru': 'Жалоба отправлена.',
+      'en': 'Report sent.',
+    },
+  };
+
+  static String reportText(String key) => _reportTexts[key]![_lang] ?? _reportTexts[key]!['en']!;
+
   static String profileText(String key) => _profileTexts[key]![_lang] ?? _profileTexts[key]!['en']!;
 
   /// The first-launch language screen: the title names the choice in every

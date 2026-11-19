@@ -8,6 +8,7 @@ name: Hanguk Ish — test APK (demo, anonim kirish)
 on:
   push:
     branches:
+      - main
       - 'claude/funny-einstein-epf1oz'
     paths:
       - 'hanguk_ish/**'
