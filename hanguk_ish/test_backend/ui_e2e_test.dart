@@ -1112,12 +1112,12 @@ void main() {
     await _until(tester, _text(Biz.editTitle));
     await _settle(tester);
     // The day chips are locked: a tap says why.
-    await _tap(tester, find.textContaining(RegExp('^오늘'), findRichText: true));
+    await _tap(tester, find.bySemanticsLabel(RegExp('^오늘 ')));
     await _until(tester, _text(Biz.timeLocked));
     // (Let the message go: it covers the button at the bottom.)
     await _snackBarGone(tester);
     // The content is not locked.
-    await _tap(tester, _text('수정'));
+    await _tap(tester, find.bySemanticsLabel('변경 ›'));
     await _until(tester, find.byType(BottomSheet));
     await tester.enterText(
         find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)).at(0), 'E2E 실시간 2');
@@ -1159,6 +1159,9 @@ void main() {
     await _until(tester, _text('인증번호 입력'));
     await _settle(tester);
     await tester.enterText(find.byType(TextField).last, '123456');
+    // The business profile comes first (2026-11-18); «나중에» leaves it for later.
+    await _until(tester, _text(Biz.profileText('later')));
+    await _tap(tester, _text(Biz.profileText('later')));
     await _until(tester, _text('오늘의 근무'));
     // A new business: no shifts yet (the day loaded, not still loading).
     await _until(tester, _text(Biz.noShiftsToday));
