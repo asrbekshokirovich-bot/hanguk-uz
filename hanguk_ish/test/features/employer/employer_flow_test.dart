@@ -245,8 +245,7 @@ void main() {
     expect(find.text('168,000'), findsOneWidget);
 
     // Another template fills the form with its own times and wage.
-    await tester.tap(find.bySemanticsLabel('변경 ›'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('변경 ›'));
     await tester.tap(find.text('마감 정리 보조'));
     await tester.pumpAndSettle();
     expect(find.text('18:00'), findsOneWidget);
@@ -269,8 +268,7 @@ void main() {
 
     await tapVisible(tester, find.bySemanticsLabel('인원 줄이기'));
     expect(find.text('3명'), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('목 11.12'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('목 11.12'));
     await tester.tap(find.text('근무 올리기').last);
     await tester.pumpAndSettle();
     expect(find.text('근무를 올렸어요'), findsOneWidget);
