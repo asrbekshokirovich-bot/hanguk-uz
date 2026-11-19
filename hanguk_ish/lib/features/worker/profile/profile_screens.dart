@@ -240,7 +240,8 @@ class _ProfileNameScreenState extends ConsumerState<ProfileNameScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// A02 · 2/3 — languages, TOPIK, city or province
+// A02 · 2/3 — languages, city or province (the Korean level is asked later,
+// on A11: not at sign-up)
 // ---------------------------------------------------------------------------
 
 /// Names of the spoken-language codes in the current UI language.
@@ -319,29 +320,6 @@ class ProfileLanguagesScreen extends ConsumerWidget {
                       selected: draft.languages.contains(code),
                       onTap: () => controller.toggleLanguage(code),
                     ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 22, 22, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _SectionTitle(l10n.topikTitle),
-              const SizedBox(height: 10),
-              HiNumberChoice(
-                values: const [0, 1, 2, 3, 4, 5, 6],
-                selected: draft.topik,
-                onSelect: controller.setTopik,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  HiText(l10n.topikMin, style: hiStyle(13, FontWeight.w600, color: HiColors.textMuted)),
-                  HiText(l10n.topikMax, style: hiStyle(13, FontWeight.w600, color: HiColors.textMuted)),
                 ],
               ),
             ],

@@ -758,7 +758,6 @@ void main() {
     await _settle(tester);
     await _tap(tester, _text("O'zbekcha"));
     await _tap(tester, _text('Koreyscha'));
-    await _tap(tester, _text('3'));
     // The city or province (the university question is gone).
     await _tap(tester, find.byType(HiSelectField).at(0));
     await _until(tester, find.byType(TextField));
@@ -786,7 +785,7 @@ void main() {
     expect(saved!.firstName, 'Dilnoza');
     expect(saved.lastName, 'Testova');
     expect(saved.languages, containsAll(['uz', 'ko']));
-    expect(saved.topik, 3);
+    expect(saved.topik, 0, reason: 'not asked at sign-up (A11 sets it)');
     expect(saved.district, 'mapo');
     expect(saved.availability, WorkerProfileDraft.bit(5, 0), reason: 'Saturday morning only');
     await _close(tester);

@@ -10,6 +10,7 @@ import 'package:hanguk_ish/data/models/my_shift.dart';
 import 'package:hanguk_ish/features/worker/chat/chat_screen.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_screen.dart';
 import 'package:hanguk_ish/features/worker/notifications/unread.dart';
+import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 import 'package:hanguk_ish/features/worker/work/work_screens.dart';
 import 'package:hanguk_ish/design/widgets/forms.dart';
@@ -111,6 +112,16 @@ void main() {
     await tester.scrollUntilVisible(find.text("O'zbekcha · ona tili"), 300);
     expect(find.text("O'zbekcha · ona tili"), findsOneWidget);
     expect(find.text('Koreyscha · TOPIK 4'), findsOneWidget);
+
+    // The Korean level (not asked at sign-up) is changed here.
+    await tester.scrollUntilVisible(find.text('Koreys tili darajasi (TOPIK)'), 300);
+    expect(find.text('TOPIK 4'), findsOneWidget);
+    await tester.tap(find.text('Koreys tili darajasi (TOPIK)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TOPIK 5'));
+    await tester.pumpAndSettle();
+    expect(find.text('Koreyscha · TOPIK 5'), findsOneWidget);
+    expect(container.read(workerProfileDraftProvider).topik, 5);
 
     // Report.
     await tester.scrollUntilVisible(find.text('Shikoyat qilish'), 300);

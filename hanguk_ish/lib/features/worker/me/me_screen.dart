@@ -290,6 +290,15 @@ class MeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
+            // The Korean level: not asked at sign-up, set here when the worker
+            // wants (Hanguk's staff look at it when they offer a job).
+            _SettingRow(
+              icon: HiIcons.languages,
+              label: l10n.topikTitle,
+              value: draft.topik == 0 ? l10n.topikMin : 'TOPIK ${draft.topik}',
+              onTap: () => _pickTopik(context, ref),
+            ),
+            const SizedBox(height: 12),
             HiPressable(
               onTap: () => _pickLanguage(context, ref),
               builder: (context, pressed) => Container(
@@ -364,6 +373,31 @@ class MeScreen extends ConsumerWidget {
     if (value != null) ref.read(appLanguageProvider.notifier).select(AppLanguage.fromCode(value));
   }
 
+  Future<void> _pickTopik(BuildContext context, WidgetRef ref) async {
+    final l10n = WorkerL10n.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final current = ref.read(workerProfileDraftProvider).topik;
+    final value = await showHiPicker(
+      context,
+      title: l10n.topikTitle,
+      searchHint: l10n.search,
+      searchable: false,
+      selected: '$current',
+      options: [
+        HiPickerOption('0', l10n.topikMin),
+        for (var level = 1; level <= 6; level++)
+          HiPickerOption('$level', level == 6 ? 'TOPIK 6 · ${l10n.topikMax}' : 'TOPIK $level'),
+      ],
+    );
+    if (value == null) return;
+    ref.read(workerProfileDraftProvider.notifier).setTopik(int.parse(value));
+    try {
+      await ref.read(workerProfileRepositoryProvider).save(ref.read(workerProfileDraftProvider));
+    } on Object catch (error) {
+      messenger?.showSnackBar(SnackBar(content: Text(error is OfflineException ? l10n.errOffline : l10n.errorGeneric)));
+    }
+  }
+
   Future<void> _report(BuildContext context, WidgetRef ref) async {
     final l10n = WorkerL10n.of(context);
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -396,6 +430,48 @@ class MeScreen extends ConsumerWidget {
         barrierColor: const Color.fromRGBO(6, 13, 43, 0.74),
         builder: (context) => const _HelpSheet(),
       );
+}
+
+/// A white 56 px row: icon, label, the value, a chevron.
+class _SettingRow extends StatelessWidget {
+  const _SettingRow({required this.icon, required this.label, required this.value, required this.onTap});
+
+  final HiIconData icon;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      semanticsLabel: '$label: $value',
+      builder: (context, pressed) => Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: pressed ? HiColors.surface : HiColors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.fromBorderSide(HiBorders.ink),
+          boxShadow: HiShadows.hard,
+        ),
+        child: Row(
+          children: [
+            HiIcon(icon, size: 20, strokeWidth: 2, color: HiColors.ink),
+            const SizedBox(width: 12),
+            Expanded(child: HiText(label, style: hiStyle(16, FontWeight.w800, color: HiColors.ink))),
+            const SizedBox(width: 12),
+            Flexible(
+              child: HiText(value,
+                  textAlign: TextAlign.end, style: hiStyle(15, FontWeight.w600, color: HiColors.inkMuted)),
+            ),
+            const SizedBox(width: 12),
+            const HiIcon(HiIcons.chevronRight, size: 18, strokeWidth: 2.2, color: HiColors.inkMuted),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StatCard extends StatelessWidget {
