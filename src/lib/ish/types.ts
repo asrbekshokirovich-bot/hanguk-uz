@@ -308,3 +308,22 @@ export interface IshMonthlyInterest {
   phone: string | null;
   created_at: string;
 }
+
+/** A move of a worker's coins (`coin_ledger`): staff, apply, refund. */
+export interface IshCoinMove {
+  delta: number;
+  balance: number;
+  reason: 'staff' | 'apply' | 'refund';
+  note: string;
+  created_at: string;
+}
+
+/** A worker as «Coinlar» lists them (`staff_coin_workers`): the balance and the last 5 moves. */
+export interface IshCoinWorker {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  balance: number;
+  history: IshCoinMove[];
+}

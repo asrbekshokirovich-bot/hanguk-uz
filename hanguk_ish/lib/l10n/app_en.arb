@@ -585,5 +585,18 @@
   "payAskAction": "Confirm pay",
   "payReceivedLine": "You received {amount}",
   "payChange": "Change",
-  "paymentLess": "Paid less"
+  "paymentLess": "Paid less",
+  "coinsTitle": "Coins",
+  "coinsBalance": "{n} coin",
+  "coinsRule": "Each application costs {cost} coin. If it is turned down, the business cancels the shift, or you cancel more than 24 hours ahead, the coin comes back. Jobs Hanguk offers you are free.",
+  "coinsHowToGet": "Only Hanguk's staff add coins. Write to them to get some — they find you by your phone number.",
+  "coinsHistory": "History",
+  "coinsNoHistory": "Nothing yet",
+  "coinStaffAdded": "Added by Hanguk's staff",
+  "coinStaffTaken": "Taken back by Hanguk's staff",
+  "coinApplied": "Applied: {title}",
+  "coinRefunded": "Refunded: {title}",
+  "coinCostLine": "Applying: {cost} coin · You have: {balance} coin",
+  "coinOfferFree": "A job Hanguk offered you — applying is free",
+  "errNoCoins": "Not enough coins. Write to Hanguk's staff to get some."
 }

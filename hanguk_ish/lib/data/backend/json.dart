@@ -450,3 +450,24 @@ MonthlyJob monthlyJobFromJson(Json json, {bool applied = false}) {
     applied: applied,
   );
 }
+
+CoinWallet coinWalletFromJson(Json json) => CoinWallet(
+      balance: _int(json['balance']),
+      cost: _int(json['cost']),
+      history: [
+        for (final row in (json['history'] as List? ?? const []))
+          if (row is Json)
+            CoinMove(
+              delta: _int(row['delta']),
+              balance: _int(row['balance']),
+              reason: switch (row['reason']) {
+                'apply' => CoinReason.apply,
+                'refund' => CoinReason.refund,
+                _ => CoinReason.staff,
+              },
+              createdAt: _dateOr(row['created_at'], DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),
+              note: _str(row['note']),
+              shiftTitle: row['shift_title'] is String ? row['shift_title'] as String : null,
+            ),
+      ],
+    );

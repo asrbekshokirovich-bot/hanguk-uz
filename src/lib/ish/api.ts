@@ -7,6 +7,7 @@ import type {
   IshBusiness,
   IshBusinessInput,
   IshCandidate,
+  IshCoinWorker,
   IshJobInput,
   IshJobPage,
   IshMessage,
@@ -121,6 +122,14 @@ export function ishApi(client: SupabaseClient) {
     /** Suspend an app business (its shifts leave the feed, nobody applies) or let it back; the new status. */
     setAppBusinessBlocked: (id: string, blocked: boolean) =>
       rpc<string>('staff_set_app_business_blocked', { p_business: id, p_blocked: blocked }),
+
+    /** Coins: workers by name or phone (all, newest first, when empty), with their balance. */
+    coinWorkers: async (query: string) =>
+      (await rpc<IshCoinWorker[] | null>('staff_coin_workers', { p_query: query.trim(), p_limit: 50 })) ?? [],
+
+    /** Adds coins to a worker (negative: takes some back); the new balance. NO_COINS below zero. */
+    addCoins: (workerId: string, delta: number, note: string) =>
+      rpc<number>('staff_add_coins', { p_worker: workerId, p_delta: delta, p_note: note.trim() }),
 
     /** P52: the workers' complaints from the app, open ones first. */
     reports: async () => (await rpc<IshReport[] | null>('staff_reports', { p_limit: 200 })) ?? [],

@@ -21,6 +21,7 @@ import '../../../design/widgets/forms.dart' show HiScheduleGrid;
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../coins/coins.dart';
 import '../profile/profile_screens.dart';
 import '../profile/worker_profile_draft.dart';
 import '../profile/worker_profile_repository.dart';
@@ -256,6 +257,8 @@ class MeScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            CoinCard(lang: lang),
             const SizedBox(height: 22),
             const _ScheduleSection(),
             const SizedBox(height: 22),

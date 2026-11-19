@@ -9,6 +9,10 @@ abstract interface class WorkerAccountRepository {
   /// A11 → `worker_stats`.
   Future<WorkerStats> stats();
 
+  /// A11 «Coinlar» → `my_coins`: the balance, the price of an application,
+  /// the last moves.
+  Future<CoinWallet> coins();
+
   /// A12, newest first.
   Future<List<HiNotification>> notifications();
 

@@ -2987,5 +2987,85 @@
   "paymentLess": "Kam to'langan",
   "@paymentLess": {
     "description": "A09 / A07: kam to'langan belgi."
+  },
+  "coinsTitle": "Coinlar",
+  "@coinsTitle": {
+    "description": "A11: coin kartasi sarlavhasi."
+  },
+  "coinsBalance": "{n} coin",
+  "@coinsBalance": {
+    "description": "Coin soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coinsRule": "Har bir arizaga {cost} coin. Ariza rad etilsa, ish beruvchi smenani bekor qilsa yoki 24 soatdan oldin o'zingiz bekor qilsangiz, coin qaytadi. Hanguk taklif qilgan ishlar bepul.",
+  "@coinsRule": {
+    "description": "A11: coin qoidasi.",
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "coinsHowToGet": "Coin'ni faqat Hanguk xodimlari qo'shadi. Coin olish uchun ularga yozing — telefon raqamingiz bo'yicha topishadi.",
+  "@coinsHowToGet": {
+    "description": "A11: coin qanday olinadi."
+  },
+  "coinsHistory": "Tarix",
+  "@coinsHistory": {
+    "description": "A11: coin harakatlari sarlavhasi."
+  },
+  "coinsNoHistory": "Hali harakat yo'q",
+  "@coinsNoHistory": {
+    "description": "A11: coin tarixi bo'sh."
+  },
+  "coinStaffAdded": "Hanguk xodimi qo'shdi",
+  "@coinStaffAdded": {
+    "description": "Coin tarixi: xodim qo'shdi."
+  },
+  "coinStaffTaken": "Hanguk xodimi oldi",
+  "@coinStaffTaken": {
+    "description": "Coin tarixi: xodim oldi."
+  },
+  "coinApplied": "Ariza: {title}",
+  "@coinApplied": {
+    "description": "Coin tarixi: ariza.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "coinRefunded": "Qaytdi: {title}",
+  "@coinRefunded": {
+    "description": "Coin tarixi: qaytarildi.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "coinCostLine": "Ariza narxi: {cost} coin · Sizda: {balance} coin",
+  "@coinCostLine": {
+    "description": "A05: ariza narxi va balans.",
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      },
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "coinOfferFree": "Hanguk taklif qilgan ish — ariza bepul",
+  "@coinOfferFree": {
+    "description": "A05: taklif qilingan ish bepul."
+  },
+  "errNoCoins": "Coin yetarli emas. Coin olish uchun Hanguk xodimlariga yozing.",
+  "@errNoCoins": {
+    "description": "Xato: coin yetarli emas."
   }
 }

@@ -2755,7 +2755,8 @@
       "appBusinesses": "앱 사업장",
       "reports": "신고",
       "staff": "직원",
-      "monthly": "월급 일자리"
+      "monthly": "월급 일자리",
+      "coins": "코인"
     },
     "board": {
       "newJob": "새 일자리",
@@ -2932,7 +2933,8 @@
       "NOT_AUTHENTICATED": "다시 로그인하세요.",
       "OFFLINE": "인터넷 연결이 없어요.",
       "UNKNOWN": "문제가 생겼어요. 다시 시도해 주세요.",
-      "SELF": "자신의 역할을 바꾸거나 자신을 뺄 수 없어요. 다른 관리자가 해야 해요."
+      "SELF": "자신의 역할을 바꾸거나 자신을 뺄 수 없어요. 다른 관리자가 해야 해요.",
+      "NO_COINS": "근로자의 코인이 부족해요"
     },
     "appBusinesses": {
       "intro": "사장님 앱에서 열린 사업장입니다. 확인 없이 바로 열리므로 의심스러우면 정지하세요: 근무가 근무자에게 보이지 않고 지원할 수 없어요.",
@@ -3057,6 +3059,25 @@
       "companyShort": "회사",
       "descriptionShort": "설명",
       "interestedIn": "'{{title}}' 관심자"
+    },
+    "coins": {
+      "intro": "근로자가 근무에 지원할 때 1코인이 들어요. 코인은 직원만 충전해요(근로자가 Hanguk에 결제한 뒤). 거절·취소된 지원의 코인은 자동으로 돌아가요.",
+      "search": "이름 또는 전화번호",
+      "empty": "근로자가 없어요",
+      "worker": "근로자",
+      "phone": "전화",
+      "balance": "잔액",
+      "last": "최근 내역",
+      "amount": "수량",
+      "note": "메모 (예: 현금 30,000원)",
+      "add": "충전",
+      "take": "차감",
+      "done": "잔액: {{balance}}코인",
+      "reasons": {
+        "staff": "직원",
+        "apply": "지원",
+        "refund": "환불"
+      }
     }
   },
   "calendarPage": {

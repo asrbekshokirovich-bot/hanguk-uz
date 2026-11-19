@@ -183,6 +183,8 @@ void main() {
     // The real fonts: with the test font's wide boxes the cards overflow.
     await loadHiFonts();
     final admin = _client(_serviceKey);
+    // Coins (2026-11-20): these flows apply without them (53_coins_test covers coins).
+    await admin.from('coin_settings').update({'apply_cost': 0}).eq('id', true);
     worker = await _signIn('+821000000021');
     owner = await _signIn('+821000000031');
     final business = await admin.rpc('register_business', params: {

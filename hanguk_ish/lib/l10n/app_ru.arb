@@ -585,5 +585,18 @@
   "payAskAction": "Подтвердить оплату",
   "payReceivedLine": "Вы получили {amount}",
   "payChange": "Изменить",
-  "paymentLess": "Заплатили меньше"
+  "paymentLess": "Заплатили меньше",
+  "coinsTitle": "Монеты",
+  "coinsBalance": "{n} coin",
+  "coinsRule": "Каждый отклик — {cost} coin. Если отклик отклонят, работодатель отменит смену или вы отмените её больше чем за 24 часа, coin вернётся. Работа, предложенная Hanguk, — бесплатно.",
+  "coinsHowToGet": "Coin добавляют только сотрудники Hanguk. Напишите им — они найдут вас по номеру телефона.",
+  "coinsHistory": "История",
+  "coinsNoHistory": "Пока пусто",
+  "coinStaffAdded": "Добавил сотрудник Hanguk",
+  "coinStaffTaken": "Списал сотрудник Hanguk",
+  "coinApplied": "Отклик: {title}",
+  "coinRefunded": "Возврат: {title}",
+  "coinCostLine": "Отклик: {cost} coin · У вас: {balance} coin",
+  "coinOfferFree": "Работа от Hanguk — отклик бесплатный",
+  "errNoCoins": "Недостаточно coin. Напишите сотрудникам Hanguk, чтобы пополнить."
 }

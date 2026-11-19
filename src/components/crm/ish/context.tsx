@@ -35,6 +35,7 @@ export const ishKeys = {
   businesses: ['ish', 'businesses'] as const,
   appBusinesses: ['ish', 'appBusinesses'] as const,
   reports: ['ish', 'reports'] as const,
+  coins: (query: string) => ['ish', 'coins', query] as const,
   monthly: ['ish', 'monthly'] as const,
   monthlyInterest: ['ish', 'monthlyInterest'] as const,
   staffAdmin: ['ish', 'staffAdmin'] as const,

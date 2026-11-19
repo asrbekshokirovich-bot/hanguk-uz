@@ -20,6 +20,7 @@ import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../load_error.dart';
+import '../coins/coins.dart';
 import '../feed/feed_controller.dart';
 import '../settings/app_language.dart';
 import '../shift/shift_detail_screen.dart';
@@ -408,6 +409,7 @@ class _MyShiftCard extends ConsumerWidget {
     }
     container
       ..invalidate(myShiftsProvider)
+      ..invalidate(coinsProvider)
       ..invalidate(feedProvider)
       ..invalidate(shiftDetailProvider(app.shift.id));
   }
