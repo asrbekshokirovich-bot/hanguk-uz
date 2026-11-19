@@ -59,7 +59,10 @@ where n.nspname = 'ish' and c.relkind = 'r' and not c.relrowsecurity;
 select case when count(*) = 0 then 'ok       no table rights for signed-out callers (anon)'
             else 'MISSING  anon may use: ' || string_agg(distinct table_name, ', ') end
 from information_schema.role_table_grants
-where table_schema = 'ish' and grantee = 'anon';
+where table_schema = 'ish' and grantee = 'anon'
+  -- The one on purpose: hanguk.uz/ish lists the open monthly jobs to anyone
+  -- (…_ish_monthly_jobs_public.sql; its RLS shows only status = 'open').
+  and not (table_name = 'monthly_jobs' and privilege_type = 'SELECT');
 select case when count(*) = 0 then 'ok       every security definer function sets search_path'
             else 'MISSING  search_path in: ' || string_agg(p.proname, ', ') end
 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
