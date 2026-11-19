@@ -69,6 +69,9 @@ select pg_temp.ms('BA2 posting a shift (and telling the workers near it)',
 -- (The shift is looked up first: under the workers' RLS, finding it by its
 -- title reads all 40 000 — the apps always pass the id.)
 select set_config('perf.shift', (select id::text from ish.shifts where title = 'perf' limit 1), true);
+-- Applying costs a coin (2026-11-20): the measured worker has some.
+insert into ish.coin_wallets (worker_id, balance) values ('00000000-0000-0000-0001-000000000002', 10)
+  on conflict (worker_id) do update set balance = 10;
 select pg_temp.ms('A05 apply_to_shift',
   $$select ish.apply_to_shift(current_setting('perf.shift')::uuid)$$,
   '00000000-0000-0000-0001-000000000002', 100, 1);
