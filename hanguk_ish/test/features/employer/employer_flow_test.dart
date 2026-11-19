@@ -41,6 +41,14 @@ void main() {
     return repo;
   }
 
+  /// Taps something that may be below the fold of the long BA2 form.
+  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+    await tester.tap(finder);
+    await tester.pumpAndSettle();
+  }
+
   Future<void> tapText(WidgetTester tester, String text, {bool rich = false}) async {
     final finder = find.text(text, findRichText: rich);
     await tester.ensureVisible(finder);
@@ -230,8 +238,7 @@ void main() {
     expect(find.text('157,500'), findsOneWidget);
 
     // The average button sets the wage: above the average, the note and the badge change.
-    await tester.tap(find.bySemanticsLabel('평균 11,200'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('평균 11,200'));
     expect(find.text('매력적'), findsOneWidget);
     expect(find.text('평균보다 높아요 — 지원자가 더 빨리 모여요'), findsOneWidget);
     expect(find.text('3명 × 5시간 × 11,200'), findsOneWidget);
@@ -260,8 +267,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('11,500'), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel('인원 줄이기'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('인원 줄이기'));
     expect(find.text('3명'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('목 11.12'));
     await tester.pumpAndSettle();
@@ -280,20 +286,19 @@ void main() {
   testWidgets('BA2: the quick hours, and the slider moves the wage', (tester) async {
     usePhone(tester);
     await open(tester, location: EmployerRoutes.create);
-    await tester.tap(find.bySemanticsLabel('오픈 8–13'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('오픈 8–13'));
     expect(find.text('08:00'), findsOneWidget);
     expect(find.text('13:00'), findsOneWidget);
     expect(find.text('3명 × 5시간 × 10,500'), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('마감 18–23'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('마감 18–23'));
     expect(find.text('18:00'), findsOneWidget);
     expect(find.text('23:00'), findsOneWidget);
 
     // «+» and «−» move the wage by 100 won.
-    await tester.tap(find.bySemanticsLabel('시급 +'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('시급 +'));
     expect(find.text('10,600'), findsOneWidget);
+    await tester.ensureVisible(find.bySemanticsLabel('시급 −'));
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('시급 −'));
     await tester.tap(find.bySemanticsLabel('시급 −'));
     await tester.pumpAndSettle();
@@ -350,16 +355,17 @@ void main() {
     expect(find.text('근무 수정'), findsOneWidget);
     expect(find.text('4명'), findsOneWidget);
     expect(find.text('11,000'), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('인원 줄이기'));
-    await tester.pumpAndSettle();
+    await tapVisible(tester, find.bySemanticsLabel('인원 줄이기'));
     expect(find.text('3명'), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('인원 줄이기'));
+    await tapVisible(tester, find.bySemanticsLabel('인원 줄이기'));
     await tester.pumpAndSettle();
     expect(find.text('3명'), findsOneWidget);
     expect(find.text('이미 3명이 확정돼서 더 줄일 수 없어요'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('시작 시간 18:00'));
     await tester.pumpAndSettle();
     expect(find.text('확정된 근무자가 있어 날짜와 시간은 바꿀 수 없어요'), findsWidgets);
+    await tester.ensureVisible(find.bySemanticsLabel('인원 늘리기'));
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('인원 늘리기'));
     await tester.tap(find.bySemanticsLabel('인원 늘리기'));
     // The message bar covers the button until it goes.
@@ -433,7 +439,7 @@ void main() {
     await tester.tap(find.text('다시 요청').first);
     await tester.pumpAndSettle();
     expect(find.text('근무 올리기'), findsWidgets);
-    await tester.tap(find.text('목 11.12', findRichText: true));
+    await tester.tap(find.bySemanticsLabel('목 11.12'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('근무 올리기').last);
     await tester.pumpAndSettle();

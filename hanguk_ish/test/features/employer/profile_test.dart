@@ -49,7 +49,8 @@ void main() {
     final repo = await open(tester);
     await tester.tap(find.text('사업장 정보 수정'));
     await tester.pumpAndSettle();
-    expect(find.text('달빛카페 신촌점'), findsOneWidget, reason: 'the form starts with what is there');
+    expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, '달빛카페 신촌점',
+        reason: 'the form starts with what is there');
     expect(find.text('취소'), findsOneWidget, reason: 'cancel, not «later»');
     await tester.enterText(find.byType(TextField).first, '달빛카페 홍대점');
     await tester.tap(find.widgetWithText(HiButton, '저장하기'));

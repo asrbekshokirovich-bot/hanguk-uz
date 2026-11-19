@@ -39,7 +39,7 @@ void main() {
     usePhone(tester);
     await open(tester, EmployerRoutes.create);
     // The prototype shows the day after tomorrow chosen.
-    await tester.tap(find.text('목 11.12', findRichText: true));
+    await tester.tap(find.bySemanticsLabel('목 11.12'));
     await tester.pumpAndSettle();
     await expectScreen(tester, 'BA2-App-Create');
   });

@@ -473,9 +473,13 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
     return Stack(
       children: [
         Positioned.fill(
-          child: ListView(
+          // Not a lazy list: the whole form is in the tree, so what is below
+          // the fold is there for screen readers and tests too.
+          child: SingleChildScrollView(
             controller: _scroll,
             padding: EdgeInsets.only(bottom: barHeight + 16 + keyboard),
+            child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(18, top, 18, 0),
@@ -611,6 +615,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                   market: market,
                   onChanged: () => setState(() {}),
                   onSet: _setWage,
+                  onStep: (delta) => _setWage(_wageValue + delta),
                 ),
               ),
               const SizedBox(height: 12),
@@ -638,6 +643,7 @@ class _Ba2CreateScreenState extends ConsumerState<Ba2CreateScreen> {
                 child: _AutoConfirm(value: _auto, onChanged: (v) => setState(() => _auto = v)),
               ),
             ],
+            ),
           ),
         ),
         Positioned(
@@ -718,6 +724,7 @@ class _TemplateCard extends StatelessWidget {
     String dash(String text) => text.trim().isEmpty ? '–' : text;
     return Semantics(
       container: true,
+      explicitChildNodes: true,
       label: heading,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
@@ -755,6 +762,7 @@ class _AddressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
+      explicitChildNodes: true,
       label: Biz.address,
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 10, 6, 10),
@@ -956,6 +964,7 @@ class _WagePanel extends StatelessWidget {
     required this.market,
     required this.onChanged,
     required this.onSet,
+    required this.onStep,
   });
 
   final TextEditingController controller;
@@ -967,6 +976,9 @@ class _WagePanel extends StatelessWidget {
   final int? market;
   final VoidCallback onChanged;
   final ValueChanged<int> onSet;
+
+  /// ±100 won from the wage as it is now, so two quick taps count twice.
+  final ValueChanged<int> onStep;
 
   static const step = 100;
 
@@ -1062,7 +1074,7 @@ class _WagePanel extends StatelessWidget {
           Row(
             children: [
               _SquareButton(
-                  icon: HiIcons.minus, label: '${Biz.wage} −', lime: false, onTap: () => onSet(wage - step)),
+                  icon: HiIcons.minus, label: '${Biz.wage} −', lime: false, onTap: () => onStep(-step)),
               Expanded(
                 child: Column(
                   children: [
@@ -1091,7 +1103,7 @@ class _WagePanel extends StatelessWidget {
                   ],
                 ),
               ),
-              _SquareButton(icon: HiIcons.plus, label: '${Biz.wage} +', lime: true, onTap: () => onSet(wage + step)),
+              _SquareButton(icon: HiIcons.plus, label: '${Biz.wage} +', lime: true, onTap: () => onStep(step)),
             ],
           ),
           const SizedBox(height: 10),
