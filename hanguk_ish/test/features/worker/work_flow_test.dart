@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
+import 'package:hanguk_ish/features/worker/jobs/jobs_screens.dart';
 import 'package:hanguk_ish/core/links/directions.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
@@ -99,7 +100,7 @@ void main() {
     await tester.tap(find.text('Xushmuomala'));
     await tester.tap(find.text('Bahoni yuborish'));
     await tester.pumpAndSettle();
-    expect(find.byType(FeedScreen), findsOneWidget);
+    expect(find.byType(OffersScreen), findsOneWidget, reason: 'home is «Ishlar»');
     expect(find.text('Rahmat! Bahoingiz yuborildi.'), findsOneWidget);
     final rated = await repo.myShift(app.applicationId);
     expect(rated!.myStars, 4);

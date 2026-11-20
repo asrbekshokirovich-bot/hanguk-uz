@@ -175,6 +175,9 @@ void main() {
     container.invalidate(offersProvider);
     await tester.pumpAndSettle();
     expect(find.text('Telefon va manzilni ochish · 10 P'), findsNothing);
+    // The note on top of the list.
+    await tester.scrollUntilVisible(find.textContaining('4 ta taklif vaqti tugadi'), -300,
+        scrollable: find.byType(Scrollable).first);
     expect(find.text("4 ta taklif vaqti tugadi va boshqa odamlarga o'tdi. Yangisi chiqsa — push keladi."), findsOneWidget);
   });
 }
