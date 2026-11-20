@@ -130,7 +130,8 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '마포구 신촌로 22');
     await tester.tap(find.text('3 km'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('TOPIK 4'), 300);
+    // The edit page's list (the profile's stays underneath).
+    await tester.scrollUntilVisible(find.text('TOPIK 4'), 300, scrollable: find.byType(Scrollable).last);
     await tester.ensureVisible(find.text('TOPIK 4'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('TOPIK 4'));
