@@ -59,7 +59,10 @@ where n.nspname = 'ish' and c.relkind = 'r' and not c.relrowsecurity;
 select case when count(*) = 0 then 'ok       no table rights for signed-out callers (anon)'
             else 'MISSING  anon may use: ' || string_agg(distinct table_name, ', ') end
 from information_schema.role_table_grants
-where table_schema = 'ish' and grantee = 'anon';
+where table_schema = 'ish' and grantee = 'anon'
+  -- The one on purpose: hanguk.uz/ish lists the open monthly jobs to anyone
+  -- (…_ish_monthly_jobs_public.sql; its RLS shows only status = 'open').
+  and not (table_name = 'monthly_jobs' and privilege_type = 'SELECT');
 select case when count(*) = 0 then 'ok       every security definer function sets search_path'
             else 'MISSING  search_path in: ' || string_agg(p.proname, ', ') end
 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -70,11 +73,11 @@ where n.nspname = 'ish' and p.prosecdef
 -- translations (P55), the staff's Telegram messages (P57) and pushes (P56) retried.
 select exists (select 1 from pg_extension where extname = 'pg_cron') as has_cron \gset
 \if :has_cron
-select case when count(*) = 6 then 'ok       the six pg_cron jobs are scheduled and active'
-            else 'MISSING  pg_cron jobs: ' || coalesce(string_agg(jobname, ', '), 'none') || ' (want 6)' end
+select case when count(*) = 7 then 'ok       the seven pg_cron jobs are scheduled and active'
+            else 'MISSING  pg_cron jobs: ' || coalesce(string_agg(jobname, ', '), 'none') || ' (want 7)' end
 from cron.job
 where jobname in ('ish-close-finished-shifts', 'ish-shift-reminders', 'ish-nearby-digests', 'ish-translate',
-                  'ish-staff-alerts', 'ish-push') and active;
+                  'ish-staff-alerts', 'ish-push', 'ish-offers') and active;
 \else
 select 'MISSING  pg_cron is not installed: no reminders, no closing of finished shifts, no digest, no retries';
 \endif

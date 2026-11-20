@@ -514,10 +514,12 @@
                     "first_name": "Aziz",
                     "university": "Sogang",
                     "avatar_path": null,
-                    "reliability": 80
+                    "reliability": 80,
+                    "coins": 0
                 },
                 "created_at": "2026-11-11T03:28:06.869077+00:00",
-                "responded_at": null
+                "responded_at": null,
+                "expires_at": "2026-11-11T03:28:06.869077+00:00"
             },
             {
                 "id": "cd785f1b-f0b2-46eb-8202-73c8a85d0c9d",
@@ -542,10 +544,12 @@
                     "first_name": "Malika",
                     "university": null,
                     "avatar_path": null,
-                    "reliability": 100
+                    "reliability": 100,
+                    "coins": 0
                 },
                 "created_at": "2026-11-11T03:28:06.869077+00:00",
-                "responded_at": "2026-11-11T03:28:06.869077+00:00"
+                "responded_at": "2026-11-11T03:28:06.869077+00:00",
+                "expires_at": "2026-11-11T03:28:06.869077+00:00"
             }
         ],
         "status": "open",
@@ -592,7 +596,11 @@
         "auto_confirm": false,
         "translations": {
         },
-        "my_application_id": null
+        "my_application_id": null,
+        "total_pay": null,
+        "job_pay": 52000,
+        "unlock_price": 10,
+        "checked_at": null
     },
     "minimum_wage": 10320,
     "my_shifts_a1": [
@@ -1780,7 +1788,8 @@
             "distance_km": null,
             "reliability": 100,
             "offer_status": "declined",
-            "application_status": null
+            "application_status": null,
+            "coins": 0
         },
         {
             "id": "00000000-0000-0000-0000-0000000000a3",
@@ -1805,7 +1814,8 @@
             "distance_km": null,
             "reliability": 100,
             "offer_status": null,
-            "application_status": null
+            "application_status": null,
+            "coins": 0
         },
         {
             "id": "00000000-0000-0000-0000-0000000000a1",
@@ -1832,7 +1842,8 @@
             "distance_km": null,
             "reliability": 80,
             "offer_status": "sent",
-            "application_status": null
+            "application_status": null,
+            "coins": 0
         }
     ],
     "my_profile_worker": {

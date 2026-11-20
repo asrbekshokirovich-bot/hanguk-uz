@@ -102,3 +102,44 @@ describe('IshJobDetail — the worker\'s messages', () => {
     expect(api.markRead).not.toHaveBeenCalled();
   });
 });
+
+describe('IshJobDetail — offers with puyl', () => {
+  const soon = (min: number) => new Date(Date.now() + min * 60_000).toISOString();
+  const offer = (id: string, min: number) => ({
+    id,
+    status: 'sent' as const,
+    note: '',
+    created_at: soon(-1),
+    expires_at: soon(min),
+    responded_at: null,
+    worker: { ...worker, id: `w-${id}`, coins: 3 },
+  });
+  const future = {
+    ...job,
+    starts_at: soon(24 * 60),
+    ends_at: soon(28 * 60),
+    job_pay: 60000,
+    unlock_price: 10,
+    checked_at: null,
+    applications: [],
+  };
+
+  it('a waiting offer counts down; four waiting fill the job; a short balance is red', async () => {
+    const full = { ...future, offers: [offer('o1', 12), offer('o2', 20), offer('o3', 25), offer('o4', 29)] };
+    renderJob({ job: vi.fn(async () => full), candidates: vi.fn(async () => []), unread: vi.fn(async () => ({})) });
+    expect(await screen.findByTestId('ish-offer-left-o1')).toHaveTextContent(/1[12]:\d\d qoldi/);
+    expect(screen.getByTestId('ish-offer-room')).toHaveTextContent('4 kishida');
+    expect(screen.getAllByText('3 P')[0]).toHaveClass('text-destructive');
+    expect(screen.getByTestId('ish-puyl')).toHaveTextContent('10 P');
+  });
+
+  it('room for the rest; «Hozir gaplashdim» saves the pay and the call', async () => {
+    const some = { ...future, offers: [offer('o1', 12)] };
+    const jobDetails = vi.fn(async () => {});
+    renderJob({ job: vi.fn(async () => some), candidates: vi.fn(async () => []), unread: vi.fn(async () => ({})), jobDetails });
+    expect(await screen.findByTestId('ish-offer-room')).toHaveTextContent('yana 3 kishiga');
+    fireEvent.change(screen.getByLabelText("Jami to'lov (₩), bo'sh — soat × stavka"), { target: { value: '90000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Hozir gaplashdim' }));
+    await waitFor(() => expect(jobDetails).toHaveBeenCalledWith(job.id, 90000, true));
+  });
+});

@@ -117,6 +117,9 @@ class WorkerProfileDraftController extends Notifier<WorkerProfileDraft> {
       : state.copyWith(visa: visa);
 
   void replace(WorkerProfileDraft draft) => state = draft;
+
+  /// A whole week at once (the «Qachon ishlay olaman» presets).
+  void setAvailability(int mask) => state = state.copyWith(availability: mask);
 }
 
 /// The image of a [WorkerProfileDraft.photoPath]: the saved photo from the

@@ -23,7 +23,7 @@ LANGS = ["uz", "ru", "en", "ko"]
 KEYS = [
     # A12 (worker app): the titles; the line under each is the business.
     "notifReminderTitle", "notifConfirmedTitle", "notifRejectedTitle", "notifTimeChangedTitle",
-    "notifCancelledTitle", "notifPaidTitle", "notifMessageTitle", "notifNewShiftTitle", "notifOfferTitle",
+    "notifCancelledTitle", "notifPaidTitle", "notifMessageTitle", "notifNewShiftTitle", "notifOfferTitle", "notifOfferEndingTitle",
     "notifNearbyTitle", "notifFinishedTitle",
     # 알림 (사장님 app): title and line.
     "bizNotifNewApplicant", "bizNotifNewApplicantText", "bizNotifAutoConfirmed", "bizNotifAutoConfirmedText",

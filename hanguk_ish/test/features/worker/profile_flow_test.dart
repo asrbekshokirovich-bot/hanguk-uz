@@ -80,7 +80,7 @@ void main() {
     expect(action(tester, 'Davom etish').onPressed, isNull, reason: 'a language and a city or province are required');
     await tester.tap(find.text("O'zbekcha"));
     await tester.tap(find.text('Koreyscha'));
-    await tester.tap(find.text('4'));
+    expect(find.text('Koreys tili darajasi (TOPIK)'), findsNothing, reason: 'not asked at sign-up');
     await tester.pumpAndSettle();
     await tester.tap(find.byType(HiSelectField).at(0));
     await tester.pumpAndSettle();
@@ -112,7 +112,7 @@ void main() {
     expect(saved!.firstName, 'Aziz');
     expect(saved.lastName, 'Karimov');
     expect(saved.languages, {'uz', 'ko'});
-    expect(saved.topik, 4);
+    expect(saved.topik, 0, reason: 'set later on A11, not at sign-up');
     expect(saved.district, 'mapo');
     expect(saved.isAvailable(5, 0), isTrue);
     expect(saved.availability, WorkerProfileDraft.bit(5, 0));

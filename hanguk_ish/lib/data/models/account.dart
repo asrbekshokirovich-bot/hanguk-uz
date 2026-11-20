@@ -165,3 +165,43 @@ class ChatMessage {
 
 /// What a report is about (A11 «Shikoyat qilish»; database `reports`).
 enum ReportSubject { employer, payment, safety, other }
+
+/// Why coins moved (database `coin_ledger.reason`).
+enum CoinReason { staff, unlock, topup, bonus }
+
+/// One move of the worker's coins (A11 «Tarix»).
+@immutable
+class CoinMove {
+  const CoinMove({
+    required this.delta,
+    required this.balance,
+    required this.reason,
+    required this.createdAt,
+    this.note = '',
+    this.shiftTitle,
+  });
+
+  /// + in, − out.
+  final int delta;
+
+  /// The balance after this move.
+  final int balance;
+  final CoinReason reason;
+  final DateTime createdAt;
+
+  /// The staff's note (staff moves).
+  final String note;
+
+  /// The job that was opened.
+  final String? shiftTitle;
+}
+
+/// The worker's puyl (`my_coins`): the balance and the last moves. Spent to
+/// open a job's phone and address; the app holds no money, only this count.
+@immutable
+class CoinWallet {
+  const CoinWallet({required this.balance, this.history = const []});
+
+  final int balance;
+  final List<CoinMove> history;
+}

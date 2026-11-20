@@ -8,6 +8,7 @@ library;
 import '../models/account.dart';
 import '../models/business.dart';
 import '../models/employer.dart';
+import '../models/job_offer.dart';
 import '../models/monthly_job.dart';
 import '../models/my_shift.dart';
 import '../models/shift.dart';
@@ -448,5 +449,93 @@ MonthlyJob monthlyJobFromJson(Json json, {bool applied = false}) {
     description: _str(json['description']),
     translations: translations,
     applied: applied,
+  );
+}
+
+CoinWallet coinWalletFromJson(Json json) => CoinWallet(
+      balance: _int(json['balance']),
+      history: [
+        for (final row in (json['history'] as List? ?? const []))
+          if (row is Json)
+            CoinMove(
+              delta: _int(row['delta']),
+              balance: _int(row['balance']),
+              reason: switch (row['reason']) {
+                'unlock' => CoinReason.unlock,
+                'topup' => CoinReason.topup,
+                'bonus' => CoinReason.bonus,
+                _ => CoinReason.staff,
+              },
+              createdAt: _dateOr(row['created_at'], DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),
+              note: _str(row['note']),
+              shiftTitle: row['shift_title'] is String ? row['shift_title'] as String : null,
+            ),
+      ],
+    );
+
+/// `shifts.translations` → the title per language.
+Map<String, String> _titles(Object? translations) => {
+      for (final e in _obj(translations).entries)
+        if (_strOrNull(_obj(e.value)['title']) case final t?) e.key: t,
+    };
+
+/// `my_offers` → [JobOffer].
+JobOffer jobOfferFromJson(Json json) {
+  final startsAt = _dateOr(json['starts_at'], DateTime.utc(1970));
+  final pay = _int(json['pay']);
+  return JobOffer(
+    offerId: _str(json['offer_id']),
+    shiftId: _str(json['shift_id']),
+    status: switch (json['status']) {
+      'applied' => JobOfferStatus.applied,
+      'expired' => JobOfferStatus.expired,
+      'closed' || 'declined' => JobOfferStatus.closed,
+      _ => JobOfferStatus.sent,
+    },
+    expiresAt: _date(json['expires_at']),
+    title: _str(json['title']),
+    titles: _titles(json['translations']),
+    pay: pay,
+    hourlyWage: _int(json['hourly_wage']),
+    startsAt: startsAt,
+    endsAt: _dateOr(json['ends_at'], startsAt),
+    price: _intOrNull(json['price']) ?? unlockPrice(pay),
+    sentCount: _int(json['sent_count'], 1),
+    slots: _int(json['slots'], 1),
+    taken: _int(json['taken']),
+    checkedAt: _date(json['checked_at']),
+    note: _str(json['note']),
+    area: _str(json['area']),
+    maskedAddress: _str(json['address']),
+    maskedPhone: _str(json['phone'], '010-••••-••••'),
+    distanceKm: _double(json['distance_km']),
+  );
+}
+
+/// `my_jobs` / `unlock_offer` → [OpenedJob].
+OpenedJob openedJobFromJson(Json json) {
+  final startsAt = _dateOr(json['starts_at'], DateTime.utc(1970));
+  return OpenedJob(
+    applicationId: _str(json['application_id']),
+    shiftId: _str(json['shift_id']),
+    title: _str(json['title']),
+    titles: _titles(json['translations']),
+    pay: _int(json['pay']),
+    hourlyWage: _int(json['hourly_wage']),
+    startsAt: startsAt,
+    endsAt: _dateOr(json['ends_at'], startsAt),
+    phone: _str(json['phone']),
+    address: _str(json['address']),
+    lat: _double(json['lat']),
+    lng: _double(json['lng']),
+    business: _str(json['business']),
+    step: switch (_int(json['step'])) {
+      2 => JobStep.wentToWork,
+      1 => JobStep.called,
+      _ => JobStep.opened,
+    },
+    price: _int(json['price']),
+    stars: _intOrNull(json['stars']),
+    distanceKm: _double(json['distance_km']),
   );
 }

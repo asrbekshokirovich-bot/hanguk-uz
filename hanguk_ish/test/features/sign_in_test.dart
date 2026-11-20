@@ -148,7 +148,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '654321');
       await tester.pumpAndSettle();
       expect(auth.codes, ['111111', '654321']);
-      expect(find.text('Smenalar'), findsWidgets, reason: 'the feed');
+      expect(find.text('Ishlar'), findsWidgets, reason: 'the jobs tab');
       expect(container.read(workerProfileDraftProvider).firstName, 'Aziz', reason: 'the saved profile is loaded');
     });
 
@@ -215,9 +215,9 @@ void main() {
       expect(find.text('Profil · 1 / 3'), findsOneWidget);
     });
 
-    testWidgets('signed in with a profile: the feed, with the profile loaded', (tester) async {
+    testWidgets('signed in with a profile: «Ishlar», with the profile loaded', (tester) async {
       final container = await launch(tester, user: 'u1', saved: prototypeProfile());
-      expect(find.text('Smenalar'), findsWidgets);
+      expect(find.text('Ishlar'), findsWidgets);
       expect(container.read(workerProfileDraftProvider).lastName, 'Karimov');
     });
 

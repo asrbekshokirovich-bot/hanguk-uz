@@ -24,8 +24,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final numbers = tester.getTopLeft(find.text('Bajarilgan smenalar')).dy;
+    // The coins card comes between: the grid is below the first screen.
+    await tester.scrollUntilVisible(find.text("Bo'sh vaqt jadvali"), 200);
     final grid = tester.getTopLeft(find.text("Bo'sh vaqt jadvali")).dy;
-    expect(grid, greaterThan(numbers), reason: 'under reliability, completed shifts and ratings');
+    final coins = tester.getTopLeft(find.text('Puyl balansi')).dy;
+    expect(grid, greaterThan(coins), reason: 'under reliability, completed shifts, ratings and the coins');
+    expect(numbers, greaterThan(0));
 
     await tester.scrollUntilVisible(find.bySemanticsLabel('Yakshanba, Tunda'), 200);
     await tester.ensureVisible(find.bySemanticsLabel('Yakshanba, Tunda'));

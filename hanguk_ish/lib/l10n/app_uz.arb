@@ -1476,6 +1476,10 @@
   "@notifOfferTitle": {
     "description": "A12 va A05: Hanguk xodimi ishchiga ish taklif qildi (P39)."
   },
+  "notifOfferEndingTitle": "Taklif tugashiga 5 daqiqa qoldi",
+  "@notifOfferEndingTitle": {
+    "description": "Push: shaxsiy taklif 30 daqiqasining oxirgi 5 daqiqasi."
+  },
   "notifOfferText": "{business} · {day}, {range} · {wage}/soat",
   "@notifOfferText": {
     "description": "A12: taklif qilingan ish.",
@@ -2987,5 +2991,337 @@
   "paymentLess": "Kam to'langan",
   "@paymentLess": {
     "description": "A09 / A07: kam to'langan belgi."
+  },
+  "coinsTitle": "Puyl balansi",
+  "@coinsTitle": {
+    "description": "A11: coin kartasi sarlavhasi."
+  },
+  "coinsBalance": "{n} P",
+  "@coinsBalance": {
+    "description": "Puyl soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coinsRule": "Ishning telefon raqami va aniq manzilini ochish uchun puyl sarflanadi — ish narxiga qarab 7–20 P. Ochilgan ish sizga biriktiriladi. Sarflangan puyl qaytmaydi.",
+  "@coinsRule": {
+    "description": "Profil: puyl qoidasi."
+  },
+  "coinsHowToGet": "Puylni Hanguk xodimlari qo'shadi; ilovada karta bilan to'ldirish tez orada.",
+  "@coinsHowToGet": {
+    "description": "A11: coin qanday olinadi."
+  },
+  "coinsHistory": "Tarix",
+  "@coinsHistory": {
+    "description": "A11: coin harakatlari sarlavhasi."
+  },
+  "coinsNoHistory": "Hali harakat yo'q",
+  "@coinsNoHistory": {
+    "description": "A11: coin tarixi bo'sh."
+  },
+  "coinStaffAdded": "Hanguk xodimi qo'shdi",
+  "@coinStaffAdded": {
+    "description": "Coin tarixi: xodim qo'shdi."
+  },
+  "coinStaffTaken": "Hanguk xodimi oldi",
+  "@coinStaffTaken": {
+    "description": "Coin tarixi: xodim oldi."
+  },
+  "coinApplied": "Ochildi: {title}",
+  "@coinApplied": {
+    "description": "Coin tarixi: ariza.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "errNoCoins": "Puyl yetmaydi. Balansni to'ldiring.",
+  "@errNoCoins": {
+    "description": "Xato: coin yetarli emas."
+  },
+  "coinTopup": "To'ldirildi",
+  "coinBonus": "Oylik bonus",
+  "@coinTopup": {
+    "description": "Coin tarixi: karta bilan to'ldirildi."
+  },
+  "@coinBonus": {
+    "description": "Coin tarixi: oylik bonus."
+  },
+  "navJobs": "Ishlar",
+  "@navJobs": {
+    "description": "Pastki menyu: shaxsiy takliflar."
+  },
+  "navMyJobs": "Mening ishlarim",
+  "@navMyJobs": {
+    "description": "Pastki menyu: ochilgan ishlar."
+  },
+  "offersTitle": "Ishlar",
+  "@offersTitle": {
+    "description": "Ishlar sarlavhasi."
+  },
+  "offerTimerLive": "Shaxsiy taklif · olish uchun vaqt",
+  "@offerTimerLive": {
+    "description": "Taymer ustidagi yozuv."
+  },
+  "offerTimerHurry": "Tez bo'ling! Taklif tugayapti",
+  "@offerTimerHurry": {
+    "description": "Oxirgi 5 daqiqa."
+  },
+  "offerTimerGone": "Vaqt tugadi — ish boshqa odamga o'tdi",
+  "@offerTimerGone": {
+    "description": "30 daqiqa o'tdi."
+  },
+  "offerTimerClosed": "Joylar to'ldi — ish boshqa odamga o'tdi",
+  "@offerTimerClosed": {
+    "description": "Boshqalar oldin ochdi."
+  },
+  "offerTimerTaken": "Siz oldingiz — ish sizga biriktirildi",
+  "@offerTimerTaken": {
+    "description": "Ochilgan ish."
+  },
+  "offerSentTo": "Faqat {n} kishiga yuborildi · {left} joy",
+  "@offerSentTo": {
+    "description": "Nechta kishiga yuborilgani.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "offerPayLabel": "Ish uchun to'lov",
+  "@offerPayLabel": {
+    "description": "Jami to'lov ustida."
+  },
+  "offerPay": "{amount} won",
+  "@offerPay": {
+    "description": "Jami to'lov.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "offerHours": "{n} soatlik ish",
+  "@offerHours": {
+    "description": "Ish soatlari.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "offerFits": "✓ Jadvalingizga mos",
+  "@offerFits": {
+    "description": "Jadvalga mos."
+  },
+  "offerNoFit": "Jadvalingizdan tashqari",
+  "@offerNoFit": {
+    "description": "Jadvalga mos emas."
+  },
+  "offerChecked": "{when} {time} da ish beruvchi bilan gaplashildi",
+  "@offerChecked": {
+    "description": "Xodim qachon gaplashgani.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "offerPhone": "Telefon",
+  "@offerPhone": {
+    "description": "Yashirin telefon yorlig'i."
+  },
+  "offerAddress": "Manzil",
+  "@offerAddress": {
+    "description": "Yashirin manzil yorlig'i."
+  },
+  "offerOpen": "Telefon va manzilni ochish · {price} P",
+  "@offerOpen": {
+    "description": "Ochish tugmasi.",
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "offerOpened": "Ochilgan ✓ · Mening ishlarim'da",
+  "@offerOpened": {
+    "description": "Ochilgan ish tugmasi."
+  },
+  "offersGone": "{n} ta taklif vaqti tugadi va boshqa odamlarga o'tdi. Yangisi chiqsa — push keladi.",
+  "@offersGone": {
+    "description": "Muddati tugagan takliflar.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "offersEmptyTitle": "Hozircha taklif yo'q",
+  "@offersEmptyTitle": {
+    "description": "Bo'sh holat."
+  },
+  "offersEmptyText": "Hanguk xodimi siz uchun ish topganda shu yerda chiqadi va push keladi. «Qachon ishlay olaman» jadvalini to'ldirib qo'ying.",
+  "@offersEmptyText": {
+    "description": "Bo'sh holat matni."
+  },
+  "unlockGetAssigned": "Ish sizga biriktiriladi — boshqalarga yopiladi",
+  "@unlockGetAssigned": {
+    "description": "Ochish oynasi: nima olinadi."
+  },
+  "unlockGetPhone": "Ish beruvchining telefon raqami",
+  "@unlockGetPhone": {
+    "description": "Ochish oynasi."
+  },
+  "unlockGetAddress": "Aniq manzil va yo'l ko'rsatkich",
+  "@unlockGetAddress": {
+    "description": "Ochish oynasi."
+  },
+  "unlockGetSaved": "Mening ishlarim'da saqlanadi",
+  "@unlockGetSaved": {
+    "description": "Ochish oynasi."
+  },
+  "unlockBalance": "Balans: {n} P",
+  "@unlockBalance": {
+    "description": "Ochish oynasi: balans.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "unlockAfter": "Qoladi: {n} P",
+  "@unlockAfter": {
+    "description": "Ochish oynasi: qoladigan puyl.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "unlockCta": "{n} puyl bilan ochish",
+  "@unlockCta": {
+    "description": "Ochish tugmasi.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "unlockShort": "Puyl yetmaydi",
+  "@unlockShort": {
+    "description": "Puyl kam."
+  },
+  "errOfferExpired": "Taklif vaqti tugadi — ish boshqa odamga o'tdi.",
+  "@errOfferExpired": {
+    "description": "OFFER_EXPIRED."
+  },
+  "myJobsSummary": "{opened} ta ochilgan · {done} tasida ishladingiz",
+  "@myJobsSummary": {
+    "description": "Mening ishlarim xulosasi.",
+    "placeholders": {
+      "opened": {
+        "type": "int"
+      },
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "myJobsEmptyTitle": "Hali ish ochilmagan",
+  "@myJobsEmptyTitle": {
+    "description": "Bo'sh holat."
+  },
+  "myJobsEmptyText": "Ishlar bo'limida ishni oching — telefon va manzil shu yerda saqlanadi",
+  "@myJobsEmptyText": {
+    "description": "Bo'sh holat matni."
+  },
+  "jobCall": "Qo'ng'iroq",
+  "@jobCall": {
+    "description": "Qo'ng'iroq tugmasi."
+  },
+  "jobRoute": "Yo'l",
+  "@jobRoute": {
+    "description": "Yo'l tugmasi."
+  },
+  "jobRouteKm": "Yo'l · {km}",
+  "@jobRouteKm": {
+    "description": "Yo'l tugmasi masofa bilan.",
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "stepOpened": "Ochildi",
+  "@stepOpened": {
+    "description": "Qadam."
+  },
+  "stepCalled": "Qo'ng'iroq qildim",
+  "@stepCalled": {
+    "description": "Qadam."
+  },
+  "stepWent": "Ishga chiqdim",
+  "@stepWent": {
+    "description": "Qadam."
+  },
+  "rateStar": "{n} yulduz",
+  "@rateStar": {
+    "description": "Yulduz tugmasi (ekran o'quvchi).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trustBronze": "Bronza daraja",
+  "@trustBronze": {
+    "description": "Ishonch bali < 80."
+  },
+  "trustSilver": "Kumush daraja",
+  "@trustSilver": {
+    "description": "Ishonch bali 80–89."
+  },
+  "trustGold": "Oltin daraja",
+  "@trustGold": {
+    "description": "Ishonch bali ≥ 90."
+  },
+  "trustNext": "Keyingi darajagacha {n} ball",
+  "@trustNext": {
+    "description": "Keyingi darajagacha qolgan ball.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trustTop": "Eng yuqori daraja",
+  "@trustTop": {
+    "description": "Oltin daraja."
+  },
+  "presetWeekends": "Dam olish kunlari",
+  "@presetWeekends": {
+    "description": "Jadval: shanba-yakshanba."
+  },
+  "presetEvenings": "Har kuni kechqurun",
+  "@presetEvenings": {
+    "description": "Jadval: har kuni 18–24."
+  },
+  "presetAll": "Hammasi",
+  "@presetAll": {
+    "description": "Jadval: hamma vaqt."
+  },
+  "jobRateEmployer": "Ish beruvchini baholang",
+  "@jobRateEmployer": {
+    "description": "Mening ishlarim: ish beruvchiga baho."
   }
 }

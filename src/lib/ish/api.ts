@@ -7,6 +7,7 @@ import type {
   IshBusiness,
   IshBusinessInput,
   IshCandidate,
+  IshCoinWorker,
   IshJobInput,
   IshJobPage,
   IshMessage,
@@ -122,6 +123,14 @@ export function ishApi(client: SupabaseClient) {
     setAppBusinessBlocked: (id: string, blocked: boolean) =>
       rpc<string>('staff_set_app_business_blocked', { p_business: id, p_blocked: blocked }),
 
+    /** Coins: workers by name or phone (all, newest first, when empty), with their balance. */
+    coinWorkers: async (query: string) =>
+      (await rpc<IshCoinWorker[] | null>('staff_coin_workers', { p_query: query.trim(), p_limit: 50 })) ?? [],
+
+    /** Adds coins to a worker (negative: takes some back); the new balance. NO_COINS below zero. */
+    addCoins: (workerId: string, delta: number, note: string) =>
+      rpc<number>('staff_add_coins', { p_worker: workerId, p_delta: delta, p_note: note.trim() }),
+
     /** P52: the workers' complaints from the app, open ones first. */
     reports: async () => (await rpc<IshReport[] | null>('staff_reports', { p_limit: 200 })) ?? [],
 
@@ -176,7 +185,12 @@ export function ishApi(client: SupabaseClient) {
     candidates: async (id: string, maxKm: number | null, limit = 100) =>
       (await rpc<IshCandidate[] | null>('staff_candidates', { p_shift: id, p_max_km: maxKm, p_limit: limit })) ?? [],
 
-    /** How many offers went out (once per worker and job). */
+    /** The whole job's pay (null: hours × wage) and «talked to the employer now». */
+    jobDetails: async (id: string, totalPay: number | null, checked: boolean) => {
+      await rpc<null>('staff_job_details', { p_shift: id, p_total_pay: totalPay, p_checked: checked });
+    },
+
+    /** How many offers went out (once per worker and job; at most 4 waiting, else TOO_MANY). */
     sendOffers: (id: string, workers: string[], note: string) =>
       rpc<number>('staff_send_offers', { p_shift: id, p_workers: workers, p_note: note.trim() }),
 

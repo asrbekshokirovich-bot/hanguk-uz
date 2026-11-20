@@ -15,6 +15,7 @@ import '../repositories/auth_repository.dart';
 import '../repositories/employer_repository.dart';
 import '../repositories/live_updates.dart';
 import '../repositories/monthly_job_repository.dart';
+import '../repositories/offer_repository.dart';
 import '../repositories/push_service.dart';
 import '../repositories/shift_repository.dart';
 import 'backend.dart';
@@ -23,6 +24,7 @@ import 'supabase_auth_repository.dart';
 import 'supabase_employer_repository.dart';
 import 'supabase_live_updates.dart';
 import 'supabase_monthly_job_repository.dart';
+import 'supabase_offer_repository.dart';
 import 'supabase_push_tokens.dart';
 import 'supabase_shift_repository.dart';
 
@@ -53,6 +55,7 @@ List<Override> backendOverrides(BackendConfig config, SupabaseClient client) => 
       shiftRepositoryProvider.overrideWith((ref) => SupabaseShiftRepository(client, config)),
       monthlyJobRepositoryProvider.overrideWith((ref) => SupabaseMonthlyJobRepository(client)),
       accountRepositoryProvider.overrideWith((ref) => SupabaseAccountRepository(client)),
+      offerRepositoryProvider.overrideWith((ref) => SupabaseOfferRepository(client)),
       workerProfileRepositoryProvider.overrideWith((ref) => SupabaseWorkerProfileRepository(client, config)),
       employerRepositoryProvider.overrideWith((ref) => SupabaseEmployerRepository(client, config)),
       locationServiceProvider.overrideWith(

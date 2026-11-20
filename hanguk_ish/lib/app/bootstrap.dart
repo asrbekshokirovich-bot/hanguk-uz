@@ -11,9 +11,11 @@ import '../data/backend/firebase_push_service.dart';
 import '../data/backend/overrides.dart';
 import '../data/demo/demo_account.dart';
 import '../data/demo/demo_employer.dart';
+import '../data/demo/demo_offers.dart';
 import '../data/demo/demo_shifts.dart';
 import '../data/repositories/account_repository.dart';
 import '../data/repositories/employer_repository.dart';
+import '../data/repositories/offer_repository.dart';
 import '../data/repositories/push_service.dart';
 import '../data/repositories/shift_repository.dart';
 import '../design/theme.dart';
@@ -69,10 +71,12 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
     final clock = demoClockAt(const String.fromEnvironment('ISH_DEMO_KST'));
     if (clock != null) {
       final now = clock();
+      final account = DemoAccountRepository(now: now, offers: true);
       overrides.addAll([
         clockProvider.overrideWithValue(clock),
         shiftRepositoryProvider.overrideWithValue(DemoShiftRepository(now: now, clock: clock, offers: true)),
-        accountRepositoryProvider.overrideWithValue(DemoAccountRepository(now: now, offers: true)),
+        accountRepositoryProvider.overrideWithValue(account),
+        offerRepositoryProvider.overrideWithValue(DemoOfferRepository(now: now, clock: clock, account: account)),
         employerRepositoryProvider.overrideWithValue(DemoEmployerRepository(now: now, clock: clock)),
       ]);
     }

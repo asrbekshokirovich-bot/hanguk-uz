@@ -13,16 +13,16 @@ select tests.eq(
     'apply_to_shift', 'business_board', 'business_report', 'business_stats', 'business_workers',
     'cancel_application', 'cancel_shift', 'check_in', 'check_out', 'confirm_payment', 'decide_application', 'decline_job_offer',
     'employer_shift', 'is_application_party', 'is_business_member', 'is_my_applicant', 'is_shift_member',
-    'is_staff', 'is_staff_admin', 'mark_notifications_read', 'market_wage', 'my_businesses', 'my_notifications', 'my_profile', 'my_shift',
-    'my_shifts', 'open_business', 'rate_business', 'register_push_token', 'report_worker', 'request_again', 'save_worker_profile',
-    'set_shift_paid', 'shift_details', 'shift_feed', 'shift_qr',
+    'is_staff', 'is_staff_admin', 'mark_notifications_read', 'market_wage', 'my_businesses', 'my_coins', 'my_jobs', 'my_notifications', 'my_offers', 'my_profile', 'my_shift',
+    'my_shifts', 'open_business', 'rate_business', 'rate_job', 'register_push_token', 'report_worker', 'request_again', 'save_worker_profile',
+    'set_job_step', 'set_shift_paid', 'shift_details', 'shift_feed', 'shift_qr',
     -- The staff's (hanguk.uz): each starts with require_staff(); the staff list
     -- (P58) with require_staff_admin().
-    'staff_add', 'staff_app_businesses', 'staff_board', 'staff_businesses', 'staff_candidates', 'staff_mark_attendance', 'staff_monthly_interest',
+    'staff_add', 'staff_add_coins', 'staff_app_businesses', 'staff_board', 'staff_businesses', 'staff_candidates', 'staff_coin_workers', 'staff_job_details', 'staff_mark_attendance', 'staff_monthly_interest',
     'staff_people', 'staff_remove', 'staff_reports', 'staff_save_business', 'staff_save_shift', 'staff_send_offers',
     'staff_set_app_business_blocked', 'staff_set_report_status', 'staff_set_role', 'staff_shift',
     'staff_update_app_business',
-    'toggle_favorite', 'update_my_business', 'worker_earnings', 'worker_stats'
+    'toggle_favorite', 'unlock_offer', 'update_my_business', 'worker_earnings', 'worker_stats'
   ]::text[],
   'the owner-rights functions open to signed-in people are the reviewed ones');
 

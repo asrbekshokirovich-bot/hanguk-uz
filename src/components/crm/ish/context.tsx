@@ -19,6 +19,7 @@ const KNOWN = new Set([
   'FORBIDDEN', 'NOT_FOUND', 'INVALID', 'INVALID_TIME', 'TOO_LONG', 'IN_THE_PAST', 'WAGE_BELOW_MINIMUM',
   'HAS_CREW', 'SLOTS_BELOW_CREW', 'SHIFT_CLOSED', 'SHIFT_ENDED', 'SHIFT_FULL', 'NOT_PENDING', 'TOO_EARLY',
   'NOT_CONFIRMED', 'ALREADY_CHECKED_IN', 'BUSINESS_NOT_VERIFIED', 'NOT_AUTHENTICATED', 'OFFLINE', 'SELF',
+  'NO_COINS', 'TOO_MANY',
 ]);
 
 /** What to tell the staff member when a call is refused or fails. */
@@ -35,6 +36,7 @@ export const ishKeys = {
   businesses: ['ish', 'businesses'] as const,
   appBusinesses: ['ish', 'appBusinesses'] as const,
   reports: ['ish', 'reports'] as const,
+  coins: (query: string) => ['ish', 'coins', query] as const,
   monthly: ['ish', 'monthly'] as const,
   monthlyInterest: ['ish', 'monthlyInterest'] as const,
   staffAdmin: ['ish', 'staffAdmin'] as const,

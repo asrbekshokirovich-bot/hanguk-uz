@@ -10,6 +10,7 @@ import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/account.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
+import 'package:hanguk_ish/features/worker/jobs/jobs_screens.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
 
 import '../../helpers/fonts.dart';
@@ -53,7 +54,7 @@ void main() {
   // Without the word joiner that keeps «₩/soat» together; no-break spaces as spaces.
   String plain(String s) => s.replaceAll('\u2060', '').replaceAll('\u00A0', ' ');
 
-  testWidgets('A12: the offer comes first, with the job and the staff\'s note, and leads to A05', (tester) async {
+  testWidgets('A12: the offer comes first, with the job and the staff\'s note, and leads to «Ishlar»', (tester) async {
     await open(tester, WorkerRoutes.notifications);
     expect(find.text('Sizga ish taklif qilindi'), findsOneWidget);
     final text = tester
@@ -63,14 +64,10 @@ void main() {
     expect(text, contains('09:00–14:00 · 12 000 ₩/soat'));
     expect(text, endsWith('\nXodim izohi: $demoOfferNote'));
 
+    // «Ko'rish» opens «Ishlar», where the personal offers and their timers are.
     await tester.tap(find.text("Ko'rish").first);
     await tester.pumpAndSettle();
-    expect(find.text('Yuk ortish va tushirish'), findsOneWidget, reason: 'A05 of the offered job');
-    expect(find.text('Sizga ish taklif qilindi'), findsOneWidget, reason: 'the offer card');
-    expect(find.textContaining('Hanguk xodimi bu ishni siz uchun tanladi.'), findsOneWidget);
-    expect(find.text('Xodim izohi: $demoOfferNote'), findsOneWidget);
-    expect(find.text('Qiziqmayman'), findsOneWidget);
-    expect(find.text('Smenani olish'), findsOneWidget);
+    expect(find.byType(OffersScreen), findsOneWidget);
   });
 
   testWidgets('A12: the offer reads in every app language', (tester) async {

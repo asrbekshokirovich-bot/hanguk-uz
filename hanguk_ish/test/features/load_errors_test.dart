@@ -386,7 +386,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a launch offline never starts A02 again: the start screen waits, then the feed', (tester) async {
+    testWidgets('a launch offline never starts A02 again: the start screen waits, then «Ishlar»', (tester) async {
       final profile = OfflineProfile();
       await profile.save(prototypeProfile());
       final container = await open(tester, location: WorkerRoutes.start, overrides: [
@@ -398,7 +398,7 @@ void main() {
       expect(find.text('Profil · 1 / 3'), findsNothing);
       profile.offline = false;
       await retry(tester);
-      expect(find.text('Smenalar'), findsWidgets);
+      expect(find.text('Ishlar'), findsWidgets);
       expect(container.read(workerProfileDraftProvider).firstName, 'Aziz');
     });
 
@@ -418,7 +418,7 @@ void main() {
       expect(find.text('Profil · 1 / 3'), findsNothing);
       profile.offline = false;
       await retry(tester);
-      expect(find.text('Smenalar'), findsWidgets);
+      expect(find.text('Ishlar'), findsWidgets);
     });
 
     testWidgets('a session that ends goes back to A01', (tester) async {

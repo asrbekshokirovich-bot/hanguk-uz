@@ -21,6 +21,7 @@ import '../../../design/widgets/forms.dart' show HiScheduleGrid;
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../coins/coins.dart';
 import '../profile/profile_screens.dart';
 import '../profile/worker_profile_draft.dart';
 import '../profile/worker_profile_repository.dart';
@@ -65,6 +66,16 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> {
 
   void _toggle(int day, int slot) {
     ref.read(workerProfileDraftProvider.notifier).toggleSlot(day, slot);
+    _saveSoon();
+  }
+
+  /// «Dam olish kunlari», «Har kuni kechqurun», «Hammasi».
+  void _preset(int mask) {
+    ref.read(workerProfileDraftProvider.notifier).setAvailability(mask);
+    _saveSoon();
+  }
+
+  void _saveSoon() {
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 900), () async {
       final repo = ref.read(workerProfileRepositoryProvider);
@@ -103,10 +114,55 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> {
           isOn: draft.isAvailable,
           onToggle: _toggle,
         ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (label, mask) in [
+              (l10n.presetWeekends, _mask(days: const [5, 6], slots: const [0, 1, 2, 3])),
+              (l10n.presetEvenings, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [2])),
+              (l10n.presetAll, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [0, 1, 2, 3])),
+            ])
+              HiPressable(
+                onTap: () => _preset(mask),
+                semanticsLabel: label,
+                selected: draft.availability == mask,
+                builder: (context, pressed) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: draft.availability == mask ? HiColors.lime : (pressed ? HiColors.white14 : HiColors.white08),
+                    borderRadius: BorderRadius.circular(HiRadii.pill),
+                  ),
+                  child: HiText(label,
+                      style: hiStyle(14, FontWeight.w700,
+                          color: draft.availability == mask ? HiColors.onLime : HiColors.white)),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
 }
+
+int _mask({required List<int> days, required List<int> slots}) {
+  var mask = 0;
+  for (final d in days) {
+    for (final s in slots) {
+      mask |= WorkerProfileDraft.bit(d, s);
+    }
+  }
+  return mask;
+}
+
+/// The trust level of a reliability score: Bronza < 80, Kumush 80–89,
+/// Oltin 90+; and what is left to the next one.
+String trustLevelText(WorkerL10n l10n, int score) => score >= 90
+    ? '${l10n.trustGold} · ${l10n.trustTop}'
+    : score >= 80
+        ? '${l10n.trustSilver} · ${l10n.trustNext(90 - score)}'
+        : '${l10n.trustBronze} · ${l10n.trustNext(80 - score)}';
 
 /// A11 «Profil».
 class MeScreen extends ConsumerWidget {
@@ -222,6 +278,11 @@ class MeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                    if (stats != null) ...[
+                      const SizedBox(height: 8),
+                      HiText(trustLevelText(l10n, stats.reliability),
+                          style: hiStyle(14, FontWeight.w700, color: HiColors.lime)),
+                    ],
                   ],
                 ),
               ),
@@ -256,6 +317,8 @@ class MeScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            CoinCard(lang: lang),
             const SizedBox(height: 22),
             const _ScheduleSection(),
             const SizedBox(height: 22),
@@ -288,6 +351,15 @@ class MeScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+            // The Korean level: not asked at sign-up, set here when the worker
+            // wants (Hanguk's staff look at it when they offer a job).
+            _SettingRow(
+              icon: HiIcons.languages,
+              label: l10n.topikTitle,
+              value: draft.topik == 0 ? l10n.topikMin : 'TOPIK ${draft.topik}',
+              onTap: () => _pickTopik(context, ref),
             ),
             const SizedBox(height: 12),
             HiPressable(
@@ -364,6 +436,31 @@ class MeScreen extends ConsumerWidget {
     if (value != null) ref.read(appLanguageProvider.notifier).select(AppLanguage.fromCode(value));
   }
 
+  Future<void> _pickTopik(BuildContext context, WidgetRef ref) async {
+    final l10n = WorkerL10n.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final current = ref.read(workerProfileDraftProvider).topik;
+    final value = await showHiPicker(
+      context,
+      title: l10n.topikTitle,
+      searchHint: l10n.search,
+      searchable: false,
+      selected: '$current',
+      options: [
+        HiPickerOption('0', l10n.topikMin),
+        for (var level = 1; level <= 6; level++)
+          HiPickerOption('$level', level == 6 ? 'TOPIK 6 · ${l10n.topikMax}' : 'TOPIK $level'),
+      ],
+    );
+    if (value == null) return;
+    ref.read(workerProfileDraftProvider.notifier).setTopik(int.parse(value));
+    try {
+      await ref.read(workerProfileRepositoryProvider).save(ref.read(workerProfileDraftProvider));
+    } on Object catch (error) {
+      messenger?.showSnackBar(SnackBar(content: Text(error is OfflineException ? l10n.errOffline : l10n.errorGeneric)));
+    }
+  }
+
   Future<void> _report(BuildContext context, WidgetRef ref) async {
     final l10n = WorkerL10n.of(context);
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -396,6 +493,48 @@ class MeScreen extends ConsumerWidget {
         barrierColor: const Color.fromRGBO(6, 13, 43, 0.74),
         builder: (context) => const _HelpSheet(),
       );
+}
+
+/// A white 56 px row: icon, label, the value, a chevron.
+class _SettingRow extends StatelessWidget {
+  const _SettingRow({required this.icon, required this.label, required this.value, required this.onTap});
+
+  final HiIconData icon;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return HiPressable(
+      onTap: onTap,
+      semanticsLabel: '$label: $value',
+      builder: (context, pressed) => Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: pressed ? HiColors.surface : HiColors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.fromBorderSide(HiBorders.ink),
+          boxShadow: HiShadows.hard,
+        ),
+        child: Row(
+          children: [
+            HiIcon(icon, size: 20, strokeWidth: 2, color: HiColors.ink),
+            const SizedBox(width: 12),
+            Expanded(child: HiText(label, style: hiStyle(16, FontWeight.w800, color: HiColors.ink))),
+            const SizedBox(width: 12),
+            Flexible(
+              child: HiText(value,
+                  textAlign: TextAlign.end, style: hiStyle(15, FontWeight.w600, color: HiColors.inkMuted)),
+            ),
+            const SizedBox(width: 12),
+            const HiIcon(HiIcons.chevronRight, size: 18, strokeWidth: 2.2, color: HiColors.inkMuted),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StatCard extends StatelessWidget {

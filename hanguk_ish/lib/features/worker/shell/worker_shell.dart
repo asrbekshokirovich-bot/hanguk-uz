@@ -6,7 +6,8 @@ import '../../../design/tokens.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 
-/// The worker app's five tabs with the bottom menu (A03–A11).
+/// The worker app's three tabs (the «10 qadam» design): Ishlar, Mening
+/// ishlarim, Profil.
 class WorkerShell extends StatelessWidget {
   const WorkerShell({super.key, required this.shell});
 
@@ -22,10 +23,8 @@ class WorkerShell extends StatelessWidget {
         current: shell.currentIndex,
         onSelect: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
         items: [
-          HiNavItem(icon: HiIcons.briefcase, label: l10n.navShifts),
-          HiNavItem(icon: HiIcons.map, label: l10n.navMap),
-          HiNavItem(icon: HiIcons.calendarCheck, label: l10n.navMyShifts, wide: true, raised: true),
-          HiNavItem(icon: HiIcons.wallet, label: l10n.navEarnings),
+          HiNavItem(icon: HiIcons.briefcase, label: l10n.navJobs),
+          HiNavItem(icon: HiIcons.calendarCheck, label: l10n.navMyJobs),
           HiNavItem(icon: HiIcons.user, label: l10n.navProfile),
         ],
       ),

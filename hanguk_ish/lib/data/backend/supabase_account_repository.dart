@@ -26,6 +26,12 @@ class SupabaseAccountRepository implements WorkerAccountRepository {
       });
 
   @override
+  Future<CoinWallet> coins() => backendCall(() async {
+        final json = await _client.rpc('my_coins', params: {'p_limit': 30}) as Json;
+        return coinWalletFromJson(json);
+      });
+
+  @override
   Future<List<HiNotification>> notifications() => backendCall(() async {
         final cards = await _client.rpc('my_notifications',
             params: {'p_limit': 100, 'p_kinds': workerNotificationKinds}) as List;

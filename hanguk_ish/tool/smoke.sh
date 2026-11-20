@@ -210,7 +210,6 @@ walk_worker() {
     step 'A02-2 opens' ui wait 'Profil · 2 / 3' &&
     step 'A02-2: Uzbek' ui tap "=O'zbekcha" &&
     step 'A02-2: Korean' ui tap '=Koreyscha' &&
-    step 'A02-2: TOPIK 3' ui tap '=3' &&
     step 'A02-2: district row' ui scrollto '=Tuman' &&
     step 'A02-2: district list' ui tapbelow '=Tuman' '=Tanlang' &&
     step 'A02-2: search' ui field 0 Mapo &&
