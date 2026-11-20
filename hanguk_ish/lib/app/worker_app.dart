@@ -14,6 +14,7 @@ import '../design/widgets/backdrop.dart';
 import '../design/widgets/brand.dart';
 import '../features/worker/feed/feed_controller.dart';
 import '../features/worker/feed/feed_screen.dart';
+import '../features/worker/jobs/jobs_screens.dart';
 import '../features/worker/load_error.dart';
 import '../features/worker/chat/chat_screen.dart';
 import '../features/worker/earnings/earnings_screen.dart';
@@ -56,16 +57,20 @@ abstract final class WorkerRoutes {
   static const profileLocation = '/profile/location';
 
   /// The tabs.
+  static const jobs = '/jobs';
+  static const myJobs = '/my-jobs';
+  static const me = '/me';
+
+  /// The earlier design's screens (not tabs any more).
   static const feed = '/feed';
   static const map = '/map';
   static const myShifts = '/my-shifts';
   static const earnings = '/earnings';
-  static const me = '/me';
 
   static const notifications = '/notifications';
 
   /// Where the app opens once signed in.
-  static const home = feed;
+  static const home = jobs;
 
   static String shift(String id) => '/shift/$id';
   static String checkIn(String app) => '/work/$app/check-in';
@@ -92,7 +97,7 @@ MyShiftsActions _myShiftsActions(BuildContext context, WidgetRef ref) => MyShift
       openRate: (app) => context.push(WorkerRoutes.rate(app.applicationId)),
       openChat: (app) => context.push(WorkerRoutes.chat(app.applicationId)),
       openDirections: (app) => _openDirections(context, ref, app),
-      openFeed: () => context.go(WorkerRoutes.feed),
+      openFeed: () => context.push(WorkerRoutes.feed),
     );
 
 Future<void> _openDirections(BuildContext context, WidgetRef ref, MyShift app) async {
@@ -106,10 +111,10 @@ Future<void> _openDirections(BuildContext context, WidgetRef ref, MyShift app) a
 FeedActions _feedActions(BuildContext context) => FeedActions(
       openShift: (shift) => context.push(WorkerRoutes.shift(shift.id)),
       takeShift: (shift) => takeShift(context, shift),
-      openFeed: () => context.go(WorkerRoutes.feed),
+      openFeed: () => context.push(WorkerRoutes.feed),
       openMonthly: () {
         ProviderScope.containerOf(context).read(feedModeProvider.notifier).set(FeedMode.monthly);
-        context.go(WorkerRoutes.feed);
+        context.push(WorkerRoutes.feed);
       },
       openNotifications: () => context.push(WorkerRoutes.notifications),
     );
@@ -292,32 +297,10 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         ),
         branches: [
           StatefulShellBranch(routes: [
-            GoRoute(
-              path: WorkerRoutes.feed,
-              builder: (context, state) => FeedScreen(actions: _feedActions(context)),
-            ),
+            GoRoute(path: WorkerRoutes.jobs, builder: (context, state) => const OffersScreen()),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(
-              path: WorkerRoutes.map,
-              builder: (context, state) => WorkerMapScreen(actions: _feedActions(context)),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: WorkerRoutes.myShifts,
-              builder: (context, state) => Consumer(
-                builder: (context, ref, _) => MyShiftsScreen(actions: _myShiftsActions(context, ref)),
-              ),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: WorkerRoutes.earnings,
-              builder: (context, state) => EarningsScreen(
-                onOpen: (app) => context.push(WorkerRoutes.result(app.applicationId)),
-              ),
-            ),
+            GoRoute(path: WorkerRoutes.myJobs, builder: (context, state) => const OpenedJobsScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
@@ -327,11 +310,33 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
           ]),
         ],
       ),
+      // The screens of the earlier design: no longer tabs, still reachable
+      // (notifications, links) while their data is there.
+      GoRoute(
+        path: WorkerRoutes.feed,
+        builder: (context, state) => FeedScreen(actions: _feedActions(context)),
+      ),
+      GoRoute(
+        path: WorkerRoutes.map,
+        builder: (context, state) => WorkerMapScreen(actions: _feedActions(context)),
+      ),
+      GoRoute(
+        path: WorkerRoutes.myShifts,
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) => MyShiftsScreen(actions: _myShiftsActions(context, ref)),
+        ),
+      ),
+      GoRoute(
+        path: WorkerRoutes.earnings,
+        builder: (context, state) => EarningsScreen(
+          onOpen: (app) => context.push(WorkerRoutes.result(app.applicationId)),
+        ),
+      ),
       GoRoute(
         path: '/shift/:id',
         builder: (context, state) => ShiftDetailScreen(
           shiftId: state.pathParameters['id']!,
-          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.home),
           onTake: (shift) => takeShift(context, shift),
         ),
         routes: [
@@ -340,8 +345,8 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => ShiftTakenScreen(
               shiftId: state.pathParameters['id']!,
               pending: state.uri.queryParameters['pending'] == '1',
-              onClose: () => context.go(WorkerRoutes.feed),
-              onMyShifts: () => context.go(WorkerRoutes.myShifts),
+              onClose: () => context.go(WorkerRoutes.home),
+              onMyShifts: () => context.push(WorkerRoutes.myShifts),
             ),
           ),
         ],
@@ -350,7 +355,7 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         path: '/work/:app',
         builder: (context, state) => AtWorkScreen(
           applicationId: state.pathParameters['app']!,
-          onClose: () => context.go(WorkerRoutes.myShifts),
+          onClose: () => context.push(WorkerRoutes.myShifts),
           onScanOut: () => context.push(WorkerRoutes.checkOut(state.pathParameters['app']!)),
         ),
         routes: [
@@ -359,7 +364,7 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => QrScanScreen(
               applicationId: state.pathParameters['app']!,
               mode: QrScanMode.checkIn,
-              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+              onClose: () => context.canPop() ? context.pop() : context.push(WorkerRoutes.myShifts),
               onDone: (app) => context.pushReplacement(WorkerRoutes.atWork(app.applicationId)),
             ),
           ),
@@ -376,7 +381,7 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
             path: 'result',
             builder: (context, state) => ShiftResultScreen(
               applicationId: state.pathParameters['app']!,
-              onClose: () => context.go(WorkerRoutes.feed),
+              onClose: () => context.go(WorkerRoutes.home),
               onRate: () => context.push(WorkerRoutes.rate(state.pathParameters['app']!)),
             ),
           ),
@@ -384,8 +389,8 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
             path: 'rate',
             builder: (context, state) => RateBusinessScreen(
               applicationId: state.pathParameters['app']!,
-              onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
-              onSent: () => context.go(WorkerRoutes.feed),
+              onClose: () => context.canPop() ? context.pop() : context.push(WorkerRoutes.myShifts),
+              onSent: () => context.go(WorkerRoutes.home),
             ),
           ),
         ],
@@ -394,14 +399,14 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
         path: '/chat/:app',
         builder: (context, state) => ChatScreen(
           applicationId: state.pathParameters['app']!,
-          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.myShifts),
+          onBack: () => context.canPop() ? context.pop() : context.push(WorkerRoutes.myShifts),
         ),
       ),
       GoRoute(
         path: WorkerRoutes.notifications,
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => NotificationsScreen(
-            onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.feed),
+            onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.home),
             actions: NotificationActions(
               directions: (n) async {
                 final lat = n.lat;
@@ -409,11 +414,12 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
                 if (lat == null || lng == null) return;
                 await ref.read(linkOpenerProvider)(directionsUriTo(n.businessName(ref.read(appLanguageProvider).code), lat, lng));
               },
-              myShifts: () => context.go(WorkerRoutes.myShifts),
+              myShifts: () => context.push(WorkerRoutes.myShifts),
               shift: (id) => context.push(WorkerRoutes.shift(id)),
-              feed: () => context.go(WorkerRoutes.feed),
+              feed: () => context.push(WorkerRoutes.feed),
               chat: (app) => context.push(WorkerRoutes.chat(app)),
-              earnings: () => context.go(WorkerRoutes.earnings),
+              earnings: () => context.push(WorkerRoutes.earnings),
+              offers: () => context.go(WorkerRoutes.jobs),
               confirmPay: (n) {
                 final application = n.applicationId;
                 if (application == null) return;

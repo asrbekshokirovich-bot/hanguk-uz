@@ -66,6 +66,16 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> {
 
   void _toggle(int day, int slot) {
     ref.read(workerProfileDraftProvider.notifier).toggleSlot(day, slot);
+    _saveSoon();
+  }
+
+  /// «Dam olish kunlari», «Har kuni kechqurun», «Hammasi».
+  void _preset(int mask) {
+    ref.read(workerProfileDraftProvider.notifier).setAvailability(mask);
+    _saveSoon();
+  }
+
+  void _saveSoon() {
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 900), () async {
       final repo = ref.read(workerProfileRepositoryProvider);
@@ -104,10 +114,55 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> {
           isOn: draft.isAvailable,
           onToggle: _toggle,
         ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (label, mask) in [
+              (l10n.presetWeekends, _mask(days: const [5, 6], slots: const [0, 1, 2, 3])),
+              (l10n.presetEvenings, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [2])),
+              (l10n.presetAll, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [0, 1, 2, 3])),
+            ])
+              HiPressable(
+                onTap: () => _preset(mask),
+                semanticsLabel: label,
+                selected: draft.availability == mask,
+                builder: (context, pressed) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: draft.availability == mask ? HiColors.lime : (pressed ? HiColors.white14 : HiColors.white08),
+                    borderRadius: BorderRadius.circular(HiRadii.pill),
+                  ),
+                  child: HiText(label,
+                      style: hiStyle(14, FontWeight.w700,
+                          color: draft.availability == mask ? HiColors.onLime : HiColors.white)),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
 }
+
+int _mask({required List<int> days, required List<int> slots}) {
+  var mask = 0;
+  for (final d in days) {
+    for (final s in slots) {
+      mask |= WorkerProfileDraft.bit(d, s);
+    }
+  }
+  return mask;
+}
+
+/// The trust level of a reliability score: Bronza < 80, Kumush 80–89,
+/// Oltin 90+; and what is left to the next one.
+String trustLevelText(WorkerL10n l10n, int score) => score >= 90
+    ? '${l10n.trustGold} · ${l10n.trustTop}'
+    : score >= 80
+        ? '${l10n.trustSilver} · ${l10n.trustNext(90 - score)}'
+        : '${l10n.trustBronze} · ${l10n.trustNext(80 - score)}';
 
 /// A11 «Profil».
 class MeScreen extends ConsumerWidget {
@@ -223,6 +278,11 @@ class MeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                    if (stats != null) ...[
+                      const SizedBox(height: 8),
+                      HiText(trustLevelText(l10n, stats.reliability),
+                          style: hiStyle(14, FontWeight.w700, color: HiColors.lime)),
+                    ],
                   ],
                 ),
               ),

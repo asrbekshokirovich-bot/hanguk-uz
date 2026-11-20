@@ -33,6 +33,7 @@ class NotificationActions {
     required this.chat,
     required this.earnings,
     this.confirmPay,
+    this.offers,
   });
 
   final void Function(HiNotification n) directions;
@@ -44,6 +45,9 @@ class NotificationActions {
 
   /// «Maosh to'landimi?» for a finished shift (opens the payment sheet).
   final void Function(HiNotification n)? confirmPay;
+
+  /// A personal offer: «Ishlar», where its timer runs (null: the shift page).
+  final VoidCallback? offers;
 }
 
 /// A12 «Bildirishnomalar». Unread ones keep the unread look while the screen
@@ -286,9 +290,11 @@ class _NotificationCard extends StatelessWidget {
           onTap: n.shiftId == null ? actions.feed : () => actions.shift(n.shiftId!),
         ),
       NotificationKind.nearbyShifts => _LinkAction(label: l10n.view, fresh: fresh, onTap: actions.feed),
-      NotificationKind.jobOffer => n.shiftId == null
-          ? null
-          : _LinkAction(label: l10n.view, fresh: fresh, onTap: () => actions.shift(n.shiftId!)),
+      NotificationKind.jobOffer => actions.offers != null
+          ? _LinkAction(label: l10n.view, fresh: fresh, onTap: actions.offers!)
+          : n.shiftId == null
+              ? null
+              : _LinkAction(label: l10n.view, fresh: fresh, onTap: () => actions.shift(n.shiftId!)),
       // The pay and the work of the day: the earnings list.
       // «Maosh to'landimi?»: say what was paid (or change what was said).
       NotificationKind.finished => _LimeAction(

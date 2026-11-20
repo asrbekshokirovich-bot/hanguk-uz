@@ -170,14 +170,8 @@ void main() {
     expect(find.text('Yuk saralash'), findsOneWidget);
   });
 
-  testWidgets('bottom menu; the header pill turns A03 into monthly jobs (no day tabs, same filters) and back',
-      (tester) async {
+  testWidgets('the header pill turns A03 into monthly jobs (no day tabs, same filters) and back', (tester) async {
     await start(tester);
-    await tester.tap(find.text('Xarita').last);
-    await tester.pumpAndSettle();
-    expect(find.byType(WorkerMapScreen), findsOneWidget);
-    await tester.tap(find.text('Smenalar').last);
-    await tester.pumpAndSettle();
     expect(find.byType(FeedScreen), findsOneWidget);
 
     // The header pill replaces the list / map switch.

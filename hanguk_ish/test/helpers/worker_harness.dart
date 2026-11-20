@@ -8,9 +8,11 @@ import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/core/time/clock.dart';
 import 'package:hanguk_ish/core/time/kst.dart';
 import 'package:hanguk_ish/data/demo/demo_account.dart';
+import 'package:hanguk_ish/data/demo/demo_offers.dart';
 import 'package:hanguk_ish/data/demo/demo_shifts.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
 import 'package:hanguk_ish/data/repositories/account_repository.dart';
+import 'package:hanguk_ish/data/repositories/offer_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/theme.dart';
 import 'package:hanguk_ish/features/worker/notifications/unread.dart';
@@ -95,6 +97,7 @@ ProviderContainer appContainer({
   DateTime Function()? clock,
   List<Override> overrides = const [],
 }) {
+  final wallet = account ?? DemoAccountRepository(now: prototypeNow);
   final container = ProviderContainer(overrides: [
     workerInitialLocationProvider.overrideWithValue(location),
     clockProvider.overrideWithValue(clock ?? () => prototypeNow),
@@ -102,7 +105,12 @@ ProviderContainer appContainer({
     qrScanAnimationProvider.overrideWithValue(false),
     shiftRepositoryProvider.overrideWithValue(repository ?? DemoShiftRepository(now: prototypeNow)),
     if (unread != null) unreadNotificationsProvider.overrideWithValue(unread),
-    accountRepositoryProvider.overrideWithValue(account ?? DemoAccountRepository(now: prototypeNow)),
+    accountRepositoryProvider.overrideWithValue(wallet),
+    offerRepositoryProvider.overrideWithValue(DemoOfferRepository(
+      now: prototypeNow,
+      clock: clock ?? () => prototypeNow,
+      account: wallet is DemoAccountRepository ? wallet : null,
+    )),
     ...overrides,
   ]);
   container.read(appLanguageProvider.notifier).select(language);

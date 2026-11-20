@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hanguk_ish/app/employer_app.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
 import 'package:hanguk_ish/core/format/dates.dart';
@@ -24,6 +25,7 @@ import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_auth_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_employer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_live_updates.dart';
+import 'package:hanguk_ish/data/backend/supabase_offer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
 import 'package:hanguk_ish/data/models/business.dart';
 import 'package:hanguk_ish/data/models/employer.dart';
@@ -32,6 +34,7 @@ import 'package:hanguk_ish/data/repositories/account_repository.dart';
 import 'package:hanguk_ish/data/repositories/auth_repository.dart';
 import 'package:hanguk_ish/data/repositories/employer_repository.dart';
 import 'package:hanguk_ish/data/repositories/live_updates.dart';
+import 'package:hanguk_ish/data/repositories/offer_repository.dart';
 import 'package:hanguk_ish/data/repositories/shift_repository.dart';
 import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/design/widgets/controls.dart' show HiCheckbox;
@@ -141,6 +144,14 @@ Future<void> _shot(WidgetTester tester, String name) async {
 
 /// Past a page transition: both pages are on screen while it runs (two text
 /// fields, taps blocked).
+/// Opens [location] in the app on screen: «Ishlar» is home; the screens of
+/// the earlier design are reached only this way now.
+Future<void> _open(WidgetTester tester, String location, {bool push = true}) async {
+  final router = GoRouter.of(tester.element(find.byType(Scaffold).first));
+  push ? router.push(location) : router.go(location);
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 100));
@@ -257,13 +268,18 @@ void main() {
         authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
         shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
         accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+        offerRepositoryProvider.overrideWithValue(SupabaseOfferRepository(worker)),
         workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
         locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+        liveTimersProvider.overrideWithValue(false),
       ],
       child: const WorkerApp(),
     )));
 
-    // The start screen loads the saved profile and opens the feed.
+    // The start screen loads the saved profile and opens «Ishlar»; the feed
+    // of the earlier design opens from there.
+    await _until(tester, _text('Ishlar'));
+    await _open(tester, WorkerRoutes.feed);
     await _until(tester, _text('Smenalar'));
     final today = Kst.wallClock(DateTime.now());
     final day = Kst.wallClock(shift.startsAt);
@@ -293,8 +309,8 @@ void main() {
     expect(mine!.where((a) => a.shift.id == shift.id), hasLength(1), reason: 'the server has the application');
 
     await _tap(tester, _text('Lentaga qaytish'));
-    await _until(tester, _text('Mening smenalarim'));
-    await _tap(tester, _text('Mening smenalarim'));
+    await _until(tester, _text('Ishlar'));
+    await _open(tester, WorkerRoutes.myShifts);
     await _until(tester, _text('E2E 홀 보조'));
     await _shot(tester, 'a06-my-shifts');
     await _close(tester);
@@ -338,6 +354,7 @@ void main() {
         authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
         shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
         accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+        offerRepositoryProvider.overrideWithValue(SupabaseOfferRepository(worker)),
         workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
         locationServiceProvider.overrideWithValue(const _AtTheBeach()),
         liveTimersProvider.overrideWithValue(false),
@@ -348,8 +365,8 @@ void main() {
       child: const WorkerApp(),
     )));
 
-    await _until(tester, _text('Mening smenalarim'));
-    await _tap(tester, _text('Mening smenalarim'));
+    await _until(tester, _text('Ishlar'));
+    await _open(tester, WorkerRoutes.myShifts);
     await _until(tester, _text('E2E 아침 보조'));
     await _tap(tester, _text('E2E 아침 보조'));
     // The entry screen reads the code at once; the server checks it in.
@@ -448,8 +465,10 @@ void main() {
         authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
         shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
         accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+        offerRepositoryProvider.overrideWithValue(SupabaseOfferRepository(worker)),
         workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
         locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+        liveTimersProvider.overrideWithValue(false),
         workerInitialLocationProvider.overrideWithValue(WorkerRoutes.notifications),
       ],
       child: const WorkerApp(),
@@ -490,6 +509,7 @@ void main() {
           authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(worker)),
           shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(worker, _config)),
           accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(worker)),
+          offerRepositoryProvider.overrideWithValue(SupabaseOfferRepository(worker)),
           workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(worker, _config)),
           locationServiceProvider.overrideWithValue(const _AtTheBeach()),
           liveTimersProvider.overrideWithValue(false),
@@ -525,8 +545,8 @@ void main() {
     phone(tester);
     // Through the start gate, which loads the saved profile (A11's name).
     await tester.pumpWidget(workerApp());
-    await _until(tester, _text('Smenalar'));
-    await _tap(tester, _text('Daromad'));
+    await _until(tester, _text('Ishlar'));
+    await _open(tester, WorkerRoutes.earnings);
     // The month total, the paid tile and the shift's row.
     await _until(tester, _text(Won.worker(16500)));
     expect(_text(Won.worker(16500)), findsNWidgets(3));
@@ -534,7 +554,7 @@ void main() {
     expect(_text('E2E Kafe'), findsWidgets);
     await _shot(tester, 'a09-earnings');
 
-    await _tap(tester, _text('Profil'));
+    await _open(tester, WorkerRoutes.me, push: false);
     await _until(tester, _text('Sardor Testov'));
     final done = find.ancestor(
       of: _text('Bajarilgan smenalar'),
@@ -730,8 +750,10 @@ void main() {
         authRepositoryProvider.overrideWithValue(SupabaseAuthRepository(newcomer)),
         shiftRepositoryProvider.overrideWithValue(SupabaseShiftRepository(newcomer, _config)),
         accountRepositoryProvider.overrideWithValue(SupabaseAccountRepository(newcomer)),
+        offerRepositoryProvider.overrideWithValue(SupabaseOfferRepository(newcomer)),
         workerProfileRepositoryProvider.overrideWithValue(SupabaseWorkerProfileRepository(newcomer, _config)),
         locationServiceProvider.overrideWithValue(const _AtTheBeach()),
+        liveTimersProvider.overrideWithValue(false),
       ],
       child: const WorkerApp(),
     )));
@@ -770,10 +792,10 @@ void main() {
     await _settle(tester);
     await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
     await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
-    // After the profile: the location question, then the feed.
+    // After the profile: the location question, then «Ishlar».
     await _until(tester, _text('Joylashuvingizni yoqing'));
     await _tap(tester, _text('Keyinroq'));
-    await _until(tester, _text('Smenalar'));
+    await _until(tester, _text('Ishlar'));
     // The feed loaded (cards or none today: no more grey placeholders).
     for (var i = 0; i < 200 && find.byType(ShiftCardSkeleton).evaluate().isNotEmpty; i++) {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
@@ -911,7 +933,7 @@ void main() {
     await _close(tester);
 
     await tester.pumpWidget(workerApp());
-    await _until(tester, _text('Smenalar'));
+    await _until(tester, _text('Ishlar'));
     await _tap(tester, _text('Profil'));
     await _until(tester, _text('Sardor Testov'));
     await _until(tester, _text('80'), seconds: 30);
@@ -961,7 +983,7 @@ void main() {
 
     // 80 after the no-show, now 75.
     await tester.pumpWidget(workerApp());
-    await _until(tester, _text('Smenalar'));
+    await _until(tester, _text('Ishlar'));
     await _tap(tester, _text('Profil'));
     await _until(tester, _text('75'), seconds: 30);
     await _close(tester);

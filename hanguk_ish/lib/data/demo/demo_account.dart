@@ -110,13 +110,13 @@ class DemoAccountRepository implements WorkerAccountRepository {
   @override
   Future<WorkerStats> stats() async => ishTestLogin ? freshStats : demoStats;
 
-  /// The demo's coins: five from Hanguk's staff (demo data, no backend).
+  /// The demo's puyl: 100 from Hanguk's staff (demo data, no backend).
   CoinWallet wallet = CoinWallet(
-    balance: 5,
+    balance: 100,
     history: [
       CoinMove(
-        delta: 5,
-        balance: 5,
+        delta: 100,
+        balance: 100,
         reason: CoinReason.staff,
         createdAt: DateTime.utc(2026, 11, 1, 3),
       ),
