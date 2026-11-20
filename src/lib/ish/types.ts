@@ -5,7 +5,8 @@
  * Real responses: hanguk_ish/test/fixtures/backend_samples.json.
  */
 
-export type OfferStatus = 'sent' | 'declined' | 'applied';
+/** `closed`: another worker opened the job and it filled; `expired`: 30 minutes passed. */
+export type OfferStatus = 'sent' | 'declined' | 'applied' | 'expired' | 'closed';
 
 export type ApplicationStatus =
   | 'pending'
@@ -143,6 +144,8 @@ export interface IshWorker {
   onboarded: boolean;
   completed: number;
   no_shows: number;
+  /** Puyl the worker has now. */
+  coins?: number;
 }
 
 /** `staff_candidates`: who fits a job, best first. */
@@ -161,6 +164,8 @@ export interface IshOffer {
   status: OfferStatus;
   note: string;
   created_at: string;
+  /** The 30 minutes end (null: sent before offers had an end). */
+  expires_at?: string | null;
   responded_at: string | null;
   worker: IshWorker;
 }
@@ -175,6 +180,10 @@ export interface IshApplication {
   worked_minutes: number | null;
   pay_amount: number | null;
   paid_at: string | null;
+  /** Puyl the worker spent to open the job (0: it came another way). */
+  coins_paid?: number;
+  /** The worker's own marks: 0 opened, 1 called the employer, 2 went to work. */
+  worker_step?: number;
   worker: IshWorker;
 }
 
@@ -185,6 +194,14 @@ export interface IshJobPage extends IshJobCard {
   notes: { source: string; notes: string } | null;
   offers: IshOffer[];
   applications: IshApplication[];
+  /** What the whole job pays as the staff wrote it (null: hours × wage). */
+  total_pay?: number | null;
+  /** What it pays in all, the worker sees this. */
+  job_pay?: number;
+  /** Puyl to open the phone and address. */
+  unlock_price?: number;
+  /** When the staff last talked to the employer. */
+  checked_at?: string | null;
 }
 
 /** A `messages` row (A10 chat). */

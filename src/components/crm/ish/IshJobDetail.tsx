@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Ban,
   Check,
+  Coins,
   Download,
   Loader2,
   MessageSquare,
@@ -47,6 +48,30 @@ import { businessName } from './IshBoard';
 import { IshJobDialog } from './IshJobDialog';
 
 const LIVE = new Set(['pending', 'confirmed', 'checked_in', 'completed']);
+
+/** At most this many workers hold a job's offer at once (the database says TOO_MANY). */
+export const MAX_LIVE_OFFERS = 4;
+
+/** An offer still waiting: sent and its 30 minutes not over. */
+export const offerLive = (o: { status: string; expires_at?: string | null }, now = Date.now()) =>
+  o.status === 'sent' && (o.expires_at == null || Date.parse(o.expires_at) > now);
+
+/** «12:34» left until [iso]; «0:00» once past. */
+export function timeLeft(iso: string, now = Date.now()): string {
+  const s = Math.max(0, Math.floor((Date.parse(iso) - now) / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/** The current time, again every second while [on]. */
+function useNow(on: boolean): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!on) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [on]);
+  return now;
+}
 
 const fullName = (w: Pick<IshWorker, 'first_name' | 'last_name'>) =>
   [w.first_name, w.last_name].filter(Boolean).join(' ') || '—';
@@ -188,6 +213,7 @@ export function IshJobDetail({ jobId, onBack }: { jobId: string; onBack: () => v
         </div>
       )}
 
+      {j.managed && open && !started && <IshPuyl job={j} />}
       <IshApplications job={j} />
       {open && !started && <IshCandidates job={j} />}
       <IshOffers job={j} />
@@ -265,6 +291,9 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
   const list = useQuery({ queryKey: ishKeys.candidates(job.id, km), queryFn: () => api.candidates(job.id, km) });
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [note, setNote] = useState('');
+  const live = job.offers.filter((o) => offerLive(o)).length;
+  const room = Math.max(0, MAX_LIVE_OFFERS - live);
+  const price = job.unlock_price;
 
   useEffect(() => setChosen(new Set()), [radius]);
 
@@ -321,6 +350,7 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
                 <TableHead>{t('ish.candidates.worker')}</TableHead>
                 <TableHead>{t('ish.candidates.distance')}</TableHead>
                 <TableHead>{t('ish.candidates.time')}</TableHead>
+                <TableHead>{t('ish.candidates.coins')}</TableHead>
                 <TableHead>{t('ish.candidates.state')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -330,7 +360,7 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
                   <TableCell>
                     <Checkbox
                       checked={chosen.has(c.id)}
-                      disabled={!canOffer(c)}
+                      disabled={!canOffer(c) || (!chosen.has(c.id) && chosen.size >= room)}
                       onCheckedChange={(v) => toggle(c.id, v === true)}
                       aria-label={fullName(c)}
                     />
@@ -350,6 +380,9 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
                       <Badge variant="outline">{t('ish.candidates.notInSchedule')}</Badge>
                     )}
                   </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm">
+                    <CoinsBalance coins={c.coins} price={price} />
+                  </TableCell>
                   <TableCell className="text-sm">
                     {c.application_status
                       ? t(`ish.application.${c.application_status}`)
@@ -362,6 +395,9 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
             </TableBody>
           </Table>
         )}
+        <p className="text-sm text-muted-foreground" data-testid="ish-offer-room">
+          {room === 0 ? t('ish.candidates.full', { max: MAX_LIVE_OFFERS }) : t('ish.candidates.room', { max: MAX_LIVE_OFFERS, live, room })}
+        </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <Textarea
             value={note}
@@ -371,7 +407,7 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
             placeholder={t('ish.candidates.note')}
             aria-label={t('ish.candidates.note')}
           />
-          <Button className="shrink-0" onClick={() => send.mutate()} disabled={chosen.size === 0 || send.isPending}>
+          <Button className="shrink-0" onClick={() => send.mutate()} disabled={chosen.size === 0 || chosen.size > room || send.isPending}>
             {send.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
             {t('ish.candidates.send', { count: chosen.size })}
           </Button>
@@ -381,9 +417,89 @@ export function IshCandidates({ job }: { job: IshJobPage }) {
   );
 }
 
+/** A worker's puyl; red when it does not cover the job's price. */
+function CoinsBalance({ coins, price }: { coins?: number; price?: number }) {
+  const { t } = useTranslation();
+  if (coins == null) return <span>—</span>;
+  const short = price != null && coins < price;
+  return (
+    <span className={short ? 'font-semibold text-destructive' : 'font-semibold'} title={short ? t('ish.puyl.short') : undefined}>
+      {coins} P
+    </span>
+  );
+}
+
+/**
+ * «Puyl»: what the worker sees before opening — the whole job's pay (the
+ * staff may write the real figure), the price in puyl, and when the staff
+ * last talked to the employer («Bugun 14:20 da gaplashildi»).
+ */
+function IshPuyl({ job }: { job: IshJobPage }) {
+  const { t, i18n } = useTranslation();
+  const api = useIshApi();
+  const queryClient = useQueryClient();
+  const [pay, setPay] = useState(job.total_pay == null ? '' : String(job.total_pay));
+  useEffect(() => setPay(job.total_pay == null ? '' : String(job.total_pay)), [job.total_pay]);
+  const n = pay.trim() === '' ? null : Number(pay);
+  const valid = n === null || (Number.isInteger(n) && n >= 0 && n <= 100_000_000);
+  const save = useMutation({
+    mutationFn: (checked: boolean) => api.jobDetails(job.id, n, checked),
+    onSuccess: (_, checked) => {
+      toast.success(t(checked ? 'ish.puyl.checkedDone' : 'ish.puyl.saved'));
+      void queryClient.invalidateQueries({ queryKey: ishKeys.job(job.id) });
+    },
+    onError: (e) => toast.error(ishErrorText(t, e)),
+  });
+  return (
+    <Card data-testid="ish-puyl">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Coins className="h-4 w-4 text-primary" />
+          {t('ish.puyl.title')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Info label={t('ish.puyl.pay')} value={job.job_pay == null ? '—' : won(job.job_pay)} />
+          <Info label={t('ish.puyl.price')} value={job.unlock_price == null ? '—' : `${job.unlock_price} P`} />
+          <Info
+            label={t('ish.puyl.checked')}
+            value={job.checked_at ? `${dayLabel(job.checked_at, i18n.language)} ${seoulParts(job.checked_at).time}` : '—'}
+          />
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground" htmlFor={`ish-pay-${job.id}`}>
+              {t('ish.puyl.payInput')}
+            </label>
+            <Input
+              id={`ish-pay-${job.id}`}
+              type="number"
+              min={0}
+              value={pay}
+              onChange={(e) => setPay(e.target.value)}
+              placeholder={job.job_pay == null ? '' : String(job.job_pay)}
+              className="w-40"
+            />
+          </div>
+          <Button variant="outline" disabled={!valid || save.isPending} onClick={() => save.mutate(false)}>
+            {t('ish.puyl.save')}
+          </Button>
+          <Button disabled={!valid || save.isPending} onClick={() => save.mutate(true)}>
+            <Phone className="mr-1 h-4 w-4" />
+            {t('ish.puyl.talked')}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">{t('ish.puyl.hint')}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 /** «Takliflar»: who was offered the job and how they answered. */
 function IshOffers({ job }: { job: IshJobPage }) {
   const { t, i18n } = useTranslation();
+  const now = useNow(job.offers.some((o) => offerLive(o)));
   if (job.offers.length === 0) return null;
   return (
     <Card>
@@ -398,10 +514,25 @@ function IshOffers({ job }: { job: IshJobPage }) {
                 <TableCell>
                   <WorkerLine worker={o.worker} />
                 </TableCell>
+                <TableCell className="whitespace-nowrap text-sm">
+                  <CoinsBalance coins={o.worker.coins} price={job.unlock_price} />
+                </TableCell>
                 <TableCell className="text-sm">
-                  <Badge variant={o.status === 'declined' ? 'outline' : o.status === 'applied' ? 'default' : 'secondary'}>
-                    {t(`ish.offer.${o.status}`)}
-                  </Badge>
+                  {(() => {
+                    const status = o.status === 'sent' && !offerLive(o, now) ? 'expired' : o.status;
+                    return (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={status === 'applied' ? 'default' : status === 'sent' ? 'secondary' : 'outline'}>
+                          {t(`ish.offer.${status}`)}
+                        </Badge>
+                        {status === 'sent' && o.expires_at && (
+                          <span className="font-mono text-xs" data-testid={`ish-offer-left-${o.id}`}>
+                            {t('ish.offers.left', { time: timeLeft(o.expires_at, now) })}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                   {dayLabel(o.created_at, i18n.language)} {seoulParts(o.created_at).time}

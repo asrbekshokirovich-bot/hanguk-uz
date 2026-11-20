@@ -185,7 +185,12 @@ export function ishApi(client: SupabaseClient) {
     candidates: async (id: string, maxKm: number | null, limit = 100) =>
       (await rpc<IshCandidate[] | null>('staff_candidates', { p_shift: id, p_max_km: maxKm, p_limit: limit })) ?? [],
 
-    /** How many offers went out (once per worker and job). */
+    /** The whole job's pay (null: hours × wage) and «talked to the employer now». */
+    jobDetails: async (id: string, totalPay: number | null, checked: boolean) => {
+      await rpc<null>('staff_job_details', { p_shift: id, p_total_pay: totalPay, p_checked: checked });
+    },
+
+    /** How many offers went out (once per worker and job; at most 4 waiting, else TOO_MANY). */
     sendOffers: (id: string, workers: string[], note: string) =>
       rpc<number>('staff_send_offers', { p_shift: id, p_workers: workers, p_note: note.trim() }),
 

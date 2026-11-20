@@ -3882,7 +3882,9 @@
     "offer": {
       "sent": "Yuborildi",
       "declined": "Rad etdi",
-      "applied": "Ariza berdi"
+      "applied": "Ochdi",
+      "expired": "Vaqti tugadi",
+      "closed": "Boshqasi oldi"
     },
     "application": {
       "pending": "Javob kutmoqda",
@@ -3979,10 +3981,14 @@
       "notInSchedule": "Jadvalida yo'q",
       "note": "Ishchiga izoh (ixtiyoriy): masalan, qachon va qayerda kutib olinadi",
       "send": "Taklif yuborish ({{count}})",
-      "sent": "{{count}} ta taklif yuborildi"
+      "sent": "{{count}} ta taklif yuborildi",
+      "coins": "Puyl",
+      "full": "Bu ish hozir {{max}} kishida — 30 daqiqa tugashini yoki ochilishini kuting.",
+      "room": "Bir vaqtda {{max}} kishigacha: hozir {{live}} kishi kutmoqda, yana {{room}} kishiga yuborish mumkin."
     },
     "offers": {
-      "title": "Takliflar"
+      "title": "Takliflar",
+      "left": "{{time}} qoldi"
     },
     "applications": {
       "title": "Arizalar",
@@ -4035,7 +4041,8 @@
       "OFFLINE": "Internet aloqasi yo'q.",
       "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring.",
       "SELF": "O'zingizning rolingizni o'zgartira yoki o'zingizni olib tashlay olmaysiz — buni boshqa admin qiladi.",
-      "NO_COINS": "Ishchida buncha puyl yo'q"
+      "NO_COINS": "Ishchida buncha puyl yo'q",
+      "TOO_MANY": "Bir vaqtda 4 kishidan ko'pga yuborib bo'lmaydi."
     },
     "appBusinesses": {
       "intro": "사장님 ilovasida ochilgan bizneslar. Ular tekshiruvsiz, darhol ochiladi — shubhali bo'lsa, to'xtating: smenalari ishchilarga ko'rinmaydi va ariza berib bo'lmaydi.",
@@ -4180,6 +4187,19 @@
         "topup": "To'ldirildi",
         "bonus": "Bonus"
       }
+    },
+    "puyl": {
+      "title": "Ishchi ko'radigan narx",
+      "pay": "Ish uchun to'lov",
+      "price": "Ochish narxi",
+      "checked": "Ish beruvchi bilan gaplashildi",
+      "payInput": "Jami to'lov (₩), bo'sh — soat × stavka",
+      "save": "Saqlash",
+      "talked": "Hozir gaplashdim",
+      "hint": "Ishchi telefon va manzilni puyl bilan ochadi; narx to'lovga qarab: 150 000₩+ 20 P, 110 000₩+ 16 P, 80 000₩+ 13 P, 50 000₩+ 10 P, aks holda 7 P.",
+      "saved": "Saqlandi",
+      "checkedDone": "Ishchilarga «hozir gaplashildi» ko'rinadi",
+      "short": "Puyli bu ishni ochishga yetmaydi"
     }
   },
   "calendarPage": {

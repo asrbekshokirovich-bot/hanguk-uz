@@ -3822,7 +3822,9 @@
     "offer": {
       "sent": "Sent",
       "declined": "Declined",
-      "applied": "Applied"
+      "applied": "Opened",
+      "expired": "Time ran out",
+      "closed": "Taken by another"
     },
     "application": {
       "pending": "Waiting",
@@ -3922,10 +3924,14 @@
       "send_one": "Send the offer ({{count}})",
       "send_other": "Send offers ({{count}})",
       "sent_one": "{{count}} offer sent",
-      "sent_other": "{{count}} offers sent"
+      "sent_other": "{{count}} offers sent",
+      "coins": "Puyl",
+      "full": "{{max}} people hold this job now — wait for their 30 minutes to end or for someone to open it.",
+      "room": "Up to {{max}} people at once: {{live}} waiting now, you can send to {{room}} more."
     },
     "offers": {
-      "title": "Offers"
+      "title": "Offers",
+      "left": "{{time}} left"
     },
     "applications": {
       "title": "Applications",
@@ -3978,7 +3984,8 @@
       "OFFLINE": "No internet connection.",
       "UNKNOWN": "Something went wrong. Please try again.",
       "SELF": "You cannot change your own role or remove yourself — another admin does that.",
-      "NO_COINS": "The worker does not have that much puyl"
+      "NO_COINS": "The worker does not have that much puyl",
+      "TOO_MANY": "You can't send to more than 4 people at once."
     },
     "appBusinesses": {
       "intro": "Businesses opened in the 사장님 app. They open at once, without a check — if one looks suspicious, suspend it: workers won't see its shifts and nobody can apply.",
@@ -4123,6 +4130,19 @@
         "topup": "Top-up",
         "bonus": "Bonus"
       }
+    },
+    "puyl": {
+      "title": "What the worker sees",
+      "pay": "Pay for the job",
+      "price": "Price to open",
+      "checked": "Talked to the employer",
+      "payInput": "Total pay (₩), empty — hours × wage",
+      "save": "Save",
+      "talked": "Talked just now",
+      "hint": "The worker opens the phone and address with puyl; the price follows the pay: 150,000₩+ 20 P, 110,000₩+ 16 P, 80,000₩+ 13 P, 50,000₩+ 10 P, else 7 P.",
+      "saved": "Saved",
+      "checkedDone": "Workers will see «talked just now»",
+      "short": "Not enough puyl to open this job"
     }
   },
   "calendarPage": {

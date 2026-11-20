@@ -17,7 +17,7 @@ Deno.test("the strings are the apps' own (A12, 알림), in all four languages", 
     const arb = JSON.parse(read(`hanguk_ish/lib/l10n/app_${lang}.arb`));
     const ours = (texts.strings as Record<string, Record<string, string>>)[lang];
     for (const [key, value] of Object.entries(ours)) assertEquals(value, arb[key], `${lang}.${key}`);
-    assertEquals(Object.keys(ours).length, 21, lang);
+    assertEquals(Object.keys(ours).length, 22, lang);
   }
 });
 
