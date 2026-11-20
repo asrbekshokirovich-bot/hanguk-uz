@@ -8,6 +8,7 @@ import 'package:hanguk_ish/design/widgets/buttons.dart';
 import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_controller.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_screen.dart';
+import 'package:hanguk_ish/features/worker/jobs/jobs_screens.dart';
 import 'package:hanguk_ish/features/worker/map/map_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_detail_screen.dart';
 import 'package:hanguk_ish/features/worker/shift/shift_widgets.dart';
@@ -73,7 +74,11 @@ void main() {
     expect(shift!.myStatus, ApplicationStatus.confirmed);
     expect(shift.slotsLeft, 1);
 
+    // «Lentaga qaytish» goes home: «Ishlar» now; the feed still counts the place.
     await tester.tap(find.text('Lentaga qaytish'));
+    await tester.pumpAndSettle();
+    expect(find.byType(OffersScreen), findsOneWidget);
+    container.read(workerRouterProvider).push(WorkerRoutes.feed);
     await tester.pumpAndSettle();
     expect(find.byType(FeedScreen), findsOneWidget);
     // The card now shows one place left and «Olish» is off.
@@ -224,7 +229,7 @@ void main() {
     expect(find.text('Smena topilmadi'), findsOneWidget);
     await tester.tap(find.text('Lentaga qaytish'));
     await tester.pumpAndSettle();
-    expect(find.byType(FeedScreen), findsOneWidget);
+    expect(find.byType(OffersScreen), findsOneWidget, reason: 'home is «Ishlar» now');
   });
 
   testWidgets('the bell opens notifications', (tester) async {

@@ -657,7 +657,7 @@ class OpenedJobCard extends ConsumerWidget {
           ),
           if (job.step == JobStep.wentToWork) ...[
             const SizedBox(height: 14),
-            HiText(l10n.rateEmployer, style: hiStyle(15, FontWeight.w800)),
+            HiText(l10n.jobRateEmployer, style: hiStyle(15, FontWeight.w800)),
             const SizedBox(height: 6),
             Row(
               children: [

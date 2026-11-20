@@ -647,5 +647,6 @@
   "trustTop": "The top level",
   "presetWeekends": "Weekends",
   "presetEvenings": "Every evening",
-  "presetAll": "Any time"
+  "presetAll": "Any time",
+  "jobRateEmployer": "Rate the employer"
 }

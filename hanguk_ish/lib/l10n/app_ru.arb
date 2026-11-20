@@ -217,7 +217,7 @@
   "workSummary": "Итог работы",
   "hourlyWage": "Почасовая ставка",
   "employerPays": "Оплату выдаёт работодатель",
-  "rateEmployer": "Оцените работодателя",
+  "rateEmployer": "Оценить работодателя",
   "later": "Позже",
   "rateTitle": "Оцените работодателя",
   "rateText": "Ваш отзыв поможет другим работникам.",
@@ -647,5 +647,6 @@
   "trustTop": "Высший уровень",
   "presetWeekends": "Выходные",
   "presetEvenings": "Каждый вечер",
-  "presetAll": "Всё время"
+  "presetAll": "Всё время",
+  "jobRateEmployer": "Оцените работодателя"
 }

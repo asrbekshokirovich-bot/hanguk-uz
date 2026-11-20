@@ -996,9 +996,9 @@
   "@employerPays": {
     "description": "A07/A09: maosh kim tomonidan to'lanishi."
   },
-  "rateEmployer": "Ish beruvchini baholang",
+  "rateEmployer": "Ish beruvchini baholash",
   "@rateEmployer": {
-    "description": "Baholash."
+    "description": "A07: baholash tugmasi."
   },
   "later": "Keyinroq",
   "@later": {
@@ -3319,5 +3319,9 @@
   "presetAll": "Hammasi",
   "@presetAll": {
     "description": "Jadval: hamma vaqt."
+  },
+  "jobRateEmployer": "Ish beruvchini baholang",
+  "@jobRateEmployer": {
+    "description": "Mening ishlarim: ish beruvchiga baho."
   }
 }

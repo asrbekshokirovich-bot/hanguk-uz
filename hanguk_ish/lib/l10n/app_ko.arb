@@ -217,7 +217,7 @@
   "workSummary": "근무 요약",
   "hourlyWage": "시급",
   "employerPays": "급여는 사장님이 지급해요",
-  "rateEmployer": "사장님을 평가해 주세요",
+  "rateEmployer": "사장님 평가하기",
   "later": "나중에",
   "rateTitle": "사장님을 평가해 주세요",
   "rateText": "다른 근무자에게 도움이 돼요.",
@@ -647,5 +647,6 @@
   "trustTop": "최고 등급",
   "presetWeekends": "주말",
   "presetEvenings": "매일 저녁",
-  "presetAll": "전부"
+  "presetAll": "전부",
+  "jobRateEmployer": "사장님을 평가해 주세요"
 }

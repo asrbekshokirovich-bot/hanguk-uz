@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/worker_app.dart';
@@ -165,6 +166,9 @@ void main() {
     addTearDown(container.dispose);
     await tester.pumpWidget(appHarness(container));
     await tester.pumpAndSettle();
+    // The third card (lists build what is on screen).
+    await tester.scrollUntilVisible(find.text("Tez bo'ling! Taklif tugayapti"), 300,
+        scrollable: find.byType(Scrollable).first);
     expect(find.text("Tez bo'ling! Taklif tugayapti"), findsOneWidget, reason: 'the warehouse job has 5 minutes');
 
     now = prototypeNow.add(const Duration(minutes: 31));
