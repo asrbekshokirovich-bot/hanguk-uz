@@ -50,13 +50,12 @@ bool fitsSchedule(int availability, DateTime start, DateTime end) {
   final e = Kst.wallClock(end);
   while (t.isBefore(e)) {
     final h = t.hour;
-    final slot = h >= 6 && h < 12
-        ? 0
-        : h >= 12 && h < 18
+    // Ertalab 08–13 (earlier counts as the morning), Kunduzi 13–18, Kechqurun 18–23.
+    final slot = h >= 18
+        ? 2
+        : h >= 13
             ? 1
-            : h >= 18
-                ? 2
-                : 3;
+            : 0;
     if (availability & WorkerProfileDraft.bit(t.weekday - 1, slot) == 0) return false;
     t = t.add(const Duration(hours: 1));
   }

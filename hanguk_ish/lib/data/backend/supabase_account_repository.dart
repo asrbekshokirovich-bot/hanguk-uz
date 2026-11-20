@@ -19,6 +19,13 @@ class SupabaseAccountRepository implements WorkerAccountRepository {
   String get _me => _client.auth.currentUser?.id ?? (throw const ShiftActionException('NOT_AUTHENTICATED'));
 
   @override
+  Future<WorkerTrust> trust() => backendCall(() async {
+        final json = await _client.rpc('my_trust') as Json?;
+        if (json == null) return const WorkerTrust(reliability: 100, went: 0, noShows: 0);
+        return workerTrustFromJson(json);
+      });
+
+  @override
   Future<WorkerStats> stats() => backendCall(() async {
         final rows = await _client.rpc('worker_stats', params: {'p_worker': _me}) as List;
         if (rows.isEmpty) return const WorkerStats(completedShifts: 0, ratingCount: 0, reliability: 100);
@@ -112,6 +119,10 @@ class SupabaseWorkerProfileRepository implements WorkerProfileRepository {
           'p_availability': draft.availability,
           'p_visa': draft.visa,
           'p_avatar_path': avatarPath,
+        });
+        await _client.rpc('save_worker_place', params: {
+          'p_home_address': draft.homeAddress ?? '',
+          'p_max_km': draft.maxKm,
         });
       });
 

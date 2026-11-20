@@ -122,6 +122,9 @@ class OfflineAccount extends DemoAccountRepository {
   Future<WorkerStats> stats() => _call('stats', () => super.stats());
 
   @override
+  Future<WorkerTrust> trust() => _call('trust', () => super.trust());
+
+  @override
   Future<List<HiNotification>> notifications() =>
       _call('notifications', () async => [...arriving, ...await super.notifications()]);
 
@@ -499,11 +502,14 @@ void main() {
     });
 
     testWidgets('A11: numbers that did not load are dashes, not 100 and 0', (tester) async {
-      final account = OfflineAccount()..offline.add('stats');
+      final account = OfflineAccount()..offline.add('trust');
       await open(tester, location: WorkerRoutes.me, account: account);
-      expect(find.text('—'), findsNWidgets(3));
-      expect(find.text('Baholar'), findsOneWidget);
-      expect(find.text('100'), findsNothing);
+      await tester.scrollUntilVisible(find.text('Kelmay qoldi'), 300);
+      // The score and its four rows.
+      expect(find.text('—'), findsNWidgets(5));
+      expect(find.text('Ishonch bali'), findsOneWidget);
+      expect(find.text('98'), findsNothing);
+      expect(find.text('0 marta'), findsNothing);
     });
   });
 }

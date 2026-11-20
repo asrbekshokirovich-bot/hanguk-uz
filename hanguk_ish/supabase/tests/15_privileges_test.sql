@@ -14,7 +14,7 @@ select tests.eq(
     'cancel_application', 'cancel_shift', 'check_in', 'check_out', 'confirm_payment', 'decide_application', 'decline_job_offer',
     'employer_shift', 'is_application_party', 'is_business_member', 'is_my_applicant', 'is_shift_member',
     'is_staff', 'is_staff_admin', 'mark_notifications_read', 'market_wage', 'my_businesses', 'my_coins', 'my_jobs', 'my_notifications', 'my_offers', 'my_profile', 'my_shift',
-    'my_shifts', 'open_business', 'rate_business', 'rate_job', 'register_push_token', 'report_worker', 'request_again', 'save_worker_profile',
+    'my_shifts', 'my_trust', 'open_business', 'rate_business', 'rate_job', 'register_push_token', 'report_worker', 'request_again', 'save_worker_place', 'save_worker_profile',
     'set_job_step', 'set_shift_paid', 'shift_details', 'shift_feed', 'shift_qr',
     -- The staff's (hanguk.uz): each starts with require_staff(); the staff list
     -- (P58) with require_staff_admin().

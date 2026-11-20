@@ -9,6 +9,9 @@ abstract interface class WorkerAccountRepository {
   /// A11 → `worker_stats`.
   Future<WorkerStats> stats();
 
+  /// Profil «Ishonch bali» → `my_trust`.
+  Future<WorkerTrust> trust();
+
   /// A11 «Coinlar» → `my_coins`: the balance, the price of an application,
   /// the last moves.
   Future<CoinWallet> coins();

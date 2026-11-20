@@ -22,6 +22,7 @@ import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
 import '../features/worker/map/native_kakao_map.dart' show kakaoNativeStarted;
 import '../features/worker/me/me_screen.dart';
+import '../features/worker/me/profile_edit_screen.dart';
 import '../features/worker/my_shifts/my_shifts_screen.dart';
 import '../features/worker/notifications/notifications_screen.dart';
 import '../features/worker/onboarding/a01_login_screen.dart';
@@ -60,6 +61,7 @@ abstract final class WorkerRoutes {
   static const jobs = '/jobs';
   static const myJobs = '/my-jobs';
   static const me = '/me';
+  static const profileEdit = '/profile-edit';
 
   /// The earlier design's screens (not tabs any more).
   static const feed = '/feed';
@@ -309,6 +311,12 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
             ),
           ]),
         ],
+      ),
+      GoRoute(
+        path: WorkerRoutes.profileEdit,
+        builder: (context, state) => ProfileEditScreen(
+          onClose: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.me),
+        ),
       ),
       // The screens of the earlier design: no longer tabs, still reachable
       // (notifications, links) while their data is there.

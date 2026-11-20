@@ -555,22 +555,16 @@ void main() {
     await _shot(tester, 'a09-earnings');
 
     await _open(tester, WorkerRoutes.me, push: false);
-    await _until(tester, _text('Sardor Testov'));
-    final done = find.ancestor(
-      of: _text('Bajarilgan smenalar'),
-      matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatCard'),
-    );
-    await _until(tester, find.descendant(of: done, matching: _text('1')));
-    // Finished +1, never above 100; no business can rate a worker yet.
+    await _until(tester, _text('Sardor T.'));
+    // «Ishonch bali»: the finished shift is one «Ishga chiqdi»; +1, never above 100.
+    await tester.scrollUntilVisible(_text('Kelmay qoldi'), 300);
+    await _until(tester, _text('1 ta'));
     expect(_text('100'), findsWidgets);
     await _shot(tester, 'a11-profile');
 
     // The language: on screen at once, and on the profile for the server.
-    // The free-time grid comes first on the profile: scroll down to it.
-    await tester.scrollUntilVisible(_text('Ilova tili'), 300);
-    await _tap(tester, _text('Ilova tili'));
-    await _until(tester, _text('Русский'));
-    await _tap(tester, _text('Русский'));
+    await tester.scrollUntilVisible(_text('Рус'), 300);
+    await _tap(tester, _text('Рус'));
     await _until(tester, _text('Профиль'));
     String? saved;
     for (var i = 0; i < 20 && saved != 'ru'; i++) {
@@ -581,9 +575,7 @@ void main() {
       saved = row!['language'] as String?;
     }
     expect(saved, 'ru');
-    await _tap(tester, _text('Язык приложения'));
-    await _until(tester, _text("O'zbekcha"));
-    await _tap(tester, _text("O'zbekcha"));
+    await _tap(tester, _text("O'zb"));
     await _until(tester, _text('Profil'));
     await _close(tester);
   });
@@ -935,7 +927,7 @@ void main() {
     await tester.pumpWidget(workerApp());
     await _until(tester, _text('Ishlar'));
     await _tap(tester, _text('Profil'));
-    await _until(tester, _text('Sardor Testov'));
+    await _until(tester, _text('Sardor T.'));
     await _until(tester, _text('80'), seconds: 30);
     await _close(tester);
   });

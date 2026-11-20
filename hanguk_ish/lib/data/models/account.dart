@@ -18,6 +18,33 @@ class WorkerStats {
   final int reliability;
 }
 
+/// «Ishonch bali» (`my_trust`): the score and what makes it.
+@immutable
+class WorkerTrust {
+  const WorkerTrust({
+    required this.reliability,
+    required this.went,
+    this.onTimePercent,
+    this.rating,
+    this.ratingCount = 0,
+    required this.noShows,
+  });
+
+  /// 0–100.
+  final int reliability;
+
+  /// Jobs gone to: finished shifts and opened jobs marked «Ishga chiqdim».
+  final int went;
+
+  /// Share of checked-in shifts without lateness; null before the first.
+  final int? onTimePercent;
+
+  /// The employers' stars for the worker.
+  final double? rating;
+  final int ratingCount;
+  final int noShows;
+}
+
 /// Kinds of notifications (database `notifications.kind`).
 /// [expired]: a request the business never answered before the shift began
 /// (the upkeep job turns it down) — not «another worker was chosen».

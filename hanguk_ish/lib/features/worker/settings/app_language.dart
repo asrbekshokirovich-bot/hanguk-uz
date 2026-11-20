@@ -6,15 +6,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// [label] is each language's own name, shown the same in every UI
 /// language (A01 "Ilova tili").
 enum AppLanguage {
-  uz('uz', "O'zbekcha"),
-  ru('ru', 'Русский'),
-  en('en', 'English'),
-  ko('ko', '한국어');
+  uz('uz', "O'zbekcha", "O'zb"),
+  ru('ru', 'Русский', 'Рус'),
+  en('en', 'English', 'Eng'),
+  ko('ko', '한국어', '한국');
 
-  const AppLanguage(this.code, this.label);
+  const AppLanguage(this.code, this.label, this.short);
 
   final String code;
   final String label;
+
+  /// The Profil switch's short name.
+  final String short;
+
+  /// The order of the Profil switch: O'zb, Рус, 한국, Eng.
+  static const profileOrder = [uz, ru, ko, en];
 
   Locale get locale => Locale(code);
 
