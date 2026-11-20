@@ -42,6 +42,7 @@ import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
 import 'package:hanguk_ish/features/employer/biz.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
+import 'package:hanguk_ish/features/worker/me/me_screen.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
@@ -151,6 +152,9 @@ Future<void> _open(WidgetTester tester, String location, {bool push = true}) asy
   push ? router.push(location) : router.go(location);
   await tester.pump(const Duration(milliseconds: 500));
 }
+
+/// The Profil's list (the other tabs keep theirs alive underneath).
+final _profileList = find.descendant(of: find.byType(MeScreen), matching: find.byType(Scrollable)).first;
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
@@ -557,13 +561,13 @@ void main() {
     await _open(tester, WorkerRoutes.me, push: false);
     await _until(tester, _text('Sardor T.'));
     // «Ishonch bali»: the finished shift is one «Ishga chiqdi»; +1, never above 100.
-    await tester.scrollUntilVisible(_text('Kelmay qoldi'), 300);
+    await tester.scrollUntilVisible(_text('Kelmay qoldi'), 300, scrollable: _profileList);
     await _until(tester, _text('1 ta'));
     expect(_text('100'), findsWidgets);
     await _shot(tester, 'a11-profile');
 
     // The language: on screen at once, and on the profile for the server.
-    await tester.scrollUntilVisible(_text('Рус'), 300);
+    await tester.scrollUntilVisible(_text('Рус'), 300, scrollable: _profileList);
     await _tap(tester, _text('Рус'));
     await _until(tester, _text('Профиль'));
     String? saved;

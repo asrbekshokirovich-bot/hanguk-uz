@@ -77,6 +77,8 @@ void main() {
       await tester.pumpWidget(appHarness(container));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text('Рус'), 300);
+      await tester.ensureVisible(find.text('Рус'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Рус'));
       await tester.pumpAndSettle();
       expect(find.text('Профиль'), findsWidgets);

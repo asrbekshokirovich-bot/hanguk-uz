@@ -34,6 +34,8 @@ void main() {
     expect(find.text('Tunda'), findsNothing, reason: 'three parts of the day');
 
     final before = container.read(workerProfileDraftProvider).isAvailable(6, 2);
+    await tester.ensureVisible(find.text('Har kuni kechqurun'));
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Yakshanba, Kechqurun'));
     await tester.pump(const Duration(seconds: 2));
     expect(container.read(workerProfileDraftProvider).isAvailable(6, 2), isNot(before));

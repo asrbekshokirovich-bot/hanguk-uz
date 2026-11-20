@@ -110,6 +110,8 @@ void main() {
 
     // «Ishonch bali»: 98 is gold; the rows.
     await tester.scrollUntilVisible(find.text('Kelmay qoldi'), 300);
+    await tester.ensureVisible(find.text('Kelmay qoldi'));
+    await tester.pumpAndSettle();
     expect(find.text('98'), findsOneWidget);
     expect(find.text('Oltin daraja'), findsOneWidget);
     expect(find.text("Yangi ishlarni hammadan 30 daqiqa oldin ko'rasiz"), findsOneWidget);
@@ -119,7 +121,8 @@ void main() {
     expect(find.text('0 marta'), findsOneWidget);
 
     // «Profilni o'zgartirish»: the name, the home address, 3 km, TOPIK 5.
-    await tester.scrollUntilVisible(find.bySemanticsLabel("Profilni o'zgartirish"), -300);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+    await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel("Profilni o'zgartirish"));
     await tester.pumpAndSettle();
     expect(find.text('Ism familiya'), findsOneWidget);
@@ -127,7 +130,9 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '마포구 신촌로 22');
     await tester.tap(find.text('3 km'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Koreys tili darajasi (TOPIK)'), 300);
+    await tester.scrollUntilVisible(find.text('TOPIK 4'), 300);
+    await tester.ensureVisible(find.text('TOPIK 4'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('TOPIK 4'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('TOPIK 5'));
@@ -144,6 +149,8 @@ void main() {
 
     // Help → report.
     await tester.scrollUntilVisible(find.text('Yordam'), 300);
+    await tester.ensureVisible(find.text('Yordam'));
+    await tester.pumpAndSettle();
     expect(find.text('3 km ›'), findsOneWidget);
     expect(find.text('마포구 신촌로 22 ›'), findsOneWidget);
     await tester.tap(find.text('Yordam'));
@@ -164,7 +171,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // App language → Рус.
-    await tester.scrollUntilVisible(find.text('Рус'), -300);
+    await tester.ensureVisible(find.text('Рус'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Рус'));
     await tester.pumpAndSettle();
     expect(container.read(appLanguageProvider), AppLanguage.ru);

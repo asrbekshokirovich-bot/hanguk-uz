@@ -172,81 +172,88 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
       (l10n.presetEvenings, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [2])),
       (l10n.presetAll, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [0, 1, 2])),
     ];
-    const lead = 58.0;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
-      decoration: _cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Expanded(
-                child: Semantics(header: true, child: HiText(l10n.scheduleTitle, style: hiStyle(17, FontWeight.w800))),
+    Widget cell(int d, int s) => HiPressable(
+          onTap: () => _toggle(d, s),
+          selected: draft.isAvailable(d, s),
+          semanticsLabel: '${dayNames[d]}, ${slots[s]}',
+          // The whole column is the target (40 px and more); the square inside.
+          builder: (context, pressed) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+            child: Container(
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: draft.isAvailable(d, s) ? HiColors.lime : (pressed ? HiColors.white14 : HiColors.white08),
+                borderRadius: BorderRadius.circular(8),
               ),
-              HiText(l10n.scheduleCount(scheduleCount(draft.availability)),
-                  style: hiStyle(13, FontWeight.w600, color: HiColors.textMuted)),
-            ],
+              child: draft.isAvailable(d, s)
+                  ? const HiIcon(HiIcons.check, size: 16, strokeWidth: 3, color: HiColors.onLime)
+                  : null,
+            ),
           ),
-          const SizedBox(height: 6),
-          HiText(l10n.scheduleHint, style: hiStyle(13, FontWeight.w500, height: 1.4, color: HiColors.textMuted)),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const SizedBox(width: lead),
-              for (var d = 0; d < 7; d++)
-                Expanded(
-                  child: HiText(days[d],
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      style: hiStyle(12, FontWeight.w800, color: d == today ? HiColors.lime : HiColors.textMuted)),
-                ),
-            ],
-          ),
-          for (var s = 0; s < scheduleSlots; s++) ...[
-            const SizedBox(height: 6),
-            Row(
+        );
+    Widget label(int s, double width) => SizedBox(
+          width: width,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: lead,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      HiText(slots[s], maxLines: 1, style: hiStyle(12, FontWeight.w800)),
-                      HiText(scheduleRanges[s],
-                          style: hiStyle(10, FontWeight.w600, color: HiColors.textMuted, family: HiFamily.mono)),
-                    ],
-                  ),
-                ),
-                for (var d = 0; d < 7; d++)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: HiPressable(
-                        onTap: () => _toggle(d, s),
-                        selected: draft.isAvailable(d, s),
-                        semanticsLabel: '${dayNames[d]}, ${slots[s]}',
-                        builder: (context, pressed) => Container(
-                          height: 34,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: draft.isAvailable(d, s)
-                                ? HiColors.lime
-                                : (pressed ? HiColors.white14 : HiColors.white08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: draft.isAvailable(d, s)
-                              ? const HiIcon(HiIcons.check, size: 16, strokeWidth: 3, color: HiColors.onLime)
-                              : null,
-                        ),
-                      ),
-                    ),
-                  ),
+                HiText(slots[s], maxLines: 1, style: hiStyle(12, FontWeight.w800)),
+                HiText(scheduleRanges[s],
+                    style: hiStyle(10, FontWeight.w600, color: HiColors.textMuted, family: HiFamily.mono)),
               ],
             ),
+          ),
+        );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 14),
+      decoration: _cardDecoration,
+      child: LayoutBuilder(builder: (context, box) {
+        const lead = 50.0;
+        // The parts of the day at the left as drawn; on a narrow phone, where
+        // the cells would get under 40 px, the names go above each row.
+        final side = (box.maxWidth - lead) / 7 >= 40;
+        final dayRow = Row(
+          children: [
+            if (side) const SizedBox(width: lead),
+            for (var d = 0; d < 7; d++)
+              Expanded(
+                child: HiText(days[d],
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    style: hiStyle(12, FontWeight.w800, color: d == today ? HiColors.lime : HiColors.textMuted)),
+              ),
           ],
+        );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Semantics(header: true, child: HiText(l10n.scheduleTitle, style: hiStyle(17, FontWeight.w800))),
+                ),
+                HiText(l10n.scheduleCount(scheduleCount(draft.availability)),
+                    style: hiStyle(13, FontWeight.w600, color: HiColors.textMuted)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            HiText(l10n.scheduleHint, style: hiStyle(13, FontWeight.w500, height: 1.4, color: HiColors.textMuted)),
+            const SizedBox(height: 12),
+            dayRow,
+            for (var s = 0; s < scheduleSlots; s++) ...[
+              if (!side) ...[const SizedBox(height: 6), label(s, box.maxWidth)],
+              Row(
+                children: [
+                  if (side) label(s, lead),
+                  for (var d = 0; d < 7; d++) Expanded(child: cell(d, s)),
+                ],
+              ),
+            ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -258,27 +265,27 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
                     semanticsLabel: presets[i].$1,
                     selected: shown == presets[i].$2,
                     builder: (context, pressed) => Container(
-                      height: 36,
+                      height: 40,
                       alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
                       decoration: BoxDecoration(
                         color: shown == presets[i].$2 ? HiColors.white10 : (pressed ? HiColors.white08 : null),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: HiColors.white20),
                       ),
-                      child: HiText(presets[i].$1,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: hiStyle(12, FontWeight.w700)),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: HiText(presets[i].$1, maxLines: 1, style: hiStyle(12, FontWeight.w700)),
+                      ),
                     ),
                   ),
                 ),
               ],
             ],
           ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }
@@ -434,7 +441,7 @@ class MeScreen extends ConsumerWidget {
                         selected: l == language,
                         semanticsLabel: l.label,
                         builder: (context, pressed) => Container(
-                          height: 38,
+                          height: 40,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: l == language ? HiColors.white : (pressed ? HiColors.white10 : null),
