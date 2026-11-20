@@ -319,6 +319,7 @@ class MeScreen extends ConsumerWidget {
           children: [
             Semantics(
               container: true,
+              explicitChildNodes: true,
               label: l10n.personalInfo,
               child: Row(
                 children: [
