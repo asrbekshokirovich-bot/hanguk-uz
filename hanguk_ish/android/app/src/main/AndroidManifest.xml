@@ -30,6 +30,14 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Pushes: the white 한 in the status bar (a coloured icon shows as a
+             white square there), on the brand blue. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/ic_launcher_background" />
     </application>
     <queries>
         <intent>

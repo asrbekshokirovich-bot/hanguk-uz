@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Employer icon is inverted (lime field) so the two apps differ on a home screen. -->
+    <!-- The 사장님 icon's field (taegeuk blue), so the two apps differ on a home screen. -->
     <color name="ic_launcher_background">#0047A0</color>
 </resources>
