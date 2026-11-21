@@ -124,11 +124,12 @@ employer() {
   case $? in
     2) echo "::notice::$name: this emulator cannot install it (skipped)"; return ;;
   esac
+  # First launch: the language (언어 · Til · Язык · Language) — English.
   # BA0 (P54): «Get started» with no number says so — no network and no
   # typing, the same in the demo and with the backend (typing and the code
-  # screen are walked in walk_employer). The app opens in the phone's language
-  # (P43): English on the emulator.
-  if ui wait 'Get started' 90 && ui tapto '=Get started' 'Enter your phone number' 40; then
+  # screen are walked in walk_employer).
+  if ui tap '=English' 90 && ui tapto '=Continue' 'Get started' 40 &&
+    ui wait 'Get started' 30 && ui tapto '=Get started' 'Enter your phone number' 40; then
     echo "$name: BA0 «Get started» without a number → asks for it"
   elif ui wait '=Get started' 5; then
     # A 4-second snack bar a busy emulator's screen dump can miss. Still on
@@ -185,8 +186,8 @@ walk_worker() {
     step 'A02-2 opens' ui wait 'Profil · 2 / 3' &&
     step 'A02-2: Uzbek' ui tap "=O'zbekcha" &&
     step 'A02-2: Korean' ui tap '=Koreyscha' &&
-    step 'A02-2: district row' ui scrollto '=Tuman' &&
-    step 'A02-2: district list' ui tapbelow '=Tuman' '=Tanlang' &&
+    step 'A02-2: region row' ui scrollto '=Shahar yoki viloyat' &&
+    step 'A02-2: region list' ui tapbelow '=Shahar yoki viloyat' '=Tanlang' &&
     step 'A02-2: search' ui field 0 Mapo &&
     step 'A02-2: Mapo-gu' ui tap 'Mapo-gu, Seul' &&
     ui hidekb &&
@@ -243,12 +244,12 @@ shared() {
 walk_employer() {
   local apk=$apks/demo-employer-$1.apk pkg=uz.hanguk.ish.biz name=walk-employer
   launch "$apk" "$pkg" "$name" || return
-  # The app opens in the phone's language (P43, English here); the walk reads
-  # Korean, so it switches first. P54: the phone and an SMS code; P50: no
+  # The first launch asks the language; the walk reads Korean. P54: the phone and an SMS code; P50: no
   # business number.
-  step 'BA0 opens' ui wait 'Get started' 90 &&
-    step 'BA0: language' ui tap 'Language' &&
-    step 'BA0: Korean' ui tap '=한국어' &&
+  step 'first launch: the language' ui wait 'Language' 90 &&
+    step 'Korean' ui tap '=한국어' &&
+    # The button reads in the language just picked (다음) or still in English.
+    { ui tapif '=다음' 5; ui tapif '=Continue' 5; } &&
     step 'BA0 in Korean' ui wait '시작하기' &&
     step 'BA0: phone' ui field 0 01012345678 &&
     ui hidekb &&
