@@ -1498,7 +1498,7 @@
       }
     }
   },
-  "offerNote": "Xodim izohi: {note}",
+  "offerNote": "Izoh: {note}",
   "@offerNote": {
     "description": "A12 va A05: xodim taklifga yozgan izoh.",
     "placeholders": {
@@ -1507,7 +1507,7 @@
       }
     }
   },
-  "offerBannerText": "Hanguk xodimi bu ishni siz uchun tanladi. Smenani olsangiz, ish beruvchi bilan kelishib tasdiqlaymiz.",
+  "offerBannerText": "Bu ish siz uchun tanlandi. Smenani olsangiz, ish beruvchi bilan kelishib tasdiqlaymiz.",
   "@offerBannerText": {
     "description": "A05: taklif qilingan ish banneri."
   },
@@ -2926,7 +2926,7 @@
   "@monthlyInterestSent": {
     "description": "Oylik ish: qiziqish bildirildi."
   },
-  "monthlyInterestNote": "Hanguk xodimi siz bilan bog'lanadi.",
+  "monthlyInterestNote": "Tez orada siz bilan bog'lanamiz.",
   "@monthlyInterestNote": {
     "description": "Oylik ish: xodim bog'lanadi."
   },
@@ -3009,7 +3009,7 @@
   "@coinsRule": {
     "description": "Profil: puyl qoidasi."
   },
-  "coinsHowToGet": "Puylni Hanguk xodimlari qo'shadi; ilovada karta bilan to'ldirish tez orada.",
+  "coinsHowToGet": "Ilovada karta bilan to'ldirish tez orada qo'shiladi.",
   "@coinsHowToGet": {
     "description": "A11: coin qanday olinadi."
   },
@@ -3021,11 +3021,11 @@
   "@coinsNoHistory": {
     "description": "A11: coin tarixi bo'sh."
   },
-  "coinStaffAdded": "Hanguk xodimi qo'shdi",
+  "coinStaffAdded": "Qo'shildi",
   "@coinStaffAdded": {
     "description": "Coin tarixi: xodim qo'shdi."
   },
-  "coinStaffTaken": "Hanguk xodimi oldi",
+  "coinStaffTaken": "Ayirildi",
   "@coinStaffTaken": {
     "description": "Coin tarixi: xodim oldi."
   },
@@ -3170,7 +3170,7 @@
   "@offersEmptyTitle": {
     "description": "Bo'sh holat."
   },
-  "offersEmptyText": "Hanguk xodimi siz uchun ish topganda shu yerda chiqadi va push keladi. «Qachon ishlay olaman» jadvalini to'ldirib qo'ying.",
+  "offersEmptyText": "Siz uchun ish topilganda shu yerda chiqadi va push keladi. «Qachon ishlay olaman» jadvalini to'ldirib qo'ying.",
   "@offersEmptyText": {
     "description": "Bo'sh holat matni."
   },
@@ -3381,7 +3381,7 @@
   "@topUpSoonTitle": {
     "description": "To'ldirish oynasi sarlavhasi."
   },
-  "topUpSoonText": "Ilovada karta bilan to'ldirish tez orada qo'shiladi. Hozircha puylni Hanguk xodimlari qo'shadi — ularga Telegram orqali yozing.",
+  "topUpSoonText": "Ilovada karta bilan to'ldirish tez orada qo'shiladi.",
   "@topUpSoonText": {
     "description": "To'ldirish oynasi matni."
   },

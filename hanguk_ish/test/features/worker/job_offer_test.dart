@@ -60,9 +60,9 @@ void main() {
     final text = tester
         .widgetList<Text>(find.byType(Text))
         .map((t) => plain(t.data ?? ''))
-        .singleWhere((t) => t.startsWith('Sangam Logistika · ') && t.contains('Xodim izohi'));
+        .singleWhere((t) => t.startsWith('Sangam Logistika · ') && t.contains('Izoh: '));
     expect(text, contains('09:00–14:00 · 12 000 ₩/soat'));
-    expect(text, endsWith('\nXodim izohi: $demoOfferNote'));
+    expect(text, endsWith('\nIzoh: $demoOfferNote'));
 
     // «Ko'rish» opens «Ishlar», where the personal offers and their timers are.
     await tester.tap(find.text("Ko'rish").first);
