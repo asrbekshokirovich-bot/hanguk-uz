@@ -1498,7 +1498,7 @@
       }
     }
   },
-  "offerNote": "Izoh: {note}",
+  "offerNote": "Xodim izohi: {note}",
   "@offerNote": {
     "description": "A12 va A05: xodim taklifga yozgan izoh.",
     "placeholders": {
@@ -1507,7 +1507,7 @@
       }
     }
   },
-  "offerBannerText": "Bu ish siz uchun tanlandi. Smenani olsangiz, ish beruvchi bilan kelishib tasdiqlaymiz.",
+  "offerBannerText": "Xodim bu ishni siz uchun tanladi. Smenani olsangiz, ish beruvchi bilan kelishib tasdiqlaymiz.",
   "@offerBannerText": {
     "description": "A05: taklif qilingan ish banneri."
   },
@@ -2572,7 +2572,7 @@
   "@bizReviewSuspendedTitle": {
     "description": "사장님 ilovasi (P52): BA1 — Hanguk xodimi biznesni to'xtatgan (biznes raqamisiz)"
   },
-  "bizReviewSuspendedText": "Hanguk bu biznesni to'xtatgan — smenalar ishchilarga ko'rinmaydi.",
+  "bizReviewSuspendedText": "Bu biznes to'xtatilgan — smenalar ishchilarga ko'rinmaydi.",
   "@bizReviewSuspendedText": {
     "description": "사장님 ilovasi (P52): BA1 — to'xtatilgan biznes izohi"
   },
@@ -2926,7 +2926,7 @@
   "@monthlyInterestSent": {
     "description": "Oylik ish: qiziqish bildirildi."
   },
-  "monthlyInterestNote": "Tez orada siz bilan bog'lanamiz.",
+  "monthlyInterestNote": "Xodim siz bilan bog'lanadi.",
   "@monthlyInterestNote": {
     "description": "Oylik ish: xodim bog'lanadi."
   },
@@ -3009,7 +3009,7 @@
   "@coinsRule": {
     "description": "Profil: puyl qoidasi."
   },
-  "coinsHowToGet": "Ilovada karta bilan to'ldirish tez orada qo'shiladi.",
+  "coinsHowToGet": "Puylni xodimlar qo'shadi; ilovada karta bilan to'ldirish tez orada.",
   "@coinsHowToGet": {
     "description": "A11: coin qanday olinadi."
   },
@@ -3021,11 +3021,11 @@
   "@coinsNoHistory": {
     "description": "A11: coin tarixi bo'sh."
   },
-  "coinStaffAdded": "Qo'shildi",
+  "coinStaffAdded": "Xodim qo'shdi",
   "@coinStaffAdded": {
     "description": "Coin tarixi: xodim qo'shdi."
   },
-  "coinStaffTaken": "Ayirildi",
+  "coinStaffTaken": "Xodim oldi",
   "@coinStaffTaken": {
     "description": "Coin tarixi: xodim oldi."
   },
@@ -3170,7 +3170,7 @@
   "@offersEmptyTitle": {
     "description": "Bo'sh holat."
   },
-  "offersEmptyText": "Siz uchun ish topilganda shu yerda chiqadi va push keladi. «Qachon ishlay olaman» jadvalini to'ldirib qo'ying.",
+  "offersEmptyText": "Xodim siz uchun ish topganda shu yerda chiqadi va push keladi. «Qachon ishlay olaman» jadvalini to'ldirib qo'ying.",
   "@offersEmptyText": {
     "description": "Bo'sh holat matni."
   },
@@ -3381,7 +3381,7 @@
   "@topUpSoonTitle": {
     "description": "To'ldirish oynasi sarlavhasi."
   },
-  "topUpSoonText": "Ilovada karta bilan to'ldirish tez orada qo'shiladi.",
+  "topUpSoonText": "Ilovada karta bilan to'ldirish tez orada qo'shiladi. Hozircha puylni xodimlar qo'shadi — ularga Telegram orqali yozing.",
   "@topUpSoonText": {
     "description": "To'ldirish oynasi matni."
   },
