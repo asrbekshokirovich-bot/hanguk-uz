@@ -95,7 +95,10 @@ void main() {
 
     // A02 3/3
     expect(find.text('Profil · 3 / 3'), findsOneWidget);
-    await tester.tap(find.bySemanticsLabel('Shanba, Ertalab'));
+    // Two parts of the day, no hours.
+    expect(find.text('Ertalab'), findsNothing);
+    expect(find.text('13–18'), findsNothing);
+    await tester.tap(find.bySemanticsLabel('Shanba, Kunduzi'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Saqlash va boshlash'));
     await tester.tap(find.text('Saqlash va boshlash'));
@@ -114,8 +117,8 @@ void main() {
     expect(saved.languages, {'uz', 'ko'});
     expect(saved.topik, 0, reason: 'set later on A11, not at sign-up');
     expect(saved.district, 'mapo');
-    expect(saved.isAvailable(5, 0), isTrue);
-    expect(saved.availability, WorkerProfileDraft.bit(5, 0));
+    expect(saved.isAvailable(5, 1), isTrue);
+    expect(saved.availability, WorkerProfileDraft.bit(5, 1));
     expect(find.text('Profil · 3 / 3'), findsNothing, reason: 'moved on to the home screen');
   });
 

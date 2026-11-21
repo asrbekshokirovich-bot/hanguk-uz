@@ -786,7 +786,7 @@ void main() {
     await _tap(tester, find.widgetWithText(HiButton, 'Davom etish'));
     await _until(tester, _text('Profil · 3 / 3'));
     await _settle(tester);
-    await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
+    await _tap(tester, find.bySemanticsLabel('Shanba, Kunduzi'));
     await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
     // After the profile: the location question, then «Ishlar».
     await _until(tester, _text('Joylashuvingizni yoqing'));
@@ -805,7 +805,7 @@ void main() {
     expect(saved.languages, containsAll(['uz', 'ko']));
     expect(saved.topik, 0, reason: 'not asked at sign-up (A11 sets it)');
     expect(saved.district, 'mapo');
-    expect(saved.availability, WorkerProfileDraft.bit(5, 0), reason: 'Saturday morning only');
+    expect(saved.availability, WorkerProfileDraft.bit(5, 1), reason: 'Saturday daytime only');
     await _close(tester);
   });
 

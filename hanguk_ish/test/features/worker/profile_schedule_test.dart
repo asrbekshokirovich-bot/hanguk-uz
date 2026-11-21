@@ -26,12 +26,13 @@ void main() {
     final grid = tester.getTopLeft(find.text('Qachon ishlay olaman')).dy;
     final coins = tester.getTopLeft(find.text('Puyl balansi')).dy;
     expect(grid, greaterThan(coins), reason: 'under the puyl');
-    // The prototype profile: 12 of the 21 cells.
-    expect(find.text('Haftasiga 12 ta vaqt'), findsOneWidget);
-    for (final row in ['Ertalab', 'Kunduzi', 'Kechqurun']) {
+    // The prototype profile: 10 of the 14 cells (its mornings are not shown).
+    expect(find.text('Haftasiga 10 ta vaqt'), findsOneWidget);
+    for (final row in ['Kunduzi', 'Kechqurun']) {
       expect(find.text(row), findsOneWidget, reason: row);
     }
-    expect(find.text('Tunda'), findsNothing, reason: 'three parts of the day');
+    expect(find.text('Ertalab'), findsNothing, reason: 'two parts of the day');
+    expect(find.text('18–23'), findsNothing, reason: 'no hours');
 
     final before = container.read(workerProfileDraftProvider).isAvailable(6, 2);
     await tester.ensureVisible(find.text('Har kuni kechqurun'));

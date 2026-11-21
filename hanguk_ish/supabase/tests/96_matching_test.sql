@@ -8,12 +8,12 @@ update ish.worker_profiles set lat = 37.4979, lng = 127.0276 where user_id = '00
 -- (Before they had a position the fixtures' shifts told them by district.)
 delete from ish.notifications where kind = 'new_shift_match';
 
--- The availability bit (Profil grid): Ertalab 08–13 (and earlier) 0, Kunduzi
--- 13–18 1, Kechqurun 18–23 2; Sunday evening is 26.
-select tests.eq(ish.availability_bit('2026-11-16 07:00+09'), 0, 'Monday morning');
+-- The availability bit (Profil grid): Kunduzi (before 18:00) 1, Kechqurun 2;
+-- Sunday evening is 26.
+select tests.eq(ish.availability_bit('2026-11-16 07:00+09'), 1, 'Monday morning is the day');
 select tests.eq(ish.availability_bit('2026-11-16 13:00+09'), 1, 'Monday afternoon');
 select tests.eq(ish.availability_bit('2026-11-16 23:59+09'), 2, 'Monday evening');
-select tests.eq(ish.availability_bit('2026-11-17 01:00+09'), 4, 'Tuesday 01:00 counts as the morning');
+select tests.eq(ish.availability_bit('2026-11-17 01:00+09'), 5, 'Tuesday 01:00 counts as the day');
 select tests.eq(ish.availability_bit('2026-11-22 20:00+09'), 26, 'Sunday evening');
 
 -- The owner posts a shift for tomorrow.

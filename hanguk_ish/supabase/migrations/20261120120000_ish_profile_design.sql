@@ -1,11 +1,12 @@
 -- Hanguk Ish — the worker's Profil in the «10 qadam» design (2026-11-20).
 --
--- «Qachon ishlay olaman» has three parts of the day: Ertalab 08–13, Kunduzi
--- 13–18, Kechqurun 18–23 (bits day*4 + 0..2; bit 3 is no longer used — a job
--- before 08:00 counts as the morning). The edit page adds the home address
--- and how far the worker will go (1, 3, 5 or 10 km). «Ishonch bali» shows
--- how many jobs they went to, how often on time, the employers' stars and
--- the no-shows (`my_trust`).
+-- «Qachon ishlay olaman» has two parts of the day: Kunduzi (a job starting
+-- before 18:00) and Kechqurun (from 18:00): bits day*4 + 1 and day*4 + 2.
+-- Bits 0 (morning) and 3 (night) are no longer used; a worker who had the
+-- morning keeps the day. The edit page adds the home address and how far
+-- the worker will go (1, 3, 5 or 10 km). «Ishonch bali» shows how many jobs
+-- they went to, how often on time, the employers' stars and the no-shows
+-- (`my_trust`).
 
 -- The part of the day a job starts in, as the worker's grid has it.
 create or replace function ish.availability_bit(p_at timestamptz)
@@ -14,12 +15,13 @@ language sql
 immutable
 as $$
   select ((extract(isodow from p_at at time zone 'Asia/Seoul')::int - 1) * 4
-         + case
-             when extract(hour from p_at at time zone 'Asia/Seoul') >= 18 then 2
-             when extract(hour from p_at at time zone 'Asia/Seoul') >= 13 then 1
-             else 0
-           end)
+         + case when extract(hour from p_at at time zone 'Asia/Seoul') >= 18 then 2 else 1 end)
 $$;
+
+-- A morning becomes the day; the morning and night bits go.
+update ish.worker_profiles
+set availability = (availability | ((availability & 17895697) << 1)) & 107374182
+where availability <> 0;
 
 alter table ish.worker_profiles
   add column home_address text check (char_length(home_address) <= 200),

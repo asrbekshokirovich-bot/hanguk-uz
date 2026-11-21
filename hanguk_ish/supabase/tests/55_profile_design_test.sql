@@ -1,12 +1,11 @@
 -- The Profil of the «10 qadam» design: three parts of the day, the home
 -- address and distance, «Ishonch bali».
 
--- Ertalab 08–13, Kunduzi 13–18, Kechqurun 18–23 (Seoul); earlier is morning.
-select tests.eq(ish.availability_bit('2026-11-16 07:30+09'), 0, 'Monday 07:30: morning');
-select tests.eq(ish.availability_bit('2026-11-16 12:59+09'), 0, 'Monday 12:59: morning');
-select tests.eq(ish.availability_bit('2026-11-16 13:00+09'), 1, 'Monday 13:00: afternoon');
-select tests.eq(ish.availability_bit('2026-11-16 18:00+09'), 2, 'Monday 18:00: evening');
-select tests.eq(ish.availability_bit('2026-11-22 20:00+09'), 6 * 4 + 2, 'Sunday 20:00: evening');
+-- Kunduzi: a job starting before 18:00 (Seoul); Kechqurun: from 18:00.
+select tests.eq(ish.availability_bit('2026-11-16 07:30+09'), 1, 'Monday 07:30: the day');
+select tests.eq(ish.availability_bit('2026-11-16 17:59+09'), 1, 'Monday 17:59: the day');
+select tests.eq(ish.availability_bit('2026-11-16 18:00+09'), 2, 'Monday 18:00: the evening');
+select tests.eq(ish.availability_bit('2026-11-22 20:00+09'), 6 * 4 + 2, 'Sunday 20:00: the evening');
 
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq((ish.my_profile() -> 'worker' ->> 'max_km')::int, 5, 'five km at first');

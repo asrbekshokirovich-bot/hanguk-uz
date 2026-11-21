@@ -41,8 +41,9 @@ class WorkerProfileDraft {
   /// Code from `seoulDistricts` or typed text.
   final String? district;
 
-  /// Bit `day * 4 + slot` (day 0 = Monday; slot 0 Ertalab 08–13, 1 Kunduzi
-  /// 13–18, 2 Kechqurun 18–23; 3 is no longer used), the database's mask.
+  /// Bit `day * 4 + slot` (day 0 = Monday; slot 1 Kunduzi — a job starting
+  /// before 18:00, 2 Kechqurun — from 18:00; 0 and 3 are no longer used), the
+  /// database's mask.
   final int availability;
 
   /// 'D-2', 'D-4', 'other' or null (not given — optional).

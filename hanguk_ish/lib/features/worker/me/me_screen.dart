@@ -84,15 +84,15 @@ int _mask({required List<int> days, required List<int> slots}) {
   return mask;
 }
 
-/// The three parts of the day of «Qachon ishlay olaman».
-const scheduleSlots = 3;
-const scheduleRanges = ['08–13', '13–18', '18–23'];
+/// The parts of the day of «Qachon ishlay olaman»: Kunduzi and Kechqurun
+/// (the bits 1 and 2 of each day).
+const scheduleSlots = [1, 2];
 
-/// How many of the 21 cells are on.
+/// How many of the 14 cells are on.
 int scheduleCount(int availability) {
   var n = 0;
   for (var d = 0; d < 7; d++) {
-    for (var s = 0; s < scheduleSlots; s++) {
+    for (final s in scheduleSlots) {
       if (availability & WorkerProfileDraft.bit(d, s) != 0) n++;
     }
   }
@@ -134,7 +134,7 @@ mixin _SavesSoon<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 }
 
-/// «Qachon ishlay olaman»: days across, Ertalab / Kunduzi / Kechqurun down;
+/// «Qachon ishlay olaman»: days across, Kunduzi / Kechqurun down;
 /// a tap turns a cell on or off; three presets under it.
 class _ScheduleSection extends ConsumerStatefulWidget {
   const _ScheduleSection();
@@ -164,18 +164,18 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
       l10n.dayShortFri, l10n.dayShortSat, l10n.dayShortSun,
     ];
     final dayNames = [l10n.dayMon, l10n.dayTue, l10n.dayWed, l10n.dayThu, l10n.dayFri, l10n.daySat, l10n.daySun];
-    final slots = [l10n.slotMorning, l10n.slotDay, l10n.slotEvening];
-    // On cells only count the three parts shown (an old night bit is not one).
-    final shown = draft.availability & _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [0, 1, 2]);
+    final slots = {1: l10n.slotDay, 2: l10n.slotEvening};
+    // Only the two parts shown count (an old morning or night bit is not one).
+    final shown = draft.availability & _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: scheduleSlots);
     final presets = [
-      (l10n.presetWeekends, _mask(days: const [5, 6], slots: const [0, 1, 2])),
+      (l10n.presetWeekends, _mask(days: const [5, 6], slots: scheduleSlots)),
       (l10n.presetEvenings, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [2])),
-      (l10n.presetAll, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: const [0, 1, 2])),
+      (l10n.presetAll, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: scheduleSlots)),
     ];
     Widget cell(int d, int s) => HiPressable(
           onTap: () => _toggle(d, s),
           selected: draft.isAvailable(d, s),
-          semanticsLabel: '${dayNames[d]}, ${slots[s]}',
+          semanticsLabel: '${dayNames[d]}, ${slots[s]!}',
           // The whole column is the target (40 px and more); the square inside.
           builder: (context, pressed) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
@@ -197,14 +197,7 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HiText(slots[s], maxLines: 1, style: hiStyle(12, FontWeight.w800)),
-                HiText(scheduleRanges[s],
-                    style: hiStyle(10, FontWeight.w600, color: HiColors.textMuted, family: HiFamily.mono)),
-              ],
-            ),
+            child: HiText(slots[s]!, maxLines: 1, style: hiStyle(12, FontWeight.w800)),
           ),
         );
     return Container(
@@ -245,7 +238,7 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
             HiText(l10n.scheduleHint, style: hiStyle(13, FontWeight.w500, height: 1.4, color: HiColors.textMuted)),
             const SizedBox(height: 12),
             dayRow,
-            for (var s = 0; s < scheduleSlots; s++) ...[
+            for (final s in scheduleSlots) ...[
               if (!side) ...[const SizedBox(height: 6), label(s, box.maxWidth)],
               Row(
                 children: [

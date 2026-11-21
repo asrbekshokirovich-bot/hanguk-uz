@@ -541,7 +541,7 @@ class HiScheduleGrid extends StatelessWidget {
     required this.dayLabels,
     required this.dayNames,
     required this.slotLabels,
-    required this.slotRanges,
+    this.slotRanges = const [],
     required this.isOn,
     required this.onToggle,
   });
@@ -552,6 +552,7 @@ class HiScheduleGrid extends StatelessWidget {
   /// Full day names for screen readers.
   final List<String> dayNames;
   final List<String> slotLabels;
+  /// Under each part of the day; none when empty.
   final List<String> slotRanges;
   final bool Function(int day, int slot) isOn;
   final void Function(int day, int slot) onToggle;
@@ -578,7 +579,7 @@ class HiScheduleGrid extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 HiText(slotLabels[s], style: header, maxLines: 1, softWrap: false),
-                HiText(slotRanges[s], style: range, maxLines: 1, softWrap: false),
+                if (s < slotRanges.length) HiText(slotRanges[s], style: range, maxLines: 1, softWrap: false),
               ],
             ),
         ]),
