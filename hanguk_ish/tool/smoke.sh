@@ -201,10 +201,11 @@ walk_worker() {
     ui tapif 'While using the app' 5 &&
     step 'Ishlar: an offer and its timer' ui wait 'Shaxsiy taklif' 30 &&
     shot ishlar &&
-    step 'Ishlar: open the phone and address' ui tap 'Telefon va manzilni ochish' 30 &&
+    # The card reads as one node (its words); the button is a node of its own.
+    step 'Ishlar: open the phone and address' ui tap '=Telefon va manzilni ochish · 10 P' 30 &&
     step 'the sheet' ui wait 'Ish sizga biriktiriladi' 15 &&
     shot unlock-sheet &&
-    step 'open with puyl' ui tap 'puyl bilan ochish' &&
+    step 'open with puyl' ui tap '=10 puyl bilan ochish' &&
     step 'opened' ui wait 'Ochilgan' 15 &&
     shot ishlar-opened &&
     step 'Mening ishlarim' ui tap '=Mening ishlarim' &&
