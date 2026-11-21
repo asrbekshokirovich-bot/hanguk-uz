@@ -110,6 +110,18 @@ class DemoAccountRepository implements WorkerAccountRepository {
   @override
   Future<WorkerStats> stats() async => ishTestLogin ? freshStats : demoStats;
 
+  @override
+  Future<WorkerTrust> trust() async => ishTestLogin
+      ? const WorkerTrust(reliability: 100, went: 0, noShows: 0)
+      : WorkerTrust(
+          reliability: demoStats.reliability,
+          went: demoStats.completedShifts,
+          onTimePercent: 100,
+          rating: demoStats.ratingAverage,
+          ratingCount: demoStats.ratingCount,
+          noShows: 0,
+        );
+
   /// The demo's puyl: 100 from Hanguk's staff (demo data, no backend).
   CoinWallet wallet = CoinWallet(
     balance: 100,

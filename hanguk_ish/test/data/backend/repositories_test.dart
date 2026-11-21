@@ -299,6 +299,7 @@ void main() {
       final backend = FakeBackend((r) => switch (rpcName(r)) {
             'save_worker_profile' => samples['my_profile_worker'],
             'my_profile' => samples['my_profile_worker'],
+            'save_worker_place' => http.Response('', 204),
             _ => null,
           });
       await backend.signIn();
@@ -331,6 +332,8 @@ void main() {
         'p_visa': 'D-2',
         'p_avatar_path': '$me/avatar-1.jpg',
       });
+      // The home address and the distance (Profilni o'zgartirish).
+      expect(backend.params('save_worker_place'), {'p_home_address': '', 'p_max_km': 5});
       await repo.save(draft.copyWith(photoPath: 'https://ish.test/storage/v1/object/public/ish-avatars/$me/avatar-1.jpg'));
       expect(uploaded, hasLength(1));
       expect(backend.params('save_worker_profile')['p_avatar_path'], isNull);

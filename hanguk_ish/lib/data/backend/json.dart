@@ -289,6 +289,9 @@ WorkerProfileDraft? workerProfileFromJson(Json? json, {PublicUrl publicUrl = _no
     district: _strOrNull(worker['district']),
     availability: _int(worker['availability']),
     visa: _strOrNull(worker['visa']),
+    phone: _strOrNull(json['phone']),
+    homeAddress: _strOrNull(worker['home_address']),
+    maxKm: _int(worker['max_km'], 5),
   );
 }
 
@@ -539,3 +542,13 @@ OpenedJob openedJobFromJson(Json json) {
     distanceKm: _double(json['distance_km']),
   );
 }
+
+/// `my_trust` → [WorkerTrust].
+WorkerTrust workerTrustFromJson(Json json) => WorkerTrust(
+      reliability: _int(json['reliability'], 100),
+      went: _int(json['went']),
+      onTimePercent: _intOrNull(json['on_time']),
+      rating: _double(json['rating']),
+      ratingCount: _int(json['ratings']),
+      noShows: _int(json['no_shows']),
+    );

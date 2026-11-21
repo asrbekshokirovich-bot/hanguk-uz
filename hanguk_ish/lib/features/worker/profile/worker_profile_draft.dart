@@ -17,6 +17,9 @@ class WorkerProfileDraft {
     this.district,
     this.availability = 0,
     this.visa,
+    this.phone,
+    this.homeAddress,
+    this.maxKm = 5,
   });
 
   final String firstName;
@@ -38,12 +41,24 @@ class WorkerProfileDraft {
   /// Code from `seoulDistricts` or typed text.
   final String? district;
 
-  /// Bit `day * 4 + slot` (day 0 = Monday, slot 0 = 06–12 … 3 = 00–06),
-  /// the same mask the database stores.
+  /// Bit `day * 4 + slot` (day 0 = Monday; slot 1 Kunduzi — a job starting
+  /// before 18:00, 2 Kechqurun — from 18:00; 0 and 3 are no longer used), the
+  /// database's mask.
   final int availability;
 
   /// 'D-2', 'D-4', 'other' or null (not given — optional).
   final String? visa;
+
+  /// The account's phone (+82…), as signed in; not edited here.
+  final String? phone;
+
+  /// «Uy manzili» (Profilni o'zgartirish); null when not given.
+  final String? homeAddress;
+
+  /// «Qancha uzoqqa bora olaman»: 1, 3, 5 or 10 km.
+  final int maxKm;
+
+  static const distances = [1, 3, 5, 10];
 
   static const languageCodes = ['uz', 'ru', 'en', 'ko', 'kk', 'ky', 'tg'];
   static const visas = ['D-2', 'D-4', 'other'];
@@ -67,6 +82,9 @@ class WorkerProfileDraft {
     int? availability,
     String? visa,
     bool clearVisa = false,
+    String? phone,
+    String? homeAddress,
+    int? maxKm,
   }) {
     return WorkerProfileDraft(
       firstName: firstName ?? this.firstName,
@@ -78,6 +96,9 @@ class WorkerProfileDraft {
       district: district ?? this.district,
       availability: availability ?? this.availability,
       visa: clearVisa ? null : (visa ?? this.visa),
+      phone: phone ?? this.phone,
+      homeAddress: homeAddress ?? this.homeAddress,
+      maxKm: maxKm ?? this.maxKm,
     );
   }
 }
@@ -120,6 +141,20 @@ class WorkerProfileDraftController extends Notifier<WorkerProfileDraft> {
 
   /// A whole week at once (the «Qachon ishlay olaman» presets).
   void setAvailability(int mask) => state = state.copyWith(availability: mask);
+
+  /// «Profilni o'zgartirish» → «Saqlash».
+  void setEdited({
+    required String firstName,
+    required String lastName,
+    required String homeAddress,
+    required int maxKm,
+  }) =>
+      state = state.copyWith(
+        firstName: firstName,
+        lastName: lastName,
+        homeAddress: homeAddress,
+        maxKm: maxKm,
+      );
 }
 
 /// The image of a [WorkerProfileDraft.photoPath]: the saved photo from the

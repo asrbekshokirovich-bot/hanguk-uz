@@ -198,11 +198,11 @@
   "@dayShortTue": {
     "description": "Qisqa kun."
   },
-  "dayShortWed": "Ch",
+  "dayShortWed": "Chor",
   "@dayShortWed": {
     "description": "Qisqa kun."
   },
-  "dayShortThu": "Pa",
+  "dayShortThu": "Pay",
   "@dayShortThu": {
     "description": "Qisqa kun."
   },
@@ -210,11 +210,11 @@
   "@dayShortFri": {
     "description": "Qisqa kun."
   },
-  "dayShortSat": "Sh",
+  "dayShortSat": "Shan",
   "@dayShortSat": {
     "description": "Qisqa kun."
   },
-  "dayShortSun": "Ya",
+  "dayShortSun": "Yak",
   "@dayShortSun": {
     "description": "Qisqa kun."
   },
@@ -3323,5 +3323,138 @@
   "jobRateEmployer": "Ish beruvchini baholang",
   "@jobRateEmployer": {
     "description": "Mening ishlarim: ish beruvchiga baho."
+  },
+  "profileEditTitle": "Profilni o'zgartirish",
+  "@profileEditTitle": {
+    "description": "Profil: tahrirlash sarlavhasi va tugmasi."
+  },
+  "photoPut": "Rasm qo'yish",
+  "@photoPut": {
+    "description": "Tahrirlash: rasm."
+  },
+  "fieldFullName": "Ism familiya",
+  "@fieldFullName": {
+    "description": "Tahrirlash: ism familiya."
+  },
+  "fieldPhone": "Telefon raqam",
+  "@fieldPhone": {
+    "description": "Tahrirlash: telefon."
+  },
+  "fieldArea": "Hudud",
+  "@fieldArea": {
+    "description": "Tahrirlash: hudud."
+  },
+  "fieldHomeAddress": "Uy manzili",
+  "@fieldHomeAddress": {
+    "description": "Uy manzili."
+  },
+  "fieldMaxKm": "Qancha uzoqqa bora olaman",
+  "@fieldMaxKm": {
+    "description": "Masofa."
+  },
+  "kmValue": "{n} km",
+  "@kmValue": {
+    "description": "Masofa qiymati.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "profileSave": "Saqlash",
+  "@profileSave": {
+    "description": "Tahrirlash: saqlash."
+  },
+  "profileSaved": "Saqlandi",
+  "@profileSaved": {
+    "description": "Saqlandi xabari."
+  },
+  "nameRequired": "Ism va familiyani yozing",
+  "@nameRequired": {
+    "description": "Ism bo'sh."
+  },
+  "topUp": "+ To'ldirish",
+  "@topUp": {
+    "description": "Puyl to'ldirish tugmasi."
+  },
+  "topUpSoonTitle": "Puylni to'ldirish",
+  "@topUpSoonTitle": {
+    "description": "To'ldirish oynasi sarlavhasi."
+  },
+  "topUpSoonText": "Ilovada karta bilan to'ldirish tez orada qo'shiladi. Hozircha puylni Hanguk xodimlari qo'shadi — ularga Telegram orqali yozing.",
+  "@topUpSoonText": {
+    "description": "To'ldirish oynasi matni."
+  },
+  "scheduleTitle": "Qachon ishlay olaman",
+  "@scheduleTitle": {
+    "description": "Profil: jadval sarlavhasi."
+  },
+  "scheduleCount": "Haftasiga {n} ta vaqt",
+  "@scheduleCount": {
+    "description": "Jadval: tanlangan kataklar.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleHint": "Katakni bosing. Biz faqat shu vaqtlarga mos ish qidiramiz.",
+  "@scheduleHint": {
+    "description": "Jadval izohi."
+  },
+  "trustTitle": "Ishonch bali",
+  "@trustTitle": {
+    "description": "Ishonch bali sarlavhasi."
+  },
+  "trustNextPerk": "{n} ball qoldi — keyingi darajada yangi ishlarni oldinroq ko'rasiz",
+  "@trustNextPerk": {
+    "description": "Keyingi darajagacha.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trustGoldPerk": "Yangi ishlarni hammadan 30 daqiqa oldin ko'rasiz",
+  "@trustGoldPerk": {
+    "description": "Oltin daraja imtiyozi."
+  },
+  "trustWent": "Ishga chiqdi",
+  "@trustWent": {
+    "description": "Ishonch: ishga chiqdi."
+  },
+  "trustWentValue": "{n} ta",
+  "@trustWentValue": {
+    "description": "Ishga chiqdi soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "trustOnTime": "Vaqtida keldi",
+  "@trustOnTime": {
+    "description": "Ishonch: vaqtida."
+  },
+  "trustRating": "Ish beruvchi bahosi",
+  "@trustRating": {
+    "description": "Ishonch: baho."
+  },
+  "trustNoShows": "Kelmay qoldi",
+  "@trustNoShows": {
+    "description": "Ishonch: kelmay qoldi."
+  },
+  "trustNoShowsValue": "{n} marta",
+  "@trustNoShowsValue": {
+    "description": "Kelmay qoldi soni.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "coinHistoryRow": "Puyl tarixi",
+  "@coinHistoryRow": {
+    "description": "Sozlamalar: puyl tarixi."
   }
 }

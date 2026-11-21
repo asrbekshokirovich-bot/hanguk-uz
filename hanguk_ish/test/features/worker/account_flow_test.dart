@@ -93,7 +93,7 @@ void main() {
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, hasLength(2000));
   });
 
-  testWidgets('profile: data, app language, report, help', (tester) async {
+  testWidgets('profile: data, puyl, trust, edit, app language, report, help', (tester) async {
     usePhone(tester);
     final account = DemoAccountRepository(now: prototypeNow);
     final container = appContainer(location: WorkerRoutes.me, account: account);
@@ -101,30 +101,63 @@ void main() {
     await tester.pumpWidget(appHarness(container));
     await tester.pumpAndSettle();
 
-    expect(find.text('Aziz Karimov'), findsOneWidget);
+    expect(find.text('Aziz K.'), findsOneWidget);
     expect(find.text('AK'), findsOneWidget);
     expect(find.text('Mapo-gu'), findsOneWidget);
-    expect(find.text('98'), findsOneWidget);
-    expect(find.text('24'), findsOneWidget);
-    expect(find.text('Baholar · 21 ta'), findsOneWidget);
-    expect(find.text('4,9'), findsOneWidget);
-    // The free-time grid comes before the languages: scroll down to them.
-    await tester.scrollUntilVisible(find.text("O'zbekcha · ona tili"), 300);
-    expect(find.text("O'zbekcha · ona tili"), findsOneWidget);
-    expect(find.text('Koreyscha · TOPIK 4'), findsOneWidget);
+    expect(find.text('Puyl balansi'), findsOneWidget);
+    expect(find.text('100'), findsOneWidget);
+    expect(find.text("+ To'ldirish"), findsOneWidget);
 
-    // The Korean level (not asked at sign-up) is changed here.
-    await tester.scrollUntilVisible(find.text('Koreys tili darajasi (TOPIK)'), 300);
-    expect(find.text('TOPIK 4'), findsOneWidget);
-    await tester.tap(find.text('Koreys tili darajasi (TOPIK)'));
+    // «Ishonch bali»: 98 is gold; the rows.
+    await tester.scrollUntilVisible(find.text('Kelmay qoldi'), 300);
+    await tester.ensureVisible(find.text('Kelmay qoldi'));
+    await tester.pumpAndSettle();
+    expect(find.text('98'), findsOneWidget);
+    expect(find.text('Oltin daraja'), findsOneWidget);
+    expect(find.text("Yangi ishlarni hammadan 30 daqiqa oldin ko'rasiz"), findsOneWidget);
+    expect(find.text('24 ta'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
+    expect(find.text('4,9 ★'), findsOneWidget);
+    expect(find.text('0 marta'), findsOneWidget);
+
+    // «Profilni o'zgartirish»: the name, the home address, 3 km, TOPIK 5.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel("Profilni o'zgartirish"));
+    await tester.pumpAndSettle();
+    expect(find.text('Ism familiya'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Aziz Karimov');
+    await tester.enterText(find.byType(TextField).at(1), '마포구 신촌로 22');
+    await tester.tap(find.text('3 km'));
+    await tester.pumpAndSettle();
+    // The edit page's list (the profile's stays underneath).
+    await tester.scrollUntilVisible(find.text('TOPIK 4'), 300, scrollable: find.byType(Scrollable).last);
+    await tester.ensureVisible(find.text('TOPIK 4'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TOPIK 4'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('TOPIK 5'));
     await tester.pumpAndSettle();
-    expect(find.text('Koreyscha · TOPIK 5'), findsOneWidget);
-    expect(container.read(workerProfileDraftProvider).topik, 5);
+    await tester.tap(find.text('Saqlash'));
+    await tester.pumpAndSettle();
+    final draft = container.read(workerProfileDraftProvider);
+    expect(draft.topik, 5);
+    expect(draft.maxKm, 3);
+    expect(draft.homeAddress, '마포구 신촌로 22');
+    expect(find.text('Saqlandi'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
 
-    // Report.
-    await tester.scrollUntilVisible(find.text('Shikoyat qilish'), 300);
+    // Help → report.
+    await tester.scrollUntilVisible(find.text('Yordam'), 300);
+    await tester.ensureVisible(find.text('Yordam'));
+    await tester.pumpAndSettle();
+    expect(find.text('3 km ›'), findsOneWidget);
+    expect(find.text('마포구 신촌로 22 ›'), findsOneWidget);
+    await tester.tap(find.text('Yordam'));
+    await tester.pumpAndSettle();
+    expect(find.text("Maoshni kim to'laydi?"), findsOneWidget);
+    await tester.ensureVisible(find.text('Shikoyat qilish'));
     await tester.tap(find.text('Shikoyat qilish'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Maosh'));
@@ -135,23 +168,13 @@ void main() {
     expect(find.text("Shikoyatingiz qabul qilindi. Tez orada ko'rib chiqamiz."), findsOneWidget);
     expect(account.reports.single.$1, ReportSubject.payment);
     expect(account.reports.single.$2, "Maosh hali to'lanmadi");
-    // Let the confirmation snack bar go away; it covers the lower rows.
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
 
-    // Help.
-    await tester.scrollUntilVisible(find.text('Yordam'), 300);
-    await tester.tap(find.text('Yordam'));
+    // App language → Рус.
+    await tester.ensureVisible(find.text('Рус'));
     await tester.pumpAndSettle();
-    expect(find.text("Maoshni kim to'laydi?"), findsOneWidget);
-    await tester.tap(find.text('Yopish'));
-    await tester.pumpAndSettle();
-
-    // App language → Русский.
-    await tester.scrollUntilVisible(find.text('Ilova tili'), 300);
-    await tester.tap(find.text('Ilova tili'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Русский'));
+    await tester.tap(find.text('Рус'));
     await tester.pumpAndSettle();
     expect(container.read(appLanguageProvider), AppLanguage.ru);
     expect(find.text('Профиль'), findsWidgets);

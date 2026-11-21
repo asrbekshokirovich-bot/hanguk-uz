@@ -42,6 +42,7 @@ import 'package:hanguk_ish/design/widgets/forms.dart';
 import 'package:hanguk_ish/design/widgets/qr.dart';
 import 'package:hanguk_ish/features/employer/biz.dart';
 import 'package:hanguk_ish/features/worker/feed/feed_area.dart';
+import 'package:hanguk_ish/features/worker/me/me_screen.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_draft.dart';
 import 'package:hanguk_ish/features/worker/profile/worker_profile_repository.dart';
 import 'package:hanguk_ish/features/worker/settings/app_language.dart';
@@ -151,6 +152,9 @@ Future<void> _open(WidgetTester tester, String location, {bool push = true}) asy
   push ? router.push(location) : router.go(location);
   await tester.pump(const Duration(milliseconds: 500));
 }
+
+/// The Profil's list (the other tabs keep theirs alive underneath).
+final _profileList = find.descendant(of: find.byType(MeScreen), matching: find.byType(Scrollable)).first;
 
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
@@ -555,22 +559,16 @@ void main() {
     await _shot(tester, 'a09-earnings');
 
     await _open(tester, WorkerRoutes.me, push: false);
-    await _until(tester, _text('Sardor Testov'));
-    final done = find.ancestor(
-      of: _text('Bajarilgan smenalar'),
-      matching: find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatCard'),
-    );
-    await _until(tester, find.descendant(of: done, matching: _text('1')));
-    // Finished +1, never above 100; no business can rate a worker yet.
+    await _until(tester, _text('Sardor T.'));
+    // «Ishonch bali»: the finished shift is one «Ishga chiqdi»; +1, never above 100.
+    await tester.scrollUntilVisible(_text('Kelmay qoldi'), 300, scrollable: _profileList);
+    await _until(tester, _text('1 ta'));
     expect(_text('100'), findsWidgets);
     await _shot(tester, 'a11-profile');
 
     // The language: on screen at once, and on the profile for the server.
-    // The free-time grid comes first on the profile: scroll down to it.
-    await tester.scrollUntilVisible(_text('Ilova tili'), 300);
-    await _tap(tester, _text('Ilova tili'));
-    await _until(tester, _text('Русский'));
-    await _tap(tester, _text('Русский'));
+    await tester.scrollUntilVisible(_text('Рус'), 300, scrollable: _profileList);
+    await _tap(tester, _text('Рус'));
     await _until(tester, _text('Профиль'));
     String? saved;
     for (var i = 0; i < 20 && saved != 'ru'; i++) {
@@ -581,9 +579,7 @@ void main() {
       saved = row!['language'] as String?;
     }
     expect(saved, 'ru');
-    await _tap(tester, _text('Язык приложения'));
-    await _until(tester, _text("O'zbekcha"));
-    await _tap(tester, _text("O'zbekcha"));
+    await _tap(tester, _text("O'zb"));
     await _until(tester, _text('Profil'));
     await _close(tester);
   });
@@ -790,7 +786,7 @@ void main() {
     await _tap(tester, find.widgetWithText(HiButton, 'Davom etish'));
     await _until(tester, _text('Profil · 3 / 3'));
     await _settle(tester);
-    await _tap(tester, find.bySemanticsLabel('Shanba, Ertalab'));
+    await _tap(tester, find.bySemanticsLabel('Shanba, Kunduzi'));
     await _tap(tester, find.widgetWithText(HiButton, 'Saqlash va boshlash'));
     // After the profile: the location question, then «Ishlar».
     await _until(tester, _text('Joylashuvingizni yoqing'));
@@ -809,7 +805,7 @@ void main() {
     expect(saved.languages, containsAll(['uz', 'ko']));
     expect(saved.topik, 0, reason: 'not asked at sign-up (A11 sets it)');
     expect(saved.district, 'mapo');
-    expect(saved.availability, WorkerProfileDraft.bit(5, 0), reason: 'Saturday morning only');
+    expect(saved.availability, WorkerProfileDraft.bit(5, 1), reason: 'Saturday daytime only');
     await _close(tester);
   });
 
@@ -935,7 +931,7 @@ void main() {
     await tester.pumpWidget(workerApp());
     await _until(tester, _text('Ishlar'));
     await _tap(tester, _text('Profil'));
-    await _until(tester, _text('Sardor Testov'));
+    await _until(tester, _text('Sardor T.'));
     await _until(tester, _text('80'), seconds: 30);
     await _close(tester);
   });
