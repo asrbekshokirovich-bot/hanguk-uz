@@ -91,6 +91,13 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
   /// drawn (a section that loads late and pushes the rest down), so the
   /// light follows it (owner, 2026-10-22: it lit the wrong places).
   final _tick = ValueNotifier<int>(0);
+
+  /// Bumped when the step or the label's visibility changes: the only thing
+  /// that rebuilds the tour's layer. Its light and label are placed at paint
+  /// time ([_holeNow]), after the page has been laid out for the frame — read
+  /// at build time they trailed the page by a frame while it scrolled and
+  /// came off their place (Asrbek, 2026-11-11).
+  final _state = ValueNotifier<int>(0);
   Rect? _drawn;
   bool _watching = false;
 
@@ -108,6 +115,7 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
   void dispose() {
     _routeAnimation?.removeStatusListener(_routeStatus);
     _tick.dispose();
+    _state.dispose();
     _timer?.cancel();
     _scroll?.removeListener(_follow);
     _glide.dispose();
@@ -128,22 +136,31 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
     }
     return OverlayPortal(
       controller: _portal,
-      overlayChildBuilder: (context) => AnimatedBuilder(
-        animation: Listenable.merge([_glide, _tick]),
-        builder: (context, _) {
-          final live = _rectOf(_keys[_step]);
-          final from = _from;
-          final gliding = _glide.isAnimating && from != null && live != null;
-          return _TourLayer(
-            step: _steps[_step],
-            hole: (gliding ? Rect.lerp(from, live, Curves.easeOutCubic.transform(_glide.value)) : live)?.inflate(6),
-            showLabel: !_moving,
-            onTap: tracked('page_tour.tour_layer', _onTap),
-          );
-        },
+      overlayChildBuilder: (context) => ValueListenableBuilder<int>(
+        valueListenable: _state,
+        builder: (context, value, child) => _TourLayer(
+          step: _steps[_step],
+          holeOf: _holeNow,
+          repaint: _repaint,
+          showLabel: !_moving,
+          onTap: tracked('page_tour.tour_layer', _onTap),
+        ),
       ),
       child: PageTourScope(replay: () => _start(force: true), child: widget.builder(context, _keys)),
     );
+  }
+
+  late final Listenable _repaint = Listenable.merge([_glide, _tick]);
+
+  /// The lit place as it is on screen now (or on its glide there), in the
+  /// overlay's coordinates. Called while painting, so the page under it has
+  /// already been laid out for this frame.
+  Rect? _holeNow() {
+    if (!mounted || _step >= _keys.length) return null;
+    final live = _rectOf(_keys[_step]);
+    final from = _from;
+    final gliding = _glide.isAnimating && from != null && live != null;
+    return (gliding ? Rect.lerp(from, live, Curves.easeOutCubic.transform(_glide.value)) : live)?.inflate(6);
   }
 
   /// Starts the first-run tour once the page has opened: its route done
@@ -224,13 +241,14 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
 
   /// The list scrolled under the light: only the light is drawn again.
   void _follow() {
-    if (mounted && _portal.isShowing) _redraw(() {});
+    if (mounted && _portal.isShowing) _tick.value++;
   }
 
   /// Redraws the tour's layer alone. A setState here rebuilt the whole page
   /// under it — on every scroll step while the tour showed.
   void _redraw(VoidCallback change) {
     change();
+    _state.value++;
     _tick.value++;
   }
 
@@ -306,44 +324,52 @@ class _PageTourState extends ConsumerState<PageTour> with SingleTickerProviderSt
     return null;
   }
 
+  /// Read while painting too: the place's element may be inactive for a
+  /// frame (moved or being rebuilt), where findRenderObject asserts — its
+  /// render object is read directly and used only while attached.
   Rect? _rectOf(GlobalKey key) {
-    final box = key.currentContext?.findRenderObject();
+    final ctx = key.currentContext;
+    final box = ctx is Element ? ctx.renderObject : null;
     if (box is! RenderBox || !box.hasSize || !box.attached) return null;
     return box.localToGlobal(Offset.zero) & box.size;
   }
 }
 
 class _TourLayer extends StatelessWidget {
-  const _TourLayer({required this.step, required this.hole, required this.showLabel, required this.onTap});
+  const _TourLayer({
+    required this.step,
+    required this.holeOf,
+    required this.repaint,
+    required this.showLabel,
+    required this.onTap,
+  });
 
   final TourStep step;
-  final Rect? hole;
+  final Rect? Function() holeOf;
+  final Listenable repaint;
   final bool showLabel;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.sizeOf(context);
-    final hole = this.hole;
     return Stack(
       children: [
         Positioned.fill(
           child: _Barrier(
-            hole: hole,
+            holeOf: holeOf,
             onTap: tracked('page_tour.tour_layer', onTap),
-            child: CustomPaint(painter: _DimPainter(hole), size: Size.infinite),
+            child: CustomPaint(painter: _DimPainter(holeOf, repaint), size: Size.infinite),
           ),
         ),
-        if (hole != null && showLabel)
-          _Label(
-            hole: hole,
-            screen: screen,
-            // Below a place in the top half of the screen, above one in the
-            // bottom half, so the label never covers it.
-            above: hole.center.dy > screen.height / 2,
-            align: step.align,
+        if (showLabel)
+          Positioned.fill(
             child: IgnorePointer(
-              child: _Pill(label: step.label, icon: step.icon),
+              child: _Label(
+                holeOf: holeOf,
+                repaint: repaint,
+                align: step.align,
+                child: _Pill(label: step.label, icon: step.icon),
+              ),
             ),
           ),
       ],
@@ -354,46 +380,87 @@ class _TourLayer extends StatelessWidget {
 /// Where the label sits beside the lit section.
 enum TourAlign { start, center, end }
 
-/// The lime label, just above or below the lit section.
-class _Label extends StatelessWidget {
-  const _Label({
-    required this.hole,
-    required this.screen,
-    required this.above,
-    required this.align,
-    required this.child,
-  });
+/// The lime label, just above or below the lit section: below a place in
+/// the top half of the screen, above one in the bottom half, so it never
+/// covers it. Placed while painting, like the light ([_RenderLabel]).
+class _Label extends SingleChildRenderObjectWidget {
+  const _Label({required this.holeOf, required this.repaint, required this.align, super.child});
 
-  final Rect hole;
-  final Size screen;
-  final bool above;
+  final Rect? Function() holeOf;
+  final Listenable repaint;
   final TourAlign align;
-  final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    const gap = 10.0;
-    const margin = 12.0;
-    return Positioned(
-      left: margin,
-      right: margin,
-      top: above ? null : hole.bottom + gap,
-      bottom: above ? screen.height - hole.top + gap : null,
-      child: Align(
-        alignment: switch (align) {
-          TourAlign.start => Alignment.centerLeft,
-          TourAlign.center => Alignment.center,
-          TourAlign.end => Alignment.centerRight,
-        },
-        child: Padding(
-          padding: EdgeInsets.only(
-            left: align == TourAlign.start ? (hole.left - margin).clamp(0, screen.width) : 0,
-            right: align == TourAlign.end ? (screen.width - hole.right - margin).clamp(0, screen.width) : 0,
-          ),
-          child: child,
-        ),
-      ),
-    );
+  RenderObject createRenderObject(BuildContext context) => _RenderLabel(holeOf, repaint, align);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderLabel renderObject) {
+    renderObject
+      ..holeOf = holeOf
+      ..repaint = repaint
+      ..align = align;
+  }
+}
+
+class _RenderLabel extends RenderProxyBox {
+  _RenderLabel(this.holeOf, this._repaint, this.align);
+
+  static const double gap = 10;
+  static const double margin = 12;
+
+  Rect? Function() holeOf;
+  TourAlign align;
+
+  Listenable _repaint;
+  set repaint(Listenable value) {
+    if (identical(value, _repaint)) return;
+    if (attached) _repaint.removeListener(markNeedsPaint);
+    _repaint = value;
+    if (attached) _repaint.addListener(markNeedsPaint);
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _repaint.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _repaint.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  void performLayout() {
+    size = constraints.biggest;
+    final maxWidth = (size.width - 2 * margin).clamp(0.0, double.infinity);
+    child?.layout(BoxConstraints(maxWidth: maxWidth), parentUsesSize: true);
+  }
+
+  @override
+  bool hitTestSelf(Offset position) => false;
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) => false;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final c = child;
+    final hole = holeOf();
+    if (c == null || hole == null) return;
+    final local = hole.shift(-localToGlobal(Offset.zero));
+    final w = c.size.width;
+    final h = c.size.height;
+    final maxX = (size.width - margin - w).clamp(margin, double.infinity);
+    final x = switch (align) {
+      TourAlign.start => local.left.clamp(margin, maxX),
+      TourAlign.center => (size.width - w) / 2,
+      TourAlign.end => (local.right - w).clamp(margin, maxX),
+    };
+    final above = hole.center.dy > size.height / 2;
+    final y = above ? local.top - gap - h : local.bottom + gap;
+    context.paintChild(c, offset + Offset(x, y));
   }
 }
 
@@ -430,11 +497,19 @@ class _Pill extends StatelessWidget {
   );
 }
 
+/// Where the light was last painted, in global coordinates (tests).
+@visibleForTesting
+Rect? debugTourHole() => _DimPainter.debugLastHole;
+
 /// The dim over everything but the lit section, its lime outline and glow.
 class _DimPainter extends CustomPainter {
-  const _DimPainter(this.hole);
+  _DimPainter(this.holeOf, Listenable repaint) : super(repaint: repaint);
 
-  final Rect? hole;
+  final Rect? Function() holeOf;
+
+  /// The light as last painted, for tests.
+  @visibleForTesting
+  static Rect? debugLastHole;
 
   static const double _radius = 20;
 
@@ -442,7 +517,8 @@ class _DimPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final screen = Path()..addRect(Offset.zero & size);
     final dim = Paint()..color = const Color(0xD9050B26);
-    final h = hole;
+    final h = holeOf();
+    debugLastHole = h;
     if (h == null) {
       canvas.drawPath(screen, dim);
       return;
@@ -466,33 +542,33 @@ class _DimPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DimPainter old) => old.hole != hole;
+  bool shouldRepaint(_DimPainter old) => true;
 }
 
 /// Takes every touch: a tap anywhere moves the tour on ([onTap]). Touches on
 /// the lit section also go through to the board underneath, so it stays
 /// usable; elsewhere they stop here.
 class _Barrier extends SingleChildRenderObjectWidget {
-  const _Barrier({required this.hole, required this.onTap, super.child});
+  const _Barrier({required this.holeOf, required this.onTap, super.child});
 
-  final Rect? hole;
+  final Rect? Function() holeOf;
   final VoidCallback onTap;
 
   @override
-  _RenderBarrier createRenderObject(BuildContext context) => _RenderBarrier(hole, onTap);
+  _RenderBarrier createRenderObject(BuildContext context) => _RenderBarrier(holeOf, onTap);
 
   @override
   void updateRenderObject(BuildContext context, _RenderBarrier renderObject) {
     renderObject
-      ..hole = hole
+      ..holeOf = holeOf
       ..onTap = onTap;
   }
 }
 
 class _RenderBarrier extends RenderProxyBox {
-  _RenderBarrier(this.hole, this.onTap);
+  _RenderBarrier(this.holeOf, this.onTap);
 
-  Rect? hole;
+  Rect? Function() holeOf;
   VoidCallback onTap;
   final _downs = <int, Offset>{};
 
@@ -503,7 +579,7 @@ class _RenderBarrier extends RenderProxyBox {
   @override
   bool hitTest(BoxHitTestResult result, {required Offset position}) {
     result.add(BoxHitTestEntry(this, position));
-    final h = hole;
+    final h = holeOf();
     // On the lit section: heard here and passed on to the board below.
     return !(h != null && h.contains(localToGlobal(position)));
   }
