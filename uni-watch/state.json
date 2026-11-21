@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-19T22:44:18+00:00",
+ "last_run": "2026-11-20T22:19:11+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -160,6 +160,8 @@
   ],
   "https://admission.smu.ac.kr/": [],
   "https://admission.snu.ac.kr/international/notice": [
+   "3e3dab171df14fd7",
+   "9835875e2cfd48c4",
    "c7568b9a6c3713a4",
    "b44f97e36c593a7f",
    "b87ea28394c78437",
@@ -250,6 +252,7 @@
   "https://aks.ac.kr": [],
   "https://apply.dhc.ac.kr/main": [],
   "https://apply.iscu.ac.kr/": [
+   "5213e4188f2edb66",
    "5a80e51689c595ae",
    "968e2d3e19a16b15",
    "86cc3acc9aeffc17"
@@ -285,6 +288,10 @@
   "https://dst.ac.kr": [],
   "https://dsu.ac.kr": [],
   "https://ent.donga.ac.kr/": [
+   "62cec84f72a09bde",
+   "f406de44ad37c9cb",
+   "ffcd359a4252ed2b",
+   "21e3efb18c8c16df",
    "ca7cc6bcd8ff345f",
    "6fe4d97f24790957",
    "3fb812cf3ec7b48f",
@@ -566,6 +573,7 @@
    "07ff326a2707b247"
   ],
   "https://ibsi.jejunu.ac.kr/10000048": [
+   "a032c7b5c459c169",
    "1a6b7eb268191ce7",
    "ae3ee40d2b501fc3",
    "287cd5a43d85d1da",
@@ -607,6 +615,7 @@
   "https://inco.kmu.ac.kr/sites/asiacenter/index.do": [],
   "https://info.kimpo.ac.kr/EnterLogin.aspx": [],
   "https://info.masan.ac.kr/": [
+   "38523fa978b150b2",
    "35c7fd7ab40c93f9",
    "79fc74f1ae2e6d76",
    "6be1723cc500ce20",
@@ -707,6 +716,7 @@
    "383adc0d740967ee"
   ],
   "https://iphak.pknu.ac.kr/pknu/index.htm": [
+   "df6d1b4a110f574e",
    "6ecd06d31fbed6c9",
    "36c0d51c71b8010c",
    "d1b26886b35cd685",
@@ -1165,6 +1175,7 @@
    "5c9b02ab2be35d95"
   ],
   "https://ust.ac.kr": [
+   "b02d81441d36ee38",
    "09ed5988be584a74"
   ],
   "https://wgst.ac.kr": [],
