@@ -37,8 +37,9 @@ select tests.eq(ish.my_offers() -> 0 ->> 'phone', '010-••••-••••
 select tests.ok(ish.my_offers() -> 0 ->> 'address' like '%•••', 'the house is hidden');
 select tests.eq((ish.my_offers() -> 0 ->> 'sent_count')::int, 2, 'sent to two');
 select tests.ok((ish.my_offers() -> 0 ->> 'checked_at') is not null, 'when the staff talked to the employer');
-select tests.ok((ish.my_offers() -> 0 ->> 'expires_at')::timestamptz between now() + interval '29 minutes' and now() + interval '31 minutes',
-                '30 minutes to take it');
+select tests.ok((ish.my_offers() -> 0 ->> 'expires_at')::timestamptz
+                between now() + interval '29 minutes' and now() + interval '12 hours 1 minute',
+                'until 2 hours before the start (30 minutes to 12 hours)');
 
 -- No puyl: not opened, nothing taken.
 select tests.throws($$select ish.unlock_offer('20000000-0000-0000-0000-000000000002')$$, 'NO_COINS', 'needs puyl');

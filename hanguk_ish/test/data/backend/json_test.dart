@@ -135,6 +135,30 @@ void main() {
       expect(invite.shiftId, '20000000-0000-0000-0000-000000000001');
     });
 
+    test('puyl notices: came in, top-up not accepted, refund with a cancelled job', () {
+      final added = hiNotificationFromJson({
+        'id': 1, 'kind': 'coins_added', 'created_at': '2026-11-24T10:00:00Z',
+        'data': {'delta': 100, 'balance': 190, 'why': 'topup'},
+      })!;
+      expect(added.kind, NotificationKind.coinsAdded);
+      expect(added.pyols, 100);
+      expect(added.balance, 190);
+      expect(added.why, 'topup');
+      final rejected = hiNotificationFromJson({
+        'id': 2, 'kind': 'topup_rejected', 'created_at': '2026-11-24T10:00:00Z',
+        'data': {'pyols': 30, 'amount_won': 3300},
+      })!;
+      expect(rejected.kind, NotificationKind.topupRejected);
+      expect(rejected.pyols, 30);
+      final cancelled = hiNotificationFromJson({
+        'id': 3, 'kind': 'application_rejected', 'created_at': '2026-11-24T10:00:00Z',
+        'data': {'reason': 'shift_cancelled', 'refunded': 30},
+      })!;
+      expect(cancelled.kind, NotificationKind.cancelled);
+      expect(cancelled.pyols, 30);
+      expect(workerNotificationKinds, containsAll(['coins_added', 'topup_rejected']));
+    });
+
     test('an offer from Hanguk\'s staff: the notification and the job (P39)', () {
       final offers = [for (final c in sampleList('my_notifications_offer')) hiNotificationFromJson(c)];
       expect(offers, hasLength(1));

@@ -68,6 +68,13 @@ enum NotificationKind {
   /// The worker's shift is over (checked out): how long, how much, and to rate
   /// the business.
   finished,
+
+  /// Puyl came in: a top-up approved, the monthly free puyl, an invite
+  /// reward, a gift or a refund ([HiNotification.why]).
+  coinsAdded,
+
+  /// The staff did not find the money for a top-up request.
+  topupRejected,
 }
 
 /// One entry of A12, with the values its sentence is built from (so it reads
@@ -97,6 +104,9 @@ class HiNotification {
     this.lat,
     this.lng,
     this.note,
+    this.pyols,
+    this.balance,
+    this.why,
   });
 
   final String id;
@@ -134,6 +144,16 @@ class HiNotification {
   /// [NotificationKind.jobOffer]: what the staff wrote with the offer.
   final String? note;
 
+  /// [NotificationKind.coinsAdded]: how many came in; [NotificationKind.topupRejected]:
+  /// how many were asked for; [NotificationKind.cancelled]: how many were returned.
+  final int? pyols;
+
+  /// [NotificationKind.coinsAdded]: the balance after.
+  final int? balance;
+
+  /// [NotificationKind.coinsAdded]: 'topup', 'monthly', 'referral', 'staff' or 'refund'.
+  final String? why;
+
   String businessName(String lang) => businessNames[lang] ?? businessNames['en'] ?? businessNames['ko'] ?? '';
 
   String areaName(String lang) => areaNames[lang] ?? areaNames['en'] ?? areaNames['ko'] ?? '';
@@ -161,6 +181,9 @@ class HiNotification {
         lat: lat,
         lng: lng,
         note: note,
+        pyols: pyols,
+        balance: balance,
+        why: why,
       );
 }
 

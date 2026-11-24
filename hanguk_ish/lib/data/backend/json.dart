@@ -213,6 +213,8 @@ const workerNotificationKinds = [
   'payment_marked',
   'job_offer',
   'shift_finished',
+  'coins_added',
+  'topup_rejected',
 ];
 
 /// `notification_card` → an A12 entry; null for kinds the worker app does not
@@ -233,6 +235,8 @@ HiNotification? hiNotificationFromJson(Json json) {
     'nearby_digest' => NotificationKind.nearbyShifts,
     'job_offer' => NotificationKind.jobOffer,
     'shift_finished' => NotificationKind.finished,
+    'coins_added' => NotificationKind.coinsAdded,
+    'topup_rejected' => NotificationKind.topupRejected,
     _ => null,
   };
   if (kind == null) return null;
@@ -272,6 +276,9 @@ HiNotification? hiNotificationFromJson(Json json) {
     lat: _double(shift['lat']) ?? _double(data['lat']),
     lng: _double(shift['lng']) ?? _double(data['lng']),
     note: _strOrNull(data['note']),
+    pyols: _intOrNull(data['delta']) ?? _intOrNull(data['pyols']) ?? _intOrNull(data['refunded']),
+    balance: _intOrNull(data['balance']),
+    why: _strOrNull(data['why']),
   );
 }
 

@@ -217,6 +217,8 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.nearbyShifts => (HiIcons.mapPin, HiColors.surface, HiColors.ink, 2.0),
       NotificationKind.jobOffer => (HiIcons.send, HiColors.lime, HiColors.onLime, 2.0),
       NotificationKind.finished => (HiIcons.check, HiColors.lime, HiColors.onLime, 2.6),
+      NotificationKind.coinsAdded => (HiIcons.wallet, HiColors.lime, HiColors.onLime, 2.0),
+      NotificationKind.topupRejected => (HiIcons.x, HiColors.redSoft, HiColors.redInk, 2.4),
     };
     final title = switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderTitle(HiDates.countdown(n.minutesBefore ?? 0, lang)),
@@ -230,6 +232,8 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.nearbyShifts => l10n.notifNearbyTitle(n.areaName(lang), n.count ?? 0),
       NotificationKind.jobOffer => l10n.notifOfferTitle,
       NotificationKind.finished => l10n.notifFinishedTitle,
+      NotificationKind.coinsAdded => l10n.notifCoinsTitle(n.pyols ?? 0),
+      NotificationKind.topupRejected => l10n.notifTopupRejectedTitle,
     };
     final day = n.startsAt == null ? '' : HiDates.weekdayAndDate(n.startsAt!, lang);
     // «12 000 ₩/soat» stays together, as in the prototype.
@@ -239,7 +243,11 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.rejected => l10n.notifRejectedText(business, day, range),
       NotificationKind.expired => l10n.notifExpiredText(business, day, range),
       NotificationKind.timeChanged => l10n.notifTimeChangedText(business, day, range),
-      NotificationKind.cancelled => l10n.notifCancelledText(business, day, range),
+      // A paid job cancelled: the puyl came back.
+      NotificationKind.cancelled => [
+          l10n.notifCancelledText(business, day, range),
+          if (n.pyols != null) l10n.notifRefundedLine(n.pyols!),
+        ].join('\n'),
       NotificationKind.paid => l10n.notifPaidText(business, day, _money(n.amount)),
       NotificationKind.message => business,
       // With no distance (a business with no point yet, or no saved
@@ -267,6 +275,17 @@ class _NotificationCard extends StatelessWidget {
           l10n.notifFinishedText(business, day, _money(n.amount)),
           if (n.receivedAmount != null) l10n.payReceivedLine(Won.worker(n.receivedAmount!)),
         ].join('\n'),
+      NotificationKind.coinsAdded => [
+          switch (n.why) {
+            'topup' => l10n.notifCoinsTopup,
+            'monthly' => l10n.notifCoinsMonthly,
+            'referral' => l10n.notifCoinsReferral,
+            'refund' => l10n.notifCoinsRefund,
+            _ => l10n.notifCoinsStaff,
+          },
+          if (n.balance != null) l10n.notifCoinsBalance(n.balance!),
+        ].join(' '),
+      NotificationKind.topupRejected => l10n.notifTopupRejectedText(n.pyols ?? 0),
     });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);
 
@@ -301,6 +320,7 @@ class _NotificationCard extends StatelessWidget {
           label: n.receivedAmount == null ? l10n.payAskAction : l10n.payChange,
           onTap: () => (actions.confirmPay ?? (_) => actions.earnings())(n),
         ),
+      NotificationKind.coinsAdded || NotificationKind.topupRejected => null,
     };
 
     return Semantics(

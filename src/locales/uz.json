@@ -3984,7 +3984,7 @@
       "send": "Taklif yuborish ({{count}})",
       "sent": "{{count}} ta taklif yuborildi",
       "coins": "Puyl",
-      "full": "Bu ish hozir {{max}} kishida — 30 daqiqa tugashini yoki ochilishini kuting.",
+      "full": "Bu ish hozir {{max}} kishida — taklif muddati tugashini yoki kimdir ochishini kuting.",
       "room": "Bir vaqtda {{max}} kishigacha: hozir {{live}} kishi kutmoqda, yana {{room}} kishiga yuborish mumkin."
     },
     "offers": {

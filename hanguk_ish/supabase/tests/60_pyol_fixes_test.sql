@@ -31,6 +31,21 @@ select tests.throws($$select ish.staff_send_offers('20000000-0000-0000-0000-0000
   'no paid offer for a job in the free feed');
 select tests.eq(ish.staff_send_offers(pg_temp.id('job'), array['00000000-0000-0000-0000-0000000000a1',
   '00000000-0000-0000-0000-0000000000a2']::uuid[]), 2, 'offers sent to a1 and a2');
+-- Sent at night for a job in 20 days: it lives 12 hours (not 30 minutes).
+select tests.as_admin();
+select tests.ok((select expires_at from ish.job_offers where shift_id = pg_temp.id('job')
+                 and worker_id = '00000000-0000-0000-0000-0000000000a1')
+                between now() + interval '11 hours 59 minutes' and now() + interval '12 hours 1 minute',
+                'a long offer for a later job');
+select tests.ok(ish.offer_expires_at(now() + interval '90 minutes') = now() + interval '30 minutes',
+                'a job soon: 30 minutes (never less)');
+select tests.ok(ish.offer_expires_at(now() + interval '6 hours') = now() + interval '4 hours',
+                'until 2 hours before the start');
+select tests.ok(ish.offer_expires_at(now() + interval '6 hours', 60) = now() + interval '60 minutes',
+                'or the minutes the staff chose');
+select tests.as_user('00000000-0000-0000-0000-0000000000f9');
+select tests.throws($$select ish.staff_send_offers(pg_temp.id('job'), array['00000000-0000-0000-0000-0000000000a3']::uuid[], '', 5)$$,
+                    'INVALID', 'at least 15 minutes');
 
 -- 2. Place leak: nothing exact before paying.
 select tests.as_user('00000000-0000-0000-0000-0000000000a3');
@@ -209,6 +224,24 @@ select tests.eq(ish.staff_topups() -> 0 ->> 'amount_won', '9900', 'the staff see
 select tests.eq(ish.staff_approve_topup(pg_temp.id('topup')), 200, 'approved: 100 + 100');
 select tests.throws($$select ish.staff_approve_topup(pg_temp.id('topup'))$$, 'ALREADY_DECIDED', 'no double pyols');
 select tests.eq((ish.staff_pyol_report(1) -> 0 ->> 'sold')::int, 100, 'counted as sold');
+-- The worker is told: «100 puyl came in».
+select tests.as_admin();
+select tests.eq((select data from ish.notifications
+                 where user_id = '00000000-0000-0000-0000-0000000000a2' and kind = 'coins_added'
+                 order by id desc limit 1) - 'application_id',
+                '{"delta": 100, "balance": 200, "why": "topup"}'::jsonb, 'a coins_added notice');
+select tests.eq(ish.push_app('coins_added', '{}'), 'worker', 'and a push to the worker app');
+select tests.as_user('00000000-0000-0000-0000-0000000000f9');
+-- A rejected request says so.
+select tests.as_user('00000000-0000-0000-0000-0000000000a2');
+insert into ids select 'topup2', ish.request_topup(30, 'bank', 'Malika');
+select tests.as_user('00000000-0000-0000-0000-0000000000f9');
+select ish.staff_reject_topup(pg_temp.id('topup2'), 'no money came');
+select tests.as_admin();
+select tests.eq((select data ->> 'pyols' from ish.notifications
+                 where user_id = '00000000-0000-0000-0000-0000000000a2' and kind = 'topup_rejected'), '30',
+                'a topup_rejected notice');
+select tests.as_user('00000000-0000-0000-0000-0000000000f9');
 
 -- 15. Staff gifts: limits and a note.
 select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a2', 301, 'x')$$, 'INVALID', 'at most 300');

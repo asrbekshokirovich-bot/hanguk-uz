@@ -170,6 +170,8 @@
       "bizNotifNoShow": "No-show",
       "bizNotifNoShowText": "{worker} didn't come to {shift}",
       "notifCancelledTitle": "Shift cancelled",
+      "notifCoinsBalance": "Balance: {n} P",
+      "notifCoinsTitle": "+{n} puyl",
       "notifConfirmedTitle": "Shift confirmed",
       "notifFinishedTitle": "Shift finished",
       "notifMessageTitle": "New message",
@@ -180,7 +182,9 @@
       "notifPaidTitle": "Pay received",
       "notifRejectedTitle": "Request declined",
       "notifReminderTitle": "Your shift starts in {time}",
-      "notifTimeChangedTitle": "Shift time changed"
+      "notifTimeChangedTitle": "Shift time changed",
+      "notifTopupRejectedText": "We did not get the money for {n} P. If you paid, write to us.",
+      "notifTopupRejectedTitle": "Top-up not accepted"
     },
     "ko": {
       "bizNotifAutoConfirmed": "자동 확정",
@@ -194,6 +198,8 @@
       "bizNotifNoShow": "미출근",
       "bizNotifNoShowText": "{worker}님이 {shift}에 출근하지 않았어요",
       "notifCancelledTitle": "근무가 취소됐어요",
+      "notifCoinsBalance": "잔액: {n} P",
+      "notifCoinsTitle": "+{n} 퓰",
       "notifConfirmedTitle": "근무가 확정됐어요",
       "notifFinishedTitle": "근무가 끝났어요",
       "notifMessageTitle": "새 메시지",
@@ -204,7 +210,9 @@
       "notifPaidTitle": "급여가 지급됐어요",
       "notifRejectedTitle": "신청이 거절됐어요",
       "notifReminderTitle": "근무 시작까지 {time} 남았어요",
-      "notifTimeChangedTitle": "근무 시간이 바뀌었어요"
+      "notifTimeChangedTitle": "근무 시간이 바뀌었어요",
+      "notifTopupRejectedText": "{n} P 입금을 찾지 못했어요. 입금하셨다면 문의해 주세요.",
+      "notifTopupRejectedTitle": "충전이 승인되지 않았어요"
     },
     "ru": {
       "bizNotifAutoConfirmed": "Автоподтверждение",
@@ -218,6 +226,8 @@
       "bizNotifNoShow": "Не пришёл",
       "bizNotifNoShowText": "{worker} не пришёл(а) на «{shift}»",
       "notifCancelledTitle": "Смена отменена",
+      "notifCoinsBalance": "Баланс: {n} P",
+      "notifCoinsTitle": "+{n} пюль",
       "notifConfirmedTitle": "Смена подтверждена",
       "notifFinishedTitle": "Смена завершена",
       "notifMessageTitle": "Новое сообщение",
@@ -228,7 +238,9 @@
       "notifPaidTitle": "Оплата получена",
       "notifRejectedTitle": "Заявка отклонена",
       "notifReminderTitle": "До смены осталось {time}",
-      "notifTimeChangedTitle": "Время смены изменилось"
+      "notifTimeChangedTitle": "Время смены изменилось",
+      "notifTopupRejectedText": "Мы не получили деньги за {n} P. Если вы оплатили, напишите нам.",
+      "notifTopupRejectedTitle": "Пополнение не принято"
     },
     "uz": {
       "bizNotifAutoConfirmed": "Avtomatik tasdiqlandi",
@@ -242,6 +254,8 @@
       "bizNotifNoShow": "Kelmadi",
       "bizNotifNoShowText": "{worker} «{shift}» smenasiga kelmadi",
       "notifCancelledTitle": "Smena bekor qilindi",
+      "notifCoinsBalance": "Balans: {n} P",
+      "notifCoinsTitle": "+{n} puyl",
       "notifConfirmedTitle": "Smena tasdiqlandi",
       "notifFinishedTitle": "Smena yakunlandi",
       "notifMessageTitle": "Yangi xabar",
@@ -252,7 +266,9 @@
       "notifPaidTitle": "Maosh to'landi",
       "notifRejectedTitle": "Ariza qabul qilinmadi",
       "notifReminderTitle": "Smenangizga {time} qoldi",
-      "notifTimeChangedTitle": "Smena vaqti o'zgardi"
+      "notifTimeChangedTitle": "Smena vaqti o'zgardi",
+      "notifTopupRejectedText": "{n} P uchun pul kelmadi. To'lagan bo'lsangiz, bizga yozing.",
+      "notifTopupRejectedTitle": "To'ldirish qabul qilinmadi"
     }
   }
 }

@@ -220,6 +220,17 @@ export function pushText(card: Record<string, any>, readerLang: string): PushTex
         return { title: s.bizNotifMessage, body: icu(s.bizNotifMessageText, p, l) };
     }
   }
+  // Puyl: «+100 puyl» / «Balance: 190 P»; a top-up the staff did not accept.
+  if (kind === "coins_added") {
+    const balance = int(data.balance);
+    return {
+      title: icu(s.notifCoinsTitle, { n: int(data.delta) ?? 0 }, l),
+      body: balance === null ? "" : icu(s.notifCoinsBalance, { n: balance }, l),
+    };
+  }
+  if (kind === "topup_rejected") {
+    return { title: s.notifTopupRejectedTitle, body: icu(s.notifTopupRejectedText, { n: int(data.pyols) ?? 0 }, l) };
+  }
   const business = businessName(card.business, l);
   const title = (() => {
     switch (kind) {

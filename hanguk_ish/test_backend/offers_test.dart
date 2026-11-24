@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/data/backend/backend.dart';
 import 'package:hanguk_ish/data/backend/supabase_account_repository.dart';
+import 'package:hanguk_ish/data/backend/supabase_offer_repository.dart';
 import 'package:hanguk_ish/data/backend/supabase_shift_repository.dart';
 import 'package:hanguk_ish/data/models/account.dart';
 import 'package:hanguk_ish/data/models/shift.dart';
@@ -140,7 +141,7 @@ void main() {
       expect(sardor['offer_status'], isNull);
     });
 
-    test('the offer: A12 «Sizga ish taklif qilindi» with the note, A05 with the offer', () async {
+    test('the offer: A12 «Sizga ish taklif qilindi» with the note and the pay, the place hidden', () async {
       final sent = await staff.rpc('staff_send_offers', params: {
         'p_shift': jobId,
         'p_workers': [workerId],
@@ -151,41 +152,45 @@ void main() {
       final offer = notices.firstWhere((n) => n.kind == NotificationKind.jobOffer);
       expect(offer.shiftId, jobId);
       expect(offer.note, 'Ertalab 10 da yetib keling');
-      expect(offer.wage, 13000);
-      expect(offer.businessName('ko'), startsWith('홍대 이삿짐센터'));
+      expect(offer.wage, 13000, reason: 'the alert has the pay');
+      expect(offer.businessName('ko'), isNot(contains('홍대 이삿짐센터')), reason: 'no name before paying');
 
       final job = (await workerShifts.shift(jobId))!;
       expect(job.offer!.status, OfferStatus.sent);
       expect(job.offer!.note, 'Ertalab 10 da yetib keling');
       expect(job.title, '이삿짐 운반 보조');
-      expect(job.slotsLeft, 2);
+      expect(job.inviteOnly, isTrue);
+      expect(job.needsUnlock, isTrue);
+      expect(job.unlockPrice, 20, reason: '4 hours: 20 puyl');
+      expect(job.business.name, isEmpty, reason: 'staff-kept: hidden until paid');
       // Still nobody else's.
       expect(await SupabaseShiftRepository(stranger, config).shift(jobId), isNull);
     });
 
-    test('«Qiziqmayman», then «Smenani olish» after all: the staff decide', () async {
+    test('«Qiziqmayman», then «Unlock for 20 P» after all: paid, confirmed, the phone', () async {
       await workerShifts.declineOffer(jobId);
       expect((await workerShifts.shift(jobId))!.offer!.status, OfferStatus.declined);
       await expectLater(workerShifts.declineOffer(jobId), _refused('NOT_FOUND'), reason: 'answered once');
 
-      final applied = await workerShifts.apply(jobId);
-      expect(applied.status, ApplicationStatus.pending, reason: 'no 자동 확정: the staff call the employer first');
+      // No free «Tasdiqlash» on an invite-only job.
+      await expectLater(workerShifts.apply(jobId), _refused('USE_UNLOCK'));
+      final before = await SupabaseAccountRepository(worker).coins();
+      expect(before.balance, 90, reason: 'the free puyl of the sign-up');
+
+      final opened = await SupabaseOfferRepository(worker).unlock(jobId);
+      expect(opened.phone, '010-5555-1234');
+      expect(opened.price, 20);
+      expect((await SupabaseAccountRepository(worker).coins()).balance, 70);
       final job = (await workerShifts.shift(jobId))!;
       expect(job.offer!.status, OfferStatus.applied);
-      expect(job.myStatus, ApplicationStatus.pending);
+      expect(job.myStatus, ApplicationStatus.confirmed);
+      expect(job.business.name, '홍대 이삿짐센터', reason: 'paid: the name');
 
       final page = await staff.rpc('staff_shift', params: {'p_shift': jobId}) as Map<String, dynamic>;
       expect((page['offers'] as List).single['status'], 'applied');
-      expect((page['contact'] as Map)['phone'], '010-5555-1234');
       final application = (page['applications'] as List).single as Map<String, dynamic>;
-      expect(application['status'], 'pending');
+      expect(application['status'], 'confirmed');
       expect((application['worker'] as Map)['phone'], isNotNull, reason: 'the staff call the worker');
-
-      await staff.rpc('decide_application', params: {'p_application': application['id'], 'p_accept': true});
-      final mine = await workerShifts.myShifts();
-      expect(mine.firstWhere((s) => s.shift.id == jobId).status, ApplicationStatus.confirmed);
-      final told = await SupabaseAccountRepository(worker).notifications();
-      expect(told.any((n) => n.kind == NotificationKind.confirmed && n.shiftId == jobId), isTrue);
     });
 
     test('the board counts it; the chat reaches the staff', () async {

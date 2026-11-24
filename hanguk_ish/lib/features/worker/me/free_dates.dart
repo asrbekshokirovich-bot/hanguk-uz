@@ -43,6 +43,11 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
     return DateTime(k.year, k.month, k.day);
   }
 
+  static List<String> _weekdays(WorkerL10n l10n) => [
+        l10n.dayShortMon, l10n.dayShortTue, l10n.dayShortWed, l10n.dayShortThu,
+        l10n.dayShortFri, l10n.dayShortSat, l10n.dayShortSun,
+      ];
+
   static String _key(DateTime d) => FreeDate(day: d, part: 'any', district: '').dayText;
 
   @override
@@ -60,16 +65,61 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
     if (dates.isNotEmpty) _district.text = dates.last.district;
   }
 
-  void _cycle(String key) => setState(() {
-        // Tap: off → any → day → night → off.
-        _parts[key] = switch (_parts[key]) {
-          null => 'any',
-          'any' => 'day',
-          'day' => 'night',
-          _ => '',
-        };
-        if (_parts[key]!.isEmpty) _parts.remove(key);
-      });
+  /// A tap on a day asks what the worker means: day, night, any time, or
+  /// not free (no guessing from repeated taps).
+  Future<void> _pick(DateTime d, String label) async {
+    final l10n = WorkerL10n.of(context);
+    final key = _key(d);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: HiColors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              HiText(label, style: hiStyle(17, FontWeight.w800, color: HiColors.ink)),
+              const SizedBox(height: 12),
+              for (final (value, text) in [
+                ('day', l10n.partDay),
+                ('night', l10n.partNight),
+                ('any', l10n.partAny),
+              ]) ...[
+                HiButton(
+                  label: text,
+                  height: 46,
+                  fontSize: 16,
+                  style: _parts[key] == value ? HiButtonStyle.lime : HiButtonStyle.outline,
+                  onPressed: () => Navigator.of(context).pop(value),
+                ),
+                const SizedBox(height: 8),
+              ],
+              HiButton(
+                label: l10n.freeDatesNotFree,
+                height: 46,
+                fontSize: 16,
+                style: HiButtonStyle.text,
+                textColor: HiColors.ink,
+                onPressed: () => Navigator.of(context).pop(''),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      if (choice.isEmpty) {
+        _parts.remove(key);
+      } else {
+        _parts[key] = choice;
+      }
+    });
+  }
 
   Future<void> _save() async {
     final l10n = WorkerL10n.of(context);
@@ -79,9 +129,31 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
       messenger.showSnackBar(SnackBar(content: Text(l10n.freeDatesCity)));
       return;
     }
+    final keys = _parts.keys.toList()..sort();
+    // A short check before saving: offers will come for these days.
+    final weekdays = _weekdays(l10n);
+    String partName(String p) => switch (p) { 'day' => l10n.partDay, 'night' => l10n.partNight, _ => l10n.partAny };
+    final summary = [
+      for (final k in keys)
+        () {
+          final d = DateTime.parse(k);
+          return '${weekdays[d.weekday - 1]} ${d.day} (${partName(_parts[k]!)})';
+        }(),
+    ].join(', ');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.freeDatesConfirmTitle),
+        content: Text(keys.isEmpty ? l10n.freeDatesClearBody : l10n.freeDatesConfirmBody(summary, district)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.back)),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.freeDatesConfirmYes)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
     setState(() => _busy = true);
     try {
-      final keys = _parts.keys.toList()..sort();
       await ref.read(pyolRepositoryProvider).setFreeDates([
         for (final k in keys) FreeDate(day: DateTime.parse(k), part: _parts[k]!, district: district),
       ]);
@@ -108,10 +180,7 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
     if (value != null) _fill(value);
     final today = _koreaToday();
     final days = [for (var i = 0; i < 14; i++) today.add(Duration(days: i))];
-    final weekdays = [
-      l10n.dayShortMon, l10n.dayShortTue, l10n.dayShortWed, l10n.dayShortThu,
-      l10n.dayShortFri, l10n.dayShortSat, l10n.dayShortSun,
-    ];
+    final weekdays = _weekdays(l10n);
     String partName(String p) => switch (p) { 'day' => l10n.partDay, 'night' => l10n.partNight, _ => l10n.partAny };
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -139,7 +208,7 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
                           '${_parts[_key(d)] == null ? '' : ' · ${partName(_parts[_key(d)]!)}'}',
                         ),
                         selected: _parts.containsKey(_key(d)),
-                        onSelected: (_) => _cycle(_key(d)),
+                        onSelected: (_) => _pick(d, '${weekdays[d.weekday - 1]} ${d.day}'),
                       ),
                   ],
                 ),

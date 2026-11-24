@@ -25,6 +25,7 @@ KEYS = [
     "notifReminderTitle", "notifConfirmedTitle", "notifRejectedTitle", "notifTimeChangedTitle",
     "notifCancelledTitle", "notifPaidTitle", "notifMessageTitle", "notifNewShiftTitle", "notifOfferTitle", "notifOfferEndingTitle",
     "notifNearbyTitle", "notifFinishedTitle",
+    "notifCoinsTitle", "notifCoinsBalance", "notifTopupRejectedTitle", "notifTopupRejectedText",
     # 알림 (사장님 app): title and line.
     "bizNotifNewApplicant", "bizNotifNewApplicantText", "bizNotifAutoConfirmed", "bizNotifAutoConfirmedText",
     "bizNotifCancelled", "bizNotifCancelledText", "bizNotifNoShow", "bizNotifNoShowText",

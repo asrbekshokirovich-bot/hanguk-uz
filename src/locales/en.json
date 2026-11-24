@@ -3927,7 +3927,7 @@
       "sent_one": "{{count}} offer sent",
       "sent_other": "{{count}} offers sent",
       "coins": "Puyl",
-      "full": "{{max}} people hold this job now — wait for their 30 minutes to end or for someone to open it.",
+      "full": "{{max}} people hold this job now — wait for their offers to run out or for someone to open it.",
       "room": "Up to {{max}} people at once: {{live}} waiting now, you can send to {{room}} more."
     },
     "offers": {

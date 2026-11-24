@@ -3550,7 +3550,7 @@
   "@freeDatesTitle": {
     "description": "Pyol plan (Nov 2026)."
   },
-  "freeDatesHint": "Qaysi kunlari va qayerda ishlay olasiz? Biz shu kunlarga ish topib, xabar beramiz. Kunni yana bossangiz, kunduz yoki tunni tanlaysiz.",
+  "freeDatesHint": "Qaysi kunlari va qayerda ishlay olasiz? Kunni bosing va kunduz, tun yoki istalgan vaqtni tanlang. Biz shu kunlarga ish topib, xabar beramiz.",
   "@freeDatesHint": {
     "description": "Pyol plan (Nov 2026)."
   },
@@ -3567,6 +3567,34 @@
     "description": "Pyol plan (Nov 2026)."
   },
   "freeDatesNone": "Hali kun tanlanmagan",
+  "freeDatesConfirmTitle": "To'g'rimi?",
+  "@freeDatesConfirmTitle": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "freeDatesConfirmBody": "Kunlar: {days}\nShahar: {city}\n\nShu kunlarga ish qidiramiz va sizga taklif yuboramiz.",
+  "@freeDatesConfirmBody": {
+    "description": "Puyl, invite and free days (2026-11-24).",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "freeDatesClearBody": "Barcha bo'sh kunlaringiz o'chirilsinmi? Sizga taklif yubormaymiz.",
+  "@freeDatesClearBody": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "freeDatesConfirmYes": "Ha, saqlash",
+  "@freeDatesConfirmYes": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "freeDatesNotFree": "Bo'sh emasman",
+  "@freeDatesNotFree": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
   "@freeDatesNone": {
     "description": "Pyol plan (Nov 2026)."
   },
@@ -3616,5 +3644,65 @@
   "noCoinsBuy": "Puyl yetarli emas. «Puyl sotib olish»ni bosing.",
   "@noCoinsBuy": {
     "description": "Pyol plan (Nov 2026)."
+  },
+  "notifCoinsTitle": "+{n} puyl",
+  "@notifCoinsTitle": {
+    "description": "Puyl, invite and free days (2026-11-24).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notifCoinsTopup": "To'lovingiz keldi.",
+  "@notifCoinsTopup": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "notifCoinsMonthly": "Shu oy uchun bepul puyl.",
+  "@notifCoinsMonthly": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "notifCoinsReferral": "Do'stingizni taklif qilganingiz uchun.",
+  "@notifCoinsReferral": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "notifCoinsStaff": "Hanguk'dan sovg'a.",
+  "@notifCoinsStaff": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "notifCoinsRefund": "Puylingiz qaytarildi.",
+  "@notifCoinsRefund": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "notifCoinsBalance": "Balans: {n} P",
+  "@notifCoinsBalance": {
+    "description": "Puyl, invite and free days (2026-11-24).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notifTopupRejectedTitle": "To'ldirish qabul qilinmadi",
+  "@notifTopupRejectedTitle": {
+    "description": "Puyl, invite and free days (2026-11-24)."
+  },
+  "notifTopupRejectedText": "{n} P uchun pul kelmadi. To'lagan bo'lsangiz, bizga yozing.",
+  "@notifTopupRejectedText": {
+    "description": "Puyl, invite and free days (2026-11-24).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notifRefundedLine": "{n} puyl sizga qaytarildi.",
+  "@notifRefundedLine": {
+    "description": "Puyl, invite and free days (2026-11-24).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }
