@@ -39,6 +39,8 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_pyol_plan.sql` | Sotuv rejasi: ro'yxatdan o'tganda 90 P (bir telefonga bir marta), har oy 1-sanada 90 gacha to'ldirish (cron `ish-monthly-bonus`), taklif kodi (do'stiga +30, taklif qilganga +60 birinchi ishdan keyin), paketlar 30/100/300 P = 3 300/9 900/24 000 ₩ (`pyol_packs`), to'lov so'rovi (`request_topup`) → xodim tasdiqlaydi (`staff_approve_topup`), to'lov rekvizitlari (`staff_set_payment_setting`, `payment_details`), `staff_add_coins` kuniga 1 000 P gacha, doimiy ishga olish va 2 haftadan keyin 50 000 ₩ komissiya (`staff_mark_hired`, `staff_confirm_two_weeks`, `staff_mark_fee_paid`), `staff_pyol_report` |
 | `migrations/…_ish_free_dates.sql` | «Bo'sh kunlarim»: ishchi qaysi kunlari va qayerda ishlay olishini yozadi (`set_free_dates`, 31 kungacha), xodim kechqurun ko'radi (`staff_free_dates_summary`, `staff_free_workers`) va taklif yuboradi |
 | `migrations/…_ish_alert_privacy.sql` | Ish xabarnomasi (`notification_card`): to'lamaguncha nuqta yaxlitlangan, `unlock_price` bor; push matnida soatbay maosh |
+| `migrations/…_ish_notification_fixes.sql` | Kechasi yuborilgan taklif 30 daqiqada o'chib ketardi: endi ish boshlanishidan 2 soat oldingacha (30 daqiqa – 12 soat) yoki xodim tanlagan daqiqa (`staff_send_offers`, `p_minutes`). Yangi xabarlar: `coins_added` (to'ldirish, oylik bepul, taklif mukofoti, sovg'a, qaytarish) va `topup_rejected` |
+| `migrations/…_ish_referral_code_unique.sql` | Taklif kodi takrorlanmaydi (trigger, 6 belgi, 0/O/1/I yo'q) — eski md5 kodi 20 000 ishchida to'qnashib, profil saqlanmay qolardi |
 | `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): telefon orqali kirish (P54), test raqamlar qat'iy kod bilan |
@@ -138,7 +140,8 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
 
 Asrbekning ruxsati bilan, shu tartibda: `20261124100000_ish_fix_unlock_and_leaks`,
 `20261124110000_ish_refunds_and_paid_jobs`, `20261124120000_ish_pyol_plan`,
-`20261124130000_ish_free_dates`, `20261124140000_ish_alert_privacy`. Keyin:
+`20261124130000_ish_free_dates`, `20261124140000_ish_alert_privacy`,
+`20261124150000_ish_notification_fixes`, `20261124160000_ish_referral_code_unique`. Keyin:
 `ish-push` funksiyasini qayta joylash; CRM va hanguk.uz/ish bir vaqtda
 (`monthly_jobs` jadvali endi to'g'ridan o'qilmaydi). Xodim CRM «Puyl va bo'sh
 kunlar» yorlig'ida to'lov rekvizitlarini kiritadi — busiz ilova «Puyl sotib
