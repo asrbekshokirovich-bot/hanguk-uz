@@ -26,7 +26,14 @@ select tests.eq(
     -- Nov 24 fixes: long-term jobs behind a pyol unlock (see 20261124100000).
     'public_monthly_jobs', 'staff_monthly_jobs', 'unlock_monthly_job',
     -- Refunds (20261124110000).
-    'staff_cancel_shift', 'staff_refund_unlock'
+    'staff_cancel_shift', 'staff_refund_unlock',
+    -- The pyol plan (20261124120000).
+    'my_referral', 'payment_details', 'request_topup', 'set_referrer',
+    'staff_approve_topup', 'staff_confirm_two_weeks', 'staff_mark_fee_paid', 'staff_mark_hired',
+    'staff_monthly_hires', 'staff_pyol_report', 'staff_reject_topup', 'staff_set_payment_setting',
+    'staff_topups',
+    -- «My free dates» (20261124130000).
+    'my_free_dates', 'set_free_dates', 'staff_free_dates_summary', 'staff_free_workers'
   ]::text[]) f),
   'the owner-rights functions open to signed-in people are the reviewed ones');
 
