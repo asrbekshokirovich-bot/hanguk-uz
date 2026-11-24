@@ -194,7 +194,7 @@ class ChatMessage {
 enum ReportSubject { employer, payment, safety, other }
 
 /// Why coins moved (database `coin_ledger.reason`).
-enum CoinReason { staff, unlock, topup, bonus }
+enum CoinReason { staff, unlock, topup, bonus, refund }
 
 /// One move of the worker's coins (A11 «Tarix»).
 @immutable

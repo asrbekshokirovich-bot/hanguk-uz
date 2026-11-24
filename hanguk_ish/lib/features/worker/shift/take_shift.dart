@@ -5,7 +5,9 @@ import '../../../core/format/dates.dart';
 import '../../../core/money/won.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
+import '../../../data/models/job_offer.dart' show unlockPrice;
 import '../../../data/models/shift.dart';
+import '../../../data/repositories/offer_repository.dart';
 import '../../../data/repositories/shift_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/insets.dart';
@@ -15,7 +17,10 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../coins/buy_pyols.dart';
+import '../coins/coins.dart' show coinsProvider;
 import '../feed/feed_controller.dart';
+import '../jobs/jobs_screens.dart' show offersProvider, openedJobsProvider;
 import '../my_shifts/my_shifts_providers.dart';
 import '../settings/app_language.dart';
 import 'shift_detail_screen.dart';
@@ -29,10 +34,20 @@ String takeShiftError(WorkerL10n l10n, Object error) => switch (error) {
       ShiftActionException(code: 'SHIFT_CLOSED' || 'SHIFT_STARTED') => l10n.errShiftClosed,
       ShiftActionException(code: 'PROFILE_INCOMPLETE') => l10n.errProfileIncomplete,
       ShiftActionException(code: 'TOO_MANY_REQUESTS') => l10n.errTooManyRequests,
-      ShiftActionException(code: 'NO_COINS') => l10n.errNoCoins,
+      ShiftActionException(code: 'NO_COINS') => l10n.noCoinsBuy,
+      ShiftActionException(code: 'OFFER_EXPIRED') => l10n.errOfferExpired,
       OfflineException() => l10n.errOffline,
       _ => l10n.errorGeneric,
     };
+
+/// The sheet paid pyols and opened the job (an invite-only one).
+class _Unlocked {
+  const _Unlocked();
+}
+
+/// Pyols to open this job.
+int shiftUnlockPrice(ShiftListing shift) =>
+    shift.unlockPrice ?? unlockPrice(shift.totalPay, minutes: shift.plannedMinutes);
 
 /// A05 «Qiziqmayman»: turns the staff's offer down, then shows the job
 /// again (its card says so). A failure is told in a snackbar.
@@ -66,6 +81,17 @@ Future<ApplyResult?> showTakeShiftSheet(BuildContext context, ShiftListing shift
     builder: (context) => _TakeShiftSheet(shift: shift),
   );
   if (outcome is ApplyResult) return outcome;
+  if (outcome is _Unlocked) {
+    messenger?.showSnackBar(SnackBar(content: Text(l10n.unlockedGoToJobs)));
+    return null;
+  }
+  if (outcome is ShiftActionException && outcome.code == 'NO_COINS' && context.mounted) {
+    messenger?.showSnackBar(SnackBar(
+      content: Text(l10n.noCoinsBuy),
+      action: SnackBarAction(label: l10n.buyPyols, onPressed: () => showBuyPyolsSheet(context)),
+    ));
+    return null;
+  }
   if (outcome != null) messenger?.showSnackBar(SnackBar(content: Text(takeShiftError(l10n, outcome))));
   return null;
 }
@@ -87,11 +113,20 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
     final navigator = Navigator.of(context);
     Object outcome;
     try {
-      outcome = await ref.read(shiftRepositoryProvider).apply(widget.shift.id);
+      if (widget.shift.needsUnlock) {
+        // Invite-only: pay the pyols, get the phone and address («Ishlarim»).
+        await ref.read(offerRepositoryProvider).unlock(widget.shift.id);
+        outcome = const _Unlocked();
+      } else {
+        outcome = await ref.read(shiftRepositoryProvider).apply(widget.shift.id);
+      }
     } on Object catch (error) {
       outcome = error;
     }
     ref
+      ..invalidate(coinsProvider)
+      ..invalidate(offersProvider)
+      ..invalidate(openedJobsProvider)
       ..invalidate(feedProvider)
       ..invalidate(myShiftsProvider)
       ..invalidate(shiftDetailProvider(widget.shift.id));
@@ -232,7 +267,10 @@ class _TakeShiftSheetState extends ConsumerState<_TakeShiftSheet> {
                 ),
               ],
               const SizedBox(height: 16),
-              HiButton(label: l10n.confirm, onPressed: _busy ? null : _confirm),
+              HiButton(
+                label: shift.needsUnlock ? l10n.unlockFor(shiftUnlockPrice(shift)) : l10n.confirm,
+                onPressed: _busy ? null : _confirm,
+              ),
               const SizedBox(height: 8),
               HiButton(
                 label: l10n.back,

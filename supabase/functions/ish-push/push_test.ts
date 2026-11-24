@@ -79,6 +79,11 @@ Deno.test("the worker's pushes: the A12 title, the business under it", () => {
   assertEquals(pushText(card("application_rejected"), "en")?.title, "Request declined");
   assertEquals(pushText(card("payment_marked", { paid: true }), "en")?.title, "Pay received");
   assertEquals(pushText(card("payment_marked", { paid: false }), "en"), null, "not news (A12 does not show it)");
+  // The job alert shows the hourly pay; a hidden place has no name.
+  assertEquals(
+    pushText({ kind: "job_offer", data: {}, business: { name: "", hidden: true }, shift: { hourly_wage: 12000 } }, "en")?.body,
+    "12\u00a0000\u00a0₩/h",
+  );
   assertEquals(pushText(card("chat_message", { business_id: "b1" }), "en"), { title: "New message", body: "Dalbit Cafe · Sinchon" });
   assertEquals(pushText(card("new_shift_match"), "en")?.title, "A new shift for you");
   assertEquals(pushText(card("request_again"), "en")?.title, "A new shift for you");

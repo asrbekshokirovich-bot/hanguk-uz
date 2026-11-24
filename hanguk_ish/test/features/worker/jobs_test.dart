@@ -29,8 +29,11 @@ void main() {
   }
 
   test('the price follows the pay (as unlock_price)', () {
-    expect([160000, 150000, 120000, 110000, 90000, 80000, 60000, 50000, 49999, 0].map(unlockPrice),
-        [20, 20, 16, 16, 13, 13, 10, 10, 7, 7]);
+    expect([160000, 150001, 150000, 120000, 80000, 79999, 50000, 0].map(unlockPrice),
+        [40, 40, 30, 30, 30, 20, 20, 20]);
+    // Under 5 hours: always 20.
+    expect(unlockPrice(160000, minutes: 240), 20);
+    expect(unlockPrice(160000, minutes: 300), 40);
   });
 
   test('a job fits when all its hours are in the schedule; no schedule fits all', () {

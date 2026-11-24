@@ -3797,7 +3797,8 @@
       "reports": "Complaints",
       "staff": "Staff",
       "monthly": "Monthly jobs",
-      "coins": "Puyl"
+      "coins": "Puyl",
+      "pyol": "Puyl & free days"
     },
     "board": {
       "newJob": "New job",
@@ -4109,7 +4110,8 @@
       "titleShort": "title",
       "companyShort": "company",
       "descriptionShort": "description",
-      "interestedIn": "Interested in “{{title}}”"
+      "interestedIn": "Interested in “{{title}}”",
+      "contactPhone": "Contact phone (shown after the worker pays 300 puyl)"
     },
     "coins": {
       "intro": "A worker spends puyl to open a job's phone and address (7–20 P by what it pays). You add puyl here (after the worker pays Hanguk). Spent puyl does not come back.",
@@ -4143,6 +4145,51 @@
       "saved": "Saved",
       "checkedDone": "Workers will see «talked just now»",
       "short": "Not enough puyl to open this job"
+    },
+    "pyol": {
+      "freeDays": "Free days (next 7 days)",
+      "freeDaysHint": "Workers posted these days. Find jobs for them tonight, then send offers from the job page.",
+      "freeDaysEmpty": "No one posted free days yet.",
+      "workers_one": "{{count}} worker",
+      "workers_other": "{{count}} workers",
+      "balance": "{{n}} P",
+      "busy": "already has a job",
+      "sendHint": "Open the job and use «Send offers» to these workers. They get an alert with the pay.",
+      "part": {
+        "day": "day",
+        "night": "night",
+        "any": "any time"
+      },
+      "topups": "Top-up requests",
+      "topupsHint": "Check that the money came to the account, then approve. The puyl go to the worker at once.",
+      "topupsEmpty": "No requests waiting.",
+      "approve": "Money came — approve",
+      "reject": "Reject",
+      "approved": "Approved. The puyl were added.",
+      "method": {
+        "bank": "Bank account",
+        "kakaopay": "KakaoPay",
+        "toss": "Toss",
+        "note": "Note for workers"
+      },
+      "payment": "Where workers send the money",
+      "save": "Save",
+      "hires": "Long-term hires",
+      "hiresHint": "Mark a hire. After 2 weeks, check if they still work; then take the ₩50,000 fee.",
+      "state": {
+        "check_due": "check now",
+        "waiting": "waiting 2 weeks",
+        "fee_unpaid": "fee not paid",
+        "fee_paid": "fee paid",
+        "left": "left"
+      },
+      "stillWorking": "Still working",
+      "left": "Left",
+      "feePaid": "Fee paid ({{fee}})",
+      "interested": "Unlocked or interested",
+      "markHired": "Mark hired",
+      "report": "Puyl in the last 30 days",
+      "reportTotal": "Sold {{sold}} P ({{won}}), spent {{spent}} P, free {{free}} P, refunded {{refunded}} P."
     }
   },
   "calendarPage": {

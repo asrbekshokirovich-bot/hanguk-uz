@@ -17,11 +17,14 @@ class SupabaseMonthlyJobRepository implements MonthlyJobRepository {
 
   @override
   Future<List<MonthlyJob>> list() => backendCall(() async {
-        final rows = await _client.from('monthly_jobs').select().eq('status', 'open').order('created_at', ascending: false).limit(200);
+        // Company, address and contact come only after an unlock (the
+        // server hides them in `public_monthly_jobs`).
+        final rows = (await _client.rpc('public_monthly_jobs') as List?) ?? const [];
         final mine = await _client.from('monthly_applications').select('job_id').eq('worker_id', _me);
         final applied = {for (final r in mine) r['job_id'] as String};
         return [
-          for (final row in rows) monthlyJobFromJson(row, applied: applied.contains(row['id'])),
+          for (final row in rows)
+            if (row is Map) monthlyJobFromJson(row.cast<String, dynamic>(), applied: applied.contains(row['id'])),
         ];
       });
 
@@ -33,5 +36,11 @@ class SupabaseMonthlyJobRepository implements MonthlyJobRepository {
   @override
   Future<void> withdraw(String jobId) => backendCall(() async {
         await _client.from('monthly_applications').delete().eq('job_id', jobId).eq('worker_id', _me);
+      });
+
+  @override
+  Future<MonthlyJob> unlock(String jobId) => backendCall(() async {
+        final json = await _client.rpc('unlock_monthly_job', params: {'p_job': jobId}) as Map;
+        return monthlyJobFromJson(json.cast<String, dynamic>(), applied: true);
       });
 }

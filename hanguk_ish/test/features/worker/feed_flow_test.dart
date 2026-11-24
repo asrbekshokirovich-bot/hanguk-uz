@@ -203,12 +203,12 @@ void main() {
     expect(find.text('Kafe baristasi (doimiy)'), findsNothing);
     expect(find.text('Logistika markazi: yuk ortish va tushirish'), findsOneWidget);
 
-    await tester.tap(find.text('Qiziqaman').first);
+    // Long-term jobs: pay 300 puyl to see the company and phone.
+    await tester.tap(find.text('Kompaniya va telefonni ochish — 300 P').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Qiziqish bildirildi'), findsOneWidget);
-    await tester.tap(find.text('Bekor qilish'));
+    await tester.tap(find.text('Tasdiqlash'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Qiziqish bildirildi'), findsNothing);
+    expect(find.text('Telefon: 010-0000-0000'), findsOneWidget);
 
     // Back to the day shifts with the same pill.
     await tester.tap(find.bySemanticsLabel('Smenalar').first);

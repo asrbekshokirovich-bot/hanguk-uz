@@ -11,11 +11,13 @@ import '../../../design/insets.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/backdrop.dart';
+import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/navigation.dart';
 import '../../../design/widgets/picker_sheet.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import '../load_error.dart';
+import '../me/free_dates.dart';
 import '../monthly/monthly_jobs.dart';
 import '../notifications/unread.dart';
 import '../settings/app_language.dart';
@@ -168,8 +170,30 @@ class _FeedBody extends ConsumerWidget {
           count: skeleton || failed ? null : shifts.length,
         ),
         const SizedBox(height: 6),
+        const _FreeDatesBanner(),
         Expanded(child: body),
       ],
+    );
+  }
+}
+
+/// The first step for a worker: post the free days. We search jobs for them.
+class _FreeDatesBanner extends ConsumerWidget {
+  const _FreeDatesBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = WorkerL10n.of(context);
+    final count = ref.watch(myFreeDatesProvider).value?.length ?? 0;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 22, 12),
+      child: HiButton(
+        label: count == 0 ? l10n.freeDatesTitle : '${l10n.freeDatesTitle} · $count',
+        height: 44,
+        fontSize: 15,
+        style: count == 0 ? HiButtonStyle.lime : HiButtonStyle.ghost,
+        onPressed: () => showFreeDatesSheet(context),
+      ),
     );
   }
 }

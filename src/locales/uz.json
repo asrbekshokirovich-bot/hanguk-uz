@@ -3857,7 +3857,8 @@
       "reports": "Shikoyatlar",
       "staff": "Xodimlar",
       "monthly": "Oylik ishlar",
-      "coins": "Puyl"
+      "coins": "Puyl",
+      "pyol": "Puyl va bo'sh kunlar"
     },
     "board": {
       "newJob": "Yangi ish",
@@ -4166,7 +4167,8 @@
       "titleShort": "nom",
       "companyShort": "kompaniya",
       "descriptionShort": "tavsif",
-      "interestedIn": "\"{{title}}\" ga qiziqqanlar"
+      "interestedIn": "\"{{title}}\" ga qiziqqanlar",
+      "contactPhone": "Aloqa telefoni (ishchi 300 puyl to'lagach ko'rinadi)"
     },
     "coins": {
       "intro": "Ishchi ish telefon raqami va manzilini ochganda puyl sarflaydi (ish narxiga qarab 7–20 P). Puylni bu yerda qo'shasiz (ishchi Hanguk'ga to'lagandan keyin). Sarflangan puyl qaytmaydi.",
@@ -4200,6 +4202,51 @@
       "saved": "Saqlandi",
       "checkedDone": "Ishchilarga «hozir gaplashildi» ko'rinadi",
       "short": "Puyli bu ishni ochishga yetmaydi"
+    },
+    "pyol": {
+      "freeDays": "Bo'sh kunlar (7 kun)",
+      "freeDaysHint": "Ishchilar shu kunlarni yozdi. Kechqurun ularga ish toping va ish sahifasidan taklif yuboring.",
+      "freeDaysEmpty": "Hali hech kim bo'sh kun yozmagan.",
+      "workers_one": "{{count}} ishchi",
+      "workers_other": "{{count}} ishchi",
+      "balance": "{{n}} P",
+      "busy": "ishi bor",
+      "sendHint": "Ishni oching va «Taklif yuborish»ni bosing. Ishchiga maosh bilan xabar boradi.",
+      "part": {
+        "day": "kunduz",
+        "night": "tun",
+        "any": "istalgan vaqt"
+      },
+      "topups": "To'ldirish so'rovlari",
+      "topupsHint": "Pul hisobga kelganini tekshiring, keyin tasdiqlang. Puyl darhol ishchiga o'tadi.",
+      "topupsEmpty": "Kutilayotgan so'rov yo'q.",
+      "approve": "Pul keldi — tasdiqlash",
+      "reject": "Rad etish",
+      "approved": "Tasdiqlandi. Puyl qo'shildi.",
+      "method": {
+        "bank": "Bank hisobi",
+        "kakaopay": "KakaoPay",
+        "toss": "Toss",
+        "note": "Ishchilarga eslatma"
+      },
+      "payment": "Ishchilar pulni qayerga yuboradi",
+      "save": "Saqlash",
+      "hires": "Doimiy ishga olinganlar",
+      "hiresHint": "Ishga olinganini belgilang. 2 haftadan keyin hali ishlayaptimi tekshiring; keyin ₩50 000 komissiyani oling.",
+      "state": {
+        "check_due": "hozir tekshiring",
+        "waiting": "2 hafta kutilmoqda",
+        "fee_unpaid": "komissiya to'lanmagan",
+        "fee_paid": "komissiya to'langan",
+        "left": "ketdi"
+      },
+      "stillWorking": "Ishlayapti",
+      "left": "Ketdi",
+      "feePaid": "Komissiya to'landi ({{fee}})",
+      "interested": "Ochganlar yoki qiziqqanlar",
+      "markHired": "Ishga olindi",
+      "report": "Oxirgi 30 kun puyl",
+      "reportTotal": "Sotildi {{sold}} P ({{won}}), sarflandi {{spent}} P, bepul {{free}} P, qaytarildi {{refunded}} P."
     }
   },
   "calendarPage": {

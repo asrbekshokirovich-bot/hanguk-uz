@@ -15,6 +15,7 @@ import { IshCoins } from './IshCoins';
 import { IshEmployers } from './IshEmployers';
 import { IshJobDetail } from './IshJobDetail';
 import { IshMonthly } from './IshMonthly';
+import { IshPyol } from './IshPyol';
 import { IshReports } from './IshReports';
 import { IshStaff } from './IshStaff';
 
@@ -94,7 +95,7 @@ function IshStaffGate({ client, session }: { client: SupabaseClient; session: Se
   );
 }
 
-const TABS = ['jobs', 'monthly', 'employers', 'appBusinesses', 'reports', 'coins', 'staff'] as const;
+const TABS = ['jobs', 'monthly', 'employers', 'appBusinesses', 'reports', 'coins', 'pyol', 'staff'] as const;
 
 /** «/crm/ish?tab=reports»: a Hanguk Ish message to the staff (P57) opens its tab. */
 function initialTab(): string {
@@ -140,6 +141,7 @@ function IshWorkspace({ account }: { account: string }) {
               )}
             </TabsTrigger>
             <TabsTrigger value="coins">{t('ish.tabs.coins')}</TabsTrigger>
+            <TabsTrigger value="pyol">{t('ish.tabs.pyol')}</TabsTrigger>
             {admin.data === true && <TabsTrigger value="staff">{t('ish.tabs.staff')}</TabsTrigger>}
           </TabsList>
           <TabsContent value="jobs" className="mt-4">
@@ -159,6 +161,9 @@ function IshWorkspace({ account }: { account: string }) {
           </TabsContent>
           <TabsContent value="coins" className="mt-4">
             <IshCoins />
+          </TabsContent>
+          <TabsContent value="pyol" className="mt-4">
+            <IshPyol />
           </TabsContent>
           {admin.data === true && (
             <TabsContent value="staff" className="mt-4">

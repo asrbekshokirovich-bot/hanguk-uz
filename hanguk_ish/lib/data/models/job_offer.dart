@@ -2,15 +2,13 @@ import 'package:flutter/foundation.dart';
 
 /// Puyl to open a job's phone and address, by what the whole job pays
 /// (the database's `unlock_price`).
-int unlockPrice(int pay) => pay >= 150000
+int unlockPrice(int pay, {int? minutes}) => minutes != null && minutes < 300
     ? 20
-    : pay >= 110000
-        ? 16
+    : pay > 150000
+        ? 40
         : pay >= 80000
-            ? 13
-            : pay >= 50000
-                ? 10
-                : 7;
+            ? 30
+            : 20;
 
 /// How long one personal offer lives.
 const offerLifetime = Duration(minutes: 30);

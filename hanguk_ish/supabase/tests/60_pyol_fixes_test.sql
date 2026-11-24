@@ -47,6 +47,16 @@ select tests.eq(ish.shift_details(pg_temp.id('job')) -> 'business' -> 'address_d
 select tests.eq((ish.shift_details(pg_temp.id('job')) ->> 'lat')::numeric, 37.61, 'the point is rounded (about 1 km)');
 select tests.eq((ish.shift_details(pg_temp.id('job')) ->> 'place_hidden')::boolean, true, 'and marked hidden');
 select tests.eq((ish.shift_details(pg_temp.id('job')) ->> 'unlock_price')::int, 30, '9 h × 15 000 = 135 000 won: 30 pyols');
+-- The job alert: the pay and the price, but not the exact point.
+select tests.eq((select (c -> 'shift' ->> 'hourly_wage')::int
+                 from jsonb_array_elements(ish.my_notifications(50, array['job_offer'])) c
+                 where c -> 'data' ->> 'shift_id' = pg_temp.id('job')::text), 15000, 'the alert has the pay');
+select tests.eq((select (c -> 'shift' ->> 'unlock_price')::int
+                 from jsonb_array_elements(ish.my_notifications(50, array['job_offer'])) c
+                 where c -> 'data' ->> 'shift_id' = pg_temp.id('job')::text), 30, 'and the price');
+select tests.eq((select (c -> 'shift' ->> 'lat')::numeric
+                 from jsonb_array_elements(ish.my_notifications(50, array['job_offer'])) c
+                 where c -> 'data' ->> 'shift_id' = pg_temp.id('job')::text), 37.61, 'and a rounded point');
 
 -- 1. The free unlock trick no longer works.
 select tests.throws($$select ish.apply_to_shift(pg_temp.id('job'))$$, 'USE_UNLOCK', 'no free apply to an invite-only job');

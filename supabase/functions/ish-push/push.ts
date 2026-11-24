@@ -176,6 +176,7 @@ export function businessName(business: unknown, l: string): string {
   const areas: Record<string, string> = { ...(area ? { ko: area } : {}), ...fieldOf(b.translations, "area") };
   const shown = names[l] ?? names.en ?? name;
   const where = areas[l] ?? areas.en ?? area;
+  if (!shown) return where;
   return where ? `${shown} · ${where}` : shown;
 }
 
@@ -250,6 +251,12 @@ export function pushText(card: Record<string, any>, readerLang: string): PushTex
     }
   })();
   if (title === null) return null;
+  if (kind === "job_offer") {
+    // The alert carries the pay: «Dalbit Kafe · 12 000 ₩/h» (no name while the place is hidden).
+    const wage = int(obj(card.shift).hourly_wage);
+    const pay = wage === null ? "" : `${String(wage).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0")}\u00a0₩/h`;
+    return { title, body: [business, pay].filter((x) => x !== "").join(" · ") };
+  }
   return { title, body: kind === "nearby_digest" ? "" : business };
 }
 

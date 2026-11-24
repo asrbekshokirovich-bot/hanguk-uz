@@ -131,6 +131,15 @@ lentasidan chiqadi, ariza berib bo'lmaydi, yangi smena qo'yilmaydi, sajangnim
 BA1 da «Biznes to'xtatilgan» deb ko'radi. Tasdiqlangan ishchilar smenasida
 qoladi — ular bilan xodim o'zi bog'lanadi. «Qayta yoqish» hammasini qaytaradi.
 
+«Puyl va bo'sh kunlar» yorlig'i (2026-11-24): har kechqurungi ish bir joyda.
+**Bo'sh kunlar** — ishchilar yozgan kunlar va joylar (7 kun); bosilsa, o'sha
+kuni bo'shlar (telefoni, balansi, ishi bormi). Ularga ish topib, ish
+sahifasidan taklif yuboriladi — ishchiga maosh bilan xabar boradi, u puyl
+to'lab telefon va manzilni ochadi. **To'ldirish so'rovlari** — pul kelganini
+tekshirib «Pul keldi — tasdiqlash». **Rekvizitlar** — bank, KakaoPay, Toss,
+izoh. **Doimiy ishga olinganlar** — belgilash, 2 haftadan keyin tekshirish,
+50 000 ₩ komissiya. **Hisobot** — 30 kunda sotilgan va sarflangan puyl.
+
 «Shikoyatlar» yorlig'i (P52): ishchilar ilovadan yuborgan shikoyatlar (A11) —
 ochiqlari tepada, yorliqda ochiqlar soni. Kim yozgani (ismi, telefoni bo'lsa,
 nechta smena ishlagani va kelmagani), mavzu va matn; xodim holatini belgilaydi:

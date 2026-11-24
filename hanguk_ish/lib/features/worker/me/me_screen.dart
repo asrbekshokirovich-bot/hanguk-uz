@@ -21,6 +21,8 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../coins/buy_pyols.dart';
+import 'free_dates.dart';
 import '../coins/coins.dart';
 import '../profile/worker_profile_draft.dart';
 import '../profile/worker_profile_repository.dart';
@@ -454,6 +456,8 @@ class MeScreen extends ConsumerWidget {
               decoration: _cardDecoration,
               child: Column(
                 children: [
+                  _SettingRow(label: l10n.freeDatesTitle, value: '', onTap: () => showFreeDatesSheet(context)),
+                  const _Divider(),
                   _SettingRow(
                     label: l10n.fieldHomeAddress,
                     value: (draft.homeAddress ?? '').isNotEmpty ? draft.homeAddress! : (area.isEmpty ? '—' : area),
@@ -478,24 +482,7 @@ class MeScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _topUp(BuildContext context) {
-    final l10n = WorkerL10n.of(context);
-    return showModalBottomSheet<void>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: const Color.fromRGBO(6, 13, 43, 0.74),
-      builder: (context) => _Sheet(
-        title: l10n.topUpSoonTitle,
-        children: [
-          HiText(l10n.topUpSoonText, style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted)),
-          const SizedBox(height: 20),
-          HiButton(label: l10n.close, onPressed: () => Navigator.of(context).pop()),
-        ],
-      ),
-    );
-  }
+  Future<void> _topUp(BuildContext context) => showBuyPyolsSheet(context);
 
   Future<void> _coinHistory(BuildContext context, String lang) => showModalBottomSheet<void>(
         context: context,

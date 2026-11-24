@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/monthly_job.dart';
 import '../../../data/repositories/monthly_job_repository.dart';
-import '../../../data/repositories/shift_repository.dart' show OfflineException;
+import '../../../data/repositories/shift_repository.dart' show OfflineException, ShiftActionException;
 import '../../../design/icons.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../coins/buy_pyols.dart';
+import '../coins/coins.dart' show coinsProvider;
 import '../feed/feed_area.dart';
 import '../feed/feed_controller.dart';
 
@@ -94,6 +96,47 @@ class _MonthlyJobCardState extends ConsumerState<MonthlyJobCard> {
     }
   }
 
+  /// Pays [MonthlyJob.unlockPrice] pyols: the company, address and phone.
+  Future<void> _unlock() async {
+    final l10n = WorkerL10n.of(context);
+    final job = widget.job;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l10n.monthlyUnlock(job.unlockPrice)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.back)),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.confirm)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(monthlyJobRepositoryProvider).unlock(job.id);
+      ref
+        ..invalidate(monthlyJobsProvider)
+        ..invalidate(coinsProvider);
+    } on ShiftActionException catch (error) {
+      if (error.code == 'NO_COINS' && mounted) {
+        final ctx = context;
+        messenger.showSnackBar(SnackBar(
+          content: Text(l10n.noCoinsBuy),
+          action: SnackBarAction(label: l10n.buyPyols, onPressed: () => showBuyPyolsSheet(ctx)),
+        ));
+      } else {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.errorGeneric)));
+      }
+    } on Object catch (error) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(error is OfflineException ? l10n.offlineTitle : l10n.errorGeneric)),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = WorkerL10n.of(context);
@@ -147,7 +190,12 @@ class _MonthlyJobCardState extends ConsumerState<MonthlyJobCard> {
               HiText(description, style: hiStyle(14, FontWeight.w500, height: 1.45, color: HiColors.inkMuted)),
             ],
             const SizedBox(height: 14),
-            if (job.applied) ...[
+            if (job.unlocked) ...[
+              if (job.contactPhone.isNotEmpty)
+                _InfoLine(icon: HiIcons.check, text: l10n.monthlyContact(job.contactPhone)),
+              const SizedBox(height: 8),
+              _InfoLine(icon: HiIcons.check, text: l10n.monthlyInterestNote),
+            ] else if (job.applied) ...[
               _InfoLine(icon: HiIcons.check, text: '${l10n.monthlyInterestSent}. ${l10n.monthlyInterestNote}'),
               const SizedBox(height: 8),
               HiButton(
@@ -159,11 +207,11 @@ class _MonthlyJobCardState extends ConsumerState<MonthlyJobCard> {
               ),
             ] else
               HiButton(
-                label: l10n.monthlyInterested,
+                label: l10n.monthlyUnlock(job.unlockPrice),
                 style: HiButtonStyle.ink,
                 height: 48,
                 fontSize: 16,
-                onPressed: _busy ? null : () => _toggle(true),
+                onPressed: _busy ? null : _unlock,
               ),
           ],
         ),

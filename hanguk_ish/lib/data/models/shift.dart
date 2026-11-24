@@ -75,6 +75,8 @@ class ShiftListing {
     this.myStatus,
     this.myApplicationId,
     this.offer,
+    this.inviteOnly = false,
+    this.unlockPrice,
   });
 
   final String id;
@@ -106,6 +108,16 @@ class ShiftListing {
 
   /// Hanguk's staff offered this job to the worker (null: no offer).
   final ShiftOffer? offer;
+
+  /// Only the workers the staff sent it to can take it, by paying
+  /// [unlockPrice] pyols (`unlock_offer`), not with «Tasdiqlash».
+  final bool inviteOnly;
+
+  /// Pyols to open the phone and address (`shift_unlock_price`).
+  final int? unlockPrice;
+
+  /// The worker must pay to take it (the database answers USE_UNLOCK).
+  bool get needsUnlock => inviteOnly && myStatus == null;
 
   int get plannedMinutes => endsAt.difference(startsAt).inMinutes;
 
@@ -170,5 +182,7 @@ class ShiftListing {
         myStatus: myStatus ?? this.myStatus,
         myApplicationId: myApplicationId ?? this.myApplicationId,
         offer: offer ?? this.offer,
+        inviteOnly: inviteOnly,
+        unlockPrice: unlockPrice,
       );
 }

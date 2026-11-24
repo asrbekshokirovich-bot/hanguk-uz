@@ -148,6 +148,8 @@ ShiftListing shiftListingFromJson(Json json, {PublicUrl publicUrl = _noUrl}) {
     myStatus: applicationStatusFrom(_strOrNull(json['my_status'])),
     myApplicationId: _strOrNull(json['my_application_id']),
     offer: _offer(_obj(json['offer'])),
+    inviteOnly: _bool(json['invite_only']),
+    unlockPrice: _intOrNull(json['unlock_price']),
   );
 }
 
@@ -452,6 +454,9 @@ MonthlyJob monthlyJobFromJson(Json json, {bool applied = false}) {
     description: _str(json['description']),
     translations: translations,
     applied: applied,
+    unlocked: json['unlocked'] == true,
+    contactPhone: _str(json['contact_phone']),
+    unlockPrice: _intOrNull(json['unlock_price']) ?? 300,
   );
 }
 
@@ -467,6 +472,7 @@ CoinWallet coinWalletFromJson(Json json) => CoinWallet(
                 'unlock' => CoinReason.unlock,
                 'topup' => CoinReason.topup,
                 'bonus' => CoinReason.bonus,
+                'refund' => CoinReason.refund,
                 _ => CoinReason.staff,
               },
               createdAt: _dateOr(row['created_at'], DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),

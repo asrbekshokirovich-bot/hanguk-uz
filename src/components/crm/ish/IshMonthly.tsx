@@ -35,6 +35,7 @@ function toInput(job: IshMonthlyJob | null): IshMonthlyJobInput {
     description: job?.description ?? '',
     category: job?.category ?? null,
     workTime: job?.work_time ?? null,
+    contactPhone: job?.contact_phone ?? '',
     translations: job?.translations ?? {},
   };
 }
@@ -309,6 +310,9 @@ export function IshMonthlyDialog({
           </Field>
           <Field id="ish-m-address" label={t('ish.monthly.address')} wide>
             <Input id="ish-m-address" value={form.address} onChange={(e) => set('address', e.target.value)} maxLength={200} />
+          </Field>
+          <Field id="ish-m-phone" label={t('ish.monthly.contactPhone')} wide>
+            <Input id="ish-m-phone" value={form.contactPhone} onChange={(e) => set('contactPhone', e.target.value)} placeholder="010-0000-0000" maxLength={30} />
           </Field>
           <Field id="ish-m-description" label={t('ish.monthly.descriptionKo')} wide>
             <Textarea id="ish-m-description" value={form.description} onChange={(e) => set('description', e.target.value)} maxLength={1200} rows={4} />

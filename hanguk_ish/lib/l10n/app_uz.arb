@@ -3456,5 +3456,165 @@
   "coinHistoryRow": "Puyl tarixi",
   "@coinHistoryRow": {
     "description": "Sozlamalar: puyl tarixi."
+  },
+  "coinRefund": "Puyl qaytarildi",
+  "@coinRefund": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyols": "Puyl sotib olish",
+  "@buyPyols": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsHow": "Pulni o'tkazing, keyin so'rov yuboring. Xodimlar pul kelganini tekshirib, puylni qo'shadi.",
+  "@buyPyolsHow": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsPack": "{pyols} P — {won}",
+  "@buyPyolsPack": {
+    "description": "Pyol plan (Nov 2026).",
+    "placeholders": {
+      "pyols": {
+        "type": "int"
+      },
+      "won": {
+        "type": "String"
+      }
+    }
+  },
+  "buyPyolsMethod": "Qanday to'laysiz?",
+  "@buyPyolsMethod": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsPayer": "To'lovchi ismi (o'tkazmada ko'rinadigan)",
+  "@buyPyolsPayer": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsSend": "So'rov yuborish",
+  "@buyPyolsSend": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsSent": "So'rov yuborildi. Pul tekshirilgach puyl qo'shiladi.",
+  "@buyPyolsSent": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsPending": "Kutilayotgan so'rovlar",
+  "@buyPyolsPending": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "buyPyolsNoDetails": "To'lov ma'lumotlari hali qo'shilmagan. Telegram orqali yozing.",
+  "@buyPyolsNoDetails": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "payBank": "Bank o'tkazmasi",
+  "@payBank": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "payKakao": "KakaoPay",
+  "@payKakao": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "payToss": "Toss",
+  "@payToss": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "inviteTitle": "Do'stni taklif qiling",
+  "@inviteTitle": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "inviteBody": "Do'stingiz birinchi ishini tugatgach: sizga 60 P, unga 30 P.",
+  "@inviteBody": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "inviteYourCode": "Sizning kodingiz: {code}",
+  "@inviteYourCode": {
+    "description": "Pyol plan (Nov 2026).",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteEnter": "Do'stingiz kodi",
+  "@inviteEnter": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "inviteSave": "Kodni saqlash",
+  "@inviteSave": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "inviteSaved": "Kod saqlandi",
+  "@inviteSaved": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "freeDatesTitle": "Bo'sh kunlarim",
+  "@freeDatesTitle": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "freeDatesHint": "Qaysi kunlari va qayerda ishlay olasiz? Biz shu kunlarga ish topib, xabar beramiz. Kunni yana bossangiz, kunduz yoki tunni tanlaysiz.",
+  "@freeDatesHint": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "freeDatesCity": "Shahar yoki tuman (masalan, Ansan)",
+  "@freeDatesCity": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "freeDatesSave": "Saqlash",
+  "@freeDatesSave": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "freeDatesSaved": "Saqlandi. Ish topilsa, xabar beramiz.",
+  "@freeDatesSaved": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "freeDatesNone": "Hali kun tanlanmagan",
+  "@freeDatesNone": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "partDay": "Kunduz",
+  "@partDay": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "partNight": "Tun",
+  "@partNight": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "partAny": "Farqi yo'q",
+  "@partAny": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "unlockFor": "{price} P bilan ochish",
+  "@unlockFor": {
+    "description": "Pyol plan (Nov 2026).",
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "unlockedGoToJobs": "Ochildi! Telefon va manzil «Ishlar» bo'limida.",
+  "@unlockedGoToJobs": {
+    "description": "Pyol plan (Nov 2026)."
+  },
+  "monthlyUnlock": "Kompaniya va telefonni ochish — {price} P",
+  "@monthlyUnlock": {
+    "description": "Pyol plan (Nov 2026).",
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "monthlyContact": "Telefon: {phone}",
+  "@monthlyContact": {
+    "description": "Pyol plan (Nov 2026).",
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "noCoinsBuy": "Puyl yetarli emas. «Puyl sotib olish»ni bosing.",
+  "@noCoinsBuy": {
+    "description": "Pyol plan (Nov 2026)."
   }
 }

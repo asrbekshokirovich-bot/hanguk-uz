@@ -113,13 +113,45 @@ class DemoMonthlyJobRepository implements MonthlyJobRepository {
   DemoMonthlyJobRepository();
 
   final Set<String> _applied = {};
+  final Set<String> _unlocked = {};
 
   @override
-  Future<List<MonthlyJob>> list() async => [for (final j in demoMonthlyJobs) j.copyWith(applied: _applied.contains(j.id))];
+  Future<List<MonthlyJob>> list() async => [
+        for (final j in demoMonthlyJobs)
+          _unlocked.contains(j.id)
+              ? j.copyWith(applied: true, unlocked: true, contactPhone: '010-0000-0000')
+              : j.copyWith(applied: _applied.contains(j.id)),
+      ];
 
   @override
   Future<void> apply(String jobId) async => _applied.add(jobId);
 
   @override
   Future<void> withdraw(String jobId) async => _applied.remove(jobId);
+
+  @override
+  Future<MonthlyJob> unlock(String jobId) async {
+    _applied.add(jobId);
+    _unlocked.add(jobId);
+    final job = demoMonthlyJobs.firstWhere((j) => j.id == jobId);
+    return MonthlyJob(
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      area: job.area,
+      address: job.address,
+      lat: job.lat,
+      lng: job.lng,
+      category: job.category,
+      workTime: job.workTime,
+      monthlyWage: job.monthlyWage,
+      daysPerWeek: job.daysPerWeek,
+      hoursPerDay: job.hoursPerDay,
+      description: job.description,
+      translations: job.translations,
+      applied: true,
+      unlocked: true,
+      contactPhone: '010-0000-0000',
+    );
+  }
 }

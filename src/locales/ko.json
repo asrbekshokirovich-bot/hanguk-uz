@@ -2756,7 +2756,8 @@
       "reports": "신고",
       "staff": "직원",
       "monthly": "월급 일자리",
-      "coins": "퓰"
+      "coins": "퓰",
+      "pyol": "퓰 · 가능한 날"
     },
     "board": {
       "newJob": "새 일자리",
@@ -3065,7 +3066,8 @@
       "titleShort": "제목",
       "companyShort": "회사",
       "descriptionShort": "설명",
-      "interestedIn": "'{{title}}' 관심자"
+      "interestedIn": "'{{title}}' 관심자",
+      "contactPhone": "연락처 (근로자가 300 퓰을 내면 보여요)"
     },
     "coins": {
       "intro": "근로자는 일자리의 전화번호와 주소를 열 때 퓰을 써요(급여에 따라 7–20 P). 퓰은 여기서 충전해요(근로자가 Hanguk에 결제한 뒤). 사용한 퓰은 돌아오지 않아요.",
@@ -3099,6 +3101,51 @@
       "saved": "저장했어요",
       "checkedDone": "근로자에게 「방금 통화」가 보여요",
       "short": "이 일을 열기에 퓰이 부족해요"
+    },
+    "pyol": {
+      "freeDays": "가능한 날 (7일)",
+      "freeDaysHint": "근로자들이 올린 날짜예요. 밤에 일을 찾아 일자리 페이지에서 제안을 보내세요.",
+      "freeDaysEmpty": "아직 가능한 날을 올린 사람이 없어요.",
+      "workers_one": "{{count}}명",
+      "workers_other": "{{count}}명",
+      "balance": "{{n}} P",
+      "busy": "이미 일 있음",
+      "sendHint": "일자리를 열고 «제안 보내기»를 누르세요. 근로자에게 급여와 함께 알림이 가요.",
+      "part": {
+        "day": "주간",
+        "night": "야간",
+        "any": "아무 때나"
+      },
+      "topups": "충전 요청",
+      "topupsHint": "입금을 확인한 뒤 승인하세요. 퓰이 바로 들어가요.",
+      "topupsEmpty": "대기 중인 요청이 없어요.",
+      "approve": "입금 확인 — 승인",
+      "reject": "거절",
+      "approved": "승인했어요. 퓰이 추가됐어요.",
+      "method": {
+        "bank": "계좌",
+        "kakaopay": "카카오페이",
+        "toss": "토스",
+        "note": "근로자 안내"
+      },
+      "payment": "입금 안내",
+      "save": "저장",
+      "hires": "장기 채용",
+      "hiresHint": "채용을 기록하세요. 2주 뒤 계속 일하는지 확인하고 ₩50,000 수수료를 받으세요.",
+      "state": {
+        "check_due": "지금 확인",
+        "waiting": "2주 대기",
+        "fee_unpaid": "수수료 미납",
+        "fee_paid": "수수료 납부",
+        "left": "그만둠"
+      },
+      "stillWorking": "계속 근무",
+      "left": "그만둠",
+      "feePaid": "수수료 받음 ({{fee}})",
+      "interested": "열람 또는 관심",
+      "markHired": "채용 기록",
+      "report": "최근 30일 퓰",
+      "reportTotal": "판매 {{sold}} P ({{won}}), 사용 {{spent}} P, 무료 {{free}} P, 환불 {{refunded}} P."
     }
   },
   "calendarPage": {
