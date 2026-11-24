@@ -7,6 +7,7 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import 'confirm_free.dart';
 
 final myFreeDatesProvider = FutureProvider.autoDispose<List<FreeDate>>(
   (ref) => ref.watch(pyolRepositoryProvider).freeDates(),
@@ -65,60 +66,16 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
     if (dates.isNotEmpty) _district.text = dates.last.district;
   }
 
-  /// A tap on a day asks what the worker means: day, night, any time, or
-  /// not free (no guessing from repeated taps).
-  Future<void> _pick(DateTime d, String label) async {
-    final l10n = WorkerL10n.of(context);
+  /// A tap on a free day takes it off; on another day it asks first
+  /// («Are you really free?»).
+  Future<void> _tap(DateTime d, String label) async {
     final key = _key(d);
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      useRootNavigator: true,
-      backgroundColor: HiColors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              HiText(label, style: hiStyle(17, FontWeight.w800, color: HiColors.ink)),
-              const SizedBox(height: 12),
-              for (final (value, text) in [
-                ('day', l10n.partDay),
-                ('night', l10n.partNight),
-                ('any', l10n.partAny),
-              ]) ...[
-                HiButton(
-                  label: text,
-                  height: 46,
-                  fontSize: 16,
-                  style: _parts[key] == value ? HiButtonStyle.lime : HiButtonStyle.outline,
-                  onPressed: () => Navigator.of(context).pop(value),
-                ),
-                const SizedBox(height: 8),
-              ],
-              HiButton(
-                label: l10n.freeDatesNotFree,
-                height: 46,
-                fontSize: 16,
-                style: HiButtonStyle.text,
-                textColor: HiColors.ink,
-                onPressed: () => Navigator.of(context).pop(''),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (choice == null || !mounted) return;
-    setState(() {
-      if (choice.isEmpty) {
-        _parts.remove(key);
-      } else {
-        _parts[key] = choice;
-      }
-    });
+    if (_parts.containsKey(key)) {
+      setState(() => _parts.remove(key));
+      return;
+    }
+    if (!await confirmReallyFree(context, label) || !mounted) return;
+    setState(() => _parts[key] = 'any');
   }
 
   Future<void> _save() async {
@@ -130,28 +87,6 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
       return;
     }
     final keys = _parts.keys.toList()..sort();
-    // A short check before saving: offers will come for these days.
-    final weekdays = _weekdays(l10n);
-    String partName(String p) => switch (p) { 'day' => l10n.partDay, 'night' => l10n.partNight, _ => l10n.partAny };
-    final summary = [
-      for (final k in keys)
-        () {
-          final d = DateTime.parse(k);
-          return '${weekdays[d.weekday - 1]} ${d.day} (${partName(_parts[k]!)})';
-        }(),
-    ].join(', ');
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.freeDatesConfirmTitle),
-        content: Text(keys.isEmpty ? l10n.freeDatesClearBody : l10n.freeDatesConfirmBody(summary, district)),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.back)),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.freeDatesConfirmYes)),
-        ],
-      ),
-    );
-    if (ok != true || !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(pyolRepositoryProvider).setFreeDates([
@@ -181,7 +116,6 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
     final today = _koreaToday();
     final days = [for (var i = 0; i < 14; i++) today.add(Duration(days: i))];
     final weekdays = _weekdays(l10n);
-    String partName(String p) => switch (p) { 'day' => l10n.partDay, 'night' => l10n.partNight, _ => l10n.partAny };
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
@@ -203,12 +137,9 @@ class _FreeDatesSheetState extends ConsumerState<FreeDatesSheet> {
                   children: [
                     for (final d in days)
                       FilterChip(
-                        label: Text(
-                          '${weekdays[d.weekday - 1]} ${d.day}'
-                          '${_parts[_key(d)] == null ? '' : ' · ${partName(_parts[_key(d)]!)}'}',
-                        ),
+                        label: Text('${weekdays[d.weekday - 1]} ${d.day}'),
                         selected: _parts.containsKey(_key(d)),
-                        onSelected: (_) => _pick(d, '${weekdays[d.weekday - 1]} ${d.day}'),
+                        onSelected: (_) => _tap(d, '${weekdays[d.weekday - 1]} ${d.day}'),
                       ),
                   ],
                 ),

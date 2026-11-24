@@ -696,16 +696,11 @@
   "inviteSave": "Save code",
   "inviteSaved": "Code saved",
   "freeDatesTitle": "My free days",
-  "freeDatesHint": "Which days and where can you work? Tap a day and choose day, night or any time. We find jobs for those days and tell you.",
+  "freeDatesHint": "Which days and where can you work? Tap the days you are free. We find jobs for those days and tell you.",
   "freeDatesCity": "City or district (for example, Ansan)",
   "freeDatesSave": "Save",
   "freeDatesSaved": "Saved. We'll tell you when we find a job.",
   "freeDatesNone": "No days chosen yet",
-  "freeDatesConfirmTitle": "Is this right?",
-  "freeDatesConfirmBody": "Days: {days}\nCity: {city}\n\nWe will look for jobs on these days and send you offers.",
-  "freeDatesClearBody": "Remove all your free days? We will not send you offers.",
-  "freeDatesConfirmYes": "Yes, save",
-  "freeDatesNotFree": "Not free",
   "partDay": "Day",
   "partNight": "Night",
   "partAny": "Any",
@@ -723,5 +718,9 @@
   "notifCoinsBalance": "Balance: {n} P",
   "notifTopupRejectedTitle": "Top-up not accepted",
   "notifTopupRejectedText": "We did not get the money for {n} P. If you paid, write to us.",
-  "notifRefundedLine": "{n} puyl were returned to you."
+  "notifRefundedLine": "{n} puyl were returned to you.",
+  "freeConfirmTitle": "Are you really free?",
+  "freeConfirmBody": "{when}\n\nWe will send you job offers for this time.",
+  "freeConfirmYes": "Yes, I'm free",
+  "freeConfirmNo": "No"
 }

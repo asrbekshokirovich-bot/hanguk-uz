@@ -696,16 +696,11 @@
   "inviteSave": "코드 저장",
   "inviteSaved": "코드를 저장했어요",
   "freeDatesTitle": "내가 일할 수 있는 날",
-  "freeDatesHint": "언제, 어디서 일할 수 있나요? 날짜를 누르고 주간, 야간, 아무 때나 중에서 고르세요. 그날에 맞는 일을 찾아 알려 드려요.",
+  "freeDatesHint": "언제, 어디서 일할 수 있나요? 가능한 날을 누르세요. 그날에 맞는 일을 찾아 알려 드려요.",
   "freeDatesCity": "도시나 구 (예: 안산)",
   "freeDatesSave": "저장",
   "freeDatesSaved": "저장했어요. 일을 찾으면 알려 드릴게요.",
   "freeDatesNone": "아직 고른 날이 없어요",
-  "freeDatesConfirmTitle": "맞나요?",
-  "freeDatesConfirmBody": "날짜: {days}\n지역: {city}\n\n이 날짜에 맞는 일을 찾아 제안을 보내 드려요.",
-  "freeDatesClearBody": "가능한 날을 모두 지울까요? 제안을 보내지 않아요.",
-  "freeDatesConfirmYes": "네, 저장",
-  "freeDatesNotFree": "안 돼요",
   "partDay": "주간",
   "partNight": "야간",
   "partAny": "상관없음",
@@ -723,5 +718,9 @@
   "notifCoinsBalance": "잔액: {n} P",
   "notifTopupRejectedTitle": "충전이 승인되지 않았어요",
   "notifTopupRejectedText": "{n} P 입금을 찾지 못했어요. 입금하셨다면 문의해 주세요.",
-  "notifRefundedLine": "{n} 퓰을 돌려드렸어요."
+  "notifRefundedLine": "{n} 퓰을 돌려드렸어요.",
+  "freeConfirmTitle": "정말 가능하세요?",
+  "freeConfirmBody": "{when}\n\n이 시간에 맞는 일자리 제안을 보내 드려요.",
+  "freeConfirmYes": "네, 가능해요",
+  "freeConfirmNo": "아니요"
 }

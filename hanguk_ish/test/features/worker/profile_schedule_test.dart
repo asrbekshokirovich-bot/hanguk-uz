@@ -38,6 +38,15 @@ void main() {
     await tester.ensureVisible(find.bySemanticsLabel('Yakshanba, Kechqurun'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Yakshanba, Kechqurun'));
+    await tester.pumpAndSettle();
+    if (before) {
+      expect(find.text("Rostdan bo'shmisiz?"), findsNothing, reason: 'taking a time off asks nothing');
+    } else {
+      // Marking a time free asks first.
+      expect(find.text("Rostdan bo'shmisiz?"), findsOneWidget);
+      await tester.tap(find.text("Ha, bo'shman"));
+      await tester.pumpAndSettle();
+    }
     await tester.pump(const Duration(seconds: 2));
     expect(container.read(workerProfileDraftProvider).isAvailable(6, 2), isNot(before));
     expect((await repo.load())!.isAvailable(6, 2), isNot(before));
@@ -45,6 +54,17 @@ void main() {
     await tester.ensureVisible(find.text('Har kuni kechqurun'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Har kuni kechqurun'));
+    await tester.pumpAndSettle();
+    // «No» keeps the grid as it was.
+    expect(find.text("Rostdan bo'shmisiz?"), findsOneWidget);
+    expect(find.textContaining('Har kuni kechqurun\n'), findsOneWidget);
+    await tester.tap(find.text("Yo'q"));
+    await tester.pumpAndSettle();
+    expect(find.text('Haftasiga 7 ta vaqt'), findsNothing);
+    await tester.tap(find.text('Har kuni kechqurun'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("Ha, bo'shman"));
+    await tester.pumpAndSettle();
     await tester.pump(const Duration(seconds: 2));
     expect(find.text('Haftasiga 7 ta vaqt'), findsOneWidget);
     final saved = (await repo.load())!;

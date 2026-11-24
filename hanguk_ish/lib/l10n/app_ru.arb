@@ -696,16 +696,11 @@
   "inviteSave": "Сохранить код",
   "inviteSaved": "Код сохранён",
   "freeDatesTitle": "Мои свободные дни",
-  "freeDatesHint": "В какие дни и где вы можете работать? Нажмите на день и выберите: день, ночь или любое время. Мы найдём работу на эти дни и сообщим.",
+  "freeDatesHint": "В какие дни и где вы можете работать? Нажмите на свободные дни. Мы найдём работу на эти дни и сообщим.",
   "freeDatesCity": "Город или район (например, Ансан)",
   "freeDatesSave": "Сохранить",
   "freeDatesSaved": "Сохранено. Найдём работу — сообщим.",
   "freeDatesNone": "Дни ещё не выбраны",
-  "freeDatesConfirmTitle": "Всё верно?",
-  "freeDatesConfirmBody": "Дни: {days}\nГород: {city}\n\nМы будем искать работу на эти дни и присылать вам предложения.",
-  "freeDatesClearBody": "Удалить все свободные дни? Мы не будем присылать предложения.",
-  "freeDatesConfirmYes": "Да, сохранить",
-  "freeDatesNotFree": "Не свободен",
   "partDay": "День",
   "partNight": "Ночь",
   "partAny": "Неважно",
@@ -723,5 +718,9 @@
   "notifCoinsBalance": "Баланс: {n} P",
   "notifTopupRejectedTitle": "Пополнение не принято",
   "notifTopupRejectedText": "Мы не получили деньги за {n} P. Если вы оплатили, напишите нам.",
-  "notifRefundedLine": "Вам вернули {n} пюль."
+  "notifRefundedLine": "Вам вернули {n} пюль.",
+  "freeConfirmTitle": "Вы точно свободны?",
+  "freeConfirmBody": "{when}\n\nМы будем присылать вам предложения работы на это время.",
+  "freeConfirmYes": "Да, свободен",
+  "freeConfirmNo": "Нет"
 }
