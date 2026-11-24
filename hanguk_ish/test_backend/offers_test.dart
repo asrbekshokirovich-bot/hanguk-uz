@@ -128,7 +128,8 @@ void main() {
       ));
       expect(feed.map((s) => s.id), isNot(contains(jobId)));
       expect(await workerShifts.shift(jobId), isNull);
-      await expectLater(workerShifts.apply(jobId), _refused('SHIFT_CLOSED'));
+      // Invite-only: never by «Tasdiqlash», only by an offer and puyl.
+      await expectLater(workerShifts.apply(jobId), _refused('USE_UNLOCK'));
     });
 
     test('who fits: the worker near the job, onboarded, free then', () async {

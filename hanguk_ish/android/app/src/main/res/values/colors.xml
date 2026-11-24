@@ -2,5 +2,7 @@
 <resources>
     <!-- Prototype background (#0A1440): no white flash between launch and the first frame. -->
     <color name="hi_navy">#0A1440</color>
+    <!-- P56: the tint of the push icon (the brand blue). -->
+    <color name="notification_tint">#2447D6</color>
     <color name="ic_launcher_background">#24508F</color>
 </resources>

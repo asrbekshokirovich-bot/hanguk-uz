@@ -35,13 +35,15 @@ void main() {
     expect(find.text('18–23'), findsNothing, reason: 'no hours');
 
     final before = container.read(workerProfileDraftProvider).isAvailable(6, 2);
-    await tester.ensureVisible(find.text('Har kuni kechqurun'));
+    await tester.ensureVisible(find.bySemanticsLabel('Yakshanba, Kechqurun'));
     await tester.pumpAndSettle();
     await tester.tap(find.bySemanticsLabel('Yakshanba, Kechqurun'));
     await tester.pump(const Duration(seconds: 2));
     expect(container.read(workerProfileDraftProvider).isAvailable(6, 2), isNot(before));
     expect((await repo.load())!.isAvailable(6, 2), isNot(before));
 
+    await tester.ensureVisible(find.text('Har kuni kechqurun'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Har kuni kechqurun'));
     await tester.pump(const Duration(seconds: 2));
     expect(find.text('Haftasiga 7 ta vaqt'), findsOneWidget);

@@ -163,20 +163,30 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
     });
     expect(notices).toHaveLength(1);
     expect(notices[0].data).toMatchObject({ note: 'Ertalab 9:50 da darvozada', shift_id: jobId });
-    const card = await call<{ offer: { status: string } }>(worker, 'shift_details', { p_shift: jobId });
+    const card = await call<{ offer: { status: string }; unlock_price: number; place_hidden: boolean }>(
+      worker,
+      'shift_details',
+      { p_shift: jobId },
+    );
     expect(card.offer.status).toBe('sent');
-    const applied = await call<{ id: string; status: string }>(worker, 'apply_to_shift', { p_shift: jobId });
-    expect(applied.status).toBe('pending');
-    applicationId = applied.id;
+    expect(card.unlock_price).toBe(20);
+    expect(card.place_hidden).toBe(true);
+    // Invite-only: no free «Tasdiqlash»; the worker pays puyl (90 free at sign-up).
+    await expect(call(worker, 'apply_to_shift', { p_shift: jobId })).rejects.toThrow('USE_UNLOCK');
+    const opened = await call<{ application_id: string; phone: string; price: number }>(worker, 'unlock_offer', {
+      p_shift: jobId,
+    });
+    expect(opened.price).toBe(20);
+    expect(opened.phone).toBeTruthy();
+    applicationId = opened.application_id;
 
     const page = await api.job(jobId);
     expect(page.offers[0].status).toBe('applied');
-    expect(page.applications[0]).toMatchObject({ id: applicationId, status: 'pending' });
+    expect(page.applications[0]).toMatchObject({ id: applicationId, status: 'confirmed' });
     expect(page.applications[0].worker.phone).toBeTruthy();
   });
 
-  it('확정 after the call; the chat goes both ways; the QR', async () => {
-    expect((await api.decide(applicationId, true)).status).toBe('confirmed');
+  it('paid means confirmed; the chat goes both ways; the QR', async () => {
     const mine = await call<{ status: string; shift: { id: string } }[]>(worker, 'my_shifts');
     expect(mine.find((a) => a.shift.id === jobId)?.status).toBe('confirmed');
 

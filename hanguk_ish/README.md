@@ -99,8 +99,9 @@ loyihasi (`hanguk-consulting`) — server o'sha loyihaning kaliti bilan yuboradi
 - Matn — A12 / 알림 dagi sarlavha va qator, o'quvchining tilida
   (`profiles.language`). Ilova ochiq bo'lsa push ko'rsatilmaydi (ekranlar
   o'zi yangilanadi). Bosilsa — A12 / 알림 ochiladi.
-- Bildirishnoma ikonkasi (status bar uchun oq, shaffof fonli belgi) dizayni
-  hali yo'q: hozircha ilova ikonkasi.
+- Bildirishnoma ikonkasi: `android/app/src/main/res/drawable/ic_stat_notify.xml`
+  (oq portfel, shaffof fon; 2026-11-24) — avval ilova ikonkasi oq kvadrat
+  bo'lib chiqardi.
 
 ## Xodimlar: hanguk.uz → CRM → «Hanguk Ish»
 

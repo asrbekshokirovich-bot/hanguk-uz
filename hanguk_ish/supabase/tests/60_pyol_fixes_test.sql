@@ -295,3 +295,10 @@ select tests.eq(ish.staff_free_workers((now() at time zone 'Asia/Seoul')::date +
                 'and who is free that day');
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq(jsonb_array_length(ish.my_free_dates()), 0, 'a1 does not see a2''s dates');
+
+-- Invite codes never collide: 5 000 new codes, all different and easy to read.
+select tests.as_admin();
+select tests.eq((select count(distinct c)::int from (select ish.new_referral_code() as c from generate_series(1, 5000)) x),
+                5000, 'no two alike');
+select tests.ok((select bool_and(c ~ '^[A-HJ-NP-Z2-9]{6}$') from (select ish.new_referral_code() as c from generate_series(1, 200)) x),
+                'six letters or digits, no 0/O/1/I');

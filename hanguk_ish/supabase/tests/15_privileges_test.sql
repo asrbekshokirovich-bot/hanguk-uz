@@ -5,11 +5,11 @@
 -- upkeep jobs, register_business). Trigger functions cannot be called
 -- directly and are left out.
 select tests.eq(
-  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+  (select coalesce(array_agg(p.proname::text order by p.proname::text collate "C"), '{}')
    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'ish' and p.prosecdef and p.prorettype <> 'trigger'::regtype
      and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
-  (select array_agg(f order by f) from unnest(array[
+  (select array_agg(f order by f collate "C") from unnest(array[
     'apply_to_shift', 'business_board', 'business_report', 'business_stats', 'business_workers',
     'cancel_application', 'cancel_shift', 'check_in', 'check_out', 'confirm_payment', 'decide_application', 'decline_job_offer',
     'employer_shift', 'is_application_party', 'is_business_member', 'is_my_applicant', 'is_shift_member',
@@ -38,7 +38,7 @@ select tests.eq(
   'the owner-rights functions open to signed-in people are the reviewed ones');
 
 select tests.eq(
-  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+  (select coalesce(array_agg(p.proname::text order by p.proname::text collate "C"), '{}')
    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'ish' and p.prosecdef and p.prorettype <> 'trigger'::regtype
      and has_function_privilege('anon', p.oid, 'EXECUTE')),
