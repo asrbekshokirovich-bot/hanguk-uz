@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-24T02:14:59+00:00",
+ "last_run": "2026-11-24T13:42:23+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -309,6 +309,8 @@
    "014fe9f672705d6f"
   ],
   "https://ent.hs.ac.kr/": [
+   "4f34e0790a5f9179",
+   "9de4951c344fe32e",
    "66851633e1200bbc",
    "ec053fdd17c338c5",
    "5ae3967f0c4ef41a",
@@ -354,6 +356,7 @@
    "1d5b1c60c2d394bd"
   ],
   "https://enter.dcu.ac.kr/": [
+   "272ce4bcd7226a73",
    "fb812cd7d9c93ff6",
    "76bf4a0ff8412ee6",
    "851da6de5913ba7b",
@@ -651,6 +654,14 @@
    "39fbcbf5888b5840",
    "a04563612750045d",
    "5baba6ec78cc9321"
+  ],
+  "https://iphak.gwangju.ac.kr/": [
+   "2d12084cd0478ba1",
+   "f21b23596a076972",
+   "2e6af7035c696e9b",
+   "7d5d75f22fca7338",
+   "323b1f5eed6918d9",
+   "781940bafb83c3e2"
   ],
   "https://iphak.jangan.ac.kr/": [
    "6496b73bfd391421",
