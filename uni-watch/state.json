@@ -1,5 +1,5 @@
 {
- "last_run": "2026-11-23T12:31:28+00:00",
+ "last_run": "2026-11-24T02:14:59+00:00",
  "seen": {
   "http://enter.konkuk.ac.kr/submenu.do?menuurl=k8b%2fCUaWlntKYwhT%2fh%2bKUA%3d%3d&": [],
   "https://adm-u.postech.ac.kr/": [
@@ -961,6 +961,7 @@
   "https://ipsi.kcn.ac.kr/": [],
   "https://ipsi.kdu.ac.kr/": [],
   "https://ipsi.kongju.ac.kr/kor": [
+   "7f6199a1f2dd3d29",
    "1e2ae0df3b0f4466",
    "269f8b8ddb268d01",
    "7f59ebdd315a1e4f",
@@ -1042,6 +1043,7 @@
    "37880b549e81e422"
   ],
   "https://ipsi.shinhan.ac.kr/": [
+   "a40a17537a2c2b2f",
    "25b9d24cbf5d933f",
    "8746296e67b03be3",
    "b33f7838f192a919",
