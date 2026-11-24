@@ -69,8 +69,8 @@ select tests.ok(not exists (
   where (c ->> 'id')::uuid = pg_temp.id('job')), 'an invite-only job is not in the feed');
 select tests.throws($$select ish.shift_details(pg_temp.id('job'))$$, 'NOT_FOUND',
                     'nor open to a worker without an offer');
-select tests.throws($$select ish.apply_to_shift(pg_temp.id('job'))$$, 'SHIFT_CLOSED',
-                    'who cannot take it either');
+select tests.throws($$select ish.apply_to_shift(pg_temp.id('job'))$$, 'USE_UNLOCK',
+                    'who cannot take it either (invite-only jobs are taken with pyols)');
 select tests.as_admin();
 select tests.eq((select count(*)::int from ish.notifications
                  where kind = 'new_shift_match' and data ->> 'shift_id' = pg_temp.id('job')::text),
@@ -109,13 +109,20 @@ select tests.eq(ish.my_notifications(100, array['job_offer']) -> 0 -> 'shift' ->
 select tests.eq(ish.my_notifications(100, array['job_offer']) -> 0 -> 'data' ->> 'note', 'Ertalab 10 da yetib keling',
                 'and the staff''s note');
 select tests.eq(ish.shift_details(pg_temp.id('job')) -> 'offer' ->> 'status', 'sent', 'the job opens, with the offer');
-select tests.eq((ish.apply_to_shift(pg_temp.id('job'))).status::text, 'pending', 'a1 takes it: the staff decide');
+select tests.throws($$select ish.apply_to_shift(pg_temp.id('job'))$$, 'USE_UNLOCK', 'not for free');
+select tests.throws($$select ish.unlock_offer(pg_temp.id('job'))$$, 'NO_COINS', 'a1 has no pyols yet');
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
+select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', 50, 'test gift');
+select ish.staff_add_coins('00000000-0000-0000-0000-0000000000c4', 50, 'test gift');
+select tests.as_user('00000000-0000-0000-0000-0000000000a1');
+select tests.eq((ish.unlock_offer(pg_temp.id('job'))) ->> 'phone', '010-5555-1234', 'a1 pays and gets the contact');
+select tests.eq((ish.my_coins() ->> 'balance')::int, 30, '4 hours: 20 pyols');
 select tests.eq(ish.shift_details(pg_temp.id('job')) -> 'offer' ->> 'status', 'applied', 'the offer is answered');
 select tests.eq((select count(*)::int from ish.job_offers), 1, 'a worker sees only their own offers');
 
 -- Malika is busy then; Bekzod says «Qiziqmayman», then changes his mind.
 select tests.as_user('00000000-0000-0000-0000-0000000000a2');
-select tests.throws($$select ish.apply_to_shift(pg_temp.id('job'))$$, 'TIME_CONFLICT', 'Malika is busy then');
+select tests.throws($$select ish.unlock_offer(pg_temp.id('job'))$$, 'TIME_CONFLICT', 'Malika is busy then');
 select tests.as_user('00000000-0000-0000-0000-0000000000c4');
 select ish.decline_job_offer(pg_temp.id('job'));
 select tests.throws($$select ish.decline_job_offer(pg_temp.id('job'))$$, 'NOT_FOUND', 'declined once');
@@ -135,22 +142,18 @@ select tests.eq(
    where (c ->> 'id')::uuid = pg_temp.id('job')), 1, 'the board counts the answers');
 
 select tests.as_user('00000000-0000-0000-0000-0000000000c4');
-select tests.eq((ish.apply_to_shift(pg_temp.id('job'))).status::text, 'pending',
+select tests.eq((ish.unlock_offer(pg_temp.id('job'))) ->> 'price', '20',
                 'Bekzod may still take it after declining');
 
--- After the call with the employer, the staff confirm both (the 사장님
--- function, as for an owner).
+-- Both are confirmed by paying; the staff see them as crew.
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
 insert into ids select 'app1', id from ish.applications
   where shift_id = pg_temp.id('job') and worker_id = '00000000-0000-0000-0000-0000000000a1';
 insert into ids select 'app4', id from ish.applications
   where shift_id = pg_temp.id('job') and worker_id = '00000000-0000-0000-0000-0000000000c4';
-select tests.eq((ish.decide_application(pg_temp.id('app1'), true)).status::text, 'confirmed', 'staff confirm a1');
-select tests.eq((ish.decide_application(pg_temp.id('app4'), true)).status::text, 'confirmed', 'and Bekzod');
 select tests.as_admin();
-select tests.eq((select count(*)::int from ish.notifications
-                 where user_id = '00000000-0000-0000-0000-0000000000a1' and kind = 'application_confirmed'),
-                1, 'a1 is told');
+select tests.eq((select string_agg(status::text || ':' || coins_paid, ',' order by worker_id) from ish.applications
+                 where shift_id = pg_temp.id('job')), 'confirmed:20,confirmed:20', 'both confirmed, 20 pyols each');
 
 -- The staff talk to the worker (chat) and send the QR to the employer.
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
@@ -161,27 +164,28 @@ select tests.ok(ish.shift_qr(pg_temp.id('job')) like 'hanguk-ish:v1:%', 'the sta
 select tests.throws($$select ish.staff_save_shift(
   pg_temp.id('job'), pg_temp.id('biz'), '이삿짐 운반 보조', now() + interval '2 days 2 hours',
   now() + interval '2 days 6 hours', 13000, 2)$$, 'HAS_CREW', 'a crewed job keeps its time');
+select tests.throws($$select ish.staff_save_shift(pg_temp.id('job'), pg_temp.id('biz'), '이삿짐 운반 보조',
+  (select starts_at from ish.shifts where id = pg_temp.id('job')),
+  (select ends_at from ish.shifts where id = pg_temp.id('job')), 13000, 2)$$, 'HAS_PAID_WORKER',
+  'paid workers keep the place they paid for');
 select ish.staff_save_shift(pg_temp.id('job'), pg_temp.id('biz'), '이삿짐 운반 보조 (2층)',
   (select starts_at from ish.shifts where id = pg_temp.id('job')),
-  (select ends_at from ish.shifts where id = pg_temp.id('job')), 13000, 2);
+  (select ends_at from ish.shifts where id = pg_temp.id('job')), 13000, 2,
+  '짐 나르기', '편한 옷', '마포구 와우산로 21', null, null, false, true);
 select tests.eq((select title from ish.shifts where id = pg_temp.id('job')), '이삿짐 운반 보조 (2층)',
                 'the title changes');
 
--- A job with only a waiting applicant moves: the applicant is let go (as
--- when an owner moves one).
+-- A job a worker paid for keeps its time.
 insert into ids select 'job2', ish.staff_save_shift(
   null, pg_temp.id('biz'), '창고 정리', now() + interval '4 days', now() + interval '4 days 3 hours', 12000, 1);
 select ish.staff_send_offers(pg_temp.id('job2'), array['00000000-0000-0000-0000-0000000000a2']::uuid[]);
+select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a2', 20, 'test gift');
 select tests.as_user('00000000-0000-0000-0000-0000000000a2');
-select ish.apply_to_shift(pg_temp.id('job2'));
+select ish.unlock_offer(pg_temp.id('job2'));
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
-select ish.staff_save_shift(pg_temp.id('job2'), pg_temp.id('biz'), '창고 정리',
-  now() + interval '4 days 2 hours', now() + interval '4 days 5 hours', 12000, 1);
-select tests.as_admin();
-select tests.eq((select data ->> 'reason' from ish.notifications
-                 where user_id = '00000000-0000-0000-0000-0000000000a2' and kind = 'application_rejected'
-                   and data ->> 'shift_id' = pg_temp.id('job2')::text), 'time_changed',
-                'a moved job lets its waiting applicant go');
+select tests.throws($$select ish.staff_save_shift(pg_temp.id('job2'), pg_temp.id('biz'), '창고 정리',
+  now() + interval '4 days 2 hours', now() + interval '4 days 5 hours', 12000, 1)$$, 'HAS_',
+  'a paid job keeps its time');
 
 -- The staff keep to their employers.
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
@@ -190,12 +194,15 @@ select tests.throws($$select ish.staff_save_business('10000000-0000-0000-0000-00
 select tests.throws($$select ish.staff_save_shift(null, '10000000-0000-0000-0000-000000000001', 'x',
                       now() + interval '1 day', now() + interval '1 day 2 hours', 11000, 1)$$, 'NOT_FOUND',
                     'nor to post for');
-select tests.eq(ish.staff_send_offers('20000000-0000-0000-0000-000000000003',
-                  array['00000000-0000-0000-0000-0000000000a1']::uuid[]), 1,
-                'but they may point a worker to a shift in the app');
+select tests.throws($$select ish.staff_send_offers('20000000-0000-0000-0000-000000000003',
+                  array['00000000-0000-0000-0000-0000000000a1']::uuid[])$$, 'NOT_INVITE_ONLY',
+                'no paid offer for a job anyone takes free in the feed');
+select tests.as_admin();
+update ish.shifts set invite_only = true where id = '20000000-0000-0000-0000-000000000006';
+select tests.as_user('00000000-0000-0000-0000-0000000000c1');
 select tests.eq(ish.staff_send_offers('20000000-0000-0000-0000-000000000006',
                   array['00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000c4']::uuid[]), 1,
-                'not to one who already works it');
+                'invite-only in the app: not to one who already works it');
 select tests.throws($$select ish.staff_send_offers('20000000-0000-0000-0000-000000000006',
                       array['00000000-0000-0000-0000-0000000000a1']::uuid[], repeat('x', 301))$$, 'INVALID',
                     'a note fits 300 characters');

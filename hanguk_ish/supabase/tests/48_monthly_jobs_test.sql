@@ -14,7 +14,9 @@ update ish.monthly_jobs set status = 'closed' where id = '70000000-0000-0000-000
 
 -- A worker sees the open job only, and cannot change jobs.
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
-select tests.eq((select count(*)::int from ish.monthly_jobs), 1, 'a worker sees the open job only');
+select tests.eq(jsonb_array_length(ish.public_monthly_jobs()), 1, 'a worker sees the open job only');
+select tests.eq(ish.public_monthly_jobs() -> 0 ->> 'company', '', 'without the company before paying');
+select tests.throws($$select company from ish.monthly_jobs$$, 'permission denied', 'nor straight from the table');
 select tests.throws($$insert into ish.monthly_jobs (title, company, monthly_wage) values ('x', 'y', 1)$$,
                     'row-level security', 'a worker cannot post a job');
 
@@ -47,7 +49,9 @@ select tests.eq((select count(*)::int from ish.monthly_applications), 0, 'withdr
 
 -- The public page (signed out): the open jobs, read only; no interest rows.
 select tests.as_anon();
-select tests.eq((select count(*)::int from ish.monthly_jobs), 1, 'the signed-out see the open job only');
+select tests.eq(jsonb_array_length(ish.public_monthly_jobs()), 1, 'the signed-out see the open job only');
+select tests.eq(ish.public_monthly_jobs() -> 0 ->> 'company', '', 'without the company');
+select tests.throws($$select * from ish.monthly_jobs$$, 'permission denied', 'and not from the table');
 select tests.throws($$insert into ish.monthly_jobs (title, company, monthly_wage) values ('x', 'y', 1)$$,
                     'permission denied', 'and cannot post');
 select tests.throws($$select * from ish.monthly_applications$$, 'permission denied', 'nor read who is interested');
