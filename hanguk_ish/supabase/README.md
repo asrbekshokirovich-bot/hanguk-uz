@@ -1,10 +1,10 @@
-# Hanguk Ish — backend (Supabase)
+# HanPyol — backend (Supabase)
 
-Hanguk Ish'ning bazasi hanguk.uz'ning Supabase loyihasida
+HanPyol'ning bazasi hanguk.uz'ning Supabase loyihasida
 (`lysjdtyanhdfphqyijsr`, Seul), alohida **`ish` sxemasida** (P48). hanguk.uz'ning
 `public` sxemasida hech narsa yaratilmaydi va ruxsatlari o'zgarmaydi. Yagona
 istisno — repo ildizidagi `supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql`:
-hanguk.uz'ning `public.handle_new_user` triggeri Hanguk Ish ilovalaridan
+hanguk.uz'ning `public.handle_new_user` triggeri HanPyol ilovalaridan
 ro'yxatdan o'tganlarni (`user_metadata.app = 'hanguk_ish'`) o'tkazib yuboradi,
 ularning profili `ish.profiles`. Kod va testlar shu papkada, CI'da lokal bazada
 sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
@@ -29,7 +29,7 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_app_business_oversight.sql` | P52: tekshiruvsiz ochilgan bizneslar ustidan xodim nazorati — `staff_app_businesses()` ro'yxat, `staff_update_app_business()` haqiqiy nom va manzil, `staff_set_app_business_blocked()` to'xtatish (`rejected`: smenalar lentadan chiqadi, ariza berib bo'lmaydi) / qayta yoqish; `staff_reports()` / `staff_set_report_status()` — ishchilar shikoyatlari (A11) va ularning holati; ilovadan bitta biznes 24 soatda ko'pi bilan 30 smena (`TOO_MANY_REQUESTS`); xodim yozgan o'zbekcha nom koreyscha nom o'zgarganda yo'qolmaydi |
 | `migrations/…_ish_translations.sql` | P55: mashina tarjimasi — yozilgan xabar, smena va biznes `translation_queue` ga tushadi (matni o'zgarsa qaytadan), baza `ish-translate` ni chaqiradi (pg_net, vault'dagi `secret_key`; pg_cron `ish-translate` har daqiqa); `translation_claim` (har urinish keyingisini 1, 2, 4 … 60 daqiqaga suradi, 10 urinish), `translation_save` (asl matn o'zgarmagan bo'lsagina yozadi; xodim yozgan nom qoladi), `translation_fail` — faqat service role |
 | `migrations/…_ish_staff_alerts.sql` | P57: sajangnim ilovasida ochilgan biznes va ishchi shikoyati — `staff_alerts` ga, baza `ish-staff-alerts` ni chaqiradi (Telegram: hanguk.uz'ning ogohlantirish boti va chati); yetmagan xabar 1, 2, 4 … 60 daqiqada qayta (8 urinish, pg_cron `ish-staff-alerts`); xodim boshqaradigan biznes — xabarsiz. Faqat service role |
-| `migrations/…_ish_staff_admin.sql` | P58: xodimlar ro'yxati CRM'da — Hanguk Ish admini (`staff_members.role = 'admin'`) `staff_people()` (xodimlar va qo'shish mumkin bo'lgan hanguk.uz CRM akkauntlari: `public.user_roles` — owner, admin, call_operator, document_handler, university_staff), `staff_add()` (Hanguk Ish profili bilan), `staff_set_role()`, `staff_remove()`; o'zini o'zgartirish/olib tashlash — `SELF` |
+| `migrations/…_ish_staff_admin.sql` | P58: xodimlar ro'yxati CRM'da — HanPyol admini (`staff_members.role = 'admin'`) `staff_people()` (xodimlar va qo'shish mumkin bo'lgan hanguk.uz CRM akkauntlari: `public.user_roles` — owner, admin, call_operator, document_handler, university_staff), `staff_add()` (HanPyol profili bilan), `staff_set_role()`, `staff_remove()`; o'zini o'zgartirish/olib tashlash — `SELF` |
 | `migrations/…_ish_push.sql` | P56: push — bildirishnoma (`ish.notifications`) uni ko'rsatadigan ilovada telefoni ro'yxatdan o'tgan odamga bo'lsa `push_queue` ga tushadi, baza `ish-push` ni chaqiradi (FCM); o'qilgan yoki 30 daqiqadan eski bildirishnoma yuborilmaydi; urinishlar 1, 2, 4, 8, 16 daqiqa (5 ta, pg_cron `ish-push`); FCM bilmaydigan token o'chiriladi (`push_drop_token`). Qaysi ilova: sajangnim turlari va biznesga yozilgan chat — sajangnim ilovasiga, qolgani — ishchi ilovasiga. Faqat service role |
 | `migrations/…_ish_market_wage.sql` | `market_wage(business)`: BA2 «O'rtacha» tugmasi va «Jozibador / Odatiy» belgisi uchun — oxirgi 90 kunda tasdiqlangan bizneslar qo'ygan smenalar soatlik maoshining o'rtachasi (100 won ga yaxlitlangan), avval o'sha tuman bo'yicha (kamida 5 smena), bo'lmasa hammasi bo'yicha, bo'lmasa `null` (ilova chiziqcha ko'rsatadi, o'ylab topilgan son emas); faqat biznes a'zosi so'raydi |
 | `migrations/…_ish_coins.sql` | Puyl hamyoni: `coin_wallets` (balans ≥ 0) va `coin_ledger` (sabab: `staff`, `unlock`, `topup`, `bonus`). Puylni xodim qo'shadi/oladi (`staff_add_coins`, CRM «Puyl»; `staff_coin_workers` qidiruv). `my_coins` — balans va tarix. Ilova pul saqlamaydi, faqat son. Yetmasa `NO_COINS`. Sarflangan puyl qaytmaydi |
@@ -127,12 +127,12 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
 5. CI APK'lari shu bazaga ulanadi: `ish-check.yml` da hanguk.uz'ning manzili va
    publishable kaliti (ochiq, saytda ham bor). GitHub secrets `ISH_SUPABASE_URL`,
    `ISH_SUPABASE_PUBLISHABLE_KEY` berilsa — boshqa loyihaga.
-6. Xodimlar: hanguk.uz CRM akkaunti bilan — P58 dan CRM → Hanguk Ish →
+6. Xodimlar: hanguk.uz CRM akkaunti bilan — P58 dan CRM → HanPyol →
    «Xodimlar» yorlig'ida (admin qo'shadi; `hanguk_ish/README.md`, «Xodimlar»).
    Birinchi admin (Asrbek) prod'da bor.
 7. Tekshiruv:
    - `bash tests/verify.sh "<prod database url>"` — faqat o'qiydi: migratsiyalar
-     (nomi bo'yicha), hanguk.uz triggeri Hanguk Ish'ni o'tkazib yuborishi, RLS,
+     (nomi bo'yicha), hanguk.uz triggeri HanPyol'ni o'tkazib yuborishi, RLS,
      huquqlar, 6 ta pg_cron ishi, Realtime jadvallari, «ish-avatars» limitlari,
      eng kam ish haqi, indekslar. Hammasi «ok» bo'lishi kerak (CI'da lokal
      stack'da ham ishlaydi);

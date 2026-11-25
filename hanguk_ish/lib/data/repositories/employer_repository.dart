@@ -4,7 +4,7 @@ import '../demo/demo_employer.dart';
 import '../models/business.dart';
 import '../models/employer.dart';
 
-/// Everything the employer app («Hanguk Ish 사장님») reads and changes.
+/// Everything the employer app («HanPyol 사장님») reads and changes.
 /// Errors are `ShiftActionException`s with the backend's codes
 /// ('SHIFT_FULL', 'NOT_PENDING', …) or an `OfflineException`.
 abstract interface class EmployerRepository {

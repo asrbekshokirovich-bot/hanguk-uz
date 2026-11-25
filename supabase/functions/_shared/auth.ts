@@ -26,7 +26,7 @@ export async function requireAuth(req: Request) {
   if (error || !user) {
     throw new ApiError(401, error?.message || "Invalid or expired token");
   }
-  // Hanguk Ish's anonymous accounts (P53): not hanguk.uz's people.
+  // HanPyol's anonymous accounts (P53): not hanguk.uz's people.
   if (isAnonymousAccount(user)) {
     throw new ApiError(403, "Forbidden");
   }

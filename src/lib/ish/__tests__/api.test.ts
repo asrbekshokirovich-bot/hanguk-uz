@@ -29,7 +29,7 @@ describe('ishApi', () => {
       contact: { contact_name: '김사장', phone: ' 010-5555-1234 ', telegram: '@hongdae_move', source: '', notes: '' },
     });
     expect(id).toBe('biz-1');
-    // Hanguk Ish is the schema `ish` of hanguk.uz's project (P48).
+    // HanPyol is the schema `ish` of hanguk.uz's project (P48).
     expect(schema).toHaveBeenCalledWith('ish');
     expect(rpc).toHaveBeenCalledWith('staff_save_business', {
       p_business: null,

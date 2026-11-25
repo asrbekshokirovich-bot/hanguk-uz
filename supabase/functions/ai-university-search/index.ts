@@ -173,7 +173,7 @@ async function signedInUser(req: Request): Promise<string | null> {
     return null;
   }
   const { data } = await admin.auth.getUser(token);
-  // A Hanguk Ish anonymous account (P53) searches as a guest: per IP.
+  // A HanPyol anonymous account (P53) searches as a guest: per IP.
   if (isAnonymousAccount(data?.user)) return null;
   return data?.user?.id ?? null;
 }

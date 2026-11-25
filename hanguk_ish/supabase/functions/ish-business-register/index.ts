@@ -1,6 +1,6 @@
 // ish-business-register — BA0 «시작하기» for an owner without a business.
 //
-// Hanguk Ish lives in hanguk.uz's project, in the schema `ish` (P48): the
+// HanPyol lives in hanguk.uz's project, in the schema `ish` (P48): the
 // service-role client reads and writes there, with the project's new API keys
 // when it has them (keys.ts).
 //

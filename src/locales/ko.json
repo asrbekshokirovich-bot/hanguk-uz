@@ -2738,9 +2738,9 @@
     "note": "비율에 마우스를 올리면 «재방문 / 가능» 수가 보입니다. N일차 = 정확히 N일 후 앱을 열어 무언가를 본 경우."
   },
   "ish": {
-    "nav": "Hanguk Ish",
-    "title": "Hanguk Ish — 근무자 매칭",
-    "notStaff": "{{account}}은(는) Hanguk Ish 직원 목록에 없어요. 관리자가 직원으로 추가해야 해요.",
+    "nav": "HanPyol",
+    "title": "HanPyol — 근무자 매칭",
+    "notStaff": "{{account}}은(는) HanPyol 직원 목록에 없어요. 관리자가 직원으로 추가해야 해요.",
     "signedInAs": "{{account}}(으)로 로그인됨",
     "refresh": "새로고침",
     "save": "저장",
@@ -2920,7 +2920,7 @@
       "download": "PNG 다운로드"
     },
     "errors": {
-      "FORBIDDEN": "Hanguk Ish 직원만 할 수 있어요.",
+      "FORBIDDEN": "HanPyol 직원만 할 수 있어요.",
       "NOT_FOUND": "찾을 수 없어요(또는 앱을 쓰는 사업장이라 사장님이 직접 관리해요).",
       "INVALID": "입력이 잘못됐거나 너무 길어요.",
       "INVALID_TIME": "종료가 시작보다 늦어야 해요.",
@@ -3000,7 +3000,7 @@
       "changed": "상태를 바꿨어요"
     },
     "staff": {
-      "intro": "Hanguk Ish 섹션에서 일하는 사람들이에요. hanguk.uz CRM 직원만 추가할 수 있고, 관리자가 목록을 관리해요.",
+      "intro": "HanPyol 섹션에서 일하는 사람들이에요. hanguk.uz CRM 직원만 추가할 수 있고, 관리자가 목록을 관리해요.",
       "name": "이름",
       "email": "이메일",
       "role": "역할",
@@ -3019,7 +3019,7 @@
       "roleChanged": "역할을 바꿨어요",
       "remove": "목록에서 빼기",
       "removeTitle": "직원 목록에서 뺄까요?",
-      "removeText": "CRM의 Hanguk Ish 섹션이 이 사람에게 닫혀요. 이 사람이 추가한 사업장과 일자리는 그대로 남아요.",
+      "removeText": "CRM의 HanPyol 섹션이 이 사람에게 닫혀요. 이 사람이 추가한 사업장과 일자리는 그대로 남아요.",
       "removed": "목록에서 뺐어요",
       "noName": "이름 없음"
     },

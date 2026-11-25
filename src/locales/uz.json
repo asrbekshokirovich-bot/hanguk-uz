@@ -3839,9 +3839,9 @@
     "note": "Foiz ustiga olib borsangiz «qaytgan / imkoni bor» soni ko'rinadi. N-kun = aynan N kun keyin ilovani ochib, nimanidir ko'rgan."
   },
   "ish": {
-    "nav": "Hanguk Ish",
-    "title": "Hanguk Ish — ishchilarni moslash",
-    "notStaff": "{{account}} Hanguk Ish xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak.",
+    "nav": "HanPyol",
+    "title": "HanPyol — ishchilarni moslash",
+    "notStaff": "{{account}} HanPyol xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak.",
     "signedInAs": "{{account}} bilan kirilgan",
     "refresh": "Yangilash",
     "save": "Saqlash",
@@ -4021,7 +4021,7 @@
       "download": "PNG yuklab olish"
     },
     "errors": {
-      "FORBIDDEN": "Bu amal faqat Hanguk Ish xodimlariga ruxsat etilgan.",
+      "FORBIDDEN": "Bu amal faqat HanPyol xodimlariga ruxsat etilgan.",
       "NOT_FOUND": "Topilmadi (yoki bu ish beruvchi ilovada — uni o'zi boshqaradi).",
       "INVALID": "Ma'lumot noto'g'ri yoki juda uzun.",
       "INVALID_TIME": "Tugash vaqti boshlanishidan keyin bo'lsin.",
@@ -4101,7 +4101,7 @@
       "changed": "Holati o'zgardi"
     },
     "staff": {
-      "intro": "Hanguk Ish bo'limida kim ishlaydi. Faqat hanguk.uz CRM xodimlarini qo'shish mumkin; ro'yxatni admin yuritadi.",
+      "intro": "HanPyol bo'limida kim ishlaydi. Faqat hanguk.uz CRM xodimlarini qo'shish mumkin; ro'yxatni admin yuritadi.",
       "name": "Ism",
       "email": "Email",
       "role": "Roli",
@@ -4120,7 +4120,7 @@
       "roleChanged": "Roli o'zgardi",
       "remove": "Olib tashlash",
       "removeTitle": "Xodimlar ro'yxatidan olib tashlaysizmi?",
-      "removeText": "CRM'dagi Hanguk Ish bo'limi unga yopiladi; u kiritgan ish beruvchilar va ishlar qoladi.",
+      "removeText": "CRM'dagi HanPyol bo'limi unga yopiladi; u kiritgan ish beruvchilar va ishlar qoladi.",
       "removed": "Olib tashlandi",
       "noName": "Ismi kiritilmagan"
     },

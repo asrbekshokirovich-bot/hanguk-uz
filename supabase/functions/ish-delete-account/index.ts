@@ -1,4 +1,4 @@
-// ish-delete-account — a Hanguk Ish user deletes their own account
+// ish-delete-account — a HanPyol user deletes their own account
 // (Google Play's account-deletion rule, 2026-11-13). Called by both apps
 // (Profile → «Akkauntni o'chirish») and by hanguk.uz/ish/delete-account, with
 // the user's own token. What it deletes: delete.ts.

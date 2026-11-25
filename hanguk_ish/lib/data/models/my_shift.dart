@@ -153,7 +153,7 @@ class ShiftQr {
 
   String get payload => '$prefix:$version:$shiftId:$token';
 
-  /// Null when [payload] is not a Hanguk Ish code.
+  /// Null when [payload] is not a HanPyol code.
   static ShiftQr? parse(String payload) {
     final parts = payload.trim().split(':');
     if (parts.length != 4 || parts[0] != prefix || parts[1] != version) return null;

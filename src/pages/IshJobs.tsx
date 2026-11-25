@@ -28,10 +28,10 @@ import {
 } from '@/lib/ish/publicJobs';
 import type { IshMonthlyJob } from '@/lib/ish/types';
 
-// Hanguk Ish: the public page of the open monthly jobs (hanguk.uz/ish). Anyone
+// HanPyol: the public page of the open monthly jobs (hanguk.uz/ish). Anyone
 // reads them; «Qiziqaman» asks for a phone number and an SMS code (the same
 // sign-in as the app), then the staff call both sides. Texts are inline in the
-// four languages, like the other public Hanguk Ish pages.
+// four languages, like the other public HanPyol pages.
 
 const ANY = '__any__';
 
@@ -39,7 +39,7 @@ const CATEGORY_KEYS = ['cafe', 'restaurant', 'retail', 'logistics', 'event', 'of
 
 const TEXT: Record<PublicLang, Record<string, string> & { categories: string }> = {
   uz: {
-    title: 'Hanguk Ish — oylik ishlar',
+    title: 'HanPyol — oylik ishlar',
     h1: 'Koreyada oylik ishlar',
     sub: 'Oyiga maosh to\'lanadigan doimiy ishlar. "Qiziqaman" ni bossangiz, Hanguk xodimi siz bilan bog\'lanadi.',
     app: 'Kunlik smenalar uchun ilovani yuklab oling',
@@ -77,7 +77,7 @@ const TEXT: Record<PublicLang, Record<string, string> & { categories: string }> 
     categories: 'Kafe|Restoran|Do\'kon|Logistika|Tadbir|Ofis|Boshqa',
   },
   ru: {
-    title: 'Hanguk Ish — работа на месяц',
+    title: 'HanPyol — работа на месяц',
     h1: 'Работа на месяц в Корее',
     sub: 'Постоянная работа с оплатой за месяц. Нажмите «Мне интересно» — сотрудник Hanguk свяжется с вами.',
     app: 'Скачайте приложение для смен на один день',
@@ -115,7 +115,7 @@ const TEXT: Record<PublicLang, Record<string, string> & { categories: string }> 
     categories: 'Кафе|Ресторан|Магазин|Логистика|Мероприятия|Офис|Другое',
   },
   en: {
-    title: 'Hanguk Ish — monthly jobs',
+    title: 'HanPyol — monthly jobs',
     h1: 'Monthly jobs in Korea',
     sub: 'Long-term jobs paid by the month. Tap “I\'m interested” and a Hanguk staff member will contact you.',
     app: 'Get the app for one-day shifts',
@@ -153,7 +153,7 @@ const TEXT: Record<PublicLang, Record<string, string> & { categories: string }> 
     categories: 'Café|Restaurant|Shop|Logistics|Event|Office|Other',
   },
   ko: {
-    title: 'Hanguk Ish — 월급 일자리',
+    title: 'HanPyol — 월급 일자리',
     h1: '한국 월급 일자리',
     sub: '월급으로 지급되는 장기 일자리예요. \'관심 있어요\'를 누르면 Hanguk 담당자가 연락드려요.',
     app: '하루 단위 근무는 앱에서 확인하세요',
@@ -264,7 +264,7 @@ export function IshJobsView({ client, lang }: { client: SupabaseClient; lang: Pu
         <header className="border-b bg-background/95 pt-[env(safe-area-inset-top)]">
           <div className="container mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-3">
             <a href="/" className="text-lg font-bold">
-              Hanguk Ish
+              HanPyol
             </a>
             <nav className="flex gap-3 text-sm" aria-label="Language">
               {LANGS.map((code) => (

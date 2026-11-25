@@ -1,8 +1,8 @@
--- Hanguk Ish — is a database as the migrations leave it? It only reads.
+-- HanPyol — is a database as the migrations leave it? It only reads.
 --
 --   tests/verify.sh <database url>
 --
--- For hanguk.uz's production project after the Hanguk Ish migrations are
+-- For hanguk.uz's production project after the HanPyol migrations are
 -- applied there (README, «Prod'ga chiqarish ro'yxati»), and in CI on the local
 -- Supabase stack after `supabase db reset`. Each line says «ok» or
 -- «MISSING»; tests/verify.sh fails on any MISSING. :expected (from verify.sh)
@@ -24,7 +24,7 @@ where v not in (select name from supabase_migrations.schema_migrations where nam
 select 'MISSING  supabase_migrations.schema_migrations (not a Supabase database?)';
 \endif
 
--- hanguk.uz's own sign-up trigger leaves Hanguk Ish's people to ish.profiles
+-- hanguk.uz's own sign-up trigger leaves HanPyol's people to ish.profiles
 -- (supabase/migrations/20261111150000_hanguk_ish_skip_main_profile.sql at the
 -- repository root) and makes no profile for an anonymous account
 -- (20261111180000_hanguk_ish_skip_anonymous.sql, P49). Only where hanguk.uz
@@ -32,8 +32,8 @@ select 'MISSING  supabase_migrations.schema_migrations (not a Supabase database?
 select to_regprocedure('public.handle_new_user()') is not null as has_main \gset
 \if :has_main
 select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%hanguk_ish%'
-            then 'ok       hanguk.uz sign-up skips Hanguk Ish users (public.profiles stays hanguk.uz''s)'
-            else 'MISSING  hanguk.uz public.handle_new_user does not skip Hanguk Ish users' end;
+            then 'ok       hanguk.uz sign-up skips HanPyol users (public.profiles stays hanguk.uz''s)'
+            else 'MISSING  hanguk.uz public.handle_new_user does not skip HanPyol users' end;
 select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%is_anonymous%'
             then 'ok       hanguk.uz sign-up skips anonymous accounts (the apps'' sign-in, P49)'
             else 'MISSING  hanguk.uz public.handle_new_user does not skip anonymous accounts' end;
@@ -41,7 +41,7 @@ select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) li
 -- marked app_metadata.app = 'hanguk_ish' and kept out of hanguk.uz's tables.
 select case when exists (select 1 from pg_trigger where tgrelid = 'auth.users'::regclass
                          and tgname = 'hanguk_ish_mark_account' and tgenabled <> 'D')
-            then 'ok       phone and anonymous accounts are marked as Hanguk Ish''s (P54)'
+            then 'ok       phone and anonymous accounts are marked as HanPyol''s (P54)'
             else 'MISSING  auth.users trigger hanguk_ish_mark_account (P54)' end;
 select case when pg_get_functiondef('public.handle_new_user()'::regprocedure) like '%raw_app_meta_data%'
             then 'ok       hanguk.uz sign-up skips marked (phone) accounts (P54)'

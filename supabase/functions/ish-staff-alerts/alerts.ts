@@ -104,9 +104,9 @@ export function alertText(alert: Alert): string | null {
     const kind = CATEGORY[text(d.category)] ?? CATEGORY.other;
     const pending = d.status === "pending" ? " · Tekshiruvda" : "";
     return [
-      "🆕 <b>Hanguk Ish</b> — sajangnim ilovasida yangi biznes",
+      "🆕 <b>HanPyol</b> — sajangnim ilovasida yangi biznes",
       `<b>${name}</b> · ${kind}${pending}`,
-      "Haqiqiy nomi va manzilini qo'ying, shubhali bo'lsa to'xtating: CRM → Hanguk Ish → «Ilovadagi bizneslar».",
+      "Haqiqiy nomi va manzilini qo'ying, shubhali bo'lsa to'xtating: CRM → HanPyol → «Ilovadagi bizneslar».",
       `${CRM}?tab=appBusinesses`,
     ].join("\n");
   }
@@ -119,13 +119,13 @@ export function alertText(alert: Alert): string | null {
     let body = text(d.body);
     if (body.length > BODY_MAX) body = `${body.slice(0, BODY_MAX)}…`;
     const lines = [
-      `⚠️ <b>Hanguk Ish</b> — yangi shikoyat: <b>${html(reason)}</b>`,
+      `⚠️ <b>HanPyol</b> — yangi shikoyat: <b>${html(reason)}</b>`,
       `Ishchi: ${worker ? html(worker) : "Ismi kiritilmagan"}`,
     ];
     if (business) lines.push(`Biznes: ${business}`);
     if (shiftTitle) lines.push(`Smena: ${html(shiftTitle)}${shiftTime ? ` · ${shiftTime}` : ""}`);
     if (body) lines.push(`«${html(body)}»`);
-    lines.push("CRM → Hanguk Ish → «Shikoyatlar»:", `${CRM}?tab=reports`);
+    lines.push("CRM → HanPyol → «Shikoyatlar»:", `${CRM}?tab=reports`);
     return lines.join("\n");
   }
   return null;

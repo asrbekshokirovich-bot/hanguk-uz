@@ -4,7 +4,7 @@ import { IshError, type IshApi } from '@/lib/ish/api';
 
 const IshApiContext = createContext<IshApi | null>(null);
 
-/** The Hanguk Ish calls of the signed-in staff member, for the section's parts. */
+/** The HanPyol calls of the signed-in staff member, for the section's parts. */
 export function IshApiProvider({ api, children }: { api: IshApi; children: ReactNode }) {
   return <IshApiContext.Provider value={api}>{children}</IshApiContext.Provider>;
 }

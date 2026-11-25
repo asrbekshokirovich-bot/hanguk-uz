@@ -1,5 +1,5 @@
 name: hanguk_ish
-description: "Hanguk Ish — Koreyada kunlik va qisqa smenali ishlar. Bitta kod, ikki ilova: ishchi (uz.hanguk.ish) va ish beruvchi (uz.hanguk.ish.biz)."
+description: "HanPyol — Koreyada kunlik va qisqa smenali ishlar. Bitta kod, ikki ilova: ishchi (uz.hanguk.ish) va ish beruvchi (uz.hanguk.ish.biz)."
 publish_to: 'none'
 
 version: 0.1.0+1
@@ -29,7 +29,7 @@ dependencies:
   qr: ^3.0.2
   # BA3 «QR 인쇄·공유», BA5 «CSV 다운로드»: the phone's share sheet.
   share_plus: '>=11.0.0 <14.0.0'
-  # The Hanguk Ish database (supabase/): sign-in, functions, tables, Storage.
+  # The HanPyol database (supabase/): sign-in, functions, tables, Storage.
   # Used only when the build names a backend (lib/data/backend/backend.dart).
   supabase_flutter: ^2.9.0
   # The app language between launches (already in the build through

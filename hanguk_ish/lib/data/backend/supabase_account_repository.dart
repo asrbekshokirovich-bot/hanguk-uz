@@ -10,7 +10,7 @@ import '../repositories/shift_repository.dart';
 import 'backend.dart';
 import 'json.dart';
 
-/// [WorkerAccountRepository] on the Hanguk Ish database.
+/// [WorkerAccountRepository] on the HanPyol database.
 class SupabaseAccountRepository implements WorkerAccountRepository {
   SupabaseAccountRepository(this._client);
 
@@ -91,7 +91,7 @@ Future<String> _uploadToStorage(SupabaseClient client, String userId, String loc
   return path;
 }
 
-/// [WorkerProfileRepository] on the Hanguk Ish database: A02 is saved with
+/// [WorkerProfileRepository] on the HanPyol database: A02 is saved with
 /// `save_worker_profile` (one transaction), the photo goes to the «ish-avatars»
 /// bucket first.
 class SupabaseWorkerProfileRepository implements WorkerProfileRepository {

@@ -40,7 +40,7 @@ function renderCoins(api: Partial<IshApi>) {
   );
 }
 
-describe('CRM → Hanguk Ish → «Coinlar»', () => {
+describe('CRM → HanPyol → «Coinlar»', () => {
   it('lists the worker with the balance and the last moves', async () => {
     renderCoins({ coinWorkers: vi.fn(async () => [aziz]) });
     const card = await screen.findByTestId('ish-coins-w1');

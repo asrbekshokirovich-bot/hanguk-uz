@@ -25,7 +25,7 @@ import { ishErrorText, ishKeys, useIshApi } from './context';
 const ROLES: readonly IshStaffRole[] = ['operator', 'admin'];
 
 /**
- * «Xodimlar» (P58): who works in this section, kept by a Hanguk Ish admin —
+ * «Xodimlar» (P58): who works in this section, kept by a HanPyol admin —
  * until now an SQL step. Only hanguk.uz's CRM people can be added (the
  * database allows nobody else); each is an operator or an admin; nobody
  * changes or removes themselves.

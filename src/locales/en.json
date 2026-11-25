@@ -3779,9 +3779,9 @@
     "note": "Hover a percent to see «returned / could return». Day N = opened the app and looked at something exactly N days later."
   },
   "ish": {
-    "nav": "Hanguk Ish",
-    "title": "Hanguk Ish — matching workers",
-    "notStaff": "{{account}} is not on the Hanguk Ish staff list. An admin has to add you as staff.",
+    "nav": "HanPyol",
+    "title": "HanPyol — matching workers",
+    "notStaff": "{{account}} is not on the HanPyol staff list. An admin has to add you as staff.",
     "signedInAs": "Signed in as {{account}}",
     "refresh": "Refresh",
     "save": "Save",
@@ -3964,7 +3964,7 @@
       "download": "Download PNG"
     },
     "errors": {
-      "FORBIDDEN": "Only Hanguk Ish staff may do this.",
+      "FORBIDDEN": "Only HanPyol staff may do this.",
       "NOT_FOUND": "Not found (or the employer is in the app and manages it themselves).",
       "INVALID": "The data is wrong or too long.",
       "INVALID_TIME": "The end must come after the start.",
@@ -4044,7 +4044,7 @@
       "changed": "Status changed"
     },
     "staff": {
-      "intro": "Who works in the Hanguk Ish section. Only hanguk.uz CRM staff can be added; an admin keeps the list.",
+      "intro": "Who works in the HanPyol section. Only hanguk.uz CRM staff can be added; an admin keeps the list.",
       "name": "Name",
       "email": "Email",
       "role": "Role",
@@ -4063,7 +4063,7 @@
       "roleChanged": "Role changed",
       "remove": "Remove",
       "removeTitle": "Remove from the staff list?",
-      "removeText": "the Hanguk Ish section of the CRM closes for them; the employers and jobs they added stay.",
+      "removeText": "the HanPyol section of the CRM closes for them; the employers and jobs they added stay.",
       "removed": "Removed",
       "noName": "No name"
     },

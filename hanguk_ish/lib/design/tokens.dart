@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 
-/// Colours of the Hanguk Ish prototype (Claude Design, 2026-11-10).
+/// Colours of the HanPyol prototype (Claude Design, 2026-11-10).
 ///
 /// Names describe the role, values are copied from the prototype's inline
 /// styles. Translucent whites keep the prototype's `rgba(255,255,255,a)`.

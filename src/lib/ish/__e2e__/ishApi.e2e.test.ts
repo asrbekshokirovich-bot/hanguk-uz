@@ -1,5 +1,5 @@
 /**
- * hanguk.uz's «Hanguk Ish» data layer (src/lib/ish/api.ts) with the real
+ * hanguk.uz's «HanPyol» data layer (src/lib/ish/api.ts) with the real
  * supabase-js on a local Supabase stack of hanguk_ish, where it is the schema
  * `ish` as in hanguk.uz's project (P48). The staff member's client is a
  * hanguk.uz one (its default schema is `public`): ishApi() itself sends every
@@ -49,7 +49,7 @@ async function call<T>(c: SupabaseClient, fn: string, params?: Record<string, un
   return data as T;
 }
 
-describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
+describe.skipIf(!ready)('hanguk.uz → HanPyol on a real stack', () => {
   let admin: SupabaseClient;
   let staff: SupabaseClient;
   let worker: SupabaseClient;
@@ -84,9 +84,9 @@ describe.skipIf(!ready)('hanguk.uz → Hanguk Ish on a real stack', () => {
     api = ishApi(staff);
   });
 
-  it('hanguk.uz\'s client reaches Hanguk Ish only through ishApi (the schema `ish`)', async () => {
+  it('hanguk.uz\'s client reaches HanPyol only through ishApi (the schema `ish`)', async () => {
     const { error } = await staff.from('shifts').select('id').limit(1);
-    expect(error).not.toBeNull(); // no Hanguk Ish table in public
+    expect(error).not.toBeNull(); // no HanPyol table in public
     expect(await api.isStaff()).toBe(true);
   });
 

@@ -25,7 +25,7 @@ void main() {
 
   testWidgets('opens on A01 in Uzbek with the prototype texts', (tester) async {
     await pumpApp(tester);
-    expect(find.text('Hanguk Ish'), findsOneWidget);
+    expect(find.text('HanPyol'), findsOneWidget);
     expect(find.text('Koreyada kunlik va qisqa smenali ishlar'), findsOneWidget);
     expect(find.text('Ilova tili'), findsOneWidget);
     for (final label in ["O'zbekcha", 'Русский', 'English', '한국어']) {

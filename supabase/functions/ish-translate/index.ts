@@ -1,4 +1,4 @@
-// ish-translate — Hanguk Ish's machine translation (P55, 2026-11-13).
+// ish-translate — HanPyol's machine translation (P55, 2026-11-13).
 //
 // The database queues what is written — chat messages, shifts, businesses
 // (hanguk_ish/supabase/migrations/20261113120000_ish_translations.sql) — and

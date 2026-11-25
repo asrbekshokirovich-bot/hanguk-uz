@@ -61,12 +61,12 @@ android {
         create("worker") {
             dimension = "app"
             applicationId = "uz.hanguk.ish"
-            resValue("string", "app_name", "Hanguk Ish")
+            resValue("string", "app_name", "HanPyol")
         }
         create("employer") {
             dimension = "app"
             applicationId = "uz.hanguk.ish.biz"
-            resValue("string", "app_name", "Hanguk Ish 사장님")
+            resValue("string", "app_name", "HanPyol 사장님")
         }
     }
 

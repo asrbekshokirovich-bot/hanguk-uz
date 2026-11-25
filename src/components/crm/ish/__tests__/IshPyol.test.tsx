@@ -74,7 +74,7 @@ function renderPyol(api: Partial<IshApi>) {
   );
 }
 
-describe('CRM → Hanguk Ish → «Puyl & free days»', () => {
+describe('CRM → HanPyol → «Puyl & free days»', () => {
   it('shows who is free, and the workers of a day on click', async () => {
     const api = base({});
     renderPyol(api);

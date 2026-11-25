@@ -26,7 +26,7 @@ import 'flavor.dart';
 import 'language_store.dart';
 
 /// Shared start-up of both apps: edge-to-edge navy screens in portrait, and
-/// the Hanguk Ish database when the build names one (`BackendConfig`);
+/// the HanPyol database when the build names one (`BackendConfig`);
 /// otherwise the demo data.
 Future<void> bootstrap(Flavor flavor, Widget app) async {
   WidgetsFlutterBinding.ensureInitialized();

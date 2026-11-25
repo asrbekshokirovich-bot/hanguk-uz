@@ -7,7 +7,7 @@ import '../../data/repositories/shift_repository.dart';
 import '../../l10n/gen/worker_l10n.dart';
 import '../worker/settings/app_language.dart';
 
-/// Texts of the employer app («Hanguk Ish 사장님») in the app's four
+/// Texts of the employer app («HanPyol 사장님») in the app's four
 /// languages (P43): Korean as in the prototype — copied from it screen by
 /// screen; texts for states it does not show (empty lists, errors,
 /// confirmations) follow its wording — and Uzbek, Russian and English, for
@@ -81,7 +81,7 @@ abstract final class Biz {
     'action': {'ko': '신고', 'uz': 'Shikoyat', 'ru': 'Жалоба', 'en': 'Report'},
     'title': {'ko': '근로자 신고', 'uz': 'Ishchi ustidan shikoyat', 'ru': 'Жалоба на работника', 'en': 'Report a worker'},
     'hint': {
-      'ko': 'Hanguk Ish 직원이 확인하고 연락드려요.',
+      'ko': 'HanPyol 직원이 확인하고 연락드려요.',
       'uz': 'Hanguk xodimlari ko\'rib chiqadi va siz bilan bog\'lanadi.',
       'ru': 'Сотрудники Hanguk рассмотрят и свяжутся с вами.',
       'en': 'Hanguk\'s staff will look into it and get in touch.',
@@ -189,10 +189,10 @@ abstract final class Biz {
       'en': 'What if a worker causes trouble?',
     },
     'a3': {
-      'ko': '근무 화면의 출퇴근 현황에서 근로자 옆 깃발 버튼을 눌러 Hanguk Ish 직원에게 알리세요.',
-      'uz': 'Smena sahifasida davomat qatoridagi bayroqcha orqali Hanguk Ish xodimlariga yozing.',
-      'ru': 'На странице смены нажмите флажок рядом с работником и напишите сотрудникам Hanguk Ish.',
-      'en': 'On the shift page tap the flag beside the worker to tell Hanguk Ish\'s staff.',
+      'ko': '근무 화면의 출퇴근 현황에서 근로자 옆 깃발 버튼을 눌러 HanPyol 직원에게 알리세요.',
+      'uz': 'Smena sahifasida davomat qatoridagi bayroqcha orqali HanPyol xodimlariga yozing.',
+      'ru': 'На странице смены нажмите флажок рядом с работником и напишите сотрудникам HanPyol.',
+      'en': 'On the shift page tap the flag beside the worker to tell HanPyol\'s staff.',
     },
     'signOut': {'ko': '로그아웃', 'uz': 'Chiqish', 'ru': 'Выйти', 'en': 'Sign out'},
     'signOutTitle': {'ko': '로그아웃할까요?', 'uz': 'Chiqasizmi?', 'ru': 'Выйти из аккаунта?', 'en': 'Sign out?'},

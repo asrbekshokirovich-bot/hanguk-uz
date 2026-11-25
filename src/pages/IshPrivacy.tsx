@@ -3,7 +3,7 @@ import { NativeContainer } from '@/components/native/NativeContainer';
 import { BackButton } from '@/components/BackButton';
 import { usePageTitle } from '@/hooks/usePageTitle';
 
-// Privacy policy of the Hanguk Ish apps (worker: uz.hanguk.ish, employer:
+// Privacy policy of the HanPyol apps (worker: uz.hanguk.ish, employer:
 // uz.hanguk.ish.biz). Google Play links to it from the store listing.
 // It describes only what the apps actually store: the ish.* tables, the
 // CAMERA (QR check-in) and ACCESS_COARSE_LOCATION (nearby shifts) permissions.
@@ -13,10 +13,10 @@ type Content = { title: string; lastUpdated: string; intro: string; sections: Se
 
 const content: Record<'uz' | 'en' | 'ru' | 'ko', Content> = {
   uz: {
-    title: 'Hanguk Ish — Maxfiylik siyosati',
+    title: 'HanPyol — Maxfiylik siyosati',
     lastUpdated: 'Oxirgi yangilanish: 2026-yil 13-noyabr',
     intro:
-      '«HANGUK» MCHJ («biz») Koreyada kunlik va qisqa smenali ishlar uchun «Hanguk Ish» (ishchilar) va «Hanguk Ish 사장님» (ish beruvchilar) ilovalarini yuritadi. Ushbu siyosat ilovalar qaysi ma\'lumotlarni to\'plashi, nima uchun ishlatishi, kim bilan bo\'lishishi va ularni qanday o\'chirish mumkinligini tushuntiradi.',
+      '«HANGUK» MCHJ («biz») Koreyada kunlik va qisqa smenali ishlar uchun «HanPyol» (ishchilar) va «HanPyol 사장님» (ish beruvchilar) ilovalarini yuritadi. Ushbu siyosat ilovalar qaysi ma\'lumotlarni to\'plashi, nima uchun ishlatishi, kim bilan bo\'lishishi va ularni qanday o\'chirish mumkinligini tushuntiradi.',
     sections: [
       {
         title: '1. Qaysi ma\'lumotlarni to\'playmiz',
@@ -71,10 +71,10 @@ O'chirilganda profilingiz, ishchi ma'lumotlaringiz, arizalaringiz, xabarlaringiz
     ],
   },
   en: {
-    title: 'Hanguk Ish — Privacy Policy',
+    title: 'HanPyol — Privacy Policy',
     lastUpdated: 'Last updated: 13 November 2026',
     intro:
-      '"HANGUK" LLC ("we") operates the "Hanguk Ish" (workers) and "Hanguk Ish 사장님" (employers) apps for daily and short-shift jobs in Korea. This policy explains what data the apps collect, why we use it, who we share it with and how you can delete it.',
+      '"HANGUK" LLC ("we") operates the "HanPyol" (workers) and "HanPyol 사장님" (employers) apps for daily and short-shift jobs in Korea. This policy explains what data the apps collect, why we use it, who we share it with and how you can delete it.',
     sections: [
       {
         title: '1. Data we collect',
@@ -129,10 +129,10 @@ Deletion removes your profile, worker details, applications, messages, ratings a
     ],
   },
   ru: {
-    title: 'Hanguk Ish — Политика конфиденциальности',
+    title: 'HanPyol — Политика конфиденциальности',
     lastUpdated: 'Последнее обновление: 13 ноября 2026 г.',
     intro:
-      'ООО «HANGUK» («мы») управляет приложениями «Hanguk Ish» (для работников) и «Hanguk Ish 사장님» (для работодателей) для подработки и коротких смен в Корее. Эта политика объясняет, какие данные собирают приложения, зачем мы их используем, кому передаём и как их удалить.',
+      'ООО «HANGUK» («мы») управляет приложениями «HanPyol» (для работников) и «HanPyol 사장님» (для работодателей) для подработки и коротких смен в Корее. Эта политика объясняет, какие данные собирают приложения, зачем мы их используем, кому передаём и как их удалить.',
     sections: [
       {
         title: '1. Какие данные мы собираем',
@@ -187,10 +187,10 @@ Deletion removes your profile, worker details, applications, messages, ratings a
     ],
   },
   ko: {
-    title: 'Hanguk Ish — 개인정보 처리방침',
+    title: 'HanPyol — 개인정보 처리방침',
     lastUpdated: '최종 수정일: 2026년 11월 13일',
     intro:
-      '"HANGUK" LLC("당사")는 한국의 일일·단기 아르바이트를 위한 "Hanguk Ish"(근로자용) 및 "Hanguk Ish 사장님"(사업주용) 앱을 운영합니다. 본 방침은 앱이 수집하는 정보, 이용 목적, 제공 대상 및 삭제 방법을 설명합니다.',
+      '"HANGUK" LLC("당사")는 한국의 일일·단기 아르바이트를 위한 "HanPyol"(근로자용) 및 "HanPyol 사장님"(사업주용) 앱을 운영합니다. 본 방침은 앱이 수집하는 정보, 이용 목적, 제공 대상 및 삭제 방법을 설명합니다.',
     sections: [
       {
         title: '1. 수집하는 정보',

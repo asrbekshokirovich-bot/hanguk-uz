@@ -5,7 +5,7 @@
 #
 #   tests/verify.sh <database url>
 #
-# Production — hanguk.uz's project, after the Hanguk Ish migrations are applied
+# Production — hanguk.uz's project, after the HanPyol migrations are applied
 # there (it changes nothing; the URL from Project Settings → Database). CI runs
 # it on the local stack after `supabase db reset`.
 set -euo pipefail

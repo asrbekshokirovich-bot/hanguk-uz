@@ -1,6 +1,6 @@
-# Hanguk Ish — local Supabase stack (supabase start --workdir hanguk_ish).
-# Hosted, Hanguk Ish lives in hanguk.uz's project (lysjdtyanhdfphqyijsr), in
-# its own schema `ish` (P48); this stack has only Hanguk Ish, served the same
+# HanPyol — local Supabase stack (supabase start --workdir hanguk_ish).
+# Hosted, HanPyol lives in hanguk.uz's project (lysjdtyanhdfphqyijsr), in
+# its own schema `ish` (P48); this stack has only HanPyol, served the same
 # way: `ish` among the API's schemas.
 project_id = "hanguk-ish"
 
@@ -33,7 +33,7 @@ enable_anonymous_sign_ins = true
 [auth.sms]
 enable_signup = true
 enable_confirmations = true
-template = "Hanguk Ish kodi: {{ .Code }}"
+template = "HanPyol kodi: {{ .Code }}"
 
 [auth.sms.test_otp]
 # workers (Aziz, Malika) and business owners (Seoyeon, Minjun) of the tests

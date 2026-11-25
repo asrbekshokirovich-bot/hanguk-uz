@@ -75,7 +75,7 @@ insert into ish.coin_wallets (worker_id, balance) values ('00000000-0000-0000-00
 select pg_temp.ms('A05 apply_to_shift',
   $$select ish.apply_to_shift(current_setting('perf.shift')::uuid)$$,
   '00000000-0000-0000-0001-000000000002', 100, 1);
--- hanguk.uz «Hanguk Ish» (P39): a staff member (owner 500 of seed.sql), an
+-- hanguk.uz «HanPyol» (P39): a staff member (owner 500 of seed.sql), an
 -- employer from Telegram, an invite-only job, who fits, 50 offers.
 insert into ish.staff_members (user_id) values ('00000000-0000-0000-0002-0000000001f4');
 select pg_temp.ms('CRM staff_save_business (a new employer)',

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/keys';
 
-// Hanguk Ish apps: delete your account on the web (Google Play's
+// HanPyol apps: delete your account on the web (Google Play's
 // account-deletion rule; linked from Data safety and /ish/privacy).
 // The user proves the number with an SMS code (an existing account only —
 // shouldCreateUser: false), then the edge function `ish-delete-account`
@@ -19,8 +19,8 @@ type Lang = 'uz' | 'en' | 'ru' | 'ko';
 
 const t: Record<Lang, Record<string, string>> = {
   uz: {
-    title: 'Hanguk Ish — akkauntni o\'chirish',
-    intro: '«Hanguk Ish» yoki «Hanguk Ish 사장님» ilovasidagi akkauntingizni o\'chirishingiz mumkin.',
+    title: 'HanPyol — akkauntni o\'chirish',
+    intro: '«HanPyol» yoki «HanPyol 사장님» ilovasidagi akkauntingizni o\'chirishingiz mumkin.',
     what: 'Profilingiz, ishchi ma\'lumotlaringiz, arizalaringiz, xabarlaringiz, baholaringiz, bildirishnomalaringiz va profil rasmingiz o\'chiriladi. Korxona egasi bo\'lsangiz, korxonangiz va uning smenalari ham o\'chiriladi. Zaxira nusxalarda ular qisqa muddat qolishi mumkin.',
     inApp: 'Ilovada: Profil → Yordam → «Akkauntni o\'chirish».',
     web: 'Yoki shu yerda — akkaunt ochilgan telefon raqamingizni kiriting, SMS kod keladi.',
@@ -35,8 +35,8 @@ const t: Record<Lang, Record<string, string>> = {
     failed: 'Xatolik yuz berdi. Qayta urinib ko\'ring.',
   },
   en: {
-    title: 'Hanguk Ish — delete your account',
-    intro: 'You can delete your account in the «Hanguk Ish» or «Hanguk Ish 사장님» app.',
+    title: 'HanPyol — delete your account',
+    intro: 'You can delete your account in the «HanPyol» or «HanPyol 사장님» app.',
     what: 'Your profile, worker details, applications, messages, ratings, notifications and profile photo are deleted. If you own a business, the business and its shifts are deleted too. Copies may remain in backups for a short period.',
     inApp: 'In the app: Profile → Help → «Delete account».',
     web: 'Or here — enter the phone number of your account and we will text you a code.',
@@ -51,8 +51,8 @@ const t: Record<Lang, Record<string, string>> = {
     failed: 'Something went wrong. Please try again.',
   },
   ru: {
-    title: 'Hanguk Ish — удаление аккаунта',
-    intro: 'Вы можете удалить аккаунт в приложении «Hanguk Ish» или «Hanguk Ish 사장님».',
+    title: 'HanPyol — удаление аккаунта',
+    intro: 'Вы можете удалить аккаунт в приложении «HanPyol» или «HanPyol 사장님».',
     what: 'Удаляются профиль, данные работника, заявки, сообщения, оценки, уведомления и фото профиля. Если вы владелец компании, удаляются также компания и её смены. Копии могут недолго оставаться в резервных копиях.',
     inApp: 'В приложении: Профиль → Помощь → «Удалить аккаунт».',
     web: 'Или здесь — введите номер телефона аккаунта, мы отправим SMS-код.',
@@ -67,8 +67,8 @@ const t: Record<Lang, Record<string, string>> = {
     failed: 'Произошла ошибка. Попробуйте ещё раз.',
   },
   ko: {
-    title: 'Hanguk Ish — 계정 삭제',
-    intro: '"Hanguk Ish" 또는 "Hanguk Ish 사장님" 앱의 계정을 삭제할 수 있습니다.',
+    title: 'HanPyol — 계정 삭제',
+    intro: '"HanPyol" 또는 "HanPyol 사장님" 앱의 계정을 삭제할 수 있습니다.',
     what: '프로필, 근로자 정보, 지원 내역, 메시지, 평가, 알림, 프로필 사진이 삭제됩니다. 사업장 소유자인 경우 사업장과 등록한 근무도 함께 삭제됩니다. 백업에는 짧은 기간 남아 있을 수 있습니다.',
     inApp: '앱에서: 프로필 → 도움말 → "계정 삭제".',
     web: '또는 여기에서 — 계정의 휴대폰 번호를 입력하면 인증번호를 보내드립니다.',

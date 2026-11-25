@@ -18,7 +18,7 @@ function fake(opts: { staff?: boolean; businesses?: string[]; photos?: string[] 
 
 const worker = { id: "u1", app_metadata: { app: "hanguk_ish", provider: "phone" } };
 
-Deno.test("a Hanguk Ish worker: photos, then the account", async () => {
+Deno.test("a HanPyol worker: photos, then the account", async () => {
   const { store, log } = fake({ photos: ["u1/avatar-1.jpg"] });
   assertEquals(await deleteAccount(worker, store), { ok: true, businesses: 0, photos: 1 });
   assertEquals(log, ["staff?u1", "photos:u1/avatar-1.jpg", "user:u1"]);
@@ -30,7 +30,7 @@ Deno.test("a 사장님: the businesses go first, then the account", async () => 
   assertEquals(log, ["staff?u1", "businesses:b1,b2", "user:u1"]);
 });
 
-Deno.test("hanguk.uz accounts and Hanguk Ish staff are refused, nothing deleted", async () => {
+Deno.test("hanguk.uz accounts and HanPyol staff are refused, nothing deleted", async () => {
   const crm = { id: "s1", app_metadata: { provider: "email" } };
   let f = fake();
   assertEquals(await deleteAccount(crm, f.store), { ok: false, status: 403, error: "NOT_ISH_ACCOUNT" });

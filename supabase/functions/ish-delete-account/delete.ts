@@ -1,4 +1,4 @@
-// ish-delete-account: what deleting a Hanguk Ish account does (Google Play's
+// ish-delete-account: what deleting a HanPyol account does (Google Play's
 // account-deletion rule, 2026-11-13). No network here: the store is passed in
 // so the steps can be tested with a fake.
 //
@@ -9,9 +9,9 @@
 //   3. The auth user goes; ish.profiles and everything keyed to it
 //      (worker profile, applications, messages, ratings, notifications, push
 //      tokens, favorites, reports) follow by ON DELETE CASCADE.
-// Only Hanguk Ish's own accounts (app_metadata.app = 'hanguk_ish' or
+// Only HanPyol's own accounts (app_metadata.app = 'hanguk_ish' or
 // anonymous) can be deleted here — never a hanguk.uz staff, student or guest
-// account, and never Hanguk Ish staff (ish.staff_members).
+// account, and never HanPyol staff (ish.staff_members).
 
 export type DeleteStore = {
   isStaff(userId: string): Promise<boolean>;

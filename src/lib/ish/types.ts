@@ -1,5 +1,5 @@
 /**
- * Hanguk Ish — the job apps' schema `ish` in hanguk.uz's Supabase project
+ * HanPyol — the job apps' schema `ish` in hanguk.uz's Supabase project
  * (hanguk_ish/supabase, P48): what its staff functions (`staff_*`, migration
  * 20261112170000) hand to hanguk.uz.
  * Real responses: hanguk_ish/test/fixtures/backend_samples.json.
@@ -248,15 +248,15 @@ export interface IshJobInput {
   notes: string;
 }
 
-/** P58: Hanguk Ish's own staff roles — an admin keeps the staff list. */
+/** P58: HanPyol's own staff roles — an admin keeps the staff list. */
 export type IshStaffRole = 'operator' | 'admin';
 
-/** `staff_people`: one of Hanguk Ish's staff. */
+/** `staff_people`: one of HanPyol's staff. */
 export interface IshStaffMember {
   id: string;
   role: IshStaffRole;
   added_at: string;
-  /** As in the CRM (hanguk.uz's profile), else the Hanguk Ish profile. */
+  /** As in the CRM (hanguk.uz's profile), else the HanPyol profile. */
   name: string | null;
   email: string | null;
   /** The signed-in admin: nobody changes or removes themselves. */

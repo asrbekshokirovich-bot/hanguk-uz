@@ -11,9 +11,9 @@ Deno.test("a business the app opened: its name, kind, and where to act on it", (
   assertEquals(
     alertText(opened({ name: "사업장 7F3A", category: "other", status: "verified" })),
     [
-      "🆕 <b>Hanguk Ish</b> — sajangnim ilovasida yangi biznes",
+      "🆕 <b>HanPyol</b> — sajangnim ilovasida yangi biznes",
       "<b>사업장 7F3A</b> · Boshqa",
-      "Haqiqiy nomi va manzilini qo'ying, shubhali bo'lsa to'xtating: CRM → Hanguk Ish → «Ilovadagi bizneslar».",
+      "Haqiqiy nomi va manzilini qo'ying, shubhali bo'lsa to'xtating: CRM → HanPyol → «Ilovadagi bizneslar».",
       "https://hanguk.uz/crm/ish?tab=appBusinesses",
     ].join("\n"),
   );
@@ -37,12 +37,12 @@ Deno.test("a complaint: subject, worker, business, shift, the text", () => {
       shift: { title: "홀·카운터 보조", starts_at: "2026-11-14T05:00:00Z" },
     })),
     [
-      "⚠️ <b>Hanguk Ish</b> — yangi shikoyat: <b>Maosh</b>",
+      "⚠️ <b>HanPyol</b> — yangi shikoyat: <b>Maosh</b>",
       "Ishchi: Aziz Karimov",
       "Biznes: 달빛카페 신촌점 (Dalbit Kafe · Sinchon)",
       "Smena: 홀·카운터 보조 · 14-noyabr, 14:00",
       "«Ish haqi hali to'lanmadi»",
-      "CRM → Hanguk Ish → «Shikoyatlar»:",
+      "CRM → HanPyol → «Shikoyatlar»:",
       "https://hanguk.uz/crm/ish?tab=reports",
     ].join("\n"),
   );
@@ -52,9 +52,9 @@ Deno.test("a complaint with little in it: no name, no business, no shift, no tex
   assertEquals(
     alertText(report({ reason: "other", body: "", worker: null, business: null, shift: null })),
     [
-      "⚠️ <b>Hanguk Ish</b> — yangi shikoyat: <b>Boshqa</b>",
+      "⚠️ <b>HanPyol</b> — yangi shikoyat: <b>Boshqa</b>",
       "Ishchi: Ismi kiritilmagan",
-      "CRM → Hanguk Ish → «Shikoyatlar»:",
+      "CRM → HanPyol → «Shikoyatlar»:",
       "https://hanguk.uz/crm/ish?tab=reports",
     ].join("\n"),
   );

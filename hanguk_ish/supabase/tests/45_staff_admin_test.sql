@@ -1,4 +1,4 @@
--- P58: a Hanguk Ish staff admin keeps the staff list in the CRM — adds
+-- P58: a HanPyol staff admin keeps the staff list in the CRM — adds
 -- hanguk.uz's own CRM people only, sets their role, removes them; nobody
 -- removes or demotes themselves; only admins see or change the list.
 --
@@ -55,7 +55,7 @@ select tests.throws($$select ish.staff_set_role('00000000-0000-0000-0000-0000000
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.throws($$select ish.staff_people()$$, 'FORBIDDEN', 'nor a worker');
 select tests.as_user('00000000-0000-0000-0000-0000000000e1');
-select tests.throws($$select ish.staff_people()$$, 'FORBIDDEN', 'nor a CRM operator who is not Hanguk Ish staff');
+select tests.throws($$select ish.staff_people()$$, 'FORBIDDEN', 'nor a CRM operator who is not HanPyol staff');
 select tests.as_anon();
 select tests.throws($$select ish.staff_people()$$, 'permission denied', 'nor anybody signed out');
 select tests.throws($$select * from ish.crm_staff_accounts()$$, 'permission denied', 'who cannot list the CRM either');
@@ -91,7 +91,7 @@ select tests.eq((select e ->> 'email' from jsonb_array_elements(ish.staff_people
 -- Not everybody.
 select tests.throws($$select ish.staff_add('00000000-0000-0000-0000-0000000000e2')$$, 'NOT_FOUND', 'not an investor');
 select tests.throws($$select ish.staff_add('00000000-0000-0000-0000-0000000000e3')$$, 'NOT_FOUND', 'not a student');
-select tests.throws($$select ish.staff_add('00000000-0000-0000-0000-0000000000a1')$$, 'NOT_FOUND', 'not a Hanguk Ish app account');
+select tests.throws($$select ish.staff_add('00000000-0000-0000-0000-0000000000a1')$$, 'NOT_FOUND', 'not a HanPyol app account');
 select tests.throws($$select ish.staff_add('00000000-0000-0000-0000-0000000000e1', 'boss')$$, 'INVALID', 'no made-up role');
 select tests.throws($$select ish.staff_add('00000000-0000-0000-0000-0000000000c1', 'operator')$$, 'SELF',
                     'nor the admin''s own role through adding');
@@ -122,10 +122,10 @@ select tests.as_admin();
 select tests.eq((select first_name from ish.profiles where id = '00000000-0000-0000-0000-0000000000c2'), 'Madina',
                 'their profile stays (what they made keeps its author)');
 -- Added again, the profile is not renamed.
-update ish.profiles set first_name = 'Madina (Hanguk Ish)' where id = '00000000-0000-0000-0000-0000000000c2';
+update ish.profiles set first_name = 'Madina (HanPyol)' where id = '00000000-0000-0000-0000-0000000000c2';
 insert into public.user_roles (user_id, role) values ('00000000-0000-0000-0000-0000000000c2', 'call_operator');
 select tests.as_user('00000000-0000-0000-0000-0000000000e1');
 select tests.eq(ish.staff_add('00000000-0000-0000-0000-0000000000c2', 'operator'), 'operator', 'back on the list');
 select tests.as_admin();
-select tests.eq((select first_name from ish.profiles where id = '00000000-0000-0000-0000-0000000000c2'), 'Madina (Hanguk Ish)',
+select tests.eq((select first_name from ish.profiles where id = '00000000-0000-0000-0000-0000000000c2'), 'Madina (HanPyol)',
                 'with the profile it had');

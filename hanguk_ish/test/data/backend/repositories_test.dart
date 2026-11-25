@@ -530,7 +530,7 @@ void main() {
       final otp = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
       expect(otp['phone'], '+821012345678');
       // hanguk.uz shares the sign-in (P48): its sign-up skips accounts with
-      // this mark, and Hanguk Ish makes their profile.
+      // this mark, and HanPyol makes their profile.
       expect(otp['data'], {'app': 'hanguk_ish'});
       await auth.verifyCode('010-1234-5678', ' 123456 ');
       final verify = jsonDecode(backend.requests.last.body) as Map<String, dynamic>;
