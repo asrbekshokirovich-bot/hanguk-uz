@@ -1,0 +1,33 @@
+name: Hanguk Ish — create the iOS project (one-off)
+
+# Runs `flutter create --platforms=ios` for hanguk_ish and uploads ios/ as an
+# artifact, to be committed by hand. Temporary: removed once ios/ is in the repo.
+on:
+  push:
+    branches: [feat/ish-ios]
+    paths: ['.github/workflows/ish-ios-create.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter --version
+      - run: flutter create --platforms=ios --org uz.hanguk --project-name hanguk_ish --no-pub .
+      - run: find ios -type f | sort
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ish-ios-project
+          path: hanguk_ish/ios
+          include-hidden-files: true
