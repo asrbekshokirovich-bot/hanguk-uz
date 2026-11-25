@@ -361,9 +361,6 @@ export interface IshTopup {
   payer_name: string;
   status: 'pending' | 'approved' | 'rejected';
   note: string;
-  /** 'telegram': through the puyl bot, with a screenshot ([proof_path]). */
-  source?: 'app' | 'telegram';
-  proof_path?: string | null;
   created_at: string;
   decided_at: string | null;
 }

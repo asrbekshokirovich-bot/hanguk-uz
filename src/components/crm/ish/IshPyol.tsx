@@ -153,22 +153,6 @@ function Topups() {
               {r.pyols} P · {won(r.amount_won)} · {t(`ish.pyol.method.${r.method}`)}
             </span>
             {r.payer_name && <span>«{r.payer_name}»</span>}
-            {r.source === 'telegram' && <Badge variant="secondary">Telegram</Badge>}
-            {r.proof_path && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={async () => {
-                  try {
-                    window.open(await api.topupProofUrl(r.proof_path!), '_blank', 'noopener');
-                  } catch (e) {
-                    toast.error(ishErrorText(t, e));
-                  }
-                }}
-              >
-                {t('ish.pyol.proof')}
-              </Button>
-            )}
             <span className="text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
             <Button size="sm" disabled={busy} onClick={() => approve.mutate(r.id)}>
               {t('ish.pyol.approve')}

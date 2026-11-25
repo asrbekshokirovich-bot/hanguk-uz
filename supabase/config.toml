@@ -348,9 +348,9 @@ verify_jwt = false
 [functions.ish-push]
 verify_jwt = false
 
-# Hanguk Ish puyl boti (2026-11-25): Telegram webhook. Chaqiruvchi — Telegram,
-# setup'da berilgan maxfiy sarlavha bilan (functions/ish-pyol-bot/index.ts).
-[functions.ish-pyol-bot]
+# Hanguk Ish puyl sotib olish (2026-11-25): Google Play / App Store xaridini
+# tekshiradi. Token funksiya ichida auth.getUser bilan tekshiriladi.
+[functions.ish-iap]
 verify_jwt = false
 
 # 2026-11-13 (Hanguk Ish): foydalanuvchi o'z akkauntini o'chiradi (Google Play talabi).

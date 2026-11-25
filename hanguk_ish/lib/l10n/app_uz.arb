@@ -3465,7 +3465,7 @@
   "@buyPyols": {
     "description": "Pyol plan (Nov 2026)."
   },
-  "buyPyolsHow": "Puyl bepul: ro'yxatdan o'tganda 90 P, har oy balansingiz 90 P gacha to'ldiriladi. Do'stlaringizni taklif qilib, ko'proq oling.",
+  "buyPyolsHow": "Puylni pastda sotib oling yoki bepul oling: ro'yxatdan o'tganda 90 P, har oy balansingiz 90 P gacha to'ldiriladi. Do'stlaringizni taklif qilib, ko'proq oling.",
   "@buyPyolsHow": {
     "description": "Pyol plan (Nov 2026)."
   },
@@ -3733,5 +3733,41 @@
   "bizErrCard": "Hozir ish joylay olmaysiz (ogohlantirish kartochkasi). Hanguk bilan bog'laning.",
   "@bizErrCard": {
     "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "storeBuy": "{pyols} P — {price}",
+  "@storeBuy": {
+    "description": "Buying puyl in Google Play / App Store (2026-11-25).",
+    "placeholders": {
+      "pyols": {
+        "type": "int"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "storeCredited": "+{n} P qo'shildi. Balans: {balance} P",
+  "@storeCredited": {
+    "description": "Buying puyl in Google Play / App Store (2026-11-25).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "storePending": "To'lov kutilmoqda. Tugagach, puyl tushadi.",
+  "@storePending": {
+    "description": "Buying puyl in Google Play / App Store (2026-11-25)."
+  },
+  "storeFailed": "Xarid amalga oshmadi. Pul yechilgan bo'lsa, puyl tez orada tushadi — yoki bizga yozing.",
+  "@storeFailed": {
+    "description": "Buying puyl in Google Play / App Store (2026-11-25)."
+  },
+  "storeUnavailable": "Hozir bu telefonda sotib olib bo'lmaydi.",
+  "@storeUnavailable": {
+    "description": "Buying puyl in Google Play / App Store (2026-11-25)."
   }
 }

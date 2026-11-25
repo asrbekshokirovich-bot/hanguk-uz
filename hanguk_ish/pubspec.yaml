@@ -51,6 +51,9 @@ dependencies:
   # (hanguk_app). Without android/app/google-services.json: no pushes.
   firebase_core: ^3.12.1
   firebase_messaging: ^15.2.4
+  # Buying puyl through Google Play Billing / StoreKit (2026-11-25; checked by
+  # the ish-iap function before the puyl are added).
+  in_app_purchase: ^3.2.0
 
 dev_dependencies:
   flutter_test:

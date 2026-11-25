@@ -18,6 +18,7 @@ import '../repositories/monthly_job_repository.dart';
 import '../repositories/offer_repository.dart';
 import '../repositories/push_service.dart';
 import '../repositories/pyol_repository.dart';
+import '../repositories/pyol_store.dart';
 import '../repositories/shift_repository.dart';
 import 'backend.dart';
 import 'supabase_account_repository.dart';
@@ -28,6 +29,7 @@ import 'supabase_monthly_job_repository.dart';
 import 'supabase_offer_repository.dart';
 import 'supabase_push_tokens.dart';
 import 'supabase_pyol_repository.dart';
+import 'store_pyol_store.dart';
 import 'supabase_shift_repository.dart';
 
 /// Points every repository of both apps at the Hanguk Ish database.
@@ -59,6 +61,11 @@ List<Override> backendOverrides(BackendConfig config, SupabaseClient client) => 
       accountRepositoryProvider.overrideWith((ref) => SupabaseAccountRepository(client)),
       offerRepositoryProvider.overrideWith((ref) => SupabaseOfferRepository(client)),
       pyolRepositoryProvider.overrideWith((ref) => SupabasePyolRepository(client)),
+      pyolStoreProvider.overrideWith((ref) {
+        final store = StorePyolStore(client);
+        ref.onDispose(store.dispose);
+        return store;
+      }),
       workerProfileRepositoryProvider.overrideWith((ref) => SupabaseWorkerProfileRepository(client, config)),
       employerRepositoryProvider.overrideWith((ref) => SupabaseEmployerRepository(client, config)),
       locationServiceProvider.overrideWith(

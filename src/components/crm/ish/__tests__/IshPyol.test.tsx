@@ -42,7 +42,6 @@ function base(over: Partial<IshApi>): Partial<IshApi> {
     topups: vi.fn(async () => [request]),
     approveTopup: vi.fn(async () => 190),
     rejectTopup: vi.fn(async () => undefined),
-    topupProofUrl: vi.fn(async () => 'https://x'),
     paymentDetails: vi.fn(async () => ({ packs: [{ pyols: 30, won: 3300 }], methods: { bank: 'Shinhan 110-000' } })),
     setPaymentSetting: vi.fn(async () => undefined),
     monthlyHires: vi.fn(async () => []),

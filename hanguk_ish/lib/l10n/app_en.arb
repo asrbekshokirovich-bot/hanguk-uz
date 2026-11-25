@@ -678,7 +678,7 @@
   "coinHistoryRow": "Puyl history",
   "coinRefund": "Puyl refunded",
   "buyPyols": "Get puyl",
-  "buyPyolsHow": "Puyl is free: 90 P when you sign up, and every month we top you up to 90 P. Invite friends to get more.",
+  "buyPyolsHow": "Buy puyl below, or get it free: 90 P when you sign up, and every month we top you up to 90 P. Invite friends to get more.",
   "inviteTitle": "Invite a friend",
   "inviteBody": "When your friend finishes their first job: 60 P for you, 30 P for them.",
   "inviteYourCode": "Your code: {code}",
@@ -728,5 +728,10 @@
   "bizNotifCardYellow": "A job a worker had booked was cancelled. Next time you cannot post jobs for 14 days.",
   "bizNotifCardRed": "You cannot post new jobs until {date}.",
   "bizNotifCardBlocked": "You cannot post jobs now. Please contact Hanguk.",
-  "bizErrCard": "You cannot post jobs now (warning card). Please contact Hanguk."
+  "bizErrCard": "You cannot post jobs now (warning card). Please contact Hanguk.",
+  "storeBuy": "{pyols} P — {price}",
+  "storeCredited": "+{n} P added. Balance: {balance} P",
+  "storePending": "Payment is pending. Puyl will come when it is done.",
+  "storeFailed": "The purchase did not go through. If you were charged, the puyl will come soon — or write to us.",
+  "storeUnavailable": "Buying is not available on this phone now."
 }

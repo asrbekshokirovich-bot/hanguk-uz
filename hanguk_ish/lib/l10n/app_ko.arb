@@ -678,7 +678,7 @@
   "coinHistoryRow": "퓰 내역",
   "coinRefund": "퓰 환불",
   "buyPyols": "퓰 받기",
-  "buyPyolsHow": "퓰은 무료예요: 가입할 때 90 P, 매달 90 P까지 채워 드려요. 친구를 초대하면 더 받아요.",
+  "buyPyolsHow": "아래에서 퓰을 사거나 무료로 받으세요: 가입할 때 90 P, 매달 90 P까지 채워 드려요. 친구를 초대하면 더 받아요.",
   "inviteTitle": "친구 초대",
   "inviteBody": "친구가 첫 일을 마치면 나에게 60 P, 친구에게 30 P.",
   "inviteYourCode": "내 코드: {code}",
@@ -728,5 +728,10 @@
   "bizNotifCardYellow": "근로자가 잡은 일을 취소했어요. 한 번 더 그러면 14일 동안 공고를 올릴 수 없어요.",
   "bizNotifCardRed": "{date}까지 새 공고를 올릴 수 없어요.",
   "bizNotifCardBlocked": "지금은 공고를 올릴 수 없어요. Hanguk에 문의해 주세요.",
-  "bizErrCard": "지금은 공고를 올릴 수 없어요 (경고 카드). Hanguk에 문의해 주세요."
+  "bizErrCard": "지금은 공고를 올릴 수 없어요 (경고 카드). Hanguk에 문의해 주세요.",
+  "storeBuy": "{pyols} P — {price}",
+  "storeCredited": "+{n} P 추가됐어요. 잔액: {balance} P",
+  "storePending": "결제를 기다리고 있어요. 끝나면 퓰이 들어와요.",
+  "storeFailed": "구매가 완료되지 않았어요. 결제됐다면 곧 퓰이 들어오거나, 문의해 주세요.",
+  "storeUnavailable": "지금 이 휴대폰에서는 구매할 수 없어요."
 }

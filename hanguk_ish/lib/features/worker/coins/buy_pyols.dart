@@ -1,24 +1,31 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/repositories/pyol_repository.dart';
+import '../../../data/repositories/pyol_store.dart';
 import '../../../data/repositories/shift_repository.dart' show OfflineException, ShiftActionException;
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
+import '../../../design/widgets/buttons.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 import 'coins.dart' show coinsProvider;
+
+final storeProductsProvider = FutureProvider.autoDispose<List<StoreProduct>>(
+  (ref) => ref.watch(pyolStoreProvider).products(),
+  retry: (count, error) => null,
+);
 
 final referralProvider = FutureProvider.autoDispose<Referral?>(
   (ref) => ref.watch(pyolRepositoryProvider).referral(),
   retry: (count, error) => null,
 );
 
-/// «Puyl olish»: the balance, how puyl comes for free, and the invite code.
-///
-/// No payment details, no outside link: Google Play and the App Store sell
-/// digital coins only through their own billing (2026-11-25). Puyl bought
-/// elsewhere still arrives here (the staff approve a top-up request).
+/// «Puyl olish»: the balance, the packs to buy in Google Play / the App
+/// Store (their own payment sheet), how puyl comes for free, and the invite
+/// code. No bank details or outside links (store rules, 2026-11-25).
 Future<void> showBuyPyolsSheet(BuildContext context) => showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
@@ -38,11 +45,49 @@ class BuyPyolsSheet extends ConsumerStatefulWidget {
 class _BuyPyolsSheetState extends ConsumerState<BuyPyolsSheet> {
   final _friendCode = TextEditingController();
   bool _busy = false;
+  bool _buying = false;
+  StreamSubscription<StoreResult>? _results;
+
+  @override
+  void initState() {
+    super.initState();
+    _results = ref.read(pyolStoreProvider).results.listen(_onResult);
+  }
 
   @override
   void dispose() {
+    _results?.cancel();
     _friendCode.dispose();
     super.dispose();
+  }
+
+  void _onResult(StoreResult result) {
+    if (!mounted) return;
+    final l10n = WorkerL10n.of(context);
+    setState(() => _buying = result is StorePending);
+    switch (result) {
+      case StoreCredited(:final pyols, :final balance):
+        ref.invalidate(coinsProvider);
+        _say(l10n.storeCredited(pyols, balance));
+      case StorePending():
+        _say(l10n.storePending);
+      case StoreFailed():
+        _say(l10n.storeFailed);
+      case StoreCancelled():
+        break;
+    }
+  }
+
+  Future<void> _buy(StoreProduct product) async {
+    setState(() => _buying = true);
+    try {
+      await ref.read(pyolStoreProvider).buy(product);
+    } on Object {
+      if (mounted) {
+        setState(() => _buying = false);
+        _say(WorkerL10n.of(context).storeFailed);
+      }
+    }
   }
 
   void _say(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -88,6 +133,29 @@ class _BuyPyolsSheetState extends ConsumerState<BuyPyolsSheet> {
               ],
               const SizedBox(height: 6),
               HiText(l10n.buyPyolsHow, style: body),
+              const SizedBox(height: 14),
+              ref.watch(storeProductsProvider).when(
+                    loading: () => const Center(
+                        child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator())),
+                    error: (_, _) => HiText(l10n.storeUnavailable, style: body),
+                    data: (products) => products.isEmpty
+                        ? HiText(l10n.storeUnavailable, style: body)
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (final p in products) ...[
+                                HiButton(
+                                  label: l10n.storeBuy(p.pyols, p.price),
+                                  height: 48,
+                                  fontSize: 16,
+                                  style: p.pyols == 100 ? HiButtonStyle.lime : HiButtonStyle.outline,
+                                  onPressed: _buying ? null : () => _buy(p),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                            ],
+                          ),
+                  ),
               const SizedBox(height: 24),
               HiText(l10n.inviteTitle, style: title),
               const SizedBox(height: 6),

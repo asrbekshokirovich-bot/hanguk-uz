@@ -21,4 +21,20 @@ void main() {
       expect(find.textContaining(banned), findsNothing, reason: banned);
     }
   });
+
+  testWidgets('«Puyl olish»: the store packs; a purchase adds the puyl', (tester) async {
+    final container = workerContainer();
+    addTearDown(container.dispose);
+    await tester.pumpWidget(workerHarness(
+      container,
+      Scaffold(body: Builder(builder: (context) => TextButton(onPressed: () => showBuyPyolsSheet(context), child: const Text('open')))),
+    ));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('30 P — ₩3,300'), findsOneWidget);
+    expect(find.text('300 P — ₩24,000'), findsOneWidget);
+    await tester.tap(find.text('100 P — ₩9,900'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining("+100 P qo'shildi"), findsOneWidget);
+  });
 }
