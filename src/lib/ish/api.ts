@@ -142,6 +142,13 @@ export function ishApi(client: SupabaseClient) {
     topups: async (status: 'pending' | 'approved' | 'rejected' | null = 'pending') =>
       (await rpc<IshTopup[] | null>('staff_topups', { p_status: status })) ?? [],
 
+    /** A link (10 minutes) to the transfer screenshot the bot stored. */
+    topupProofUrl: async (path: string) => {
+      const { data, error } = await client.storage.from('ish-topup-proofs').createSignedUrl(path, 600);
+      if (error) throw error;
+      return data.signedUrl;
+    },
+
     /** The money came: the puyl go to the worker. ALREADY_DECIDED twice. */
     approveTopup: (id: string) => rpc<number>('staff_approve_topup', { p_request: id }),
 

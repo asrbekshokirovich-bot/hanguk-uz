@@ -220,8 +220,8 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.coinsAdded => (HiIcons.wallet, HiColors.lime, HiColors.onLime, 2.0),
       NotificationKind.topupRejected => (HiIcons.x, HiColors.redSoft, HiColors.redInk, 2.4),
       NotificationKind.cardGiven => n.why == 'yellow'
-          ? (HiIcons.alert, const Color(0xFFFFE08A), HiColors.ink, 2.4)
-          : (HiIcons.alert, HiColors.redSoft, HiColors.redInk, 2.4),
+          ? (HiIcons.triangleAlert, const Color(0xFFFFE08A), HiColors.ink, 2.4)
+          : (HiIcons.triangleAlert, HiColors.redSoft, HiColors.redInk, 2.4),
     };
     final title = switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderTitle(HiDates.countdown(n.minutesBefore ?? 0, lang)),

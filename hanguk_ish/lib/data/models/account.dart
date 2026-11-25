@@ -28,7 +28,7 @@ class WorkerTrust {
     this.rating,
     this.ratingCount = 0,
     required this.noShows,
-    this.card = WorkerCard.none,
+    this.card = NoShowCard.none,
   });
 
   /// 0–100.
@@ -46,7 +46,7 @@ class WorkerTrust {
   final int noShows;
 
   /// The yellow/red card for no-shows (`card_of`).
-  final WorkerCard card;
+  final NoShowCard card;
 }
 
 enum CardLevel { none, yellow, red, blocked }
@@ -54,10 +54,10 @@ enum CardLevel { none, yellow, red, blocked }
 /// A worker's card: 1st no-show yellow, 2nd red (no new jobs for 14 days),
 /// 3rd blocked. Five jobs done take one step back.
 @immutable
-class WorkerCard {
-  const WorkerCard({required this.level, this.redUntil, this.goodJobs = 0, this.closed = false});
+class NoShowCard {
+  const NoShowCard({required this.level, this.redUntil, this.goodJobs = 0, this.closed = false});
 
-  static const none = WorkerCard(level: CardLevel.none);
+  static const none = NoShowCard(level: CardLevel.none);
 
   final CardLevel level;
   final DateTime? redUntil;

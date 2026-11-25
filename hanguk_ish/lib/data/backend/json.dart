@@ -569,19 +569,19 @@ WorkerTrust workerTrustFromJson(Json json) => WorkerTrust(
       rating: _double(json['rating']),
       ratingCount: _int(json['ratings']),
       noShows: _int(json['no_shows']),
-      card: workerCardFromJson(_obj(json['card'])),
+      card: noShowCardFromJson(_obj(json['card'])),
     );
 
-/// `card_of` → [WorkerCard].
-WorkerCard workerCardFromJson(Json? json) {
-  if (json == null) return WorkerCard.none;
+/// `card_of` → [NoShowCard].
+NoShowCard noShowCardFromJson(Json? json) {
+  if (json == null) return NoShowCard.none;
   final level = switch (json['level']) {
     'yellow' => CardLevel.yellow,
     'red' => CardLevel.red,
     'blocked' => CardLevel.blocked,
     _ => CardLevel.none,
   };
-  return WorkerCard(
+  return NoShowCard(
     level: level,
     redUntil: DateTime.tryParse('${json['red_until'] ?? ''}'),
     goodJobs: _int(json['good_jobs']),

@@ -953,7 +953,7 @@ class _HelpSheet extends ConsumerWidget {
 class _CardLine extends StatelessWidget {
   const _CardLine({required this.card, required this.lang});
 
-  final WorkerCard card;
+  final NoShowCard card;
   final String lang;
 
   @override

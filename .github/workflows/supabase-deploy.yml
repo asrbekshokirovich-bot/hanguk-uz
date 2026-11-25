@@ -183,6 +183,7 @@ jobs:
           # 2026-11-13: ish-staff-alerts yangi (P57, xodimlarga Telegram xabari) — xuddi shunday.
           # 2026-11-13: ish-push yangi (P56, Hanguk Ish push — FCM) — xuddi shunday.
           # 2026-11-13: ish-delete-account yangi (akkauntni o'chirish, Google Play) — xuddi shunday.
+          # 2026-11-25: ish-pyol-bot yangi (Hanguk Ish puyl sotib olish, Telegram) — xuddi shunday.
           FUNCTIONS="
             instagram-webhook
             channel-health-check
@@ -265,6 +266,7 @@ jobs:
             ish-staff-alerts
             ish-push
             ish-delete-account
+            ish-pyol-bot
           "
 
           for fn in $FUNCTIONS; do
