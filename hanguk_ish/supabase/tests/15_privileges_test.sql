@@ -5,11 +5,11 @@
 -- upkeep jobs, register_business). Trigger functions cannot be called
 -- directly and are left out.
 select tests.eq(
-  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+  (select coalesce(array_agg(p.proname::text order by p.proname::text collate "C"), '{}')
    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'ish' and p.prosecdef and p.prorettype <> 'trigger'::regtype
      and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
-  array[
+  (select array_agg(f order by f collate "C") from unnest(array[
     'apply_to_shift', 'business_board', 'business_report', 'business_stats', 'business_workers',
     'cancel_application', 'cancel_shift', 'check_in', 'check_out', 'confirm_payment', 'decide_application', 'decline_job_offer',
     'employer_shift', 'is_application_party', 'is_business_member', 'is_my_applicant', 'is_shift_member',
@@ -22,17 +22,28 @@ select tests.eq(
     'staff_people', 'staff_remove', 'staff_reports', 'staff_save_business', 'staff_save_shift', 'staff_send_offers',
     'staff_set_app_business_blocked', 'staff_set_report_status', 'staff_set_role', 'staff_shift',
     'staff_update_app_business',
-    'toggle_favorite', 'unlock_offer', 'update_my_business', 'worker_earnings', 'worker_stats'
-  ]::text[],
+    'toggle_favorite', 'unlock_offer', 'update_my_business', 'worker_earnings', 'worker_stats',
+    -- Nov 24 fixes: long-term jobs behind a pyol unlock (see 20261124100000).
+    'public_monthly_jobs', 'staff_monthly_jobs', 'unlock_monthly_job',
+    -- Refunds (20261124110000).
+    'staff_cancel_shift', 'staff_refund_unlock',
+    -- The pyol plan (20261124120000).
+    'my_referral', 'payment_details', 'request_topup', 'set_referrer',
+    'staff_approve_topup', 'staff_confirm_two_weeks', 'staff_mark_fee_paid', 'staff_mark_hired',
+    'staff_monthly_hires', 'staff_pyol_report', 'staff_reject_topup', 'staff_set_payment_setting',
+    'staff_topups',
+    -- «My free dates» (20261124130000).
+    'my_free_dates', 'set_free_dates', 'staff_free_dates_summary', 'staff_free_workers'
+  ]::text[]) f),
   'the owner-rights functions open to signed-in people are the reviewed ones');
 
 select tests.eq(
-  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+  (select coalesce(array_agg(p.proname::text order by p.proname::text collate "C"), '{}')
    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'ish' and p.prosecdef and p.prorettype <> 'trigger'::regtype
      and has_function_privilege('anon', p.oid, 'EXECUTE')),
-  '{}'::text[],
-  'none is open to the signed-out');
+  array['public_monthly_jobs']::text[],
+  'only the public list of long-term jobs (company and address hidden) is open to the signed-out');
 
 -- Tables: the signed-out have no rights on any (everything goes through a
 -- session), and every table has row level security on.
@@ -40,8 +51,8 @@ select tests.eq(
   (select coalesce(array_agg(distinct table_name::text), '{}')
    from information_schema.role_table_grants
    where table_schema = 'ish' and grantee = 'anon'),
-  array['monthly_jobs']::text[],
-  'the signed-out have no rights on any table but the open monthly jobs (the public page, read only)');
+  '{}'::text[],
+  'the signed-out have no rights on any table (the public page reads public_monthly_jobs())');
 
 -- register_business files a business for anyone with any 국세청 answer: only
 -- the business-register function (service role) may call it.

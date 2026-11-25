@@ -22,6 +22,9 @@ class MonthlyJob {
     this.description = '',
     this.translations = const {},
     this.applied = false,
+    this.unlocked = false,
+    this.contactPhone = '',
+    this.unlockPrice = 300,
   });
 
   final String id;
@@ -52,6 +55,14 @@ class MonthlyJob {
   /// The signed-in worker said «Qiziqaman».
   final bool applied;
 
+  /// The worker paid pyols: [company], [address] and [contactPhone] are
+  /// real. Before that the server sends them empty and the point rounded.
+  final bool unlocked;
+  final String contactPhone;
+
+  /// Pyols to unlock (300).
+  final int unlockPrice;
+
   String _t(String lang, String key, String original) {
     final translated = translations[lang]?[key];
     return translated != null && translated.isNotEmpty ? translated : original;
@@ -65,7 +76,7 @@ class MonthlyJob {
   /// «2 300 000 ₩».
   String get wageText => Won.worker(monthlyWage);
 
-  MonthlyJob copyWith({bool? applied}) => MonthlyJob(
+  MonthlyJob copyWith({bool? applied, bool? unlocked, String? contactPhone}) => MonthlyJob(
         id: id,
         title: title,
         company: company,
@@ -81,5 +92,8 @@ class MonthlyJob {
         description: description,
         translations: translations,
         applied: applied ?? this.applied,
+        unlocked: unlocked ?? this.unlocked,
+        contactPhone: contactPhone ?? this.contactPhone,
+        unlockPrice: unlockPrice,
       );
 }

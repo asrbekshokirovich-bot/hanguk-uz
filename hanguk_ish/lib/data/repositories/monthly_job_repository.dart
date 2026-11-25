@@ -14,6 +14,10 @@ abstract interface class MonthlyJobRepository {
 
   /// Takes the interest back.
   Future<void> withdraw(String jobId);
+
+  /// Pays [MonthlyJob.unlockPrice] pyols → `unlock_monthly_job`: the job
+  /// with its company, address and contact phone. NO_COINS without pyols.
+  Future<MonthlyJob> unlock(String jobId);
 }
 
 /// The repository the app uses. Demo data until a backend is configured.

@@ -7,6 +7,8 @@ import '../../../data/repositories/account_repository.dart';
 import '../../../design/icons.dart';
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
+import '../../../design/widgets/buttons.dart';
+import 'buy_pyols.dart';
 import '../../../l10n/gen/worker_l10n.dart';
 
 /// The worker's puyl: spent to open a job's phone and address.
@@ -21,6 +23,7 @@ String coinMoveText(WorkerL10n l10n, CoinMove move) => switch (move.reason) {
       CoinReason.topup => l10n.coinTopup,
       CoinReason.bonus => l10n.coinBonus,
       CoinReason.staff => move.delta > 0 ? l10n.coinStaffAdded : l10n.coinStaffTaken,
+      CoinReason.refund => l10n.coinRefund,
     };
 
 /// A11 «Coinlar»: the balance big, the rule, how to get coins, the last moves.
@@ -93,6 +96,8 @@ class CoinCard extends ConsumerWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+            HiButton(label: l10n.buyPyols, height: 46, fontSize: 16, onPressed: () => showBuyPyolsSheet(context)),
             const SizedBox(height: 14),
             HiText(l10n.coinsHistory, style: hiStyle(15, FontWeight.w800, color: HiColors.ink)),
             const SizedBox(height: 6),

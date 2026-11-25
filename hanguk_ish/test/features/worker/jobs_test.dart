@@ -29,8 +29,11 @@ void main() {
   }
 
   test('the price follows the pay (as unlock_price)', () {
-    expect([160000, 150000, 120000, 110000, 90000, 80000, 60000, 50000, 49999, 0].map(unlockPrice),
-        [20, 20, 16, 16, 13, 13, 10, 10, 7, 7]);
+    expect([160000, 150001, 150000, 120000, 80000, 79999, 50000, 0].map(unlockPrice),
+        [40, 40, 30, 30, 30, 20, 20, 20]);
+    // Under 5 hours: always 20.
+    expect(unlockPrice(160000, minutes: 240), 20);
+    expect(unlockPrice(160000, minutes: 300), 40);
   });
 
   test('a job fits when all its hours are in the schedule; no schedule fits all', () {
@@ -76,7 +79,7 @@ void main() {
     expect(offer.liveAt(DateTime.utc(2026, 11, 10, 2, 40)), isTrue);
     expect(offer.liveAt(DateTime.utc(2026, 11, 10, 2, 50)), isFalse);
     expect(jobOfferFromJson({'status': 'closed', 'pay': 120000}).status, JobOfferStatus.closed);
-    expect(jobOfferFromJson({'status': 'expired', 'pay': 120000}).price, 16, reason: 'no price: from the pay');
+    expect(jobOfferFromJson({'status': 'expired', 'pay': 120000}).price, 30, reason: 'no price: from the pay');
 
     final job = openedJobFromJson({
       'application_id': 'a1',
@@ -115,19 +118,19 @@ void main() {
     expect(find.text('마포구 독막로 •••'), findsOneWidget);
     expect(find.text('Bugun 18:00–23:00 · 5 soatlik ish · 1,2 km'), findsOneWidget);
 
-    await tester.tap(find.text('Telefon va manzilni ochish · 10 P').first);
+    await tester.tap(find.text('Telefon va manzilni ochish · 20 P').first);
     await tester.pumpAndSettle();
     expect(find.text('Ish sizga biriktiriladi — boshqalarga yopiladi'), findsOneWidget);
     expect(find.text('Balans: 100 P'), findsOneWidget);
-    expect(find.text('Qoladi: 90 P'), findsOneWidget);
-    await tester.tap(find.text('10 puyl bilan ochish'));
+    expect(find.text('Qoladi: 80 P'), findsOneWidget);
+    await tester.tap(find.text('20 puyl bilan ochish'));
     await tester.pumpAndSettle();
 
     expect(find.text("Ochilgan ✓ · Mening ishlarim'da"), findsOneWidget);
     expect(find.text('Siz oldingiz — ish sizga biriktirildi'), findsOneWidget);
-    expect(find.text('90'), findsOneWidget);
+    expect(find.text('80'), findsOneWidget);
     final jobs = await container.read(offerRepositoryProvider).jobs();
-    expect(jobs.single.price, 10);
+    expect(jobs.single.price, 20);
 
     await tester.tap(find.text('Mening ishlarim').last);
     await tester.pumpAndSettle();
@@ -150,9 +153,9 @@ void main() {
     final account = DemoAccountRepository(now: prototypeNow)..wallet = const CoinWallet(balance: 5);
     final container = await start(tester, account: account);
     expect(find.text('5'), findsOneWidget);
-    await tester.tap(find.text('Telefon va manzilni ochish · 10 P').first);
+    await tester.tap(find.text('Telefon va manzilni ochish · 20 P').first);
     await tester.pumpAndSettle();
-    expect(find.text('Qoladi: -5 P'), findsOneWidget);
+    expect(find.text('Qoladi: -15 P'), findsOneWidget);
     expect(find.text('Puyl yetmaydi'), findsOneWidget);
     await tester.tap(find.text('Puyl yetmaydi'));
     await tester.pumpAndSettle();
@@ -174,7 +177,7 @@ void main() {
     now = prototypeNow.add(const Duration(minutes: 31));
     container.invalidate(offersProvider);
     await tester.pumpAndSettle();
-    expect(find.text('Telefon va manzilni ochish · 10 P'), findsNothing);
+    expect(find.text('Telefon va manzilni ochish · 20 P'), findsNothing);
     // The note on top of the list.
     await tester.scrollUntilVisible(find.textContaining('4 ta taklif vaqti tugadi'), -300,
         scrollable: find.byType(Scrollable).first);

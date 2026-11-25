@@ -52,8 +52,8 @@ select tests.throws($$insert into ish.notifications (user_id, kind) values ('000
 select tests.as_user('00000000-0000-0000-0000-0000000000b1');
 select tests.eq((select count(*)::int from ish.worker_profiles where user_id = '00000000-0000-0000-0000-0000000000a3'),
                 0, 'a business cannot browse workers who never applied');
-select tests.ok((select count(*) from ish.worker_profiles where user_id = '00000000-0000-0000-0000-0000000000a2') = 1,
-                'but sees its applicants');
+select tests.eq((select count(*)::int from ish.worker_profiles where user_id = '00000000-0000-0000-0000-0000000000a2'),
+                0, 'nor reads an applicant''s profile row (home address, exact point): the cards carry what it needs');
 select tests.ok((select count(*) from ish.profiles where id = '00000000-0000-0000-0000-0000000000a2') = 1,
                 'including their names');
 select tests.eq((select count(*)::int from ish.applications), 4, 'a business sees applications to its shifts');

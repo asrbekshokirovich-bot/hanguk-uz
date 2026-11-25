@@ -26,8 +26,10 @@ insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000c1
 insert into ish.staff_members (user_id) values ('00000000-0000-0000-0000-0000000000c1');
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
 select ish.staff_save_business(null, '현장 인력', 'logistics', 'Hongdae', '마포구 와우산로 21', '', 'Mapo-gu',
-                                  37.5565, 126.9370);
+                                  37.5565, 126.9370, '{}', '{"phone": "010-1111-2222"}');
 select tests.as_admin();
+-- Pyols to unlock offered jobs with.
+select ish.coin_move(user_id, 1000, 'staff', null, null, 'walk') from ish.worker_profiles;
 -- Who the staff marked as not come (only they may, on the jobs they keep).
 create temp table staff_no_shows (app uuid);
 
@@ -318,7 +320,7 @@ begin
         else
           v_detail := v_worker || ' → ' || v_shift;
           perform tests.as_user(v_worker);
-          perform ish.apply_to_shift(v_shift);
+          perform ish.unlock_offer(v_shift);
         end if;
       when 'decline' then
         select o.worker_id, o.shift_id into v_worker, v_shift from ish.job_offers o

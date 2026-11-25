@@ -21,6 +21,9 @@ import '../../../design/widgets/backdrop.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../design/widgets/pressable.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../coins/buy_pyols.dart';
+import 'confirm_free.dart';
+import 'free_dates.dart';
 import '../coins/coins.dart';
 import '../profile/worker_profile_draft.dart';
 import '../profile/worker_profile_repository.dart';
@@ -144,12 +147,19 @@ class _ScheduleSection extends ConsumerStatefulWidget {
 }
 
 class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesSoon {
-  void _toggle(int day, int slot) {
+  /// Marking a time free asks first («Are you really free?»): offers come
+  /// for it. Taking a time off does not.
+  Future<void> _toggle(int day, int slot, String label) async {
+    final on = ref.read(workerProfileDraftProvider).isAvailable(day, slot);
+    if (!on && !await confirmReallyFree(context, label)) return;
+    if (!mounted) return;
     ref.read(workerProfileDraftProvider.notifier).toggleSlot(day, slot);
     saveSoon();
   }
 
-  void _preset(int mask) {
+  Future<void> _preset(int mask, String label) async {
+    if (!await confirmReallyFree(context, label)) return;
+    if (!mounted) return;
     ref.read(workerProfileDraftProvider.notifier).setAvailability(mask);
     saveSoon();
   }
@@ -173,7 +183,7 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
       (l10n.presetAll, _mask(days: const [0, 1, 2, 3, 4, 5, 6], slots: scheduleSlots)),
     ];
     Widget cell(int d, int s) => HiPressable(
-          onTap: () => _toggle(d, s),
+          onTap: () => _toggle(d, s, '${dayNames[d]}, ${slots[s]!}'),
           selected: draft.isAvailable(d, s),
           semanticsLabel: '${dayNames[d]}, ${slots[s]!}',
           // The whole column is the target (40 px and more); the square inside.
@@ -254,7 +264,7 @@ class _ScheduleSectionState extends ConsumerState<_ScheduleSection> with _SavesS
                 if (i > 0) const SizedBox(width: 6),
                 Expanded(
                   child: HiPressable(
-                    onTap: () => _preset(presets[i].$2),
+                    onTap: () => _preset(presets[i].$2, presets[i].$1),
                     semanticsLabel: presets[i].$1,
                     selected: shown == presets[i].$2,
                     builder: (context, pressed) => Container(
@@ -454,6 +464,8 @@ class MeScreen extends ConsumerWidget {
               decoration: _cardDecoration,
               child: Column(
                 children: [
+                  _SettingRow(label: l10n.freeDatesTitle, value: '', onTap: () => showFreeDatesSheet(context)),
+                  const _Divider(),
                   _SettingRow(
                     label: l10n.fieldHomeAddress,
                     value: (draft.homeAddress ?? '').isNotEmpty ? draft.homeAddress! : (area.isEmpty ? '—' : area),
@@ -478,24 +490,7 @@ class MeScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _topUp(BuildContext context) {
-    final l10n = WorkerL10n.of(context);
-    return showModalBottomSheet<void>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: const Color.fromRGBO(6, 13, 43, 0.74),
-      builder: (context) => _Sheet(
-        title: l10n.topUpSoonTitle,
-        children: [
-          HiText(l10n.topUpSoonText, style: hiStyle(15, FontWeight.w500, height: 1.45, color: HiColors.inkMuted)),
-          const SizedBox(height: 20),
-          HiButton(label: l10n.close, onPressed: () => Navigator.of(context).pop()),
-        ],
-      ),
-    );
-  }
+  Future<void> _topUp(BuildContext context) => showBuyPyolsSheet(context);
 
   Future<void> _coinHistory(BuildContext context, String lang) => showModalBottomSheet<void>(
         context: context,

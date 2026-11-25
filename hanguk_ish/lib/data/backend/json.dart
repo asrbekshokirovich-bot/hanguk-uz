@@ -148,6 +148,8 @@ ShiftListing shiftListingFromJson(Json json, {PublicUrl publicUrl = _noUrl}) {
     myStatus: applicationStatusFrom(_strOrNull(json['my_status'])),
     myApplicationId: _strOrNull(json['my_application_id']),
     offer: _offer(_obj(json['offer'])),
+    inviteOnly: _bool(json['invite_only']),
+    unlockPrice: _intOrNull(json['unlock_price']),
   );
 }
 
@@ -211,6 +213,8 @@ const workerNotificationKinds = [
   'payment_marked',
   'job_offer',
   'shift_finished',
+  'coins_added',
+  'topup_rejected',
 ];
 
 /// `notification_card` → an A12 entry; null for kinds the worker app does not
@@ -231,6 +235,8 @@ HiNotification? hiNotificationFromJson(Json json) {
     'nearby_digest' => NotificationKind.nearbyShifts,
     'job_offer' => NotificationKind.jobOffer,
     'shift_finished' => NotificationKind.finished,
+    'coins_added' => NotificationKind.coinsAdded,
+    'topup_rejected' => NotificationKind.topupRejected,
     _ => null,
   };
   if (kind == null) return null;
@@ -270,6 +276,9 @@ HiNotification? hiNotificationFromJson(Json json) {
     lat: _double(shift['lat']) ?? _double(data['lat']),
     lng: _double(shift['lng']) ?? _double(data['lng']),
     note: _strOrNull(data['note']),
+    pyols: _intOrNull(data['delta']) ?? _intOrNull(data['pyols']) ?? _intOrNull(data['refunded']),
+    balance: _intOrNull(data['balance']),
+    why: _strOrNull(data['why']),
   );
 }
 
@@ -452,6 +461,9 @@ MonthlyJob monthlyJobFromJson(Json json, {bool applied = false}) {
     description: _str(json['description']),
     translations: translations,
     applied: applied,
+    unlocked: json['unlocked'] == true,
+    contactPhone: _str(json['contact_phone']),
+    unlockPrice: _intOrNull(json['unlock_price']) ?? 300,
   );
 }
 
@@ -467,6 +479,7 @@ CoinWallet coinWalletFromJson(Json json) => CoinWallet(
                 'unlock' => CoinReason.unlock,
                 'topup' => CoinReason.topup,
                 'bonus' => CoinReason.bonus,
+                'refund' => CoinReason.refund,
                 _ => CoinReason.staff,
               },
               createdAt: _dateOr(row['created_at'], DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)),

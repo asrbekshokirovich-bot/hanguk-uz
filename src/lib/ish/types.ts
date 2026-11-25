@@ -295,6 +295,8 @@ export interface IshMonthlyJob {
   status: 'open' | 'closed';
   category: string | null;
   work_time: 'day' | 'night' | null;
+  /** Shown to a worker only after they pay (`unlock_monthly_job`); staff only. */
+  contact_phone?: string | null;
   created_at: string;
 }
 
@@ -313,6 +315,7 @@ export interface IshMonthlyJobInput {
   description: string;
   category: string | null;
   workTime: 'day' | 'night' | null;
+  contactPhone: string;
   translations: IshMonthlyJob['translations'];
 }
 
@@ -343,4 +346,80 @@ export interface IshCoinWorker {
   phone: string | null;
   balance: number;
   history: IshCoinMove[];
+}
+
+/** `staff_topups`: a worker sent money for puyl; the staff check and approve. */
+export interface IshTopup {
+  id: string;
+  worker_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  pyols: number;
+  amount_won: number;
+  method: 'bank' | 'kakaopay' | 'toss';
+  payer_name: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note: string;
+  created_at: string;
+  decided_at: string | null;
+}
+
+/** `payment_details`: the packs and where workers send the money. */
+export interface IshPaymentDetails {
+  packs: { pyols: number; won: number }[];
+  methods: Partial<Record<'bank' | 'kakaopay' | 'toss' | 'note', string>>;
+}
+
+/** `staff_free_dates_summary`: how many workers are free, by day and place. */
+export interface IshFreeDay {
+  day: string;
+  district: string;
+  part: 'day' | 'night' | 'any';
+  workers: number;
+}
+
+/** `staff_free_workers`: one worker free on a day. */
+export interface IshFreeWorker {
+  worker_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  district: string;
+  part: 'day' | 'night' | 'any';
+  note: string;
+  languages: string[] | null;
+  topik: number | null;
+  reliability: number | null;
+  coins: number;
+  busy: boolean;
+}
+
+/** `staff_monthly_hires`: a long-term hire and its ₩50,000 fee after 2 weeks. */
+export interface IshMonthlyHire {
+  id: string;
+  job_id: string;
+  title: string;
+  company: string;
+  worker_id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  hired_at: string;
+  check_due: string;
+  still_working: boolean | null;
+  fee_won: number;
+  fee_paid_at: string | null;
+  state: 'check_due' | 'waiting' | 'fee_unpaid' | 'fee_paid' | 'left';
+}
+
+/** `staff_pyol_report`: one day of puyl. */
+export interface IshPyolDay {
+  day: string;
+  sold: number | null;
+  sold_won: number | null;
+  free: number | null;
+  gift: number | null;
+  refunded: number | null;
+  spent: number | null;
 }

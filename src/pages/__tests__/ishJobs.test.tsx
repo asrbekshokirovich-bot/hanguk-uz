@@ -75,7 +75,9 @@ function fakeClient(rows: IshMonthlyJob[], opts: { session?: boolean } = {}) {
     }),
     signOut: vi.fn(async () => ({ error: null })),
   };
-  const schema = vi.fn(() => ({ from }));
+  // The jobs come from public_monthly_jobs (the table is closed to direct reads).
+  const rpc = vi.fn(async (fn: string) => ({ data: fn === 'public_monthly_jobs' ? rows : null, error: null }));
+  const schema = vi.fn(() => ({ from, rpc }));
   return { client: { schema, auth } as unknown as SupabaseClient, inserts, updates, auth, schema };
 }
 

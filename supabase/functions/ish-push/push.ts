@@ -176,6 +176,7 @@ export function businessName(business: unknown, l: string): string {
   const areas: Record<string, string> = { ...(area ? { ko: area } : {}), ...fieldOf(b.translations, "area") };
   const shown = names[l] ?? names.en ?? name;
   const where = areas[l] ?? areas.en ?? area;
+  if (!shown) return where;
   return where ? `${shown} · ${where}` : shown;
 }
 
@@ -219,6 +220,17 @@ export function pushText(card: Record<string, any>, readerLang: string): PushTex
         return { title: s.bizNotifMessage, body: icu(s.bizNotifMessageText, p, l) };
     }
   }
+  // Puyl: «+100 puyl» / «Balance: 190 P»; a top-up the staff did not accept.
+  if (kind === "coins_added") {
+    const balance = int(data.balance);
+    return {
+      title: icu(s.notifCoinsTitle, { n: int(data.delta) ?? 0 }, l),
+      body: balance === null ? "" : icu(s.notifCoinsBalance, { n: balance }, l),
+    };
+  }
+  if (kind === "topup_rejected") {
+    return { title: s.notifTopupRejectedTitle, body: icu(s.notifTopupRejectedText, { n: int(data.pyols) ?? 0 }, l) };
+  }
   const business = businessName(card.business, l);
   const title = (() => {
     switch (kind) {
@@ -250,6 +262,12 @@ export function pushText(card: Record<string, any>, readerLang: string): PushTex
     }
   })();
   if (title === null) return null;
+  if (kind === "job_offer") {
+    // The alert carries the pay: «Dalbit Kafe · 12 000 ₩/h» (no name while the place is hidden).
+    const wage = int(obj(card.shift).hourly_wage);
+    const pay = wage === null ? "" : `${String(wage).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0")}\u00a0₩/h`;
+    return { title, body: [business, pay].filter((x) => x !== "").join(" · ") };
+  }
   return { title, body: kind === "nearby_digest" ? "" : business };
 }
 

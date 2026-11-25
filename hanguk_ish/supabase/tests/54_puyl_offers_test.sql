@@ -6,13 +6,16 @@ insert into auth.users (id, phone) values ('00000000-0000-0000-0000-0000000000f1
 insert into ish.staff_members (user_id) values ('00000000-0000-0000-0000-0000000000f1');
 update ish.worker_profiles set onboarded_at = now() where user_id = '00000000-0000-0000-0000-0000000000a3';
 insert into ish.business_contacts (business_id, phone) values ('10000000-0000-0000-0000-000000000001', '010-4821-7730');
+-- Paid offers are only for invite-only jobs.
+update ish.shifts set invite_only = true
+where id in ('20000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000006');
 
 -- The prices by the pay.
-select tests.eq(ish.unlock_price(160000), 20, '150 000+: 20');
-select tests.eq(ish.unlock_price(120000), 16, '110 000+: 16');
-select tests.eq(ish.unlock_price(80000), 13, '80 000+: 13');
-select tests.eq(ish.unlock_price(60000), 10, '50 000+: 10');
-select tests.eq(ish.unlock_price(30000), 7, 'less: 7');
+select tests.eq(ish.unlock_price(160000), 40, 'over 150 000: 40');
+select tests.eq(ish.unlock_price(150000), 30, '80 000–150 000: 30');
+select tests.eq(ish.unlock_price(80000), 30, '80 000: 30');
+select tests.eq(ish.unlock_price(60000), 20, 'under 80 000: 20');
+select tests.eq(ish.monthly_unlock_price(), 300, 'a long-term job: 300');
 select tests.eq(ish.mask_address('마포구 독막로 4, 1층'), '마포구 독막로 •••', 'the street, not the house');
 
 -- The staff: the whole pay, «talked to the employer», then 2 workers.
@@ -29,13 +32,14 @@ select tests.throws($$select ish.staff_send_offers('20000000-0000-0000-0000-0000
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq(ish.my_offers() -> 0 ->> 'status', 'sent', 'waiting');
 select tests.eq((ish.my_offers() -> 0 ->> 'pay')::int, 60000, 'the whole pay');
-select tests.eq((ish.my_offers() -> 0 ->> 'price')::int, 10, 'opening costs 10');
+select tests.eq((ish.my_offers() -> 0 ->> 'price')::int, 20, 'opening costs 20 (4 hours)');
 select tests.eq(ish.my_offers() -> 0 ->> 'phone', '010-••••-••••', 'the phone is hidden');
 select tests.ok(ish.my_offers() -> 0 ->> 'address' like '%•••', 'the house is hidden');
 select tests.eq((ish.my_offers() -> 0 ->> 'sent_count')::int, 2, 'sent to two');
 select tests.ok((ish.my_offers() -> 0 ->> 'checked_at') is not null, 'when the staff talked to the employer');
-select tests.ok((ish.my_offers() -> 0 ->> 'expires_at')::timestamptz between now() + interval '29 minutes' and now() + interval '31 minutes',
-                '30 minutes to take it');
+select tests.ok((ish.my_offers() -> 0 ->> 'expires_at')::timestamptz
+                between now() + interval '29 minutes' and now() + interval '12 hours 1 minute',
+                'until 2 hours before the start (30 minutes to 12 hours)');
 
 -- No puyl: not opened, nothing taken.
 select tests.throws($$select ish.unlock_offer('20000000-0000-0000-0000-000000000002')$$, 'NO_COINS', 'needs puyl');
@@ -43,11 +47,11 @@ select tests.eq(ish.my_offers() -> 0 ->> 'status', 'sent', 'still waiting');
 
 -- With puyl: opened, the job is theirs, 10 P gone.
 select tests.as_user('00000000-0000-0000-0000-0000000000f1');
-select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', 15, '');
-select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a2', 15, '');
+select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', 25, 'test');
+select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a2', 25, 'test');
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 select tests.eq(ish.unlock_offer('20000000-0000-0000-0000-000000000002') ->> 'phone', '010-4821-7730', 'the phone, open');
-select tests.eq((ish.my_coins() ->> 'balance')::int, 5, '15 − 10');
+select tests.eq((ish.my_coins() ->> 'balance')::int, 5, '25 − 20');
 select tests.eq(ish.my_coins() -> 'history' -> 0 ->> 'reason', 'unlock', 'as opening a job');
 select tests.eq((select status::text from ish.applications
                  where shift_id = '20000000-0000-0000-0000-000000000002' and worker_id = auth.uid()), 'confirmed',
@@ -61,7 +65,7 @@ select tests.as_user('00000000-0000-0000-0000-0000000000a2');
 select tests.eq(ish.my_offers() -> 0 ->> 'status', 'closed', 'closed for the other');
 select tests.throws($$select ish.unlock_offer('20000000-0000-0000-0000-000000000002')$$, 'OFFER_EXPIRED',
                     'it cannot be opened any more');
-select tests.eq((ish.my_coins() ->> 'balance')::int, 15, 'and nothing taken');
+select tests.eq((ish.my_coins() ->> 'balance')::int, 25, 'and nothing taken');
 
 -- The worker's steps, then the rating (only after «Ishga chiqdim»).
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
@@ -105,7 +109,7 @@ select tests.throws($$select ish.unlock_offer('20000000-0000-0000-0000-000000000
 -- the worker's puyl.
 select tests.as_user('00000000-0000-0000-0000-0000000000f1');
 select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000002') ->> 'job_pay')::int, 60000, 'job pay');
-select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000002') ->> 'unlock_price')::int, 10, 'price');
+select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000002') ->> 'unlock_price')::int, 20, 'price');
 select tests.eq(ish.staff_shift('20000000-0000-0000-0000-000000000002') ? 'checked_at', true, 'checked');
 select tests.eq((ish.staff_shift('20000000-0000-0000-0000-000000000006') -> 'offers' -> 0 ->> 'status'), 'expired',
                 'offer ended');

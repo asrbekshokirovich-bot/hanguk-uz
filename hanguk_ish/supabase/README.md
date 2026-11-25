@@ -34,6 +34,13 @@ sinaladi (hanguk.uz'ga o'xshash ob'ektlar yonida: `tests/main_app_stub.sql`,
 | `migrations/…_ish_market_wage.sql` | `market_wage(business)`: BA2 «O'rtacha» tugmasi va «Jozibador / Odatiy» belgisi uchun — oxirgi 90 kunda tasdiqlangan bizneslar qo'ygan smenalar soatlik maoshining o'rtachasi (100 won ga yaxlitlangan), avval o'sha tuman bo'yicha (kamida 5 smena), bo'lmasa hammasi bo'yicha, bo'lmasa `null` (ilova chiziqcha ko'rsatadi, o'ylab topilgan son emas); faqat biznes a'zosi so'raydi |
 | `migrations/…_ish_coins.sql` | Puyl hamyoni: `coin_wallets` (balans ≥ 0) va `coin_ledger` (sabab: `staff`, `unlock`, `topup`, `bonus`). Puylni xodim qo'shadi/oladi (`staff_add_coins`, CRM «Puyl»; `staff_coin_workers` qidiruv). `my_coins` — balans va tarix. Ilova pul saqlamaydi, faqat son. Yetmasa `NO_COINS`. Sarflangan puyl qaytmaydi |
 | `migrations/…_ish_puyl_offers.sql` | «10 qadam»: xodim ishni 3–4 kishiga shaxsan yuboradi (`staff_send_offers`, 4 tadan ko'p tirik taklif — `TOO_MANY`), taklif 30 daqiqa yashaydi. `staff_job_details` — jami to'lov va «ish beruvchi bilan gaplashildi» vaqti. `my_offers` — telefon va manzil yashirin (`010-••••-••••`), narx: ≥150k→20, ≥110k→16, ≥80k→13, ≥50k→10, aks holda 7 P. `unlock_offer` — puyl bilan ochadi, ish ishchiga biriktiriladi (tasdiqlangan ariza), joy to'lsa boshqalarga yopiladi; qayta ochish bepul. `my_jobs`, `set_job_step` (Ochildi → Qo'ng'iroq qildim → Ishga chiqdim), `rate_job` (★ ish beruvchiga). `offers_tick` (cron `ish-offers`, har daqiqa): tugashiga 5 daqiqa qolganda bir marta eslatma, muddati o'tganini yopadi |
+| `migrations/…_ish_fix_unlock_and_leaks.sql` | (2026-11-24) Puyl va maxfiylik tuzatishlari. Yangi narx: 5 soatdan qisqa yoki <80 000 ₩ → 20 P, ≤150 000 ₩ → 30 P, undan ko'p → 40 P (`unlock_price`, `shift_unlock_price`); doimiy ish — 300 P (`monthly_unlock_price`). Taklifli (`invite_only`) ishga bepul ariza yo'q (`USE_UNLOCK`), faqat `unlock_offer`. To'lamaguncha nom, aniq manzil va nuqta yashirin (`can_see_place`, `business_brief`, `shift_card`: `place_hidden`, nuqta ~1 km yaxlitlangan). `staff_send_offers`: `NOT_INVITE_ONLY`, `NO_CONTACT_PHONE`, `SHIFT_FULL`. RLS: invite-only va xodim yuritadigan bizneslar jadvaldan o'qilmaydi; ish beruvchi ishchining profilini o'qimaydi. `monthly_jobs` jadvali yopiq: `public_monthly_jobs` (kompaniya, manzil, telefon yashirin), `staff_monthly_jobs`, `unlock_monthly_job` (300 P → `contact_phone`) |
+| `migrations/…_ish_refunds_and_paid_jobs.sql` | Qaytarish: `refund_unlock` (bir arizaga bir marta), ish bekor bo'lsa puyl qaytadi (`cancel_shift`, `staff_cancel_shift`), `staff_refund_unlock` (izoh shart), ishchi 12 soatdan oldin bekor qilsa qaytadi. To'langan ishchi bor ishda maosh kamaytirilmaydi, manzil o'zgarmaydi (`HAS_PAID_WORKER`). Taklif muddati doim bor (30 daqiqa) |
+| `migrations/…_ish_pyol_plan.sql` | Sotuv rejasi: ro'yxatdan o'tganda 90 P (bir telefonga bir marta), har oy 1-sanada 90 gacha to'ldirish (cron `ish-monthly-bonus`), taklif kodi (do'stiga +30, taklif qilganga +60 birinchi ishdan keyin), paketlar 30/100/300 P = 3 300/9 900/24 000 ₩ (`pyol_packs`), to'lov so'rovi (`request_topup`) → xodim tasdiqlaydi (`staff_approve_topup`), to'lov rekvizitlari (`staff_set_payment_setting`, `payment_details`), `staff_add_coins` kuniga 1 000 P gacha, doimiy ishga olish va 2 haftadan keyin 50 000 ₩ komissiya (`staff_mark_hired`, `staff_confirm_two_weeks`, `staff_mark_fee_paid`), `staff_pyol_report` |
+| `migrations/…_ish_free_dates.sql` | «Bo'sh kunlarim»: ishchi qaysi kunlari va qayerda ishlay olishini yozadi (`set_free_dates`, 31 kungacha), xodim kechqurun ko'radi (`staff_free_dates_summary`, `staff_free_workers`) va taklif yuboradi |
+| `migrations/…_ish_alert_privacy.sql` | Ish xabarnomasi (`notification_card`): to'lamaguncha nuqta yaxlitlangan, `unlock_price` bor; push matnida soatbay maosh |
+| `migrations/…_ish_notification_fixes.sql` | Kechasi yuborilgan taklif 30 daqiqada o'chib ketardi: endi ish boshlanishidan 2 soat oldingacha (30 daqiqa – 12 soat) yoki xodim tanlagan daqiqa (`staff_send_offers`, `p_minutes`). Yangi xabarlar: `coins_added` (to'ldirish, oylik bepul, taklif mukofoti, sovg'a, qaytarish) va `topup_rejected` |
+| `migrations/…_ish_referral_code_unique.sql` | Taklif kodi takrorlanmaydi (trigger, 6 belgi, 0/O/1/I yo'q) — eski md5 kodi 20 000 ishchida to'qnashib, profil saqlanmay qolardi |
 | `functions/ish-business-register/` | 사업자등록번호 tekshiruvi (nazorat raqami + 국세청 holati) va biznesni ro'yxatdan o'tkazish (P50 dan BA0 chaqirmaydi; BA1 raqamli kutayotgan biznesni qayta so'raydi); `keys.ts` — loyiha kalitlari; `*_test.ts` — Deno testlari |
 | `tests/` | SQL testlar (`run.sh`), oddiy PostgreSQL uchun Supabase o'rnini bosuvchi `supabase_shim.sql`; `json_samples.sh` — ilovalar oladigan javoblar namunasi (Dart testlari uchun) |
 | `config.toml` | lokal stack (`supabase start --workdir hanguk_ish`): telefon orqali kirish (P54), test raqamlar qat'iy kod bilan |
@@ -128,6 +135,17 @@ Phone/Twilio Verify yoqildi; P54 ildiz migratsiyasi — prod'ga Asrbek ruxsati b
      stack'da ham ishlaydi);
    - ikkala APK'da telefon bilan kirish, bitta smena joylash va olish, QR bilan
      kirish va chiqish; hanguk.uz'da odatdagi kirish va talaba ro'yxatdan o'tishi.
+
+### 2026-11-24 migratsiyalari (hali prod'da emas)
+
+Asrbekning ruxsati bilan, shu tartibda: `20261124100000_ish_fix_unlock_and_leaks`,
+`20261124110000_ish_refunds_and_paid_jobs`, `20261124120000_ish_pyol_plan`,
+`20261124130000_ish_free_dates`, `20261124140000_ish_alert_privacy`,
+`20261124150000_ish_notification_fixes`, `20261124160000_ish_referral_code_unique`. Keyin:
+`ish-push` funksiyasini qayta joylash; CRM va hanguk.uz/ish bir vaqtda
+(`monthly_jobs` jadvali endi to'g'ridan o'qilmaydi). Xodim CRM «Puyl va bo'sh
+kunlar» yorlig'ida to'lov rekvizitlarini kiritadi — busiz ilova «Puyl sotib
+olish»da «hali sozlanmagan» deydi.
 
 ## Testlar
 

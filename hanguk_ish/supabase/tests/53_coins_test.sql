@@ -12,10 +12,10 @@ select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-000000
 
 select tests.as_user('00000000-0000-0000-0000-0000000000f1');
 select tests.eq(ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', 30, 'Naqd 30 000 won'), 30, 'staff: +30');
-select tests.eq(ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', -5, ''), 25, 'and take back 5');
-select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', -100, '')$$,
+select tests.eq(ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', -5, 'mistake'), 25, 'and take back 5');
+select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', -100, 'x')$$,
                     'NO_COINS', 'never below zero');
-select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-0000000000b1', 1, '')$$,
+select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-0000000000b1', 1, 'x')$$,
                     'NOT_FOUND', 'only workers');
 select tests.throws($$select ish.staff_add_coins('00000000-0000-0000-0000-0000000000a1', 0, '')$$,
                     'INVALID', 'something to move');

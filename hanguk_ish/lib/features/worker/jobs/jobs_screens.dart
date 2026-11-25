@@ -57,10 +57,12 @@ bool fitsSchedule(int availability, DateTime start, DateTime end) {
   return true;
 }
 
-/// «mm:ss».
+/// «mm:ss»; an offer sent at night for tomorrow lives hours: «h:mm:ss».
 String _mmss(Duration d) {
   final s = d.inSeconds < 0 ? 0 : d.inSeconds;
-  return '${(s ~/ 60).toString().padLeft(2, '0')}:${(s % 60).toString().padLeft(2, '0')}';
+  String two(int v) => v.toString().padLeft(2, '0');
+  final mmss = '${two(s ~/ 60 % 60)}:${two(s % 60)}';
+  return s >= 3600 ? '${s ~/ 3600}:$mmss' : '${two(s ~/ 60)}:${two(s % 60)}';
 }
 
 /// What to tell the worker when opening fails.

@@ -16,15 +16,11 @@ export function publicIshClient(): SupabaseClient {
 
 export type PublicLang = 'uz' | 'ru' | 'en' | 'ko';
 
-/** The open monthly jobs, newest first (the database lets everyone read these). */
+/** The open monthly jobs, newest first (`public_monthly_jobs`, anyone may call it). */
 export async function openMonthlyJobs(client: SupabaseClient): Promise<IshMonthlyJob[]> {
-  const { data, error } = await client
-    .schema(ISH_SCHEMA)
-    .from('monthly_jobs')
-    .select('*')
-    .eq('status', 'open')
-    .order('created_at', { ascending: false })
-    .limit(200);
+  // The table is closed to direct reads; this function leaves out the
+  // company, address and phone (paid for in the app).
+  const { data, error } = await client.schema(ISH_SCHEMA).rpc('public_monthly_jobs');
   if (error) throw new Error(error.message);
   return (data ?? []) as IshMonthlyJob[];
 }

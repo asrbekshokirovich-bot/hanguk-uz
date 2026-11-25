@@ -14,6 +14,12 @@ import type {
   IshMonthlyInterest,
   IshMonthlyJob,
   IshMonthlyJobInput,
+  IshFreeDay,
+  IshFreeWorker,
+  IshMonthlyHire,
+  IshPaymentDetails,
+  IshPyolDay,
+  IshTopup,
   IshReport,
   IshStaffPeople,
   IshStaffRole,
@@ -130,6 +136,45 @@ export function ishApi(client: SupabaseClient) {
     /** Adds coins to a worker (negative: takes some back); the new balance. NO_COINS below zero. */
     addCoins: (workerId: string, delta: number, note: string) =>
       rpc<number>('staff_add_coins', { p_worker: workerId, p_delta: delta, p_note: note.trim() }),
+
+    /** Top-up requests (pending by default; null: all). */
+    topups: async (status: 'pending' | 'approved' | 'rejected' | null = 'pending') =>
+      (await rpc<IshTopup[] | null>('staff_topups', { p_status: status })) ?? [],
+
+    /** The money came: the puyl go to the worker. ALREADY_DECIDED twice. */
+    approveTopup: (id: string) => rpc<number>('staff_approve_topup', { p_request: id }),
+
+    rejectTopup: (id: string, note: string) =>
+      rpc<void>('staff_reject_topup', { p_request: id, p_note: note.trim() }),
+
+    paymentDetails: () => rpc<IshPaymentDetails>('payment_details'),
+
+    /** Where workers send the money: 'bank' / 'kakaopay' / 'toss' / 'note'. */
+    setPaymentSetting: (key: 'bank' | 'kakaopay' | 'toss' | 'note', value: string) =>
+      rpc<void>('staff_set_payment_setting', { p_key: key, p_value: value.trim() }),
+
+    /** «My free days» of the workers: how many, by day and place. */
+    freeDays: async (days = 7) => (await rpc<IshFreeDay[] | null>('staff_free_dates_summary', { p_days: days })) ?? [],
+
+    /** Who is free on [day] (yyyy-mm-dd), optionally in [district]. */
+    freeWorkers: async (day: string, district: string | null) =>
+      (await rpc<IshFreeWorker[] | null>('staff_free_workers', {
+        p_day: day,
+        p_district: district && district.trim() !== '' ? district.trim() : null,
+      })) ?? [],
+
+    pyolReport: async (days = 30) => (await rpc<IshPyolDay[] | null>('staff_pyol_report', { p_days: days })) ?? [],
+
+    monthlyHires: async () => (await rpc<IshMonthlyHire[] | null>('staff_monthly_hires')) ?? [],
+
+    markHired: (jobId: string, workerId: string) =>
+      rpc<string>('staff_mark_hired', { p_job: jobId, p_worker: workerId }),
+
+    /** Two weeks after the start: still working (the fee is due) or not. NOT_DUE before. */
+    confirmTwoWeeks: (hireId: string, stillWorking: boolean) =>
+      rpc<void>('staff_confirm_two_weeks', { p_hire: hireId, p_still_working: stillWorking }),
+
+    markFeePaid: (hireId: string) => rpc<void>('staff_mark_fee_paid', { p_hire: hireId }),
 
     /** P52: the workers' complaints from the app, open ones first. */
     reports: async () => (await rpc<IshReport[] | null>('staff_reports', { p_limit: 200 })) ?? [],
@@ -261,7 +306,8 @@ export function ishApi(client: SupabaseClient) {
 
     /** Monthly jobs, newest first (the staff see closed ones too). */
     monthlyJobs: async (): Promise<IshMonthlyJob[]> => {
-      const { data, error } = await db.from('monthly_jobs').select('*').order('created_at', { ascending: false }).limit(500);
+      // Direct reads are closed (the contact phone is paid for): staff_monthly_jobs.
+      const { data, error } = await db.rpc('staff_monthly_jobs');
       if (error) throw new IshError(ishErrorCode(error), error.message);
       return (data ?? []) as IshMonthlyJob[];
     },
@@ -281,6 +327,7 @@ export function ishApi(client: SupabaseClient) {
         description: j.description.trim(),
         category: j.category,
         work_time: j.workTime,
+        contact_phone: j.contactPhone.trim(),
         translations: j.translations,
       };
       const query = j.id
