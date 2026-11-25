@@ -18,18 +18,28 @@ name: HanPyol — iOS build to TestFlight
 
 on:
   workflow_dispatch:
+    inputs:
+      app:
+        description: "worker = HanPyol, employer = HanPyol 사장님"
+        type: choice
+        options: [worker, employer]
+        default: worker
   push:
     paths: ['hanguk_ish/ios/testflight.txt']
 
 concurrency:
-  group: ish-ios-release
+  group: ish-ios-release-${{ inputs.app || 'worker' }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
+# Which app: the worker app (default, and on push) or the employer app.
 env:
-  BUNDLE_ID: uz.hanguk.ish
+  APP: ${{ inputs.app || 'worker' }}
+  BUNDLE_ID: ${{ (inputs.app || 'worker') == 'employer' && 'uz.hanguk.ish.biz' || 'uz.hanguk.ish' }}
+  APP_NAME: ${{ (inputs.app || 'worker') == 'employer' && 'HanPyol 사장님' || 'HanPyol' }}
+  ENTRY: ${{ (inputs.app || 'worker') == 'employer' && 'lib/main_employer.dart' || 'lib/main_worker.dart' }}
 
 jobs:
   signing:
@@ -68,7 +78,8 @@ jobs:
           IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
         run: |
           set -euo pipefail
-          python3 hanguk_ish/tool/ios_signing.py --bundle-id "$BUNDLE_ID" \
+          python3 hanguk_ish/tool/ios_signing.py --bundle-id "$BUNDLE_ID" --name "HanPyol $APP" \
+            --profile-name "HanPyol $APP AppStore CI" \
             --profile-out "$RUNNER_TEMP/profile.mobileprovision" | tee "$RUNNER_TEMP/out.txt"
           if grep -q '^APP_EXISTS=true' "$RUNNER_TEMP/out.txt"; then
             echo "app_exists=true" >> "$GITHUB_OUTPUT"
@@ -76,8 +87,8 @@ jobs:
             echo "app_exists=false" >> "$GITHUB_OUTPUT"
             {
               echo "### The app record is missing"
-              echo "In App Store Connect → Apps → + → New App: platform iOS, name **HanPyol**,"
-              echo "bundle id **$BUNDLE_ID**, SKU **hanpyol**. Then run this workflow again."
+              echo "In App Store Connect → Apps → + → New App: platform iOS, name **$APP_NAME**,"
+              echo "bundle id **$BUNDLE_ID**, SKU **hanpyol-$APP**. Then run this workflow again."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
           # The profile is not a secret (it holds no key), so it can travel as an output.
@@ -99,6 +110,14 @@ jobs:
           flutter-version: 3.47.9
           channel: stable
           cache: true
+
+      - name: Make the project this app (bundle id, name, icon)
+        if: env.APP == 'employer'
+        run: |
+          set -euo pipefail
+          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = uz.hanguk.ish;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/" ios/Runner.xcodeproj/project.pbxproj
+          plutil -replace CFBundleDisplayName -string "$APP_NAME" ios/Runner/Info.plist
+          cp tool/icons/employer_ios_1024.png ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
 
       - name: Install the signing identity and the profile
         env:
@@ -150,7 +169,7 @@ jobs:
           set -euo pipefail
           flutter pub get
           name="$(grep -m1 '^version:' pubspec.yaml | sed 's/^version: *//; s/+.*//')"
-          flutter build ipa --release -t lib/main_worker.dart \
+          flutter build ipa --release -t "$ENTRY" \
             --build-name="$name" --build-number="${{ github.run_number }}" \
             --dart-define=SUPABASE_URL=https://lysjdtyanhdfphqyijsr.supabase.co \
             --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3 \
@@ -174,7 +193,7 @@ jobs:
       - name: What happens next
         run: |
           {
-            echo "### HanPyol build ${{ github.run_number }} is uploaded"
-            echo "Apple processes it for 5–30 minutes; then it shows in App Store Connect → HanPyol → TestFlight."
+            echo "### $APP_NAME build ${{ github.run_number }} is uploaded"
+            echo "Apple processes it for 5–30 minutes; then it shows in App Store Connect → $APP_NAME → TestFlight."
             echo "**Nothing was submitted for review.**"
           } >> "$GITHUB_STEP_SUMMARY"

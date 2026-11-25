@@ -29,11 +29,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>HanPyol reads the QR code at the workplace to mark your shift start and end, and can take your profile photo.</string>
+	<string>HanPyol uses the camera to scan shift QR codes and to take photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>HanPyol uses your location to show the nearest shifts first.</string>
+	<string>HanPyol uses your location to show the nearest shifts and places first.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>HanPyol lets you choose a photo for your profile.</string>
+	<string>HanPyol lets you choose photos from your library.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
