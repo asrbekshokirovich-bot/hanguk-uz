@@ -8,7 +8,7 @@ on:
     paths: ['.github/workflows/ish-ios-create.yml']
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   create:
@@ -19,6 +19,8 @@ jobs:
         working-directory: hanguk_ish
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feat/ish-ios
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -26,8 +28,12 @@ jobs:
       - run: flutter --version
       - run: flutter create --platforms=ios --org uz.hanguk --project-name hanguk_ish --no-pub .
       - run: find ios -type f | sort
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ish-ios-project
-          path: hanguk_ish/ios
-          include-hidden-files: true
+      # Commit ios/ back to this branch (the artifact store is not reachable
+      # from where the rest of the work is done).
+      - name: Commit ios/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ios
+          git commit -m "Hanguk Ish: iOS project from flutter create (stable)" || echo "nothing new"
+          git push origin HEAD:feat/ish-ios
