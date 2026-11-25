@@ -28,6 +28,7 @@ class WorkerTrust {
     this.rating,
     this.ratingCount = 0,
     required this.noShows,
+    this.card = WorkerCard.none,
   });
 
   /// 0–100.
@@ -43,6 +44,29 @@ class WorkerTrust {
   final double? rating;
   final int ratingCount;
   final int noShows;
+
+  /// The yellow/red card for no-shows (`card_of`).
+  final WorkerCard card;
+}
+
+enum CardLevel { none, yellow, red, blocked }
+
+/// A worker's card: 1st no-show yellow, 2nd red (no new jobs for 14 days),
+/// 3rd blocked. Five jobs done take one step back.
+@immutable
+class WorkerCard {
+  const WorkerCard({required this.level, this.redUntil, this.goodJobs = 0, this.closed = false});
+
+  static const none = WorkerCard(level: CardLevel.none);
+
+  final CardLevel level;
+  final DateTime? redUntil;
+
+  /// Jobs done since the card (5 take one step back).
+  final int goodJobs;
+
+  /// No new jobs now (red within its 14 days, or blocked).
+  final bool closed;
 }
 
 /// Kinds of notifications (database `notifications.kind`).
@@ -75,6 +99,10 @@ enum NotificationKind {
 
   /// The staff did not find the money for a top-up request.
   topupRejected,
+
+  /// A yellow / red card (or blocked) for a no-show ([HiNotification.why]
+  /// = 'yellow' | 'red' | 'blocked', [HiNotification.untilAt] for red).
+  cardGiven,
 }
 
 /// One entry of A12, with the values its sentence is built from (so it reads
@@ -107,6 +135,7 @@ class HiNotification {
     this.pyols,
     this.balance,
     this.why,
+    this.untilAt,
   });
 
   final String id;
@@ -154,6 +183,9 @@ class HiNotification {
   /// [NotificationKind.coinsAdded]: 'topup', 'monthly', 'referral', 'staff' or 'refund'.
   final String? why;
 
+  /// [NotificationKind.cardGiven]: the end of a red card.
+  final DateTime? untilAt;
+
   String businessName(String lang) => businessNames[lang] ?? businessNames['en'] ?? businessNames['ko'] ?? '';
 
   String areaName(String lang) => areaNames[lang] ?? areaNames['en'] ?? areaNames['ko'] ?? '';
@@ -184,6 +216,7 @@ class HiNotification {
         pyols: pyols,
         balance: balance,
         why: why,
+        untilAt: untilAt,
       );
 }
 

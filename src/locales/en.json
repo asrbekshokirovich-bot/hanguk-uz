@@ -3986,7 +3986,8 @@
       "UNKNOWN": "Something went wrong. Please try again.",
       "SELF": "You cannot change your own role or remove yourself — another admin does that.",
       "NO_COINS": "The worker does not have that much puyl",
-      "TOO_MANY": "You can't send to more than 4 people at once."
+      "TOO_MANY": "You can't send to more than 4 people at once.",
+      "NOTE_REQUIRED": "Write the reason."
     },
     "appBusinesses": {
       "intro": "Businesses opened in the 사장님 app. They open at once, without a check — if one looks suspicious, suspend it: workers won't see its shifts and nobody can apply.",
@@ -4189,7 +4190,34 @@
       "interested": "Unlocked or interested",
       "markHired": "Mark hired",
       "report": "Puyl in the last 30 days",
-      "reportTotal": "Sold {{sold}} P ({{won}}), spent {{spent}} P, free {{free}} P, refunded {{refunded}} P."
+      "reportTotal": "Sold {{sold}} P ({{won}}), spent {{spent}} P, free {{free}} P, refunded {{refunded}} P.",
+      "card": {
+        "cards": "Yellow and red cards",
+        "cardsHint": "A worker gets a card for a no-show: 1st yellow, 2nd red (no new jobs for 14 days), 3rd blocked. 5 finished jobs take one step back. A business gets one for cancelling a booked job, or from you.",
+        "cardsEmpty": "No cards now.",
+        "level": {
+          "yellow": "yellow",
+          "red": "red",
+          "blocked": "blocked"
+        },
+        "until": "until {{date}}",
+        "goodJobs": "{{n}} of 5 jobs",
+        "clear": "Take back",
+        "clearAsk": "Why take the card back?",
+        "worker": "worker",
+        "business": "business",
+        "giveTitle": "Give a business a card",
+        "giveNote": "Reason (e.g. paid less than shown)",
+        "give": "Give card",
+        "pickBusiness": "Choose a business",
+        "why": {
+          "no_show": "no-show",
+          "cancelled_booked": "cancelled a booked job",
+          "staff": "from staff",
+          "good_jobs": "good jobs",
+          "cleared": "taken back"
+        }
+      }
     }
   },
   "calendarPage": {

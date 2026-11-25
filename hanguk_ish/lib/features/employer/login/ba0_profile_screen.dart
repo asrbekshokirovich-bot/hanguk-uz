@@ -13,7 +13,7 @@ import '../biz.dart';
 /// the kind of work, the neighbourhood and the address are what workers read
 /// on every shift; the business opens as «사업장 XXXX» until this is saved.
 class Ba0ProfileScreen extends StatefulWidget {
-  const Ba0ProfileScreen({super.key, required this.onSave, this.onSkip, this.initial});
+  const Ba0ProfileScreen({super.key, required this.onSave, this.onSkip, this.initial, this.onInvite});
 
   /// «Saqlash»; the button waits while it runs.
   final Future<void> Function(String name, BusinessCategory category, String area, String address) onSave;
@@ -25,6 +25,10 @@ class Ba0ProfileScreen extends StatefulWidget {
   /// sign-in, when the form starts empty.
   final Business? initial;
 
+  /// The optional «Taklif kodi» at the first sign-in: the worker who
+  /// brought this business. Returns an error text, or null when it was saved.
+  final Future<String?> Function(String code)? onInvite;
+
   static String text(String key) => Biz.profileText(key);
 
   @override
@@ -35,6 +39,7 @@ class _Ba0ProfileScreenState extends State<Ba0ProfileScreen> {
   late final _name = TextEditingController(text: widget.initial?.name ?? '');
   late final _area = TextEditingController(text: widget.initial?.area ?? '');
   late final _address = TextEditingController(text: widget.initial?.address ?? '');
+  final _invite = TextEditingController();
   late BusinessCategory _category = widget.initial?.category ?? BusinessCategory.cafe;
   bool _saving = false;
 
@@ -43,6 +48,7 @@ class _Ba0ProfileScreenState extends State<Ba0ProfileScreen> {
     _name.dispose();
     _area.dispose();
     _address.dispose();
+    _invite.dispose();
     super.dispose();
   }
 
@@ -56,6 +62,17 @@ class _Ba0ProfileScreenState extends State<Ba0ProfileScreen> {
     }
     setState(() => _saving = true);
     try {
+      final code = _invite.text.trim();
+      final onInvite = widget.onInvite;
+      if (code.isNotEmpty && onInvite != null) {
+        final problem = await onInvite(code);
+        if (problem != null) {
+          if (mounted) {
+            (ScaffoldMessenger.of(context)..hideCurrentSnackBar()).showSnackBar(SnackBar(content: Text(problem)));
+          }
+          return;
+        }
+      }
       await widget.onSave(name, _category, _area.text.trim(), _address.text.trim());
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -101,6 +118,13 @@ class _Ba0ProfileScreenState extends State<Ba0ProfileScreen> {
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _save(),
               ),
+              if (widget.initial == null && widget.onInvite != null) ...[
+                const SizedBox(height: 18),
+                _label(t('invite')),
+                HiInputField(controller: _invite, placeholder: 'ABC234', maxLength: 12),
+                const SizedBox(height: 6),
+                HiText(t('inviteHint'), style: hiStyle(13, FontWeight.w500, color: HiColors.textSoft)),
+              ],
               const SizedBox(height: 28),
               HiButton(
                   label: widget.initial == null ? t('save') : Biz.save,

@@ -14,6 +14,7 @@ import type {
   IshMonthlyInterest,
   IshMonthlyJob,
   IshMonthlyJobInput,
+  IshCard,
   IshFreeDay,
   IshFreeWorker,
   IshMonthlyHire,
@@ -162,6 +163,17 @@ export function ishApi(client: SupabaseClient) {
         p_day: day,
         p_district: district && district.trim() !== '' ? district.trim() : null,
       })) ?? [],
+
+    /** Everyone with a yellow / red card now. */
+    cards: async () => (await rpc<IshCard[] | null>('staff_cards')) ?? [],
+
+    /** A card for a business («worse than promised», …); a reason is needed. */
+    giveBusinessCard: (businessId: string, note: string) =>
+      rpc<unknown>('staff_give_business_card', { p_business: businessId, p_note: note.trim() }),
+
+    /** Take a card back (given by mistake, …); a reason is needed. */
+    clearCard: (subjectId: string, note: string) =>
+      rpc<unknown>('staff_clear_card', { p_subject: subjectId, p_note: note.trim() }),
 
     pyolReport: async (days = 30) => (await rpc<IshPyolDay[] | null>('staff_pyol_report', { p_days: days })) ?? [],
 

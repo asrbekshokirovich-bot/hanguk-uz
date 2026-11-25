@@ -2942,7 +2942,8 @@
       "UNKNOWN": "문제가 생겼어요. 다시 시도해 주세요.",
       "SELF": "자신의 역할을 바꾸거나 자신을 뺄 수 없어요. 다른 관리자가 해야 해요.",
       "NO_COINS": "근로자의 퓰이 부족해요",
-      "TOO_MANY": "동시에 4명보다 많이 보낼 수 없어요."
+      "TOO_MANY": "동시에 4명보다 많이 보낼 수 없어요.",
+      "NOTE_REQUIRED": "사유를 적어 주세요."
     },
     "appBusinesses": {
       "intro": "사장님 앱에서 열린 사업장입니다. 확인 없이 바로 열리므로 의심스러우면 정지하세요: 근무가 근무자에게 보이지 않고 지원할 수 없어요.",
@@ -3145,7 +3146,34 @@
       "interested": "열람 또는 관심",
       "markHired": "채용 기록",
       "report": "최근 30일 퓰",
-      "reportTotal": "판매 {{sold}} P ({{won}}), 사용 {{spent}} P, 무료 {{free}} P, 환불 {{refunded}} P."
+      "reportTotal": "판매 {{sold}} P ({{won}}), 사용 {{spent}} P, 무료 {{free}} P, 환불 {{refunded}} P.",
+      "card": {
+        "cards": "옐로·레드카드",
+        "cardsHint": "근로자는 노쇼 시 카드를 받아요: 1회 옐로, 2회 레드(14일간 새 일 불가), 3회 정지. 일을 5번 마치면 한 단계 내려가요. 사업장은 예약된 일을 취소하거나 직원이 줄 때 받아요.",
+        "cardsEmpty": "카드가 없어요.",
+        "level": {
+          "yellow": "옐로",
+          "red": "레드",
+          "blocked": "정지"
+        },
+        "until": "{{date}}까지",
+        "goodJobs": "5번 중 {{n}}번",
+        "clear": "해제",
+        "clearAsk": "왜 해제하나요?",
+        "worker": "근로자",
+        "business": "사업장",
+        "giveTitle": "사업장에 카드 주기",
+        "giveNote": "사유 (예: 약속보다 적게 지급)",
+        "give": "카드 주기",
+        "pickBusiness": "사업장 선택",
+        "why": {
+          "no_show": "노쇼",
+          "cancelled_booked": "예약 취소",
+          "staff": "직원",
+          "good_jobs": "완료한 일",
+          "cleared": "해제"
+        }
+      }
     }
   },
   "calendarPage": {

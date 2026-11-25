@@ -392,6 +392,8 @@ export interface IshFreeWorker {
   topik: number | null;
   reliability: number | null;
   coins: number;
+  /** The no-show card: 'none', 'yellow', 'red' or 'blocked' (red/blocked: busy). */
+  card: 'none' | 'yellow' | 'red' | 'blocked' | null;
   busy: boolean;
 }
 
@@ -422,4 +424,18 @@ export interface IshPyolDay {
   gift: number | null;
   refunded: number | null;
   spent: number | null;
+}
+
+/** `staff_cards`: a worker or business with a yellow / red card (or blocked). */
+export interface IshCard {
+  subject_id: string;
+  subject: 'worker' | 'business';
+  name: string | null;
+  phone: string | null;
+  level: 'yellow' | 'red' | 'blocked';
+  red_until: string | null;
+  closed: boolean;
+  good_jobs: number;
+  last_why: 'no_show' | 'cancelled_booked' | 'staff' | 'good_jobs' | 'cleared' | null;
+  updated_at: string;
 }

@@ -194,12 +194,39 @@ function areaName(data: Record<string, any>, l: string): string {
   return names[l] ?? names.en ?? names.ko ?? "";
 }
 
+/** «2026-12-09» in Korea for an ISO time; "" when there is none. */
+function koreaDate(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  return new Date(t + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
 /** The push for [card] in [l]; null for what the app does not show (pay not marked). */
 export function pushText(card: Record<string, any>, readerLang: string): PushText | null {
   const l = lang(readerLang);
   const s = STRINGS[l];
   const data = obj(card.data);
   const kind = str(card.kind);
+  // Yellow / red cards: the worker's, and the business's (to its people).
+  if (kind === "card_given" || kind === "business_card") {
+    const card = str(data.card);
+    const until = koreaDate(str(data.until));
+    if (kind === "card_given") {
+      return card === "yellow"
+        ? { title: s.cardYellowTitle, body: s.cardYellowText }
+        : card === "red"
+        ? { title: s.cardRedTitle, body: icu(s.cardRedText, { date: until }, l) }
+        : { title: s.cardBlockedTitle, body: s.cardBlockedText };
+    }
+    return {
+      title: s.bizNotifCardTitle,
+      body: card === "yellow"
+        ? s.bizNotifCardYellow
+        : card === "red"
+        ? icu(s.bizNotifCardRed, { date: until }, l)
+        : s.bizNotifCardBlocked,
+    };
+  }
   const forOwner = (kind === "chat_message" && "worker_id" in data) ||
     ["new_applicant", "worker_cancelled", "no_show"].includes(kind);
   if (forOwner) {

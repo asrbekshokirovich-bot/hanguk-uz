@@ -3461,60 +3461,12 @@
   "@coinRefund": {
     "description": "Pyol plan (Nov 2026)."
   },
-  "buyPyols": "Puyl sotib olish",
+  "buyPyols": "Puyl olish",
   "@buyPyols": {
     "description": "Pyol plan (Nov 2026)."
   },
-  "buyPyolsHow": "Pulni o'tkazing, keyin so'rov yuboring. Xodimlar pul kelganini tekshirib, puylni qo'shadi.",
+  "buyPyolsHow": "Puyl bepul: ro'yxatdan o'tganda 90 P, har oy balansingiz 90 P gacha to'ldiriladi. Do'stlaringizni taklif qilib, ko'proq oling.",
   "@buyPyolsHow": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "buyPyolsPack": "{pyols} P — {won}",
-  "@buyPyolsPack": {
-    "description": "Pyol plan (Nov 2026).",
-    "placeholders": {
-      "pyols": {
-        "type": "int"
-      },
-      "won": {
-        "type": "String"
-      }
-    }
-  },
-  "buyPyolsMethod": "Qanday to'laysiz?",
-  "@buyPyolsMethod": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "buyPyolsPayer": "To'lovchi ismi (o'tkazmada ko'rinadigan)",
-  "@buyPyolsPayer": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "buyPyolsSend": "So'rov yuborish",
-  "@buyPyolsSend": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "buyPyolsSent": "So'rov yuborildi. Pul tekshirilgach puyl qo'shiladi.",
-  "@buyPyolsSent": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "buyPyolsPending": "Kutilayotgan so'rovlar",
-  "@buyPyolsPending": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "buyPyolsNoDetails": "To'lov ma'lumotlari hali qo'shilmagan. Telegram orqali yozing.",
-  "@buyPyolsNoDetails": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "payBank": "Bank o'tkazmasi",
-  "@payBank": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "payKakao": "KakaoPay",
-  "@payKakao": {
-    "description": "Pyol plan (Nov 2026)."
-  },
-  "payToss": "Toss",
-  "@payToss": {
     "description": "Pyol plan (Nov 2026)."
   },
   "inviteTitle": "Do'stni taklif qiling",
@@ -3613,7 +3565,7 @@
       }
     }
   },
-  "noCoinsBuy": "Puyl yetarli emas. «Puyl sotib olish»ni bosing.",
+  "noCoinsBuy": "Puyl yetarli emas. «Puyl olish»ni bosing.",
   "@noCoinsBuy": {
     "description": "Pyol plan (Nov 2026)."
   },
@@ -3697,5 +3649,89 @@
   "freeConfirmNo": "Yo'q",
   "@freeConfirmNo": {
     "description": "«Are you really free?» before a time is marked free (2026-11-24)."
+  },
+  "cardYellowTitle": "Sariq kartochka",
+  "@cardYellowTitle": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "cardRedTitle": "Qizil kartochka",
+  "@cardRedTitle": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "cardBlockedTitle": "Akkaunt to'xtatildi",
+  "@cardBlockedTitle": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "cardYellowText": "Ishga kelmadingiz. Keyingi safar 14 kun ish ola olmaysiz. 5 ta ishni bajarsangiz, kartochka o'chadi.",
+  "@cardYellowText": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "cardRedText": "Yana ishga kelmadingiz. {date} gacha yangi ish ola olmaysiz. Keyingi safar akkaunt to'xtatiladi.",
+  "@cardRedText": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cardBlockedText": "3 marta ishga kelmadingiz. Akkauntni qayta ochish uchun bizga yozing.",
+  "@cardBlockedText": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "cardYellowLine": "Sariq kartochka · o'chishi uchun 5 tadan {n} ta ish",
+  "@cardYellowLine": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cardRedLine": "Qizil kartochka · {date} gacha yangi ish yo'q",
+  "@cardRedLine": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cardBlockedLine": "To'xtatilgan · bizga yozing",
+  "@cardBlockedLine": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "errCardClosed": "Hozir yangi ish ola olmaysiz (qizil kartochka).",
+  "@errCardClosed": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "notifCoinsEmployer": "Ish beruvchi olib kelganingiz uchun.",
+  "@notifCoinsEmployer": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "bizNotifCardTitle": "Ogohlantirish kartochkasi",
+  "@bizNotifCardTitle": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "bizNotifCardYellow": "Ishchi band qilgan ish bekor qilindi. Keyingi safar 14 kun ish joylay olmaysiz.",
+  "@bizNotifCardYellow": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "bizNotifCardRed": "{date} gacha yangi ish joylay olmaysiz.",
+  "@bizNotifCardRed": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "bizNotifCardBlocked": "Hozir ish joylay olmaysiz. Hanguk bilan bog'laning.",
+  "@bizNotifCardBlocked": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
+  },
+  "bizErrCard": "Hozir ish joylay olmaysiz (ogohlantirish kartochkasi). Hanguk bilan bog'laning.",
+  "@bizErrCard": {
+    "description": "Yellow/red cards and the employer invite (2026-11-25)."
   }
 }
