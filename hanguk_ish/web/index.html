@@ -21,6 +21,14 @@
 
   <!-- window.Telegram.WebApp: who opened the app, the phone-number request. -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    // Telegram opens the app with its data after "#" (#tgWebAppData=…). The
+    // script above has read it (Telegram.WebApp.initData); the app's pages
+    // also live after "#", so that part is cleared before the app starts.
+    if (/tgWebApp/.test(location.hash)) {
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+  </script>
 
   <style>
     html, body { margin: 0; height: 100%; background: #0A1440; }
