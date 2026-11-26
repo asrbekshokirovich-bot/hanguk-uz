@@ -159,5 +159,7 @@ class WorkerProfileDraftController extends Notifier<WorkerProfileDraft> {
 
 /// The image of a [WorkerProfileDraft.photoPath]: the saved photo from the
 /// network, a newly picked one from the phone.
-ImageProvider profilePhoto(String path) =>
-    path.startsWith('http://') || path.startsWith('https://') ? NetworkImage(path) : FileImage(File(path));
+/// On the web (the Telegram mini app) a picked photo is a blob: URL.
+ImageProvider profilePhoto(String path) => kIsWeb || path.startsWith('http://') || path.startsWith('https://')
+    ? NetworkImage(path)
+    : FileImage(File(path));

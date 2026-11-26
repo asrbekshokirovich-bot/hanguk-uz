@@ -88,3 +88,18 @@ class DemoPyolStore implements PyolStore {
 
 /// The store the app uses. The demo one until a backend is configured.
 final pyolStoreProvider = Provider<PyolStore>((ref) => DemoPyolStore());
+
+/// The web build (the Telegram mini app): no store payment there — «Puyl
+/// olish» sends the worker to the website instead.
+class WebPyolStore implements PyolStore {
+  const WebPyolStore();
+
+  @override
+  Future<List<StoreProduct>> products() async => const [];
+
+  @override
+  Future<void> buy(StoreProduct product) async => throw UnsupportedError('No store on the web');
+
+  @override
+  Stream<StoreResult> get results => const Stream.empty();
+}

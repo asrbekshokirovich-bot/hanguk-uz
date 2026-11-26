@@ -733,5 +733,14 @@
   "storeCredited": "+{n} P 추가됐어요. 잔액: {balance} P",
   "storePending": "결제를 기다리고 있어요. 끝나면 퓰이 들어와요.",
   "storeFailed": "구매가 완료되지 않았어요. 결제됐다면 곧 퓰이 들어오거나, 문의해 주세요.",
-  "storeUnavailable": "지금 이 휴대폰에서는 구매할 수 없어요."
+  "storeUnavailable": "지금 이 휴대폰에서는 구매할 수 없어요.",
+  "tgShareTitle": "전화번호를 공유해 주세요",
+  "tgShareBody": "앱에 이미 가입했다면 프로필, 퓰, 일자리가 여기로 연결돼요. 사장님이 연락할 때도 번호가 필요해요.",
+  "tgShareButton": "번호 공유하기",
+  "tgShareSkip": "나중에",
+  "pyolBuyOnWebsite": "웹사이트에서 구매",
+  "pyolWebsiteSoon": "웹사이트에서 퓰 구매가 곧 열려요.",
+  "phoneCountryKorea": "🇰🇷 한국 +82",
+  "phoneCountryUzbekistan": "🇺🇿 우즈베키스탄 +998",
+  "phoneHintUzbek": "우즈베키스탄 번호: +998 뒤의 9자리"
 }

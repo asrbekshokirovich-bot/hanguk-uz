@@ -21,13 +21,14 @@ String signInErrorText(WorkerL10n l10n, Object error) => switch (error) {
       _ => l10n.errorGeneric,
     };
 
-/// T1 «Telefon raqamingiz»: the Korean mobile number the code is sent to.
+/// T1 «Telefon raqamingiz»: the mobile number the code is sent to — Korean
+/// (+82) or Uzbek (+998, 2026-11-26).
 class PhoneEntryScreen extends ConsumerStatefulWidget {
   const PhoneEntryScreen({super.key, required this.onBack, required this.onSent});
 
   final VoidCallback onBack;
 
-  /// The code is on its way to [phone] (as typed: 010-1234-5678).
+  /// The code is on its way to [phone] (010-1234-5678 as typed, or +998901234567).
   final ValueChanged<String> onSent;
 
   @override
@@ -36,7 +37,9 @@ class PhoneEntryScreen extends ConsumerStatefulWidget {
 
 class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
   final _phone = TextEditingController();
-  final _mask = DigitGroupsFormatter.koreanMobile();
+  final _koreanMask = DigitGroupsFormatter.koreanMobile();
+  final _uzbekMask = DigitGroupsFormatter(const [2, 3, 2, 2]);
+  bool _uzbek = false;
   bool _sending = false;
   String? _error;
 
@@ -46,7 +49,19 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
     super.dispose();
   }
 
-  bool get _valid => KoreanPhone.toE164(_phone.text) != null;
+  /// The number as sent: as typed for Korea, +998 and the digits for Uzbekistan.
+  String get _number => _uzbek ? '+998${_phone.text.replaceAll(RegExp(r'\D'), '')}' : _phone.text;
+
+  bool get _valid => SignInPhone.toE164(_number) != null;
+
+  void _country(bool uzbek) {
+    if (uzbek == _uzbek) return;
+    setState(() {
+      _uzbek = uzbek;
+      _phone.clear();
+      _error = null;
+    });
+  }
 
   Future<void> _send() async {
     if (_sending || !_valid) return;
@@ -56,8 +71,9 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).sendCode(_phone.text);
-      if (mounted) widget.onSent(_phone.text);
+      final number = _number;
+      await ref.read(authRepositoryProvider).sendCode(number);
+      if (mounted) widget.onSent(number);
     } catch (error) {
       if (mounted) setState(() => _error = signInErrorText(l10n, error));
     } finally {
@@ -78,21 +94,38 @@ class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
       onAction: _valid ? _send : null,
       busy: _sending,
       children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            ChoiceChip(
+              label: Text(l10n.phoneCountryKorea),
+              selected: !_uzbek,
+              onSelected: (_) => _country(false),
+            ),
+            ChoiceChip(
+              label: Text(l10n.phoneCountryUzbekistan),
+              selected: _uzbek,
+              onSelected: (_) => _country(true),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         HiFieldLabel(l10n.phoneLabel),
         const SizedBox(height: 8),
         HiInputField(
+          key: ValueKey(_uzbek),
           controller: _phone,
           mono: true,
-          placeholder: '010-0000-0000',
+          placeholder: _uzbek ? '90-123-45-67' : '010-0000-0000',
           keyboardType: TextInputType.phone,
           autofillHints: const [AutofillHints.telephoneNumber],
-          inputFormatters: [_mask],
+          inputFormatters: [if (_uzbek) _uzbekMask else _koreanMask],
           textInputAction: TextInputAction.done,
           onChanged: (_) => setState(() => _error = null),
           onSubmitted: (_) => _send(),
         ),
         const SizedBox(height: 8),
-        HiText(l10n.phoneHint, style: hiStyle(14, FontWeight.w600, color: HiColors.textMuted)),
+        HiText(_uzbek ? l10n.phoneHintUzbek : l10n.phoneHint, style: hiStyle(14, FontWeight.w600, color: HiColors.textMuted)),
         if (error != null) ...[
           const SizedBox(height: 16),
           HiFormError(error),
@@ -119,7 +152,7 @@ class PhoneCodeScreen extends ConsumerWidget {
       texts: HiPhoneCodeTexts(
         topTitle: l10n.phoneTopTitle,
         title: l10n.codeTitle,
-        subtitle: l10n.codeSentTo(KoreanPhone.display(phone)),
+        subtitle: l10n.codeSentTo(SignInPhone.display(phone)),
         label: l10n.codeLabel,
         action: l10n.confirmCode,
         resend: l10n.resendCode,

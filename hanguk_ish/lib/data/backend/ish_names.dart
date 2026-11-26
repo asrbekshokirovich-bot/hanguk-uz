@@ -20,6 +20,9 @@ const ishDeleteAccountFunction = 'ish-delete-account';
 /// Checks a Google Play / App Store purchase and adds the puyl (2026-11-25).
 const ishIapFunction = 'ish-iap';
 
+/// Telegram Mini App sign-in (2026-11-26).
+const ishTelegramAuthFunction = 'ish-telegram-auth';
+
 /// What a sign-up from these apps carries (user_metadata): hanguk.uz's
 /// sign-up leaves the account alone, and HanPyol makes its profile.
 const ishSignUpData = {'app': 'hanguk_ish'};

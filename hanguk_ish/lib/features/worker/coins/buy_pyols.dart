@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/links/directions.dart' show linkOpenerProvider;
 import '../../../data/repositories/pyol_repository.dart';
 import '../../../data/repositories/pyol_store.dart';
 import '../../../data/repositories/shift_repository.dart' show OfflineException, ShiftActionException;
@@ -11,7 +13,12 @@ import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
 import '../../../design/widgets/buttons.dart';
 import '../../../l10n/gen/worker_l10n.dart';
+import '../telegram/telegram_web_app.dart';
 import 'coins.dart' show coinsProvider;
+
+/// Where the web build (the Telegram mini app) sends «Puyl olish»
+/// (`--dart-define=ISH_PYOL_WEB_URL=…`); empty: «opens soon».
+const pyolWebUrl = String.fromEnvironment('ISH_PYOL_WEB_URL');
 
 final storeProductsProvider = FutureProvider.autoDispose<List<StoreProduct>>(
   (ref) => ref.watch(pyolStoreProvider).products(),
@@ -134,6 +141,23 @@ class _BuyPyolsSheetState extends ConsumerState<BuyPyolsSheet> {
               const SizedBox(height: 6),
               HiText(l10n.buyPyolsHow, style: body),
               const SizedBox(height: 14),
+              if (kIsWeb)
+                pyolWebUrl.isEmpty
+                    ? HiText(l10n.pyolWebsiteSoon, style: body)
+                    : HiButton(
+                        label: l10n.pyolBuyOnWebsite,
+                        height: 48,
+                        fontSize: 16,
+                        onPressed: () {
+                          final telegram = telegramWebApp();
+                          if (telegram != null) {
+                            telegram.openLink(pyolWebUrl);
+                          } else {
+                            ref.read(linkOpenerProvider)(Uri.parse(pyolWebUrl));
+                          }
+                        },
+                      )
+              else
               ref.watch(storeProductsProvider).when(
                     loading: () => const Center(
                         child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator())),

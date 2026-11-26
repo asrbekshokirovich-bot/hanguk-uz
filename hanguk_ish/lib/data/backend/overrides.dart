@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -62,6 +62,8 @@ List<Override> backendOverrides(BackendConfig config, SupabaseClient client) => 
       offerRepositoryProvider.overrideWith((ref) => SupabaseOfferRepository(client)),
       pyolRepositoryProvider.overrideWith((ref) => SupabasePyolRepository(client)),
       pyolStoreProvider.overrideWith((ref) {
+        // The Telegram mini app (web): no Google Play / App Store there.
+        if (kIsWeb) return const WebPyolStore();
         final store = StorePyolStore(client);
         ref.onDispose(store.dispose);
         return store;
