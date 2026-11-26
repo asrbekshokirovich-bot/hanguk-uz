@@ -742,5 +742,19 @@
   "pyolWebsiteSoon": "웹사이트에서 퓰 구매가 곧 열려요.",
   "phoneCountryKorea": "🇰🇷 한국 +82",
   "phoneCountryUzbekistan": "🇺🇿 우즈베키스탄 +998",
-  "phoneHintUzbek": "우즈베키스탄 번호: +998 뒤의 9자리"
+  "phoneHintUzbek": "우즈베키스탄 번호: +998 뒤의 9자리",
+  "wishTitle": "{when}: 어떤 일을 원하세요?",
+  "wishPartQuestion": "어느 시간대?",
+  "wishPartDay": "주간",
+  "wishPartNight": "야간",
+  "wishPartNightHint": "야간 일이 보통 더 많이 받아요",
+  "wishPriorityQuestion": "가장 중요한 것은?",
+  "wishPay": "높은 일당",
+  "wishPayHint": "힘들어도 괜찮아요 (예: 상하차)",
+  "wishEasy": "가벼운 일",
+  "wishEasyHint": "분류, 포장, 가벼운 공장 일",
+  "wishNear": "집에서 가까운 곳",
+  "wishNearHint": "이동 시간이 짧게",
+  "wishAny": "상관없어요",
+  "wishDone": "완료"
 }

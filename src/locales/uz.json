@@ -4274,6 +4274,11 @@
           "good_jobs": "yaxshi ishlar",
           "cleared": "olib tashlandi"
         }
+      },
+      "priority": {
+        "pay": "Ko'proq pul",
+        "easy": "Yengilroq ish",
+        "near": "Uyga yaqin"
       }
     }
   },

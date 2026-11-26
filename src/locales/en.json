@@ -4217,6 +4217,11 @@
           "good_jobs": "good jobs",
           "cleared": "taken back"
         }
+      },
+      "priority": {
+        "pay": "More money",
+        "easy": "Lighter work",
+        "near": "Close to home"
       }
     }
   },

@@ -49,15 +49,20 @@ class Referral {
   final bool invitedBy;
 }
 
-/// One day the worker can work: 'day', 'night' or 'any', and where.
+/// One day the worker can work: 'day', 'night' or 'any', where, and what
+/// matters most for that day's job.
 @immutable
 class FreeDate {
-  const FreeDate({required this.day, required this.part, required this.district});
+  const FreeDate({required this.day, required this.part, required this.district, this.priority = 'any'});
 
   /// The date (Korea), time part ignored.
   final DateTime day;
   final String part;
   final String district;
+
+  /// 'pay' (the most money), 'easy' (lighter work), 'near' (close to home)
+  /// or 'any' (2026-11-26).
+  final String priority;
 
   String get dayText =>
       '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';

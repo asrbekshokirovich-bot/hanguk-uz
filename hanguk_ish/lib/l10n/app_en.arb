@@ -742,5 +742,19 @@
   "pyolWebsiteSoon": "Buying puyl on the website opens soon.",
   "phoneCountryKorea": "🇰🇷 Korea +82",
   "phoneCountryUzbekistan": "🇺🇿 Uzbekistan +998",
-  "phoneHintUzbek": "Uzbek number: the 9 digits after +998"
+  "phoneHintUzbek": "Uzbek number: the 9 digits after +998",
+  "wishTitle": "{when}: what kind of job?",
+  "wishPartQuestion": "What time?",
+  "wishPartDay": "Day (주간)",
+  "wishPartNight": "Night (야간)",
+  "wishPartNightHint": "Night jobs often pay more",
+  "wishPriorityQuestion": "What matters most to you?",
+  "wishPay": "More money",
+  "wishPayHint": "Even if it is harder (e.g. 상하차 — loading trucks)",
+  "wishEasy": "Lighter work",
+  "wishEasyHint": "Sorting, packing, light factory work",
+  "wishNear": "Close to home",
+  "wishNearHint": "A short trip",
+  "wishAny": "No preference",
+  "wishDone": "Done"
 }
