@@ -65,7 +65,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_HANPYOL_BOT_TOKEN }}
         run: |
           set -euo pipefail
-          supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" "TELEGRAM_HANPYOL_BOT_TOKEN=$BOT_TOKEN" >/dev/null
+          supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" --yes "TELEGRAM_HANPYOL_BOT_TOKEN=$BOT_TOKEN" >/dev/null
           supabase functions deploy ish-telegram-auth --project-ref "$SUPABASE_PROJECT_ID" --use-api --yes
 
   web:
