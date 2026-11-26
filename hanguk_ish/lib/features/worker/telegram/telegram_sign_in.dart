@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../data/backend/backend.dart';
+import '../../../data/backend/supabase_auth_repository.dart' show authCall;
 import '../../../data/repositories/shift_repository.dart' show ShiftActionException;
 import '../../../design/tokens.dart';
 import '../../../design/typography.dart';
