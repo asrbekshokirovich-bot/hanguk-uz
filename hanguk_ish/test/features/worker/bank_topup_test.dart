@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/features/worker/coins/bank_topup_screen.dart';
 
@@ -16,7 +16,7 @@ void main() {
     expect(find.text('₩3,300'), findsOneWidget);
     await tester.tap(find.text('300 P'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Davom etish'));
+    await tester.scrollUntilVisible(find.text('Davom etish'), 200, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text('Davom etish'));
     await tester.pumpAndSettle();
 
@@ -28,11 +28,11 @@ void main() {
     expect(find.textContaining(RegExp(r'^HP')), findsWidgets);
 
     // 3. «Pul o'tkazdim»: waiting for the staff; the order is in the list.
-    await tester.ensureVisible(find.text("Pul o'tkazdim"));
+    await tester.scrollUntilVisible(find.text("Pul o'tkazdim"), 200, scrollable: find.byType(Scrollable).first);
     await tester.tap(find.text("Pul o'tkazdim"));
     await tester.pumpAndSettle();
     expect(find.textContaining('Tekshirilmoqda'), findsWidgets);
-    await tester.scrollUntilVisible(find.text('Buyurtmalarim'), 200);
+    await tester.scrollUntilVisible(find.text('Buyurtmalarim'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('300 P · ₩24,000'), findsOneWidget);
   });
 }
