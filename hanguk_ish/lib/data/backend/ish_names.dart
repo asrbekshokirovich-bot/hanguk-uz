@@ -17,6 +17,9 @@ const ishBusinessRegisterFunction = 'ish-business-register';
 /// «Akkauntni o'chirish»; hanguk.uz/ish/delete-account).
 const ishDeleteAccountFunction = 'ish-delete-account';
 
+/// Checks a Google Play / App Store purchase and adds the puyl (2026-11-25).
+const ishIapFunction = 'ish-iap';
+
 /// What a sign-up from these apps carries (user_metadata): hanguk.uz's
 /// sign-up leaves the account alone, and Hanguk Ish makes its profile.
 const ishSignUpData = {'app': 'hanguk_ish'};

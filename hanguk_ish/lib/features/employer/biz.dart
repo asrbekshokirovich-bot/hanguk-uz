@@ -46,6 +46,20 @@ abstract final class Biz {
     'address': {'ko': '주소', 'uz': 'Manzil', 'ru': 'Адрес', 'en': 'Address'},
     'save': {'ko': '저장하고 시작', 'uz': 'Saqlash va boshlash', 'ru': 'Сохранить и начать', 'en': 'Save and start'},
     'later': {'ko': '나중에', 'uz': 'Keyinroq', 'ru': 'Позже', 'en': 'Later'},
+    'invite': {'ko': '추천 코드 (선택)', 'uz': 'Taklif kodi (ixtiyoriy)', 'ru': 'Код приглашения (необязательно)', 'en': 'Invite code (optional)'},
+    'inviteHint': {
+      'ko': 'Hanguk을 알려 준 근로자의 코드가 있으면 입력하세요.',
+      'uz': 'Sizga Hanguk haqida aytgan ishchining kodi bo\'lsa, yozing.',
+      'ru': 'Если работник рассказал вам о Hanguk, введите его код.',
+      'en': 'If a worker told you about Hanguk, enter their code.',
+    },
+    'inviteNotFound': {'ko': '이 코드를 찾을 수 없어요.', 'uz': 'Bu kod topilmadi.', 'ru': 'Код не найден.', 'en': 'This code was not found.'},
+    'inviteTooLate': {
+      'ko': '추천 코드는 이미 입력됐거나 입력 기간이 지났어요.',
+      'uz': 'Taklif kodi allaqachon kiritilgan yoki muddati o\'tgan.',
+      'ru': 'Код уже введён или срок прошёл.',
+      'en': 'An invite code is already saved, or it is too late.',
+    },
     'needName': {
       'ko': '사업장 이름을 입력해 주세요.',
       'uz': 'Biznes nomini kiriting.',
@@ -355,6 +369,12 @@ abstract final class Biz {
   static String get notifCancelled => _l.bizNotifCancelled;
   static String get notifNoShow => _l.bizNotifNoShow;
   static String get notifMessage => _l.bizNotifMessage;
+  static String get notifCardTitle => _l.bizNotifCardTitle;
+  static String notifCardText(String? card, String until) => switch (card) {
+        'yellow' => _l.bizNotifCardYellow,
+        'red' => _l.bizNotifCardRed(until),
+        _ => _l.bizNotifCardBlocked,
+      };
   static String notifNewApplicantText(String worker, String shift) => _l.bizNotifNewApplicantText(worker, shift);
   static String get notifAutoConfirmed => _l.bizNotifAutoConfirmed;
   static String notifAutoConfirmedText(String worker, String shift) => _l.bizNotifAutoConfirmedText(worker, shift);
@@ -506,6 +526,7 @@ abstract final class Biz {
         'BIZ_NO_UNKNOWN' => _l.bizErrBizNoUnknown,
         'BIZ_NO_TAKEN' => _l.bizErrBizNoTaken,
         'BUSINESS_CLOSED' => _l.bizErrBusinessClosed,
+        'BUSINESS_CARD' => _l.bizErrCard,
         'OFFLINE' => _l.bizErrOffline,
         _ => _l.bizErrOther,
       };

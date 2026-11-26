@@ -35,6 +35,7 @@ String takeShiftError(WorkerL10n l10n, Object error) => switch (error) {
       ShiftActionException(code: 'PROFILE_INCOMPLETE') => l10n.errProfileIncomplete,
       ShiftActionException(code: 'TOO_MANY_REQUESTS') => l10n.errTooManyRequests,
       ShiftActionException(code: 'NO_COINS') => l10n.noCoinsBuy,
+      ShiftActionException(code: 'CARD_CLOSED') => l10n.errCardClosed,
       ShiftActionException(code: 'OFFER_EXPIRED') => l10n.errOfferExpired,
       OfflineException() => l10n.errOffline,
       _ => l10n.errorGeneric,

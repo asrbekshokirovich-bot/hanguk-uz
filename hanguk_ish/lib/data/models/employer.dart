@@ -401,13 +401,14 @@ class BusinessReport {
 }
 
 /// What an employer notification is about (database `notifications.kind`).
-enum EmployerNotificationKind { newApplicant, workerCancelled, noShow, chatMessage }
+enum EmployerNotificationKind { newApplicant, workerCancelled, noShow, chatMessage, businessCard }
 
 EmployerNotificationKind? employerNotificationKindFrom(String? value) => switch (value) {
       'new_applicant' => EmployerNotificationKind.newApplicant,
       'worker_cancelled' => EmployerNotificationKind.workerCancelled,
       'no_show' => EmployerNotificationKind.noShow,
       'chat_message' => EmployerNotificationKind.chatMessage,
+      'business_card' => EmployerNotificationKind.businessCard,
       _ => null,
     };
 
@@ -423,6 +424,8 @@ class EmployerNotification {
     this.workerName = '',
     this.read = false,
     this.autoConfirmed = false,
+    this.card,
+    this.cardUntil,
   });
 
   final String id;
@@ -436,6 +439,12 @@ class EmployerNotification {
   /// A new applicant of a shift with 자동 확정 on: already confirmed.
   final bool autoConfirmed;
 
+  /// [EmployerNotificationKind.businessCard]: 'yellow', 'red' or 'blocked'.
+  final String? card;
+
+  /// The end of a red card.
+  final DateTime? cardUntil;
+
   EmployerNotification markRead() => EmployerNotification(
         id: id,
         kind: kind,
@@ -445,5 +454,7 @@ class EmployerNotification {
         workerName: workerName,
         read: true,
         autoConfirmed: autoConfirmed,
+        card: card,
+        cardUntil: cardUntil,
       );
 }

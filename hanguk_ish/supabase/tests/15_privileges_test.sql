@@ -33,7 +33,10 @@ select tests.eq(
     'staff_monthly_hires', 'staff_pyol_report', 'staff_reject_topup', 'staff_set_payment_setting',
     'staff_topups',
     -- «My free dates» (20261124130000).
-    'my_free_dates', 'set_free_dates', 'staff_free_dates_summary', 'staff_free_workers'
+    'my_free_dates', 'set_free_dates', 'staff_free_dates_summary', 'staff_free_workers',
+    -- Cards and the employer invite (20261125100000).
+    'my_business_card', 'my_card', 'set_business_invite', 'staff_card', 'staff_cards', 'staff_clear_card',
+    'staff_give_business_card'
   ]::text[]) f),
   'the owner-rights functions open to signed-in people are the reviewed ones');
 

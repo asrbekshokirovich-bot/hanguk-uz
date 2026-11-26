@@ -47,6 +47,16 @@ function base(over: Partial<IshApi>): Partial<IshApi> {
     monthlyHires: vi.fn(async () => []),
     monthlyInterest: vi.fn(async () => []),
     monthlyJobs: vi.fn(async () => []),
+    cards: vi.fn(async () => [
+      {
+        subject_id: 'w9', subject: 'worker' as const, name: 'Malika Yusupova', phone: '+821000000002',
+        level: 'red' as const, red_until: '2026-12-09T00:00:00Z', closed: true, good_jobs: 0,
+        last_why: 'no_show' as const, updated_at: '2026-11-25T00:00:00Z',
+      },
+    ]),
+    businesses: vi.fn(async () => [{ id: 'b1', name: '행복물류센터' }] as never),
+    giveBusinessCard: vi.fn(async () => undefined),
+    clearCard: vi.fn(async () => undefined),
     pyolReport: vi.fn(async () => [{ day: '2026-11-24', sold: 100, sold_won: 9900, free: 90, gift: null, refunded: null, spent: 30 }]),
     ...over,
   };
@@ -95,5 +105,22 @@ describe('CRM → Hanguk Ish → «Puyl & free days»', () => {
   it('sums the month', async () => {
     renderPyol(base({}));
     expect((await screen.findByTestId('ish-pyol-total')).textContent).toContain('Sold 100 P');
+  });
+
+  it('lists the cards; takes one back and gives a business one, with a reason', async () => {
+    const api = base({});
+    renderPyol(api);
+    const row = await screen.findByTestId('ish-card-w9');
+    expect(row.textContent).toContain('Malika Yusupova');
+    expect(row.textContent).toContain('red');
+    vi.spyOn(window, 'prompt').mockReturnValue('he was ill');
+    fireEvent.click(screen.getByRole('button', { name: 'Take back' }));
+    await waitFor(() => expect(api.clearCard).toHaveBeenCalledWith('w9', 'he was ill'));
+
+    await screen.findByRole('option', { name: '행복물류센터' });
+    fireEvent.change(screen.getByLabelText('Choose a business'), { target: { value: 'b1' } });
+    fireEvent.change(screen.getByLabelText('Reason (e.g. paid less than shown)'), { target: { value: 'paid less' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Give card' }));
+    await waitFor(() => expect(api.giveBusinessCard).toHaveBeenCalledWith('b1', 'paid less'));
   });
 });

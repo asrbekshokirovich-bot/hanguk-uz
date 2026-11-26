@@ -135,6 +135,32 @@ void main() {
       expect(invite.shiftId, '20000000-0000-0000-0000-000000000001');
     });
 
+    test('cards: «Ishonch bali» and the notices (worker and employer)', () {
+      final trust = workerTrustFromJson({
+        'reliability': 60, 'went': 3, 'no_shows': 2,
+        'card': {'level': 'red', 'red_until': '2026-12-09T05:00:00Z', 'closed': true, 'good_jobs': 0},
+      });
+      expect(trust.card.level, CardLevel.red);
+      expect(trust.card.closed, isTrue);
+      expect(trust.card.redUntil, DateTime.utc(2026, 12, 9, 5));
+      expect(workerTrustFromJson({'reliability': 100}).card.level, CardLevel.none);
+      final given = hiNotificationFromJson({
+        'id': 4, 'kind': 'card_given', 'created_at': '2026-11-25T10:00:00Z',
+        'data': {'card': 'red', 'until': '2026-12-09T05:00:00Z', 'why': 'no_show'},
+      })!;
+      expect(given.kind, NotificationKind.cardGiven);
+      expect(given.why, 'red');
+      expect(given.untilAt, DateTime.utc(2026, 12, 9, 5));
+      final biz = employerNotificationFromJson({
+        'id': 5, 'kind': 'business_card', 'created_at': '2026-11-25T10:00:00Z',
+        'data': {'card': 'yellow', 'business_id': 'b1'},
+      })!;
+      expect(biz.kind, EmployerNotificationKind.businessCard);
+      expect(biz.card, 'yellow');
+      expect(biz.shiftId, isEmpty);
+      expect(employerNotificationKinds, contains('business_card'));
+    });
+
     test('puyl notices: came in, top-up not accepted, refund with a cancelled job', () {
       final added = hiNotificationFromJson({
         'id': 1, 'kind': 'coins_added', 'created_at': '2026-11-24T10:00:00Z',

@@ -85,6 +85,13 @@ Deno.test("the worker's pushes: the A12 title, the business under it", () => {
     body: "Balance: 190 P",
   });
   assertEquals(pushText({ kind: "topup_rejected", data: { pyols: 30 } }, "uz")?.title, "To'ldirish qabul qilinmadi");
+  // Cards.
+  assertEquals(pushText({ kind: "card_given", data: { card: "yellow" } }, "en")?.title, "Yellow card");
+  assertEquals(
+    pushText({ kind: "card_given", data: { card: "red", until: "2026-12-09T05:00:00Z" } }, "en")?.body,
+    "You missed a job again. No new jobs until 2026-12-09. The next time your account is paused.",
+  );
+  assertEquals(pushText({ kind: "business_card", data: { card: "blocked" } }, "ko")?.title, "경고 카드");
   // The job alert shows the hourly pay; a hidden place has no name.
   assertEquals(
     pushText({ kind: "job_offer", data: {}, business: { name: "", hidden: true }, shift: { hourly_wage: 12000 } }, "en")?.body,

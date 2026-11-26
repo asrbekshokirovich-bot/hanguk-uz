@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/worker_app.dart' show WorkerRoutes;
+import '../../../core/format/dates.dart';
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
 import '../../../data/catalog/places.dart';
@@ -587,6 +588,10 @@ class _TrustCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (t != null && t.card.level != CardLevel.none) ...[
+              const SizedBox(height: 12),
+              _CardLine(card: t.card, lang: lang),
+            ],
             const SizedBox(height: 10),
             for (final (label, value, color) in rows) ...[
               const _Divider(),
@@ -941,5 +946,47 @@ class _HelpSheet extends ConsumerWidget {
         _ => l10n.errorGeneric,
       })));
     }
+  }
+}
+
+/// The yellow / red card under «Ishonch bali».
+class _CardLine extends StatelessWidget {
+  const _CardLine({required this.card, required this.lang});
+
+  final NoShowCard card;
+  final String lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = WorkerL10n.of(context);
+    final yellow = card.level == CardLevel.yellow || (card.level == CardLevel.red && !card.closed);
+    final text = switch (card.level) {
+      CardLevel.red when card.closed && card.redUntil != null =>
+        l10n.cardRedLine(HiDates.weekdayAndDate(card.redUntil!, lang)),
+      CardLevel.blocked => l10n.cardBlockedLine,
+      _ => l10n.cardYellowLine(card.goodJobs),
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: yellow ? const Color(0xFFFFE08A) : const Color(0xFFFF8A7A),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 14,
+            height: 18,
+            decoration: BoxDecoration(
+              color: yellow ? const Color(0xFFFFC400) : const Color(0xFFE0262B),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: HiText(text, style: hiStyle(13, FontWeight.w700, color: HiColors.ink))),
+        ],
+      ),
+    );
   }
 }

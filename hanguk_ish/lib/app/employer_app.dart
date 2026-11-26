@@ -7,6 +7,7 @@ import '../core/links/directions.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
+import '../data/repositories/shift_repository.dart' show ShiftActionException;
 import '../data/repositories/employer_repository.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
@@ -169,6 +170,21 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Consumer(
           builder: (context, ref, _) => Ba0ProfileScreen(
             onSkip: () => context.go(EmployerRoutes.home),
+            onInvite: (code) async {
+              try {
+                final business = (await ref.read(employerRepositoryProvider).businesses()).first;
+                await ref.read(employerRepositoryProvider).setBusinessInvite(business.id, code);
+                return null;
+              } on ShiftActionException catch (e) {
+                return switch (e.code) {
+                  'NOT_FOUND' || 'INVALID' => Biz.profileText('inviteNotFound'),
+                  'TOO_LATE' => Biz.profileText('inviteTooLate'),
+                  _ => Biz.error(e),
+                };
+              } catch (error) {
+                return Biz.error(error);
+              }
+            },
             onSave: (name, category, area, address) async {
               try {
                 final business = (await ref.read(employerRepositoryProvider).businesses()).first;

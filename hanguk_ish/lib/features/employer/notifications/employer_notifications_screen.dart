@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/format/dates.dart';
+
 import '../../../core/time/clock.dart';
 import '../../../core/time/kst.dart';
 import '../../../data/models/employer.dart';
@@ -91,7 +93,9 @@ class _EmployerNotificationsScreenState extends ConsumerState<EmployerNotificati
           notification: n,
           fresh: !n.read || _fresh.contains(n.id),
           now: now,
-          onTap: () => widget.openShift(n.shiftId),
+          onTap: () {
+            if (n.shiftId.isNotEmpty) widget.openShift(n.shiftId);
+          },
         ),
       ));
     }
@@ -201,6 +205,14 @@ class _NotificationCard extends StatelessWidget {
           Biz.notifMessageText(n.workerName, n.shiftTitle),
           HiColors.surface,
           HiColors.ink,
+        ),
+      // A yellow / red card (or blocked) for cancelling a booked job.
+      EmployerNotificationKind.businessCard => (
+          HiIcons.triangleAlert,
+          Biz.notifCardTitle,
+          Biz.notifCardText(n.card, n.cardUntil == null ? '' : HiDates.weekdayAndDate(n.cardUntil!, Biz.lang)),
+          n.card == 'yellow' ? HiColors.amberSoft : HiColors.redSoft,
+          n.card == 'yellow' ? HiColors.ink : HiColors.redInk,
         ),
     };
     return HiPressable(

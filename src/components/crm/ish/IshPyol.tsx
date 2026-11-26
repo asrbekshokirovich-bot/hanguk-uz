@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { IshFreeDay, IshMonthlyHire, IshPaymentDetails, IshTopup } from '@/lib/ish/types';
+import type { IshCard, IshFreeDay, IshMonthlyHire, IshPaymentDetails, IshTopup } from '@/lib/ish/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,8 @@ const METHODS = ['bank', 'kakaopay', 'toss', 'note'] as const;
  * 2. Top-ups: money came → approve (the puyl go to the worker).
  * 3. Where workers send the money.
  * 4. Long-term hires: the ₩50,000 fee after two weeks.
- * 5. Puyl sold and spent by day.
+ * 5. Yellow and red cards (no-shows, cancelled bookings).
+ * 6. Puyl sold and spent by day.
  */
 export function IshPyol() {
   return (
@@ -28,6 +29,7 @@ export function IshPyol() {
       <Topups />
       <PaymentSettings />
       <Hires />
+      <Cards />
       <Report />
     </div>
   );
@@ -93,6 +95,11 @@ function FreeDays() {
                 <span>{w.district}</span>
                 <span>{part(w.part)}</span>
                 <span>{t('ish.pyol.balance', { n: w.coins })}</span>
+                {w.card && w.card !== 'none' && (
+                  <Badge variant={w.card === 'yellow' ? 'secondary' : 'destructive'}>
+                    {t(`ish.pyol.card.level.${w.card}`)}
+                  </Badge>
+                )}
                 {w.busy && <Badge variant="secondary">{t('ish.pyol.busy')}</Badge>}
                 {w.note && <span className="text-muted-foreground">«{w.note}»</span>}
               </div>
@@ -283,6 +290,95 @@ function Hires() {
               </Button>
             </div>
           ))}
+      </div>
+    </Section>
+  );
+}
+
+function Cards() {
+  const { t } = useTranslation();
+  const api = useIshApi();
+  const queryClient = useQueryClient();
+  const cards = useQuery({ queryKey: ishKeys.cards, queryFn: api.cards });
+  const businesses = useQuery({ queryKey: ishKeys.businesses, queryFn: api.businesses });
+  const [business, setBusiness] = useState('');
+  const [note, setNote] = useState('');
+  const done = () => void queryClient.invalidateQueries({ queryKey: ishKeys.cards });
+  const onError = (e: unknown) => toast.error(ishErrorText(t, e));
+  const clear = useMutation({
+    mutationFn: ({ id, why }: { id: string; why: string }) => api.clearCard(id, why),
+    onSuccess: done,
+    onError,
+  });
+  const give = useMutation({
+    mutationFn: () => api.giveBusinessCard(business, note),
+    onSuccess: () => {
+      setNote('');
+      done();
+    },
+    onError,
+  });
+  const onClear = (c: IshCard) => {
+    const why = window.prompt(t('ish.pyol.card.clearAsk'));
+    if (why && why.trim() !== '') clear.mutate({ id: c.subject_id, why });
+  };
+  return (
+    <Section title={t('ish.pyol.card.cards')}>
+      <p className="text-sm text-muted-foreground">{t('ish.pyol.card.cardsHint')}</p>
+      {cards.isLoading ? (
+        <Skeleton className="h-12 w-full" />
+      ) : (cards.data ?? []).length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('ish.pyol.card.cardsEmpty')}</p>
+      ) : (
+        (cards.data ?? []).map((c) => (
+          <div key={c.subject_id} className="flex flex-wrap items-center gap-2 text-sm" data-testid={`ish-card-${c.subject_id}`}>
+            <Badge variant={c.level === 'yellow' ? 'secondary' : 'destructive'}>{t(`ish.pyol.card.level.${c.level}`)}</Badge>
+            <span className="font-medium">{c.name || '—'}</span>
+            <span className="text-muted-foreground">{t(`ish.pyol.card.${c.subject}`)}</span>
+            {c.phone && <span className="text-muted-foreground">{c.phone}</span>}
+            {c.last_why && <span>{t(`ish.pyol.card.why.${c.last_why}`)}</span>}
+            {c.red_until && <span>{t('ish.pyol.card.until', { date: new Date(c.red_until).toLocaleDateString() })}</span>}
+            {c.subject === 'worker' && c.level !== 'blocked' && (
+              <span className="text-muted-foreground">{t('ish.pyol.card.goodJobs', { n: c.good_jobs })}</span>
+            )}
+            <Button size="sm" variant="outline" disabled={clear.isPending} onClick={() => onClear(c)}>
+              {t('ish.pyol.card.clear')}
+            </Button>
+          </div>
+        ))
+      )}
+      <div className="space-y-2 border-t pt-3">
+        <p className="text-sm font-medium">{t('ish.pyol.card.giveTitle')}</p>
+        <div className="flex flex-wrap gap-2">
+          <select
+            className="h-9 rounded-md border bg-background px-2 text-sm"
+            value={business}
+            onChange={(e) => setBusiness(e.target.value)}
+            aria-label={t('ish.pyol.card.pickBusiness')}
+          >
+            <option value="">{t('ish.pyol.card.pickBusiness')}</option>
+            {(businesses.data ?? []).map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+          <Input
+            className="max-w-sm"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={t('ish.pyol.card.giveNote')}
+            aria-label={t('ish.pyol.card.giveNote')}
+            maxLength={300}
+          />
+          <Button
+            size="sm"
+            disabled={give.isPending || business === '' || note.trim() === ''}
+            onClick={() => give.mutate()}
+          >
+            {t('ish.pyol.card.give')}
+          </Button>
+        </div>
       </div>
     </Section>
   );

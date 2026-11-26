@@ -584,6 +584,12 @@ class DemoEmployerRepository implements EmployerRepository {
   }
 
   @override
+  Future<void> setBusinessInvite(String businessId, String code) async {
+    await _wait();
+    if (code.trim().length != 6) throw const ShiftActionException('NOT_FOUND');
+  }
+
+  @override
   Future<void> reportWorker(String applicationId, String reason, String text) async {
     await _wait();
     if (!const {'no_show', 'behaviour', 'other'}.contains(reason) || text.trim().isEmpty) {

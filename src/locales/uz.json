@@ -4043,7 +4043,8 @@
       "UNKNOWN": "Xatolik yuz berdi. Qayta urinib ko'ring.",
       "SELF": "O'zingizning rolingizni o'zgartira yoki o'zingizni olib tashlay olmaysiz — buni boshqa admin qiladi.",
       "NO_COINS": "Ishchida buncha puyl yo'q",
-      "TOO_MANY": "Bir vaqtda 4 kishidan ko'pga yuborib bo'lmaydi."
+      "TOO_MANY": "Bir vaqtda 4 kishidan ko'pga yuborib bo'lmaydi.",
+      "NOTE_REQUIRED": "Sababini yozing."
     },
     "appBusinesses": {
       "intro": "사장님 ilovasida ochilgan bizneslar. Ular tekshiruvsiz, darhol ochiladi — shubhali bo'lsa, to'xtating: smenalari ishchilarga ko'rinmaydi va ariza berib bo'lmaydi.",
@@ -4246,7 +4247,34 @@
       "interested": "Ochganlar yoki qiziqqanlar",
       "markHired": "Ishga olindi",
       "report": "Oxirgi 30 kun puyl",
-      "reportTotal": "Sotildi {{sold}} P ({{won}}), sarflandi {{spent}} P, bepul {{free}} P, qaytarildi {{refunded}} P."
+      "reportTotal": "Sotildi {{sold}} P ({{won}}), sarflandi {{spent}} P, bepul {{free}} P, qaytarildi {{refunded}} P.",
+      "card": {
+        "cards": "Sariq va qizil kartochkalar",
+        "cardsHint": "Ishchi ishga kelmasa kartochka oladi: 1-sariq, 2-qizil (14 kun yangi ish yo'q), 3-blok. 5 ta bajarilgan ish bir pog'ona tushiradi. Ish beruvchi band qilingan ishni bekor qilsa yoki siz bersangiz oladi.",
+        "cardsEmpty": "Hozir kartochka yo'q.",
+        "level": {
+          "yellow": "sariq",
+          "red": "qizil",
+          "blocked": "blok"
+        },
+        "until": "{{date}} gacha",
+        "goodJobs": "5 tadan {{n}} ta ish",
+        "clear": "Olib tashlash",
+        "clearAsk": "Kartochka nega olib tashlanadi?",
+        "worker": "ishchi",
+        "business": "ish beruvchi",
+        "giveTitle": "Ish beruvchiga kartochka berish",
+        "giveNote": "Sabab (masalan: va'da qilinganidan kam to'ladi)",
+        "give": "Kartochka berish",
+        "pickBusiness": "Ish beruvchini tanlang",
+        "why": {
+          "no_show": "ishga kelmadi",
+          "cancelled_booked": "band ishni bekor qildi",
+          "staff": "xodim berdi",
+          "good_jobs": "yaxshi ishlar",
+          "cleared": "olib tashlandi"
+        }
+      }
     }
   },
   "calendarPage": {

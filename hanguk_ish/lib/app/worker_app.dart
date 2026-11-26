@@ -6,6 +6,8 @@ import '../core/links/directions.dart';
 import '../data/backend/backend.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
+import '../data/repositories/pyol_store.dart';
+import '../features/worker/coins/coins.dart' show coinsProvider;
 import '../data/models/my_shift.dart';
 import '../data/models/shift.dart';
 import '../design/theme.dart';
@@ -443,6 +445,12 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
   ref.listen(authUserProvider, (previous, next) {
     if (next case AsyncData(value: null) when previous?.value != null) router.go(WorkerRoutes.login);
   });
+  // Store purchases: started at once, so one left unfinished (no network,
+  // the app closed) is checked and added now; the balance follows.
+  final storeResults = ref.read(pyolStoreProvider).results.listen((result) {
+    if (result is StoreCredited) ref.invalidate(coinsProvider);
+  });
+  ref.onDispose(storeResults.cancel);
   // P56: a tapped push opens A12.
   handlePushes(ref, router,
       start: WorkerRoutes.start, home: WorkerRoutes.home, notifications: WorkerRoutes.notifications);

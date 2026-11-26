@@ -126,7 +126,8 @@ class _MonthlyJobCardState extends ConsumerState<MonthlyJobCard> {
           action: SnackBarAction(label: l10n.buyPyols, onPressed: () => showBuyPyolsSheet(ctx)),
         ));
       } else {
-        messenger.showSnackBar(SnackBar(content: Text(l10n.errorGeneric)));
+        messenger.showSnackBar(
+            SnackBar(content: Text(error.code == 'CARD_CLOSED' ? l10n.errCardClosed : l10n.errorGeneric)));
       }
     } on Object catch (error) {
       messenger.showSnackBar(

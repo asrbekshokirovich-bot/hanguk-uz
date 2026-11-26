@@ -219,6 +219,9 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.finished => (HiIcons.check, HiColors.lime, HiColors.onLime, 2.6),
       NotificationKind.coinsAdded => (HiIcons.wallet, HiColors.lime, HiColors.onLime, 2.0),
       NotificationKind.topupRejected => (HiIcons.x, HiColors.redSoft, HiColors.redInk, 2.4),
+      NotificationKind.cardGiven => n.why == 'yellow'
+          ? (HiIcons.triangleAlert, const Color(0xFFFFE08A), HiColors.ink, 2.4)
+          : (HiIcons.triangleAlert, HiColors.redSoft, HiColors.redInk, 2.4),
     };
     final title = switch (n.kind) {
       NotificationKind.shiftReminder => l10n.notifReminderTitle(HiDates.countdown(n.minutesBefore ?? 0, lang)),
@@ -234,6 +237,11 @@ class _NotificationCard extends StatelessWidget {
       NotificationKind.finished => l10n.notifFinishedTitle,
       NotificationKind.coinsAdded => l10n.notifCoinsTitle(n.pyols ?? 0),
       NotificationKind.topupRejected => l10n.notifTopupRejectedTitle,
+      NotificationKind.cardGiven => switch (n.why) {
+          'yellow' => l10n.cardYellowTitle,
+          'red' => l10n.cardRedTitle,
+          _ => l10n.cardBlockedTitle,
+        },
     };
     final day = n.startsAt == null ? '' : HiDates.weekdayAndDate(n.startsAt!, lang);
     // «12 000 ₩/soat» stays together, as in the prototype.
@@ -281,11 +289,17 @@ class _NotificationCard extends StatelessWidget {
             'monthly' => l10n.notifCoinsMonthly,
             'referral' => l10n.notifCoinsReferral,
             'refund' => l10n.notifCoinsRefund,
+            'employer' => l10n.notifCoinsEmployer,
             _ => l10n.notifCoinsStaff,
           },
           if (n.balance != null) l10n.notifCoinsBalance(n.balance!),
         ].join(' '),
       NotificationKind.topupRejected => l10n.notifTopupRejectedText(n.pyols ?? 0),
+      NotificationKind.cardGiven => switch (n.why) {
+          'yellow' => l10n.cardYellowText,
+          'red' => l10n.cardRedText(n.untilAt == null ? '' : HiDates.weekdayAndDate(n.untilAt!, lang)),
+          _ => l10n.cardBlockedText,
+        },
     });
     final time = HiDates.dayOffset(n.createdAt, now) >= -1 ? Kst.hm(n.createdAt) : HiDates.dayMonth(n.createdAt, lang);
 
@@ -320,7 +334,7 @@ class _NotificationCard extends StatelessWidget {
           label: n.receivedAmount == null ? l10n.payAskAction : l10n.payChange,
           onTap: () => (actions.confirmPay ?? (_) => actions.earnings())(n),
         ),
-      NotificationKind.coinsAdded || NotificationKind.topupRejected => null,
+      NotificationKind.coinsAdded || NotificationKind.topupRejected || NotificationKind.cardGiven => null,
     };
 
     return Semantics(

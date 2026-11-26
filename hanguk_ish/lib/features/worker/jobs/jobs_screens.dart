@@ -68,6 +68,7 @@ String _mmss(Duration d) {
 /// What to tell the worker when opening fails.
 String offerError(WorkerL10n l10n, Object error) => switch (error) {
       ShiftActionException(code: 'NO_COINS') => l10n.errNoCoins,
+      ShiftActionException(code: 'CARD_CLOSED') => l10n.errCardClosed,
       ShiftActionException(code: 'OFFER_EXPIRED' || 'NOT_FOUND') => l10n.errOfferExpired,
       ShiftActionException(code: 'SHIFT_FULL') => l10n.errShiftFull,
       ShiftActionException(code: 'SHIFT_CLOSED' || 'SHIFT_STARTED') => l10n.errShiftClosed,

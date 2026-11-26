@@ -203,6 +203,11 @@ class SupabaseEmployerRepository implements EmployerRepository {
       });
 
   @override
+  Future<void> setBusinessInvite(String businessId, String code) => backendCall(() async {
+        await _client.rpc('set_business_invite', params: {'p_business': businessId, 'p_code': code.trim()});
+      });
+
+  @override
   Future<BusinessReport> report(String businessId, DateTime from, DateTime to) => backendCall(() async {
         final rows = await _client.rpc('business_report', params: {
           'p_business': businessId,

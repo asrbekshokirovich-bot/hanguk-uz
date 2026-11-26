@@ -215,6 +215,7 @@ const workerNotificationKinds = [
   'shift_finished',
   'coins_added',
   'topup_rejected',
+  'card_given',
 ];
 
 /// `notification_card` → an A12 entry; null for kinds the worker app does not
@@ -237,6 +238,7 @@ HiNotification? hiNotificationFromJson(Json json) {
     'shift_finished' => NotificationKind.finished,
     'coins_added' => NotificationKind.coinsAdded,
     'topup_rejected' => NotificationKind.topupRejected,
+    'card_given' => NotificationKind.cardGiven,
     _ => null,
   };
   if (kind == null) return null;
@@ -278,7 +280,8 @@ HiNotification? hiNotificationFromJson(Json json) {
     note: _strOrNull(data['note']),
     pyols: _intOrNull(data['delta']) ?? _intOrNull(data['pyols']) ?? _intOrNull(data['refunded']),
     balance: _intOrNull(data['balance']),
-    why: _strOrNull(data['why']),
+    why: kind == NotificationKind.cardGiven ? _strOrNull(data['card']) : _strOrNull(data['why']),
+    untilAt: DateTime.tryParse('${data['until'] ?? ''}'),
   );
 }
 
@@ -417,7 +420,7 @@ ReportRow reportRowFromJson(Json json) => ReportRow(
     );
 
 /// Notification kinds the employer app shows.
-const employerNotificationKinds = ['new_applicant', 'worker_cancelled', 'no_show', 'chat_message'];
+const employerNotificationKinds = ['new_applicant', 'worker_cancelled', 'no_show', 'chat_message', 'business_card'];
 
 /// `notification_card` → a bell entry; null for kinds the employer app does
 /// not show.
@@ -436,6 +439,8 @@ EmployerNotification? employerNotificationFromJson(Json json) {
     workerName: '${_str(worker['first_name'])} ${_str(worker['last_name'])}'.trim(),
     read: json['read_at'] != null,
     autoConfirmed: _bool(data['auto_confirmed']),
+    card: _strOrNull(data['card']),
+    cardUntil: DateTime.tryParse('${data['until'] ?? ''}'),
   );
 }
 
@@ -564,4 +569,22 @@ WorkerTrust workerTrustFromJson(Json json) => WorkerTrust(
       rating: _double(json['rating']),
       ratingCount: _int(json['ratings']),
       noShows: _int(json['no_shows']),
+      card: noShowCardFromJson(_obj(json['card'])),
     );
+
+/// `card_of` → [NoShowCard].
+NoShowCard noShowCardFromJson(Json? json) {
+  if (json == null) return NoShowCard.none;
+  final level = switch (json['level']) {
+    'yellow' => CardLevel.yellow,
+    'red' => CardLevel.red,
+    'blocked' => CardLevel.blocked,
+    _ => CardLevel.none,
+  };
+  return NoShowCard(
+    level: level,
+    redUntil: DateTime.tryParse('${json['red_until'] ?? ''}'),
+    goodJobs: _int(json['good_jobs']),
+    closed: _bool(json['closed']),
+  );
+}
