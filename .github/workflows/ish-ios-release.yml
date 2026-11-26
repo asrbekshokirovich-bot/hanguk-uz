@@ -1,0 +1,199 @@
+name: HanPyol — iOS build to TestFlight
+
+# Builds the HanPyol worker app (hanguk_ish, bundle id uz.hanguk.ish) and
+# uploads it to App Store Connect / TestFlight. It stops there: nothing is
+# submitted for review, released, or given to external testers — a person
+# does that in App Store Connect.
+#
+# Signing uses the same Apple account secrets as ios-release.yml (ASC_KEY_ID,
+# ASC_ISSUER_ID, ASC_KEY_P8, IOS_DIST_CERT_P12, IOS_DIST_CERT_PASSWORD). The
+# provisioning profile for uz.hanguk.ish is made (or reused) through the App
+# Store Connect API by hanguk_ish/tool/ios_signing.py, so no extra secret is
+# needed for it.
+#
+# Cost: macOS runners bill at 10x Linux, so the cheap Linux job checks the
+# account first and the macOS job only runs when the app record exists.
+# Runs only when asked: by hand, or by a commit that changes
+# hanguk_ish/ios/testflight.txt (the branch has no main copy to dispatch yet).
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "worker = HanPyol, employer = HanPyol 사장님"
+        type: choice
+        options: [worker, employer]
+        default: worker
+  push:
+    paths: ['hanguk_ish/ios/testflight.txt']
+
+concurrency:
+  group: ish-ios-release-${{ inputs.app || 'worker' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Which app: the worker app (default, and on push) or the employer app.
+env:
+  APP: ${{ inputs.app || 'worker' }}
+  BUNDLE_ID: ${{ (inputs.app || 'worker') == 'employer' && 'uz.hanguk.ish.biz' || 'uz.hanguk.ish' }}
+  APP_NAME: ${{ (inputs.app || 'worker') == 'employer' && 'HanPyol 사장님' || 'HanPyol' }}
+  ENTRY: ${{ (inputs.app || 'worker') == 'employer' && 'lib/main_employer.dart' || 'lib/main_worker.dart' }}
+
+jobs:
+  signing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      app_exists: ${{ steps.sign.outputs.app_exists }}
+      profile: ${{ steps.sign.outputs.profile }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse to run without the credentials
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+        run: |
+          missing=""
+          for v in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 IOS_DIST_CERT_P12 IOS_DIST_CERT_PASSWORD; do
+            [ -n "${!v:-}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "### Missing secrets:$missing" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - run: pip install pyjwt cryptography requests
+      - name: Bundle id, profile, app record
+        id: sign
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          python3 hanguk_ish/tool/ios_signing.py --bundle-id "$BUNDLE_ID" --name "HanPyol $APP" \
+            --profile-name "HanPyol $APP AppStore CI" \
+            --profile-out "$RUNNER_TEMP/profile.mobileprovision" | tee "$RUNNER_TEMP/out.txt"
+          if grep -q '^APP_EXISTS=true' "$RUNNER_TEMP/out.txt"; then
+            echo "app_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "app_exists=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### The app record is missing"
+              echo "In App Store Connect → Apps → + → New App: platform iOS, name **$APP_NAME**,"
+              echo "bundle id **$BUNDLE_ID**, SKU **hanpyol-$APP**. Then run this workflow again."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          # The profile is not a secret (it holds no key), so it can travel as an output.
+          echo "profile=$(base64 -w0 "$RUNNER_TEMP/profile.mobileprovision")" >> "$GITHUB_OUTPUT"
+
+  testflight:
+    needs: signing
+    if: needs.signing.outputs.app_exists == 'true'
+    runs-on: macos-15
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+
+      - name: Make the project this app (bundle id, name, icon)
+        if: env.APP == 'employer'
+        run: |
+          set -euo pipefail
+          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = uz.hanguk.ish;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/" ios/Runner.xcodeproj/project.pbxproj
+          plutil -replace CFBundleDisplayName -string "$APP_NAME" ios/Runner/Info.plist
+          cp tool/icons/employer_ios_1024.png ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+
+      - name: Install the signing identity and the profile
+        env:
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          PROFILE_B64: ${{ needs.signing.outputs.profile }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/ish.keychain-db"
+          PASS="$(uuidgen)"
+          security create-keychain -p "$PASS" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$PASS" "$KEYCHAIN"
+          echo "$IOS_DIST_CERT_P12" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security import "$RUNNER_TEMP/dist.p12" -k "$KEYCHAIN" \
+            -P "$IOS_DIST_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$PASS" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/dist.p12"
+
+          PROFILES="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES"
+          echo "$PROFILE_B64" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+          security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" > "$RUNNER_TEMP/profile.plist"
+          UUID="$(plutil -extract UUID raw "$RUNNER_TEMP/profile.plist")"
+          cp "$RUNNER_TEMP/profile.mobileprovision" "$PROFILES/$UUID.mobileprovision"
+          TEAM="$(plutil -extract TeamIdentifier.0 raw "$RUNNER_TEMP/profile.plist")"
+          NAME="$(plutil -extract Name raw "$RUNNER_TEMP/profile.plist")"
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>uploadSymbols</key><true/>
+            <key>provisioningProfiles</key><dict>
+              <key>$BUNDLE_ID</key><string>$NAME</string>
+            </dict>
+          </dict></plist>
+          PLIST
+          plutil -lint "$RUNNER_TEMP/ExportOptions.plist"
+          # Manual signing of the Runner target with this team and profile.
+          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID; DEVELOPMENT_TEAM = $TEAM; CODE_SIGN_STYLE = Manual; CODE_SIGN_IDENTITY = \"Apple Distribution\"; PROVISIONING_PROFILE_SPECIFIER = \"$NAME\";/" \
+            ios/Runner.xcodeproj/project.pbxproj
+
+      - name: Build the IPA
+        run: |
+          set -euo pipefail
+          flutter pub get
+          name="$(grep -m1 '^version:' pubspec.yaml | sed 's/^version: *//; s/+.*//')"
+          flutter build ipa --release -t "$ENTRY" \
+            --build-name="$name" --build-number="${{ github.run_number }}" \
+            --dart-define=SUPABASE_URL=https://lysjdtyanhdfphqyijsr.supabase.co \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3 \
+            --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+          ls -la build/ios/ipa/
+
+      - name: Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "$ASC_KEY_P8" | base64 --decode > "$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
+          ipa="$(ls build/ios/ipa/*.ipa | head -1)"
+          xcrun altool --upload-app --type ios --file "$ipa" \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
+
+      - name: What happens next
+        run: |
+          {
+            echo "### $APP_NAME build ${{ github.run_number }} is uploaded"
+            echo "Apple processes it for 5–30 minutes; then it shows in App Store Connect → $APP_NAME → TestFlight."
+            echo "**Nothing was submitted for review.**"
+          } >> "$GITHUB_STEP_SUMMARY"
