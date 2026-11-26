@@ -139,7 +139,7 @@ void main() {
   });
 
   group('hanguk.uz shares the project (P48)', skip: _skip, () {
-    test('the sign-up carries the Hanguk Ish mark and gets an ish profile', () async {
+    test('the sign-up carries the HanPyol mark and gets an ish profile', () async {
       final user = aziz.auth.currentUser!;
       expect(user.userMetadata?['app'], 'hanguk_ish', reason: 'hanguk.uz\'s sign-up skips accounts with it');
       final row = await admin.from('profiles').select('id, phone').eq('id', user.id).maybeSingle();
@@ -189,7 +189,7 @@ void main() {
       await owner.auth.signOut();
     });
 
-    test('the API serves the ish schema, and nothing of Hanguk Ish in public', () async {
+    test('the API serves the ish schema, and nothing of HanPyol in public', () async {
       final publicApi = SupabaseClient(_url, _serviceKey,
           authOptions: const AuthClientOptions(autoRefreshToken: false));
       await expectLater(publicApi.from('shifts').select('id').limit(1), throwsA(isA<PostgrestException>()),

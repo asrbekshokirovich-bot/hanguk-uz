@@ -54,7 +54,7 @@ function renderMonthly(api: Partial<IshApi>) {
   );
 }
 
-describe('CRM → Hanguk Ish → «Oylik ishlar»', () => {
+describe('CRM → HanPyol → «Oylik ishlar»', () => {
   beforeAll(() => {
     // Radix Select asks for these; jsdom has none.
     Element.prototype.scrollIntoView = vi.fn();

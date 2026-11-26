@@ -8,7 +8,7 @@ import '../repositories/shift_repository.dart';
 import 'backend.dart';
 import 'json.dart';
 
-/// [EmployerRepository] on the Hanguk Ish database: the board and one shift
+/// [EmployerRepository] on the HanPyol database: the board and one shift
 /// from `business_board` / `employer_shift`, decisions and payments through
 /// the functions that check the rules, shifts and templates written to their
 /// tables (the `shifts_guard` and minimum-wage triggers refuse what breaks a

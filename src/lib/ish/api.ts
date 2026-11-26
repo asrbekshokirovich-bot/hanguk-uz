@@ -27,7 +27,7 @@ import type {
   ReportStatus,
 } from './types';
 
-/** A refusal of the Hanguk Ish database with its stable code ('SHIFT_CLOSED', …). */
+/** A refusal of the HanPyol database with its stable code ('SHIFT_CLOSED', …). */
 export class IshError extends Error {
   constructor(
     readonly code: string,
@@ -67,11 +67,11 @@ export function plannedMinutes(job: { starts_at: string; ends_at: string }): num
   return Math.round((Date.parse(job.ends_at) - Date.parse(job.starts_at)) / 60000);
 }
 
-/** Hanguk Ish's schema in hanguk.uz's Supabase project (P48). */
+/** HanPyol's schema in hanguk.uz's Supabase project (P48). */
 export const ISH_SCHEMA = 'ish';
 
 /**
- * What hanguk.uz asks of Hanguk Ish, on [client] — hanguk.uz's own, signed in
+ * What hanguk.uz asks of HanPyol, on [client] — hanguk.uz's own, signed in
  * as a staff member. Every call goes to the schema `ish` and through the
  * database's own checks (staff only, the employers they keep); a refusal
  * comes back as an [IshError].
@@ -195,7 +195,7 @@ export function ishApi(client: SupabaseClient) {
     setReportStatus: (id: string, status: ReportStatus) =>
       rpc<string>('staff_set_report_status', { p_report: id, p_status: status }),
 
-    /** P58: whether the signed-in staff member keeps the staff list (a Hanguk Ish admin). */
+    /** P58: whether the signed-in staff member keeps the staff list (a HanPyol admin). */
     isStaffAdmin: () => rpc<boolean>('is_staff_admin'),
 
     /** The staff (admins first) and the hanguk.uz CRM people who could be added. */

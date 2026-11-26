@@ -1,4 +1,4 @@
-// ish-staff-alerts — Hanguk Ish tells the staff on Telegram (P57, 2026-11-13).
+// ish-staff-alerts — HanPyol tells the staff on Telegram (P57, 2026-11-13).
 //
 // The database puts a business the 사장님 app opened and a worker's
 // complaint into ish.staff_alerts
@@ -8,7 +8,7 @@
 // `ish-staff-alerts`). It sends each message with hanguk.uz's alert bot to
 // its alert chat (TELEGRAM_BOT_TOKEN, ALERT_TELEGRAM_CHAT_ID — the ones
 // infra-health-check and lead-sla-check use; ISH_ALERT_CHAT_ID, when set,
-// sends Hanguk Ish's elsewhere). A message that does not go is retried on the
+// sends HanPyol's elsewhere). A message that does not go is retried on the
 // database's schedule (1, 2, 4 … 60 minutes, 8 tries).
 //
 // Auth: server callers only (verify_jwt = false; isServiceRequest). It

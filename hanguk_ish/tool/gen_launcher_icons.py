@@ -1,8 +1,8 @@
 """Writes the launcher icons of both apps from Asrbek's logos (2026-11-14).
 
-  tool/icons/worker.png   — «Hanguk Ish»: blue field, white 한 with the
+  tool/icons/worker.png   — «HanPyol»: blue field, white 한 with the
                             taegeuk in its ㅇ
-  tool/icons/employer.png — «Hanguk Ish 사장님»: red/blue taegeuk field,
+  tool/icons/employer.png — «HanPyol 사장님»: red/blue taegeuk field,
                             white 한
 
 The logo is full-bleed, so it is the whole adaptive icon: the 108 dp

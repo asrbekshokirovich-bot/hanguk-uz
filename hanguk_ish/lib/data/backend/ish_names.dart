@@ -1,4 +1,4 @@
-/// Where Hanguk Ish is in hanguk.uz's Supabase project (P48). Plain names,
+/// Where HanPyol is in hanguk.uz's Supabase project (P48). Plain names,
 /// so the JSON readers can use them without the Supabase client.
 library;
 
@@ -6,7 +6,7 @@ library;
 /// (hanguk.uz's own).
 const ishSchema = 'ish';
 
-/// Hanguk Ish's Storage buckets (hanguk.uz has an `avatars` of its own).
+/// HanPyol's Storage buckets (hanguk.uz has an `avatars` of its own).
 const ishAvatarsBucket = 'ish-avatars';
 const ishBusinessesBucket = 'ish-businesses';
 
@@ -21,5 +21,5 @@ const ishDeleteAccountFunction = 'ish-delete-account';
 const ishIapFunction = 'ish-iap';
 
 /// What a sign-up from these apps carries (user_metadata): hanguk.uz's
-/// sign-up leaves the account alone, and Hanguk Ish makes its profile.
+/// sign-up leaves the account alone, and HanPyol makes its profile.
 const ishSignUpData = {'app': 'hanguk_ish'};

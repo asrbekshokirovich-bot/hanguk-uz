@@ -1,6 +1,6 @@
 // deno test --no-check --allow-env --allow-read supabase/functions/_shared/hanguk-ish_test.ts
 //
-// P53: Hanguk Ish's anonymous accounts are refused by hanguk.uz's functions;
+// P53: HanPyol's anonymous accounts are refused by hanguk.uz's functions;
 // hanguk.uz's own accounts (students, staff, guests) pass as before.
 import { assertEquals } from "jsr:@std/assert@1";
 import { isAnonymousAccount, isHangukIshAccount } from "./hanguk-ish.ts";
@@ -16,7 +16,7 @@ Deno.test("only an account Supabase marks anonymous is one", () => {
   assertEquals(isAnonymousAccount(undefined), false);
 });
 
-Deno.test("P54: a phone account marked by the database is a Hanguk Ish account", () => {
+Deno.test("P54: a phone account marked by the database is a HanPyol account", () => {
   assertEquals(isHangukIshAccount({ is_anonymous: false, app_metadata: { app: "hanguk_ish", provider: "phone" } }), true);
   assertEquals(isHangukIshAccount({ is_anonymous: false, app_metadata: { provider: "email" } }), false);
   assertEquals(isHangukIshAccount({ app_metadata: null }), false);
@@ -72,7 +72,7 @@ Deno.test("requireAuth: the same rule", async () => {
   assertEquals(status, 403);
 });
 
-Deno.test("P54: requireCaller and requireAuth refuse a Hanguk Ish phone account (403)", async () => {
+Deno.test("P54: requireCaller and requireAuth refuse a HanPyol phone account (403)", async () => {
   const refused = await withAuthServer(phoneWorker, () => requireCaller(request(), "user", {}));
   assertEquals(refused.ok, false);
   if (!refused.ok) {

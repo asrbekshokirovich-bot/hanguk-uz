@@ -1,12 +1,12 @@
-# Hanguk Ish
+# HanPyol
 
 Koreyada kunlik va qisqa smenali ishlar — talabalar va hamma uchun.
 Bitta Flutter kod, ikki Android ilova:
 
 | Ilova | Flavor | applicationId | Til | Kirish nuqtasi |
 |---|---|---|---|---|
-| «Hanguk Ish» (ishchi) | `worker` | `uz.hanguk.ish` | uz, ru, en, ko | `lib/main_worker.dart` |
-| «Hanguk Ish 사장님» (ish beruvchi) | `employer` | `uz.hanguk.ish.biz` | ko | `lib/main_employer.dart` |
+| «HanPyol» (ishchi) | `worker` | `uz.hanguk.ish` | uz, ru, en, ko | `lib/main_worker.dart` |
+| «HanPyol 사장님» (ish beruvchi) | `employer` | `uz.hanguk.ish.biz` | ko | `lib/main_employer.dart` |
 
 Dizayn: Claude Design prototipi (2026-11-10). Reja: loyiha hujjati
 `claude/hanguk-ish-qurish-reja.md`.
@@ -63,7 +63,7 @@ GitHub → Settings → Secrets and variables → Actions:
 
 | Secret | Nima uchun |
 |---|---|
-| `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` | ixtiyoriy. Berilmasa, CI APK'lari hanguk.uz loyihasiga ulanadi (`https://lysjdtyanhdfphqyijsr.supabase.co` va uning ochiq publishable kaliti, `ish-check.yml` da); Hanguk Ish undagi `ish` sxemasida (P48). Berilsa — o'sha loyihaga |
+| `ISH_SUPABASE_URL`, `ISH_SUPABASE_PUBLISHABLE_KEY` | ixtiyoriy. Berilmasa, CI APK'lari hanguk.uz loyihasiga ulanadi (`https://lysjdtyanhdfphqyijsr.supabase.co` va uning ochiq publishable kaliti, `ish-check.yml` da); HanPyol undagi `ish` sxemasida (P48). Berilsa — o'sha loyihaga |
 | `ISH_UPLOAD_KEYSTORE` | Play yuklash kaliti (`.jks`), base64: `base64 -w0 upload.jks` |
 | `ISH_UPLOAD_KEYSTORE_PASSWORD`, `ISH_UPLOAD_KEY_ALIAS`, `ISH_UPLOAD_KEY_PASSWORD` | o'sha kalitning paroli va nomi |
 
@@ -103,26 +103,26 @@ loyihasi (`hanguk-consulting`) — server o'sha loyihaning kaliti bilan yuboradi
   (oq portfel, shaffof fon; 2026-11-24) — avval ilova ikonkasi oq kvadrat
   bo'lib chiqardi.
 
-## Xodimlar: hanguk.uz → CRM → «Hanguk Ish»
+## Xodimlar: hanguk.uz → CRM → «HanPyol»
 
 Ilovadan tashqaridagi (Telegram guruh va kanallaridan topilgan) ish
 beruvchilar, ularning faqat taklif bilan ochiladigan ishlari, mos ishchilar,
 takliflar, tasdiq, davomat va to'lov — hanguk.uz CRM'ida (`src/components/crm/ish/`,
 `src/lib/ish/`). Reja: `docs/operator-reja.md`.
 
-Hanguk Ish hanguk.uz'ning o'z Supabase loyihasida (`ish` sxemasi, P48): bo'lim
+HanPyol hanguk.uz'ning o'z Supabase loyihasida (`ish` sxemasi, P48): bo'lim
 hanguk.uz'ning klienti va xodimning hanguk.uz sessiyasi bilan ishlaydi —
 alohida kirish, SMS kod yoki Vercel o'zgaruvchisi kerak emas.
 
-1. Xodim CRM'ga odatdagidek kiradi va «Hanguk Ish» bo'limini ochadi.
-2. Hanguk Ish admini (P58; hozir Asrbek) uni **«Xodimlar»** yorlig'ida qo'shadi:
+1. Xodim CRM'ga odatdagidek kiradi va «HanPyol» bo'limini ochadi.
+2. HanPyol admini (P58; hozir Asrbek) uni **«Xodimlar»** yorlig'ida qo'shadi:
    ro'yxatdan hanguk.uz CRM xodimini tanlaydi (faqat CRM roli bor akkauntlar —
    talaba, investor yoki ilova akkaunti emas), rolini (Operator / Admin)
-   belgilaydi. Hanguk Ish profili o'zi ochiladi (CRM'dagi ismi bilan). Rolini
+   belgilaydi. HanPyol profili o'zi ochiladi (CRM'dagi ismi bilan). Rolini
    o'zgartirish va olib tashlash ham shu yerda; o'zini o'zgartirib yoki olib
    tashlab bo'lmaydi (har doim bitta admin qoladi). Olib tashlanganning profili
    va kiritgan ish beruvchi/ishlari qoladi. Yorliq faqat adminlarga ko'rinadi.
-   Ro'yxatda bo'lmasa, bo'lim «Hanguk Ish xodimlari ro'yxatida yo'q» deydi.
+   Ro'yxatda bo'lmasa, bo'lim «HanPyol xodimlari ro'yxatida yo'q» deydi.
 
 «Ilovadagi bizneslar» yorlig'i (P52): sajangnim ilovasida tekshiruvsiz ochilgan
 bizneslar (eng yangisi tepada) — holati, ochilgan kuni, smenalar soni (24 soatda

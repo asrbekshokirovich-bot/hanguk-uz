@@ -1,5 +1,5 @@
 // ish-staff-alerts against a real database: a local Supabase stack with the
-// Hanguk Ish migrations (CI: ish-integration.yml). What the triggers put in
+// HanPyol migrations (CI: ish-integration.yml). What the triggers put in
 // the outbox, staff_alerts_claim / _done / _fail through PostgREST with the
 // service key; Telegram is a stand-in.
 //

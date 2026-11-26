@@ -1,5 +1,5 @@
 HiWonSign — the ₩ (U+20A9) glyph of DejaVu Sans Mono (Book, Bold), subset and renamed
-by tool/build_fonts.py's companion step for Hanguk Ish (2026-11-10). The browser draws ₩ in
+by tool/build_fonts.py's companion step for HanPyol (2026-11-10). The browser draws ₩ in
 the prototype's monospace text with this font; bundling it keeps prices identical.
 
 Original licence (DejaVu fonts, derived from Bitstream Vera):

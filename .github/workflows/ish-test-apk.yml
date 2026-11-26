@@ -1,4 +1,4 @@
-name: Hanguk Ish — test APK (demo, anonim kirish)
+name: HanPyol — test APK (demo, anonim kirish)
 
 # Telefonda sinash uchun: ikkala ilovaning DEMO APK'lari (baza yo'q, hech narsa
 # telefondan chiqmaydi) va "Test: anonim kirish" tugmasi bilan (ISH_TEST_LOGIN).
@@ -35,7 +35,7 @@ jobs:
       run:
         working-directory: hanguk_ish
     env:
-      # Hanguk Ish'ning o'z Kakao JavaScript kaliti (secret ISH_KAKAO_JS_KEY).
+      # HanPyol'ning o'z Kakao JavaScript kaliti (secret ISH_KAKAO_JS_KEY).
       # Bo'sh bo'lsa, ilova ichidagi standart kalit ishlatiladi.
       KAKAO_JS_KEY: ${{ secrets.ISH_KAKAO_JS_KEY }}
       # Native app key: A04 uses Kakao's native map (fast, cached on the phone).
@@ -86,7 +86,7 @@ jobs:
           cp "$out/app-arm64-v8a-worker-release.apk" "$P-worker-arm64.apk"
           cp "$out/app-arm64-v8a-employer-release.apk" "$P-employer-arm64.apk"
           gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
-            gh release create "$RELEASE_TAG" --prerelease --title "Hanguk Ish CI" --notes "Hanguk Ish CI natijalari (sideload)." || true
+            gh release create "$RELEASE_TAG" --prerelease --title "HanPyol CI" --notes "HanPyol CI natijalari (sideload)." || true
           for i in 1 2 3; do
             gh release upload "$RELEASE_TAG" "$P-worker-arm64.apk" "$P-employer-arm64.apk" --clobber && break
             sleep 5

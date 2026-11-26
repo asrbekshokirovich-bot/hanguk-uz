@@ -1,4 +1,4 @@
--- hanguk.uz's objects that share a name with Hanguk Ish's (P48). Hanguk Ish
+-- hanguk.uz's objects that share a name with HanPyol's (P48). HanPyol
 -- lives in hanguk.uz's Supabase project, in its own schema `ish`; the
 -- migrations must apply next to these and leave them as they are. tests/run.sh
 -- makes them on the plain PostgreSQL before the migrations (then hanguk.uz's
@@ -12,7 +12,7 @@ create table public.profiles (
   full_name text,
   preferred_language text not null default 'uz'
 );
--- Who works in hanguk.uz's CRM (P58: only they can be Hanguk Ish staff).
+-- Who works in hanguk.uz's CRM (P58: only they can be HanPyol staff).
 create type public.app_role as enum ('owner', 'admin', 'call_operator', 'document_handler', 'university_staff', 'investor');
 create table public.user_roles (
   id uuid primary key default gen_random_uuid(),
@@ -38,6 +38,6 @@ grant select on public.main_canary to authenticated;
 create policy main_canary_read on public.main_canary for select to authenticated using (true);
 insert into public.main_canary values (1, 'hanguk.uz');
 
--- hanguk.uz's live updates: the Hanguk Ish tables join the same publication.
+-- hanguk.uz's live updates: the HanPyol tables join the same publication.
 set client_min_messages = error;  -- (no logical replication on the test server: a warning only)
 create publication supabase_realtime for table public.messages;

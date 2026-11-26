@@ -134,7 +134,7 @@ function buildGroups(
         { title: t('appLeads.nav'), url: '/crm/app-leads', icon: Smartphone, visible: canSeeAppLeads, highlight: true },
         { title: t('navigation.leads'), url: '/crm/leads', icon: UserPlus, visible: true, highlight: true },
         { title: "O'quv markazlar", url: '/crm/learning-centers', icon: Building2, visible: isCallOperator },
-        // Jobs found on Telegram, offered to workers of the Hanguk Ish app.
+        // Jobs found on Telegram, offered to workers of the HanPyol app.
         { title: t('ish.nav'), url: '/crm/ish', icon: Handshake, visible: isAdmin || isCallOperator || isDocumentHandler },
       ],
     },

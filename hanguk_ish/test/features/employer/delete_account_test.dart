@@ -1,4 +1,4 @@
-// «Hanguk Ish 사장님»: 계정 삭제 under the language list, signed in only
+// «HanPyol 사장님»: 계정 삭제 under the language list, signed in only
 // (Google Play's account-deletion rule; the app has no settings screen).
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hanguk_ish/app/employer_app.dart';

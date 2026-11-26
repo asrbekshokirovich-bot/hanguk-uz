@@ -1,4 +1,4 @@
-name: Hanguk Ish — integratsiya (ilova ↔ baza)
+name: HanPyol — integratsiya (ilova ↔ baza)
 
 # Ilovalarning repozitoriylari (lib/data/backend) haqiqiy lokal Supabase
 # stack'da: telefon orqali kirish (config.toml'dagi test raqamlar), har
@@ -7,7 +7,7 @@ name: Hanguk Ish — integratsiya (ilova ↔ baza)
 #   backend_test.dart — repozitoriylar; ui_e2e_test.dart — ikkala ilovaning
 #   haqiqiy ekranlari haqiqiy ma'lumot bilan (lentadan smena olish, BA1/BA3);
 #   offers_test.dart — xodim taklifi ishchi ilovasida (P40).
-# Keyin hanguk.uz'ning «Hanguk Ish» bo'limi (src/lib/ish) haqiqiy supabase-js
+# Keyin hanguk.uz'ning «HanPyol» bo'limi (src/lib/ish) haqiqiy supabase-js
 # bilan o'sha stack'da: xodim → taklif → ishchi → tasdiq → chat → davomat →
 # to'lov (src/lib/ish/__e2e__, P42). Va ish-translate (P55), ish-staff-alerts
 # (P57) va ish-push (P56) navbatlari haqiqiy baza bilan (model, Telegram va FCM — soxta).
@@ -88,7 +88,7 @@ jobs:
       - name: Integration tests
         run: flutter test test_backend --concurrency=1 --coverage --reporter github
 
-      # hanguk.uz's «Hanguk Ish» data layer with the real supabase-js on the
+      # hanguk.uz's «HanPyol» data layer with the real supabase-js on the
       # same stack (after the app's tests: its own test numbers).
       - uses: actions/setup-node@v4
         if: success() || failure()
@@ -97,7 +97,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: hanguk.uz → Hanguk Ish (supabase-js)
+      - name: hanguk.uz → HanPyol (supabase-js)
         if: success() || failure()
         working-directory: .
         run: |
@@ -129,7 +129,7 @@ jobs:
       # API layer, the forms), with the staff's browser in Tashkent and far
       # away too: the times typed are Korean wherever the browser is. (The
       # supabase-js file above skips itself here: no stack address.)
-      - name: hanguk.uz CRM «Hanguk Ish» tests in three time zones
+      - name: hanguk.uz CRM «HanPyol» tests in three time zones
         if: success() || failure()
         working-directory: .
         env:

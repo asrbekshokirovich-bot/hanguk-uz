@@ -36,7 +36,7 @@ const ALLOWED: Record<string, string> = {
   'hanguk_app/lib/features/applications/data/applications_repository.dart':
     'student request insert (pending_approval); reads go through my_universities()',
   'supabase/functions/ish-translate/integration_test.ts':
-    "Hanguk Ish's own ish.applications (schema ish) in a test of its translation queue — not hanguk.uz's table",
+    "HanPyol's own ish.applications (schema ish) in a test of its translation queue — not hanguk.uz's table",
 };
 
 function walk(dir: string, out: string[] = []): string[] {

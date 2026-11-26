@@ -32,7 +32,7 @@ import 'supabase_pyol_repository.dart';
 import 'store_pyol_store.dart';
 import 'supabase_shift_repository.dart';
 
-/// Points every repository of both apps at the Hanguk Ish database.
+/// Points every repository of both apps at the HanPyol database.
 List<Override> backendOverrides(BackendConfig config, SupabaseClient client) => [
       backendConfigProvider.overrideWithValue(config),
       supabaseClientProvider.overrideWithValue(client),

@@ -79,7 +79,7 @@ export async function requireCaller(
   if (error || !user) return deny(401, "Invalid or expired token");
   // Guest test accounts (guest-test-session) may only take the tests.
   if (user.app_metadata?.guest === true) return deny(403, "Forbidden");
-  // Hanguk Ish's anonymous accounts (P53): not hanguk.uz's people.
+  // HanPyol's anonymous accounts (P53): not hanguk.uz's people.
   if (isAnonymousAccount(user)) return deny(403, "Forbidden");
 
   if (level === "staff") {

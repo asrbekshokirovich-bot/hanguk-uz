@@ -458,7 +458,7 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-/// «Hanguk Ish» — the worker app.
+/// «HanPyol» — the worker app.
 class WorkerApp extends ConsumerWidget {
   const WorkerApp({super.key});
 

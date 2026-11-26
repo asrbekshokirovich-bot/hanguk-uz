@@ -105,7 +105,7 @@ class _Ba0LoginScreenState extends State<Ba0LoginScreen> {
                     Semantics(
                       header: true,
                       child: HiText(
-                        'Hanguk Ish',
+                        'HanPyol',
                         style: hiStyle(
                           34,
                           FontWeight.w800,

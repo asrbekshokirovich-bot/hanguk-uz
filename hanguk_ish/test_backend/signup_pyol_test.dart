@@ -76,7 +76,7 @@ void main() {
       await expectLater(() => auth.sendCode('12345'), _refused('PHONE_INVALID'));
     });
 
-    test('the right code signs in: a Hanguk Ish account with its ish profile, no A02 yet', () async {
+    test('the right code signs in: a HanPyol account with its ish profile, no A02 yet', () async {
       worker = await _signUp('010-0000-0091');
       final user = worker.auth.currentUser!;
       expect(user.phone, '821000000091');

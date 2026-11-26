@@ -126,6 +126,10 @@ jobs:
           PROFILE_B64: ${{ needs.signing.outputs.profile }}
         run: |
           set -euo pipefail
+          # Secrets set from Windows PowerShell can carry a BOM or a line break.
+          for v in IOS_DIST_CERT_P12 IOS_DIST_CERT_PASSWORD; do
+            export "$v=$(printf '%s' "${!v}" | python3 -c 'import sys; sys.stdout.write(sys.stdin.read().replace("\ufeff", "").strip())')"
+          done
           KEYCHAIN="$RUNNER_TEMP/ish.keychain-db"
           PASS="$(uuidgen)"
           security create-keychain -p "$PASS" "$KEYCHAIN"
@@ -165,6 +169,9 @@ jobs:
             ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build the IPA
+        env:
+          KAKAO_JS_KEY: ${{ secrets.ISH_KAKAO_JS_KEY }}
+          KAKAO_NATIVE_KEY: ${{ secrets.ISH_KAKAO_NATIVE_KEY }}
         run: |
           set -euo pipefail
           flutter pub get
@@ -173,6 +180,8 @@ jobs:
             --build-name="$name" --build-number="${{ github.run_number }}" \
             --dart-define=SUPABASE_URL=https://lysjdtyanhdfphqyijsr.supabase.co \
             --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3 \
+            ${KAKAO_JS_KEY:+--dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY} \
+            ${KAKAO_NATIVE_KEY:+--dart-define=KAKAO_NATIVE_KEY=$KAKAO_NATIVE_KEY} \
             --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
           ls -la build/ios/ipa/
 
@@ -183,6 +192,10 @@ jobs:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
           set -euo pipefail
+          # Secrets set from Windows PowerShell can carry a BOM or a line break.
+          for v in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            export "$v=$(printf '%s' "${!v}" | python3 -c 'import sys; sys.stdout.write(sys.stdin.read().replace("\ufeff", "").strip())')"
+          done
           mkdir -p "$HOME/.appstoreconnect/private_keys"
           echo "$ASC_KEY_P8" | base64 --decode > "$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
           ipa="$(ls build/ios/ipa/*.ipa | head -1)"

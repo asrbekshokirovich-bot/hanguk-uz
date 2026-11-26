@@ -178,12 +178,12 @@ jobs:
           # db-exec (live'dagi jstr() BigInt qo'shildi; verify_jwt=false + isServiceRequest),
           # investor-export, guest-auth, get-pdf-url, register-push-token (verify_jwt=false,
           # live kabi), create-student (verify_jwt=true, live kabi).
-          # 2026-11-13: ish-translate yangi (Hanguk Ish P55, mashina tarjimasi) — live
+          # 2026-11-13: ish-translate yangi (HanPyol P55, mashina tarjimasi) — live
           # nusxasi yo'q, repo nusxasi joriy. verify_jwt = false (config.toml, pg_net).
           # 2026-11-13: ish-staff-alerts yangi (P57, xodimlarga Telegram xabari) — xuddi shunday.
-          # 2026-11-13: ish-push yangi (P56, Hanguk Ish push — FCM) — xuddi shunday.
+          # 2026-11-13: ish-push yangi (P56, HanPyol push — FCM) — xuddi shunday.
           # 2026-11-13: ish-delete-account yangi (akkauntni o'chirish, Google Play) — xuddi shunday.
-          # 2026-11-25: ish-iap yangi (Hanguk Ish puyl — Google Play / App Store xaridi) — xuddi shunday.
+          # 2026-11-25: ish-iap yangi (HanPyol puyl — Google Play / App Store xaridi) — xuddi shunday.
           FUNCTIONS="
             instagram-webhook
             channel-health-check

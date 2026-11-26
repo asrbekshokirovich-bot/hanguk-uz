@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: EmployerApp()));
     await tester.pumpAndSettle();
     for (final text in [
-      'Hanguk Ish',
+      'HanPyol',
       '사장님용',
       '오늘 필요한 근무자, 바로 구하세요',
       '휴대폰 번호',

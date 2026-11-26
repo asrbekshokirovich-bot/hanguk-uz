@@ -45,7 +45,7 @@ async function choose(combobox: HTMLElement, option: string) {
   fireEvent.click(await screen.findByRole('option', { name: option }));
 }
 
-describe('CRM → Hanguk Ish → «Xodimlar» (P58)', () => {
+describe('CRM → HanPyol → «Xodimlar» (P58)', () => {
   beforeAll(() => {
     // Radix Select asks for these; jsdom has none.
     Element.prototype.scrollIntoView = vi.fn();
@@ -97,7 +97,7 @@ describe('CRM → Hanguk Ish → «Xodimlar» (P58)', () => {
     expect(dialog.getByText("Xodimlar ro'yxatidan olib tashlaysizmi?")).toBeInTheDocument();
     expect(dialog.getByText('Madina Rahimova')).toBeInTheDocument();
     expect(
-      dialog.getByText(/CRM'dagi Hanguk Ish bo'limi unga yopiladi; u kiritgan ish beruvchilar va ishlar qoladi\./),
+      dialog.getByText(/CRM'dagi HanPyol bo'limi unga yopiladi; u kiritgan ish beruvchilar va ishlar qoladi\./),
     ).toBeInTheDocument();
     expect(removeStaff).not.toHaveBeenCalled();
     fireEvent.click(dialog.getByRole('button', { name: 'Olib tashlash' }));
@@ -126,6 +126,6 @@ describe('CRM → Hanguk Ish → «Xodimlar» (P58)', () => {
         throw new IshError('FORBIDDEN');
       }),
     });
-    expect(await screen.findByText('Bu amal faqat Hanguk Ish xodimlariga ruxsat etilgan.')).toBeInTheDocument();
+    expect(await screen.findByText('Bu amal faqat HanPyol xodimlariga ruxsat etilgan.')).toBeInTheDocument();
   });
 });

@@ -1,0 +1,1 @@
+Run 1: first TestFlight upload of HanPyol (2026-11-25).

@@ -1,5 +1,5 @@
 // ish-translate against a real database: a local Supabase stack with the
-// Hanguk Ish migrations (CI: ish-integration.yml). What the triggers queue,
+// HanPyol migrations (CI: ish-integration.yml). What the triggers queue,
 // translation_claim / _save / _fail through PostgREST with the service key,
 // and what lands in the rows the apps read. The model is a stand-in.
 //

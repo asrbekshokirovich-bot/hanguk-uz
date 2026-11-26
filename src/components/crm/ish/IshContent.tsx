@@ -20,12 +20,12 @@ import { IshReports } from './IshReports';
 import { IshStaff } from './IshStaff';
 
 /**
- * CRM → «Hanguk Ish» (P41): Hanguk's staff keep employers found outside the
+ * CRM → «HanPyol» (P41): Hanguk's staff keep employers found outside the
  * app (Telegram groups and channels), post their jobs, offer them to workers
  * who fit, confirm after the call with the employer, mark who came and that
  * they were paid. Plan: hanguk_ish/docs/operator-reja.md.
  *
- * Hanguk Ish is the schema `ish` of hanguk.uz's own project (P48): the staff
+ * HanPyol is the schema `ish` of hanguk.uz's own project (P48): the staff
  * work with their hanguk.uz session; the database says who is staff.
  */
 export default function IshContent() {
@@ -97,7 +97,7 @@ function IshStaffGate({ client, session }: { client: SupabaseClient; session: Se
 
 const TABS = ['jobs', 'monthly', 'employers', 'appBusinesses', 'reports', 'coins', 'pyol', 'staff'] as const;
 
-/** «/crm/ish?tab=reports»: a Hanguk Ish message to the staff (P57) opens its tab. */
+/** «/crm/ish?tab=reports»: a HanPyol message to the staff (P57) opens its tab. */
 function initialTab(): string {
   const wanted = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('tab');
   return wanted && (TABS as readonly string[]).includes(wanted) ? wanted : 'jobs';
@@ -111,7 +111,7 @@ function IshWorkspace({ account }: { account: string }) {
   // The complaints not closed yet, on the tab (P52).
   const reports = useQuery({ queryKey: ishKeys.reports, queryFn: api.reports });
   const open = (reports.data ?? []).filter((r) => r.status !== 'closed').length;
-  // The staff list (P58): its tab only for a Hanguk Ish admin.
+  // The staff list (P58): its tab only for a HanPyol admin.
   const admin = useQuery({ queryKey: ishKeys.staffAdmin, queryFn: api.isStaffAdmin });
 
   return (

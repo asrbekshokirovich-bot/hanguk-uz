@@ -385,7 +385,7 @@ final employerRouterProvider = Provider<GoRouter>((ref) {
   return router;
 });
 
-/// «Hanguk Ish 사장님» — the employer app, in Korean (the prototype's),
+/// «HanPyol 사장님» — the employer app, in Korean (the prototype's),
 /// Uzbek, Russian or English (P43).
 class EmployerApp extends ConsumerStatefulWidget {
   const EmployerApp({super.key});
@@ -420,7 +420,7 @@ class _EmployerAppState extends ConsumerState<EmployerApp> {
   Widget build(BuildContext context) {
     final language = ref.watch(employerLanguageProvider);
     return MaterialApp.router(
-      title: 'Hanguk Ish 사장님',
+      title: 'HanPyol 사장님',
       debugShowCheckedModeBanner: false,
       theme: hiTheme(),
       locale: language.locale,

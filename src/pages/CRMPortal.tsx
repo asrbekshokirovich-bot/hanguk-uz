@@ -226,7 +226,7 @@ export default function CRMPortal() {
     if (currentPath.startsWith('/crm/surveys')) return 'surveys';
     if (currentPath.startsWith('/crm/investor-desk')) return 'investor-desk';
     if (currentPath.startsWith('/crm/learning-centers')) return 'learning-centers';
-    // «Hanguk Ish»: jobs found on Telegram, offered to workers of the job app.
+    // «HanPyol»: jobs found on Telegram, offered to workers of the job app.
     if (currentPath.startsWith('/crm/ish')) return 'ish';
     return 'dashboard';
   };
@@ -532,7 +532,7 @@ export default function CRMPortal() {
         if (!isCallOperator) return <AccessDenied />;
         return <SafeSuspense><LearningCentersContent /></SafeSuspense>;
       case 'ish':
-        // Who may act is decided by Hanguk Ish's own staff list, after its sign-in.
+        // Who may act is decided by HanPyol's own staff list, after its sign-in.
         return <SafeSuspense><IshContent /></SafeSuspense>;
       default:
         return (

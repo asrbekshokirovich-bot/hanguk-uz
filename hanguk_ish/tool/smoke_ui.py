@@ -97,9 +97,9 @@ def screen():
 def wave_off_foreign_anr(nodes):
     """The emulator's own apps (Pixel Launcher) sometimes stop answering under
     load, and their «… isn't responding» box covers ours for the whole run.
-    Theirs is waved off («Wait»); ours (Hanguk Ish) is a failure and stays."""
+    Theirs is waved off («Wait»); ours (HanPyol) is a failure and stays."""
     title = next((n for n in nodes if re.search(r"isn.t responding", n['words'])), None)
-    if title is None or 'Hanguk Ish' in title['words']:
+    if title is None or 'HanPyol' in title['words']:
         return False
     wait = next((n for n in nodes if n['words'] == 'Wait'), None)
     if wait is None:

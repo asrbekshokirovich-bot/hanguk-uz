@@ -7,7 +7,7 @@ import '../repositories/shift_repository.dart';
 import 'backend.dart';
 import 'json.dart';
 
-/// [ShiftRepository] on the Hanguk Ish database (supabase/migrations): the
+/// [ShiftRepository] on the HanPyol database (supabase/migrations): the
 /// feed and shift cards come from `shift_feed` / `shift_details`, the
 /// worker's applications from `my_shifts`, every change from the functions
 /// that check the rules (`apply_to_shift`, `check_in`, …).

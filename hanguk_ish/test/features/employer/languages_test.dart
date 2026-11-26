@@ -1,4 +1,4 @@
-// «Hanguk Ish 사장님» in four languages (P43): Korean stays the prototype's
+// «HanPyol 사장님» in four languages (P43): Korean stays the prototype's
 // word for word; Uzbek, Russian and English for people who give one another
 // work too. The language is chosen on BA0 or BA1 and kept; the phone's
 // language comes first when the app speaks it.
@@ -49,10 +49,10 @@ List<String> _literals(String path) {
 }
 
 /// The Korean the demo data is written in (businesses, shifts, addresses,
-/// chat) and the brand («Hanguk Ish 사장님», the 한 tile): shown as they are
+/// chat) and the brand («HanPyol 사장님», the 한 tile): shown as they are
 /// in every language.
 final _koreanData = <String>{
-  'Hanguk Ish 사장님', '사장님', '한',
+  'HanPyol 사장님', '사장님', '한',
   for (final file in ['demo_employer', 'demo_shifts', 'demo_account'])
     for (final literal in _literals('lib/data/demo/$file.dart'))
       if (_hangul.hasMatch(literal))
@@ -181,7 +181,7 @@ void main() {
       for (final file in Directory('lib/features/employer').listSync(recursive: true).whereType<File>()) {
         if (!file.path.endsWith('.dart') || file.path.endsWith('/biz.dart')) continue;
         for (final literal in _literals(file.path)) {
-          // The BA0 watermark is the brand («Hanguk Ish 사장님»).
+          // The BA0 watermark is the brand («HanPyol 사장님»).
           if (_hangul.hasMatch(literal) && literal != '사장님') found.add('${file.path}: $literal');
         }
       }
@@ -212,7 +212,7 @@ void main() {
 
     testWidgets('BA0: the badge stands beside the name, as in the prototype', (tester) async {
       await open(tester, EmployerRoutes.login);
-      final title = tester.getRect(find.text('Hanguk Ish'));
+      final title = tester.getRect(find.text('HanPyol'));
       final badge = tester.getRect(find.text('사장님용'));
       expect(badge.left, greaterThan(title.right), reason: 'on the same line, after the name');
       expect((badge.center.dy - title.center.dy).abs(), lessThan(6));

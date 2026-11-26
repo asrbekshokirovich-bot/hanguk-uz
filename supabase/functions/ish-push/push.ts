@@ -1,4 +1,4 @@
-// ish-push — what a Hanguk Ish push says and to whom (P56), apart from the
+// ish-push — what a HanPyol push says and to whom (P56), apart from the
 // server so it can be tested.
 //
 // A push is the notification A12 (worker app) or 알림 (사장님 app) shows,

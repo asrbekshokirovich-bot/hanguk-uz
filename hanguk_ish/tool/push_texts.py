@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hanguk Ish → supabase/functions/ish-push/texts.json (P56).
+"""HanPyol → supabase/functions/ish-push/texts.json (P56).
 
 What a push says is what A12 (worker) and 알림 (사장님) say: the strings come
 from the apps' own ARB files, and the Seoul district names (the evening

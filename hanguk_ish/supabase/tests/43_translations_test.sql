@@ -206,7 +206,7 @@ begin
   perform ish.translation_kick();
   perform tests.eq((select count(*)::int from net.calls), 0, 'nothing due: no call');
 
-  -- Only Hanguk Ish's own functions.
+  -- Only HanPyol's own functions.
   perform tests.throws($q$select ish.ask_function('db-exec')$q$, 'INVALID', 'not hanguk.uz''s functions');
 
   -- A failing call does not fail the write.

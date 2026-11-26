@@ -1,4 +1,4 @@
-// ish-push — Hanguk Ish push notifications (P56, 2026-11-13).
+// ish-push — HanPyol push notifications (P56, 2026-11-13).
 //
 // A notification (ish.notifications) for someone with a phone registered for
 // the app that shows it waits in ish.push_queue

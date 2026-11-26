@@ -63,7 +63,7 @@ function fakeClient(handlers: Record<string, Handler>, signedIn = true) {
     };
     return query;
   });
-  // Hanguk Ish is the schema `ish`: every call goes through schema('ish').
+  // HanPyol is the schema `ish`: every call goes through schema('ish').
   const schema = vi.fn((_name: string) => ({ rpc, from }));
   return { client: { schema, auth } as unknown as SupabaseClient, rpc, auth, schema, messages };
 }
@@ -100,7 +100,7 @@ const staffHandlers = (overrides: Record<string, Handler> = {}): Record<string, 
   ...overrides,
 });
 
-describe('CRM → Hanguk Ish', () => {
+describe('CRM → HanPyol', () => {
   beforeAll(() => {
     // Radix Select asks for these; jsdom has none.
     Element.prototype.scrollIntoView = vi.fn();
@@ -135,7 +135,7 @@ describe('CRM → Hanguk Ish', () => {
     const { client } = fakeClient({ is_staff: () => false });
     renderWith(<IshSection client={client} />);
     expect(
-      await screen.findByText("aziza@hanguk.uz Hanguk Ish xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak."),
+      await screen.findByText("aziza@hanguk.uz HanPyol xodimlari ro'yxatida yo'q. Admin sizni xodim qilib qo'shishi kerak."),
     ).toBeInTheDocument();
   });
 
@@ -379,7 +379,7 @@ describe('CRM → Hanguk Ish', () => {
     }
   });
 
-  it('the staff list (P58) is a tab only for a Hanguk Ish admin', async () => {
+  it('the staff list (P58) is a tab only for a HanPyol admin', async () => {
     const operator = fakeClient(staffHandlers());
     const first = renderWith(<IshSection client={operator.client} />);
     expect(await screen.findByRole('tab', { name: 'Ishlar' })).toBeInTheDocument();
@@ -419,6 +419,6 @@ describe('CRM → Hanguk Ish', () => {
       }),
     );
     renderWith(<IshSection client={client} />);
-    expect(await screen.findByText('Bu amal faqat Hanguk Ish xodimlariga ruxsat etilgan.')).toBeInTheDocument();
+    expect(await screen.findByText('Bu amal faqat HanPyol xodimlariga ruxsat etilgan.')).toBeInTheDocument();
   });
 });

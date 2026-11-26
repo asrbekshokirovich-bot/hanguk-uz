@@ -176,7 +176,7 @@ select ish.staff_set_app_business_blocked((select v from staff_ids where k = 'ap
 select tests.as_user('00000000-0000-0000-0000-0000000000a1');
 insert into ish.reports (reason, body) values ('employer', 'Ish beruvchi to''lovni kechiktiryapti');
 
--- hanguk.uz (CRM «Hanguk Ish»).
+-- hanguk.uz (CRM «HanPyol»).
 select tests.as_user('00000000-0000-0000-0000-0000000000c1');
 insert into samples values
   ('staff_businesses', ish.staff_businesses()),
