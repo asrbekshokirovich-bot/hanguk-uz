@@ -113,7 +113,7 @@ jobs:
           }
           JSON
           cd "$SITE"
-          args=(deploy --prod --yes --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT")
+          args=(deploy --prod --yes --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT" --create-if-missing)
           [ -n "${SCOPE:-}" ] && args+=(--scope "$SCOPE")
           deployment=$(npx --yes "$VERCEL_CLI" "${args[@]}")
           echo "Deployment: $deployment"
