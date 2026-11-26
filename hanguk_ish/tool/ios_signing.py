@@ -31,13 +31,13 @@ API = "https://api.appstoreconnect.apple.com/v1"
 
 
 def token() -> str:
-    key = base64.b64decode(os.environ["ASC_KEY_P8"]).decode()
+    key = base64.b64decode(env("ASC_KEY_P8")).decode()
     now = int(time.time())
     return jwt.encode(
-        {"iss": os.environ["ASC_ISSUER_ID"], "iat": now, "exp": now + 1100, "aud": "appstoreconnect-v1"},
+        {"iss": env("ASC_ISSUER_ID"), "iat": now, "exp": now + 1100, "aud": "appstoreconnect-v1"},
         key,
         algorithm="ES256",
-        headers={"kid": os.environ["ASC_KEY_ID"], "typ": "JWT"},
+        headers={"kid": env("ASC_KEY_ID"), "typ": "JWT"},
     )
 
 
@@ -53,6 +53,13 @@ class Api:
             detail = "; ".join(f"{e.get('code')}: {e.get('detail')}" for e in errors) or r.text[:300]
             raise SystemExit(f"::error::{method} {path} → {r.status_code} {detail}")
         return r.json() if r.content else {}
+
+
+
+def env(name):
+    """A secret, without the BOM / line breaks Windows PowerShell adds when it
+    pipes text into `gh secret set`."""
+    return os.environ[name].replace("\ufeff", "").strip()
 
 
 def main():
@@ -85,7 +92,7 @@ def main():
 
     # 2. The certificate inside our .p12, as Apple knows it.
     _, cert, _ = pkcs12.load_key_and_certificates(
-        base64.b64decode(os.environ["IOS_DIST_CERT_P12"]), os.environ["IOS_DIST_CERT_PASSWORD"].encode())
+        base64.b64decode(env("IOS_DIST_CERT_P12")), env("IOS_DIST_CERT_PASSWORD").encode())
     serial = format(cert.serial_number, "X").lstrip("0")
     certs = api.call("GET", "/certificates", params={"limit": 200})["data"]
     mine = [c for c in certs if c["attributes"].get("serialNumber", "").upper().lstrip("0") == serial]
