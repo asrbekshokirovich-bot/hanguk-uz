@@ -3769,5 +3769,29 @@
   "storeUnavailable": "Hozir bu telefonda sotib olib bo'lmaydi.",
   "@storeUnavailable": {
     "description": "Buying puyl in Google Play / App Store (2026-11-25)."
+  },
+  "tgShareTitle": "Telefon raqamingizni ulashing",
+  "@tgShareTitle": {
+    "description": "Telegram mini app: first sign-in asks for the phone number (2026-11-26)."
+  },
+  "tgShareBody": "Ilovada avval ro'yxatdan o'tgan bo'lsangiz, profilingiz, puylingiz va ishlaringiz shu yerga ulanadi. Raqam ish beruvchi siz bilan bog'lanishi uchun ham kerak.",
+  "@tgShareBody": {
+    "description": "Telegram mini app: why the number is asked."
+  },
+  "tgShareButton": "Raqamni ulashish",
+  "@tgShareButton": {
+    "description": "Telegram mini app: share the phone number."
+  },
+  "tgShareSkip": "Hozir emas",
+  "@tgShareSkip": {
+    "description": "Telegram mini app: continue without the number."
+  },
+  "pyolBuyOnWebsite": "Saytda sotib olish",
+  "@pyolBuyOnWebsite": {
+    "description": "Telegram mini app: «Puyl olish» opens the website (no store payment there)."
+  },
+  "pyolWebsiteSoon": "Puylni saytda sotib olish tez orada ochiladi.",
+  "@pyolWebsiteSoon": {
+    "description": "Telegram mini app: the website shop is not open yet."
   }
 }

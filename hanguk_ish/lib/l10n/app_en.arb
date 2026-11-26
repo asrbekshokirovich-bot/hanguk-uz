@@ -733,5 +733,11 @@
   "storeCredited": "+{n} P added. Balance: {balance} P",
   "storePending": "Payment is pending. Puyl will come when it is done.",
   "storeFailed": "The purchase did not go through. If you were charged, the puyl will come soon — or write to us.",
-  "storeUnavailable": "Buying is not available on this phone now."
+  "storeUnavailable": "Buying is not available on this phone now.",
+  "tgShareTitle": "Share your phone number",
+  "tgShareBody": "If you signed up in the app before, your profile, puyl and jobs come here too. Employers also need the number to reach you.",
+  "tgShareButton": "Share number",
+  "tgShareSkip": "Not now",
+  "pyolBuyOnWebsite": "Buy on the website",
+  "pyolWebsiteSoon": "Buying puyl on the website opens soon."
 }

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/worker/profile/worker_profile_draft.dart';
@@ -87,7 +89,13 @@ Future<String> _uploadToStorage(SupabaseClient client, String userId, String loc
   final extension = localPath.contains('.') ? localPath.split('.').last.toLowerCase() : 'jpg';
   final type = switch (extension) { 'png' => 'image/png', 'webp' => 'image/webp', _ => 'image/jpeg' };
   final path = '$userId/avatar-${DateTime.now().millisecondsSinceEpoch}.${type.split('/').last}';
-  await client.storage.from(ishAvatarsBucket).upload(path, File(localPath), fileOptions: FileOptions(contentType: type));
+  if (kIsWeb) {
+    // The Telegram mini app: the picked photo is a blob: URL, read as bytes.
+    final bytes = await XFile(localPath).readAsBytes();
+    await client.storage.from(ishAvatarsBucket).uploadBinary(path, bytes, fileOptions: FileOptions(contentType: type));
+  } else {
+    await client.storage.from(ishAvatarsBucket).upload(path, File(localPath), fileOptions: FileOptions(contentType: type));
+  }
   return path;
 }
 

@@ -1,0 +1,150 @@
+name: HanPyol — Telegram mini app
+
+# The HanPyol worker app (hanguk_ish, lib/main_worker.dart) built for the web
+# and opened inside Telegram as a Mini App (2026-11-26):
+#
+#   1. function: deploys ish-telegram-auth (Telegram sign-in) and gives it the
+#      bot's token (repository secret TELEGRAM_HANPYOL_BOT_TOKEN → Supabase
+#      Edge Functions secret of the same name).
+#   2. web: `flutter build web`, deployed to the Vercel project "hanpyol-tg"
+#      (VERCEL_TOKEN, as web-app-vercel.yml).
+#   3. bot: the bot's menu button opens that address; its name and
+#      description are set.
+#
+# Runs on a push to main or to an ish/tg-* branch that changes the app, the
+# function or this file, and by hand.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'ish/tg-**']
+    paths:
+      - 'hanguk_ish/lib/**'
+      - 'hanguk_ish/web/**'
+      - 'hanguk_ish/assets/**'
+      - 'hanguk_ish/pubspec.yaml'
+      - 'hanguk_ish/pubspec.lock'
+      - 'supabase/functions/ish-telegram-auth/**'
+      - '.github/workflows/ish-tg-web.yml'
+
+concurrency:
+  group: ish-tg-web
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_ID: lysjdtyanhdfphqyijsr
+  SUPABASE_URL: https://lysjdtyanhdfphqyijsr.supabase.co
+  SUPABASE_PUBLISHABLE_KEY: sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3
+  VERCEL_PROJECT: hanpyol-tg
+  VERCEL_CLI: vercel@64.7.0
+
+jobs:
+  function:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: The bot's token is there
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_HANPYOL_BOT_TOKEN }}
+        run: |
+          if [ -z "$BOT_TOKEN" ]; then
+            echo "::error::Repository secret TELEGRAM_HANPYOL_BOT_TOKEN is missing (the token from BotFather)."
+            echo "### The bot token (TELEGRAM_HANPYOL_BOT_TOKEN) is missing" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Secret and function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          BOT_TOKEN: ${{ secrets.TELEGRAM_HANPYOL_BOT_TOKEN }}
+        run: |
+          set -euo pipefail
+          supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" "TELEGRAM_HANPYOL_BOT_TOKEN=$BOT_TOKEN" >/dev/null
+          supabase functions deploy ish-telegram-auth --project-ref "$SUPABASE_PROJECT_ID" --use-api --yes
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    defaults:
+      run:
+        working-directory: hanguk_ish
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build web
+        env:
+          KAKAO_JS_KEY: ${{ secrets.ISH_KAKAO_JS_KEY }}
+        run: |
+          flutter build web --release -t lib/main_worker.dart --base-href / --no-wasm-dry-run \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
+            ${KAKAO_JS_KEY:+--dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY}
+      - name: Deploy to Vercel
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          SCOPE: ${{ secrets.VERCEL_SCOPE }}
+        run: |
+          set -euo pipefail
+          SITE="$RUNNER_TEMP/$VERCEL_PROJECT"
+          cp -r build/web "$SITE"
+          # Static files; index.html is never cached so a new build shows at once.
+          cat > "$SITE/vercel.json" <<'JSON'
+          {
+            "framework": null,
+            "headers": [
+              { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+              { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+              { "source": "/flutter_bootstrap.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+            ]
+          }
+          JSON
+          cd "$SITE"
+          args=(deploy --prod --yes --token "$VERCEL_TOKEN" --project "$VERCEL_PROJECT")
+          [ -n "${SCOPE:-}" ] && args+=(--scope "$SCOPE")
+          deployment=$(npx --yes "$VERCEL_CLI" "${args[@]}")
+          echo "Deployment: $deployment"
+          # The project's own production address (the deployment's own URL may
+          # sit behind Vercel's login).
+          inspect=$(npx --yes "$VERCEL_CLI" inspect "$deployment" --token "$VERCEL_TOKEN" ${SCOPE:+--scope "$SCOPE"} 2>&1 || true)
+          url=$(echo "$inspect" | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' | grep -v "${deployment#https://}" | awk '{ print length, $0 }' | sort -n | head -1 | cut -d' ' -f2)
+          [ -n "$url" ] || url="$deployment"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "### Mini app: $url" >> "$GITHUB_STEP_SUMMARY"
+
+  bot:
+    needs: [function, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Menu button, name, description
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_HANPYOL_BOT_TOKEN }}
+          URL: ${{ needs.web.outputs.url }}
+        run: |
+          set -euo pipefail
+          api="https://api.telegram.org/bot$BOT_TOKEN"
+          call() { curl -fsS -X POST "$api/$1" -H 'Content-Type: application/json' -d "$2" | jq -c '{ok, description}'; }
+          call setChatMenuButton "$(jq -n --arg url "$URL" '{menu_button: {type: "web_app", text: "HanPyol", web_app: {url: $url}}}')"
+          call setMyName '{"name": "HanPyol"}' || true
+          call setMyShortDescription '{"short_description": "Koreyada kunlik va oylik ish. Pastdagi «HanPyol» tugmasini bosing."}'
+          call setMyDescription '{"description": "HanPyol — Koreyadagi yoshlar uchun ish ilovasi: kunlik va oylik ishlar, puyl, QR bilan ishga kelish. Ochish uchun pastdagi «HanPyol» tugmasini bosing."}'
+          user=$(curl -fsS "$api/getMe" | jq -r '.result.username')
+          {
+            echo "### Telegram bot"
+            echo "- Bot: https://t.me/$user"
+            echo "- Mini app: $URL"
+          } >> "$GITHUB_STEP_SUMMARY"

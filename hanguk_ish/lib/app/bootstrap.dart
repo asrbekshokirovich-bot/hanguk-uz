@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,8 @@ import '../design/theme.dart';
 import '../features/employer/language.dart';
 import '../features/worker/map/native_kakao_map.dart';
 import '../features/worker/settings/app_language.dart';
+import '../features/worker/telegram/telegram_sign_in.dart';
+import '../features/worker/telegram/telegram_web_app.dart';
 import 'flavor.dart';
 import 'language_store.dart';
 
@@ -40,10 +43,19 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
   // The language chosen before; without the device store, this launch
   // only. The employer app starts in the phone's language when it speaks it,
   // else Korean (P43).
+  // The web build inside Telegram (the mini app); null on phones.
+  final telegram = kIsWeb ? telegramWebApp() : null;
+  telegram?.ready();
   SharedPreferences? prefs;
   try {
     prefs = await SharedPreferences.getInstance();
-    overrides.add(languageStoreProvider.overrideWithValue(PrefsLanguageStore(prefs)));
+    final store = PrefsLanguageStore(prefs);
+    // The mini app's first launch speaks the person's Telegram language.
+    if (telegram != null && store.load() == null) {
+      final language = AppLanguage.values.where((l) => l.code == telegram.languageCode).firstOrNull;
+      if (language != null) await store.save(language);
+    }
+    overrides.add(languageStoreProvider.overrideWithValue(store));
   } on Object {
     // Kept for the session.
   }
@@ -63,9 +75,16 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
       postgrestOptions: ishPostgrestOptions,
     );
     overrides.addAll(backendOverrides(backend, Supabase.instance.client));
-    // P56: pushes, when the build carries the Firebase configuration
-    // (android/app/google-services.json); without it, none.
-    overrides.add(pushServiceProvider.overrideWithValue(FirebasePushService(prefs: prefs)));
+    if (kIsWeb) {
+      // The mini app: no phone pushes; Telegram signs the person in.
+      if (telegram != null) {
+        overrides.add(telegramSignInProvider.overrideWithValue(TelegramSignIn(Supabase.instance.client, telegram)));
+      }
+    } else {
+      // P56: pushes, when the build carries the Firebase configuration
+      // (android/app/google-services.json); without it, none.
+      overrides.add(pushServiceProvider.overrideWithValue(FirebasePushService(prefs: prefs)));
+    }
   } else {
     // The emulator smoke test runs the demo at a set hour (ish-smoke.yml).
     final clock = demoClockAt(const String.fromEnvironment('ISH_DEMO_KST'));
@@ -82,6 +101,6 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
     }
   }
   // A04's native Kakao map (when the build has the Native app key).
-  if (flavor == Flavor.worker) await initKakaoNativeMap();
+  if (flavor == Flavor.worker && !kIsWeb) await initKakaoNativeMap();
   runApp(ProviderScope(overrides: overrides, child: app));
 }

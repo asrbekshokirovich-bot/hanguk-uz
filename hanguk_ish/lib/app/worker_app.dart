@@ -4,22 +4,22 @@ import 'package:go_router/go_router.dart';
 
 import '../core/links/directions.dart';
 import '../data/backend/backend.dart';
+import '../data/models/my_shift.dart';
+import '../data/models/shift.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
 import '../data/repositories/pyol_store.dart';
-import '../features/worker/coins/coins.dart' show coinsProvider;
-import '../data/models/my_shift.dart';
-import '../data/models/shift.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 import '../design/widgets/backdrop.dart';
 import '../design/widgets/brand.dart';
+import '../features/worker/chat/chat_screen.dart';
+import '../features/worker/coins/coins.dart' show coinsProvider;
+import '../features/worker/earnings/earnings_screen.dart';
 import '../features/worker/feed/feed_controller.dart';
 import '../features/worker/feed/feed_screen.dart';
 import '../features/worker/jobs/jobs_screens.dart';
 import '../features/worker/load_error.dart';
-import '../features/worker/chat/chat_screen.dart';
-import '../features/worker/earnings/earnings_screen.dart';
 import '../features/worker/map/kakao_map_view.dart' show kakaoMapHostProvider;
 import '../features/worker/map/map_screen.dart';
 import '../features/worker/map/native_kakao_map.dart' show kakaoNativeStarted;
@@ -37,6 +37,7 @@ import '../features/worker/settings/app_language.dart';
 import '../features/worker/shell/worker_shell.dart';
 import '../features/worker/shift/shift_detail_screen.dart';
 import '../features/worker/shift/take_shift.dart';
+import '../features/worker/telegram/telegram_sign_in.dart';
 import '../features/worker/work/payment_confirm.dart';
 import '../features/worker/work/work_screens.dart';
 import '../l10n/gen/worker_l10n.dart';
@@ -172,6 +173,18 @@ class _StartGateState extends ConsumerState<_StartGate> {
 
   Future<void> _continue() async {
     if (!mounted) return;
+    // The Telegram mini app: signed in with the Telegram account first.
+    final telegram = ref.read(telegramSignInProvider);
+    if (telegram != null) {
+      setState(() => _error = null);
+      try {
+        await telegram.run(context);
+      } on Object catch (error) {
+        if (mounted) setState(() => _error = error);
+        return;
+      }
+      if (!mounted) return;
+    }
     if (ref.read(authRepositoryProvider).userId == null) {
       context.go(WorkerRoutes.login);
       return;
