@@ -19,6 +19,7 @@ import type {
   IshFreeWorker,
   IshMonthlyHire,
   IshPaymentDetails,
+  IshPaymentKey,
   IshPyolDay,
   IshTopup,
   IshReport,
@@ -139,7 +140,7 @@ export function ishApi(client: SupabaseClient) {
       rpc<number>('staff_add_coins', { p_worker: workerId, p_delta: delta, p_note: note.trim() }),
 
     /** Top-up requests (pending by default; null: all). */
-    topups: async (status: 'pending' | 'approved' | 'rejected' | null = 'pending') =>
+    topups: async (status: IshTopup['status'] | null = 'pending') =>
       (await rpc<IshTopup[] | null>('staff_topups', { p_status: status })) ?? [],
 
     /** The money came: the puyl go to the worker. ALREADY_DECIDED twice. */
@@ -150,8 +151,8 @@ export function ishApi(client: SupabaseClient) {
 
     paymentDetails: () => rpc<IshPaymentDetails>('payment_details'),
 
-    /** Where workers send the money: 'bank' / 'kakaopay' / 'toss' / 'note'. */
-    setPaymentSetting: (key: 'bank' | 'kakaopay' | 'toss' | 'note', value: string) =>
+    /** Where workers send the money: the bank account (bank_name / bank_account / bank_holder) and the help link. */
+    setPaymentSetting: (key: IshPaymentKey, value: string) =>
       rpc<void>('staff_set_payment_setting', { p_key: key, p_value: value.trim() }),
 
     /** «My free days» of the workers: how many, by day and place. */

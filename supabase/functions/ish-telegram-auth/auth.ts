@@ -12,6 +12,8 @@ export interface SignInToken {
   token_hash: string;
   /** The Supabase OTP type the token is verified as. */
   type: "magiclink" | "recovery";
+  /** The account (kept on the server: its Telegram notices). */
+  userId?: string;
 }
 
 export class AuthError extends Error {
