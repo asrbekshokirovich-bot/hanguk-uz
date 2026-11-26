@@ -169,6 +169,9 @@ jobs:
             ios/Runner.xcodeproj/project.pbxproj
 
       - name: Build the IPA
+        env:
+          KAKAO_JS_KEY: ${{ secrets.ISH_KAKAO_JS_KEY }}
+          KAKAO_NATIVE_KEY: ${{ secrets.ISH_KAKAO_NATIVE_KEY }}
         run: |
           set -euo pipefail
           flutter pub get
@@ -177,6 +180,8 @@ jobs:
             --build-name="$name" --build-number="${{ github.run_number }}" \
             --dart-define=SUPABASE_URL=https://lysjdtyanhdfphqyijsr.supabase.co \
             --dart-define=SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ne64VlXnQ7tWJJ1e7aQLGg_5OgQiof3 \
+            ${KAKAO_JS_KEY:+--dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY} \
+            ${KAKAO_NATIVE_KEY:+--dart-define=KAKAO_NATIVE_KEY=$KAKAO_NATIVE_KEY} \
             --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
           ls -la build/ios/ipa/
 
