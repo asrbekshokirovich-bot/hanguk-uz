@@ -739,5 +739,8 @@
   "tgShareButton": "Share number",
   "tgShareSkip": "Not now",
   "pyolBuyOnWebsite": "Buy on the website",
-  "pyolWebsiteSoon": "Buying puyl on the website opens soon."
+  "pyolWebsiteSoon": "Buying puyl on the website opens soon.",
+  "phoneCountryKorea": "🇰🇷 Korea +82",
+  "phoneCountryUzbekistan": "🇺🇿 Uzbekistan +998",
+  "phoneHintUzbek": "Uzbek number: the 9 digits after +998"
 }

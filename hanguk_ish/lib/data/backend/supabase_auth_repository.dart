@@ -23,7 +23,7 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Stream<String?> get changes => _client.auth.onAuthStateChange.map((state) => state.session?.user.id);
 
-  String _e164(String phone) => KoreanPhone.toE164(phone) ?? (throw const ShiftActionException('PHONE_INVALID'));
+  String _e164(String phone) => SignInPhone.toE164(phone) ?? (throw const ShiftActionException('PHONE_INVALID'));
 
   @override
   Future<void> sendCode(String phone) =>

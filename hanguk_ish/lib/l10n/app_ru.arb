@@ -739,5 +739,8 @@
   "tgShareButton": "Поделиться номером",
   "tgShareSkip": "Не сейчас",
   "pyolBuyOnWebsite": "Купить на сайте",
-  "pyolWebsiteSoon": "Покупка пюль на сайте скоро откроется."
+  "pyolWebsiteSoon": "Покупка пюль на сайте скоро откроется.",
+  "phoneCountryKorea": "🇰🇷 Корея +82",
+  "phoneCountryUzbekistan": "🇺🇿 Узбекистан +998",
+  "phoneHintUzbek": "Номер Узбекистана: 9 цифр после +998"
 }

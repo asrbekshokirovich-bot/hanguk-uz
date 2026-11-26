@@ -22,3 +22,26 @@ abstract final class KoreanPhone {
     return '${local.substring(0, 3)}-${local.substring(3, 3 + middle)}-${local.substring(3 + middle)}';
   }
 }
+
+/// A worker's sign-in number: a Korean mobile (+82) or an Uzbek one (+998)
+/// (2026-11-26). The owners' app stays on [KoreanPhone].
+abstract final class SignInPhone {
+  // +998 and nine digits: the operator code (90, 91, 93, 33, 77, …) and the number.
+  static final _uzbek = RegExp(r'^998[1-9]\d{8}$');
+
+  /// `+821012345678` / `+998901234567`; null when it is neither.
+  static String? toE164(String input) {
+    final korean = KoreanPhone.toE164(input);
+    if (korean != null) return korean;
+    final digits = input.replaceAll(RegExp(r'\D'), '');
+    return _uzbek.hasMatch(digits) ? '+$digits' : null;
+  }
+
+  /// `010-1234-5678` or `+998 90 123 45 67` for showing a number back.
+  static String display(String number) {
+    final e164 = toE164(number);
+    if (e164 == null || !e164.startsWith('+998')) return KoreanPhone.display(number);
+    final d = e164.substring(4);
+    return '+998 ${d.substring(0, 2)} ${d.substring(2, 5)} ${d.substring(5, 7)} ${d.substring(7)}';
+  }
+}

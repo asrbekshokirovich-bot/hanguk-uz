@@ -739,5 +739,8 @@
   "tgShareButton": "번호 공유하기",
   "tgShareSkip": "나중에",
   "pyolBuyOnWebsite": "웹사이트에서 구매",
-  "pyolWebsiteSoon": "웹사이트에서 퓰 구매가 곧 열려요."
+  "pyolWebsiteSoon": "웹사이트에서 퓰 구매가 곧 열려요.",
+  "phoneCountryKorea": "🇰🇷 한국 +82",
+  "phoneCountryUzbekistan": "🇺🇿 우즈베키스탄 +998",
+  "phoneHintUzbek": "우즈베키스탄 번호: +998 뒤의 9자리"
 }

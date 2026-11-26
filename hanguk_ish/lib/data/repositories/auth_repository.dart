@@ -51,12 +51,12 @@ class DemoAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendCode(String phone) async {
-    if (KoreanPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
+    if (SignInPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
   }
 
   @override
   Future<void> verifyCode(String phone, String code) async {
-    if (KoreanPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
+    if (SignInPhone.toE164(phone) == null) throw const ShiftActionException('PHONE_INVALID');
     if (!RegExp(r'^\d{6}$').hasMatch(code.trim())) throw const ShiftActionException('CODE_INVALID');
     _user = demoUser;
     _changes.add(_user);

@@ -3793,5 +3793,17 @@
   "pyolWebsiteSoon": "Puylni saytda sotib olish tez orada ochiladi.",
   "@pyolWebsiteSoon": {
     "description": "Telegram mini app: the website shop is not open yet."
+  },
+  "phoneCountryKorea": "🇰🇷 Koreya +82",
+  "@phoneCountryKorea": {
+    "description": "T1: the number is Korean (2026-11-26)."
+  },
+  "phoneCountryUzbekistan": "🇺🇿 O'zbekiston +998",
+  "@phoneCountryUzbekistan": {
+    "description": "T1: the number is Uzbek (2026-11-26)."
+  },
+  "phoneHintUzbek": "O'zbekiston raqami, +998 dan keyingi 9 raqam",
+  "@phoneHintUzbek": {
+    "description": "T1: hint under the field for an Uzbek number."
   }
 }

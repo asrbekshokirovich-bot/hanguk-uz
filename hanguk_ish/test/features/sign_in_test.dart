@@ -86,6 +86,16 @@ void main() {
       expect(KoreanPhone.display('0111234567'), '011-123-4567');
     });
 
+    test('a worker signs in with a Korean or an Uzbek number (2026-11-26)', () {
+      expect(SignInPhone.toE164('010-1234-5678'), '+821012345678');
+      expect(SignInPhone.toE164('+998901234567'), '+998901234567');
+      expect(SignInPhone.toE164('+998 90-123-45-67'), '+998901234567');
+      expect(SignInPhone.toE164('+99890123456'), isNull, reason: 'a digit short');
+      expect(SignInPhone.toE164('+998001234567'), isNull);
+      expect(SignInPhone.display('+998901234567'), '+998 90 123 45 67');
+      expect(SignInPhone.display('01012345678'), '010-1234-5678');
+    });
+
     test('사업자등록번호 check digit', () {
       expect(isValidBusinessNumber('124-81-00998'), isTrue);
       expect(isValidBusinessNumber('1234567891'), isTrue);
