@@ -28,10 +28,12 @@ const request: IshTopup = {
   pyols: 100,
   amount_won: 9900,
   method: 'bank',
-  payer_name: 'AZIZ K',
+  payer_name: 'HP4K7Q',
+  code: 'HP4K7Q',
   status: 'pending',
   note: '',
   created_at: '2026-11-24T02:00:00Z',
+  paid_at: '2026-11-24T02:05:00Z',
   decided_at: null,
 };
 
@@ -42,7 +44,7 @@ function base(over: Partial<IshApi>): Partial<IshApi> {
     topups: vi.fn(async () => [request]),
     approveTopup: vi.fn(async () => 190),
     rejectTopup: vi.fn(async () => undefined),
-    paymentDetails: vi.fn(async () => ({ packs: [{ pyols: 30, won: 3300 }], methods: { bank: 'Shinhan 110-000' } })),
+    paymentDetails: vi.fn(async () => ({ packs: [{ pyols: 30, won: 3300 }], methods: { bank_account: '110-000-123456' } })),
     setPaymentSetting: vi.fn(async () => undefined),
     monthlyHires: vi.fn(async () => []),
     monthlyInterest: vi.fn(async () => []),
@@ -97,6 +99,8 @@ describe('CRM → HanPyol → «Puyl & free days»', () => {
     const api = base({});
     renderPyol(api);
     await screen.findByTestId('ish-topup-t1');
+    // The code the worker wrote as 입금자명, to find the money in the bank.
+    expect(screen.getByText('HP4K7Q')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Money came — approve' }));
     await waitFor(() => expect(api.approveTopup).toHaveBeenCalledWith('t1'));
   });
@@ -104,12 +108,12 @@ describe('CRM → HanPyol → «Puyl & free days»', () => {
   it('saves only the payment details that changed', async () => {
     const api = base({});
     renderPyol(api);
-    const kakao = await screen.findByLabelText('KakaoPay');
-    await waitFor(() => expect((screen.getByLabelText('Bank account') as HTMLInputElement).value).toBe('Shinhan 110-000'));
-    fireEvent.change(kakao, { target: { value: 'https://qr.kakaopay.com/x' } });
+    const holder = await screen.findByLabelText('Account holder (예금주)');
+    await waitFor(() => expect((screen.getByLabelText('Account number') as HTMLInputElement).value).toBe('110-000-123456'));
+    fireEvent.change(holder, { target: { value: '김민수' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(api.setPaymentSetting).toHaveBeenCalledTimes(1));
-    expect(api.setPaymentSetting).toHaveBeenCalledWith('kakaopay', 'https://qr.kakaopay.com/x');
+    expect(api.setPaymentSetting).toHaveBeenCalledWith('bank_holder', '김민수');
   });
 
   it('sums the month', async () => {

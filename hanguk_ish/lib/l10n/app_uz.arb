@@ -3786,14 +3786,6 @@
   "@tgShareSkip": {
     "description": "Telegram mini app: continue without the number."
   },
-  "pyolBuyOnWebsite": "Saytda sotib olish",
-  "@pyolBuyOnWebsite": {
-    "description": "Telegram mini app: «Puyl olish» opens the website (no store payment there)."
-  },
-  "pyolWebsiteSoon": "Puylni saytda sotib olish tez orada ochiladi.",
-  "@pyolWebsiteSoon": {
-    "description": "Telegram mini app: the website shop is not open yet."
-  },
   "phoneCountryKorea": "🇰🇷 Koreya +82",
   "@phoneCountryKorea": {
     "description": "T1: the number is Korean (2026-11-26)."
@@ -3805,6 +3797,126 @@
   "phoneHintUzbek": "O'zbekiston raqami, +998 dan keyingi 9 raqam",
   "@phoneHintUzbek": {
     "description": "T1: hint under the field for an Uzbek number."
+  },
+  "bankTitle": "Puyl sotib olish",
+  "@bankTitle": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankHowTitle": "Qanday ishlaydi",
+  "@bankHowTitle": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankHow": "1. Paketni tanlang.\n2. Ko'rsatilgan hisobga pul o'tkazing, jo'natuvchi ismi (입금자명) o'rniga kodni yozing.\n3. «Pul o'tkazdim» ni bosing. Tekshirilgach puyl hisobingizga tushadi va xabar keladi.",
+  "@bankHow": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStep1": "1. Paketni tanlang",
+  "@bankStep1": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStep2": "2. Pulni o'tkazing",
+  "@bankStep2": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStep3": "3. Tasdiqlang",
+  "@bankStep3": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankContinue": "Davom etish",
+  "@bankContinue": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankName": "Bank",
+  "@bankName": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankAccount": "Hisob raqami",
+  "@bankAccount": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankHolder": "Hisob egasi",
+  "@bankHolder": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankAmount": "Summa",
+  "@bankAmount": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankCode": "Jo'natuvchi ismi (입금자명) o'rniga yozing:",
+  "@bankCode": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankCodeHint": "Aynan shu kodni yozing — shunda pulingizni tez topamiz. Summani ham aniq o'tkazing.",
+  "@bankCodeHint": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankExpires": "Buyurtma 24 soat amal qiladi. Muddati o'tsa, yangisini oching.",
+  "@bankExpires": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankPaid": "Pul o'tkazdim",
+  "@bankPaid": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankCopied": "Nusxa olindi",
+  "@bankCopied": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankWaiting": "Tekshirilmoqda. Odatda bir necha daqiqa oladi — puyl tushganda xabar keladi.",
+  "@bankWaiting": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankHelp": "Yordam kerakmi? Bizga yozing",
+  "@bankHelp": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankNotReady": "Hozircha bank orqali sotib olib bo'lmaydi. Tez orada ochiladi.",
+  "@bankNotReady": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankOrders": "Buyurtmalarim",
+  "@bankOrders": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStatusUnpaid": "To'lanmagan",
+  "@bankStatusUnpaid": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStatusPending": "Tekshirilmoqda",
+  "@bankStatusPending": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStatusApproved": "Puyl tushdi",
+  "@bankStatusApproved": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStatusRejected": "Rad etildi",
+  "@bankStatusRejected": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankStatusExpired": "Muddati o'tdi",
+  "@bankStatusExpired": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankTooMany": "Ochiq buyurtmalar ko'p. Avvalgisini to'lang yoki muddati o'tishini kuting.",
+  "@bankTooMany": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankExpiredError": "Buyurtma muddati o'tgan. Yangisini oching.",
+  "@bankExpiredError": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "bankBuyButton": "Bank o'tkazmasi orqali sotib olish",
+  "@bankBuyButton": {
+    "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "pyolBuyOnWebsite": "Saytda sotib olish",
+  "@pyolBuyOnWebsite": {
+    "description": "Telegram mini app: «Puyl olish» opens the website (no store payment there)."
+  },
+  "pyolWebsiteSoon": "Puylni saytda sotib olish tez orada ochiladi.",
+  "@pyolWebsiteSoon": {
+    "description": "Telegram mini app: the website shop is not open yet."
   },
   "wishTitle": "{when}: qanday ish kerak?",
   "@wishTitle": {

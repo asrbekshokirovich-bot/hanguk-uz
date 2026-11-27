@@ -38,6 +38,34 @@ class PaymentDetails {
   final List<TopupRequest> pending;
 }
 
+/// A bank-transfer order on the web / mini app (2026-11-26): the code the
+/// worker writes as the sender's name (입금자명), and where it stands.
+@immutable
+class TopupOrder {
+  const TopupOrder({
+    required this.id,
+    required this.code,
+    required this.pyols,
+    required this.won,
+    required this.status,
+    required this.createdAt,
+  });
+
+  final String id;
+
+  /// HP4K7Q.
+  final String code;
+  final int pyols;
+  final int won;
+
+  /// 'unpaid' (not marked paid yet), 'pending' (the staff check), 'approved',
+  /// 'rejected' or 'expired'.
+  final String status;
+  final DateTime createdAt;
+
+  bool get open => status == 'unpaid' || status == 'pending';
+}
+
 /// The worker's invite code.
 @immutable
 class Referral {
@@ -78,6 +106,15 @@ abstract interface class PyolRepository {
   /// `request_topup`: the staff add the pyols once the money came.
   Future<void> requestTopup({required int pyols, required String method, required String payerName});
 
+  /// `start_topup`: a bank-transfer order for a pack, with its code.
+  Future<TopupOrder> startTopup(int pyols);
+
+  /// `topup_paid`: «Pul o'tkazdim» — the staff check now. EXPIRED after a day.
+  Future<TopupOrder> topupPaid(String id);
+
+  /// `my_topups`: the worker's orders, newest first.
+  Future<List<TopupOrder>> myTopups();
+
   /// `my_referral`.
   Future<Referral?> referral();
 
@@ -100,7 +137,12 @@ class DemoPyolRepository implements PyolRepository {
   @override
   Future<PaymentDetails> paymentDetails() async => PaymentDetails(
         packs: const [PyolPack(pyols: 30, won: 3300), PyolPack(pyols: 100, won: 9900), PyolPack(pyols: 300, won: 24000)],
-        methods: const {'bank': 'Demo Bank 000-00-0000'},
+        methods: const {
+          'bank': 'Demo Bank 000-00-0000',
+          'bank_name': '하나은행',
+          'bank_account': '000-000000-00000',
+          'bank_holder': '김민수',
+        },
         pending: List.unmodifiable(_pending),
       );
 
@@ -110,6 +152,37 @@ class DemoPyolRepository implements PyolRepository {
     final won = switch (pyols) { 30 => 3300, 100 => 9900, 300 => 24000, _ => throw const ShiftActionException('INVALID') };
     _pending.add(TopupRequest(id: 'demo-${_pending.length}', pyols: pyols, won: won, method: method));
   }
+
+  final List<TopupOrder> _orders = [];
+
+  @override
+  Future<TopupOrder> startTopup(int pyols) async {
+    if (_orders.where((o) => o.open).length >= 3) throw const ShiftActionException('TOO_MANY');
+    final won = switch (pyols) { 30 => 3300, 100 => 9900, 300 => 24000, _ => throw const ShiftActionException('INVALID') };
+    final order = TopupOrder(
+      id: 'demo-${_orders.length}',
+      code: 'HP${(2345 + _orders.length * 7).toString()}'.substring(0, 6),
+      pyols: pyols,
+      won: won,
+      status: 'unpaid',
+      createdAt: DateTime.now(),
+    );
+    _orders.insert(0, order);
+    return order;
+  }
+
+  @override
+  Future<TopupOrder> topupPaid(String id) async {
+    final i = _orders.indexWhere((o) => o.id == id);
+    if (i < 0) throw const ShiftActionException('NOT_FOUND');
+    final o = _orders[i];
+    if (o.status != 'unpaid') return o;
+    return _orders[i] = TopupOrder(
+        id: o.id, code: o.code, pyols: o.pyols, won: o.won, status: 'pending', createdAt: o.createdAt);
+  }
+
+  @override
+  Future<List<TopupOrder>> myTopups() async => List.unmodifiable(_orders);
 
   @override
   Future<Referral?> referral() async => Referral(code: 'DEMO01', invitedBy: _invited);

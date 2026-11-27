@@ -11,7 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ishErrorText, ishKeys, useIshApi } from './context';
 import { won } from './IshMonthly';
 
-const METHODS = ['bank', 'kakaopay', 'toss', 'note'] as const;
+/** What the staff set: the bank account the web app / mini app shows, and the help link. */
+const METHODS = ['bank_name', 'bank_account', 'bank_holder', 'contact'] as const;
 
 /**
  * «Puyl va bo'sh kunlar»: the nightly work of one person.
@@ -121,7 +122,15 @@ function Topups() {
   const { t } = useTranslation();
   const api = useIshApi();
   const queryClient = useQueryClient();
-  const list = useQuery({ queryKey: ishKeys.topups, queryFn: () => api.topups('pending') });
+  // Said paid first, then the orders not marked paid yet (money may come first).
+  const list = useQuery({
+    queryKey: ishKeys.topups,
+    queryFn: async () => {
+      const all = await api.topups(null);
+      const open = all.filter((r) => r.status === 'pending' || r.status === 'unpaid');
+      return [...open.filter((r) => r.status === 'pending'), ...open.filter((r) => r.status === 'unpaid')];
+    },
+  });
   const done = () => {
     void queryClient.invalidateQueries({ queryKey: ishKeys.topups });
     void queryClient.invalidateQueries({ queryKey: ishKeys.pyolReport });
@@ -157,8 +166,13 @@ function Topups() {
             <span>
               {r.pyols} P · {won(r.amount_won)} · {t(`ish.pyol.method.${r.method}`)}
             </span>
-            {r.payer_name && <span>«{r.payer_name}»</span>}
-            <span className="text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
+            {r.code && <code className="rounded bg-muted px-2 py-0.5 font-mono font-bold tracking-widest">{r.code}</code>}
+            {r.payer_name && r.payer_name !== r.code && <span>«{r.payer_name}»</span>}
+            <span className="text-muted-foreground">
+              {r.status === 'unpaid'
+                ? t('ish.pyol.unpaid')
+                : `${r.paid_at ? t('ish.pyol.paid') : ''}${new Date(r.paid_at ?? r.created_at).toLocaleString()}`}
+            </span>
             <Button size="sm" disabled={busy} onClick={() => approve.mutate(r.id)}>
               {t('ish.pyol.approve')}
             </Button>

@@ -4219,7 +4219,7 @@
         "any": "istalgan vaqt"
       },
       "topups": "To'ldirish so'rovlari",
-      "topupsHint": "Pul hisobga kelganini tekshiring, keyin tasdiqlang. Puyl darhol ishchiga o'tadi.",
+      "topupsHint": "Ishchi «Pul o'tkazdim» ni bosgach shu yerda chiqadi va Telegram'ga xabar keladi. Bankda jo'natuvchi ismi (입금자명) shu kod bo'lgan pulni toping, keyin tasdiqlang — puyl darhol ishchiga o'tadi.",
       "topupsEmpty": "Kutilayotgan so'rov yo'q.",
       "approve": "Pul keldi — tasdiqlash",
       "reject": "Rad etish",
@@ -4228,7 +4228,11 @@
         "bank": "Bank hisobi",
         "kakaopay": "KakaoPay",
         "toss": "Toss",
-        "note": "Ishchilarga eslatma"
+        "note": "Ishchilarga eslatma",
+        "bank_name": "Bank nomi (masalan 하나은행)",
+        "bank_account": "Hisob raqami",
+        "bank_holder": "Hisob egasi (예금주)",
+        "contact": "Yordam uchun havola (t.me/... yoki @username)"
       },
       "payment": "Ishchilar pulni qayerga yuboradi",
       "save": "Saqlash",
@@ -4275,6 +4279,8 @@
           "cleared": "olib tashlandi"
         }
       },
+      "unpaid": "Hali «Pul o'tkazdim» bosilmagan",
+      "paid": "Pul o'tkazdim: ",
       "priority": {
         "pay": "Ko'proq pul",
         "easy": "Yengilroq ish",

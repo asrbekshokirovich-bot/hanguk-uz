@@ -359,16 +359,31 @@ export interface IshTopup {
   amount_won: number;
   method: 'bank' | 'kakaopay' | 'toss';
   payer_name: string;
-  status: 'pending' | 'approved' | 'rejected';
+  /** Bank transfer on the web / mini app: what the worker wrote as 입금자명. */
+  code: string | null;
+  status: 'unpaid' | 'pending' | 'approved' | 'rejected' | 'expired';
   note: string;
   created_at: string;
+  /** When the worker tapped «Pul o'tkazdim». */
+  paid_at: string | null;
   decided_at: string | null;
 }
+
+/** Where workers send the money (staff_set_payment_setting keys). */
+export type IshPaymentKey =
+  | 'bank'
+  | 'kakaopay'
+  | 'toss'
+  | 'note'
+  | 'bank_name'
+  | 'bank_account'
+  | 'bank_holder'
+  | 'contact';
 
 /** `payment_details`: the packs and where workers send the money. */
 export interface IshPaymentDetails {
   packs: { pyols: number; won: number }[];
-  methods: Partial<Record<'bank' | 'kakaopay' | 'toss' | 'note', string>>;
+  methods: Partial<Record<IshPaymentKey, string>>;
 }
 
 /** `staff_free_dates_summary`: how many workers are free, by day and place. */

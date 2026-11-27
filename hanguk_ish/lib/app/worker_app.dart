@@ -14,6 +14,7 @@ import '../design/tokens.dart';
 import '../design/widgets/backdrop.dart';
 import '../design/widgets/brand.dart';
 import '../features/worker/chat/chat_screen.dart';
+import '../features/worker/coins/bank_topup_screen.dart';
 import '../features/worker/coins/coins.dart' show coinsProvider;
 import '../features/worker/earnings/earnings_screen.dart';
 import '../features/worker/feed/feed_controller.dart';
@@ -257,6 +258,15 @@ final workerRouterProvider = Provider<GoRouter>((ref) {
               }
             },
           ),
+        ),
+      ),
+      // Buying puyl by bank transfer: the web app / Telegram mini app.
+      GoRoute(
+        path: bankTopupPath,
+        // Opened by its link before signing in: the sign-in first.
+        redirect: (context, state) => ref.read(authRepositoryProvider).userId == null ? WorkerRoutes.start : null,
+        builder: (context, state) => BankTopupScreen(
+          onBack: () => context.canPop() ? context.pop() : context.go(WorkerRoutes.start),
         ),
       ),
       GoRoute(

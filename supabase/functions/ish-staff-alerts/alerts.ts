@@ -5,10 +5,12 @@
 // ish.category, ish.reports.reasons, the tab names), each with the link to
 // the CRM tab where it is acted on:
 //   business_opened  the 사장님 app opened a business: name it or suspend it;
-//   report           a worker's complaint (A11): who, about what, the text.
+//   report           a worker's complaint (A11): who, about what, the text;
+//   topup            a worker says they sent money for puyl (bank transfer,
+//                    2026-11-26): the code to find in the bank, the amount.
 // deno-lint-ignore-file no-explicit-any
 
-export type AlertKind = "business_opened" | "report";
+export type AlertKind = "business_opened" | "report" | "topup";
 
 /** A row as ish.staff_alerts_claim gives it. */
 export interface Alert {
@@ -127,6 +129,20 @@ export function alertText(alert: Alert): string | null {
     if (body) lines.push(`«${html(body)}»`);
     lines.push("CRM → HanPyol → «Shikoyatlar»:", `${CRM}?tab=reports`);
     return lines.join("\n");
+  }
+  if (alert.kind === "topup") {
+    const code = text(d.code);
+    const won = Number(d.amount_won);
+    if (!code || !Number.isFinite(won)) return null;
+    const worker = [text(d.worker?.first_name), text(d.worker?.last_name)].filter(Boolean).join(" ");
+    const phone = text(d.worker?.phone);
+    return [
+      `💳 <b>HanPyol</b> — puyl uchun pul o'tkazildi: <b>₩${won.toLocaleString("en-US")}</b> → ${Number(d.pyols)} P`,
+      `Kod (입금자명): <code>${html(code)}</code>`,
+      `Ishchi: ${worker ? html(worker) : "Ismi kiritilmagan"}${phone ? ` · +${html(phone.replace(/^\+/, ""))}` : ""}`,
+      "Bankda shu kod bilan kelgan pulni tekshiring va tasdiqlang: CRM → HanPyol → «Puyl».",
+      `${CRM}?tab=pyol`,
+    ].join("\n");
   }
   return null;
 }

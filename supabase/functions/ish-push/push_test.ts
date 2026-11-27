@@ -13,6 +13,9 @@ import {
   pushStore,
   pushText,
   runPush,
+  telegramChat,
+  telegramGone,
+  telegramMessage,
   tokenGone,
   ttlSeconds,
 } from "./push.ts";
@@ -265,4 +268,19 @@ Deno.test("the store calls the database's functions with their parameter names",
     ["push_fail", { p_id: 7, p_error: "why" }],
     ["push_drop_token", { p_token: "t" }],
   ]);
+});
+
+Deno.test("Telegram mini app users: told by the bot, with a button to open the app", () => {
+  assertEquals(telegramChat("tg:12345"), "12345");
+  assertEquals(telegramChat("fcm-token"), null);
+  assertEquals(telegramChat("tg:12; drop"), null);
+  assertEquals(telegramMessage("12345", { title: "+100 P", body: "Balans: 190 P <ok>" }, "https://x.app"), {
+    chat_id: "12345",
+    text: "<b>+100 P</b>\nBalans: 190 P &lt;ok&gt;",
+    parse_mode: "HTML",
+    reply_markup: { inline_keyboard: [[{ text: "HanPyol", web_app: { url: "https://x.app" } }]] },
+  });
+  assertEquals(telegramGone(403, "bot was blocked by the user"), true);
+  assertEquals(telegramGone(400, "Bad Request: chat not found"), true);
+  assertEquals(telegramGone(429, "Too Many Requests"), false);
 });
