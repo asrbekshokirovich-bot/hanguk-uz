@@ -329,6 +329,28 @@ export function fcmMessage(token: string, text: PushText, data: Record<string, s
   };
 }
 
+/** A Telegram mini app user's «token» (ish-telegram-auth): `tg:<telegram id>`. */
+export const telegramChat = (token: string): string | null => {
+  const m = /^tg:(\d{1,20})$/.exec(token);
+  return m ? m[1] : null;
+};
+
+/** The HanPyol bot's message (sendMessage): the notice and a button that opens the mini app. */
+export function telegramMessage(chatId: string, text: PushText, appUrl: string) {
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return {
+    chat_id: chatId,
+    text: text.body ? `<b>${esc(text.title)}</b>\n${esc(text.body)}` : `<b>${esc(text.title)}</b>`,
+    parse_mode: "HTML",
+    reply_markup: { inline_keyboard: [[{ text: "HanPyol", web_app: { url: appUrl } }]] },
+  };
+}
+
+/** Telegram's refusal for good: the person blocked the bot or never started it. */
+export function telegramGone(status: number, body: string): boolean {
+  return status === 403 || (status === 400 && /chat not found/i.test(body));
+}
+
 /**
  * Whether FCM's refusal means the token is gone for good: the app was
  * removed or the token replaced (404 UNREGISTERED), or it is not a token

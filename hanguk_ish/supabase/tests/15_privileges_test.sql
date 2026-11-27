@@ -36,7 +36,9 @@ select tests.eq(
     'my_free_dates', 'set_free_dates', 'staff_free_dates_summary', 'staff_free_workers',
     -- Cards and the employer invite (20261125100000).
     'my_business_card', 'my_card', 'set_business_invite', 'staff_card', 'staff_cards', 'staff_clear_card',
-    'staff_give_business_card'
+    'staff_give_business_card',
+    -- Bank transfer on the web / mini app (20261126120000).
+    'my_topups', 'start_topup', 'topup_paid'
   ]::text[]) f),
   'the owner-rights functions open to signed-in people are the reviewed ones');
 

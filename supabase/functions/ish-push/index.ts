@@ -18,7 +18,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isServiceRequest } from "../_shared/caller.ts";
 import { fcmAccessToken, type ServiceAccount } from "../_shared/fcm.ts";
 import { serviceKey } from "../_shared/keys.ts";
-import { fcmMessage, pushStore, runPush, type Sender, tokenGone } from "./push.ts";
+import {
+  fcmMessage,
+  pushStore,
+  runPush,
+  type Sender,
+  telegramChat,
+  telegramGone,
+  telegramMessage,
+  tokenGone,
+} from "./push.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 
@@ -34,9 +43,31 @@ function serviceAccount(): ServiceAccount | null {
   }
 }
 
+// A mini app user (token tg:<id>) is told by the HanPyol bot (2026-11-26).
+const BOT_TOKEN = Deno.env.get("TELEGRAM_HANPYOL_BOT_TOKEN") ?? "";
+const MINI_APP_URL = Deno.env.get("ISH_MINI_APP_URL") || "https://hanpyol-tg.vercel.app";
+
+const telegram: Sender = async (token, text) => {
+  const chat = telegramChat(token);
+  if (!chat || !BOT_TOKEN) return { ok: false, gone: !chat, error: "telegram: no chat or no bot token" };
+  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(telegramMessage(chat, text, MINI_APP_URL)),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (res.ok) {
+    await res.body?.cancel();
+    return { ok: true, gone: false };
+  }
+  const body = await res.text();
+  return { ok: false, gone: telegramGone(res.status, body), error: `Telegram ${res.status} ${body.slice(0, 300)}` };
+};
+
 function sender(sa: ServiceAccount, access: string): Sender {
   const url = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
   return async (token, text, data, ttl) => {
+    if (token.startsWith("tg:")) return telegram(token, text, data, ttl);
     const res = await fetch(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${access}`, "Content-Type": "application/json" },

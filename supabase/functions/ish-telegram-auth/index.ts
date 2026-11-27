@@ -34,7 +34,7 @@ function accounts(url: string): Accounts {
         throw new AuthError("SERVER");
       }
       if (Number(data.user?.app_metadata?.["telegram_id"]) !== telegramId) throw new AuthError("MISMATCH");
-      return { token_hash: data.properties.hashed_token, type: "recovery" };
+      return { token_hash: data.properties.hashed_token, type: "recovery", userId: data.user?.id };
     },
     async byPhone(digits) {
       const { data, error } = await admin.schema("ish").from("profiles").select("id").eq("phone", digits).limit(1);
@@ -71,9 +71,22 @@ function accounts(url: string): Accounts {
     async link(email) {
       const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
       if (error || !data?.properties?.hashed_token) throw new AuthError("SERVER");
-      return { token_hash: data.properties.hashed_token, type: "magiclink" };
+      return { token_hash: data.properties.hashed_token, type: "magiclink", userId: data.user?.id };
     },
   };
+}
+
+async function rememberChat(url: string, userId: string, telegramId: number) {
+  const admin = createClient(url, serviceKey(), { auth: { persistSession: false, autoRefreshToken: false } });
+  const { error } = await admin.schema("ish").from("push_tokens").upsert({
+    token: `tg:${telegramId}`,
+    user_id: userId,
+    app: "worker",
+    platform: "telegram",
+    updated_at: new Date().toISOString(),
+  });
+  // Not fatal: the person is signed in either way.
+  if (error) console.error("ish-telegram-auth push token", error.message);
 }
 
 Deno.serve(async (req) => {
@@ -102,7 +115,16 @@ Deno.serve(async (req) => {
     } else if ("contact" in body) {
       contact = null;
     }
-    return json(200, await signIn(accounts(Deno.env.get("SUPABASE_URL")!), user, contact));
+    const url = Deno.env.get("SUPABASE_URL")!;
+    const result = await signIn(accounts(url), user, contact);
+    if ("token_hash" in result) {
+      const { userId, ...token } = result;
+      // The HanPyol bot tells this person what a phone would get by push
+      // (ish-push sends tg: tokens through Telegram).
+      if (userId) await rememberChat(url, userId, user.id);
+      return json(200, token);
+    }
+    return json(200, result);
   } catch (e) {
     if (e instanceof TelegramError) return json(401, { error: e.code });
     if (e instanceof AuthError) return json(e.code === "MISMATCH" ? 409 : 500, { error: e.code });

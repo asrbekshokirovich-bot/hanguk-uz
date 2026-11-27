@@ -43,6 +43,32 @@ class SupabasePyolRepository implements PyolRepository {
       });
 
   @override
+  Future<TopupOrder> startTopup(int pyols) =>
+      backendCall(() async => _order(await _client.rpc('start_topup', params: {'p_pyols': pyols})));
+
+  @override
+  Future<TopupOrder> topupPaid(String id) =>
+      backendCall(() async => _order(await _client.rpc('topup_paid', params: {'p_request': id})));
+
+  @override
+  Future<List<TopupOrder>> myTopups() => backendCall(() async {
+        final rows = await _client.rpc('my_topups');
+        return [for (final r in (rows as List? ?? const [])) if (r is Map) _order(r)];
+      });
+
+  static TopupOrder _order(Object? json) {
+    final r = (json as Map).cast<String, dynamic>();
+    return TopupOrder(
+      id: '${r['id']}',
+      code: '${r['code'] ?? ''}',
+      pyols: _int(r['pyols']),
+      won: _int(r['amount_won']),
+      status: '${r['status']}',
+      createdAt: DateTime.tryParse('${r['created_at']}')?.toLocal() ?? DateTime.now(),
+    );
+  }
+
+  @override
   Future<Referral?> referral() => backendCall(() async {
         final json = await _client.rpc('my_referral');
         if (json is! Map) return null;

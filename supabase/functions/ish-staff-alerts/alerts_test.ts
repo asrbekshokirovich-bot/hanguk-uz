@@ -167,3 +167,20 @@ Deno.test("the outbox calls the database's functions with their parameter names"
     ["staff_alerts_fail", { p_id: 5, p_error: "why" }],
   ]);
 });
+
+Deno.test("a bank transfer for puyl: the amount, the code to find, the worker", () => {
+  const topup: Alert = {
+    id: 3,
+    kind: "topup",
+    attempts: 1,
+    data: { code: "HP4K7Q", pyols: 100, amount_won: 9900, worker: { first_name: "Aziz", last_name: "K", phone: "821012345678" } },
+  };
+  assertEquals(alertText(topup), [
+    "💳 <b>HanPyol</b> — puyl uchun pul o'tkazildi: <b>₩9,900</b> → 100 P",
+    "Kod (입금자명): <code>HP4K7Q</code>",
+    "Ishchi: Aziz K · +821012345678",
+    "Bankda shu kod bilan kelgan pulni tekshiring va tasdiqlang: CRM → HanPyol → «Puyl».",
+    "https://hanguk.uz/crm/ish?tab=pyol",
+  ].join("\n"));
+  assertEquals(alertText({ ...topup, data: {} }), null);
+});

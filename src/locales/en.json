@@ -4162,7 +4162,7 @@
         "any": "any time"
       },
       "topups": "Top-up requests",
-      "topupsHint": "Check that the money came to the account, then approve. The puyl go to the worker at once.",
+      "topupsHint": "Shows here when the worker taps «I've paid», with a Telegram message. Find the transfer with this code as the sender name (입금자명) in the bank, then approve — the puyl go to the worker at once.",
       "topupsEmpty": "No requests waiting.",
       "approve": "Money came — approve",
       "reject": "Reject",
@@ -4171,7 +4171,11 @@
         "bank": "Bank account",
         "kakaopay": "KakaoPay",
         "toss": "Toss",
-        "note": "Note for workers"
+        "note": "Note for workers",
+        "bank_name": "Bank (e.g. 하나은행)",
+        "bank_account": "Account number",
+        "bank_holder": "Account holder (예금주)",
+        "contact": "Help link (t.me/... or @username)"
       },
       "payment": "Where workers send the money",
       "save": "Save",
@@ -4217,7 +4221,9 @@
           "good_jobs": "good jobs",
           "cleared": "taken back"
         }
-      }
+      },
+      "unpaid": "Has not tapped «I've paid» yet",
+      "paid": "Paid at: "
     }
   },
   "calendarPage": {
