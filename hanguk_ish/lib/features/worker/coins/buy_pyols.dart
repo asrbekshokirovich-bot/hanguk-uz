@@ -16,6 +16,13 @@ import '../../../l10n/gen/worker_l10n.dart';
 import 'bank_topup_screen.dart' show bankTopupPath;
 import 'coins.dart' show coinsProvider;
 
+/// The HanPyol bot's username (`--dart-define=ISH_TG_BOT=…`, set by the
+/// web build); empty: no invite link.
+const ishTelegramBot = String.fromEnvironment('ISH_TG_BOT');
+
+/// The link a worker shares: t.me/<bot>?start=<code>.
+String inviteLink(String code) => 'https://t.me/$ishTelegramBot?start=$code';
+
 final storeProductsProvider = FutureProvider.autoDispose<List<StoreProduct>>(
   (ref) => ref.watch(pyolStoreProvider).products(),
   retry: (count, error) => null,
@@ -187,6 +194,21 @@ class _BuyPyolsSheetState extends ConsumerState<BuyPyolsSheet> {
                     ),
                   ],
                 ),
+                if (ishTelegramBot.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  // The link opens the HanPyol bot with the code; the friend's
+                  // app fills it in by itself (2026-11-27).
+                  HiButton(
+                    label: l10n.inviteLinkCopy,
+                    height: 44,
+                    fontSize: 15,
+                    style: HiButtonStyle.outline,
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: inviteLink(referral.code)));
+                      _say(l10n.inviteLinkCopied);
+                    },
+                  ),
+                ],
               ],
               if (referral != null && !referral.invitedBy) ...[
                 const SizedBox(height: 8),

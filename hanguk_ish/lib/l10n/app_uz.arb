@@ -3979,5 +3979,13 @@
   "wishDone": "Tayyor",
   "@wishDone": {
     "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "inviteLinkCopy": "Taklif havolasini nusxalash",
+  "@inviteLinkCopy": {
+    "description": "Invite link t.me/<bot>?start=<code> (web / mini app, 2026-11-27)."
+  },
+  "inviteLinkCopied": "Havola nusxalandi — do'stlaringizga yuboring",
+  "@inviteLinkCopied": {
+    "description": "Invite link t.me/<bot>?start=<code> (web / mini app, 2026-11-27)."
   }
 }

@@ -358,6 +358,11 @@ verify_jwt = false
 [functions.ish-telegram-auth]
 verify_jwt = false
 
+# 2026-11-27 (HanPyol): the bot's webhook (/start greeting). Telegram calls
+# without a Supabase key; the function checks Telegram's secret_token header.
+[functions.ish-tg-bot]
+verify_jwt = false
+
 # 2026-11-13 (HanPyol): foydalanuvchi o'z akkauntini o'chiradi (Google Play talabi).
 # Ilovalar va hanguk.uz/ish/delete-account foydalanuvchi tokeni bilan chaqiradi;
 # brauzer CORS preflight o'tishi uchun shlyuz tekshiruvi o'chiq — token

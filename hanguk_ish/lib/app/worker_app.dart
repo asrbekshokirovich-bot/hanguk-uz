@@ -8,7 +8,9 @@ import '../data/models/my_shift.dart';
 import '../data/models/shift.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/live_updates.dart';
+import '../data/repositories/pyol_repository.dart' show pyolRepositoryProvider;
 import '../data/repositories/pyol_store.dart';
+import '../data/repositories/shift_repository.dart' show ShiftActionException;
 import '../design/theme.dart';
 import '../design/tokens.dart';
 import '../design/widgets/backdrop.dart';
@@ -38,6 +40,7 @@ import '../features/worker/settings/app_language.dart';
 import '../features/worker/shell/worker_shell.dart';
 import '../features/worker/shift/shift_detail_screen.dart';
 import '../features/worker/shift/take_shift.dart';
+import '../features/worker/telegram/pending_referral.dart';
 import '../features/worker/telegram/telegram_sign_in.dart';
 import '../features/worker/work/payment_confirm.dart';
 import '../features/worker/work/work_screens.dart';
@@ -193,9 +196,26 @@ class _StartGateState extends ConsumerState<_StartGate> {
     setState(() => _error = null);
     try {
       final location = await _signedInLocation(ref);
+      if (location == WorkerRoutes.home) await _applyInvite();
       if (mounted) context.go(location);
     } on Object catch (error) {
       if (mounted) setState(() => _error = error);
+    }
+  }
+
+  /// The invite code that came with the link (web / mini app): filled in
+  /// once the worker has a profile. A wrong, own or late code is dropped.
+  Future<void> _applyInvite() async {
+    final pending = ref.read(pendingReferralProvider);
+    final code = pending?.code;
+    if (pending == null || code == null) return;
+    try {
+      await ref.read(pyolRepositoryProvider).setReferrer(code);
+      await pending.clear();
+    } on ShiftActionException {
+      await pending.clear();
+    } on Object {
+      // Offline: tried again next time.
     }
   }
 
