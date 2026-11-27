@@ -3,7 +3,8 @@ name: HanPyol — Telegram mini app
 # The HanPyol worker app (hanguk_ish, lib/main_worker.dart) built for the web
 # and opened inside Telegram as a Mini App (2026-11-26):
 #
-#   1. function: deploys ish-telegram-auth (Telegram sign-in) and gives it the
+#   1. function: deploys ish-telegram-auth (Telegram sign-in), ish-push and
+#      ish-staff-alerts (they send through Telegram), and gives them the
 #      bot's token (repository secret TELEGRAM_HANPYOL_BOT_TOKEN → Supabase
 #      Edge Functions secret of the same name).
 #   2. web: `flutter build web`, deployed to the Vercel project "hanpyol-tg"
@@ -25,6 +26,8 @@ on:
       - 'hanguk_ish/pubspec.yaml'
       - 'hanguk_ish/pubspec.lock'
       - 'supabase/functions/ish-telegram-auth/**'
+      - 'supabase/functions/ish-push/**'
+      - 'supabase/functions/ish-staff-alerts/**'
       - '.github/workflows/ish-tg-web.yml'
 
 concurrency:
@@ -66,7 +69,16 @@ jobs:
         run: |
           set -euo pipefail
           supabase secrets set --project-ref "$SUPABASE_PROJECT_ID" --yes "TELEGRAM_HANPYOL_BOT_TOKEN=$BOT_TOKEN" >/dev/null
-          supabase functions deploy ish-telegram-auth --project-ref "$SUPABASE_PROJECT_ID" --use-api --yes
+          # HanPyol's own functions: the Telegram sign-in, and the two that send
+          # through Telegram (notices by the HanPyol bot, the staff alerts) —
+          # deployed here too, so HanPyol does not wait on the whole site's deploy.
+          for fn in ish-telegram-auth ish-push ish-staff-alerts; do
+            for try in 1 2 3; do
+              if supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_ID" --use-api --yes; then break; fi
+              [ "$try" = 3 ] && exit 1
+              echo "retrying $fn in 20 s"; sleep 20
+            done
+          done
 
   web:
     runs-on: ubuntu-latest
