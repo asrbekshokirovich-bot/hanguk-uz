@@ -97,13 +97,27 @@ jobs:
   testflight:
     needs: signing
     if: needs.signing.outputs.app_exists == 'true'
-    runs-on: macos-15
+    # App Store Connect takes only builds made with the iOS 26 SDK (Xcode 26)
+    # or later (refused with 409 «SDK version issue», 2026-11-26).
+    runs-on: macos-26
     timeout-minutes: 75
     defaults:
       run:
         working-directory: hanguk_ish
     steps:
       - uses: actions/checkout@v4
+
+      - name: Xcode 26 or later
+        run: |
+          set -euo pipefail
+          latest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -E 'Xcode_(2[6-9]|[3-9][0-9])' | sort -V | tail -1 || true)
+          if [ -n "$latest" ]; then sudo xcode-select -s "$latest/Contents/Developer"; fi
+          xcodebuild -version
+          major=$(xcodebuild -version | head -1 | sed -E 's/Xcode ([0-9]+).*/\1/')
+          if [ "$major" -lt 26 ]; then
+            echo "::error::Xcode $major found; App Store Connect needs Xcode 26 or later."
+            exit 1
+          fi
 
       - uses: subosito/flutter-action@v2
         with:
