@@ -29,6 +29,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text("Ha, bo'shman"));
     await tester.pumpAndSettle();
+    // Then: which time and what matters most (no preference unless chosen).
+    expect(find.text("Siz uchun eng muhimi?"), findsOneWidget);
+    await tester.ensureVisible(find.text('Tayyor'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tayyor'));
+    await tester.pumpAndSettle();
     expect(tester.widget<FilterChip>(find.byType(FilterChip).at(1)).selected, isTrue);
 
     // A second tap takes it off at once; a third asks again.
@@ -40,13 +46,27 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text("Ha, bo'shman"));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Kechasi (야간)'));
+    await tester.pump();
+    await tester.ensureVisible(find.text("Ko'proq pul"));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("Ko'proq pul"));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Tayyor'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tayyor'));
+    await tester.pumpAndSettle();
+    expect(find.text("Kechasi (야간) · Ko'proq pul"), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), 'Ansan');
+    await tester.ensureVisible(find.text('Saqlash'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Saqlash'));
     await tester.pumpAndSettle();
     final saved = await repo.freeDates();
     expect(saved, hasLength(1));
-    expect(saved.single.part, 'any');
+    expect(saved.single.part, 'night');
+    expect(saved.single.priority, 'pay');
     expect(saved.single.district, 'Ansan');
   });
 }

@@ -78,11 +78,21 @@ function renderPyol(api: Partial<IshApi>) {
 
 describe('CRM → HanPyol → «Puyl & free days»', () => {
   it('shows who is free, and the workers of a day on click', async () => {
-    const api = base({});
+    const api = base({
+      freeWorkers: vi.fn(async () => [
+        {
+          worker_id: 'w1', first_name: 'Aziz', last_name: 'K', phone: null, district: 'Ansan', part: 'night' as const,
+          note: '', priority: 'pay' as const, languages: null, topik: null, reliability: null, coins: 0, card: null,
+          busy: false,
+        },
+      ]),
+    });
     renderPyol(api);
     fireEvent.click(await screen.findByTestId('ish-free-2026-11-26-Ansan'));
     await waitFor(() => expect(api.freeWorkers).toHaveBeenCalledWith('2026-11-26', 'Ansan'));
     expect(screen.getByText(/3 workers/)).toBeTruthy();
+    // What matters most to the worker that day.
+    expect(await screen.findByText('More money')).toBeTruthy();
   });
 
   it('approves a top-up once the money came', async () => {

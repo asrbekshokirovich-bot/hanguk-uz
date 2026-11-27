@@ -403,6 +403,8 @@ export interface IshFreeWorker {
   district: string;
   part: 'day' | 'night' | 'any';
   note: string;
+  /** What matters most for that day: more money, lighter work, close to home (2026-11-26). */
+  priority?: 'pay' | 'easy' | 'near' | 'any';
   languages: string[] | null;
   topik: number | null;
   reliability: number | null;

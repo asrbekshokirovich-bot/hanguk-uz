@@ -4223,7 +4223,12 @@
         }
       },
       "unpaid": "Has not tapped «I've paid» yet",
-      "paid": "Paid at: "
+      "paid": "Paid at: ",
+      "priority": {
+        "pay": "More money",
+        "easy": "Lighter work",
+        "near": "Close to home"
+      }
     }
   },
   "calendarPage": {

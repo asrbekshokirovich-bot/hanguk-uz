@@ -83,7 +83,12 @@ class SupabasePyolRepository implements PyolRepository {
   static List<FreeDate> _dates(Object? rows) => [
         for (final r in (rows as List? ?? const []))
           if (r is Map && DateTime.tryParse('${r['day']}') != null)
-            FreeDate(day: DateTime.parse('${r['day']}'), part: '${r['part']}', district: '${r['district']}'),
+            FreeDate(
+              day: DateTime.parse('${r['day']}'),
+              part: '${r['part']}',
+              district: '${r['district']}',
+              priority: '${r['priority'] ?? 'any'}',
+            ),
       ];
 
   @override
@@ -93,7 +98,7 @@ class SupabasePyolRepository implements PyolRepository {
   Future<List<FreeDate>> setFreeDates(List<FreeDate> dates) => backendCall(() async {
         final rows = await _client.rpc('set_free_dates', params: {
           'p_days': [
-            for (final d in dates) {'day': d.dayText, 'part': d.part, 'district': d.district},
+            for (final d in dates) {'day': d.dayText, 'part': d.part, 'district': d.district, 'priority': d.priority},
           ],
         });
         return _dates(rows);

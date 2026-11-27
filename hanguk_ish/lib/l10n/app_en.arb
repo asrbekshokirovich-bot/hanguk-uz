@@ -768,5 +768,21 @@
   "bankStatusExpired": "Expired",
   "bankTooMany": "Too many open orders. Pay the earlier one or wait until it expires.",
   "bankExpiredError": "This order has expired. Start a new one.",
-  "bankBuyButton": "Buy by bank transfer"
+  "bankBuyButton": "Buy by bank transfer",
+  "pyolBuyOnWebsite": "Buy on the website",
+  "pyolWebsiteSoon": "Buying puyl on the website opens soon.",
+  "wishTitle": "{when}: what kind of job?",
+  "wishPartQuestion": "What time?",
+  "wishPartDay": "Day (주간)",
+  "wishPartNight": "Night (야간)",
+  "wishPartNightHint": "Night jobs often pay more",
+  "wishPriorityQuestion": "What matters most to you?",
+  "wishPay": "More money",
+  "wishPayHint": "Even if it is harder (e.g. 상하차 — loading trucks)",
+  "wishEasy": "Lighter work",
+  "wishEasyHint": "Sorting, packing, light factory work",
+  "wishNear": "Close to home",
+  "wishNearHint": "A short trip",
+  "wishAny": "No preference",
+  "wishDone": "Done"
 }

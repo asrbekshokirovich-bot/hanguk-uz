@@ -4280,7 +4280,12 @@
         }
       },
       "unpaid": "Hali «Pul o'tkazdim» bosilmagan",
-      "paid": "Pul o'tkazdim: "
+      "paid": "Pul o'tkazdim: ",
+      "priority": {
+        "pay": "Ko'proq pul",
+        "easy": "Yengilroq ish",
+        "near": "Uyga yaqin"
+      }
     }
   },
   "calendarPage": {

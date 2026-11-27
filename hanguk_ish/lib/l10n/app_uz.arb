@@ -3909,5 +3909,75 @@
   "bankBuyButton": "Bank o'tkazmasi orqali sotib olish",
   "@bankBuyButton": {
     "description": "Bank transfer screen (web / Telegram mini app, 2026-11-26)."
+  },
+  "pyolBuyOnWebsite": "Saytda sotib olish",
+  "@pyolBuyOnWebsite": {
+    "description": "Telegram mini app: «Puyl olish» opens the website (no store payment there)."
+  },
+  "pyolWebsiteSoon": "Puylni saytda sotib olish tez orada ochiladi.",
+  "@pyolWebsiteSoon": {
+    "description": "Telegram mini app: the website shop is not open yet."
+  },
+  "wishTitle": "{when}: qanday ish kerak?",
+  "@wishTitle": {
+    "description": "Free day: which time and what matters most (2026-11-26).",
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "Pay 28"
+      }
+    }
+  },
+  "wishPartQuestion": "Qaysi vaqt?",
+  "@wishPartQuestion": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishPartDay": "Kunduzi (주간)",
+  "@wishPartDay": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishPartNight": "Kechasi (야간)",
+  "@wishPartNight": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishPartNightHint": "Kechki ishlar ko'pincha ko'proq to'laydi",
+  "@wishPartNightHint": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishPriorityQuestion": "Siz uchun eng muhimi?",
+  "@wishPriorityQuestion": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishPay": "Ko'proq pul",
+  "@wishPay": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishPayHint": "Og'irroq bo'lsa ham (masalan, 상하차 — yuk tushirish)",
+  "@wishPayHint": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishEasy": "Yengilroq ish",
+  "@wishEasy": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishEasyHint": "Saralash, qadoqlash, yengil zavod ishi",
+  "@wishEasyHint": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishNear": "Uyga yaqinroq",
+  "@wishNear": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishNearHint": "Yo'lga kam vaqt ketsin",
+  "@wishNearHint": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishAny": "Farqi yo'q",
+  "@wishAny": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
+  },
+  "wishDone": "Tayyor",
+  "@wishDone": {
+    "description": "Free day: which time and what matters most (2026-11-26)."
   }
 }

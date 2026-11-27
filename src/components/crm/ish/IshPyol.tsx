@@ -95,6 +95,11 @@ function FreeDays() {
                 <span className="text-muted-foreground">{w.phone ?? '—'}</span>
                 <span>{w.district}</span>
                 <span>{part(w.part)}</span>
+                {w.priority && w.priority !== 'any' && (
+                  <span className="rounded bg-amber-100 px-2 py-0.5 font-medium text-amber-900">
+                    {t(`ish.pyol.priority.${w.priority}`)}
+                  </span>
+                )}
                 <span>{t('ish.pyol.balance', { n: w.coins })}</span>
                 {w.card && w.card !== 'none' && (
                   <Badge variant={w.card === 'yellow' ? 'secondary' : 'destructive'}>

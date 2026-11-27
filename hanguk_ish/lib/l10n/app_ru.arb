@@ -768,5 +768,21 @@
   "bankStatusExpired": "Истёк",
   "bankTooMany": "Слишком много открытых заказов. Оплатите прежний или дождитесь его окончания.",
   "bankExpiredError": "Срок заказа истёк. Откройте новый.",
-  "bankBuyButton": "Купить банковским переводом"
+  "bankBuyButton": "Купить банковским переводом",
+  "pyolBuyOnWebsite": "Купить на сайте",
+  "pyolWebsiteSoon": "Покупка пюль на сайте скоро откроется.",
+  "wishTitle": "{when}: какая работа нужна?",
+  "wishPartQuestion": "Какое время?",
+  "wishPartDay": "Днём (주간)",
+  "wishPartNight": "Ночью (야간)",
+  "wishPartNightHint": "Ночная работа часто оплачивается выше",
+  "wishPriorityQuestion": "Что для вас важнее всего?",
+  "wishPay": "Больше денег",
+  "wishPayHint": "Даже если тяжелее (например, 상하차 — разгрузка)",
+  "wishEasy": "Работа полегче",
+  "wishEasyHint": "Сортировка, упаковка, лёгкая работа на заводе",
+  "wishNear": "Ближе к дому",
+  "wishNearHint": "Чтобы дорога была короткой",
+  "wishAny": "Без разницы",
+  "wishDone": "Готово"
 }
