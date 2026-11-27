@@ -23,6 +23,7 @@ import '../design/theme.dart';
 import '../features/employer/language.dart';
 import '../features/worker/map/native_kakao_map.dart';
 import '../features/worker/settings/app_language.dart';
+import '../features/worker/telegram/pending_referral.dart';
 import '../features/worker/telegram/telegram_sign_in.dart';
 import '../features/worker/telegram/telegram_web_app.dart';
 import 'flavor.dart';
@@ -56,6 +57,12 @@ Future<void> bootstrap(Flavor flavor, Widget app) async {
       if (language != null) await store.save(language);
     }
     overrides.add(languageStoreProvider.overrideWithValue(store));
+    if (kIsWeb) {
+      // An invite link: ?ref=<code> (the bot's button) or ?startapp=<code>.
+      final pending = PendingReferral(prefs);
+      await pending.remember(Uri.base.queryParameters['ref'] ?? telegram?.startParam);
+      overrides.add(pendingReferralProvider.overrideWithValue(pending));
+    }
   } on Object {
     // Kept for the session.
   }

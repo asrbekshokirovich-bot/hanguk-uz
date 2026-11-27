@@ -784,5 +784,7 @@
   "wishNear": "Close to home",
   "wishNearHint": "A short trip",
   "wishAny": "No preference",
-  "wishDone": "Done"
+  "wishDone": "Done",
+  "inviteLinkCopy": "Copy the invite link",
+  "inviteLinkCopied": "Link copied — send it to your friends"
 }

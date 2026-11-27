@@ -30,6 +30,10 @@ class _JsTelegramWebApp implements TelegramWebApp {
   int? get userId => _user?.getProperty<JSNumber?>('id'.toJS)?.toDartInt;
 
   @override
+  String get startParam =>
+      _app.getProperty<JSObject?>('initDataUnsafe'.toJS)?.getProperty<JSString?>('start_param'.toJS)?.toDart ?? '';
+
+  @override
   String get languageCode => _user?.getProperty<JSString?>('language_code'.toJS)?.toDart ?? '';
 
   bool _atLeast(String version) =>

@@ -28,6 +28,7 @@ on:
       - 'supabase/functions/ish-telegram-auth/**'
       - 'supabase/functions/ish-push/**'
       - 'supabase/functions/ish-staff-alerts/**'
+      - 'supabase/functions/ish-tg-bot/**'
       - '.github/workflows/ish-tg-web.yml'
 
 concurrency:
@@ -72,7 +73,7 @@ jobs:
           # HanPyol's own functions: the Telegram sign-in, and the two that send
           # through Telegram (notices by the HanPyol bot, the staff alerts) —
           # deployed here too, so HanPyol does not wait on the whole site's deploy.
-          for fn in ish-telegram-auth ish-push ish-staff-alerts; do
+          for fn in ish-telegram-auth ish-push ish-staff-alerts ish-tg-bot; do
             for try in 1 2 3; do
               if supabase functions deploy "$fn" --project-ref "$SUPABASE_PROJECT_ID" --use-api --yes; then break; fi
               [ "$try" = 3 ] && exit 1
@@ -99,8 +100,13 @@ jobs:
       - name: Build web
         env:
           KAKAO_JS_KEY: ${{ secrets.ISH_KAKAO_JS_KEY }}
+          BOT_TOKEN: ${{ secrets.TELEGRAM_HANPYOL_BOT_TOKEN }}
         run: |
+          # The bot's username, for the invite link t.me/<bot>?start=<code>.
+          BOT_USER=$(curl -fsS "https://api.telegram.org/bot$BOT_TOKEN/getMe" | jq -r '.result.username // empty' || true)
+          echo "Bot: ${BOT_USER:-?}"
           flutter build web --release -t lib/main_worker.dart --base-href / --no-wasm-dry-run \
+            ${BOT_USER:+--dart-define=ISH_TG_BOT=$BOT_USER} \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" \
             --dart-define=SUPABASE_PUBLISHABLE_KEY="$SUPABASE_PUBLISHABLE_KEY" \
             ${KAKAO_JS_KEY:+--dart-define=KAKAO_JS_KEY=$KAKAO_JS_KEY}
@@ -151,6 +157,12 @@ jobs:
           api="https://api.telegram.org/bot$BOT_TOKEN"
           call() { curl -fsS -X POST "$api/$1" -H 'Content-Type: application/json' -d "$2" | jq -c '{ok, description}'; }
           call setChatMenuButton "$(jq -n --arg url "$URL" '{menu_button: {type: "web_app", text: "HanPyol", web_app: {url: $url}}}')"
+          # The bot's messages go to ish-tg-bot (the /start greeting); its secret
+          # comes from the token, as in supabase/functions/ish-tg-bot/bot.ts.
+          secret=$(printf '%s' "$BOT_TOKEN" | sha256sum | cut -c1-32)
+          call setWebhook "$(jq -n --arg url "$SUPABASE_URL/functions/v1/ish-tg-bot" --arg s "$secret" \
+            '{url: $url, secret_token: $s, allowed_updates: ["message"], drop_pending_updates: true}')"
+          call setMyCommands '{"commands": [{"command": "start", "description": "HanPyol ilovasini ochish"}]}'
           call setMyName '{"name": "HanPyol"}' || true
           call setMyShortDescription '{"short_description": "Koreyada kunlik va oylik ish. Pastdagi «HanPyol» tugmasini bosing."}'
           call setMyDescription '{"description": "HanPyol — Koreyadagi yoshlar uchun ish ilovasi: kunlik va oylik ishlar, puyl, QR bilan ishga kelish. Ochish uchun pastdagi «HanPyol» tugmasini bosing."}'

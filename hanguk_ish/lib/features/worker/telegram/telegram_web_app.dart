@@ -13,6 +13,9 @@ abstract interface class TelegramWebApp {
   /// The person's Telegram language ('uz', 'ru', …), '' when not known.
   String get languageCode;
 
+  /// `?startapp=…` of the link that opened the app ('' when none).
+  String get startParam;
+
   /// Asks the person to share their phone number; the signed answer, or null
   /// when they did not (or this Telegram cannot ask).
   Future<String?> requestContact();

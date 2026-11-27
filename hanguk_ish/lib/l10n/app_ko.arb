@@ -784,5 +784,7 @@
   "wishNear": "집에서 가까운 곳",
   "wishNearHint": "이동 시간이 짧게",
   "wishAny": "상관없어요",
-  "wishDone": "완료"
+  "wishDone": "완료",
+  "inviteLinkCopy": "초대 링크 복사",
+  "inviteLinkCopied": "링크를 복사했어요. 친구에게 보내세요"
 }
