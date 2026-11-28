@@ -1286,6 +1286,20 @@
       "due": "할인: {{discount}} → 납부액: {{due}}",
       "tooBig": "할인은 가격보다 작아야 합니다",
       "editHint": "할인을 입력하면 총액이 그만큼 줄어듭니다"
+    },
+    "fx": {
+      "accountCurrency": "계약 통화",
+      "paidAmount": "납부 금액",
+      "paidPlaceholder": "지금 납부했다면 입력",
+      "paidIn": "입금 통화",
+      "rate": "환율: 1$ = ? UZS",
+      "rateMissing": "환율을 입력하세요 (1$당 UZS)",
+      "rateOdd": "환율이 이상합니다: 1$당 UZS를 입력하세요 (예: 12500)",
+      "counted": "{{paid}} → 채무에서 {{counted}} 차감",
+      "overpaid": "납부액({{paid}})이 채무({{due}})보다 훨씬 큽니다. 통화가 맞나요? UZS로 받았다면 입금 통화를 UZS로 하고 환율을 입력하세요.",
+      "tooSmallForUzs": "UZS로는 너무 작은 금액입니다. 가격이 달러라면 USD를 선택하세요.",
+      "tooBigForUsd": "USD로는 너무 큰 금액입니다. 가격이 UZS라면 UZS를 선택하세요.",
+      "mismatch": "이 계정은 {{account}}인데 {{typed}}로 입력했습니다. 학생 카드의 분할 납부 추가에서 환율과 함께 입력하세요."
     }
   },
   "tasks": {

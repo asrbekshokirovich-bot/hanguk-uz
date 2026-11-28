@@ -113,6 +113,17 @@ export function ManualTransactionDialog({ students, onSuccess }: ManualTransacti
         .eq('payment_type', form.payment_type)
         .single();
 
+      if (existingPayment && existingPayment.currency && existingPayment.currency !== form.currency) {
+        // Adding a so'm figure onto a dollar account (or the reverse) made the
+        // account look paid. The student card's "Add transfer" converts it.
+        throw new Error(
+          t('payments.fx.mismatch', {
+            account: existingPayment.currency,
+            typed: form.currency,
+          }),
+        );
+      }
+
       if (existingPayment) {
         // Update existing payment
         const newPaidAmount = Number(existingPayment.paid_amount) + amount;

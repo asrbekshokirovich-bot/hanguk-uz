@@ -1551,6 +1551,20 @@
       "due": "Discount: {{discount}} → due: {{due}}",
       "tooBig": "The discount must be less than the price",
       "editHint": "Typing a discount lowers the total by that amount"
+    },
+    "fx": {
+      "accountCurrency": "Contract currency",
+      "paidAmount": "Paid amount",
+      "paidPlaceholder": "Enter if paid now",
+      "paidIn": "Money came in",
+      "rate": "Rate: $1 = ? UZS",
+      "rateMissing": "Enter the rate (UZS per $1)",
+      "rateOdd": "The rate looks wrong: type UZS per $1 (e.g. 12500)",
+      "counted": "{{paid}} → {{counted}} counted against the debt",
+      "overpaid": "The paid amount ({{paid}}) is far more than what is owed ({{due}}). Is the currency right? If paid in UZS, set \"Money came in\" to UZS and enter the rate.",
+      "tooSmallForUzs": "This is very small for UZS. If the price is in dollars, set the currency to USD.",
+      "tooBigForUsd": "This is very large for USD. If the price is in UZS, set the currency to UZS.",
+      "mismatch": "This payment account is in {{account}} but you entered {{typed}}. Use \"Add transfer\" on the student card to enter it with a rate."
     }
   },
   "tasks": {

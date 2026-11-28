@@ -13,6 +13,14 @@ import { MultiReceiptUpload } from '@/components/payments/MultiReceiptUpload';
 import { calculateGatewayFee, PAYMENT_METHODS_WITH_FEES } from '@/lib/paymentUtils';
 import { formatAmount } from '@/hooks/useStudentPlan';
 import { recordInstallment } from '@/lib/recordInstallment';
+import {
+  conversionNote,
+  overpaidByFar,
+  rateError,
+  toAccountCurrency,
+  withConversionNote,
+} from '@/lib/paymentCurrency';
+import { PaidCurrencyFields } from '@/components/payments/PaidCurrencyFields';
 
 export interface InstallmentTarget {
   id: string;
@@ -54,6 +62,10 @@ export function AddInstallmentDialog({
   const [fee, setFee] = useState('');
   const [notes, setNotes] = useState('');
   const [receipts, setReceipts] = useState<string[]>([]);
+  // The currency the money came in, and the so'm-per-dollar rate when it is
+  // not the account's currency (a dollar contract paid in so'm).
+  const [paidCurrency, setPaidCurrency] = useState('UZS');
+  const [rate, setRate] = useState('');
 
   const left = payment ? Math.max(Number(payment.amount) - Number(payment.paid_amount), 0) : 0;
 
@@ -66,23 +78,56 @@ export function AddInstallmentDialog({
     setFee('');
     setNotes('');
     setReceipts([]);
+    setPaidCurrency(payment.currency);
+    setRate('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, payment?.id]);
 
+  const accountCurrency = payment?.currency ?? 'UZS';
+  const counted = toAccountCurrency(Number(amount) || 0, paidCurrency, accountCurrency, Number(rate));
+
+  // The fee is kept in the account's currency, like the transfer itself.
   useEffect(() => {
-    const value = Number(amount) || 0;
+    const value = counted ?? 0;
     setFee(value > 0 ? String(calculateGatewayFee(value, method)) : '');
-  }, [amount, method]);
+  }, [counted, method]);
+
+  // Switching the currency the money came in: the pre-filled "what is left"
+  // was in the account's currency, so clear it rather than reuse the number.
+  const changePaidCurrency = (value: string) => {
+    if (value === paidCurrency) return;
+    setPaidCurrency(value);
+    setAmount(value === accountCurrency && left > 0 ? String(left) : '');
+  };
 
   if (!payment) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const value = Number(amount);
-    if (!value || value <= 0) {
+    const typed = Number(amount);
+    if (!typed || typed <= 0) {
       toast({ title: t('common.error'), description: t('payments.installment.amountRequired'), variant: 'destructive' });
       return;
     }
+    const needsRate = paidCurrency !== payment.currency;
+    const fxError = needsRate ? rateError(Number(rate)) : null;
+    if (fxError || counted === null) {
+      toast({ title: t('common.error'), description: t(`payments.fx.${fxError ?? 'rateMissing'}`), variant: 'destructive' });
+      return;
+    }
+    if (overpaidByFar(counted, left)) {
+      toast({
+        title: t('common.error'),
+        description: t('payments.fx.overpaid', {
+          paid: formatAmount(counted, payment.currency),
+          due: formatAmount(left, payment.currency),
+        }),
+        variant: 'destructive',
+      });
+      return;
+    }
+    const value = counted;
+    const fxLine = needsRate ? conversionNote(typed, paidCurrency, value, payment.currency, Number(rate)) : null;
     if (!paidOn) {
       toast({ title: t('common.error'), description: t('payments.installment.dateRequired'), variant: 'destructive' });
       return;
@@ -97,7 +142,7 @@ export function AddInstallmentDialog({
         method,
         gatewayFee: Number(fee) || 0,
         currency: payment.currency,
-        notes,
+        notes: withConversionNote(notes, fxLine) ?? '',
         receiptUrls: receipts,
         plan: studentPlan,
         intakeId: activeIntakeId,
@@ -138,7 +183,7 @@ export function AddInstallmentDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="installment-amount">
-                {t('payments.installment.amount')} ({payment.currency})
+                {t('payments.installment.amount')} ({paidCurrency})
               </Label>
               <Input
                 id="installment-amount"
@@ -156,6 +201,15 @@ export function AddInstallmentDialog({
               <DateField id="installment-date" value={paidOn} onChange={setPaidOn} required />
             </div>
           </div>
+
+          <PaidCurrencyFields
+            accountCurrency={payment.currency}
+            paidCurrency={paidCurrency}
+            onPaidCurrencyChange={changePaidCurrency}
+            rate={rate}
+            onRateChange={setRate}
+            paid={Number(amount) || 0}
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -175,7 +229,9 @@ export function AddInstallmentDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="installment-fee">{t('payments.installment.fee')}</Label>
+              <Label htmlFor="installment-fee">
+                {t('payments.installment.fee')} ({payment.currency})
+              </Label>
               <Input
                 id="installment-fee"
                 type="number"
