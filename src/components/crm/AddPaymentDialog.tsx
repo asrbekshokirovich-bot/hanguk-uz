@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActiveIntake } from '@/contexts/IntakeContext';
-import { CreditCard, Calendar, DollarSign, Info, AlertCircle } from 'lucide-react';
+import { CreditCard, Info } from 'lucide-react';
 import { getPlanByValue, formatPlanAmount, calculateDueDate, formatAmount } from '@/hooks/useStudentPlan';
 import { allocateOperationalFund } from '@/hooks/useOperationalFund';
 import { distributeIncomeFromPayment } from '@/hooks/useIncomeDistribution';
@@ -33,6 +33,24 @@ import { MultiReceiptUpload } from '@/components/payments/MultiReceiptUpload';
 import { DateField } from '@/components/ui/date-field';
 import { AddInstallmentDialog, type InstallmentTarget } from '@/components/crm/payments/AddInstallmentDialog';
 import { applyDiscount, discountError } from '@/lib/paymentDiscount';
+import {
+  conversionNote,
+  overpaidByFar,
+  rateError,
+  suspiciousPrice,
+  toAccountCurrency,
+  withConversionNote,
+} from '@/lib/paymentCurrency';
+import { PaidCurrencyFields } from '@/components/payments/PaidCurrencyFields';
+
+/** What goes in front of a money field: "$" or "so'm", never a "$" on so'm. */
+function CurrencyMark({ currency }: { currency: string }) {
+  return (
+    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+      {currency === 'UZS' ? "so'm" : '$'}
+    </span>
+  );
+}
 
 interface AddPaymentDialogProps {
   open: boolean;
@@ -165,6 +183,10 @@ export function AddPaymentDialog({
     paidAmount: '',
     discount: '',
     currency: planInfo?.currency || 'UZS',
+    // The currency the money came in, and the so'm-per-dollar rate when it
+    // differs from the account's currency.
+    paidCurrency: planInfo?.currency || 'UZS',
+    rate: '',
     paymentMethod: 'cash',
     gatewayFee: '',
     dueDate: '',
@@ -172,17 +194,23 @@ export function AddPaymentDialog({
     receiptUrls: [] as string[],
   });
 
-  // Auto-calculate gateway fee when paid amount or payment method changes
+  // The paid sum in the account's currency (null = a rate is still needed).
+  const countedPaid = toAccountCurrency(
+    Number(formData.paidAmount) || 0,
+    formData.paidCurrency,
+    formData.currency,
+    Number(formData.rate),
+  );
+
+  // Auto-calculate gateway fee (in the account's currency) when the paid
+  // amount, its currency, the rate or the payment method changes.
   useEffect(() => {
-    const paidAmount = Number(formData.paidAmount) || 0;
-    if (paidAmount > 0) {
-      const calculatedFee = calculateGatewayFee(paidAmount, formData.paymentMethod);
-      setFormData(prev => ({
-        ...prev,
-        gatewayFee: calculatedFee.toString(),
-      }));
-    }
-  }, [formData.paidAmount, formData.paymentMethod]);
+    const paid = countedPaid ?? 0;
+    setFormData(prev => ({
+      ...prev,
+      gatewayFee: paid > 0 ? calculateGatewayFee(paid, prev.paymentMethod).toString() : '',
+    }));
+  }, [countedPaid, formData.paymentMethod]);
 
   // Auto-populate amount and due date based on student's plan and payment type
   useEffect(() => {
@@ -209,12 +237,18 @@ export function AddPaymentDialog({
     // Calculate due date based on contract date (7 working days)
     const dueDate = calculateDueDate(contractDate || null, paymentType, studentPaymentMode);
     
-    setFormData(prev => ({
-      ...prev,
-      amount: amount > 0 ? amount.toString() : prev.amount,
-      currency: planInfo?.currency || prev.currency,
-      dueDate,
-    }));
+    setFormData(prev => {
+      const currency = planInfo?.currency || prev.currency;
+      return {
+        ...prev,
+        amount: amount > 0 ? amount.toString() : prev.amount,
+        currency,
+        // Money usually comes in the contract's currency; keep them together
+        // until the operator says otherwise.
+        paidCurrency: prev.paidCurrency === prev.currency ? currency : prev.paidCurrency,
+        dueDate,
+      };
+    });
   }, [planInfo, studentPaymentMode, open, formData.paymentType, contractDate, isInstallment]);
 
   // Re-apply the correct default payment type when the dialog opens or once the
@@ -252,6 +286,28 @@ export function AddPaymentDialog({
       return;
     }
 
+    const typedPaid = Number(formData.paidAmount) || 0;
+    const needsRate = typedPaid > 0 && formData.paidCurrency !== formData.currency;
+    const fxError = needsRate ? rateError(Number(formData.rate)) : null;
+    if (fxError) {
+      toast({ title: t('common.error'), description: t(`payments.fx.${fxError}`), variant: 'destructive' });
+      return;
+    }
+
+    // A paid sum far above what is owed is the so'm-into-dollars mistake.
+    const due = applyDiscount(Number(formData.amount), Number(formData.discount), discountPercent).amount;
+    if (overpaidByFar(countedPaid ?? 0, due)) {
+      toast({
+        title: t('common.error'),
+        description: t('payments.fx.overpaid', {
+          paid: formatAmount(countedPaid ?? 0, formData.currency),
+          due: formatAmount(due, formData.currency),
+        }),
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -260,8 +316,14 @@ export function AddPaymentDialog({
       // kept: list_amount feeds the P&L discount line, amount is what is due.
       const priced = applyDiscount(Number(formData.amount), Number(formData.discount), discountPercent);
       const amount = priced.amount;
-      const paidAmount = Number(formData.paidAmount) || 0;
+      // Always in the account's currency: a so'm transfer onto a dollar
+      // account is converted with the rate the operator typed.
+      const paidAmount = countedPaid ?? 0;
       const gatewayFee = Number(formData.gatewayFee) || 0;
+      const fxLine = needsRate
+        ? conversionNote(typedPaid, formData.paidCurrency, paidAmount, formData.currency, Number(formData.rate))
+        : null;
+      const transferNotes = withConversionNote(formData.notes, fxLine);
 
       // Create the payment record.
       // NOTE: a DB trigger (payments_idempotent_initial_deposit) silently swallows
@@ -281,7 +343,7 @@ export function AddPaymentDialog({
           status: paidAmount >= amount ? 'completed' : paidAmount > 0 ? 'partial' : 'pending',
           due_date: formData.dueDate || null,
           paid_at: paidAmount > 0 ? new Date().toISOString() : null,
-          notes: formData.notes || null,
+          notes: transferNotes,
           intake_id: activeIntakeId,
         })
         .select()
@@ -321,7 +383,7 @@ export function AddPaymentDialog({
             gateway_fee: gatewayFee,
             payment_method: formData.paymentMethod,
             created_by: user?.id,
-            notes: formData.notes || null,
+            notes: transferNotes,
             receipt_url: formData.receiptUrls[0] || null,
             receipt_urls: formData.receiptUrls,
           })
@@ -398,6 +460,8 @@ export function AddPaymentDialog({
         paidAmount: '',
         discount: '',
         currency: 'UZS',
+        paidCurrency: 'UZS',
+        rate: '',
         paymentMethod: 'cash',
         gatewayFee: '',
         dueDate: '',
@@ -417,7 +481,7 @@ export function AddPaymentDialog({
     }
   };
 
-  const netIncome = (Number(formData.paidAmount) || 0) - (Number(formData.gatewayFee) || 0);
+  const netIncome = (countedPaid ?? 0) - (Number(formData.gatewayFee) || 0);
 
   // Get expected amounts for display
   const getExpectedAmounts = () => {
@@ -524,10 +588,16 @@ export function AddPaymentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Currency</Label>
+              <Label>{t('payments.fx.accountCurrency')}</Label>
               <Select
                 value={formData.currency}
-                onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                onValueChange={(value) =>
+                  setFormData(prev => ({
+                    ...prev,
+                    currency: value,
+                    paidCurrency: prev.paidCurrency === prev.currency ? value : prev.paidCurrency,
+                  }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -585,20 +655,25 @@ export function AddPaymentDialog({
                 {t('payments.discount.listPrice')} *
               </Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CurrencyMark currency={formData.currency} />
                 <Input
                   id="amount"
                   type="number"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  placeholder="5,000,000"
-                  className="pl-9"
+                  placeholder={formData.currency === 'UZS' ? '5000000' : '5000'}
+                  className="pl-12"
                   required
                 />
               </div>
-              {planInfo && formData.amount && (
+              {formData.amount && (
                 <p className="text-xs text-muted-foreground">
-                  = {formatPlanAmount(Number(formData.amount), formData.currency)}
+                  = {formatAmount(Number(formData.amount), formData.currency)}
+                </p>
+              )}
+              {suspiciousPrice(Number(formData.amount), formData.currency) && (
+                <p className="text-xs font-medium text-destructive">
+                  {t(`payments.fx.${suspiciousPrice(Number(formData.amount), formData.currency)}`)}
                 </p>
               )}
             </div>
@@ -606,7 +681,7 @@ export function AddPaymentDialog({
             <div className="space-y-2">
               <Label htmlFor="discount">{t('payments.discount.label')}</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CurrencyMark currency={formData.currency} />
                 <Input
                   id="discount"
                   type="number"
@@ -618,7 +693,7 @@ export function AddPaymentDialog({
                       ? t('payments.discount.seasonPlaceholder', { percent: discountPercent })
                       : t('payments.discount.placeholder')
                   }
-                  className="pl-9"
+                  className="pl-12"
                 />
               </div>
               {(() => {
@@ -632,8 +707,8 @@ export function AddPaymentDialog({
                 return (
                   <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
                     {t('payments.discount.due', {
-                      discount: formatPlanAmount(priced.discount, formData.currency),
-                      due: formatPlanAmount(priced.amount, formData.currency),
+                      discount: formatAmount(priced.discount, formData.currency),
+                      due: formatAmount(priced.amount, formData.currency),
                     })}
                   </p>
                 );
@@ -641,20 +716,42 @@ export function AddPaymentDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="paidAmount">Paid Amount</Label>
+              <Label htmlFor="paidAmount">{t('payments.fx.paidAmount')}</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CurrencyMark currency={formData.paidCurrency} />
                 <Input
                   id="paidAmount"
                   type="number"
                   value={formData.paidAmount}
                   onChange={(e) => setFormData({ ...formData, paidAmount: e.target.value })}
-                  placeholder="Enter if paid now"
-                  className="pl-9"
+                  placeholder={t('payments.fx.paidPlaceholder')}
+                  className="pl-12"
                 />
               </div>
             </div>
           </div>
+
+          <PaidCurrencyFields
+            accountCurrency={formData.currency}
+            paidCurrency={formData.paidCurrency}
+            onPaidCurrencyChange={(value) => setFormData(prev => ({ ...prev, paidCurrency: value }))}
+            rate={formData.rate}
+            onRateChange={(value) => setFormData(prev => ({ ...prev, rate: value }))}
+            paid={Number(formData.paidAmount) || 0}
+          />
+
+          {(() => {
+            const due = applyDiscount(Number(formData.amount), Number(formData.discount), discountPercent).amount;
+            if (!overpaidByFar(countedPaid ?? 0, due)) return null;
+            return (
+              <p className="text-xs font-medium text-destructive">
+                {t('payments.fx.overpaid', {
+                  paid: formatAmount(countedPaid ?? 0, formData.currency),
+                  due: formatAmount(due, formData.currency),
+                })}
+              </p>
+            );
+          })()}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -682,14 +779,14 @@ export function AddPaymentDialog({
             <div className="space-y-2">
               <Label htmlFor="gatewayFee">Gateway Fee</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CurrencyMark currency={formData.currency} />
                 <Input
                   id="gatewayFee"
                   type="number"
                   value={formData.gatewayFee}
                   onChange={(e) => setFormData({ ...formData, gatewayFee: e.target.value })}
-                  placeholder="30,000"
-                  className="pl-9"
+                  placeholder="0"
+                  className="pl-12"
                 />
               </div>
             </div>
@@ -713,11 +810,11 @@ export function AddPaymentDialog({
           </div>
 
           {/* Net Income Preview */}
-          {formData.paidAmount && Number(formData.paidAmount) > 0 && (
+          {countedPaid !== null && countedPaid > 0 && (
             <div className="bg-success/20 rounded-lg p-3">
               <p className="text-sm text-muted-foreground">Net Income (You Will Receive):</p>
               <p className="text-xl font-bold text-success">
-                {netIncome.toLocaleString()} {formData.currency}
+                {formatAmount(netIncome, formData.currency)}
               </p>
             </div>
           )}

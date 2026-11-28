@@ -1620,6 +1620,20 @@
       "due": "Chegirma: {{discount}} → to'lanadi: {{due}}",
       "tooBig": "Chegirma narxdan kichik bo'lishi kerak",
       "editHint": "Chegirmani yozsangiz, jami summa narxdan shuncha kamayadi"
+    },
+    "fx": {
+      "accountCurrency": "Shartnoma valyutasi",
+      "paidAmount": "To'langan summa",
+      "paidPlaceholder": "Hozir to'lagan bo'lsa kiriting",
+      "paidIn": "Pul qaysi valyutada keldi",
+      "rate": "Kurs: 1$ = ? so'm",
+      "rateMissing": "Kursni kiriting (1$ necha so'm)",
+      "rateOdd": "Kurs noto'g'ri ko'rinadi: 1$ uchun so'm miqdorini yozing (masalan 12 500)",
+      "counted": "{{paid}} → qarzdan {{counted}} ayiriladi",
+      "overpaid": "To'langan summa ({{paid}}) qarzdan ({{due}}) ancha katta. Valyuta to'g'rimi? So'mda to'lagan bo'lsa, «Pul qaysi valyutada keldi»ni UZS qilib kursni yozing.",
+      "tooSmallForUzs": "So'mda bu juda kichik summa. Narx dollarda bo'lsa, valyutani USD qiling.",
+      "tooBigForUsd": "Dollarda bu juda katta summa. Narx so'mda bo'lsa, valyutani UZS qiling.",
+      "mismatch": "Bu to'lov hisobi {{account}} da, siz {{typed}} kiritdingiz. Talaba kartasidagi «Bo'lak qo'shish» orqali kurs bilan kiriting."
     }
   },
   "tasks": {
